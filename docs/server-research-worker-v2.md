@@ -561,3 +561,43 @@ The systemd path unit is an event consumer, not an additional schedule.
 - the systemd heartbeat timer is disabled after cloud cutover;
 - no source timer exists; source and intake are event-driven path units;
 - the single web Ops schedule runs with the local computer off.
+
+## Prepared same-chat Coach delivery V7
+
+The deployed and canonical contract remains `CURRENT_ACTIVE_V6`. The repository
+contains lifecycle-neutral frozen document `CLOUD_OPS_SCHEDULE_V7` with
+`document_status=FROZEN` and exact SHA-256
+`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
+Its repository rollout state is externally `PREPARED_NOT_ACTIVE_V7`; canonical
+activation is separately proven and never requires editing the frozen V7 bytes.
+The Worker must reject V7 attestation until a separately reviewed implementation
+and deployment make canonical status report that exact V7 id and hash. This
+repository preparation does not modify the MCP or queue implementation.
+
+V7 retains the V6 Research MCP operation set and all server-side outbox state:
+artifact SHA-256 delivery id, exact token prefix, maximum eight five-field
+receipts, two verified receipt statuses, idempotent replay, pending-to-delivered
+transition, immutable queue/deadline timestamps, integer lead time, and the
+10,800-second canonical `PASS`/`BREACH` calculation. No new ACK operation,
+writer, timer, messenger, paid API, or user step is introduced.
+
+The prepared delivery proof is same-chat and two-turn causal. Turn N scans only
+prior assistant messages in the bound Coach chat, reads fresh canonical status,
+includes receipts only for matching prior tokens whose ids remain pending,
+runs at most the normally due heartbeat, re-reads status, and renders each
+still-pending token absent from prior assistant context exactly once. Current
+assistant output cannot prove a receipt in that turn. Turn N+1 may acknowledge
+only when its prior assistant context contains the exact full token and fresh
+canonical status still shows the same id pending. Missing, summarized,
+truncated, altered, user-quoted, Scheduled-inbox-only, notification-only, or
+inferred context produces no receipt and leaves the event pending without
+resetting its clock.
+
+Cutover never permits two active schedules. An in-place destination change is
+eligible only with platform proof of atomic retargeting and one active schedule.
+Otherwise V6 is paused and proven inactive before V7 activation; rollback
+pauses and proves V7 inactive before V6 resumes. Server attestation code,
+deployment, platform binding, active-schedule readback, prior-context access,
+Turn-N render, Turn-N+1 receipt acceptance, deduplication and live SLA outcome
+remain `MISSING_PROOF`. The current pending event keeps its original deadline
+and may correctly seal `BREACH`.

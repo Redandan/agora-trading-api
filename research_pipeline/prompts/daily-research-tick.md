@@ -4,7 +4,11 @@ heartbeat or write a local evidence review after server migration. The server
 Research Worker owns the single deterministic heartbeat and canonical state;
 routine `WAITING_FOR_EVIDENCE` remains silent.
 
-Read `get_research_status` first. Call `request_research_heartbeat` only when
+When and only when this prompt is running as the prepared V7 same-Coach-chat
+schedule, scan prior assistant messages in this same Coach chat for exact full
+delivery tokens before the first MCP operation. Do not inspect another task.
+Then read `get_research_status` as the first operation. Call
+`request_research_heartbeat` only when
 canonical `next_due` has arrived; early calls must remain `NOT_DUE`, and
 concurrent calls must converge. Poll `get_research_run` briefly after a queued
 request, otherwise inspect the durable result on the next cloud cycle. Do not
@@ -19,8 +23,18 @@ dirty provenance is an operational alert; do not enqueue a heartbeat or submit
 a candidate until a clean release is deployed.
 
 Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
-Continue only when canonical `ops_schedule_contract.status=READY`,
-`contract_id=CLOUD_OPS_SCHEDULE_V6`, `schedule_count=1`,
+This repository contains lifecycle-neutral frozen document
+`CLOUD_OPS_SCHEDULE_V7` with `document_status=FROZEN` and exact SHA-256
+`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
+Its external repository rollout state is `PREPARED_NOT_ACTIVE_V7`; activation
+is separately proven outside the immutable document and never edits its bytes.
+Before activation, if
+canonical status still reports `CLOUD_OPS_SCHEDULE_V6`, stop before every V7
+write call; do not attest V7, fall back to the V6 hash, or infer cutover.
+
+After separately proven external V7 activation, continue only when canonical
+`ops_schedule_contract.status=READY`, `contract_id=CLOUD_OPS_SCHEDULE_V7`,
+`schedule_count=1`,
 `timer_authority=CODEX_CLOUD_OPS_ONLY`,
 `recurrence.timezone=Asia/Taipei`, `recurrence.local_time=09:05`,
 `recurrence.end=NEVER`,
@@ -29,13 +43,13 @@ Continue only when canonical `ops_schedule_contract.status=READY`,
 `dispatch_margin.scheduled_seconds_after_canonical_due=300`,
 `dispatch_margin.early_call_behavior=NOT_DUE`,
 `dispatch_margin.additional_timer=DENY`, and
-`sha256=d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85`.
+`sha256=426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
 Pass that exact hash as `ops_schedule_contract_sha256` on every
 `request_research_heartbeat` and `submit_research_candidate_bundle` call.
 Missing, invalid, or mismatched contract/attestation is an operational alert;
 fail closed without queueing either operation.
 
-V6 intentionally places the one cloud recurrence five minutes after the
+V7 preserves the V6 placement of the one cloud recurrence five minutes after the
 unchanged 09:00 canonical heartbeat due boundary so a small platform early-fire
 jitter cannot skip the only daily cycle. This margin never authorizes an early
 heartbeat: always compare canonical `next_due`, preserve `NOT_DUE`, and never
@@ -139,34 +153,25 @@ seconds and the eventual `PASS` or `BREACH` lead time. Treat
 `MISSING_PROOF_LEGACY_EVENT` or `MISSING_PROOF_LEGACY_RECEIPT` as missing proof;
 never infer timing from chat history.
 
-Require `coach_outbox.delivery_contract.status=READY` and
-`contract_id=SEALED_COACH_THREAD_DELIVERY_V3`. Require its canonical
+Require `coach_outbox.delivery_contract.status=READY` and, only after V7 is
+canonically active, the prepared same-chat contract
+`SEALED_COACH_SAME_CHAT_DELIVERY_V1`. Require its canonical
 `delivery_proof_sla.completion_window_seconds=10800` and never substitute a
 chat-side clock. For each event, copy the exact
 canonical `delivery_prompt`; do not reconstruct it from chat or edit its JSON.
-Use `list_threads` to resolve the exact Coach task and its current host id, then
-use `read_thread` before sending. If the exact `delivery_token` is already in
-that task, do not resend it and report
-`delivery_status=ALREADY_DELIVERED_TO_COACH_TASK`.
+Do not call `list_threads`, `read_thread`, or `send_message_to_thread`.
 
-If the token is absent, call `send_message_to_thread` once with the exact target
-task id, resolved host id, and canonical `delivery_prompt`. Then call
-`read_thread` once more. Claim
-`delivery_status=DELIVERED_TO_COACH_TASK_VERIFIED` only when the exact token is
-visible in the target task after the successful send. If the send succeeds but
-readback is unavailable, report
-`delivery_status=QUEUED_TO_COACH_TASK_UNVERIFIED`; do not send again in the same
-cycle. If the task, tool, or host is unavailable before sending, return the
-complete handoff in the scheduled result with
-`delivery_status=CROSS_TASK_DELIVERY_PENDING`. Never describe Scheduled,
-Activity, push/email/SMS, same-chat output, or manual copying as Coach-task
-delivery. On a later cycle, retry only when `read_thread` still proves that the
-delivery token is absent. Canonical acknowledgement is allowed only through a
-verified receipt on the next due heartbeat; thread readback plus the sealed
-artifact hash are the deduplication evidence. Do not ask the Coach or sponsor to
-operate research or alter frozen gates.
+At turn start, use only prior assistant messages in this same Coach chat. A
+receipt candidate requires the exact complete token
+`SEALED_RESEARCH_DELIVERY:<64 lowercase hex delivery id>` in a prior assistant
+message. After the first fresh canonical status read, retain that candidate
+only when the identical delivery id is still pending. Missing, summarized,
+truncated, altered, user-quoted, Scheduled-inbox-only, notification-only, or
+inferred token context is not proof and creates no receipt. A token rendered in
+the current assistant turn is never receipt proof for that same turn.
 
-For every event whose exact token is proven by preflight or post-send readback,
+For every event whose exact token is proven by prior assistant context and
+fresh canonical pending state,
 build one exact receipt object with only `schema_version=1`, `delivery_id`,
 `delivery_token`, `target_thread_id`, and `delivery_status`. The only permitted
 receipt statuses are `DELIVERED_TO_COACH_TASK_VERIFIED` and
@@ -179,3 +184,13 @@ the heartbeat completes, read canonical status again and deliver any newly
 created pending events in the same cloud cycle. Their receipts wait for the
 next due heartbeat. The server must match each receipt to a pending or already
 acknowledged delivery id before mutating either queue.
+
+After the normally due heartbeat completes, read canonical status again. For
+each still-pending event whose token was absent from prior assistant messages,
+render the exact canonical `delivery_prompt` once as the current assistant
+output. Do not attach a receipt for that render. If prior context is unavailable,
+keep the event pending and rerender at most once in this turn. Never reset
+`delivery_queued_at` or `delivery_deadline_at`, add a timer/poller/messenger, or
+ask the Coach or sponsor to operate delivery. A later normally due turn may
+acknowledge only after its own fresh status read proves the same id is still
+pending and its prior assistant context contains the exact full token.

@@ -383,3 +383,43 @@ plausible or already rejected overlay. Start it only after an evidence-bound
 experiment passes its preregistered Design and Validation gates to
 `CANDIDATE_FROZEN`, while sealed OOS remains unopened, and only when the overlay
 exercises material lot-management semantics absent from Phase B.
+
+## Prepared same-chat Coach delivery V7
+
+`CLOUD_OPS_SCHEDULE_V6` remains `CURRENT_ACTIVE_V6`. The repository also
+contains lifecycle-neutral frozen document `CLOUD_OPS_SCHEDULE_V7` with
+`document_status=FROZEN` and exact SHA-256
+`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
+Its repository rollout state is externally `PREPARED_NOT_ACTIVE_V7`.
+Repository preparation does not activate V7, change the current schedule, or
+authorize its hash on a write call while canonical status still reports V6.
+Canonical activation is a separately proven external state and never requires
+editing the frozen V7 bytes.
+
+V7 preserves one daily `09:05 Asia/Taipei` cloud clock, the `09:00` canonical
+due boundary, 300-second margin, Server Canonical as sole writer, the durable
+artifact-hash outbox, five-field receipt, verified status vocabulary,
+idempotency, immutable queue/deadline timestamps, and the 10,800-second
+`PASS`/`BREACH` basis. It changes only delivery proof: the scheduled task is
+bound to the existing Coach chat and requires no cross-task list, read, or send
+operation.
+
+At the start of Turn N, only prior assistant messages in that Coach chat may be
+scanned for exact full delivery tokens. Fresh canonical status must still show
+the identical id pending before a receipt may be included in the normally due
+heartbeat. A newly pending event is rendered once as the exact canonical prompt
+in the current assistant output and cannot be acknowledged in Turn N. Turn
+N+1 may acknowledge it only when the exact token is present in prior assistant
+context and fresh canonical status still shows it pending. User quotations,
+summaries, truncation, alteration, Scheduled inbox, notifications, and inferred
+context are never proof. Context loss leaves the event pending and permits at
+most one exact rerender in that turn without resetting its clock.
+
+Server V7 attestation implementation, Worker deployment, platform same-chat
+binding, exact one-active-schedule readback, unattended prior-context access,
+Turn-N render, Turn-N+1 receipt acceptance, deduplication, and the live SLA
+outcome remain `MISSING_PROOF`. Cutover may use an in-place destination update
+only after atomic one-schedule behavior is proven. Otherwise V6 must be paused
+and proven inactive before V7 can become active; rollback pauses and proves V7
+inactive before V6 resumes. The current pending event keeps its original
+deadline and may honestly end in `BREACH`.

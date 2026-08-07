@@ -276,3 +276,34 @@ database query, or backfill.
 - the Research Worker has no Trading secrets or writable Production mounts;
 - `agora-research-heartbeat.timer` remains disabled and the path unit remains
   an event consumer only.
+
+## Prepared same-chat delivery successor
+
+The direct cross-task path remains `CURRENT_ACTIVE_V6`. The versioned successor
+is lifecycle-neutral frozen document `CLOUD_OPS_SCHEDULE_V7` with
+`document_status=FROZEN` and exact SHA-256
+`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
+Its repository rollout state is externally `PREPARED_NOT_ACTIVE_V7`; it cannot
+be attested or used while canonical status still reports V6. Canonical
+activation is separately proven outside the document and never edits V7 bytes.
+
+V7 is designed to return the sole scheduled run to the existing Coach chat and
+reuse only that chat's prior assistant context. Turn N reads fresh canonical
+status and renders each still-pending exact canonical delivery prompt whose
+token was absent from prior assistant messages; it sends no receipt for its own
+new output. Turn N+1 may include the unchanged five-field receipt only when the
+complete token is present in a prior assistant message and the identical id
+remains pending in fresh canonical status. Missing, summarized, truncated,
+altered, user-quoted, Scheduled-inbox-only, notification-only, or inferred
+context keeps the event pending and permits at most one exact rerender that
+turn. Queue/deadline timestamps never reset.
+
+This preserves one clock, Server Canonical, hash deduplication, next-normal-
+heartbeat acknowledgement, and the 10,800-second `PASS`/`BREACH` measure while
+removing the cross-task tool dependency from the prepared design. It has zero
+immediate PnL and drawdown effect. Server attestation implementation, Worker
+deployment, same-chat binding, one-active-schedule readback, unattended context
+visibility, Turn-N render, Turn-N+1 receipt acceptance, live deduplication,
+SLA result, and any quantified learning-latency benefit remain `MISSING_PROOF`.
+The current pending event retains its existing deadline and is not promised a
+`PASS`.

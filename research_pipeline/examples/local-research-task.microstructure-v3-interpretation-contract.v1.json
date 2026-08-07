@@ -1,0 +1,125 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-interpretation-contract-v1",
+  "issued_at": "2026-08-07T03:29:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement the smallest deterministic pre-outcome interpretation contract for the frozen OKX BTC-USDT microstructure V3 handoff result. The implementation must validate the existing handoff result with its HandoffContext, apply one fixed 60-minute primary and 15-minute confirmatory directional screen, choose at most one tier through a simplest-sufficient hierarchy, and return a sealed schema-valid interpretation whose only positive disposition is readiness for one separately frozen hypothesis-design task. It must not read real evidence, change the analyzer, create a candidate, infer DRA compatibility, or claim PnL, drawdown, fees, slippage, capacity, statistical significance, or OOS value.",
+  "canonical_research_status": "WAITING_FOR_MICROSTRUCTURE_V3_START_AND_14_DAY_HANDOFF",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-preoutcome-screen-audit.v1.json",
+      "sha256": "ca1955a397a2832753deb3ac4420b879fdafdcf2271f0361e94a47245ea69a24"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+      "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_diagnostic.py",
+      "sha256": "f8227dda823a1bd276353f3d9c8cfd0a57e3aa2f087c4a2a4bc2576997314d82"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff.py",
+      "sha256": "eda4e965a0e91636d19e62902488f57db900d4b37c61a058d54879b84b350865"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-handoff-result.v1.schema.json",
+      "sha256": "11efb602cc8365034ea5128f9b76fa53c24d1480ab075dfec115ea1b7ac385f9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff_runner.py",
+      "sha256": "897ab23abde5ccf2976697d1101ad0bd8cbd03c083a9038ece196a585d9e06be"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T03:18:07Z; sole CLOUD_OPS_SCHEDULE_V6; microstructure diagnostic PRE_START/WAITING_FOR_DAY; start 2026-08-08; accepted 0/14; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The validated Local audit completed with task SHA ca1955a397a2832753deb3ac4420b879fdafdcf2271f0361e94a47245ea69a24 and recommended a directional-discovery-only freeze: primary 60m, confirmatory 15m, positive when median return >0, positive share >50%, and matched median return delta >0 at both horizons; negative when all three are <= their boundaries at both horizons; otherwise ambiguous. Manager fixes the selection order to simplest sufficient: ratio-only, then ratio plus net taker buy, then ratio plus net taker buy plus book support.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_INPUT_HASHES",
+    "ADD_INTERPRETATION_CONTRACT",
+    "ADD_INTERPRETATION_RESULT_SCHEMA",
+    "ADD_PURE_INTERPRETER",
+    "ADD_FOCUSED_INTERPRETER_TESTS",
+    "ADD_INTERPRETATION_DOCUMENTATION",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_PYTHON_COMPILE_CHECK",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_RESULT_SCHEMA"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "DIAGNOSTIC_ANALYZER_OR_THRESHOLD_CHANGE",
+    "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+    "EXISTING_FILE_EDIT",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "INTERPRETATION_RESULT_FILE_WRITE",
+    "JAVA_MAVEN_OR_SPRING_EXECUTION"
+  ],
+  "expected_outputs": [
+    "EXACT_FIVE_FILE_CHANGESET",
+    "VERSIONED_INTERPRETATION_CONTRACT",
+    "CLOSED_INTERPRETATION_RESULT_SCHEMA",
+    "HANDOFF_VALIDATING_PURE_INTERPRETER",
+    "SIMPLEST_SUFFICIENT_SINGLE_TIER_RULE",
+    "FOUR_TERMINAL_DISPOSITIONS",
+    "CANONICAL_SEALED_RESULT",
+    "FOCUSED_OFFLINE_TEST_EVIDENCE",
+    "MISSING_PROOF_BOUNDARIES",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null input SHA-256 before editing. Any drift is BLOCKED and MISSING_PROOF.",
+    "Create exactly five new files and change no existing byte: research_pipeline/okx-microstructure-forward-interpretation-contract.v1.json, research_pipeline/microstructure-interpretation-result.v1.schema.json, research_pipeline/microstructure_interpretation.py, research_pipeline/tests/test_microstructure_interpretation.py, and docs/okx-microstructure-forward-interpretation-v1.md.",
+    "Freeze contract id OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_V1, source diagnostic contract id/SHA, handoff result contract identity, primary horizon 60, confirmatory horizon 15, descriptive-only horizons 5/240/1440, and the exact research-only authority.",
+    "Interpret only bytes that first pass validate_handoff_result_bytes with a caller-supplied HandoffContext. Do not accept a bare diagnostic object, caller-selected tier/horizon/threshold, alternate contract path, or unvalidated result.",
+    "Global eligibility requires diagnostic status FORWARD_DIAGNOSTIC_READY_FOR_INTERPRETATION, NEXT_COMPLETE_MINUTE_OPEN, NOT_APPLIED_DIAGNOSTIC_NOT_PNL, every tier gate_status PASS, and all four readiness booleans true. Missing/null/nonconforming input fails closed; an otherwise valid insufficient result maps only to INSUFFICIENT_FORWARD_EVIDENCE.",
+    "At each of 15m and 60m, classify POSITIVE only when median_return_bps>0, positive_return_share_pct>50.00, and matched_median_return_delta_bps>0; classify NEGATIVE only when all three are <= those boundaries; otherwise classify MIXED. A tier PASS requires both horizons POSITIVE, REJECT requires both NEGATIVE, otherwise AMBIGUOUS.",
+    "Evaluate tiers once in simplest-sufficient order MIDLINE_RATIO_1_5_ONLY, MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY, MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT. Select the first PASS and expose no other eligible mechanism. Do not rank by observed magnitude or prefer a more complex passing tier.",
+    "Return READY_FOR_ONE_HYPOTHESIS_DESIGN when one tier is selected; NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE only when all three tiers REJECT; AMBIGUOUS_NO_HYPOTHESIS when no tier passes and at least one is AMBIGUOUS; INSUFFICIENT_FORWARD_EVIDENCE when global eligibility is incomplete. No fifth scientific disposition is allowed.",
+    "The interpreter must return canonical compact sorted UTF-8 bytes with a SHA-256 payload seal and exact source handoff/diagnostic/interpretation contract hashes. It must perform no filesystem write, network, subprocess, environment lookup, clock read, server call, or state mutation.",
+    "The result and documentation must state that positive status authorizes only one separately frozen hypothesis-design task. Statistical significance, raw-message producer correctness, DRA clock/feature compatibility, fees, slippage, fills, capacity, PnL, drawdown, utilization, holding risk, candidate, OOS, and activation remain MISSING_PROOF.",
+    "Focused tests must cover exact contract/schema hashes and identities, valid handoff validation, each metric boundary, both horizons, all four dispositions, simplest-sufficient selection with multiple passes, a stricter-only pass, null/mixed metrics, invalid handoff seal/context, canonical seal/idempotent bytes, no input mutation, and descriptive horizons having no decision effect.",
+    "Do not execute the production fixed-root runner or read any real future package/result. Tests may use only synthetic or existing deterministic fixtures in temporary directories.",
+    "Run exact task validation, python -m unittest research_pipeline.tests.test_microstructure_interpretation, py_compile for the two Python files, and git diff --check. Return one schema-valid local-research-result JSON with exactly five files_changed/artifacts and all safety assertions false. Do not stage, commit, or push."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 5,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

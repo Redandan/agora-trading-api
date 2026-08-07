@@ -4,6 +4,7 @@ param(
     [string]$ReleaseId = ([DateTimeOffset]::UtcNow.ToString("yyyyMMddTHHmmssZ")),
     [string]$MicrostructureForwardStartDay = $env:AGORA_MICROSTRUCTURE_FORWARD_START_DAY,
     [string]$MicrostructureDiagnosticId = $env:AGORA_MICROSTRUCTURE_DIAGNOSTIC_ID,
+    [switch]$PreserveBoundDataPlane,
     [switch]$PackageOnly
 )
 
@@ -41,6 +42,12 @@ if ($bindingRequested) {
     if ($MicrostructureDiagnosticId -notmatch "^[a-z0-9][a-z0-9-]{2,79}$") {
         throw "MicrostructureDiagnosticId is invalid."
     }
+}
+if ($PreserveBoundDataPlane -and $bindingRequested) {
+    throw "PreserveBoundDataPlane rejects binding creation or replacement parameters."
+}
+if ($PreserveBoundDataPlane -and $PackageOnly) {
+    throw "PreserveBoundDataPlane is an explicit installation mode, not a package-only mode."
 }
 
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
@@ -318,10 +325,28 @@ try {
 set -euo pipefail
 cd '$stage'
 tar -xzf source.tar.gz -C source
-STAGING_DIR='$stage' RELEASE_ID='$ReleaseId' SOURCE_GIT_COMMIT='$gitCommit' SOURCE_GIT_BRANCH='$gitBranch' SOURCE_GIT_DIRTY='$gitDirty'$(if ($bindingRequested) { " MICROSTRUCTURE_FORWARD_START_DAY='$MicrostructureForwardStartDay' MICROSTRUCTURE_DIAGNOSTIC_ID='$MicrostructureDiagnosticId'" }) bash source/scripts/research-worker/install-upgrade.sh
+preserve_mode='$(if ($PreserveBoundDataPlane) { "1" } else { "0" })'
+expected_data_release='$ReleaseId'
+expected_source='disabled'
+expected_intake_preflight='0'
+if [ "`$preserve_mode" = 1 ]; then
+  [ -L /opt/agora-research-worker/current ] || { echo 'data-current symlink missing' >&2; exit 1; }
+  data_current="`$(readlink -f /opt/agora-research-worker/current)"
+  case "`$data_current" in /opt/agora-research-worker/releases/*) ;; *) echo 'data-current escaped immutable releases' >&2; exit 1 ;; esac
+  expected_data_release="`${data_current##*/}"
+  source_state="`$(systemctl is-active agora-research-microstructure-source.service 2>/dev/null || true)"
+  case "`$source_state" in
+    active) expected_source='active'; expected_intake_preflight='1' ;;
+    inactive) expected_source='disabled' ;;
+    *) echo 'microstructure source has an unsupported pre-install state' >&2; exit 1 ;;
+  esac
+fi
+STAGING_DIR='$stage' RELEASE_ID='$ReleaseId' SOURCE_GIT_COMMIT='$gitCommit' SOURCE_GIT_BRANCH='$gitBranch' SOURCE_GIT_DIRTY='$gitDirty' PRESERVE_BOUND_DATA_PLANE="`$preserve_mode"$(if ($bindingRequested) { " MICROSTRUCTURE_FORWARD_START_DAY='$MicrostructureForwardStartDay' MICROSTRUCTURE_DIAGNOSTIC_ID='$MicrostructureDiagnosticId'" }) bash source/scripts/research-worker/install-upgrade.sh
+EXPECTED_CONTROL_RELEASE_ID='$ReleaseId' EXPECTED_DATA_RELEASE_ID="`$expected_data_release" EXPECT_MICROSTRUCTURE_SOURCE="`$expected_source" MICROSTRUCTURE_INTAKE_PREFLIGHT="`$expected_intake_preflight" bash /opt/agora-research-worker/control-current/scripts/research-worker/verify-worker.sh
 rm -f -- source.tar.gz source.sha256
 rm -rf -- source
-printf 'RESEARCH_WORKER_RELEASE=%s\n' '$ReleaseId'
+printf 'RESEARCH_WORKER_CONTROL_RELEASE=%s\n' '$ReleaseId'
+printf 'RESEARCH_WORKER_DATA_RELEASE=%s\n' "`$expected_data_release"
 printf 'SOURCE_GIT_COMMIT=%s\n' '$gitCommit'
 printf 'SOURCE_GIT_DIRTY=%s\n' '$gitDirty'
 "@

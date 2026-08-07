@@ -239,6 +239,68 @@ are bounded; ordinary nonzero exits are sealed as `FAILED`, while the older
 lease-based `STALE_RECOVERED` path remains the final fail-closed fallback. This
 is event recovery, not a second research clock or timer.
 
+## Immutable dual release lanes
+
+Research Worker upgrades use exactly two fixed symlinks beneath
+`/opt/agora-research-worker`:
+
+- `control-current` is the only release used by the OAuth MCP, request dispatch,
+  and heartbeat services. Their documentation, working directory, policy,
+  launcher, and explicit application directory all resolve through this lane.
+- `current` remains the only release used by the public candle source and
+  ingest plus the continuous microstructure source and intake. Those units
+  never reference `control-current`.
+
+An ordinary inactive-source installation atomically points both symlinks at the
+new immutable release. It retains the default fail-closed rejection of an
+active or failed microstructure source. The deployment wrapper exposes one
+explicit `-PreserveBoundDataPlane` switch for the separate case in which an
+already-bound forward data plane must remain uninterrupted. The switch passes
+only the fixed installer attestation `PRESERVE_BOUND_DATA_PLANE=1`; it is never
+inferred from service state or an environment default, rejects binding creation
+parameters, and is unavailable in package-only mode.
+
+Before preserve mode creates a new release or changes a link, it requires the
+source unit to be disabled and not failed, resolves `current` inside the
+immutable releases root, and proves that the canonical V3 binding, installed
+manifest and provenance, and unique V3 state all agree on the bound release.
+It seals the literal and resolved data link, binding and state bytes plus
+SHA-256, bound manifest and provenance hashes, active/inactive state, nonzero
+MainPID when active, and fixed unit properties. Preserve mode installs only the
+three control service units, atomically switches only `control-current`, and
+restarts only the control MCP. It never relinks or changes `current`, installs a
+data-plane unit, prepares a binding, changes data directories, touches sealed
+state/evidence, or stops, starts, signals, enables, disables, reloads, or clears
+the microstructure source.
+
+After the control restart, the installer requires every sealed data-plane byte,
+hash, link, source state, MainPID, and unit property to remain identical and
+requires `control-current` to resolve to the new release. The deployment wrapper
+then runs the installed verifier with exact expected control and data release
+ids, the observed source-state expectation, and explicit intake preflight when
+the source is active. Release provenance is printed only after that verifier
+succeeds. The verifier independently validates both symlinks beneath the
+immutable release root, checks Worker policy/provenance against
+`control-current`, checks binding/distribution/intake/source evidence against
+`current`, and proves the control/data unit paths are disjoint.
+
+The canonical data root is fixed at `agora-research:agora-evidence 0710`.
+This grants the unprivileged public-source identity traversal only; canonical
+state and control directories keep their narrower ownership and modes. Ordinary
+inactive-source installation may normalize this root metadata. Preserve mode
+must verify the exact metadata and source traversal before creating a release,
+and must fail closed without changing it when the invariant is absent.
+An inactive-source installation still requires a strictly future V3 start day.
+Once preserve mode has independently proved that the bound source is active,
+verification accepts the immutable binding after that start day so later
+control-only upgrades do not require restarting or rebinding the data plane.
+
+`-PackageOnly` remains the clean-commit, offline, no-host/no-key closure gate and
+does not exercise preserve mode. Real installation, unchanged live PID,
+heartbeat recovery, forward candle completion, microstructure day acceptance,
+and any strategy or economic result remain separate `MISSING_PROOF` gates.
+This dual-lane preparation does not authorize deployment or another timer.
+
 ## Continuous microstructure producer preparation
 
 The continuous OKX microstructure producer is packaged as a separate,

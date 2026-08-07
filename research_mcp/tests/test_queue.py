@@ -946,7 +946,6 @@ class DurableQueueContractTest(unittest.TestCase):
             "capture_deadline": "2026-08-07T06:00:00Z",
         }
         source = {
-            "request_id": request_id,
             "request": request,
             "status": "COMPLETED",
             "completed_at": "2026-08-07T01:00:10Z",
@@ -1099,6 +1098,19 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(stalled["status"], "EVIDENCE_INGEST_DISPATCH_STALLED")
         self.assertTrue(stalled["integrity_blocking"])
         self.assertEqual(stalled["dispatch_age_seconds"], 120)
+
+        mismatched_identity = queue._capture_health_summary(
+            now=current,
+            source_active=None,
+            ingest_pending=None,
+            source_latest={**completed_source, "request_id": "a" * 32},
+            ingest_latest=None,
+        )
+        self.assertEqual(mismatched_identity["status"], "INTEGRITY_BLOCKED")
+        self.assertEqual(
+            mismatched_identity["reason"],
+            "latest source capture request id is invalid",
+        )
 
         invalid = queue._capture_health_summary(
             now=current,

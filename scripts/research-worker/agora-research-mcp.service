@@ -1,6 +1,6 @@
 [Unit]
 Description=OAuth-protected Agora autonomous research MCP
-Documentation=file:/opt/agora-research-worker/current/docs/server-research-worker-v2.md
+Documentation=file:/opt/agora-research-worker/control-current/docs/server-research-worker-v2.md
 After=network.target
 
 [Service]
@@ -8,17 +8,17 @@ Type=simple
 User=agora-research
 Group=agora-research
 SupplementaryGroups=agora-evidence
-WorkingDirectory=/opt/agora-research-worker/current
+WorkingDirectory=/opt/agora-research-worker/control-current
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
-Environment=AGORA_RESEARCH_APP_DIR=/opt/agora-research-worker/current
+Environment=AGORA_RESEARCH_APP_DIR=/opt/agora-research-worker/control-current
 Environment=AGORA_RESEARCH_STATE_DIR=/var/lib/agora-research/state
 Environment=AGORA_RESEARCH_INBOX_DIR=/var/lib/agora-research/inbox
 Environment=AGORA_RESEARCH_REQUEST_DIR=/var/lib/agora-research/requests
 Environment=AGORA_RESEARCH_SOURCE_REQUEST_DIR=/var/lib/agora-research/source-requests
 Environment=AGORA_RESEARCH_SOURCE_DROP_DIR=/var/lib/agora-research/source-drop
 Environment=AGORA_RESEARCH_AUTH_DIR=/var/lib/agora-research/auth
-Environment=AGORA_RESEARCH_POLICY_FILE=/opt/agora-research-worker/current/research_pipeline/policy.v3.json
+Environment=AGORA_RESEARCH_POLICY_FILE=/opt/agora-research-worker/control-current/research_pipeline/policy.v3.json
 Environment=AGORA_RESEARCH_MCP_ISSUER=https://agoratradingapi.purrtechllc.com
 Environment=AGORA_RESEARCH_MCP_RESOURCE=https://agoratradingapi.purrtechllc.com/research/mcp
 ExecStart=/opt/agora-research-worker/venv/bin/uvicorn research_mcp.server:app --host 127.0.0.1 --port 8092 --no-server-header --no-date-header

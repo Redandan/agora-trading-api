@@ -1,6 +1,6 @@
 [Unit]
 Description=Run one queued fixed Agora research-control operation
-Documentation=file:/opt/agora-research-worker/current/docs/server-research-worker-v2.md
+Documentation=file:/opt/agora-research-worker/control-current/docs/server-research-worker-v2.md
 After=local-fs.target
 StartLimitIntervalSec=8h
 StartLimitBurst=3
@@ -9,14 +9,15 @@ StartLimitBurst=3
 Type=oneshot
 User=agora-research
 Group=agora-research
-WorkingDirectory=/opt/agora-research-worker/current
+WorkingDirectory=/opt/agora-research-worker/control-current
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
 Environment=AGORA_RESEARCH_STATE_DIR=/var/lib/agora-research/state
 Environment=AGORA_RESEARCH_INBOX_DIR=/var/lib/agora-research/inbox
 Environment=AGORA_RESEARCH_REQUEST_DIR=/var/lib/agora-research/requests
-Environment=AGORA_RESEARCH_POLICY_FILE=/opt/agora-research-worker/current/research_pipeline/policy.v3.json
-ExecStart=/opt/agora-research-worker/current/scripts/research-worker/run-request.sh
+Environment=AGORA_RESEARCH_POLICY_FILE=/opt/agora-research-worker/control-current/research_pipeline/policy.v3.json
+Environment=APP_DIR=/opt/agora-research-worker/control-current
+ExecStart=/opt/agora-research-worker/control-current/scripts/research-worker/run-request.sh
 RuntimeDirectory=agora-research
 RuntimeDirectoryMode=0700
 UMask=0077

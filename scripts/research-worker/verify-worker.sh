@@ -11,6 +11,8 @@ RUN_HEARTBEAT="${RUN_HEARTBEAT:-0}"
 RUN_SOURCE_PROBE="${RUN_SOURCE_PROBE:-0}"
 EXPECT_MICROSTRUCTURE_SOURCE="${EXPECT_MICROSTRUCTURE_SOURCE:-disabled}"
 MICROSTRUCTURE_INTAKE_PREFLIGHT="${MICROSTRUCTURE_INTAKE_PREFLIGHT:-0}"
+EXPECTED_CONTROL_RELEASE_ID="${EXPECTED_CONTROL_RELEASE_ID:?EXPECTED_CONTROL_RELEASE_ID is required}"
+EXPECTED_DATA_RELEASE_ID="${EXPECTED_DATA_RELEASE_ID:?EXPECTED_DATA_RELEASE_ID is required}"
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
@@ -85,16 +87,30 @@ print("\n".join(lines))
 PY
 }
 
-[ -L "$WORKER_ROOT/current" ] || fail "current release symlink missing"
-current="$(readlink -f "$WORKER_ROOT/current")"
-case "$current" in
+case "$EXPECTED_CONTROL_RELEASE_ID" in *[!A-Za-z0-9._-]*|'') fail "invalid expected control release id" ;; esac
+case "$EXPECTED_DATA_RELEASE_ID" in *[!A-Za-z0-9._-]*|'') fail "invalid expected data release id" ;; esac
+[ -L "$WORKER_ROOT/control-current" ] || fail "control-current release symlink missing"
+[ -L "$WORKER_ROOT/current" ] || fail "data-current release symlink missing"
+control_current="$(readlink -f "$WORKER_ROOT/control-current")"
+data_current="$(readlink -f "$WORKER_ROOT/current")"
+case "$control_current" in
   "$WORKER_ROOT"/releases/*) ;;
-  *) fail "current release escapes worker root: $current" ;;
+  *) fail "control-current release escapes worker root: $control_current" ;;
 esac
-[ -f "$current/research_pipeline/policy.v3.json" ] || fail "V3 policy missing"
-[ -d "$current/research_source" ] || fail "forward evidence source missing"
-[ -s "$current/.release/source.sha256" ] || fail "release source manifest missing"
-[ -s "$current/.release/provenance.json" ] || fail "release provenance missing"
+case "$data_current" in
+  "$WORKER_ROOT"/releases/*) ;;
+  *) fail "data-current release escapes worker root: $data_current" ;;
+esac
+[ "$(basename "$control_current")" = "$EXPECTED_CONTROL_RELEASE_ID" ] \
+  || fail "control-current release id does not match the exact expectation"
+[ "$(basename "$data_current")" = "$EXPECTED_DATA_RELEASE_ID" ] \
+  || fail "data-current release id does not match the exact expectation"
+[ -f "$control_current/research_pipeline/policy.v3.json" ] || fail "control V3 policy missing"
+[ -s "$control_current/.release/source.sha256" ] || fail "control release source manifest missing"
+[ -s "$control_current/.release/provenance.json" ] || fail "control release provenance missing"
+[ -d "$data_current/research_source" ] || fail "data-plane forward evidence source missing"
+[ -s "$data_current/.release/source.sha256" ] || fail "data release source manifest missing"
+[ -s "$data_current/.release/provenance.json" ] || fail "data release provenance missing"
 legacy_microstructure_inventory="$(snapshot_legacy_microstructure)" \
   || fail "legacy V1/V2 inventory is ambiguous"
 if sudo test -e "$LEGACY_MICROSTRUCTURE_PRESERVATION" \
@@ -117,7 +133,7 @@ fi
 while IFS= read -r legacy_line; do
   ok "legacy V1/V2 preserved: $legacy_line"
 done <<< "$legacy_microstructure_inventory"
-python3 - "$current" <<'PY'
+python3 - "$control_current" <<'PY'
 import hashlib
 import json
 import os
@@ -331,30 +347,70 @@ manifest_hash = hashlib.sha256(raw_manifest).hexdigest()
 if provenance["source_manifest_sha256"] != manifest_hash:
     fail("release provenance manifest hash does not match installed bytes")
 PY
-ok "hermetic installed runtime, source manifest, and provenance verified"
+python3 - "$data_current" "$EXPECTED_DATA_RELEASE_ID" <<'PY'
+import hashlib
+import json
+from pathlib import Path
+import re
+import stat
+import sys
 
-require_sha256 "$current/research_pipeline/okx-microstructure-continuous-source-contract.v3.json" \
+root = Path(sys.argv[1])
+expected_release_id = sys.argv[2]
+manifest = root / ".release" / "source.sha256"
+provenance_path = root / ".release" / "provenance.json"
+for path in (manifest, provenance_path):
+    details = path.lstat()
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+        raise SystemExit("data release metadata is missing or symlinked")
+raw_manifest = manifest.read_bytes()
+manifest_hash = hashlib.sha256(raw_manifest).hexdigest()
+with provenance_path.open(encoding="utf-8") as stream:
+    provenance = json.load(stream)
+expected_keys = {
+    "schema_version",
+    "release_id",
+    "source_git_commit",
+    "source_git_branch",
+    "source_git_dirty",
+    "source_manifest_sha256",
+    "installed_at",
+}
+if set(provenance) != expected_keys or provenance.get("schema_version") != "1":
+    raise SystemExit("data release provenance schema is invalid")
+if provenance.get("release_id") != expected_release_id or root.name != expected_release_id:
+    raise SystemExit("data release provenance id does not match exact expectation")
+if provenance.get("source_manifest_sha256") != manifest_hash:
+    raise SystemExit("data release provenance manifest hash does not match bytes")
+if provenance.get("source_git_dirty") is not False:
+    raise SystemExit("data release provenance is dirty")
+if re.fullmatch(r"[0-9a-f]{40}", str(provenance.get("source_git_commit"))) is None:
+    raise SystemExit("data release source commit is invalid")
+PY
+ok "hermetic control release and exact data release provenance verified"
+
+require_sha256 "$data_current/research_pipeline/okx-microstructure-continuous-source-contract.v3.json" \
   8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422
-require_sha256 "$current/research_pipeline/okx-microstructure-drop-envelope.v3.schema.json" \
+require_sha256 "$data_current/research_pipeline/okx-microstructure-drop-envelope.v3.schema.json" \
   ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418
-require_sha256 "$current/research_pipeline/okx-microstructure-intake-state.v3.schema.json" \
+require_sha256 "$data_current/research_pipeline/okx-microstructure-intake-state.v3.schema.json" \
   935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc
-require_sha256 "$current/research_pipeline/okx-microstructure-forward-day.v3.schema.json" \
+require_sha256 "$data_current/research_pipeline/okx-microstructure-forward-day.v3.schema.json" \
   205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709
-require_sha256 "$current/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
+require_sha256 "$data_current/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
   7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a
 ok "frozen V3 source, envelope, state, day, and diagnostic hashes verified"
 
-[ -f "$current/$MICROSTRUCTURE_JAR" ] && [ ! -L "$current/$MICROSTRUCTURE_JAR" ] \
+[ -f "$data_current/$MICROSTRUCTURE_JAR" ] && [ ! -L "$data_current/$MICROSTRUCTURE_JAR" ] \
   || fail "narrow microstructure producer jar missing or symlinked"
-[ -d "$current/$MICROSTRUCTURE_DIST/lib" ] \
-  && [ ! -L "$current/$MICROSTRUCTURE_DIST/lib" ] \
+[ -d "$data_current/$MICROSTRUCTURE_DIST/lib" ] \
+  && [ ! -L "$data_current/$MICROSTRUCTURE_DIST/lib" ] \
   || fail "microstructure runtime dependency directory missing or symlinked"
-if find "$current/$MICROSTRUCTURE_DIST" -type l -print -quit | grep -q .; then
+if find "$data_current/$MICROSTRUCTURE_DIST" -type l -print -quit | grep -q .; then
   fail "microstructure distribution contains a symlink"
 fi
 mapfile -t microstructure_libraries < <(
-  find "$current/$MICROSTRUCTURE_DIST/lib" -maxdepth 1 -type f -printf '%f\n' | sort
+  find "$data_current/$MICROSTRUCTURE_DIST/lib" -maxdepth 1 -type f -printf '%f\n' | sort
 )
 [ "${#microstructure_libraries[@]}" = 3 ] \
   || fail "microstructure distribution must contain exactly three runtime libraries"
@@ -371,7 +427,7 @@ cleanup_microstructure_inventory() {
   rm -f -- "$microstructure_inventory"
 }
 trap cleanup_microstructure_inventory EXIT
-jar tf "$current/$MICROSTRUCTURE_JAR" > "$microstructure_inventory"
+jar tf "$data_current/$MICROSTRUCTURE_JAR" > "$microstructure_inventory"
 if grep -Evq '^(META-INF(/.*)?|com/|com/agora/|com/agora/research/|com/agora/research/OkxMicrostructure[^/]*\.class)$' \
     "$microstructure_inventory"; then
   fail "microstructure jar contains a class outside the frozen package prefix"
@@ -382,7 +438,7 @@ grep -Fxq 'com/agora/research/OkxMicrostructureContinuousSourceCli.class' \
 cleanup_microstructure_inventory
 trap - EXIT
 
-python3 - "$current" <<'PY'
+python3 - "$data_current" <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -414,14 +470,19 @@ if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
     || fail "microstructure binding ownership is incorrect"
   [ "$(stat -c '%a' "$MICROSTRUCTURE_BINDING")" = "640" ] \
     || fail "microstructure binding mode is incorrect"
-  sudo python3 - "$MICROSTRUCTURE_BINDING" "$current" <<'PY'
+  sudo python3 - \
+    "$MICROSTRUCTURE_BINDING" \
+    "$data_current" \
+    "$EXPECT_MICROSTRUCTURE_SOURCE" <<'PY'
 from datetime import date, datetime, timezone
 import hashlib
 import json
 from pathlib import Path
 import sys
 
-binding_path, current = map(Path, sys.argv[1:])
+binding_path = Path(sys.argv[1])
+current = Path(sys.argv[2])
+expected_source = sys.argv[3]
 
 def reject_duplicates(pairs):
     value = {}
@@ -469,11 +530,17 @@ try:
     start_day = date.fromisoformat(binding["forward_start_day"])
 except (KeyError, TypeError, ValueError) as error:
     raise SystemExit("binding forward start day is invalid") from error
-if start_day <= datetime.now(timezone.utc).date():
-    raise SystemExit("binding forward start day is not strictly future")
+if expected_source != "active" and start_day <= datetime.now(timezone.utc).date():
+    raise SystemExit("binding forward start day is not strictly future for an inactive source")
 PY
   ok "optional microstructure binding matches installed release"
 fi
+[ -d "$DATA_ROOT" ] && [ ! -L "$DATA_ROOT" ] \
+  || fail "canonical data root is missing, non-directory, or symlinked"
+[ "$(sudo stat -c '%U:%G:%a' "$DATA_ROOT")" = "$WORKER_USER:$EVIDENCE_GROUP:710" ] \
+  || fail "canonical data root ownership or traversal mode is incorrect"
+sudo -u "$SOURCE_USER" test -x "$DATA_ROOT" \
+  || fail "public source identity cannot traverse the canonical data root"
 sudo test -f "$DATA_ROOT/state/authority.json" || fail "state authority missing"
 [ "$(sudo stat -c '%U:%G' "$DATA_ROOT/state")" = "$WORKER_USER:$WORKER_USER" ] \
   || fail "canonical state owner is incorrect"
@@ -510,23 +577,25 @@ for evidence_reader_unit in agora-research-mcp.service agora-research-evidence-i
     | tr ' ' '\n' | grep -Fxq "$EVIDENCE_GROUP" \
     || fail "$evidence_reader_unit lost its explicit evidence-group access"
 done
-ok "public source identity cannot read Trading secrets or canonical state"
+ok "public source identity can traverse only the shared root and cannot read Trading secrets or canonical state"
 
 (
-  cd "$current"
+  cd "$control_current"
   sudo -u "$WORKER_USER" env \
     PYTHONDONTWRITEBYTECODE=1 \
+    AGORA_RESEARCH_APP_DIR="$control_current" \
     "$WORKER_ROOT/venv/bin/python" -m research_pipeline \
     --state-dir "$DATA_ROOT/state" \
-    --policy "$current/research_pipeline/policy.v3.json" \
+    --policy "$control_current/research_pipeline/policy.v3.json" \
     status --json >/dev/null
 )
 ok "canonical research registry is readable"
 
 (
-  cd "$current"
+  cd "$control_current"
   sudo -u "$WORKER_USER" env \
     PYTHONDONTWRITEBYTECODE=1 \
+    AGORA_RESEARCH_APP_DIR="$control_current" \
     "$WORKER_ROOT/venv/bin/python" - <<'PY'
 from research_mcp.queue import _worker_release_summary
 
@@ -547,7 +616,31 @@ PY
 ok "worker identity can verify clean release provenance"
 
 (
-  cd "$current"
+  cd "$control_current"
+  sudo -u "$WORKER_USER" env \
+    PYTHONDONTWRITEBYTECODE=1 \
+    AGORA_RESEARCH_APP_DIR="$data_current" \
+    "$WORKER_ROOT/venv/bin/python" - <<'PY'
+from research_mcp.queue import _worker_release_summary
+
+release = _worker_release_summary()
+if release.get("status") != "READY":
+    raise SystemExit(f"data release provenance is not ready: {release.get('status')}")
+if release.get("source_git_dirty") is not False:
+    raise SystemExit("data release provenance is dirty")
+if release.get("source_tree_verified") is not True:
+    raise SystemExit("data release source tree was not verified")
+if (
+    not isinstance(release.get("source_file_count"), int)
+    or release["source_file_count"] < 1
+):
+    raise SystemExit("data release source file count is invalid")
+PY
+)
+ok "trusted control code verified the complete data release source inventory"
+
+(
+  cd "$control_current"
   sudo -u "$WORKER_USER" env \
     PYTHONDONTWRITEBYTECODE=1 \
     "$WORKER_ROOT/venv/bin/python" -m unittest \
@@ -556,10 +649,16 @@ ok "worker identity can verify clean release provenance"
     research_pipeline.tests.test_forward_candidate \
     research_pipeline.tests.test_storage \
     research_mcp.tests.test_queue \
-    research_mcp.tests.test_server_contract \
+    research_mcp.tests.test_server_contract >/dev/null
+)
+(
+  cd "$data_current"
+  sudo -u "$WORKER_USER" env \
+    PYTHONDONTWRITEBYTECODE=1 \
+    "$WORKER_ROOT/venv/bin/python" -m unittest \
     research_source.tests.test_forward_source >/dev/null
 )
-ok "deployed research contracts verified in isolated temporary state"
+ok "control and data-plane research contracts verified in isolated temporary state"
 
 resume_probe="$(mktemp -d)"
 case "$resume_probe" in
@@ -608,7 +707,7 @@ APP_DIR="$resume_app" \
 AGORA_RESEARCH_REQUEST_DIR="$resume_requests" \
 AGORA_RESEARCH_INBOX_DIR="$resume_inbox" \
 AGORA_RESEARCH_RUNTIME_DIR="$resume_runtime" \
-  bash "$current/scripts/research-worker/run-request.sh"
+  bash "$control_current/scripts/research-worker/run-request.sh"
 python3 - "$resume_requests" <<'PY'
 import json
 from pathlib import Path
@@ -641,6 +740,30 @@ systemctl cat agora-research-evidence-ingest.path >/dev/null
 systemctl cat "$MICROSTRUCTURE_UNIT" >/dev/null
 systemctl cat "$MICROSTRUCTURE_INTAKE_UNIT" >/dev/null
 systemctl cat "$MICROSTRUCTURE_INTAKE_PATH" >/dev/null
+for control_unit in \
+  agora-research-mcp.service \
+  agora-research-dispatch.service \
+  agora-research-heartbeat.service; do
+  control_unit_text="$(systemctl cat "$control_unit")"
+  echo "$control_unit_text" | grep -Fq '/opt/agora-research-worker/control-current' \
+    || fail "$control_unit does not use the fixed control-current lane"
+  if echo "$control_unit_text" | grep -Fq '/opt/agora-research-worker/current'; then
+    fail "$control_unit still references the data-current lane"
+  fi
+done
+for data_unit in \
+  agora-research-source.service \
+  agora-research-evidence-ingest.service \
+  agora-research-microstructure-source.service \
+  agora-research-microstructure-intake.service; do
+  data_unit_text="$(systemctl cat "$data_unit")"
+  echo "$data_unit_text" | grep -Fq '/opt/agora-research-worker/current' \
+    || fail "$data_unit does not use the fixed data-current lane"
+  if echo "$data_unit_text" | grep -Fq '/opt/agora-research-worker/control-current'; then
+    fail "$data_unit references the control-current lane"
+  fi
+done
+ok "control and data-plane systemd release lanes are byte-separated"
 systemd-analyze verify \
   /etc/systemd/system/agora-research-heartbeat.service \
   /etc/systemd/system/agora-research-heartbeat.timer \
@@ -859,7 +982,7 @@ ok "microstructure sticky publication and immutable freeze boundary verified"
 
 if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
   (
-    cd "$current"
+    cd "$data_current"
     sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
 from research_pipeline.microstructure_intake_cli import (
     fixed_v3_runtime_paths,
@@ -965,7 +1088,7 @@ esac
 
 if [ "$RUN_SOURCE_PROBE" = "1" ]; then
   (
-    cd "$current"
+    cd "$data_current"
     sudo -u "$SOURCE_USER" env \
       PYTHONDONTWRITEBYTECODE=1 \
       "$WORKER_ROOT/venv/bin/python" -m research_source probe

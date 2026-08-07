@@ -981,10 +981,16 @@ def _capture_health_summary(
         return result
 
     def request_id(value: dict[str, Any] | None) -> str | None:
-        if not isinstance(value, dict):
+        candidate_record = _capture_request(value)
+        if not candidate_record:
             return None
-        candidate = value.get("request_id")
-        return candidate if isinstance(candidate, str) and RUN_ID.fullmatch(candidate) else None
+        candidate = candidate_record.get("request_id")
+        if not isinstance(candidate, str) or not RUN_ID.fullmatch(candidate):
+            return None
+        top_level = value.get("request_id") if isinstance(value, dict) else None
+        if top_level is not None and top_level != candidate:
+            return None
+        return candidate
 
     def timing(value: dict[str, Any] | None) -> dict[str, Any]:
         request = _capture_request(value)

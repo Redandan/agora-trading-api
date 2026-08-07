@@ -14,6 +14,7 @@ SOURCE_USER="${SOURCE_USER:-agora-evidence-source}"
 EVIDENCE_GROUP="${EVIDENCE_GROUP:-agora-evidence}"
 MICROSTRUCTURE_FORWARD_START_DAY="${MICROSTRUCTURE_FORWARD_START_DAY:-}"
 MICROSTRUCTURE_DIAGNOSTIC_ID="${MICROSTRUCTURE_DIAGNOSTIC_ID:-}"
+PRESERVE_BOUND_DATA_PLANE="${PRESERVE_BOUND_DATA_PLANE:-0}"
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
@@ -44,6 +45,7 @@ case "$SOURCE_GIT_BRANCH" in *[!A-Za-z0-9._/-]*|'') fail "invalid source Git bra
 case "$SOURCE_GIT_DIRTY" in true|false) ;; *) fail "source Git dirty flag must be true or false" ;; esac
 [ "$WORKER_ROOT" = "/opt/agora-research-worker" ] || fail "unexpected worker root"
 [ "$DATA_ROOT" = "/var/lib/agora-research" ] || fail "unexpected data root"
+case "$PRESERVE_BOUND_DATA_PLANE" in 0|1) ;; *) fail "preserve-bound-data-plane attestation must be exactly 0 or 1" ;; esac
 
 binding_requested=false
 if [ -n "$MICROSTRUCTURE_FORWARD_START_DAY" ] || [ -n "$MICROSTRUCTURE_DIAGNOSTIC_ID" ]; then
@@ -61,6 +63,8 @@ if [ -n "$MICROSTRUCTURE_FORWARD_START_DAY" ] || [ -n "$MICROSTRUCTURE_DIAGNOSTI
     || fail "invalid microstructure diagnostic id"
   binding_requested=true
 fi
+[ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] || [ "$binding_requested" = false ] \
+  || fail "preserve mode rejects binding creation or replacement parameters"
 
 microstructure_enabled="$(systemctl is-enabled "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)"
 case "$microstructure_enabled" in
@@ -68,7 +72,9 @@ case "$microstructure_enabled" in
     fail "microstructure source unit must be disabled before upgrade"
     ;;
 esac
-if systemctl is-active --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
+microstructure_active="$(systemctl is-active "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)"
+case "$microstructure_active" in active|inactive) ;; *) fail "microstructure source unit state is unsupported: $microstructure_active" ;; esac
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] && [ "$microstructure_active" = active ]; then
   fail "microstructure source unit must be inactive before upgrade"
 fi
 if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
@@ -79,6 +85,198 @@ if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
   [ -f "$MICROSTRUCTURE_BINDING" ] && [ ! -L "$MICROSTRUCTURE_BINDING" ] \
     || fail "microstructure binding must be a regular non-symlink file"
   binding_present=true
+fi
+
+preserve_data_current=""
+preserve_data_current_link=""
+preserve_binding_sha256=""
+preserve_binding_size=""
+preserve_binding_bytes=""
+preserve_state_file=""
+preserve_state_sha256=""
+preserve_state_size=""
+preserve_state_bytes=""
+preserve_manifest_sha256=""
+preserve_provenance_sha256=""
+preserve_source_main_pid=""
+preserve_source_properties=""
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
+  [ -d "$DATA_ROOT" ] && [ ! -L "$DATA_ROOT" ] \
+    || fail "preserve mode requires a regular canonical data root"
+  [ "$(sudo stat -c '%U:%G:%a' "$DATA_ROOT")" = "$WORKER_USER:$EVIDENCE_GROUP:710" ] \
+    || fail "canonical data root metadata does not permit source traversal"
+  sudo -u "$SOURCE_USER" test -x "$DATA_ROOT" \
+    || fail "public source identity cannot traverse the canonical data root"
+  [ "$binding_present" = true ] || fail "preserve mode requires the existing V3 binding"
+  [ -L "$WORKER_ROOT/current" ] || fail "preserve mode requires the data-current symlink"
+  preserve_data_current_link="$(readlink "$WORKER_ROOT/current")" \
+    || fail "data-current link cannot be read"
+  preserve_data_current="$(readlink -f "$WORKER_ROOT/current")" \
+    || fail "data-current link cannot be resolved"
+  case "$preserve_data_current" in
+    "$WORKER_ROOT"/releases/*) ;;
+    *) fail "data-current escaped immutable releases" ;;
+  esac
+  [ -d "$preserve_data_current" ] && [ ! -L "$preserve_data_current" ] \
+    || fail "resolved data-current is not an immutable release directory"
+  IFS=$'\t' read -r preserve_diagnostic_id preserve_bound_release preserve_bound_manifest < <(
+    sudo python3 - \
+      "$MICROSTRUCTURE_BINDING" \
+      "$preserve_data_current" \
+      "$EVIDENCE_GROUP" <<'PY'
+import grp
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import stat
+import sys
+
+binding_path = Path(sys.argv[1])
+release = Path(sys.argv[2])
+evidence_gid = grp.getgrnam(sys.argv[3]).gr_gid
+
+
+def fail(message: str) -> None:
+    raise SystemExit(message)
+
+
+def reject_duplicates(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            fail(f"duplicate binding key: {key}")
+        result[key] = value
+    return result
+
+
+details = binding_path.lstat()
+if (
+    stat.S_ISLNK(details.st_mode)
+    or not stat.S_ISREG(details.st_mode)
+    or details.st_uid != 0
+    or details.st_gid != evidence_gid
+    or stat.S_IMODE(details.st_mode) != 0o640
+):
+    fail("preserve binding type or metadata is invalid")
+raw_binding = binding_path.read_bytes()
+binding = json.loads(raw_binding, object_pairs_hook=reject_duplicates)
+canonical = json.dumps(binding, separators=(",", ":"), sort_keys=True).encode("utf-8")
+if raw_binding != canonical:
+    fail("preserve binding bytes are not canonical")
+fixed = {
+    "schema_version": "1",
+    "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+    "required_complete_utc_days": 14,
+    "source_contract_sha256": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422",
+    "day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
+    "diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+}
+expected_keys = set(fixed) | {
+    "forward_start_day",
+    "diagnostic_id",
+    "producer_release_id",
+    "producer_manifest_sha256",
+}
+if set(binding) != expected_keys or any(binding.get(key) != value for key, value in fixed.items()):
+    fail("preserve binding keys or fixed values changed")
+diagnostic_id = binding.get("diagnostic_id")
+if not isinstance(diagnostic_id, str) or re.fullmatch(r"[a-z0-9][a-z0-9-]{2,79}", diagnostic_id) is None:
+    fail("preserve binding diagnostic id is invalid")
+manifest = release / ".release" / "source.sha256"
+provenance_path = release / ".release" / "provenance.json"
+for path in (manifest, provenance_path):
+    path_details = path.lstat()
+    if stat.S_ISLNK(path_details.st_mode) or not stat.S_ISREG(path_details.st_mode):
+        fail("bound release metadata is missing or symlinked")
+manifest_hash = hashlib.sha256(manifest.read_bytes()).hexdigest()
+with provenance_path.open(encoding="utf-8") as stream:
+    provenance = json.load(stream)
+expected_provenance_keys = {
+    "schema_version",
+    "release_id",
+    "source_git_commit",
+    "source_git_branch",
+    "source_git_dirty",
+    "source_manifest_sha256",
+    "installed_at",
+}
+if set(provenance) != expected_provenance_keys or provenance.get("schema_version") != "1":
+    fail("bound release provenance schema is invalid")
+if provenance.get("release_id") != release.name or provenance.get("source_manifest_sha256") != manifest_hash:
+    fail("bound release provenance does not match manifest bytes")
+if provenance.get("source_git_dirty") is not False:
+    fail("bound release provenance is dirty")
+if binding.get("producer_release_id") != release.name:
+    fail("binding release id does not match data-current")
+if binding.get("producer_manifest_sha256") != manifest_hash:
+    fail("binding manifest hash does not match data-current")
+print(f"{diagnostic_id}\t{release.name}\t{manifest_hash}")
+PY
+  ) || fail "preserve binding, manifest, and provenance preflight failed"
+  [ -n "$preserve_diagnostic_id" ] \
+    && [ "$preserve_bound_release" = "$(basename "$preserve_data_current")" ] \
+    || fail "preserve binding release identity could not be sealed"
+  preserve_state_file="$MICROSTRUCTURE_STATE/$preserve_diagnostic_id.json"
+  sudo python3 - "$MICROSTRUCTURE_STATE" "$preserve_state_file" <<'PY'
+import os
+from pathlib import Path
+import stat
+import sys
+
+root, state = map(Path, sys.argv[1:])
+root_details = root.lstat()
+if stat.S_ISLNK(root_details.st_mode) or not stat.S_ISDIR(root_details.st_mode):
+    raise SystemExit("microstructure V3 state root is invalid")
+entries = list(os.scandir(root))
+if len(entries) != 1 or Path(entries[0].path) != state:
+    raise SystemExit("microstructure V3 state inventory is not exact")
+details = state.lstat()
+if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+    raise SystemExit("microstructure V3 state is missing or symlinked")
+PY
+  (
+    cd "$preserve_data_current"
+    sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
+from datetime import datetime, timezone
+from research_pipeline.microstructure_intake_cli import (
+    _load_matching_v3_state,
+    _load_v3_binding,
+    _state_path,
+    fixed_v3_runtime_paths,
+)
+
+paths = fixed_v3_runtime_paths()
+binding = _load_v3_binding(
+    paths,
+    require_future=False,
+    today=datetime.now(timezone.utc).date(),
+)
+_load_matching_v3_state(_state_path(paths.state_root, binding.diagnostic_id), binding)
+PY
+  ) || fail "bound microstructure V3 state does not match its binding"
+  preserve_binding_sha256="$(sudo sha256sum "$MICROSTRUCTURE_BINDING" | awk '{print $1}')"
+  preserve_binding_size="$(sudo stat -c '%s' "$MICROSTRUCTURE_BINDING")"
+  preserve_binding_bytes="$(sudo base64 -w0 "$MICROSTRUCTURE_BINDING")"
+  preserve_state_sha256="$(sudo sha256sum "$preserve_state_file" | awk '{print $1}')"
+  preserve_state_size="$(sudo stat -c '%s' "$preserve_state_file")"
+  preserve_state_bytes="$(sudo base64 -w0 "$preserve_state_file")"
+  preserve_manifest_sha256="$(sudo sha256sum "$preserve_data_current/.release/source.sha256" | awk '{print $1}')"
+  preserve_provenance_sha256="$(sudo sha256sum "$preserve_data_current/.release/provenance.json" | awk '{print $1}')"
+  [ "$preserve_manifest_sha256" = "$preserve_bound_manifest" ] \
+    || fail "sealed manifest hash does not match binding preflight"
+  preserve_source_main_pid="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=MainPID --value)"
+  case "$microstructure_active" in
+    active) [[ "$preserve_source_main_pid" =~ ^[1-9][0-9]*$ ]] || fail "active source has no valid MainPID" ;;
+    inactive) [ "$preserve_source_main_pid" = 0 ] || fail "inactive source retains a MainPID" ;;
+  esac
+  preserve_source_properties="$(systemctl show "$MICROSTRUCTURE_UNIT" --no-pager \
+    --property=LoadState --property=ActiveState --property=SubState \
+    --property=UnitFileState --property=MainPID --property=Result \
+    --property=FragmentPath --property=ExecMainStartTimestampMonotonic)"
+  [ -n "$preserve_source_properties" ] || fail "source unit properties could not be sealed"
+  ok "bound data-plane release, binding, state, and source lifecycle sealed before installation"
 fi
 
 snapshot_legacy_microstructure() {
@@ -133,16 +331,18 @@ while IFS= read -r legacy_line; do
   ok "legacy V1/V2 before: $legacy_line"
 done <<< "$legacy_microstructure_before"
 
-if ! getent group "$EVIDENCE_GROUP" >/dev/null; then
-  sudo groupadd --system "$EVIDENCE_GROUP"
-fi
-if ! id -u "$SOURCE_USER" >/dev/null 2>&1; then
-  sudo useradd --system --no-create-home --home-dir /nonexistent \
-    --shell /usr/sbin/nologin --gid "$EVIDENCE_GROUP" "$SOURCE_USER"
-fi
-if id -nG "$WORKER_USER" | tr ' ' '\n' | grep -Fxq "$EVIDENCE_GROUP"; then
-  sudo gpasswd -d "$WORKER_USER" "$EVIDENCE_GROUP" >/dev/null 2>&1 \
-    || fail "could not remove worker from publisher group"
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
+  if ! getent group "$EVIDENCE_GROUP" >/dev/null; then
+    sudo groupadd --system "$EVIDENCE_GROUP"
+  fi
+  if ! id -u "$SOURCE_USER" >/dev/null 2>&1; then
+    sudo useradd --system --no-create-home --home-dir /nonexistent \
+      --shell /usr/sbin/nologin --gid "$EVIDENCE_GROUP" "$SOURCE_USER"
+  fi
+  if id -nG "$WORKER_USER" | tr ' ' '\n' | grep -Fxq "$EVIDENCE_GROUP"; then
+    sudo gpasswd -d "$WORKER_USER" "$EVIDENCE_GROUP" >/dev/null 2>&1 \
+      || fail "could not remove worker from publisher group"
+  fi
 fi
 
 SOURCE_DIR="$STAGING_DIR/source"
@@ -425,18 +625,23 @@ sudo chown -R root:root "$WORKER_ROOT/venv"
 sudo find "$WORKER_ROOT/venv" -type d -exec chmod go-w {} +
 sudo find "$WORKER_ROOT/venv" -type f -exec chmod go-w {} +
 
-sudo install -d -o "$WORKER_USER" -g "$WORKER_GROUP" -m 0700 \
-  "$DATA_ROOT/auth" "$DATA_ROOT/requests" "$DATA_ROOT/requests/runs"
-sudo install -d -o root -g "$EVIDENCE_GROUP" -m 2770 \
-  "$DATA_ROOT/source-requests" "$DATA_ROOT/source-requests/runs" \
-  "$DATA_ROOT/source-drop" "$DATA_ROOT/source-drop/raw" "$DATA_ROOT/source-drop/runs"
-sudo install -d -o root -g root -m 0755 /var/lib/agora-evidence-source
-sudo install -d -o "$SOURCE_USER" -g "$EVIDENCE_GROUP" -m 0700 \
-  "$MICROSTRUCTURE_STAGING"
-sudo install -d -o root -g "$EVIDENCE_GROUP" -m 1770 "$MICROSTRUCTURE_DROP"
-sudo install -d -o "$WORKER_USER" -g "$WORKER_GROUP" -m 0700 \
-  "$MICROSTRUCTURE_STATE"
-if [ ! -f "$DATA_ROOT/auth/enrollment-consumed" ] && [ ! -f "$DATA_ROOT/auth/enrollment-code.hash" ]; then
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
+  sudo install -d -o "$WORKER_USER" -g "$EVIDENCE_GROUP" -m 0710 "$DATA_ROOT"
+  sudo install -d -o "$WORKER_USER" -g "$WORKER_GROUP" -m 0700 \
+    "$DATA_ROOT/auth" "$DATA_ROOT/requests" "$DATA_ROOT/requests/runs"
+  sudo install -d -o root -g "$EVIDENCE_GROUP" -m 2770 \
+    "$DATA_ROOT/source-requests" "$DATA_ROOT/source-requests/runs" \
+    "$DATA_ROOT/source-drop" "$DATA_ROOT/source-drop/raw" "$DATA_ROOT/source-drop/runs"
+  sudo install -d -o root -g root -m 0755 /var/lib/agora-evidence-source
+  sudo install -d -o "$SOURCE_USER" -g "$EVIDENCE_GROUP" -m 0700 \
+    "$MICROSTRUCTURE_STAGING"
+  sudo install -d -o root -g "$EVIDENCE_GROUP" -m 1770 "$MICROSTRUCTURE_DROP"
+  sudo install -d -o "$WORKER_USER" -g "$WORKER_GROUP" -m 0700 \
+    "$MICROSTRUCTURE_STATE"
+fi
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \
+    && [ ! -f "$DATA_ROOT/auth/enrollment-consumed" ] \
+    && [ ! -f "$DATA_ROOT/auth/enrollment-code.hash" ]; then
   sudo python3 - "$DATA_ROOT/auth" "$WORKER_USER" "$WORKER_GROUP" <<'PY'
 import hashlib
 import os
@@ -464,9 +669,14 @@ os.chmod(plain_path, 0o400)
 PY
 fi
 
-next_link="$WORKER_ROOT/.current-$RELEASE_ID"
-sudo ln -s "$RELEASE_DIR" "$next_link"
-sudo mv -Tf "$next_link" "$WORKER_ROOT/current"
+next_control_link="$WORKER_ROOT/.control-current-$RELEASE_ID"
+sudo ln -s "$RELEASE_DIR" "$next_control_link"
+sudo mv -Tf "$next_control_link" "$WORKER_ROOT/control-current"
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
+  next_data_link="$WORKER_ROOT/.current-$RELEASE_ID"
+  sudo ln -s "$RELEASE_DIR" "$next_data_link"
+  sudo mv -Tf "$next_data_link" "$WORKER_ROOT/current"
+fi
 
 if [ "$binding_requested" = true ]; then
   sudo install -d -o root -g root -m 0755 /etc/agora-research
@@ -556,7 +766,8 @@ if [ "$binding_requested" = true ]; then
   ok "microstructure intake state initialized or exactly validated"
 fi
 
-if [ "$binding_requested" = true ] || [ "$binding_present" = true ]; then
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \
+    && { [ "$binding_requested" = true ] || [ "$binding_present" = true ]; }; then
   validated_state_file="$(
     cd "$RELEASE_DIR"
     sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
@@ -597,13 +808,24 @@ PY
   ok "existing microstructure intake state exactly validated without overwrite"
 fi
 
-for unit in agora-research-heartbeat.service agora-research-heartbeat.timer \
-  agora-research-dispatch.service agora-research-dispatch.path agora-research-mcp.service \
-  agora-research-source.service agora-research-source.path \
-  agora-research-evidence-ingest.service agora-research-evidence-ingest.path \
-  agora-research-microstructure-source.service \
-  agora-research-microstructure-intake.service \
-  agora-research-microstructure-intake.path; do
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
+  units_to_install=(
+    agora-research-heartbeat.service
+    agora-research-dispatch.service
+    agora-research-mcp.service
+  )
+else
+  units_to_install=(
+    agora-research-heartbeat.service agora-research-heartbeat.timer
+    agora-research-dispatch.service agora-research-dispatch.path agora-research-mcp.service
+    agora-research-source.service agora-research-source.path
+    agora-research-evidence-ingest.service agora-research-evidence-ingest.path
+    agora-research-microstructure-source.service
+    agora-research-microstructure-intake.service
+    agora-research-microstructure-intake.path
+  )
+fi
+for unit in "${units_to_install[@]}"; do
   sudo install -o root -g root -m 0644 \
     "$RELEASE_DIR/scripts/research-worker/$unit" "/etc/systemd/system/$unit"
 done
@@ -621,18 +843,59 @@ sudo systemd-analyze verify \
   /etc/systemd/system/agora-research-microstructure-source.service \
   /etc/systemd/system/agora-research-microstructure-intake.service \
   /etc/systemd/system/agora-research-microstructure-intake.path
-sudo systemctl disable --now agora-research-heartbeat.timer >/dev/null 2>&1 || true
-sudo systemctl enable --now "$MICROSTRUCTURE_INTAKE_PATH" >/dev/null
-sudo systemctl enable --now agora-research-mcp.service agora-research-dispatch.path \
-  agora-research-source.path agora-research-evidence-ingest.path >/dev/null
-sudo systemctl restart agora-research-mcp.service
-[ "$(systemctl is-enabled "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)" != "enabled" ] \
-  || fail "microstructure source unit became enabled"
-if systemctl is-active --quiet "$MICROSTRUCTURE_UNIT"; then
-  fail "microstructure source unit became active"
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
+  sudo systemctl enable --now agora-research-mcp.service agora-research-dispatch.path >/dev/null
+else
+  sudo systemctl disable --now agora-research-heartbeat.timer >/dev/null 2>&1 || true
+  sudo systemctl enable --now "$MICROSTRUCTURE_INTAKE_PATH" >/dev/null
+  sudo systemctl enable --now agora-research-mcp.service agora-research-dispatch.path \
+    agora-research-source.path agora-research-evidence-ingest.path >/dev/null
 fi
+sudo systemctl restart agora-research-mcp.service
+case "$(systemctl is-enabled "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)" in
+  enabled|enabled-runtime|linked|linked-runtime|alias)
+    fail "microstructure source unit became enabled"
+    ;;
+esac
 if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
   fail "microstructure source ended upgrade in a failed state"
+fi
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
+  [ "$(readlink "$WORKER_ROOT/current")" = "$preserve_data_current_link" ] \
+    || fail "data-current link bytes changed during preserve upgrade"
+  [ "$(readlink -f "$WORKER_ROOT/current")" = "$preserve_data_current" ] \
+    || fail "data-current resolved release changed during preserve upgrade"
+  [ "$(sudo sha256sum "$MICROSTRUCTURE_BINDING" | awk '{print $1}')" = "$preserve_binding_sha256" ] \
+    && [ "$(sudo stat -c '%s' "$MICROSTRUCTURE_BINDING")" = "$preserve_binding_size" ] \
+    && [ "$(sudo base64 -w0 "$MICROSTRUCTURE_BINDING")" = "$preserve_binding_bytes" ] \
+    || fail "binding bytes or SHA-256 changed during preserve upgrade"
+  [ "$(sudo sha256sum "$preserve_state_file" | awk '{print $1}')" = "$preserve_state_sha256" ] \
+    && [ "$(sudo stat -c '%s' "$preserve_state_file")" = "$preserve_state_size" ] \
+    && [ "$(sudo base64 -w0 "$preserve_state_file")" = "$preserve_state_bytes" ] \
+    || fail "microstructure state bytes or SHA-256 changed during preserve upgrade"
+  [ "$(sudo sha256sum "$preserve_data_current/.release/source.sha256" | awk '{print $1}')" = "$preserve_manifest_sha256" ] \
+    && [ "$(sudo sha256sum "$preserve_data_current/.release/provenance.json" | awk '{print $1}')" = "$preserve_provenance_sha256" ] \
+    || fail "bound release metadata changed during preserve upgrade"
+  [ "$(systemctl is-active "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)" = "$microstructure_active" ] \
+    || fail "microstructure source active state changed during preserve upgrade"
+  [ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=MainPID --value)" = "$preserve_source_main_pid" ] \
+    || fail "microstructure source MainPID changed during preserve upgrade"
+  source_properties_after="$(systemctl show "$MICROSTRUCTURE_UNIT" --no-pager \
+    --property=LoadState --property=ActiveState --property=SubState \
+    --property=UnitFileState --property=MainPID --property=Result \
+    --property=FragmentPath --property=ExecMainStartTimestampMonotonic)"
+  [ "$source_properties_after" = "$preserve_source_properties" ] \
+    || fail "microstructure source unit properties changed during preserve upgrade"
+  [ "$(readlink -f "$WORKER_ROOT/control-current")" = "$RELEASE_DIR" ] \
+    || fail "control-current does not resolve to the new release"
+else
+  if systemctl is-active --quiet "$MICROSTRUCTURE_UNIT"; then
+    fail "microstructure source unit became active"
+  fi
+  [ "$(readlink -f "$WORKER_ROOT/current")" = "$RELEASE_DIR" ] \
+    || fail "ordinary upgrade did not switch data-current to the new release"
+  [ "$(readlink -f "$WORKER_ROOT/control-current")" = "$RELEASE_DIR" ] \
+    || fail "ordinary upgrade did not switch control-current to the new release"
 fi
 
 legacy_microstructure_after="$(snapshot_legacy_microstructure)" \
@@ -643,11 +906,12 @@ while IFS= read -r legacy_line; do
   ok "legacy V1/V2 preserved: $legacy_line"
 done <<< "$legacy_microstructure_after"
 
-sudo install -d -o root -g root -m 0700 \
-  "$(dirname "$LEGACY_MICROSTRUCTURE_PRESERVATION")"
-sudo python3 - \
-  "$LEGACY_MICROSTRUCTURE_PRESERVATION" \
-  "$legacy_microstructure_after" <<'PY'
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
+  sudo install -d -o root -g root -m 0700 \
+    "$(dirname "$LEGACY_MICROSTRUCTURE_PRESERVATION")"
+  sudo python3 - \
+    "$LEGACY_MICROSTRUCTURE_PRESERVATION" \
+    "$legacy_microstructure_after" <<'PY'
 import os
 from pathlib import Path
 import stat
@@ -687,10 +951,20 @@ finally:
     if temporary.exists():
         temporary.unlink()
 PY
-SNIPPET_SOURCE="$RELEASE_DIR/scripts/research-worker/nginx-research-mcp.conf" \
-  bash "$RELEASE_DIR/scripts/research-worker/install-nginx-route.sh"
+  SNIPPET_SOURCE="$RELEASE_DIR/scripts/research-worker/nginx-research-mcp.conf" \
+    bash "$RELEASE_DIR/scripts/research-worker/install-nginx-route.sh"
+fi
 
-ok "release installed: $RELEASE_ID"
+ok "control release installed: $RELEASE_ID"
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
+  ok "bound data-plane release preserved: $(basename "$preserve_data_current")"
+else
+  ok "data-plane release installed: $RELEASE_ID"
+fi
 ok "OAuth Research MCP active on loopback"
-ok "main, public-source, and network-denied ingest paths active; server timer disabled"
-ok "microstructure intake path active; producer source unit disabled and inactive"
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
+  ok "bound microstructure source lifecycle, binding, state, and release remained unchanged"
+else
+  ok "main, public-source, and network-denied ingest paths active; server timer disabled"
+  ok "microstructure intake path active; producer source unit disabled and inactive"
+fi

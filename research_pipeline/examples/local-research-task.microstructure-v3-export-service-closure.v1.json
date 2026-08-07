@@ -1,0 +1,145 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-export-service-closure-v1",
+  "issued_at": "2026-08-07T05:32:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Close the last executable gap between Server Canonical microstructure DIAGNOSTIC_READY and the fixed Local Research inbox. Add one fixed network-denied oneshot exporter service that runs from control-current as agora-research with only the explicit agora-evidence supplementary read group, reads the immutable data-current binding/state/14-day evidence, and writes only the two pre-provisioned handoff roots. Make the existing fixed pull script start that unit before its fixed tar stream. Add exact installation, verification, documentation, and offline tests. Do not deploy, connect to a server, run the exporter, read evidence, add a timer/path/writer, or change Trading.",
+  "canonical_research_status": "MICROSTRUCTURE_PRE_START_EXPORTER_EXECUTION_IDENTITY_MISSING",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/pull_microstructure_v3_handoff_ssh.ps1",
+      "sha256": "7e0c17748527460627a2810615714d3684635f375d86f2d632e50dd12304852f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "c477ff377d870af98f33d3d75ffb28b9d1dd787e5d206a0e185a1cdc918972fe"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "5f859df9f2e6dab14d51fe44a14c3bcf54964585d4ce1f92b6a0b6ac406fdd3a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "d7603f8ac74d6e152a96c16405819ea4ed4e279a5d24ded0fada63362db48434"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_research_worker_release_lanes.py",
+      "sha256": "f1dd42e2e1dab6ebe6bd8c35a599b089a4100ea0d5b80440bcdbfa7fff3d1f9d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_handoff_receive.py",
+      "sha256": "ec57b7611e6e34b7505dc2fbc92c899e0a028a7cef43c0c1f2038cb349dfa323"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff_export.py",
+      "sha256": "c178baf3e841267c30a59e9ff168b3de3ab9b992651c89196e9384fc4e792148"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-evidence-diagnostic.v1.json",
+      "sha256": "d50e41e5fe98e76c1ff9930baeb89ba357040dd70b2cfdd51656edbc8c03ad86"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T05:30:30Z Server Canonical policy/worker/forward-candidate readiness READY; sole CLOUD_OPS_SCHEDULE_V6; queue and evidence queues IDLE; candle evidence SEALED 1/90; microstructure okx-btcusdt-microstructure-forward-v3-20260808 PRE_START WAITING_FOR_DAY 0/14; no strategy candidate or OOS.",
+      "sha256": null
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T05:32Z live read-only exporter preflight: control-current 20260807T052713Z, data-current 20260806T162152Z, fixed task SHA d50e41e5fe98e76c1ff9930baeb89ba357040dd70b2cfdd51656edbc8c03ad86 and handoff roots metadata valid. Running the fixed exporter as agora-research returned EXPORT_BLOCKED_BINDING_OR_STATE because binding read failed with PermissionError; staging/export inventories remained empty.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Preserve the binding at root:agora-evidence 0640 and keep agora-research out of the publisher group. The missing capability is one command-scoped SupplementaryGroups=agora-evidence execution identity, not a reason to loosen evidence or canonical-state permissions. Manager will separately review, commit, package, deploy, and perform the live NOT_READY no-write proof.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "ADD_FIXED_ONESHOT_HANDOFF_EXPORT_SERVICE",
+    "USE_CONTROL_CURRENT_CODE_AND_FIXED_DATA_CURRENT_BINDING",
+    "ADD_COMMAND_SCOPED_EVIDENCE_READ_GROUP",
+    "DENY_EXPORTER_NETWORK_AND_TRADING_SECRETS",
+    "LIMIT_WRITES_TO_FIXED_HANDOFF_ROOTS",
+    "START_FIXED_EXPORTER_BEFORE_FIXED_PULL",
+    "INSTALL_AND_VERIFY_EXPORTER_UNIT",
+    "ADD_FOCUSED_OFFLINE_TESTS",
+    "UPDATE_RESEARCH_WORKER_DOCUMENTATION",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_SHELL_AND_POWERSHELL_SYNTAX_CHECKS",
+    "RUN_PACKAGE_ONLY_VALIDATION",
+    "RUN_GIT_DIFF_CHECK"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "EXPORTER_OR_PULL_EXECUTION",
+    "SOURCE_STOP_START_RESTART_OR_SIGNAL",
+    "BINDING_STATE_EVIDENCE_OR_TASK_PERMISSION_CHANGE",
+    "SEALED_RELEASE_OR_ARTIFACT_MUTATION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_TRADING_EXECUTION",
+    "CANDIDATE_OR_HYPOTHESIS_REGISTRATION",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_SEVEN_FILE_CHANGESET",
+    "FIXED_NETWORK_DENIED_ONESHOT_EXPORTER_UNIT",
+    "COMMAND_SCOPED_EVIDENCE_READ_AUTHORITY",
+    "CONTROL_CURRENT_EXECUTION_AND_DATA_CURRENT_BINDING",
+    "EXACT_HANDOFF_ONLY_WRITE_PATHS",
+    "NO_TIMER_PATH_OR_CANONICAL_WRITER",
+    "FIXED_PULL_EXPORT_THEN_STREAM_SEQUENCE",
+    "INSTALLER_AND_VERIFIER_CLOSURE",
+    "FOCUSED_FAIL_CLOSED_TEST_EVIDENCE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository input SHA-256 before editing. Any drift is BLOCKED and MISSING_PROOF.",
+    "Add exactly scripts/research-worker/agora-research-microstructure-handoff-export.service and change exactly scripts/pull_microstructure_v3_handoff_ssh.ps1, scripts/research-worker/install-upgrade.sh, scripts/research-worker/verify-worker.sh, docs/server-research-worker-v2.md, research_pipeline/tests/test_research_worker_release_lanes.py, and research_pipeline/tests/test_microstructure_handoff_receive.py. Change no other byte.",
+    "The new unit must be a fixed Type=oneshot control-lane service using /opt/agora-research-worker/control-current for Documentation, WorkingDirectory, and ExecStart. ExecStart must directly invoke the fixed zero-argument Python module through the installed venv. Do not add a shell, caller argument, environment-selected path, command, timer, path unit, socket, or restart loop.",
+    "Run as User=agora-research and Group=agora-research with exactly SupplementaryGroups=agora-evidence. Do not add agora-research to that Unix group globally and do not change binding, state, retained evidence, task, root, or directory permissions.",
+    "The unit must deny network, home, devices, privilege gain, and capabilities; retain AF_UNIX only; read only the fixed V3 binding, V3 canonical state root, retained microstructure day root, fixed Local task, data-current release, and control-current code; and write only the pre-provisioned handoff staging and final roots.",
+    "The exporter must remain create-once and fail closed through the existing microstructure_handoff_export module. Do not change the exporter implementation, task, schemas, diagnostic, interpretation, source, intake, binding, state, evidence, or Local receiver.",
+    "Install the unit in both ordinary and PreserveBoundDataPlane release modes as a control-lane unit, include it in systemd-analyze verification, but never enable or start it from install-upgrade.sh. Preserve mode must still leave the active data plane, PID, binding, state, and evidence unchanged.",
+    "Update verify-worker.sh to require the installed exporter unit, prove it references control-current and never current for code execution, prove exact user/group/supplementary group, no restart, network denial, AF_UNIX-only, no capabilities, exact fixed ReadOnlyPaths/ReadWritePaths, and inactive state outside an explicit handoff request.",
+    "Change the fixed pull script so its single remote command first starts exactly agora-research-microstructure-handoff-export.service with sudo -n and only after success streams the already-fixed final package with sudo -n tar. Keep the fixed remote root/task id and all local create-once receiver behavior unchanged.",
+    "An early pull may end without a package after exporter NOT_READY; it must not retry, backfill, alter state, or synthesize readiness. A completed pull retry must continue to validate the existing archive/inbox idempotently without another remote call.",
+    "Extend release-lane tests to classify the exporter as control-lane, lock its security and write-path contract, require installation without enable/start, and keep all data-plane unit baseline hashes unchanged. Extend receiver tests to require the exact exporter-then-tar remote sequence and no caller-selectable remote path.",
+    "Run exact task validation, python -m unittest research_pipeline.tests.test_research_worker_release_lanes, python -m unittest research_pipeline.tests.test_microstructure_handoff_receive, python -m unittest research_pipeline.tests.test_microstructure_handoff_export, bash -n for installer/verifier, PowerShell AST parse for the pull script, PackageOnly with empty binding parameters, Python compile for changed tests, and git diff --check.",
+    "Return one schema-valid local-research-result JSON tied to this task SHA with exactly seven files_changed/artifacts, all safety assertions false, concrete test evidence, and MISSING_PROOF for real systemd execution, live NOT_READY no-write behavior, DIAGNOSTIC_READY export, transfer, Local diagnostic, interpretation, strategy hypothesis, PnL, drawdown, OOS, and activation.",
+    "Stop after the offline exporter-service closure. Manager review, commit, package, preserve-mode deployment, live read-only NOT_READY proof, future DIAGNOSTIC_READY export/transfer, Local execution, hypothesis design, OOS, and Trading remain separate gates."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 7,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

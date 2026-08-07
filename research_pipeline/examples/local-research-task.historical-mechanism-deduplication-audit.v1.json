@@ -1,0 +1,163 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-historical-mechanism-deduplication-audit-v1",
+  "issued_at": "2026-08-07T07:16:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform one bounded sealed-history mechanism deduplication and opportunity-cost audit. Performance hypothesis: a hash-bound closure matrix cannot itself improve PnL or drawdown, so its expected immediate performance delta is zero, but it can reduce time and compute wasted on re-running mechanisms whose predictive independence, annual or regime breadth, path risk, holding age, terminal inventory, or matched-capital economics already failed. Using only the listed artifacts, map every named branch to a causal fingerprint, evidence boundary, terminal disposition, failed dimensions, and explicit do-not-rerun rule; identify only evidence questions not answered by those artifacts. Do not invent a strategy, rerun or recompute performance, compare absolute PnL across incompatible studies, or access OOS.",
+  "canonical_research_status": "WAITING;GENERAL_FORWARD_1_OF_90;MICROSTRUCTURE_V3_PRE_START_0_OF_14;QUEUES_IDLE;SINGLE_CLOUD_CLOCK",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/java-phase-c-opportunity-cost-audit-v1.md",
+      "sha256": "8c60a1ec7a7b65d5d45bbc9c08fb2643d49f6e848dbe6de5f909668b0c99872a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/hypotheses/legacy-v12-adapter-validation.json",
+      "sha256": "7a1d740ce55155c4fb47865c5ea1a84fc403f12d2e16f1a6f77721e648f370a1"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/legacy-v12-adapter-validation/artifacts/preselect.json",
+      "sha256": "b3d5856510710c2ce9a0db3fbaadc960c2f55f054a81d3cb239b17e3dcbb5935"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/hypotheses/flat-veto-cooldown-route-substitution-v2b.json",
+      "sha256": "866d672210b0018af034ea07ccdf60ab9bea2b13883355ac7bde947e08474a20"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
+      "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/hypotheses/one-slot-profitable-incumbent-signal-rotation-v1.json",
+      "sha256": "36348035e9ef366e63d0719b3ae9daf8977d3c69b2dc4a0d763e5f35d7260664"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/one-slot-profitable-incumbent-signal-rotation-v1/artifacts/diagnostic.json",
+      "sha256": "44245c9b393f3c3fd08c58c455f80f52a8024832a52639185b33b678e13ee609"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/hypotheses/java-dra-v1-phase-a-parity.json",
+      "sha256": "03d933cbbf977a3991ea4b8bbae887b657673d9be1bb43c664a506014c1ab0d9"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/java-dra-v1-phase-a-parity/artifacts/diagnostic.json",
+      "sha256": "383c38bf6edfa92c096090810da3c753dacd296bc8f611c391d75edf8d85d0db"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/hypotheses/java-dra-v1-phase-b-economic-ledger.json",
+      "sha256": "438cd023d2b446045a2e935c121b69c58d3f1d56dab02f381725b670454ebf3d"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/java-dra-v1-phase-b-economic-ledger/artifacts/diagnostic.json",
+      "sha256": "6e9b2b9d8146c64b704d24020e1437c1147bca012c9b571441b645e0be47728c"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": "C:/Users/Redan/.codex/visualizations/2026/07/28/019fa77a-6bcb-71c3-9194-53c63407c2d4/btc-range-factor-research/immutable-core-dra-sleeve-monthly-validation-v1/FINAL_DECISION.md",
+      "sha256": "3308acd4176b18bc2967d6e3a140231cc243d7b6dbd2e56558c4b72239263255"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T07:13:24Z; V3 READY; queues IDLE; general forward 1/90; microstructure PRE_START 0/14; no actionable experiment",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Across studies compare only failure shapes and proof boundaries. Within one study, paired deltas may be quoted only when already present in sealed bytes under the same parent, window, capital, accounting, and valuation boundary. A branch fingerprint must distinguish strategy mechanism from evidence-quality tooling; parity is not alpha.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_POLICY_CONTRACTS",
+    "VERIFY_ALL_LISTED_HASHES",
+    "READ_LISTED_SEALED_SUMMARIES",
+    "EXTRACT_DECLARED_MECHANISM_FINGERPRINTS",
+    "CLASSIFY_CLOSED_BRANCH_FAILURE_MODES",
+    "BUILD_DEDUPLICATION_DECISION_MATRIX",
+    "IDENTIFY_OPEN_EVIDENCE_QUESTIONS",
+    "ASSESS_RESEARCH_OPPORTUNITY_COST",
+    "VALIDATE_LOCAL_RESULT_CONTRACT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "STRATEGY_HYPOTHESIS_OR_MANIFEST_AUTHORING",
+    "ADAPTER_OR_RUNNER_IMPLEMENTATION",
+    "RUNNER_EXECUTION_OR_PERFORMANCE_RECOMPUTATION",
+    "UNLISTED_OR_MISSING_ARTIFACT_INFERENCE",
+    "CROSS_STUDY_ABSOLUTE_PNL_RANKING",
+    "POST_HOC_GATE_OR_THRESHOLD_CHANGE",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "JAVA_PHASE_C_IMPLEMENTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "NETWORK_ACCESS"
+  ],
+  "expected_outputs": [
+    "HASH_VERIFIED_SOURCE_MATRIX",
+    "CLOSED_MECHANISM_FINGERPRINT_MATRIX",
+    "DUPLICATE_RESEARCH_GUARD",
+    "OPEN_EVIDENCE_QUESTIONS",
+    "OPPORTUNITY_COST_DECISION",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task before reading sealed evidence. Verify every non-null SHA-256 against one regular local file; any mismatch, missing file, duplicate locator, link, reparse point, or wrong type is BLOCKED with no partial conclusion.",
+    "Read only the listed repository contracts and sealed artifacts. Do not inspect adjacent OOS, runner sources, unlisted results, network sources, canonical mutable state, or future evidence.",
+    "Do not execute a runner, import a research adapter, recompute PnL or drawdown, normalize capital across studies, derive a missing field, or turn absence into a favorable inference. Mark unavailable comparisons MISSING_PROOF.",
+    "For each represented branch, report one declared causal fingerprint, one evidence boundary, one terminal disposition, the failed or non-applicable performance dimensions, and one explicit duplicate or do-not-rerun rule supported by the sealed bytes.",
+    "Compare absolute PnL or drawdown only within a listed study when the sealed artifact already supplies a matched parent under identical window, capital, accounting, and valuation. Across studies compare only failure shapes and evidence boundaries.",
+    "Treat Java Phase A and B as accounting-risk controls, never alpha. Keep Phase C deferred unless the listed frozen activation gate is already fully satisfied; do not inspect or invent a candidate to satisfy it.",
+    "Identify open questions only when the listed artifacts do not answer them and canonical status names the lawful forward evidence lane. Do not formulate a strategy hypothesis or propose a parameter, threshold, tier, or candidate.",
+    "The audit succeeds when every represented branch has one disposition and the result provides deterministic future duplicate guards without any performance recomputation. Expected immediate PnL and drawdown effect remains zero.",
+    "Return exactly one local-research-result JSON object bound to this task SHA, with zero files changed, concrete PASS or MISSING_PROOF checks, all safety assertions false, and no repository result file."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

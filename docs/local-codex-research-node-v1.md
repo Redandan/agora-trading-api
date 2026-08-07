@@ -54,6 +54,19 @@ Validate that envelope and its exact task before sending either to Local:
 python -m research_pipeline.local_dispatch <dispatch.json> --task <task.json>
 ```
 
+After Local returns, validate the complete transitive closure without changing
+the V1 result schema:
+
+```text
+python -m research_pipeline.local_dispatch <dispatch.json> --task <task.json> --result <result.json>
+```
+
+The closure succeeds only when the dispatch and result independently bind the
+same exact task bytes and the result passes the existing file-limit and all-
+false safety assertions. Its output records the dispatch, task, and raw result
+SHA-256 values so Manager/Coach interpretation cannot silently switch to a
+different hypothesis, task, or result.
+
 Legacy accepted V1 task/result evidence remains valid. A task without a valid
 performance dispatch may be inspected as historical evidence but must not be
 newly dispatched by Manager/Coach. Infrastructure and capability tasks may

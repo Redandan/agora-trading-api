@@ -36,6 +36,41 @@ def load(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def valid_result(task_sha256: str) -> dict[str, object]:
+    return {
+        "schema_version": "1",
+        "task_id": "local-node-microstructure-v3-evidence-diagnostic-v1",
+        "task_sha256": task_sha256,
+        "status": "COMPLETED",
+        "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+        "started_at": "2026-08-22T00:05:00Z",
+        "completed_at": "2026-08-22T00:06:00Z",
+        "source_git_commit": "a" * 40,
+        "source_git_dirty_before": False,
+        "source_git_dirty_after": False,
+        "summary": "The frozen diagnostic completed without repository writes.",
+        "checks": [
+            {
+                "name": "FROZEN_DIAGNOSTIC",
+                "status": "PASS",
+                "evidence": "The result remains bound to the exact task and handoff.",
+            }
+        ],
+        "artifacts": [],
+        "files_changed": [],
+        "uncertainty": ["Matched-capital PnL and drawdown remain MISSING_PROOF."],
+        "recommended_next_action": "Apply the frozen dispatch disposition without tuning.",
+        "safety_assertions": {
+            "canonical_state_changed": False,
+            "server_research_mcp_write_attempted": False,
+            "second_timer_created": False,
+            "trading_action_attempted": False,
+            "oos_opened": False,
+            "paid_api_used": False,
+        },
+    }
+
+
 class LocalResearchDispatchContractTest(unittest.TestCase):
     def setUp(self) -> None:
         self.dispatch = load(DISPATCH_PATH)
@@ -141,6 +176,50 @@ class LocalResearchDispatchContractTest(unittest.TestCase):
                 load_and_validate_dispatch(noncanonical, TASK_PATH)
             with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
                 load_and_validate_dispatch(duplicate, TASK_PATH)
+
+    def test_result_closure_binds_dispatch_task_and_result_hashes(self) -> None:
+        from tempfile import TemporaryDirectory
+
+        with TemporaryDirectory() as temporary:
+            result_path = Path(temporary) / "result.json"
+            result_raw = canonical_json_document_bytes(valid_result(self.task_sha256))
+            result_path.write_bytes(result_raw)
+            validation = load_and_validate_dispatch(
+                DISPATCH_PATH,
+                TASK_PATH,
+                result_path,
+            )
+        self.assertEqual(
+            validation["closure_status"],
+            "VALIDATED_RESULT_BOUND_TO_PERFORMANCE_DISPATCH",
+        )
+        self.assertEqual(validation["result_status"], "COMPLETED")
+        self.assertEqual(
+            validation["result_sha256"],
+            hashlib.sha256(result_raw).hexdigest(),
+        )
+
+    def test_result_closure_rejects_wrong_task_hash_or_unsafe_assertion(self) -> None:
+        from tempfile import TemporaryDirectory
+
+        for mutation, message in (
+            (("task_sha256",), "does not match task bytes"),
+            (("safety_assertions", "paid_api_used"), "unsafe result assertions"),
+        ):
+            with self.subTest(mutation=mutation), TemporaryDirectory() as temporary:
+                result = valid_result(self.task_sha256)
+                if len(mutation) == 1:
+                    result[mutation[0]] = "0" * 64
+                else:
+                    result[mutation[0]][mutation[1]] = True
+                result_path = Path(temporary) / "result.json"
+                result_path.write_bytes(canonical_json_document_bytes(result))
+                with self.assertRaisesRegex(ValueError, message):
+                    load_and_validate_dispatch(
+                        DISPATCH_PATH,
+                        TASK_PATH,
+                        result_path,
+                    )
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ from .local_node import (
     STATE_AUTHORITY,
     TASK_TYPES,
     TIMER_AUTHORITY,
+    validate_local_research_result,
     validate_local_research_task,
 )
 
@@ -254,7 +255,11 @@ def validate_local_research_dispatch(
     return dispatch
 
 
-def load_and_validate_dispatch(dispatch_path: Path, task_path: Path) -> dict[str, Any]:
+def load_and_validate_dispatch(
+    dispatch_path: Path,
+    task_path: Path,
+    result_path: Path | None = None,
+) -> dict[str, Any]:
     dispatch_raw = dispatch_path.read_bytes()
     dispatch = _load_json_bytes(dispatch_raw, "local research dispatch")
     if dispatch_raw != canonical_json_document_bytes(dispatch):
@@ -267,22 +272,43 @@ def load_and_validate_dispatch(dispatch_path: Path, task_path: Path) -> dict[str
         task=task,
         task_sha256=task_sha256,
     )
-    return {
+    validation = {
         "dispatch_id": validated["dispatch_id"],
         "dispatch_sha256": hashlib.sha256(dispatch_raw).hexdigest(),
         "status": "VALID",
         "task_id": task["task_id"],
         "task_sha256": task_sha256,
     }
+    if result_path is not None:
+        result_raw = result_path.read_bytes()
+        result = _load_json_bytes(result_raw, "local research result")
+        validated_result = validate_local_research_result(
+            result,
+            task=task,
+            task_sha256=task_sha256,
+        )
+        validation.update(
+            {
+                "closure_status": "VALIDATED_RESULT_BOUND_TO_PERFORMANCE_DISPATCH",
+                "result_sha256": hashlib.sha256(result_raw).hexdigest(),
+                "result_status": validated_result["status"],
+            }
+        )
+    return validation
 
 
 def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate one Manager-to-Local research dispatch")
     parser.add_argument("dispatch", type=Path)
     parser.add_argument("--task", required=True, type=Path)
+    parser.add_argument("--result", type=Path)
     arguments = parser.parse_args(list(sys.argv[1:] if argv is None else argv))
     try:
-        result = load_and_validate_dispatch(arguments.dispatch, arguments.task)
+        result = load_and_validate_dispatch(
+            arguments.dispatch,
+            arguments.task,
+            arguments.result,
+        )
     except (OSError, ValueError) as error:
         print(json.dumps({"reason": str(error), "status": "BLOCKED"}, sort_keys=True))
         return 2

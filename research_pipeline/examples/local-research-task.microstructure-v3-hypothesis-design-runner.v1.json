@@ -1,0 +1,168 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-hypothesis-design-runner-v1",
+  "issued_at": "2026-08-07T06:47:58Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement the reusable zero-argument Local Research runner that converts one fixed sealed microstructure V3 interpretation into either a deterministic closed design result or exactly one Coach-authored design-only result. The runner must bind a canonical sealed Coach proposal envelope to the exact positive interpretation, require no proposal for non-positive interpretations, validate every frozen repository/source/proposal byte before and after execution, and create one sealed hypothesis-design-result.json once in a separate fixed Local outbox. It must not author a thesis, implement an adapter, register a hypothesis or candidate, open OOS, write canonical state, add a timer, use network or paid API access, or touch Trading.",
+  "canonical_research_status": "MICROSTRUCTURE_V3_PRE_START_0_OF_14_QUEUE_IDLE_SINGLE_CLOUD_CLOCK",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v1.json",
+      "sha256": "cc6bcf53cd31e134ce31b92a38a56499dbcc2a43c1f81bc18a708c801d31bcc5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_interpretation_runner.py",
+      "sha256": "499ca3564f34e7a9a6de59ea09b0b981e254d0ea142429642a610aa36774363f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_interpretation.py",
+      "sha256": "3892ae7a14161de3505bcb31de4b26ea897f52bc20a54db642b7b5706c520e39"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-interpretation-result.v1.schema.json",
+      "sha256": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-interpretation-contract.v1.json",
+      "sha256": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_hypothesis_design.py",
+      "sha256": "ef9864342c62e0415496638a63901194fac06e9cef42120196befb9e9ffa3c4c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-hypothesis-design-result.v1.schema.json",
+      "sha256": "af82d3aa81257eb74cf04026fc9a43ae5c0576049d850b3263b90b7f2930e63d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-hypothesis-design-contract.v1.json",
+      "sha256": "d3e3df7d629938a33cddec00f251bbaaefb4ce17b51eb0b0b558061c692f6948"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "1e98f439cdf6921d6299ac2f5b27e33ac0ca818b5a52a3d10e38e213563c34ee"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T06:44:27Z; policy AUTONOMOUS_TRADING_RESEARCH_V3 READY; sole CLOUD_OPS_SCHEDULE_V6 count 1; all research queues IDLE; Server Canonical microstructure V3 PRE_START/WAITING_FOR_DAY 0/14 with start and next expected day 2026-08-08; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Fix source interpretation root to C:/Users/Redan/.codex/local-research-node/outbox/local-node-microstructure-v3-interpretation-runner-v1, proposal root to C:/Users/Redan/.codex/local-research-node/inbox/local-node-microstructure-v3-hypothesis-design-runner-v1, and output root to C:/Users/Redan/.codex/local-research-node/outbox/local-node-microstructure-v3-hypothesis-design-runner-v1. The proposal envelope is caller-authored and source-bound; the runner transports and validates it but never invents thesis content.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "ADD_COACH_PROPOSAL_SCHEMA",
+    "ADD_FIXED_ROOT_DESIGN_RUNNER",
+    "ADD_FOCUSED_OFFLINE_RUNNER_TESTS",
+    "ADD_DESIGN_RUNNER_DOCUMENTATION",
+    "BUILD_SYNTHETIC_PROPOSAL_ENVELOPES",
+    "VALIDATE_SOURCE_INTERPRETATION",
+    "VALIDATE_SOURCE_BOUND_PROPOSAL",
+    "CALL_EXISTING_PURE_DESIGN_BUILDER",
+    "REVALIDATE_ALL_INPUTS_BEFORE_OUTPUT",
+    "CREATE_LOCAL_DESIGN_RESULT_ONCE",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_PYTHON_COMPILE_CHECK",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_JSON_SCHEMAS_AND_SEALS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "REAL_FIXED_ROOT_RUNNER_EXECUTION",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "SOURCE_INTERPRETATION_WRITE_DELETE_OR_REPAIR",
+    "COACH_THESIS_INVENTION_OR_SELECTION",
+    "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+    "ADAPTER_MANIFEST_OR_OOS_IMPLEMENTATION",
+    "CALLER_SELECTED_PATH_TASK_CONTRACT_TIER_OR_MECHANISM",
+    "JAVA_MAVEN_SPRING_OR_SUBPROCESS_EXECUTION",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "EXISTING_FILE_EDIT",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_FOUR_FILE_CHANGESET",
+    "CLOSED_COACH_PROPOSAL_SCHEMA",
+    "ZERO_ARGUMENT_FIXED_ROOT_DESIGN_RUNNER",
+    "EXACT_TASK_AND_REPOSITORY_HASH_GATES",
+    "EXACT_SOURCE_INTERPRETATION_GATE",
+    "SOURCE_BOUND_COACH_PROPOSAL_ENVELOPE",
+    "POSITIVE_REQUIRES_ONE_PROPOSAL",
+    "NON_POSITIVE_REQUIRES_EMPTY_PROPOSAL_ROOT",
+    "IN_PROCESS_EXISTING_PURE_DESIGN_BUILDER",
+    "POST_BUILD_INPUT_REVALIDATION",
+    "SEPARATE_CREATE_ONCE_LOCAL_OUTPUT",
+    "IDEMPOTENT_IDENTICAL_RETRY",
+    "FOCUSED_FAIL_CLOSED_TEST_EVIDENCE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository input SHA-256 before editing. Any drift is BLOCKED and MISSING_PROOF.",
+    "Create exactly four new files and change no existing byte: research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json, research_pipeline/microstructure_hypothesis_design_runner.py, research_pipeline/tests/test_microstructure_hypothesis_design_runner.py, and docs/okx-microstructure-hypothesis-design-runner-v1.md.",
+    "Expose main(argv) as a zero-argument CLI. Fix repository root, this task id/SHA, source interpretation root/result name, proposal root/name, output root/name, and every frozen contract in constants. Reject every argument and do not read environment variables or the clock.",
+    "Production execution must validate this task's exact bytes and SHA, all task-listed repository hashes, WORKTREE_WRITE tooling authority, zero candidate variants, network NONE, mandatory prohibitions, and exact four-file implementation inventory before reading a source or proposal.",
+    "The source root must be a pre-provisioned regular non-link directory containing exactly interpretation-result.json. Reject absent, extra, partial, linked, reparse, wrong-type, noncanonical, unsealed, or contract/hash-drifted source bytes. Validate through validate_interpretation_result_bytes; do not copy or reimplement the interpretation screen.",
+    "Define one canonical compact sealed proposal envelope schema with exact identity, research-only authorization, source interpretation document/payload hashes, exact READY_FOR_ONE_HYPOTHESIS_DESIGN disposition, exact source-selected tier, one eight-field Coach proposal, fixed false registration/OOS/activation/timer/Trading/paid-API booleans, and SHA-256 payload seal. Reject bare proposal dicts in production.",
+    "A pure helper may build a proposal envelope only from canonical validated interpretation bytes plus one caller-supplied Coach proposal. It may validate and bind that content but must not generate, rewrite, rank, enrich, timestamp, or select any thesis field, tier, mechanism, parent, metric, gate, or opportunity-cost judgment.",
+    "When the interpretation is positive, the fixed proposal root must contain exactly coach-proposal.json and no other entry; the envelope must bind the exact source bytes and selected tier. Missing, extra, conflicting, partial, linked, reparsed, malformed, source-mismatched, or seal-mismatched proposal input fails closed and creates no output.",
+    "When the interpretation is NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE, AMBIGUOUS_NO_HYPOTHESIS, or INSUFFICIENT_FORWARD_EVIDENCE, the fixed proposal root must exist and be empty. Any proposal or extra entry fails closed. Call the existing pure builder with proposal None and create only the deterministic closed result.",
+    "Call build_hypothesis_design_result_bytes in process as the sole design implementation, passing only the validated inner Coach proposal for a positive source and None for a non-positive source. Revalidate its output with validate_hypothesis_design_result_bytes and the exact source bytes; do not duplicate, weaken, or parameterize the design contract.",
+    "After building and before output, revalidate this task, every repository hash, exact implementation inventory, source root and identical source bytes, proposal root and identical proposal bytes/branch rule. Any concurrent change fails closed and creates no output.",
+    "Use one fixed pre-provisioned local outbox directory separate from source and proposal roots. It must be a regular non-link directory containing either no files or exactly hypothesis-design-result.json. The only production write is exclusive create after every validation passes.",
+    "An exact existing canonical result may return IDEMPOTENT_IDENTICAL after full source/proposal/task/repository validation. Any conflicting, partial, noncanonical, unsealed, linked, wrong-type, extra, or source-mismatched output fails closed without overwrite, delete, repair, cleanup, chmod, copy, move, or fallback.",
+    "The returned status may expose only create/idempotent status, fixed result identity, SHA-256, source disposition, design status, and design id or null. It must not claim predictive significance, DRA compatibility, adapter readiness, fees, slippage, fills, capacity, PnL, drawdown, OOS value, candidate readiness, registration, or activation.",
+    "Keep only bounded RuntimePaths and proposal/design-builder injection seams needed for deterministic temporary-directory tests. Production must not accept alternate roots or callables and must perform no scan for another task, source, proposal, output, contract, or work item.",
+    "Focused tests must cover zero-argument fixed paths; exact task/repository hashes and implementation inventory; proposal schema validity; all four interpretation dispositions; positive missing, valid, multiple, extra, malformed, source-mismatched, and seal-mismatched proposal cases; non-positive empty and forbidden proposal cases; exact selected-tier binding; deterministic envelope and result bytes; and input immutability.",
+    "Focused tests must also cover task, repository, source, and proposal concurrent drift; links or reparse points where supported; builder failure with no write; unprovisioned, extra, partial, and conflicting output; exact retry; and proof that source and proposal inputs remain unchanged.",
+    "Use only synthetic existing deterministic fixtures in temporary directories. Do not execute the production fixed-root runner because the real 14-day interpretation and Coach proposal do not exist.",
+    "Run exact task validation, python -m unittest research_pipeline.tests.test_microstructure_hypothesis_design_runner, in-memory Python compile for the two Python files, Draft 2020-12 schema validation for proposal and generated result fixtures, and git diff --check.",
+    "Return one schema-valid local-research-result JSON tied to this task SHA with exactly four files_changed/artifacts, all safety assertions false, concrete test evidence, and MISSING_PROOF for real source/proposal execution, 14-day predictive evidence, DRA compatibility, adapter, economic ledger, PnL, drawdown, OOS, candidate, registration, and activation. Do not stage, commit, or push.",
+    "Stop after the offline design-runner vertical slice. Manager review/commit and future root provisioning, real Coach proposal authoring, runner execution, adapter work, hypothesis/candidate registration, OOS, deployment, and Trading remain separate gates."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 4,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

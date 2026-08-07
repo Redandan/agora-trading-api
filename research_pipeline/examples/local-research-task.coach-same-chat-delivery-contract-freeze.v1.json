@@ -1,0 +1,180 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-coach-same-chat-delivery-contract-freeze-v1",
+  "issued_at": "2026-08-07T12:51:18Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Freeze one pre-activation CLOUD_OPS_SCHEDULE_V7 same-chat Coach delivery contract as an exact six-file repository slice. Performance hypothesis: the contract has zero immediate PnL or drawdown effect, but may remove the proven scheduled-Work cross-task-tool dependency and shorten learning latency once separately implemented and live-accepted. Add a V7 contract and a focused static test; update the daily prompt and three governing documents so they define the two-normal-turn causal sequence: Turn N renders an exact canonical pending event in the existing Coach chat with no same-turn receipt, and Turn N+1 may acknowledge it only when fresh canonical status still shows the same id pending and the complete token exists in a prior assistant message of that same chat. Preserve the V6 outbox, five-field receipt, verified status vocabulary, deduplication, next-due-heartbeat acknowledgement, immutable queue/deadline timestamps and 10800-second PASS/BREACH SLA. Freeze platform cutover gates but do not modify server attestation code, activate V7, deploy, update or trigger a schedule, send a message, or claim live proof.",
+  "canonical_research_status": "WAITING;GENERAL_1/90;V3_PRE_START_0/14;HEARTBEAT_FAILED_CLOSED;OUTBOX_1_PENDING;QUEUES_IDLE;SINGLE_CLOCK",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-acceleration-v1.md",
+      "sha256": "4817a809871dcc15ac1254ef190d0e4ed44518a340096bd84559de82f8ae4536"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "e8c08deb2cf63135b49d1f168de3764c48d12575dd2e00fe1103a5d3756d655c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v6.json",
+      "sha256": "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/prompts/daily-research-tick.md",
+      "sha256": "7b7227aecd83b22b3549f35df68d37b14398b5e45c9e48ec7a3435594c8f3c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/heartbeat.py",
+      "sha256": "209e6784b3525fcc867c0006b76cb4560bf0b144c2b9659d425652b4ab4be845"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence.py",
+      "sha256": "ba6d00c32eeb43071b6b29058b9c08c9a208177703c8c12c6c360c88decd0e90"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_evidence.py",
+      "sha256": "5e07fe7a3d92c8e33858c7588cf6850bb5cfd6b14d653fc4303621f0fa502962"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/queue.py",
+      "sha256": "77cacc811f1deb3746eb10ac0b6596f589a61f1bddad301870c83ac01ef384c2"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/server.py",
+      "sha256": "6c3de2f7b89783794f3f626772a77ecc777b609ca57e4d5767248418ad641cfa"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/tests/test_queue.py",
+      "sha256": "5616aa969a31497c5dd42fc7696b689fc737cb2fab450b9666cb4cca11d7f7b6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/tests/test_server_contract.py",
+      "sha256": "e9f33a938794e6d532f7885390a05b1726460ede3fb9df2a41e1540620219153"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.coach-same-chat-delivery-design-audit.v1.json",
+      "sha256": "3677d2c62e55f064afa81faa9f819818eedc8d9b688dedcc9fc5dcc80ab761af"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T12:26:15Z canonical status: active contract remains CLOUD_OPS_SCHEDULE_V6 hash d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85; exactly one pending artifact-verified Coach event has immutable delivery deadline 2026-08-08T04:00:00Z; no verified receipt; next heartbeat due 2026-08-08T01:00:00Z; all queues IDLE.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Validated design-audit result SHA-256 ed5216213aa080d6378b991f064a275997f4468a8bab95165e17933bf03cb967, disposition CONDITIONALLY_FEASIBLE_NOT_OPERATIONALLY_PROVEN. Preserve its two-turn causal boundary, exact prior-assistant token proof, context-loss retry rule, unchanged timestamps, honest PASS/BREACH and no-overlap cutover gate. Platform binding, server attestation implementation, deployment and live acceptance remain MISSING_PROOF.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Exact authorized file scope: create research_pipeline/cloud-ops-schedule-contract.v7.json and research_pipeline/tests/test_cloud_ops_same_chat_delivery_contract.py; update research_pipeline/prompts/daily-research-tick.md, docs/autonomous-research-charter.md, docs/autonomous-research-acceleration-v1.md and docs/server-research-worker-v2.md. No other path may change. The committed task file itself must remain unchanged.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_LISTED_FROZEN_INPUTS",
+    "VERIFY_ALL_LISTED_HASHES",
+    "CREATE_V7_SAME_CHAT_CONTRACT",
+    "UPDATE_DAILY_RESEARCH_PROMPT",
+    "ADD_FOCUSED_STATIC_CONTRACT_TEST",
+    "UPDATE_THREE_GOVERNING_DOCUMENTS",
+    "PRESERVE_V1_THROUGH_V6_BYTES",
+    "FREEZE_TWO_TURN_CAUSAL_SEQUENCE",
+    "FREEZE_EXACT_PRIOR_ASSISTANT_TOKEN_RULE",
+    "FREEZE_CONTEXT_LOSS_FAIL_CLOSED_RULE",
+    "FREEZE_SINGLE_SCHEDULE_CUTOVER_GATES",
+    "RUN_FOCUSED_OFFLINE_TESTS",
+    "RUN_DIFF_CHECK",
+    "VALIDATE_LOCAL_RESULT_CONTRACT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FILE_CHANGE_OUTSIDE_EXACT_SIX_PATHS",
+    "RESEARCH_MCP_SERVER_OR_QUEUE_IMPLEMENTATION",
+    "V1_V2_V3_V4_V5_OR_V6_MODIFICATION",
+    "SCHEDULE_CREATE_UPDATE_PAUSE_DELETE_OR_TRIGGER",
+    "CROSS_TASK_MESSAGE_SEND_OR_TEST",
+    "RESEARCH_HEARTBEAT_OR_CANDIDATE_REQUEST",
+    "NETWORK_BROWSER_SERVER_OR_PLATFORM_UI_ACCESS",
+    "SAME_TURN_DELIVERY_ACKNOWLEDGEMENT",
+    "ACK_WITHOUT_EXACT_PRIOR_ASSISTANT_TOKEN",
+    "SCHEDULED_INBOX_NOTIFICATION_SUMMARY_OR_USER_QUOTE_AS_PROOF",
+    "USER_OPERATED_RESEARCH_STEP",
+    "NEW_EXTERNAL_MESSENGER_WEBHOOK_OR_API",
+    "RUNNER_ADAPTER_JAVA_MAVEN_OR_SPRING_EXECUTION",
+    "STRATEGY_HYPOTHESIS_MANIFEST_OR_CANDIDATE_AUTHORING",
+    "DEPLOYMENT_ACTIVATION_OR_LIVE_PROOF_CLAIM",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_CLEAN"
+  ],
+  "expected_outputs": [
+    "V7_SAME_CHAT_SCHEDULE_CONTRACT",
+    "V7_HASH_BOUND_DAILY_PROMPT",
+    "TWO_TURN_DELIVERY_STATE_MACHINE",
+    "EXACT_TOKEN_CONTEXT_PROOF_RULE",
+    "CONTEXT_LOSS_AND_RERENDER_RULE",
+    "UNCHANGED_OUTBOX_RECEIPT_AND_SLA_SEMANTICS",
+    "SINGLE_SCHEDULE_CUTOVER_GATE",
+    "FOCUSED_STATIC_CONTRACT_TESTS",
+    "PREPARED_NOT_ACTIVE_DOCUMENTATION",
+    "MISSING_PROOF_REGISTER",
+    "MANAGER_REVIEW_HANDOFF"
+  ],
+  "stop_conditions": [
+    "Validate this exact task before reading or editing. Verify every non-null SHA-256 against one regular local file and require a clean worktree at exact source commit b63c481895ab4b724809e3c332229726dc21a354. Any mismatch, missing file, duplicate locator, link, reparse point, wrong type or pre-existing dirt is BLOCKED with no edit.",
+    "Change exactly the six authorized paths and no others. Two must be new and four must be updates. Do not stage, commit, push, reset, clean, create ignored output, write .research-state, or retain Python bytecode/cache.",
+    "V7 must retain exactly one DAILY 09:05 Asia/Taipei schedule, NEVER end, 09:00 canonical due, 300-second margin, CODEX_CLOUD_OPS_ONLY, SERVER_CANONICAL, the same allowed Research MCP operations, required hash attestation and all non-delivery V6 guards/actions. V1 through V6 bytes must remain exact.",
+    "Version delivery as a same-Coach-chat contract bound to target task 019fca63-4f8f-71e3-9d88-297bca468eb9 and destination RETURN_TO_SAME_CHAT_WITH_EXISTING_CONTEXT. It must require exact canonical delivery_prompt rendering and must not require list_threads, read_thread or send_message_to_thread.",
+    "Freeze causal order: at turn start scan only prior assistant messages in the same Coach chat; then read fresh canonical status; include receipts only for exact prior assistant tokens whose identical ids remain pending; invoke at most the normally due heartbeat; re-read status; render each still-pending token absent from prior assistant context exactly once as current assistant output. A current-turn render is never receipt proof for that same turn.",
+    "Reuse the existing five-field receipt schema and verified status vocabulary unless frozen source bytes prove a versioned change is necessary. Preserve maximum receipt bounds, idempotency, artifact-hash delivery id, exact prefix, pending-to-delivered transition, queued/deadline timestamps, lead-time calculation and PASS/BREACH result without resetting the current event clock.",
+    "Missing, summarized, truncated, altered, user-quoted, Scheduled-inbox-only, notification-only or inferred token context must create no receipt. Keep the event canonical-pending and allow at most one exact rerender in that turn. Never add a local store, poller, retry timer, messenger or user step.",
+    "The prompt must bind the exact V7 document SHA-256 and describe V7 as the only future attestation after activation, while explicitly stating that repository preparation alone does not activate it. It must stop before any V7 write call while canonical status still reports V6.",
+    "The static test must independently validate V7 constants, V7 document hash references in prompt/docs, two-turn and context-loss language, empty or absent cross-task operations, exact preservation of V6 SHA-256 d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85, exact six-file scope assumptions and PREPARED_NOT_ACTIVE claims. Use no network or third-party dependency.",
+    "The three documents must distinguish CURRENT_ACTIVE_V6 from PREPARED_NOT_ACTIVE_V7 and mark server attestation implementation, Worker deployment, platform same-chat binding, one-active-schedule readback, Turn-N render, Turn-N+1 receipt acceptance, dedupe and SLA outcome MISSING_PROOF. Do not claim the current pending event will meet SLA.",
+    "Run the focused new unittest, existing research_pipeline.tests.test_evidence, in-memory Python compilation for new Python, executable validation of this unchanged task, and git diff --check. Any failure, unexpected file, hash drift, bytecode or safety ambiguity stops without broad repair.",
+    "Return exactly one local-research-result JSON object bound to this task SHA. On success it must report source_git_dirty_before=false, source_git_dirty_after=true, exactly six files_changed and six artifact hashes, all safety assertions false, immediate PnL/drawdown zero, and explicit remaining MISSING_PROOF. Do not write the result to disk."
+  ],
+  "limits": {
+    "timeout_seconds": 3600,
+    "max_files_changed": 6,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

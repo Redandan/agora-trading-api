@@ -37,6 +37,31 @@ Every local assignment must conform to:
 - `research_pipeline/local-research-task.schema.json`
 - `research_pipeline/local-research-result.schema.json`
 
+Before Manager/Coach dispatch, every new assignment must also have one
+Manager-owned performance dispatch conforming to
+`research_pipeline/local-research-dispatch.schema.json`. This envelope binds
+the exact existing task SHA-256 without changing frozen task bytes. It makes
+the causal mechanism, performance hypothesis, policy primary metric, expected
+direction, drawdown hypothesis, opportunity cost, claim boundary, positive /
+negative / insufficient-evidence dispositions, task stop-condition hash, and
+candidate-variant limit independently machine-verifiable.
+The dispatch document byte contract is compact UTF-8 JSON with lexicographically
+sorted object keys and exactly one trailing LF.
+
+Validate that envelope and its exact task before sending either to Local:
+
+```text
+python -m research_pipeline.local_dispatch <dispatch.json> --task <task.json>
+```
+
+Legacy accepted V1 task/result evidence remains valid. A task without a valid
+performance dispatch may be inspected as historical evidence but must not be
+newly dispatched by Manager/Coach. Infrastructure and capability tasks may
+declare zero immediate performance effect, but they must still state their
+learning-latency or evidence-quality rationale and opportunity cost. Diagnostic
+tasks must keep PnL and drawdown `MISSING_PROOF` until a later matched-capital
+experiment proves them.
+
 The executable validator is stricter than the portable JSON schemas: it also
 requires the full mandatory prohibition set, a SHA-256 link from result to task,
 zero changed files for `READ_ONLY`, and zero candidate variants for
@@ -88,15 +113,18 @@ creates work. The fixed loop is:
    evidence-ready or integrity event to the Manager/Coach task;
 2. the Manager/Coach re-reads canonical status and verifies the event identity,
    artifact hash, authorization, queue state, and single-clock boundary;
-3. for a ready microstructure V3 diagnostic, the Manager/Coach invokes the
+3. the Manager/Coach validates the exact task plus its task-hash-bound
+   performance dispatch and freezes the positive, negative, and insufficient
+   evidence dispositions before Local outcome access;
+4. for a ready microstructure V3 diagnostic, the Manager/Coach invokes the
    fixed create-once Server-to-Local handoff pull once, validates the received
    package, and validates the exact bounded Local task before dispatch;
-4. the existing Local Research task executes only that task and returns one
+5. the existing Local Research task executes only that task and returns one
    result bound to the task SHA-256;
-5. the Manager/Coach validates the returned result, confirms its safety
+6. the Manager/Coach validates the returned result, confirms its safety
    assertions and file boundary, and interprets the evidence for performance,
    drawdown, stability, concentration, and opportunity cost;
-6. a non-positive or insufficient result closes without tuning. A positive
+7. a non-positive or insufficient result closes without tuning. A positive
    interpretation may proceed only to one separately frozen Coach-authored
    hypothesis-design task; it still does not register a candidate, open OOS,
    or authorize Trading.

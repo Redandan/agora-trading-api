@@ -1,0 +1,193 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-coach-same-chat-v7-server-readiness-audit-v1",
+  "issued_at": "2026-08-07T13:21:45Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "CAPABILITY_READINESS",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform one bounded static implementation-readiness audit for the frozen same-chat CLOUD_OPS_SCHEDULE_V7 contract. Performance hypothesis: server attestation and packaging work has zero immediate PnL or drawdown effect, but completing the smallest fail-closed closure can remove the proven V6 Coach-delivery bottleneck and reduce learning latency after live acceptance. Trace the current V6 Research MCP contract loader, exact expected object, canonical status surface, heartbeat and candidate preflights, receipt validation, release packager, installer, verifier, and tests. Determine the minimum versioned source/test/package/deployment slice that can make canonical status report the exact frozen V7 id/hash without modifying V7 bytes, weakening receipt or queue rules, introducing a second schedule/writer, or creating an unsafe period where the sole active schedule attests the wrong contract. Produce an exact cutover ordering and acceptance matrix, but do not edit, deploy, update a schedule, or call any MCP write.",
+  "canonical_research_status": "WAITING;ACTIVE_V6;V7_FROZEN_NOT_ACTIVE;OUTBOX_1_PENDING;QUEUES_IDLE;GENERAL_1/90;V3_PRE_START_0/14",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v7.json",
+      "sha256": "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v6.json",
+      "sha256": "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/prompts/daily-research-tick.md",
+      "sha256": "a91c26bcfd2d6aac1aafb2ccf152e5be6550dce0a34a02a7e725f971b0621011"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "97f742f6ec1fde12dd46666cd5ac17dab6af201964fdd8a62283f969b55a7700"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-acceleration-v1.md",
+      "sha256": "c62e9791497048059c3d215ace2f07de4fbaa70b48a8320ed19429579b42b905"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "e91d1a3f74e7a546165c0a98369ef995bd22583f9a6da6b14feaabf0968b5111"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/deploy-runbook.md",
+      "sha256": "63d76f1c9f78056847b530ea148e5fb3e2f80fced45de4928a79d3716914d41c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/queue.py",
+      "sha256": "77cacc811f1deb3746eb10ac0b6596f589a61f1bddad301870c83ac01ef384c2"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/server.py",
+      "sha256": "6c3de2f7b89783794f3f626772a77ecc777b609ca57e4d5767248418ad641cfa"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/tests/test_queue.py",
+      "sha256": "5616aa969a31497c5dd42fc7696b689fc737cb2fab450b9666cb4cca11d7f7b6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/tests/test_server_contract.py",
+      "sha256": "e9f33a938794e6d532f7885390a05b1726460ede3fb9df2a41e1540620219153"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/heartbeat.py",
+      "sha256": "209e6784b3525fcc867c0006b76cb4560bf0b144c2b9659d425652b4ab4be845"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_evidence.py",
+      "sha256": "5e07fe7a3d92c8e33858c7588cf6850bb5cfd6b14d653fc4303621f0fa502962"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/deploy_research_worker_upgrade_ssh.ps1",
+      "sha256": "06e2c5ebc6299ab406ce36874d9e5261f3f9cddb2a185033acb96ca8efec135f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "5c363d845b648c1536e2689b1b645af59c32c40013e6c0a78f2e8bbea204ed98"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "67b2f75b451c35430887731643332a45979f5737eb348ba742b58cf50afc2929"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T12:26:15Z OAuth status remains CLOUD_OPS_SCHEDULE_V6 READY hash d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85 on Worker release 20260807T061329Z commit ed414241c67a253362c3453ec44e3c458fb78828; queues IDLE; one Coach event pending; next heartbeat due 2026-08-08T01:00:00Z.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Accepted frozen V7 contract commit 48f7bc5d091807d2432c4b0d5888e649d7cd0e34. Corrected validated Local result SHA-256 024bd50390f0057d38cabda7708b7e729a5c21b180f879041b1b05e35bbfc29b. V7 document is immutable FROZEN; PREPARED_NOT_ACTIVE_V7 is external rollout state; exact verified statuses remain DELIVERED_TO_COACH_TASK_VERIFIED and ALREADY_DELIVERED_TO_COACH_TASK. No activation or deployment occurred.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Cutover risk to audit: changing server expected attestation from V6 to V7 before the sole schedule is safely retargeted makes old V6 writes fail closed; retargeting the schedule to V7 before canonical activation must also fail closed. Determine whether an in-place atomic destination/prompt update is represented in source (likely platform MISSING_PROOF) and otherwise freeze a zero-overlap maintenance order after a completed normal heartbeat: old schedule inactive proof, V7 Worker activation, one Coach-bound schedule activation, canonical and platform readback, then live two-turn proof. Do not invent dual active contracts or a mutable unreviewed selector.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_LISTED_FROZEN_INPUTS",
+    "VERIFY_ALL_LISTED_HASHES",
+    "TRACE_V6_CONTRACT_LOAD_AND_STATUS",
+    "TRACE_HEARTBEAT_AND_CANDIDATE_ATTESTATION",
+    "TRACE_RECEIPT_VALIDATION_REUSE",
+    "TRACE_RELEASE_PACKAGE_CLOSURE",
+    "TRACE_INSTALLER_AND_VERIFIER_CLOSURE",
+    "IDENTIFY_MINIMUM_VERSIONED_IMPLEMENTATION_FILES",
+    "IDENTIFY_REQUIRED_TEST_UPDATES",
+    "DEFINE_ZERO_OVERLAP_CUTOVER_ORDER",
+    "DEFINE_ROLLBACK_AND_FAIL_CLOSED_STATES",
+    "DEFINE_OFFLINE_PACKAGE_AND_LIVE_ACCEPTANCE_GATES",
+    "ASSESS_LEARNING_LATENCY_AND_OPPORTUNITY_COST",
+    "VALIDATE_LOCAL_RESULT_CONTRACT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_CLEAN",
+    "SCHEDULE_CREATE_UPDATE_PAUSE_DELETE_OR_TRIGGER",
+    "CROSS_TASK_MESSAGE_SEND_OR_TEST",
+    "RESEARCH_HEARTBEAT_OR_CANDIDATE_REQUEST",
+    "NETWORK_BROWSER_SERVER_OR_PLATFORM_UI_ACCESS",
+    "DEPLOYMENT_PACKAGE_UPLOAD_OR_INSTALL",
+    "DUAL_ACTIVE_CONTRACT_OR_SCHEDULE",
+    "MUTABLE_UNREVIEWED_CONTRACT_SELECTOR",
+    "V7_DOCUMENT_MODIFICATION",
+    "USER_OPERATED_RESEARCH_STEP",
+    "RUNNER_ADAPTER_JAVA_MAVEN_OR_SPRING_EXECUTION",
+    "STRATEGY_HYPOTHESIS_MANIFEST_OR_CANDIDATE_AUTHORING",
+    "LIVE_PROOF_OR_PERFORMANCE_CLAIM"
+  ],
+  "expected_outputs": [
+    "CURRENT_V6_IMPLEMENTATION_TRACE",
+    "V7_ATTESTATION_DELTA_MATRIX",
+    "RECEIPT_VALIDATOR_REUSE_DECISION",
+    "PACKAGE_INSTALL_VERIFY_CLOSURE",
+    "MINIMUM_IMPLEMENTATION_FILE_SET",
+    "FOCUSED_AND_REGRESSION_TEST_PLAN",
+    "ZERO_OVERLAP_CUTOVER_SEQUENCE",
+    "ROLLBACK_AND_FAILURE_MATRIX",
+    "OFFLINE_PACKAGE_GATE",
+    "LIVE_CANONICAL_AND_PLATFORM_ACCEPTANCE_GATE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task before analysis. Verify every non-null SHA-256 against one regular local file and require a clean worktree at exact source commit 48f7bc5d091807d2432c4b0d5888e649d7cd0e34. Any mismatch, missing file, duplicate locator, link, reparse point, wrong type or dirt is BLOCKED with no partial conclusion.",
+    "Read only listed files and supplied messages. Do not inspect current platform UI, any thread, server, network, adjacent state, OOS, .research-state, Local inbox/outbox, unlisted source or generated package.",
+    "Trace every literal V6 path/id/hash/expected-object dependency and distinguish runtime-required edits from tests/docs/package files that already include V7 automatically. Do not assume Git-root packaging implies installer or verifier acceptance without listed-byte proof.",
+    "Determine whether the unchanged heartbeat receipt validator can accept V7 receipts because the five fields, target id, token prefix and verified status vocabulary are unchanged. If any code still binds the delivery contract id or V6-only shape, identify the exact source and test impact; do not propose broad refactoring.",
+    "The minimum implementation must keep the frozen V7 bytes exact, preserve V6 history, fail on any altered contract, expose only V7 as canonical READY after activation, require exact V7 attestation on both write operations, and leave all non-delivery guards unchanged.",
+    "Do not recommend simultaneous V6/V7 write acceptance, two active schedules, an early heartbeat, a catch-up timer, a mutable environment-selected contract, an external messenger, a user step, or hidden deadline reset. A zero-active-schedule maintenance interval is allowed only between proven V6 deactivation and proven V7 activation and must finish before the next normal due boundary.",
+    "Define exact offline tests for status, heartbeat/candidate preflight, wrong/stale V6 attestation rejection, receipt reuse, prompt/contract hash binding, release package manifest, installer/verifier behavior and V6 byte preservation. Separate package-only evidence from real deployment proof.",
+    "Define a live order that begins only after a completed normal heartbeat with queues idle, proves V6 inactive before V7 activation, deploys and verifies canonical V7, activates exactly one Coach-bound schedule, re-reads both canonical and platform state, then waits for Turn N and Turn N+1 normal cycles. Preserve the current event timestamps and honest PASS/BREACH.",
+    "Recommend at most one bounded implementation slice with exact likely files and no deployment. If the listed source cannot establish a safe minimal closure, return BLOCKED or MISSING_PROOF rather than inventing a selector or platform capability.",
+    "Expected immediate PnL and drawdown effect remains zero. Treat learning-latency benefit as directional and unquantified until live acceptance.",
+    "Return exactly one local-research-result JSON object bound to this task SHA, with zero files changed, concrete PASS, FAIL or MISSING_PROOF checks, all safety assertions false, and no repository result file."
+  ],
+  "limits": {
+    "timeout_seconds": 2400,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

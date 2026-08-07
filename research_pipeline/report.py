@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .hypotheses import select_next
+from .storage import resolve_store_reference
 from .waiting import effective_trigger_status
 
 
@@ -390,7 +391,7 @@ def load_learning(state_root: Path, state: dict[str, Any]) -> dict[str, Any] | N
     relative = state.get("artifacts", {}).get("learning")
     if not relative:
         return None
-    path = state_root / relative
+    path = resolve_store_reference(state_root, relative)
     if not path.is_file():
         return None
     value = json.loads(path.read_text(encoding="utf-8"))
@@ -405,7 +406,7 @@ def load_result(state_root: Path, state: dict[str, Any]) -> dict[str, Any] | Non
     )
     if not relative:
         return None
-    path = state_root / relative
+    path = resolve_store_reference(state_root, relative)
     if not path.is_file():
         return None
     value = json.loads(path.read_text(encoding="utf-8"))

@@ -38,6 +38,7 @@ from research_pipeline.forward_candidate import (
 from research_pipeline.models import RESEARCH_AUTHORIZATION
 from research_pipeline.heartbeat import (
     _advance_coach_delivery,
+    _performance_evidence,
     record_heartbeat_failure,
     run_heartbeat_cycle,
 )
@@ -48,7 +49,13 @@ from research_pipeline.microstructure_source_contract import (
     initial_v3_intake_state,
 )
 from research_pipeline.policy import load_policy, policy_sha256
-from research_pipeline.storage import ResearchStore, atomic_write_json, sha256_file
+from research_pipeline.report import monthly_report, weekly_report
+from research_pipeline.storage import (
+    ResearchStore,
+    atomic_write_json,
+    resolve_store_reference,
+    sha256_file,
+)
 from research_pipeline.waiting import build_evidence_review, build_evidence_trigger
 
 
@@ -1021,6 +1028,13 @@ class EvidenceManifestContractTest(unittest.TestCase):
             set(trigger["required_integrity_checks"]),
         )
 
+        migrated_reference = ready_state["reviews"][0]["path"].replace("/", "\\")
+        self.assertIn("\\", migrated_reference)
+        ready_state["reviews"][0]["path"] = migrated_reference
+        store.save_evidence_trigger_state(ready_state)
+        review_path = resolve_store_reference(store.root, migrated_reference)
+        original_review_bytes = review_path.read_bytes()
+
         tick = {"status": "IDLE_NO_ACTIONABLE_EXPERIMENT"}
         first_heartbeat = run_heartbeat_cycle(
             store,
@@ -1052,6 +1066,109 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 event["research_status"] == "NO_CANDIDATE_FORWARD_DIAGNOSTIC"
                 for event in second_heartbeat["events"]
             )
+        )
+
+        review_path.write_bytes(original_review_bytes + b" ")
+        with self.assertRaisesRegex(
+            ValueError, "sealed closed evidence review changed or disappeared"
+        ):
+            run_heartbeat_cycle(
+                store,
+                {"policy_id": "TEST_RESEARCH_ONLY"},
+                now=datetime(2026, 4, 4, 1, tzinfo=timezone.utc),
+                tick_preview=tick,
+                tick_result=tick,
+            )
+        review_path.write_bytes(original_review_bytes)
+        review_path.unlink()
+        with self.assertRaisesRegex(
+            ValueError, "sealed closed evidence review changed or disappeared"
+        ):
+            run_heartbeat_cycle(
+                store,
+                {"policy_id": "TEST_RESEARCH_ONLY"},
+                now=datetime(2026, 4, 5, 1, tzinfo=timezone.utc),
+                tick_preview=tick,
+                tick_result=tick,
+            )
+
+    def test_historical_backslash_artifacts_load_in_reports_and_heartbeat(self) -> None:
+        store = ResearchStore(self.root / "historical-portability", lock_stale_seconds=60)
+        store.bootstrap()
+        experiment_id = "historical-portability-test"
+        experiment_dir = store.experiment_dir(experiment_id)
+        artifact_dir = experiment_dir / "artifacts"
+        artifact_dir.mkdir(parents=True)
+        learning_path = artifact_dir / "learning.json"
+        result_path = artifact_dir / "diagnostic.json"
+        atomic_write_json(
+            learning_path,
+            {
+                "conclusion": "Legacy reference learning remains visible.",
+                "disposition": "REPORTED_NOT_ACTIVATED",
+                "evidence": {"oos_opened": False},
+            },
+        )
+        metric_row = {
+            "total_pnl_usdt": "12.50",
+            "max_drawdown_pct": "3.00",
+            "realized_usdt": "10.00",
+            "unrealized_usdt": "2.50",
+            "median_hold_hours": "4.0",
+            "p90_hold_hours": "9.0",
+        }
+        atomic_write_json(
+            result_path,
+            {
+                "schema_version": "DRA_FORWARD_ENTRY_ADMISSION_RUNNER_V1",
+                "status": "PASS",
+                "mechanism_key": "PORTABLE_REFERENCE_TEST",
+                "baseline": {"validation": {**metric_row, "total_pnl_usdt": "10.00"}},
+                "variants": [{"role": "primary", "validation": metric_row}],
+            },
+        )
+        manifest = {
+            "title": "Historical portability test",
+            "thesis": "Historical sealed values remain unchanged.",
+            "economic_rationale": "Reference portability restores visibility only.",
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+        state = {
+            "experiment_id": experiment_id,
+            "stage": "CLOSED",
+            "outcome": "REPORTED_NOT_ACTIVATED",
+            "updated_at": "2026-08-07T00:00:00Z",
+            "artifacts": {
+                "learning": (
+                    f"experiments/{experiment_id}/artifacts/learning.json"
+                ).replace("/", "\\"),
+                "diagnostic": (
+                    f"experiments/{experiment_id}/artifacts/diagnostic.json"
+                ).replace("/", "\\"),
+            },
+        }
+        atomic_write_json(experiment_dir / "manifest.json", manifest)
+        atomic_write_json(experiment_dir / "state.json", state)
+        report_args = {
+            "days": 30,
+            "policy_id": "TEST_RESEARCH_ONLY",
+            "state_root": store.root,
+            "hypotheses": [],
+            "evidence_triggers": [],
+            "as_of": datetime(2026, 8, 7, 1, tzinfo=timezone.utc),
+        }
+
+        weekly = weekly_report([(manifest, state)], **report_args)
+        monthly = monthly_report([(manifest, state)], **report_args)
+        heartbeat_performance = _performance_evidence(store, experiment_id)
+
+        self.assertIn("Legacy reference learning remains visible.", weekly)
+        self.assertIn("Historical Validation total PnL: `12.50` USDT", weekly)
+        self.assertIn("Sealed learning coverage: `1/1`", monthly)
+        self.assertEqual(heartbeat_performance["experiment_id"], experiment_id)
+        self.assertIn(
+            "Historical Validation total PnL: `12.50` USDT",
+            heartbeat_performance["summary"][0],
         )
 
     def test_ninety_day_ready_review_registers_one_forward_candidate_end_to_end(

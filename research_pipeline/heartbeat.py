@@ -10,7 +10,15 @@ from typing import Any
 from .microstructure_monitor import microstructure_diagnostic_status
 from .models import parse_timestamp
 from .report import load_result, monthly_report, performance_lines, weekly_report
-from .storage import ResearchStore, atomic_write_json, atomic_write_text, read_json, sha256_file
+from .storage import (
+    ResearchStore,
+    atomic_write_json,
+    atomic_write_text,
+    read_json,
+    resolve_store_reference,
+    sha256_file,
+    store_relative_reference,
+)
 
 
 TAIPEI = timezone(timedelta(hours=8), name="Asia/Taipei")
@@ -674,9 +682,8 @@ def _verify_report_record(store: ResearchStore, record: Any) -> None:
         or not isinstance(record.get("period"), str)
     ):
         raise ValueError("heartbeat report record is incomplete")
-    path = (store.root / relative).resolve()
     try:
-        path.relative_to(store.root)
+        path = resolve_store_reference(store.root, relative)
     except ValueError as error:
         raise ValueError("heartbeat report artifact must stay inside research state") from error
     if not path.is_file() or sha256_file(path) != expected_hash:
@@ -815,10 +822,8 @@ def _microstructure_event(
         raise ValueError(
             "microstructure recovery has no safely hashable canonical artifact"
         )
-    path = store.root / relative
-    resolved = path.resolve(strict=True)
     try:
-        resolved.relative_to(store.root)
+        path = resolve_store_reference(store.root, relative)
     except ValueError as error:
         raise ValueError(
             "microstructure event artifact escapes canonical state"
@@ -878,7 +883,7 @@ def _material_learning_event(store: ResearchStore, result: dict[str, Any]) -> di
     relative = state.get("artifacts", {}).get("learning")
     if not relative:
         return _integrity_event_for_tick(store, {**result, "reason": "MISSING_SEALED_LEARNING"})
-    path = store.root / str(relative)
+    path = resolve_store_reference(store.root, relative)
     learning = read_json(path)
     evidence = learning.get("evidence") if isinstance(learning.get("evidence"), dict) else {}
     uncertainty_parts = [
@@ -984,7 +989,7 @@ def _evidence_ready_event(store: ResearchStore, result: dict[str, Any]) -> dict[
     if not reviews:
         return _evidence_due_event(store, {**result, "status": "EVIDENCE_REVIEW_DUE"})
     latest = reviews[-1]
-    path = store.root / str(latest["path"])
+    path = resolve_store_reference(store.root, latest["path"])
     review = read_json(path)
     diagnostic_summary = (state.get("detail") or {}).get("diagnostic_summary")
     return {
@@ -1036,9 +1041,8 @@ def _new_closed_evidence_review_events(
                 continue
             relative = str(reference.get("path") or "")
             expected_hash = str(reference.get("sha256") or "")
-            path = (store.root / relative).resolve()
             try:
-                path.relative_to(store.root)
+                path = resolve_store_reference(store.root, relative)
             except ValueError as error:
                 raise ValueError("closed evidence review path escapes research state") from error
             if not path.is_file() or sha256_file(path) != expected_hash:
@@ -1108,7 +1112,7 @@ def _candidate_frozen_event(
             store,
             {**result, "reason": "MISSING_SEALED_PRESELECTION"},
         )
-    path = store.root / relative
+    path = resolve_store_reference(store.root, relative)
     return {
         "event_type": "MATERIAL_LEARNING",
         "artifact_path": _relative(store, path),
@@ -1232,7 +1236,7 @@ def _event_priority(event_type: str) -> int:
 
 
 def _relative(store: ResearchStore, path: Path) -> str:
-    return str(path.resolve().relative_to(store.root)).replace("\\", "/")
+    return store_relative_reference(store.root, path)
 
 
 def _iso_utc(value: datetime) -> str:

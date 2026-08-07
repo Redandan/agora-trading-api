@@ -63,7 +63,14 @@ from .heartbeat import (
 from .models import ExperimentManifest, Stage, is_terminal_stage, parse_timestamp
 from .policy import load_policy, policy_sha256
 from .report import monthly_report, weekly_report
-from .storage import ResearchStore, atomic_write_json, atomic_write_text, sha256_file
+from .storage import (
+    ResearchStore,
+    atomic_write_json,
+    atomic_write_text,
+    resolve_store_reference,
+    sha256_file,
+    store_relative_reference,
+)
 from .waiting import (
     build_evidence_review,
     build_evidence_trigger,
@@ -273,9 +280,8 @@ def _ready_review_timestamp_integrity(
     expected_hash = str(reference.get("sha256", ""))
     if not relative or not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
         return "SEALED_READY_REVIEW_REFERENCE_INVALID"
-    path = (store.root / relative).resolve()
     try:
-        path.relative_to(store.root.resolve())
+        path = resolve_store_reference(store.root, relative)
     except ValueError:
         return "SEALED_READY_REVIEW_PATH_REJECTED"
     try:
@@ -490,9 +496,8 @@ def candidate_oos_execution_context(
     if not isinstance(reviews, list) or not reviews:
         raise ValueError("ready candidate OOS trigger has no sealed review")
     review_ref = reviews[-1]
-    review_path = (store.root / str(review_ref.get("path", ""))).resolve()
     try:
-        review_path.relative_to(store.root)
+        review_path = resolve_store_reference(store.root, review_ref.get("path"))
     except ValueError as error:
         raise ValueError("candidate OOS review path escapes research state") from error
     if not review_path.is_file() or sha256_file(review_path) != review_ref.get("sha256"):
@@ -504,9 +509,8 @@ def candidate_oos_execution_context(
     if verified != (trigger_state.get("detail") or {}).get("verified_evidence"):
         raise ValueError("candidate OOS verification no longer matches canonical state")
     dataset_ref = verified[0]["dataset_artifact"]
-    dataset_path = (store.root / str(dataset_ref["path"])).resolve()
     try:
-        dataset_path.relative_to(store.root)
+        dataset_path = resolve_store_reference(store.root, dataset_ref["path"])
     except ValueError as error:
         raise ValueError("candidate OOS dataset path escapes research state") from error
     if not dataset_path.is_file() or sha256_file(dataset_path) != dataset_ref["sha256"]:
@@ -795,9 +799,8 @@ def register_candidate_bundle(
     if not isinstance(reviews, list) or not reviews:
         raise ValueError("ready evidence trigger has no sealed review")
     latest_review_ref = reviews[-1]
-    review_path = (store.root / str(latest_review_ref.get("path", ""))).resolve()
     try:
-        review_path.relative_to(store.root)
+        review_path = resolve_store_reference(store.root, latest_review_ref.get("path"))
     except ValueError as error:
         raise ValueError("evidence review path escapes research state") from error
     if not review_path.is_file() or sha256_file(review_path) != latest_review_ref.get("sha256"):
@@ -1083,9 +1086,8 @@ def verify_review_artifacts(
 ) -> list[dict[str, Any]]:
     verified_manifests: list[dict[str, Any]] = []
     for artifact in review["evidence_artifacts"]:
-        path = (store.root / artifact["path"]).resolve()
         try:
-            path.relative_to(store.root)
+            path = resolve_store_reference(store.root, artifact["path"])
         except ValueError as error:
             raise ValueError("evidence artifact must stay inside research state") from error
         if not path.is_file():
@@ -1342,13 +1344,15 @@ def run_tick(
         state["stage"] = stage
         state["outcome"] = outcome
         state["run_count"] = int(state.get("run_count", 0)) + 1
-        state["artifacts"][action] = str(run.artifact_path.relative_to(store.root))
+        state["artifacts"][action] = store_relative_reference(store.root, run.artifact_path)
         if is_terminal_stage(stage):
             learning_path = store.artifact_dir(state["experiment_id"]) / "learning.json"
             if learning_path.exists():
                 raise ValueError(f"sealed learning artifact already exists: {learning_path}")
             atomic_write_json(learning_path, build_learning(manifest, result, outcome))
-            state["artifacts"]["learning"] = str(learning_path.relative_to(store.root))
+            state["artifacts"]["learning"] = store_relative_reference(
+                store.root, learning_path
+            )
         state["detail"] = {"runner_exit_code": returncode}
         if action == "preselect" and is_terminal_stage(stage):
             close_candidate_oos_trigger(
@@ -1641,7 +1645,7 @@ def main(argv: list[str] | None = None) -> int:
                 state["review_count"] = sequence
                 state.setdefault("reviews", []).append(
                     {
-                        "path": str(review_path.relative_to(store.root)),
+                        "path": store_relative_reference(store.root, review_path),
                         "sha256": sha256_file(review_path),
                         "outcome": outcome,
                     }
@@ -1875,14 +1879,16 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 if not source_relative or not state.get("outcome"):
                     raise ValueError("experiment has no completed result to publish")
-                source = store.root / source_relative
+                source = resolve_store_reference(store.root, source_relative)
                 result = json.loads(source.read_text(encoding="utf-8"))
                 learning_path = store.artifact_dir(args.experiment_id) / "learning.json"
                 atomic_write_json(
                     learning_path,
                     build_learning(manifest, result, str(state["outcome"])),
                 )
-                state["artifacts"]["learning"] = str(learning_path.relative_to(store.root))
+                state["artifacts"]["learning"] = store_relative_reference(
+                    store.root, learning_path
+                )
                 store.save_state(state)
                 store.append_event(
                     args.experiment_id,

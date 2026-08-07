@@ -5,10 +5,56 @@ import json
 import os
 import time
 from contextlib import contextmanager
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterator
 
 from .models import ExperimentManifest, Stage, now_utc
+
+
+def resolve_store_reference(root: Path, reference: Any) -> Path:
+    """Resolve one persisted store-relative reference beneath ``root``."""
+    if not isinstance(reference, str) or not reference:
+        raise ValueError("store reference must be a non-empty string")
+    if any(ord(character) < 32 or ord(character) == 127 for character in reference):
+        raise ValueError("store reference contains a control character")
+    if ":" in reference:
+        raise ValueError("store reference must not contain a colon")
+    if "/" in reference and "\\" in reference:
+        raise ValueError("store reference mixes path separators")
+
+    normalized = reference.replace("\\", "/")
+    if normalized.startswith("/"):
+        raise ValueError("store reference must be relative")
+    segments = normalized.split("/")
+    if any(segment in {"", ".", ".."} for segment in segments):
+        raise ValueError("store reference contains an unsafe path segment")
+
+    relative = PurePosixPath(*segments)
+    resolved_root = root.resolve()
+    candidate = resolved_root.joinpath(*relative.parts)
+    resolved = candidate.resolve()
+    try:
+        resolved.relative_to(resolved_root)
+    except ValueError as error:
+        raise ValueError("store reference escapes research state") from error
+    if resolved == resolved_root:
+        raise ValueError("store reference must identify a child path")
+    return candidate
+
+
+def store_relative_reference(root: Path, path: Path) -> str:
+    """Serialize one path below ``root`` as a canonical POSIX reference."""
+    if not isinstance(path, Path):
+        raise ValueError("store path must be a Path")
+    resolved_root = root.resolve()
+    resolved = path.resolve()
+    try:
+        relative = resolved.relative_to(resolved_root)
+    except ValueError as error:
+        raise ValueError("store path escapes research state") from error
+    if not relative.parts:
+        raise ValueError("store path must identify a child path")
+    return PurePosixPath(*relative.parts).as_posix()
 
 
 class ResearchStore:

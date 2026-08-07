@@ -5,7 +5,6 @@ import io
 import json
 import os
 from pathlib import Path, PurePosixPath
-import subprocess
 import tarfile
 from tempfile import TemporaryDirectory
 import unittest
@@ -33,9 +32,6 @@ from research_pipeline.microstructure_handoff_runner import (
 from research_pipeline.tests.test_microstructure_handoff_runner import _Fixture
 
 
-FROZEN_TRANSFER_DOCUMENT_COMMIT = "81ac790aa65642b06130c24992d4bd6ed38c8b35"
-
-
 class HandoffReceiveTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -52,24 +48,9 @@ class HandoffReceiveTest(unittest.TestCase):
         required.add(TRANSFER_TASK_RELATIVE)
         for relative_name in sorted(required):
             source = REPOSITORY_ROOT.joinpath(*PurePosixPath(relative_name).parts)
-            if relative_name == "docs/server-research-worker-v2.md":
-                raw = subprocess.run(
-                    [
-                        "git",
-                        "-c",
-                        f"safe.directory={REPOSITORY_ROOT.as_posix()}",
-                        "show",
-                        f"{FROZEN_TRANSFER_DOCUMENT_COMMIT}:{relative_name}",
-                    ],
-                    cwd=REPOSITORY_ROOT,
-                    check=True,
-                    stdout=subprocess.PIPE,
-                ).stdout
-            else:
-                raw = source.read_bytes()
             self._write(
                 repository_root.joinpath(*PurePosixPath(relative_name).parts),
-                raw,
+                source.read_bytes(),
             )
         local_root = base / "local-node"
         transport_parent = local_root / "transport"
@@ -141,7 +122,7 @@ class HandoffReceiveTest(unittest.TestCase):
         self.assertEqual(PRODUCTION_PATHS.archive_path, ARCHIVE_PATH)
         self.assertEqual(PRODUCTION_PATHS.staging_root, STAGING_ROOT)
         self.assertEqual(PRODUCTION_PATHS.final_root, FINAL_ROOT)
-        self.assertEqual(TRANSFER_TASK_ID, "local-node-microstructure-v3-handoff-transfer-v1")
+        self.assertEqual(TRANSFER_TASK_ID, "local-node-microstructure-v3-handoff-transfer-v2")
         with redirect_stdout(io.StringIO()) as output:
             self.assertEqual(main(["unexpected"]), 2)
         self.assertEqual(json.loads(output.getvalue())["status"], "BLOCKED")
@@ -178,7 +159,7 @@ class HandoffReceiveTest(unittest.TestCase):
     def test_task_and_repository_drift_fail_before_archive_use(self) -> None:
         cases = (
             (TRANSFER_TASK_RELATIVE, "fixed transfer task bytes changed"),
-            ("docs/local-codex-research-node-v1.md", "repository input hash changed"),
+            ("research_pipeline/local_node.py", "repository input hash changed"),
         )
         for relative_name, message in cases:
             with self.subTest(relative_name=relative_name), TemporaryDirectory() as directory:
@@ -191,6 +172,21 @@ class HandoffReceiveTest(unittest.TestCase):
                     receive_handoff(paths)
                 self.assertFalse(paths.staging_root.exists())
                 self.assertFalse(paths.final_root.exists())
+
+    def test_v2_runtime_trust_root_is_exact_and_excludes_documentation(self) -> None:
+        self.assertEqual(len(EXPECTED_REPOSITORY_INPUTS), 6)
+        self.assertIn(
+            "scripts/pull_microstructure_v3_handoff_ssh.ps1",
+            EXPECTED_REPOSITORY_INPUTS,
+        )
+        self.assertNotIn(
+            "docs/local-codex-research-node-v1.md",
+            EXPECTED_REPOSITORY_INPUTS,
+        )
+        self.assertNotIn(
+            "docs/server-research-worker-v2.md",
+            EXPECTED_REPOSITORY_INPUTS,
+        )
 
     def test_missing_empty_extra_duplicate_and_truncated_archives_fail_pre_publish(self) -> None:
         expected_directories, expected_files = _archive_expected()
@@ -344,7 +340,11 @@ class HandoffReceiveTest(unittest.TestCase):
             manifest.write_bytes(manifest.read_bytes() + b" ")
 
         def mutate_repository(paths: RuntimePaths) -> None:
-            target = paths.repository_root / "docs" / "server-research-worker-v2.md"
+            target = (
+                paths.repository_root
+                / "scripts"
+                / "pull_microstructure_v3_handoff_ssh.ps1"
+            )
             target.write_bytes(target.read_bytes() + b" ")
 
         def create_final(paths: RuntimePaths) -> None:

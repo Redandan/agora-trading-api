@@ -35,11 +35,11 @@ from research_pipeline.microstructure_source_contract import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 TRANSFER_TASK_RELATIVE = (
     "research_pipeline/examples/"
-    "local-research-task.microstructure-v3-handoff-transfer.v1.json"
+    "local-research-task.microstructure-v3-handoff-transfer.v2.json"
 )
-TRANSFER_TASK_ID = "local-node-microstructure-v3-handoff-transfer-v1"
+TRANSFER_TASK_ID = "local-node-microstructure-v3-handoff-transfer-v2"
 TRANSFER_TASK_SHA256 = (
-    "92ba01314b518841b013457e99a383be8e7877eae6cd049305d2bdd704f06b52"
+    "600c6a818469c4ad8c9d5aa1846f74b6344c8825b974ff3b52f357da9c77c532"
 )
 LOCAL_NODE_ROOT = Path("C:/Users/Redan/.codex/local-research-node")
 TRANSPORT_PARENT = LOCAL_NODE_ROOT / "transport"
@@ -54,12 +54,6 @@ MAX_MEMBER_BYTES = 512 * 1024 * 1024
 MAX_PACKAGE_BYTES = 2 * 1024 * 1024 * 1024
 
 EXPECTED_REPOSITORY_INPUTS = {
-    "docs/local-codex-research-node-v1.md": (
-        "58877b4371ffaed9f76ba80d0d02171bf889a90a845d46d8f978a424a4757336"
-    ),
-    "docs/server-research-worker-v2.md": (
-        "476d8feb0a410d9bd069844c33e6f9b1194951313f7b1f63aaccdd12f3680605"
-    ),
     "research_pipeline/examples/"
     "local-research-task.microstructure-v3-evidence-diagnostic.v1.json": (
         "d50e41e5fe98e76c1ff9930baeb89ba357040dd70b2cfdd51656edbc8c03ad86"
@@ -76,8 +70,8 @@ EXPECTED_REPOSITORY_INPUTS = {
     "research_pipeline/microstructure_handoff_runner.py": (
         "897ab23abde5ccf2976697d1101ad0bd8cbd03c083a9038ece196a585d9e06be"
     ),
-    "scripts/read_research_worker_inbox_ssh.ps1": (
-        "dddb1abcea88b27e1afd683647ae2cebcc30718a7c412c203bb5fe5bf5114c64"
+    "scripts/pull_microstructure_v3_handoff_ssh.ps1": (
+        "b8645a9b98807bd1bb9ff64e0f42681c8fecb9f06d921132970ca6fa8f218062"
     ),
 }
 

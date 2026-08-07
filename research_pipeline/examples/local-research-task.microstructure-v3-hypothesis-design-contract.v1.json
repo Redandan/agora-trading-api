@@ -1,0 +1,149 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-hypothesis-design-contract-v1",
+  "issued_at": "2026-08-07T06:20:52Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement the smallest deterministic, research-only hypothesis-design package that closes the gap after the sealed OKX BTC-USDT microstructure V3 interpretation. A non-positive interpretation must deterministically close with no hypothesis. A positive READY_FOR_ONE_HYPOTHESIS_DESIGN interpretation may bind exactly one Coach-authored proposal to the already selected simplest-sufficient tier, but the output must remain DESIGN_ONLY_NOT_REGISTERED, identify the missing microstructure entry-admission adapter capability, freeze the performance/drawdown/opportunity-cost evidence requirements, require a new future OOS window after design and manifest freeze, and authorize neither candidate registration nor OOS access. Do not invent a thesis, implement an adapter, register canonical state, inspect future evidence, or change any existing file.",
+  "canonical_research_status": "MICROSTRUCTURE_V3_PRE_START_0_OF_14_QUEUE_IDLE_SINGLE_CLOUD_CLOCK",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_interpretation.py",
+      "sha256": "3892ae7a14161de3505bcb31de4b26ea897f52bc20a54db642b7b5706c520e39"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-interpretation-result.v1.schema.json",
+      "sha256": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-interpretation-contract.v1.json",
+      "sha256": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-forward-interpretation-v1.md",
+      "sha256": "fb98ece9c732d2029c7dcdb8adbbb4f3ed30dc02b866199ae185f18a80187752"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/hypothesis.schema.json",
+      "sha256": "0658714cb6d3072ae2e8306d15fd7af9683a31e428a2c3ccc30913fe2ea22043"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/manifest.schema.json",
+      "sha256": "fd9d8f44f31b2aaff91ed7f548f0bf1b755400211bfa01fc25c5b462a2c954e3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/candidate-bundle.schema.json",
+      "sha256": "fcab25fefa9be02f2131c92ee354a50c0645d7f96259c3bd6c9e2d04cd050099"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/forward_candidate.py",
+      "sha256": "d012e537c8212f74635e36c09c02ffb3f254fa0343f8517644d8ec495fee6a58"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "58877b4371ffaed9f76ba80d0d02171bf889a90a845d46d8f978a424a4757336"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T06:15:18Z; policy AUTONOMOUS_TRADING_RESEARCH_V3 READY; worker release 20260807T061329Z at source ed414241c67; sole CLOUD_OPS_SCHEDULE_V6 daily 09:05 Asia/Taipei; all queues IDLE; microstructure V3 PRE_START WAITING_FOR_DAY 0/14; start 2026-08-08; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Manager audit conclusion: the existing dra-forward-entry-admission-v1 adapter accepts only the separate 90-day daily-volume/range canonical discovery context. It must not be reused for the 14-day microstructure signal. Positive microstructure interpretation therefore requires a design-only bridge and a later separately frozen adapter-capability task; negative, ambiguous, or insufficient interpretation must close without a hypothesis.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_INPUT_HASHES",
+    "ADD_HYPOTHESIS_DESIGN_CONTRACT",
+    "ADD_HYPOTHESIS_DESIGN_SCHEMA",
+    "ADD_PURE_DESIGN_BUILDER_VALIDATOR",
+    "ADD_FOCUSED_DESIGN_TESTS",
+    "ADD_HYPOTHESIS_DESIGN_DOCUMENTATION",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_PYTHON_COMPILE_CHECK",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_SCHEMA_AND_SEALS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+    "ADAPTER_OR_RUNNER_IMPLEMENTATION",
+    "EXISTING_FILE_EDIT",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "CANONICAL_OR_RESEARCH_STATE_WRITE",
+    "JAVA_MAVEN_OR_SPRING_EXECUTION",
+    "COACH_THESIS_INVENTION_OR_SELECTION"
+  ],
+  "expected_outputs": [
+    "EXACT_FIVE_FILE_CHANGESET",
+    "VERSIONED_HYPOTHESIS_DESIGN_CONTRACT",
+    "CLOSED_HYPOTHESIS_DESIGN_SCHEMA",
+    "PURE_INTERPRETATION_BOUND_DESIGN_BUILDER",
+    "NON_POSITIVE_DETERMINISTIC_CLOSURE",
+    "ONE_COACH_AUTHORED_POSITIVE_DESIGN",
+    "MISSING_ADAPTER_CAPABILITY_BOUNDARY",
+    "FUTURE_OOS_NON_REUSE_BOUNDARY",
+    "POLICY_V3_METRIC_AND_CONSTRAINT_BINDING",
+    "CANONICAL_SEALED_OUTPUT",
+    "FOCUSED_OFFLINE_TEST_EVIDENCE",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null input SHA-256 before editing. Any drift is BLOCKED and MISSING_PROOF.",
+    "Create exactly five new files and change no existing byte: research_pipeline/okx-microstructure-hypothesis-design-contract.v1.json, research_pipeline/microstructure-hypothesis-design-result.v1.schema.json, research_pipeline/microstructure_hypothesis_design.py, research_pipeline/tests/test_microstructure_hypothesis_design.py, and docs/okx-microstructure-hypothesis-design-v1.md.",
+    "The builder must first validate canonical sealed interpretation bytes with validate_interpretation_result_bytes and bind the interpretation document SHA-256, payload SHA-256, contract id/SHA, source handoff hashes, source diagnostic hashes, and selected tier. Bare dicts, alternate interpretation contracts, caller-selected tiers, and unvalidated bytes are forbidden.",
+    "For NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE, AMBIGUOUS_NO_HYPOTHESIS, or INSUFFICIENT_FORWARD_EVIDENCE, reject any proposal and deterministically emit a sealed CLOSED_NO_HYPOTHESIS_DESIGN result with hypothesis_design null and the exact source disposition.",
+    "For READY_FOR_ONE_HYPOTHESIS_DESIGN, require exactly one caller-supplied Coach proposal with a closed set of textual design fields: design_id, created_at, title, thesis, economic_rationale, performance_thesis, drawdown_thesis, and opportunity_cost. Reject absent, extra, malformed, or multiple proposals. The builder must never generate or select those judgments.",
+    "The positive output must use DESIGN_ONLY_NOT_REGISTERED, copy the selected simplest-sufficient tier from the interpretation, freeze proposed parent BTC_DRA_V1_BASELINE_250_USDT_RESEARCH with status PROPOSED_PENDING_CLOCK_AND_FEATURE_COMPATIBILITY, and freeze required capability DRA_MICROSTRUCTURE_ENTRY_ADMISSION_ADAPTER_V1_NOT_IMPLEMENTED. It must not claim the existing daily volume/range adapter supports microstructure.",
+    "Bind the positive design to policy V3 required metrics realized_pnl, unrealized_pnl, total_pnl, maximum_drawdown, capital_utilization, blocked_entries, and holding_age, plus all policy V3 constraints. The result must state that strategy PnL, drawdown, utilization, holding risk, fees/slippage/fills/capacity, DRA clock compatibility, adapter readiness, candidate readiness, and OOS value remain MISSING_PROOF.",
+    "Freeze exactly one proposed mechanism and maximum candidate variants 1. The source tier and its preregistered 15m/60m interpretation may justify only the entry-admission mechanism direction; they may not tune thresholds, claim magnitude, add a second mechanism, or choose a more complex tier.",
+    "The evidence plan must forbid reuse of the 14-day discovery window as OOS, require hypothesis and manifest freeze before a separately frozen future candidate OOS start, leave exact OOS dates MISSING_PROOF until canonical registration, and require the future adapter to evaluate realized/unrealized/total PnL, drawdown path, utilization, blocked entries, holding age, year/regime breadth, terminal inventory, fees, slippage, fills, and capacity.",
+    "Every output must preserve RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE and fixed false booleans for canonical write, candidate registration, OOS access, activation, second timer/writer, Trading/DB/order/fund action, and paid API authorization.",
+    "Use deterministic UTF-8 compact canonical JSON with sorted object keys and a SHA-256 payload seal excluding only seal. Revalidation must recompute all source bindings, branch consistency, policy binding, missing-proof boundaries, authority booleans, and the seal.",
+    "Tests must cover all four interpretation dispositions, positive proposal requirement, exact selected-tier binding, no caller-selected mechanism, non-positive proposal rejection, extra/malformed/multiple proposal rejection, policy drift rejection, source/hash/contract mutation, noncanonical bytes, seal mutation, deterministic output, input immutability, exactly one hypothesis, and all false authorization boundaries.",
+    "Run only focused offline Python tests, Python compile checks, task validation, schema parsing/validation where available, and git diff checks. Stop if implementation would require editing an existing file, implementing an adapter/runner, selecting a real thesis, reading future evidence, registering state, or weakening any existing gate.",
+    "Return a schema-valid Local result message bound to this task SHA. Do not write the Local result into the repository."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 5,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

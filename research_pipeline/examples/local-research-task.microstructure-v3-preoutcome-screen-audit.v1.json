@@ -1,0 +1,120 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-preoutcome-screen-audit-v1",
+  "issued_at": "2026-08-07T03:18:07Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Independently audit the frozen OKX BTC-USDT microstructure V3 diagnostic before its first evidence day and define the smallest deterministic pre-outcome interpretation screen that can turn the eventual 14-day discovery result into at most one bounded strategy-research hypothesis or NO_CANDIDATE. The screen must use only fields already emitted by the frozen diagnostic, preserve causal timing and matched-control breadth, state the intended economic mechanism and opportunity cost, and separate diagnostic capability from matched-capital PnL, drawdown, fees, slippage, capacity, candidate, and OOS evidence.",
+  "canonical_research_status": "WAITING_FOR_MICROSTRUCTURE_V3_START_AND_14_DAY_HANDOFF",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "58877b4371ffaed9f76ba80d0d02171bf889a90a845d46d8f978a424a4757336"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-price-midline-diagnostic-v3.md",
+      "sha256": "16ac07719bd15c02002ab50263e64386009d6ef101a472e68c2faac97358f348"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+      "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_diagnostic.py",
+      "sha256": "f8227dda823a1bd276353f3d9c8cfd0a57e3aa2f087c4a2a4bc2576997314d82"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-handoff-result.v1.schema.json",
+      "sha256": "11efb602cc8365034ea5128f9b76fa53c24d1480ab075dfec115ea1b7ac385f9"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T03:18:07Z; policy READY; worker READY; sole CLOUD_OPS_SCHEDULE_V6; queue IDLE; microstructure diagnostic WAITING_FOR_DAY/PRE_START; start 2026-08-08; accepted 0/14; next day 2026-08-08",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Historical failed-reclaim, exit-management, flat-veto, one-slot rotation, and range branches are closed. The V3 result may only test whether contemporaneous buy-pressure has independent short-horizon predictive capability; it must not revive a closed branch, claim DRA compatibility, or choose a tier or horizon after observing outcomes.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_INPUT_HASHES",
+    "AUDIT_DIAGNOSTIC_TO_HYPOTHESIS_GAP",
+    "DEFINE_PREOUTCOME_INTERPRETATION_SCREEN",
+    "DEFINE_HIERARCHICAL_SINGLE_MECHANISM_RULE",
+    "DEFINE_NO_CANDIDATE_RULE",
+    "MAP_REQUIRED_FUTURE_ECONOMIC_EVIDENCE",
+    "ASSESS_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "TIER_OR_THRESHOLD_TUNING",
+    "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+    "REPOSITORY_OR_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS"
+  ],
+  "expected_outputs": [
+    "CONTRACT_GAP_VERDICT",
+    "PREOUTCOME_INTERPRETATION_SCREEN",
+    "PRIMARY_AND_CONFIRMATORY_HORIZONS",
+    "HIERARCHICAL_SINGLE_MECHANISM_RULE",
+    "NO_CANDIDATE_RULE",
+    "ECONOMIC_MECHANISM_AND_OPPORTUNITY_COST",
+    "FUTURE_EXPERIMENT_BOUNDARY",
+    "PERFORMANCE_EVIDENCE_GAPS",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository SHA-256 before analysis; any mismatch is BLOCKED and MISSING_PROOF.",
+    "Use only the frozen contracts and supplied canonical snapshot. Do not read the future inbox, day bundles, diagnostic result, server, network, .research-state, OOS, or any outcome-bearing artifact.",
+    "The proposed screen must consume only fields already present in the V3 diagnostic result and must freeze exact pass, ambiguity, insufficient-evidence, and NO_CANDIDATE dispositions before 2026-08-08.",
+    "Choose horizons from the intended economic mechanism before outcomes. Explain why each primary and confirmatory horizon is decision-relevant; do not offer a menu for later selection.",
+    "Use a deterministic hierarchy across the three nested tiers and expose at most one future hypothesis mechanism. Multiple passing tiers must not create multiple hypotheses or variants.",
+    "Do not call the diagnostic a strategy or map it directly to DRA without proving timing and feature availability at the intended entry decision. Any such compatibility remains MISSING_PROOF.",
+    "Any positive diagnostic disposition may authorize only one separately frozen research hypothesis or adapter-design task. It cannot establish fees, slippage, matched-capital PnL, drawdown, capacity, candidate readiness, OOS readiness, or activation.",
+    "If the current diagnostic lacks the fields needed for a non-post-hoc screen, identify the exact missing proof and return NO_FREEZE_RECOMMENDATION rather than proposing new metrics or changing the V3 analyzer.",
+    "Make no file changes. Return exactly one local-research-result JSON tied to this task SHA-256, with an empty artifacts and files_changed list and all safety assertions false."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

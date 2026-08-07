@@ -137,6 +137,28 @@ The first vertical slice is complete only when:
 Passing this gate proves orchestration and safety only. It is not evidence of
 alpha, PnL improvement, drawdown improvement, or candidate readiness.
 
+### Worktree-write acceptance gate
+
+A `WORKTREE_WRITE` assignment is accepted only when:
+
+1. the committed task validates before dispatch and binds every non-null input
+   hash plus an exact source commit;
+2. the Local task begins from a clean worktree, changes only the task-listed
+   paths, stays within `max_files_changed`, and does not stage, commit, push, or
+   create an ignored output;
+3. its result is bound to the exact task SHA-256, reports
+   `source_git_dirty_after=true`, lists every changed file and artifact hash,
+   and keeps every safety assertion false;
+4. the Manager/Coach independently validates the returned result, re-hashes
+   each artifact, inspects the actual diff, and repeats the task-relevant tests
+   before staging; and
+5. only the Manager/Coach may commit the reviewed slice. A green Local result
+   does not authorize canonical state, a runner, V4, OOS, or Trading.
+
+This separates an expected bounded worktree change from an unauthorized state
+write. A dirty worktree outside the exact task paths, an unexpected fifth file,
+hash drift, or a failed Manager recheck closes the assignment without commit.
+
 ## Acceptance evidence
 
 `OPERATIONAL_V1` was accepted on 2026-08-07 from two independently validated
@@ -169,3 +191,40 @@ check: it reduces repeated computation and prevents aggregate-PnL-only results
 from reopening already rejected causal mechanisms. It has zero immediate PnL
 or drawdown effect. Real microstructure V3 predictive evidence and any strategy
 mechanism remain subject to their separate forward-data and economic gates.
+
+The first accepted `WORKTREE_WRITE` vertical slice used task
+`local-node-microstructure-discovery-economic-veto-contract-freeze-v1`, task
+SHA-256
+`e5c574d5cdfb9603a639f7f0873626a1129192c24a75ff29f17af26000396287`,
+and clean source commit `468d8874d2045809facc62db768675f49e11dd86`.
+The exact returned UTF-8 JSON has SHA-256
+`898321c4497c583e921ce47d5b43b5cbe957c4e28996257b2ef0f6ed5fea4b19`.
+It reported exactly four new files, `source_git_dirty_after=true`, and all
+safety assertions false. The Manager/Coach revalidated the task/result binding,
+all four artifact hashes, the canonical contract payload seal, the Draft
+2020-12 result schema with the official validator, contradictory-disposition
+rejection, and eight focused tests before committing the four-file slice as
+`15f5616acc58c18f8d3cc120dee95706361de18f`.
+
+That slice freezes only a discovery economic veto. It has zero immediate PnL
+or drawdown effect and adds no evaluator, source, manifest, candidate, OOS, or
+activation. A future Local evaluator assignment remains forbidden until one
+validated V3 handoff and positive interpretation exist. A failed gate must end
+at `VETO_BEFORE_V4`; `PERMIT_LATER_V4` allows only a separately frozen later
+V4 source and economic-manifest slice.
+
+## Current recovery evidence
+
+The canonical heartbeat failure sealed on 2026-08-07 was traced to one migrated
+closed-review reference containing Windows path separators while the
+hash-identical sealed review existed at the corresponding POSIX path. The
+strict portability correction is commit
+`261367c52cb1cc2d68610fad816e9f5b2795a842`, which is an ancestor of the
+currently installed, source-tree-verified Worker commit
+`ed414241c67a253362c3453ec44e3c458fb78828`. The focused storage and evidence
+regression suites pass 42 tests on the current branch.
+
+This proves source and deployment readiness, not live recovery. Only the next
+normally due cloud heartbeat can prove canonical recovery and accept a verified
+Coach delivery receipt. An early heartbeat, local fallback, second timer, or
+manual canonical repair remains forbidden.

@@ -858,7 +858,9 @@ class DurableQueueContractTest(unittest.TestCase):
             "RECOVERY_BLOCKED",
         )
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V6")
+        self.assertEqual(contract["schema_version"], "7")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V7")
+        self.assertEqual(contract["document_status"], "FROZEN")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(
             contract["recurrence"],
@@ -887,8 +889,12 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         self.assertEqual(contract["sha256"], self.ops_schedule_contract_sha256)
         self.assertEqual(
+            contract["sha256"],
+            queue.EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256,
+        )
+        self.assertEqual(
             contract["coach_delivery"]["contract_id"],
-            "SEALED_COACH_THREAD_DELIVERY_V3",
+            "SEALED_COACH_SAME_CHAT_DELIVERY_V1",
         )
         self.assertEqual(
             contract["coach_delivery"]["delivery_proof_sla"],
@@ -904,6 +910,7 @@ class DurableQueueContractTest(unittest.TestCase):
                     "MISSING_PROOF_LEGACY_EVENT",
                     "MISSING_PROOF_LEGACY_RECEIPT",
                 ],
+                "queue_or_deadline_reset_on_cutover": "DENY",
             },
         )
 
@@ -1249,7 +1256,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(outbox["event_count"], 1)
         self.assertEqual(
             outbox["delivery_contract"]["contract_id"],
-            "SEALED_COACH_THREAD_DELIVERY_V3",
+            "SEALED_COACH_SAME_CHAT_DELIVERY_V1",
         )
         self.assertEqual(
             outbox["delivery_contract"]["target_thread_id"],
@@ -1474,6 +1481,82 @@ class DurableQueueContractTest(unittest.TestCase):
         invalid = queue._ops_schedule_contract_summary()
         self.assertEqual(invalid["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
 
+    def test_same_value_raw_byte_mutations_fail_the_frozen_v7_hash(self) -> None:
+        contract = self.app / queue.OPS_SCHEDULE_CONTRACT_RELATIVE_PATH
+        exact = contract.read_bytes()
+
+        contract.write_bytes(b"\n" + exact)
+        whitespace = queue._ops_schedule_contract_summary()
+        self.assertEqual(whitespace["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
+        self.assertIn("bytes", whitespace["reason"])
+
+        contract.write_bytes(exact)
+        value = json.loads(exact.decode("utf-8"))
+        contract.write_text(
+            json.dumps(value, sort_keys=True),
+            encoding="utf-8",
+        )
+        reordered = queue._ops_schedule_contract_summary()
+        self.assertEqual(reordered["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
+        self.assertIn("bytes", reordered["reason"])
+
+    def test_exact_v7_attestation_is_accepted_by_both_write_preflights(self) -> None:
+        self._heartbeat_state("2026-01-02T00:00:00Z")
+        heartbeat = self._request_heartbeat(
+            now=datetime(2026, 1, 1, tzinfo=timezone.utc)
+        )
+        candidate = self._request_candidate_bundle(self._candidate_bundle())
+
+        self.assertEqual(heartbeat["status"], "NOT_DUE")
+        self.assertEqual(candidate["status"], "QUEUED")
+        self.assertEqual(
+            self.ops_schedule_contract_sha256,
+            queue.EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256,
+        )
+
+    def test_both_v7_verified_receipt_statuses_are_accepted(self) -> None:
+        delivery_id = "e" * 64
+        for delivery_status in (
+            "DELIVERED_TO_COACH_TASK_VERIFIED",
+            "ALREADY_DELIVERED_TO_COACH_TASK",
+        ):
+            with self.subTest(delivery_status=delivery_status):
+                heartbeat = self.state / "heartbeat" / "state.json"
+                heartbeat.parent.mkdir(parents=True, exist_ok=True)
+                heartbeat.write_text(
+                    json.dumps(
+                        {
+                            "schema_version": "1",
+                            "coach_delivery": {
+                                "schema_version": "1",
+                                "pending_events": [],
+                                "delivered_receipts": [
+                                    {
+                                        "schema_version": "1",
+                                        "delivery_id": delivery_id,
+                                        "delivery_token": (
+                                            f"SEALED_RESEARCH_DELIVERY:{delivery_id}"
+                                        ),
+                                        "target_thread_id": queue.COACH_TASK_ID,
+                                        "delivery_status": delivery_status,
+                                        "acknowledged_at": "2026-01-01T00:00:00Z",
+                                    }
+                                ],
+                            },
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+                receipt = {
+                    "schema_version": "1",
+                    "delivery_id": delivery_id,
+                    "delivery_token": f"SEALED_RESEARCH_DELIVERY:{delivery_id}",
+                    "target_thread_id": queue.COACH_TASK_ID,
+                    "delivery_status": delivery_status,
+                }
+                payload, _ = queue._validated_heartbeat_payload([receipt])
+                self.assertEqual(payload["coach_delivery_receipts"], [receipt])
+
     def test_wrong_ops_contract_attestation_blocks_both_writes(self) -> None:
         self._heartbeat_state("2026-01-01T00:00:00Z")
         heartbeat = queue.request_heartbeat(
@@ -1493,22 +1576,26 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertFalse((self.requests / "pending.json").exists())
         self.assertFalse((self.source_requests / "pending.json").exists())
 
-    def test_historical_v3_attestation_cannot_opt_out_of_delivery_sla(self) -> None:
-        historical = (
+    def test_stale_v6_attestation_cannot_mutate_either_queue(self) -> None:
+        stale_v6 = (
             Path(queue.__file__).resolve().parents[1]
             / "research_pipeline"
-            / "cloud-ops-schedule-contract.v3.json"
+            / "cloud-ops-schedule-contract.v6.json"
         ).read_bytes()
-        historical_sha256 = hashlib.sha256(historical).hexdigest()
+        stale_v6_sha256 = hashlib.sha256(stale_v6).hexdigest()
+        self.assertEqual(
+            stale_v6_sha256,
+            "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85",
+        )
         self._heartbeat_state("2026-01-01T00:00:00Z")
 
         heartbeat = queue.request_heartbeat(
-            historical_sha256,
+            stale_v6_sha256,
             now=datetime(2026, 1, 1, tzinfo=timezone.utc),
         )
         candidate = queue.request_candidate_bundle(
             self._candidate_bundle(),
-            historical_sha256,
+            stale_v6_sha256,
         )
 
         self.assertEqual(

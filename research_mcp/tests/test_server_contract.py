@@ -57,7 +57,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertFalse(candidate.annotations.destructiveHint)
         self.assertTrue(candidate.annotations.idempotentHint)
 
-    def test_cloud_prompt_is_mcp_first_and_never_writes_local_research_state(self) -> None:
+    def test_cloud_prompt_is_v7_hash_bound_and_never_writes_local_research_state(self) -> None:
         prompt = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
@@ -67,40 +67,24 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         contract = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
-            / "cloud-ops-schedule-contract.v6.json"
+            / "cloud-ops-schedule-contract.v7.json"
         ).read_bytes()
         contract_sha256 = hashlib.sha256(contract).hexdigest()
         contract_value = json.loads(contract.decode("utf-8"))
-        historical_v5 = (
+        frozen_v6 = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
-            / "cloud-ops-schedule-contract.v5.json"
+            / "cloud-ops-schedule-contract.v6.json"
         ).read_bytes()
-        historical_v5_sha256 = hashlib.sha256(historical_v5).hexdigest()
-        historical_v4 = (
-            Path(__file__).resolve().parents[2]
-            / "research_pipeline"
-            / "cloud-ops-schedule-contract.v4.json"
-        ).read_bytes()
-        historical_v4_sha256 = hashlib.sha256(historical_v4).hexdigest()
-        historical_v3 = (
-            Path(__file__).resolve().parents[2]
-            / "research_pipeline"
-            / "cloud-ops-schedule-contract.v3.json"
-        ).read_bytes()
-        historical_v3_sha256 = hashlib.sha256(historical_v3).hexdigest()
         self.assertEqual(
-            historical_v3_sha256,
-            "2d66149bee9e6b44e139fe471bd32dc10a8afa13e7c47d12b2e165f2a3456e8b",
+            hashlib.sha256(frozen_v6).hexdigest(),
+            "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85",
         )
         self.assertEqual(
-            historical_v5_sha256,
-            "404311088765a1b27062d6492f6c54c46723537d48269367d6e90b26c7d48933",
+            contract_sha256,
+            "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144",
         )
-        self.assertEqual(
-            historical_v4_sha256,
-            "f03b8a22542f07256a9ba483c336e55d1e46626ce4ed9a59a41ae1b0f2ac95de",
-        )
+        self.assertEqual(contract_value["document_status"], "FROZEN")
         scheduled = datetime.strptime(
             contract_value["recurrence"]["local_time"], "%H:%M"
         )
@@ -122,7 +106,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("evidence_diagnostic", prompt)
         self.assertIn("worker_release.status=READY", prompt)
         self.assertIn("ops_schedule_contract.status=READY", prompt)
-        self.assertIn("CLOUD_OPS_SCHEDULE_V6", prompt)
+        self.assertIn("CLOUD_OPS_SCHEDULE_V7", prompt)
         self.assertIn(contract_sha256, prompt)
         self.assertIn("recurrence.timezone=Asia/Taipei", prompt)
         self.assertIn("recurrence.local_time=09:05", prompt)
@@ -133,12 +117,8 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         )
         self.assertIn("dispatch_margin.early_call_behavior=NOT_DUE", prompt)
         self.assertIn("dispatch_margin.additional_timer=DENY", prompt)
-        self.assertNotIn("CLOUD_OPS_SCHEDULE_V5", prompt)
-        self.assertNotIn(historical_v5_sha256, prompt)
-        self.assertNotIn("CLOUD_OPS_SCHEDULE_V4", prompt)
-        self.assertNotIn(historical_v4_sha256, prompt)
-        self.assertNotIn("CLOUD_OPS_SCHEDULE_V3", prompt)
-        self.assertNotIn(historical_v3_sha256, prompt)
+        self.assertIn("document_status=FROZEN", prompt)
+        self.assertIn("PREPARED_NOT_ACTIVE_V7", prompt)
         self.assertIn("ops_schedule_contract_sha256", prompt)
         self.assertIn("evidence_capture_health", prompt)
         self.assertIn("CAPTURE_OBSERVATION_PENDING", prompt)
@@ -161,15 +141,16 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("CANDIDATE_OOS", prompt)
         self.assertIn("NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER", prompt)
         self.assertIn("closed historical", prompt)
-        self.assertIn("delivery_status=CROSS_TASK_DELIVERY_PENDING", prompt)
-        self.assertIn("list_threads", prompt)
-        self.assertIn("read_thread", prompt)
-        self.assertIn("send_message_to_thread", prompt)
-        self.assertIn("SEALED_COACH_THREAD_DELIVERY_V3", prompt)
+        self.assertIn("SEALED_COACH_SAME_CHAT_DELIVERY_V1", prompt)
+        self.assertIn(
+            "Do not call `list_threads`, `read_thread`, or `send_message_to_thread`.",
+            prompt,
+        )
         self.assertIn("delivery_proof_sla.completion_window_seconds=10800", prompt)
         self.assertIn("DELIVERED_TO_COACH_TASK_VERIFIED", prompt)
         self.assertIn("QUEUED_TO_COACH_TASK_UNVERIFIED", prompt)
         self.assertIn("ALREADY_DELIVERED_TO_COACH_TASK", prompt)
+        self.assertIn("current assistant turn is never receipt proof", prompt)
         self.assertIn("queue-to-verified-receipt proof", prompt)
         self.assertIn("BREACH_PENDING_DELIVERY_PROOF", prompt)
         self.assertIn("MISSING_PROOF_LEGACY_EVENT", prompt)

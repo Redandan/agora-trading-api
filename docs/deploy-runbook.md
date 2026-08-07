@@ -229,6 +229,46 @@ it in a dirty worktree; failure there is intentional, and the task that prepares
 the commit may use only static parser/closure checks. A successful package-only
 result is still not Linux/server/deployment proof.
 
+### Cloud Ops V7 same-chat cutover (separately authorized only)
+
+Repository preparation does not activate `CLOUD_OPS_SCHEDULE_V7`. The Worker
+attestation accepts only the exact frozen V7 bytes and SHA-256
+`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`;
+the preserved V6 bytes remain
+`d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85`.
+Before packaging a reviewed clean commit, run the focused queue,
+server-contract, same-chat contract, and evidence suites offline. Run
+`PackageOnly` only as the separate post-commit closure gate described above.
+
+A future authorized cutover must occur after a completed normal heartbeat with
+both queues idle and enough time before the next canonical due boundary. Use
+this fail-closed zero-overlap order:
+
+1. Pause V6 and prove from canonical and platform readback that it is inactive
+   and exactly zero schedules are active.
+2. Deploy and verify the V7-only Worker while zero schedules are active. Prove
+   its installed release inventory and exact frozen contract hash.
+3. Prove canonical `ops_schedule_contract.status=READY`,
+   `contract_id=CLOUD_OPS_SCHEDULE_V7`, and the exact V7 SHA-256 above.
+4. Bind the same-Coach-chat schedule without activating it; prove its
+   destination and that the active schedule count remains zero.
+5. Activate exactly one V7 schedule, then re-read both canonical status and
+   platform state to prove exactly one active clock and the fixed V7 binding.
+6. Wait for the normal Turn N. Render the exact canonical prompt without a
+   receipt and without changing `delivery_queued_at` or `delivery_deadline_at`.
+7. Wait for normal Turn N+1. Submit a receipt only for the exact prior assistant
+   token after fresh canonical pending-id verification, and preserve the honest
+   canonical `PASS` or `BREACH` result.
+
+Never accept both attestation hashes, overlap V6 and V7 schedules, add a catch-up
+clock, or run a V6 schedule against a V7-only Worker. If rollback is required,
+pause V7 and prove it inactive first, restore and verify the V6 Worker and
+canonical V6 READY hash, and only then resume exactly one V6 schedule. Atomic
+in-place platform retargeting, same-chat binding, one-active-schedule readback,
+Turn N rendering, Turn N+1 receipt acceptance, and live learning-latency or
+economic value remain `MISSING_PROOF` until separately authorized live
+acceptance.
+
 Optional
 `MicrostructureForwardStartDay` and `MicrostructureDiagnosticId` parameters
 must be supplied together. They prepare a root-owned future binding tied to the

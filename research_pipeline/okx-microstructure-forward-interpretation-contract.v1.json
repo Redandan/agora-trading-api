@@ -1,0 +1,78 @@
+{
+  "schema_version": "1",
+  "contract_id": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "purpose": "PREOUTCOME_DIRECTIONAL_DISCOVERY_SCREEN_ONLY",
+  "source_diagnostic_contract": {
+    "contract_id": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3",
+    "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+  },
+  "source_handoff_result_contract": {
+    "schema_version": "1",
+    "result_type": "MICROSTRUCTURE_V3_CREATE_ONLY_HANDOFF_RESULT",
+    "schema_sha256": "11efb602cc8365034ea5128f9b76fa53c24d1480ab075dfec115ea1b7ac385f9"
+  },
+  "result_contract": {
+    "schema_version": "1",
+    "result_type": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_RESULT_V1",
+    "schema_sha256": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564"
+  },
+  "horizons": {
+    "primary_minutes": 60,
+    "confirmatory_minutes": 15,
+    "descriptive_only_minutes": [
+      5,
+      240,
+      1440
+    ]
+  },
+  "global_eligibility": {
+    "diagnostic_status": "FORWARD_DIAGNOSTIC_READY_FOR_INTERPRETATION",
+    "entry_reference": "NEXT_COMPLETE_MINUTE_OPEN",
+    "fees_and_slippage": "NOT_APPLIED_DIAGNOSTIC_NOT_PNL",
+    "every_tier_gate_status": "PASS",
+    "every_tier_readiness_boolean": true,
+    "required_screen_metrics_non_null": true
+  },
+  "horizon_classification": {
+    "positive": "median_return_bps>0 AND positive_return_share_pct>50.00 AND matched_median_return_delta_bps>0",
+    "negative": "median_return_bps<=0 AND positive_return_share_pct<=50.00 AND matched_median_return_delta_bps<=0",
+    "otherwise": "MIXED"
+  },
+  "tier_classification": {
+    "pass": "15m=POSITIVE AND 60m=POSITIVE",
+    "reject": "15m=NEGATIVE AND 60m=NEGATIVE",
+    "otherwise": "AMBIGUOUS"
+  },
+  "tier_order": [
+    "MIDLINE_RATIO_1_5_ONLY",
+    "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY",
+    "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT"
+  ],
+  "dispositions": {
+    "selected_first_pass": "READY_FOR_ONE_HYPOTHESIS_DESIGN",
+    "all_three_reject": "NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE",
+    "no_pass_and_any_ambiguous": "AMBIGUOUS_NO_HYPOTHESIS",
+    "global_eligibility_incomplete": "INSUFFICIENT_FORWARD_EVIDENCE"
+  },
+  "positive_disposition_authority": "ONE_SEPARATELY_FROZEN_HYPOTHESIS_DESIGN_TASK_ONLY",
+  "missing_proof": [
+    "STATISTICAL_SIGNIFICANCE",
+    "RAW_MESSAGE_PRODUCER_CORRECTNESS",
+    "DRA_CLOCK_AND_FEATURE_COMPATIBILITY",
+    "FEES_SLIPPAGE_FILLS_CAPACITY",
+    "MATCHED_CAPITAL_PNL_DRAWDOWN_UTILIZATION_HOLDING_RISK",
+    "CANDIDATE_READINESS",
+    "OOS_VALUE",
+    "ACTIVATION"
+  ],
+  "guardrails": [
+    "validate_handoff_result_bytes_with_caller_supplied_context_first",
+    "no_bare_diagnostic_input",
+    "no_caller_selected_tier_horizon_threshold_or_contract_path",
+    "no_observed_magnitude_ranking",
+    "descriptive_horizons_cannot_change_disposition",
+    "no_filesystem_write_network_subprocess_environment_clock_server_or_state_access",
+    "diagnostic_is_not_strategy_candidate_oos_or_activation_evidence"
+  ]
+}

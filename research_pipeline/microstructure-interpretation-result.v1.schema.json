@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agora-research:microstructure-forward-interpretation-result:v1",
+  "title": "OKX Microstructure Forward Interpretation Result V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "result_type",
+    "authorization",
+    "interpretation_contract",
+    "source_handoff_result",
+    "source_diagnostic_result",
+    "screen",
+    "disposition",
+    "inference_boundaries",
+    "seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "result_type": {"const": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_RESULT_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "interpretation_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "sha256"],
+      "properties": {
+        "contract_id": {"const": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_V1"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source_handoff_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "result_type", "schema_sha256", "document_sha256", "payload_sha256"],
+      "properties": {
+        "schema_version": {"const": "1"},
+        "result_type": {"const": "MICROSTRUCTURE_V3_CREATE_ONLY_HANDOFF_RESULT"},
+        "schema_sha256": {"$ref": "#/$defs/sha256"},
+        "document_sha256": {"$ref": "#/$defs/sha256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source_diagnostic_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "contract_sha256", "payload_sha256", "canonical_document_sha256"],
+      "properties": {
+        "contract_id": {"const": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3"},
+        "contract_sha256": {"$ref": "#/$defs/sha256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonical_document_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "screen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "global_eligibility",
+        "primary_horizon_minutes",
+        "confirmatory_horizon_minutes",
+        "descriptive_only_horizons_minutes",
+        "tier_order",
+        "tier_evaluations",
+        "selected_tier"
+      ],
+      "properties": {
+        "global_eligibility": {"enum": ["PASS", "INCOMPLETE"]},
+        "primary_horizon_minutes": {"const": 60},
+        "confirmatory_horizon_minutes": {"const": 15},
+        "descriptive_only_horizons_minutes": {"const": [5, 240, 1440]},
+        "tier_order": {
+          "const": [
+            "MIDLINE_RATIO_1_5_ONLY",
+            "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY",
+            "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT"
+          ]
+        },
+        "tier_evaluations": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "MIDLINE_RATIO_1_5_ONLY",
+            "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY",
+            "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT"
+          ],
+          "properties": {
+            "MIDLINE_RATIO_1_5_ONLY": {"$ref": "#/$defs/tier_evaluation"},
+            "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY": {"$ref": "#/$defs/tier_evaluation"},
+            "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT": {"$ref": "#/$defs/tier_evaluation"}
+          }
+        },
+        "selected_tier": {
+          "oneOf": [
+            {"enum": [
+              "MIDLINE_RATIO_1_5_ONLY",
+              "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY",
+              "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT"
+            ]},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "disposition": {
+      "enum": [
+        "READY_FOR_ONE_HYPOTHESIS_DESIGN",
+        "NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE",
+        "AMBIGUOUS_NO_HYPOTHESIS",
+        "INSUFFICIENT_FORWARD_EVIDENCE"
+      ]
+    },
+    "inference_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "positive_disposition_authority",
+        "statistical_significance",
+        "raw_message_producer_correctness",
+        "dra_clock_feature_compatibility",
+        "fees_slippage_fills_capacity",
+        "pnl_drawdown_utilization_holding_risk",
+        "candidate_readiness",
+        "oos_value",
+        "canonical_state_write_authorized",
+        "candidate_registration_authorized",
+        "oos_access_authorized",
+        "activation_authorized"
+      ],
+      "properties": {
+        "positive_disposition_authority": {"const": "ONE_SEPARATELY_FROZEN_HYPOTHESIS_DESIGN_TASK_ONLY"},
+        "statistical_significance": {"const": "MISSING_PROOF"},
+        "raw_message_producer_correctness": {"const": "MISSING_PROOF"},
+        "dra_clock_feature_compatibility": {"const": "MISSING_PROOF"},
+        "fees_slippage_fills_capacity": {"const": "MISSING_PROOF"},
+        "pnl_drawdown_utilization_holding_risk": {"const": "MISSING_PROOF"},
+        "candidate_readiness": {"const": "MISSING_PROOF"},
+        "oos_value": {"const": "MISSING_PROOF"},
+        "canonical_state_write_authorized": {"const": false},
+        "candidate_registration_authorized": {"const": false},
+        "oos_access_authorized": {"const": false},
+        "activation_authorized": {"const": false}
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "horizon_state_or_null": {
+      "oneOf": [
+        {"enum": ["POSITIVE", "NEGATIVE", "MIXED"]},
+        {"type": "null"}
+      ]
+    },
+    "tier_disposition_or_null": {
+      "oneOf": [
+        {"enum": ["PASS", "REJECT", "AMBIGUOUS"]},
+        {"type": "null"}
+      ]
+    },
+    "tier_evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confirmatory_horizon_state", "primary_horizon_state", "tier_disposition"],
+      "properties": {
+        "confirmatory_horizon_state": {"$ref": "#/$defs/horizon_state_or_null"},
+        "primary_horizon_state": {"$ref": "#/$defs/horizon_state_or_null"},
+        "tier_disposition": {"$ref": "#/$defs/tier_disposition_or_null"}
+      }
+    }
+  }
+}

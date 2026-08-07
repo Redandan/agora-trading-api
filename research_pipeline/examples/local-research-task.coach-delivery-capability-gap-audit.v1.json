@@ -1,0 +1,150 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-coach-delivery-capability-gap-audit-v1",
+  "issued_at": "2026-08-07T12:30:03Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform one bounded, static Coach-delivery capability-gap audit. Performance hypothesis: reliable sealed-result delivery cannot directly improve PnL or drawdown, but it can shorten learning latency and prevent useful research from remaining unseen; the expected immediate performance delta is zero. Reconcile the frozen V6 direct Coach-thread delivery contract with the latest platform readback proving that the scheduled Work run ended CROSS_TASK_DELIVERY_PENDING because task discovery, read, and send tools were unavailable. Trace the exact repository contracts and receipt state transition, identify which claims are proven, contradicted, or MISSING_PROOF, and recommend the smallest versioned remediation that preserves exactly one cloud timer, Server Canonical as sole state writer, durable hash-deduplicated outbox semantics, no paid API, and no user-operated research step. Do not send a message, modify a schedule, call an MCP write, edit code, or claim that a proposed path is operationally proven.",
+  "canonical_research_status": "WAITING;GENERAL_1/90;V3_PRE_START_0/14;HEARTBEAT_FAILED_CLOSED;OUTBOX_1_PENDING;QUEUES_IDLE;SINGLE_CLOCK",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-acceleration-v1.md",
+      "sha256": "4817a809871dcc15ac1254ef190d0e4ed44518a340096bd84559de82f8ae4536"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "91ebcf4c7631327c2e80f20db1a4be2ddbb2e709a38051070070214fe151a5c3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "e8c08deb2cf63135b49d1f168de3764c48d12575dd2e00fe1103a5d3756d655c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v6.json",
+      "sha256": "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/prompts/daily-research-tick.md",
+      "sha256": "7b7227aecd83b22b3549f35df68d37b14398b5e45c9e48ec7a3435594c8f3c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/heartbeat.py",
+      "sha256": "209e6784b3525fcc867c0006b76cb4560bf0b144c2b9659d425652b4ab4be845"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence.py",
+      "sha256": "ba6d00c32eeb43071b6b29058b9c08c9a208177703c8c12c6c360c88decd0e90"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_evidence.py",
+      "sha256": "5e07fe7a3d92c8e33858c7588cf6850bb5cfd6b14d653fc4303621f0fa502962"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "OAuth Research MCP read at 2026-08-07T12:26:15Z: CLOUD_OPS_SCHEDULE_V6 READY hash d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85; coach_outbox has one artifact-verified pending event, delivery id 40185e435049e96b68f0647203fb522a0e1d69a240e0a10f2e47b16f0e8be2ad, status PENDING_WITHIN_SLA, deadline 2026-08-08T04:00:00Z; no verified receipt; all queues IDLE.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Platform schedule readback from the Ops audit: exactly one active schedule id 6a71a1ed2f608191b0621c52bed3fd81, DAILY 09:05 Asia/Taipei, end NEVER, last displayed run 2026-08-07 09:07 and next displayed run 2026-08-08 09:05. Its prompt contains V6 id/hash, canonical due 09:00, SEALED_COACH_THREAD_DELIVERY_V3 and Coach task 019fca63-4f8f-71e3-9d88-297bca468eb9. The latest scheduled Work run ended delivery_status=CROSS_TASK_DELIVERY_PENDING and explicitly reported list/read/send cross-task tools unavailable. Whether those tools will exist in the next scheduled run is MISSING_PROOF. No schedule mutation or test send occurred.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Audit candidate remediations without choosing by convenience: retaining V6 and waiting for platform capability; binding the sole schedule to an execution surface that actually exposes the frozen operations; a versioned Coach-pull or receipt-relay design using only existing task messaging and the next normal heartbeat; or explicitly downgrading the delivery claim. Reject any option that adds a timer, external messenger, paid API, direct canonical writer, unverified acknowledgement, manual sponsor step, or silently weakens the SLA. Separate repository feasibility from platform MISSING_PROOF and live acceptance proof.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_LISTED_FROZEN_CONTRACTS",
+    "VERIFY_ALL_LISTED_HASHES",
+    "TRACE_COACH_OUTBOX_STATE_MACHINE",
+    "TRACE_HEARTBEAT_RECEIPT_VALIDATION",
+    "RECONCILE_PLATFORM_AND_REPOSITORY_EVIDENCE",
+    "CLASSIFY_PROVEN_CONTRADICTED_MISSING_PROOF",
+    "COMPARE_SINGLE_CLOCK_REMEDIATION_OPTIONS",
+    "IDENTIFY_MINIMUM_VERSIONED_CHANGE",
+    "DEFINE_FAIL_CLOSED_ACCEPTANCE_PROOF",
+    "ASSESS_LEARNING_LATENCY_AND_OPPORTUNITY_COST",
+    "VALIDATE_LOCAL_RESULT_CONTRACT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SCHEDULE_CREATE_UPDATE_PAUSE_DELETE_OR_TRIGGER",
+    "CROSS_TASK_MESSAGE_SEND_OR_TEST",
+    "RESEARCH_HEARTBEAT_OR_CANDIDATE_REQUEST",
+    "NETWORK_OR_BROWSER_ACCESS",
+    "UNVERIFIED_COACH_DELIVERY_CLAIM",
+    "ACK_WITHOUT_PROVEN_TASK_READBACK",
+    "USER_OPERATED_RESEARCH_STEP",
+    "NEW_EXTERNAL_MESSENGER_OR_WEBHOOK",
+    "RUNNER_ADAPTER_JAVA_MAVEN_OR_SPRING_EXECUTION",
+    "STRATEGY_HYPOTHESIS_MANIFEST_OR_CANDIDATE_AUTHORING",
+    "FUTURE_PLATFORM_CAPABILITY_INFERENCE"
+  ],
+  "expected_outputs": [
+    "CURRENT_DELIVERY_PROOF_MATRIX",
+    "CONTRACT_PLATFORM_CONTRADICTION",
+    "OUTBOX_AND_RECEIPT_STATE_TRACE",
+    "REMEDIATION_OPTION_MATRIX",
+    "MINIMUM_VERSIONED_RECOMMENDATION",
+    "SINGLE_CLOCK_AND_WRITER_PROOF",
+    "LIVE_ACCEPTANCE_TEST_PLAN",
+    "LEARNING_LATENCY_OPPORTUNITY_COST",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task before analysis. Verify every non-null SHA-256 against one regular local file; any mismatch, missing file, duplicate locator, link, reparse point, or wrong type is BLOCKED with no partial conclusion.",
+    "Read only the listed repository files and the two supplied status messages. Do not inspect current platform UI, any thread, server, network, adjacent state, OOS, .research-state, Local inbox/outbox, or unlisted artifact.",
+    "Treat the 2026-08-07 scheduled Work run as proof that direct cross-task delivery was unavailable in that run, and treat next-run tool availability as MISSING_PROOF. Do not generalize either fact beyond its exact scope.",
+    "Trace the exact V6 outbox, delivery token, permitted receipt fields, next-due heartbeat acknowledgement, deduplication, and SLA transition using only listed bytes. Mark any platform-side step not represented in those bytes MISSING_PROOF.",
+    "Compare at least the supplied remediation classes against one-clock, one-canonical-writer, no-paid-API, no-user-operation, hash-deduplication, fail-closed acknowledgement, recovery, and bounded-SLA criteria. Do not recommend a second timer, new external messenger, direct server writer, or false verified-delivery claim.",
+    "Recommend at most one minimum versioned next slice. Name its exact responsibility and proof gates, but do not author code, a schedule prompt, a contract, a task message, or an implementation diff.",
+    "Separate immediate repository feasibility from platform live proof. A static audit cannot prove future scheduled tool availability, message delivery, next-heartbeat receipt acceptance, or the 10800-second SLA.",
+    "Expected immediate PnL and drawdown effect remains zero. Quantify benefit only as learning-latency and operator-effort direction unless listed evidence supports a number.",
+    "Return exactly one local-research-result JSON object bound to this task SHA, with zero files changed, concrete PASS, FAIL, or MISSING_PROOF checks, all safety assertions false, and no repository result file."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-coach-same-chat-delivery-design-audit-v1",
+  "issued_at": "2026-08-07T12:42:53Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform one bounded, static design audit for a same-chat Coach delivery successor to CLOUD_OPS_SCHEDULE_V6. Performance hypothesis: moving the sole scheduled task into the existing Coach chat has zero immediate PnL or drawdown effect, but may remove the proven scheduled-Work cross-task-tool dependency and reduce learning latency without adding a timer, writer, paid API, messenger, or user-operated step. Using only the listed repository bytes, prior audit facts, and supplied official Codex capability statement, determine whether a versioned same-chat delivery contract can preserve the durable canonical outbox, exact delivery token, deduplication, next-normal-heartbeat acknowledgement, and 10800-second SLA. Define a deterministic turn-by-turn state machine that never acknowledges an event in the same turn that first renders it, fails closed when prior same-chat context is unavailable or the exact token is absent, and never treats Scheduled inbox, notification, summary, or inferred context as proof. Recommend the minimum versioned repository and platform slice only if the design is internally coherent; do not author or activate it.",
+  "canonical_research_status": "WAITING;GENERAL_1/90;V3_PRE_START_0/14;HEARTBEAT_FAILED_CLOSED;OUTBOX_1_PENDING;QUEUES_IDLE;SINGLE_CLOCK",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-acceleration-v1.md",
+      "sha256": "4817a809871dcc15ac1254ef190d0e4ed44518a340096bd84559de82f8ae4536"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "91ebcf4c7631327c2e80f20db1a4be2ddbb2e709a38051070070214fe151a5c3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "e8c08deb2cf63135b49d1f168de3764c48d12575dd2e00fe1103a5d3756d655c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v6.json",
+      "sha256": "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/prompts/daily-research-tick.md",
+      "sha256": "7b7227aecd83b22b3549f35df68d37b14398b5e45c9e48ec7a3435594c8f3c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/heartbeat.py",
+      "sha256": "209e6784b3525fcc867c0006b76cb4560bf0b144c2b9659d425652b4ab4be845"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence.py",
+      "sha256": "ba6d00c32eeb43071b6b29058b9c08c9a208177703c8c12c6c360c88decd0e90"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_evidence.py",
+      "sha256": "5e07fe7a3d92c8e33858c7588cf6850bb5cfd6b14d653fc4303621f0fa502962"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.coach-delivery-capability-gap-audit.v1.json",
+      "sha256": "5299bb5df245d8de9f0ca666fc50eebfedc70f4f9c8071930971902ade5f5b88"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "OAuth Research MCP read at 2026-08-07T12:26:15Z: one artifact-verified Coach event remains pending with delivery id 40185e435049e96b68f0647203fb522a0e1d69a240e0a10f2e47b16f0e8be2ad, PENDING_WITHIN_SLA through 2026-08-08T04:00:00Z; no verified receipt; next heartbeat due 2026-08-08T01:00:00Z; all queues IDLE.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Validated prior Local audit result SHA-256 55b07ed94874db11e0def070322263a4b65996703611e24af001e41d1e05bfd2: DELIVERY_CAPABILITY_GAP_CONFIRMED. V6 repository outbox/receipt logic is fail-closed, but the 2026-08-07 scheduled Work run lacked list/read/send cross-task tools and ended CROSS_TASK_DELIVERY_PENDING. Next-run tool availability, actual Coach delivery, canonical receipt acceptance, and SLA outcome remain MISSING_PROOF.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Current official Codex manual capability statement fetched 2026-08-07: a scheduled task can be created inside an existing chat when results should return to that same chat; it uses that chat's existing context, can run daily or weekly, and can use plugins and skills available to that chat. A ChatGPT or Codex chat can create or update a scheduled task and choose whether runs return to the current chat or start a new chat. This establishes documented product capability, not current account/UI binding, tool availability, successful migration, or live delivery proof.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The current Coach task id is 019fca63-4f8f-71e3-9d88-297bca468eb9 and this interactive Coach surface currently exposes canonical Research MCP reads plus task list/read/send operations. Do not infer that an unattended same-chat scheduled turn exposes any operation beyond official documentation; a same-chat design should avoid cross-task operations entirely and use only prior exact assistant-output context as the possible next-cycle receipt basis.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_LISTED_FROZEN_CONTRACTS",
+    "VERIFY_ALL_LISTED_HASHES",
+    "TRACE_COACH_OUTBOX_STATE_MACHINE",
+    "TRACE_HEARTBEAT_RECEIPT_VALIDATION",
+    "MODEL_SAME_CHAT_TURN_SEQUENCE",
+    "DEFINE_EXACT_TOKEN_CONTEXT_PROOF",
+    "DEFINE_FAIL_CLOSED_CONTEXT_LOSS_BEHAVIOR",
+    "COMPARE_V6_AND_SAME_CHAT_DELIVERY",
+    "IDENTIFY_MINIMUM_VERSIONED_CHANGE",
+    "DEFINE_SINGLE_SCHEDULE_CUTOVER_ORDER",
+    "DEFINE_LIVE_ACCEPTANCE_PROOF",
+    "ASSESS_LEARNING_LATENCY_AND_OPPORTUNITY_COST",
+    "VALIDATE_LOCAL_RESULT_CONTRACT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SCHEDULE_CREATE_UPDATE_PAUSE_DELETE_OR_TRIGGER",
+    "CROSS_TASK_MESSAGE_SEND_OR_TEST",
+    "RESEARCH_HEARTBEAT_OR_CANDIDATE_REQUEST",
+    "NETWORK_BROWSER_OR_PLATFORM_UI_ACCESS",
+    "SAME_TURN_DELIVERY_ACKNOWLEDGEMENT",
+    "ACK_WITHOUT_EXACT_PRIOR_ASSISTANT_TOKEN",
+    "SCHEDULED_INBOX_NOTIFICATION_OR_SUMMARY_AS_PROOF",
+    "USER_OPERATED_RESEARCH_STEP",
+    "NEW_EXTERNAL_MESSENGER_WEBHOOK_OR_API",
+    "RUNNER_ADAPTER_JAVA_MAVEN_OR_SPRING_EXECUTION",
+    "STRATEGY_HYPOTHESIS_MANIFEST_OR_CANDIDATE_AUTHORING",
+    "FUTURE_PLATFORM_CAPABILITY_INFERENCE"
+  ],
+  "expected_outputs": [
+    "SAME_CHAT_FEASIBILITY_DECISION",
+    "TURN_BY_TURN_DELIVERY_STATE_MACHINE",
+    "EXACT_TOKEN_CONTEXT_PROOF_RULE",
+    "CONTEXT_LOSS_AND_RETRY_RULE",
+    "V6_TO_SUCCESSOR_DELTA_MATRIX",
+    "MINIMUM_VERSIONED_FILE_AND_RESPONSIBILITY_SLICE",
+    "SINGLE_SCHEDULE_CUTOVER_ORDER",
+    "LIVE_DELIVERY_AND_RECEIPT_ACCEPTANCE_PLAN",
+    "LEARNING_LATENCY_OPPORTUNITY_COST",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task before analysis. Verify every non-null SHA-256 against one regular local file; any mismatch, missing file, duplicate locator, link, reparse point, or wrong type is BLOCKED with no partial conclusion.",
+    "Read only the listed repository files and supplied status/capability messages. Do not inspect current platform UI, any thread, server, network, adjacent state, OOS, .research-state, Local inbox/outbox, or unlisted artifact.",
+    "Treat schedule-inside-existing-chat and existing-context reuse as documented product capability only. Treat current schedule migration, same-chat unattended run, plugin/MCP availability, exact prior-token visibility, and live receipt acceptance as MISSING_PROOF until separately tested.",
+    "A first same-chat scheduled turn may render a pending canonical delivery prompt but must not include a receipt for that newly rendered token in the heartbeat request that preceded its own assistant output. Define this causal boundary explicitly.",
+    "A later normally due turn may form a receipt only when the exact full delivery token is present in a prior assistant message in the same Coach chat and the same delivery id remains pending in fresh canonical status. Missing, summarized, truncated, altered, user-quoted, Scheduled-inbox-only, notification-only, or inferred token context cannot acknowledge delivery.",
+    "If exact prior assistant context is unavailable, preserve the canonical event pending and render the same canonical prompt at most once in that turn without a receipt. Do not add a catch-up timer, retry loop, external message, manual sponsor step, or new writer.",
+    "Define a cutover that never permits two active schedules. Distinguish an in-place destination update, if platform-proven, from pause-old/create-new/verify/delete-old; no successor may become active before old-clock exclusion is proven.",
+    "Recommend at most one minimum versioned repository slice with exact responsibilities and likely files, but do not author code, schema, contract, prompt, documentation, tests, schedule changes, or deployment commands.",
+    "Expected immediate PnL and drawdown effect remains zero. Quantify benefit only as learning-latency and operator-effort direction unless listed evidence supports a number.",
+    "Return exactly one local-research-result JSON object bound to this task SHA, with zero files changed, concrete PASS, FAIL, or MISSING_PROOF checks, all safety assertions false, and no repository result file."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

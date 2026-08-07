@@ -1,6 +1,6 @@
 # Local Codex Research Node V1
 
-Status: `PILOT_V1`
+Status: `OPERATIONAL_V1`
 
 ## Purpose
 
@@ -78,7 +78,34 @@ configure an OpenAI API key and does not claim that a ChatGPT subscription pays
 for API usage. The computer and Codex must be available for local work; cloud
 heartbeat and evidence collection continue independently while it is off.
 
-## Pilot acceptance gate
+## Operational loop
+
+The local node remains message-dispatched even after operational acceptance.
+The user does not operate individual research tasks, and local idle time never
+creates work. The fixed loop is:
+
+1. the sole cloud Ops schedule observes canonical state and delivers a sealed
+   evidence-ready or integrity event to the Manager/Coach task;
+2. the Manager/Coach re-reads canonical status and verifies the event identity,
+   artifact hash, authorization, queue state, and single-clock boundary;
+3. for a ready microstructure V3 diagnostic, the Manager/Coach invokes the
+   fixed create-once Server-to-Local handoff pull once, validates the received
+   package, and validates the exact bounded Local task before dispatch;
+4. the existing Local Research task executes only that task and returns one
+   result bound to the task SHA-256;
+5. the Manager/Coach validates the returned result, confirms its safety
+   assertions and file boundary, and interprets the evidence for performance,
+   drawdown, stability, concentration, and opportunity cost;
+6. a non-positive or insufficient result closes without tuning. A positive
+   interpretation may proceed only to one separately frozen Coach-authored
+   hypothesis-design task; it still does not register a candidate, open OOS,
+   or authorize Trading.
+
+If the local computer or Local Research task is unavailable, the canonical
+event remains durable for a later Manager/Coach run. No fallback timer, local
+poller, retry loop, second writer, or user-operated research step is added.
+
+## Operational acceptance gate
 
 The first vertical slice is complete only when:
 
@@ -91,3 +118,36 @@ The first vertical slice is complete only when:
 
 Passing this gate proves orchestration and safety only. It is not evidence of
 alpha, PnL improvement, drawdown improvement, or candidate readiness.
+
+## Acceptance evidence
+
+`OPERATIONAL_V1` was accepted on 2026-08-07 from two independently validated
+Local Research results in task `019fd621-68ce-7802-9eed-5ef87c35d677`:
+
+- `local-node-capability-readiness-v1` used task SHA-256
+  `8eb112d14413f440d7fbf99779bb27c2b8120b7c3c7f041399b2ab8816eb13d1`.
+  Its exact returned UTF-8 JSON has SHA-256
+  `51051716ce66fd5c61e8fa1d00c72c1718e2b69d32d630a70e857fa5cb00884c`.
+  The current executable result validator accepts it against the unchanged task
+  bytes; all safety assertions are false and `files_changed` is empty. It
+  verified Python, Maven, explicit `JAVA_HOME` Java 21, the approved adapter
+  inventory, pinned Java adapter sources, and the retained selection corpus.
+  The unqualified Windows `java` remains Java 8, so approved Java research must
+  continue to use explicit `JAVA_HOME`.
+- `local-node-historical-mechanism-deduplication-audit-v1` used task SHA-256
+  `e834bc966a3d0538e4e5280ff1f3a71ee9067ce1bf29f46ab125dcc63f7d0a1b`
+  at source commit `19060a736b7db156c2264d756e812fbe6b70281c`.
+  Its exact returned UTF-8 JSON has SHA-256
+  `6cc144860f15f66653865896af6c90743d782d76bc2ba5060e14679702e27322`.
+  The Manager/Coach revalidated the result against the exact task, rehashed all
+  16 sealed inputs, confirmed a clean worktree, all safety assertions false,
+  and zero changed files. The result assigned one disposition to each of six
+  represented historical branches and established a bounded next action:
+  preserve those duplicate guards while the two lawful forward-evidence lanes
+  mature.
+
+The second result is the first useful research closure, not only a tooling
+check: it reduces repeated computation and prevents aggregate-PnL-only results
+from reopening already rejected causal mechanisms. It has zero immediate PnL
+or drawdown effect. Real microstructure V3 predictive evidence and any strategy
+mechanism remain subject to their separate forward-data and economic gates.

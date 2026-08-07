@@ -105,6 +105,24 @@ If the local computer or Local Research task is unavailable, the canonical
 event remains durable for a later Manager/Coach run. No fallback timer, local
 poller, retry loop, second writer, or user-operated research step is added.
 
+### Frozen contract precedence
+
+The read-only pre-outcome audit
+`local-node-microstructure-v3-preoutcome-screen-audit-v1` (task SHA-256
+`ca1955a397a2832753deb3ac4420b879fdafdcf2271f0361e94a47245ea69a24`,
+validated result SHA-256
+`1a6a9861abedf7ee8ee885b1634f4b496cbd0b4b5ed249fd9a10c08da377495f`)
+is historical design input, not executable authority. Its most-specific-first
+tier recommendation was superseded by the later frozen interpretation
+contract and implementation.
+
+The Manager/Coach must dispatch only the current task- and contract-hash-bound
+pipeline. The authoritative tier order is simplest first:
+`MIDLINE_RATIO_1_5_ONLY`, then the net-taker-buy tier, then the book-support
+tier. The first passing tier is the sole selected tier. No Local Research
+result, prompt text, or observed magnitude may reorder that list or revive a
+later tier after a simpler tier passes.
+
 ## Operational acceptance gate
 
 The first vertical slice is complete only when:

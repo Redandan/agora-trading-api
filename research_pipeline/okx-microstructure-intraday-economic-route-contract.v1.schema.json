@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agora:research:okx-microstructure-intraday-economic-route-contract:v1",
+  "title": "OKX Microstructure Intraday Economic Route Contract V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_id",
+    "status",
+    "authorization",
+    "purpose",
+    "file_scope",
+    "frozen_sources",
+    "selection_binding",
+    "causal_clock",
+    "position_ledger",
+    "friction_ledger",
+    "comparators",
+    "forward_stages",
+    "integrity_gates",
+    "economic_gates",
+    "dispositions",
+    "evidence_boundary",
+    "performance_boundary",
+    "missing_proof",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "contract_id": {"const": "OKX_MICROSTRUCTURE_INTRADAY_ECONOMIC_ROUTE_V1"},
+    "status": {"const": "PREOUTCOME_TEMPLATE_NOT_INSTANTIATED"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "purpose": {"const": "STANDALONE_INTRADAY_ECONOMIC_ROUTE_CONTRACT_FREEZE_ONLY"},
+    "file_scope": {
+      "const": {
+        "maximum_files": 4,
+        "exact_files": [
+          "research_pipeline/okx-microstructure-intraday-economic-route-contract.v1.json",
+          "research_pipeline/okx-microstructure-intraday-economic-route-contract.v1.schema.json",
+          "research_pipeline/tests/test_microstructure_intraday_economic_route_contract.py",
+          "docs/okx-microstructure-intraday-economic-route-v1.md"
+        ]
+      }
+    },
+    "frozen_sources": {
+      "const": {
+        "task": {
+          "task_id": "local-node-microstructure-intraday-economic-contract-freeze-v1",
+          "sha256": "cb639f7ecbefd067a56dc0fc5e1e4ca775c45e3b067b4082d24045cb3bb09392"
+        },
+        "prior_feasibility_task": {
+          "task_id": "local-node-microstructure-intraday-economic-route-feasibility-v1",
+          "sha256": "76c78e8fbc1ade73a0bd052a750ee560fdadf6d47ae16c42b05f854cbf8f8044"
+        },
+        "policy": {
+          "policy_id": "AUTONOMOUS_TRADING_RESEARCH_V3",
+          "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+        },
+        "microstructure_day": {
+          "schema_version": "OKX_MICROSTRUCTURE_FORWARD_DAY_V3",
+          "schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"
+        },
+        "microstructure_diagnostic": {
+          "contract_id": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3",
+          "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+        },
+        "microstructure_interpretation": {
+          "contract_id": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_V1",
+          "sha256": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509",
+          "result_schema_sha256": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564"
+        },
+        "continuous_source": {
+          "contract_id": "OKX_MICROSTRUCTURE_CONTINUOUS_SOURCE_V3",
+          "sha256": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422"
+        }
+      }
+    },
+    "selection_binding": {
+      "const": {
+        "source": "VALIDATED_INTERPRETATION_RESULT_SCREEN_SELECTED_TIER",
+        "required_interpretation_disposition": "READY_FOR_ONE_HYPOTHESIS_DESIGN",
+        "selection_rule": "FIRST_TIER_CLASSIFIED_PASS_IN_FROZEN_ORDER",
+        "pass_rule": "15m=POSITIVE AND 60m=POSITIVE",
+        "tier_order": [
+          "MIDLINE_RATIO_1_5_ONLY",
+          "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY",
+          "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT"
+        ],
+        "selected_tier_value_in_template": "UNINSTANTIATED",
+        "caller_override_authorized": false,
+        "fallback_tier_authorized": false,
+        "threshold_change_authorized": false,
+        "magnitude_ranking_authorized": false,
+        "multi_tier_variants_authorized": false
+      }
+    },
+    "causal_clock": {
+      "const": {
+        "timezone": "UTC",
+        "signal_bucket": "[m,m+1)",
+        "signal_available_at": "m+1",
+        "decision_at": "m+1_AFTER_SIGNAL_BUCKET_COMPLETE",
+        "entry_at": "m+2_MINUTE_OPEN",
+        "entry_field": "trade_open_price",
+        "held_complete_minutes": "m+2_THROUGH_m+61_INCLUSIVE",
+        "held_minute_count": 60,
+        "exit_at": "m+62_MINUTE_OPEN",
+        "exit_field": "trade_open_price",
+        "same_timestamp_event_order": ["EXIT", "ENTRY"],
+        "cross_utc_day_authorized_inside_same_complete_fold": true,
+        "signal_without_full_m_plus_62_exit_disposition": "EXCLUDE_FROM_FOLD_AND_REPORT",
+        "signal_minute_or_m_plus_1_fill_authorized": false
+      }
+    },
+    "position_ledger": {
+      "const": {
+        "venue": "OKX",
+        "instrument": "BTC-USDT",
+        "market": "SPOT",
+        "direction": "LONG_ONLY",
+        "gross_entry_notional_usdt": "30.00",
+        "maximum_open_positions_per_lane": 1,
+        "candidate_and_control_ledgers_separate": true,
+        "cooldown_minutes_per_tier": 60,
+        "leverage_authorized": false,
+        "overlap_authorized": false,
+        "pyramiding_authorized": false,
+        "resizing_authorized": false,
+        "stop_authorized": false,
+        "target_authorized": false,
+        "scale_in_or_out_authorized": false,
+        "terminal_inventory_required": "0"
+      }
+    },
+    "friction_ledger": {
+      "const": {
+        "entry_adverse_slippage_rate": "0.0005",
+        "entry_price_formula": "raw_entry_trade_open_price*1.0005",
+        "gross_base_formula": "30.00/entry_price",
+        "buy_fee_rate_base": "0.0010",
+        "buy_fee_formula": "gross_base*0.0010",
+        "net_base_formula": "gross_base-buy_fee_base",
+        "exit_adverse_slippage_rate": "0.0005",
+        "exit_price_formula": "raw_exit_trade_open_price*0.9995",
+        "gross_exit_quote_formula": "net_base*exit_price",
+        "exit_fee_rate_quote": "0.0010",
+        "exit_fee_formula": "gross_exit_quote*0.0010",
+        "net_exit_quote_formula": "gross_exit_quote-exit_fee_quote",
+        "net_pnl_formula": "net_exit_quote-30.00",
+        "planning_friction_bps_per_side": "15.00",
+        "planning_round_trip_friction_bps": "30.00",
+        "identical_model_required_for_controls": true,
+        "cost_change_authorized_after_outcome_access": false
+      }
+    },
+    "comparators": {
+      "const": {
+        "cash": {
+          "capital_usdt": "30.00",
+          "return_bps": "0.00",
+          "role": "ABSOLUTE_BENCHMARK_NOT_SOLE_ALPHA_COMPARATOR"
+        },
+        "matched_control": {
+          "event_condition": "below_mid_sell_quote_notional_gt_0_and_midline_buy_sell_ratio_lt_1_50",
+          "same_utc_minute_of_day": true,
+          "selection": "CLOSEST_UNUSED_STRICTLY_EARLIER_DAY",
+          "strictly_earlier_than_candidate_event": true,
+          "unique_control_required": true,
+          "same_fold_required": true,
+          "cross_fold_matching_authorized": false,
+          "identical_m_plus_2_m_plus_62_clock": true,
+          "identical_notional_and_friction": true,
+          "separate_one_position_ledger": true,
+          "paired_candidate_and_control_trade_counts_equal": true,
+          "unmatched_event_disposition": "EXCLUDE_FROM_PAIRED_ECONOMIC_LEDGER_AND_REPORT",
+          "minimum_match_coverage_pct": "80.00"
+        }
+      }
+    },
+    "forward_stages": {
+      "const": {
+        "template_status": "EXACT_DATES_REQUIRED_IN_LATER_FROZEN_INSTANCE",
+        "required_preconditions": [
+          "POSITIVE_VALIDATED_INTERPRETATION",
+          "THIS_CONTRACT_INSTANCE_FROZEN",
+          "ECONOMIC_MANIFEST_FROZEN",
+          "SOURCE_READINESS_PROVEN"
+        ],
+        "stage_order": ["DESIGN", "VALIDATION", "SEALED_OOS"],
+        "complete_utc_days_per_stage": 14,
+        "total_complete_utc_days": 42,
+        "stages_consecutive": true,
+        "discovery_bytes_excluded_from_all_stages": true,
+        "backfill_authorized": false,
+        "boundary_extension_authorized": false,
+        "oos_consumption": "ONCE_ONLY_AFTER_DESIGN_AND_VALIDATION_PASS_AND_ROUTE_FREEZE",
+        "oos_open_authorized_by_template": false
+      }
+    },
+    "integrity_gates": {
+      "const": {
+        "apply_independently_to_every_stage": true,
+        "complete_contiguous_utc_days": 14,
+        "valid_minutes_per_day": 1440,
+        "required_day_integrity_status": "CLEAN",
+        "minimum_selected_tier_trades": 30,
+        "minimum_selected_tier_trades_per_seven_day_half": 10,
+        "minimum_matched_control_coverage_pct": "80.00",
+        "duplicate_control_count": 0,
+        "cross_fold_label_count": 0,
+        "integrity_anomaly_count": 0,
+        "full_m_plus_62_exit_required": true,
+        "fold_boundary_terminal_inventory": "0",
+        "failure_disposition_design_or_validation": "NO_CANDIDATE",
+        "failure_disposition_oos": "OOS_FAIL",
+        "extension_or_repair_after_failure_authorized": false
+      }
+    },
+    "economic_gates": {
+      "const": {
+        "apply_independently_to_design_validation_and_oos": true,
+        "candidate_net_total_pnl_usdt_gt_cash": "0.00",
+        "candidate_minus_matched_control_total_pnl_usdt_gt": "0.00",
+        "median_candidate_net_return_bps_gt": "0.00",
+        "positive_candidate_net_trade_share_pct_gt": "50.00",
+        "candidate_max_drawdown_lte_matched_control": true,
+        "first_seven_day_candidate_minus_control_pnl_usdt_gt": "0.00",
+        "second_seven_day_candidate_minus_control_pnl_usdt_gt": "0.00",
+        "top_one_positive_incremental_contribution_pct_lte": "40.00",
+        "terminal_inventory_required": "0",
+        "design_and_validation_must_both_pass_before_oos": true,
+        "one_route_only_after_design_and_validation": true,
+        "gate_change_after_outcome_access_authorized": false
+      }
+    },
+    "dispositions": {
+      "const": {
+        "template": "PREOUTCOME_TEMPLATE_NOT_INSTANTIATED",
+        "design_or_validation_gate_failure": "NO_CANDIDATE",
+        "oos_gate_failure": "OOS_FAIL",
+        "oos_pass": "REPORTED_NOT_ACTIVATED",
+        "threshold_fold_cost_hold_tier_or_comparator_change_after_outcome": "FORBIDDEN"
+      }
+    },
+    "evidence_boundary": {
+      "const": {
+        "contract_is_strategy_or_hypothesis": false,
+        "actual_selected_tier_present": false,
+        "actual_stage_dates_present": false,
+        "observed_outcomes_present": false,
+        "collector_or_source_extension_implemented": false,
+        "adapter_or_runner_implemented": false,
+        "manifest_or_candidate_registered": false,
+        "economic_execution_authorized": false,
+        "oos_access_authorized": false,
+        "state_write_authorized": false
+      }
+    },
+    "performance_boundary": {
+      "const": {
+        "immediate_pnl_effect": "ZERO_CONTRACT_ONLY",
+        "immediate_drawdown_effect": "ZERO_CONTRACT_ONLY",
+        "calendar_observation": "42_FUTURE_DAYS_MAY_BE_FASTER_THAN_SPARSE_DRA_CONJUNCTION",
+        "calendar_claim": "MISSING_PROOF",
+        "opportunity_cost": [
+          "TURNOVER_AND_30_BPS_ROUND_TRIP_FRICTION",
+          "ONE_MINUTE_DECISION_BUFFER_ADVERSE_SELECTION",
+          "FALSE_POSITIVE_TRADES",
+          "SHORT_HORIZON_CONCENTRATION",
+          "UNKNOWN_SELECTED_TIER_EVENT_CADENCE",
+          "MATCHED_CONTROL_ATTRITION",
+          "SOURCE_AND_ADAPTER_INFRASTRUCTURE_COST"
+        ],
+        "performance_claim_authorized": false
+      }
+    },
+    "missing_proof": {
+      "const": [
+        "INTERPRETATION_SELECTED_TIER",
+        "EXACT_DESIGN_VALIDATION_AND_OOS_DATES",
+        "SOURCE_READINESS_AND_42_DAY_RETENTION",
+        "FUTURE_SELECTED_TIER_EVENT_CADENCE",
+        "MATCHED_CONTROL_COVERAGE_AND_ATTRITION",
+        "ECONOMIC_EDGE_AFTER_30_BPS",
+        "PNL_DRAWDOWN_AND_HALF_STABILITY",
+        "CONCENTRATION_LIQUIDITY_AND_CAPACITY",
+        "ADAPTER_RUNNER_AND_LEDGER_PARITY",
+        "CANDIDATE_READINESS",
+        "OOS_VALUE",
+        "ACTIVATION"
+      ]
+    },
+    "safety": {
+      "const": {
+        "canonical_state_write_authorized": false,
+        "research_state_write_authorized": false,
+        "server_research_mcp_write_authorized": false,
+        "second_timer_or_writer_authorized": false,
+        "collector_source_adapter_or_runner_execution_authorized": false,
+        "hypothesis_manifest_or_candidate_registration_authorized": false,
+        "oos_access_authorized": false,
+        "trading_database_order_fund_action_authorized": false,
+        "shadow_paper_live_authorized": false,
+        "paid_api_authorized": false
+      }
+    }
+  }
+}

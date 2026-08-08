@@ -1,0 +1,116 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-cloud-ops-v7-prompt-consistency-audit-v1",
+  "issued_at": "2026-08-08T07:33:12Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "CAPABILITY_READINESS",
+  "execution_mode": "READ_ONLY",
+  "objective": "Independently audit the post-deployment CLOUD_OPS_SCHEDULE_V7 daily prompt against the immutable V6 predecessor, immutable V7 contract, governing documents, focused tests, and fresh canonical V7 READY status. Detect contradictory attestation ids or hashes, stale cross-task delivery instructions, same-turn receipt claims, unsafe early heartbeat behavior, second-clock implications, or platform-activation claims not supported by the listed evidence. The performance hypothesis is zero immediate PnL or drawdown effect: a consistent prompt can reduce failed cloud cycles and learning latency, while an inconsistent prompt must hold platform activation. Produce one fail-closed readiness disposition only; do not edit any file, operate a schedule, call a Research MCP write, or infer platform binding from server readiness.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE_V7_READY_QUEUE_IDLE_PLATFORM_BINDING_MISSING_PROOF",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "97f742f6ec1fde12dd46666cd5ac17dab6af201964fdd8a62283f969b55a7700"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "cd02a7168413558ba5f3ce100c499fe399ebb04f71047d583b91bd08bad36d28"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v6.json",
+      "sha256": "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v7.json",
+      "sha256": "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/prompts/daily-research-tick.md",
+      "sha256": "609749e018a109268a3a0047573eaf7ea39b5eb216730366373b122b805f2464"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_cloud_ops_same_chat_delivery_contract.py",
+      "sha256": "fc6ea6a574ff8b01c6667c8181cf9eb58b9c1d0505ed8ae8efd32f5ea9b1bea8"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-08T07:29:58Z; policy READY V3; worker READY release 20260808T052741Z; ops contract CLOUD_OPS_SCHEDULE_V7 READY SHA 426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144; queue IDLE; next due 2026-08-09T01:00:00Z; platform same-chat binding and one-active-schedule readback remain MISSING_PROOF",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Audit source commit 25a58be3caba1105305e4ad26c38afded7dba1a5. The old web schedule is V6, paused, and must not be resumed or treated as same-chat V7 proof.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_REPOSITORY_INPUT_HASHES",
+    "COMPARE_V6_AND_V7_ATTESTATION_SEMANTICS",
+    "AUDIT_PROMPT_CONTRACT_CONSISTENCY",
+    "AUDIT_SAME_CHAT_DELIVERY_SEMANTICS",
+    "AUDIT_SINGLE_CLOCK_AND_DUE_GATES",
+    "AUDIT_TEST_COVERAGE",
+    "ASSESS_LEARNING_LATENCY_RISK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_STATE_WRITE",
+    "SCHEDULE_CREATE_UPDATE_RESUME_OR_DELETE",
+    "EARLY_HEARTBEAT_OR_CATCHUP",
+    "CROSS_TASK_LIST_READ_OR_SEND",
+    "PLATFORM_BINDING_OR_ACTIVE_SCHEDULE_INFERENCE",
+    "HYPOTHESIS_MANIFEST_CANDIDATE_OR_EXPERIMENT",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS"
+  ],
+  "expected_outputs": [
+    "V7_PROMPT_CONSISTENCY_DISPOSITION",
+    "ATTESTATION_REFERENCE_MATRIX",
+    "SAME_CHAT_DELIVERY_CONSISTENCY",
+    "SINGLE_CLOCK_AND_DUE_GATE_CONSISTENCY",
+    "CONTRADICTION_AND_AMBIGUITY_LIST",
+    "FOCUSED_TEST_GAP_LIST",
+    "PERFORMANCE_DRAWDOWN_AND_LEARNING_LATENCY_BOUNDARY",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository SHA-256 before analysis; any mismatch is BLOCKED and MISSING_PROOF.",
+    "Use only the listed repository bytes and canonical-status snapshot. Do not inspect server files, .research-state, Local inbox/outbox, future evidence, OOS, or unlisted implementation source.",
+    "Require every heartbeat and candidate write instruction that applies after V7 activation to use only the exact V7 hash 426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144; any executable V6 attestation instruction is a contradiction.",
+    "Allow V6 references only when they explicitly describe the predecessor, pre-cutover stop rule, or zero-overlap rollback. Ambiguous operational V6 wording is a negative finding.",
+    "Require same-chat delivery to forbid list_threads, read_thread, send_message_to_thread, current-turn receipt proof, and acknowledgement without an exact prior assistant token plus fresh identical pending id.",
+    "Require one daily Asia/Taipei 09:05 recurrence, canonical due at 09:00, early behavior NOT_DUE, no retry or catch-up timer, and no second writer.",
+    "Treat canonical V7 READY as server attestation readiness only. Platform same-chat binding, actual 09:05 recurrence, exactly one active schedule, unattended context visibility, and live receipt acceptance remain MISSING_PROOF.",
+    "Return exactly one of V7_PROMPT_CONSISTENT_READY_FOR_PLATFORM_BINDING, V7_PROMPT_CONTRADICTION_FOUND_HOLD_ACTIVATION, or V7_PROMPT_AUDIT_MISSING_PROOF.",
+    "Do not propose edits, thresholds, strategy hypotheses, candidates, experiments, OOS access, or Trading actions beyond a bounded test-gap recommendation tied to an observed prompt contradiction.",
+    "Make no file changes. Return exactly one local-research-result JSON tied to this task SHA-256, with empty artifacts and files_changed and all safety assertions false."
+  ],
+  "limits": {
+    "timeout_seconds": 1200,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

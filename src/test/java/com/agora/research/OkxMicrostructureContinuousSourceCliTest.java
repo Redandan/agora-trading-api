@@ -541,14 +541,40 @@ class OkxMicrostructureContinuousSourceCliTest {
         OkxMicrostructureContinuousSourceCli.Producer producer =
                 producer(clock, listener -> { }, new ExclusiveFakeSink());
         acknowledgeBoth(producer);
+        long start = START_DAY.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        producer.onRaw(bookMessage(start - 1_000, 1));
         assertEquals(2, producer.acknowledgementCount());
 
         producer.onDisconnect(Instant.parse("2026-08-06T10:00:01Z"));
         producer.onReconnect(Instant.parse("2026-08-06T10:00:02Z"), false);
+        acknowledgeBoth(producer);
+        producer.onRaw(tradeMessage(start + 100, "100", "1", "buy", 1, 1));
 
+        IllegalStateException failure = assertThrows(IllegalStateException.class, () ->
+                producer.onRaw(bookMessage(start + 200, 2)));
+        assertTrue(failure.getMessage().contains("MIDLINE_UNREFERENCED_TRADE"));
+        assertEquals(OkxMicrostructureContinuousSourceCli.ProducerState.BLOCKED, producer.state());
+    }
+
+    @Test
+    void preStartBookWarmsFirstActiveTradeWithoutEnteringThePublishedWindow() {
+        MutableClock clock = new MutableClock(Instant.parse("2026-08-06T10:00:00Z"));
+        OkxMicrostructureContinuousSourceCli.Producer producer =
+                producer(clock, listener -> { }, new ExclusiveFakeSink());
+        acknowledgeBoth(producer);
+        long start = START_DAY.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+
+        producer.onRaw(bookMessage(start - 1_000, 1));
         assertEquals(OkxMicrostructureContinuousSourceCli.ProducerState.ARMED_FOR_FUTURE_START,
                 producer.state());
-        assertEquals(0, producer.acknowledgementCount());
+        assertEquals(0, producer.activeMinuteCount());
+
+        producer.onRaw(tradeMessage(start + 100, "102", "1", "buy", 1, 1));
+        producer.onRaw(bookMessage(start + 200, 2));
+
+        assertEquals(OkxMicrostructureContinuousSourceCli.ProducerState.CAPTURING, producer.state());
+        assertEquals(START_DAY, producer.activeDay());
+        assertEquals(1, producer.activeMinuteCount());
     }
 
     @Test

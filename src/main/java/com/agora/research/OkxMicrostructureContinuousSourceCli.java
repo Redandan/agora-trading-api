@@ -282,6 +282,7 @@ public final class OkxMicrostructureContinuousSourceCli {
             LocalDate messageDay = message.day();
             if (activeDay == null) {
                 if (messageDay.isBefore(startDay)) {
+                    warmContinuity(raw);
                     return;
                 }
                 if (!messageDay.equals(startDay)) {
@@ -329,6 +330,9 @@ public final class OkxMicrostructureContinuousSourceCli {
             acknowledgements.clear();
             if (collector != null) {
                 collector.clearAcknowledgements();
+            }
+            if (state == ProducerState.ARMED_FOR_FUTURE_START) {
+                continuity = OkxMicrostructureCollector.Continuity.empty();
             }
             disconnectedAt = at;
         }
@@ -390,6 +394,20 @@ public final class OkxMicrostructureContinuousSourceCli {
             collector = new OkxMicrostructureCollector(mapper, continuity);
             collector.carryAcknowledgements(acknowledgements);
             state = ProducerState.CAPTURING;
+        }
+
+        private void warmContinuity(String raw) {
+            OkxMicrostructureCollector warmup = new OkxMicrostructureCollector(mapper, continuity);
+            warmup.acceptRaw(raw);
+            if (warmup.anomalyCount() != 0) {
+                block("PRESTART_INTEGRITY_NOT_CLEAN");
+                throw new IllegalStateException(blockedReason);
+            }
+            if (warmup.unresolvedV3TradeOverflowed()) {
+                block("UNRESOLVED_TRADE_BUFFER_OVERFLOW");
+                throw new IllegalStateException(blockedReason);
+            }
+            continuity = warmup.continuity();
         }
 
         private void publishActiveDay() {

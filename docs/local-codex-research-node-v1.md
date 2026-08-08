@@ -254,6 +254,23 @@ validated V3 handoff and positive interpretation exist. A failed gate must end
 at `VETO_BEFORE_V4`; `PERMIT_LATER_V4` allows only a separately frozen later
 V4 source and economic-manifest slice.
 
+The first bounded public-primary-literature prior audit used task
+`local-node-microstructure-order-flow-literature-prior-audit-v1`, task SHA-256
+`d7a0057e795b3199df4f834012c9bd90f171257bef84bbdd6fcee9dbe6ba349f`,
+Manager dispatch SHA-256
+`4ead2455567c920048544d5d5a2b13238264915d19352dcd114448b7ca6404a5`,
+and source commit `641a786df08518f5850765c204667f55bdc63e67`. The
+Manager independently validated the schema-bound, zero-file-change result as
+SHA-256 `4a54b2a1f0c65bd33d1fea2345634a3245d5f7f322d52b748b093b31bd4fbc99`.
+Its formal disposition was `PRIMARY_SOURCE_PRIOR_INSUFFICIENT`: readable
+primary evidence separated contemporaneous price impact from fragmented
+multi-venue sub-second prediction, but did not prove one-venue OKX spot
+predictability at the frozen 15- and 60-minute horizons. The result therefore
+keeps the permitted label
+`PLAUSIBLE_PREOUTCOME_ORDER_FLOW_MECHANISM_NOT_OKX_INTRADAY_ALPHA`, changes no
+V3 byte, creates no hypothesis or candidate, and continues only the already
+frozen 14-day evidence screen. Immediate PnL and drawdown effect remain zero.
+
 ## Current recovery evidence
 
 The canonical heartbeat failure sealed on 2026-08-07 was traced to one migrated

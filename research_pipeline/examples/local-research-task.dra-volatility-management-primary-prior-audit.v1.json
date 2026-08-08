@@ -1,0 +1,152 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-volatility-management-primary-prior-audit-v1",
+  "issued_at": "2026-08-08T14:28:52Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "While the two lawful forward-evidence lanes continue untouched, independently audit whether primary research supports one distinct future design audit for causal volatility management of the existing BTC DRA entry stream. The mechanism boundary is fixed before any new outcome access: use only information available before an entry decision to reduce or scale participation when lagged realized volatility indicates uncompensated path risk. Determine whether this is economically and causally distinct from the closed range sleeve, route-substitution, and one-slot rotation branches, and whether multi-asset volatility-management evidence transfers far enough to justify one later hypothesis-design audit for a single unlevered BTC spot strategy. Produce only a primary-prior disposition and proof boundary; do not choose a lookback, target volatility, threshold, leverage, parameter, hypothesis, candidate, manifest, runner, or experiment.",
+  "canonical_research_status": "WAITING;GENERAL_FORWARD_2_OF_90;MICROSTRUCTURE_R1_PRE_START_0_OF_14;QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "2465198fea55728cd087d244827b37bf6196723334f05c54db8f076b84bd5334"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "7de32f0e2ed160cbba8553230c790e5a002dae2367c278aa4ed4630ada6f56bc"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-dra-runtime-v1.md",
+      "sha256": "eddff4af35c9f46b6487297feb64cfd7ceedf6a829aa7981c407f5479b889b60"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.historical-mechanism-deduplication-audit.v1.json",
+      "sha256": "e834bc966a3d0538e4e5280ff1f3a71ee9067ce1bf29f46ab125dcc63f7d0a1b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-order-flow-literature-prior-audit.v1.json",
+      "sha256": "d7a0057e795b3199df4f834012c9bd90f171257bef84bbdd6fcee9dbe6ba349f"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/one-slot-profitable-incumbent-signal-rotation-v1/artifacts/diagnostic.json",
+      "sha256": "44245c9b393f3c3fd08c58c455f80f52a8024832a52639185b33b678e13ee609"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
+      "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": "C:/Users/Redan/.codex/visualizations/2026/07/28/019fa77a-6bcb-71c3-9194-53c63407c2d4/btc-range-factor-research/immutable-core-dra-sleeve-monthly-validation-v1/FINAL_DECISION.md",
+      "sha256": "3308acd4176b18bc2967d6e3a140231cc243d7b6dbd2e56558c4b72239263255"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-08T14:25:37Z; V3 and Worker READY; CLOUD_OPS_SCHEDULE_V7 server contract READY; queues IDLE; general forward evidence 2/90 lag 0; microstructure R1 PRE_START 0/14 for 2026-08-09; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source A: Moreira and Muir, Volatility-Managed Portfolios, The Journal of Finance 72 (2017) 1611-1644, https://doi.org/10.1111/jofi.12513 . Audit its positive multi-factor volatility-timing evidence without assuming transfer to BTC or DRA.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source B: Cederburg, O'Doherty, Wang and Yan, On the performance of volatility-managed portfolios, Journal of Financial Economics 138 (2020) 95-117, https://doi.org/10.1016/j.jfineco.2020.04.015 . Treat its real-time and out-of-sample implementation critique as a co-equal falsification prior.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source C: Liu, Tsyvinski and Wu, Common Risk Factors in Cryptocurrency, The Journal of Finance 77 (2022) 1133-1177, https://doi.org/10.1111/jofi.13119 . Audit its cross-sectional cryptocurrency scope and do not relabel it as single-BTC time-series or volatility-management evidence.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The only permitted future-mechanism label is LAGGED_REALIZED_VOLATILITY_CONDITIONED_DRA_PARTICIPATION. It must remain parameter-free and must not imply leverage, shorting, a stop-loss, a range regime, an exit-manager change, a route substitution, a one-slot rotation, or a DRA performance claim.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_LOCAL_INPUT_HASHES",
+    "READ_LISTED_PRIMARY_PUBLIC_SOURCES",
+    "AUDIT_POSITIVE_AND_FALSIFICATION_PRIORS",
+    "AUDIT_SINGLE_BTC_DRA_TRANSFER_LIMIT",
+    "AUDIT_CAUSAL_DISTINCTNESS_FROM_CLOSED_BRANCHES",
+    "ASSESS_REAL_TIME_IMPLEMENTABILITY_GAP",
+    "DEFINE_PARAMETER_FREE_PRIOR_BOUNDARY",
+    "ASSESS_PERFORMANCE_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_CANDIDATE_OR_MANIFEST_AUTHORING",
+    "PARAMETER_LOOKBACK_TARGET_VOL_OR_THRESHOLD_SELECTION",
+    "LEVERAGE_SHORTING_OR_STOP_LOSS_PROPOSAL",
+    "ADAPTER_RUNNER_OR_CONTRACT_IMPLEMENTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "SECONDARY_SOURCE_AS_PRIMARY_EVIDENCE",
+    "CLOSED_BRANCH_REOPEN_OR_RELABEL"
+  ],
+  "expected_outputs": [
+    "PRIMARY_SOURCE_PRIOR_VERDICT",
+    "POSITIVE_AND_FALSIFICATION_EVIDENCE_MATRIX",
+    "SINGLE_BTC_DRA_TRANSFER_BOUNDARY",
+    "CLOSED_BRANCH_DISTINCTNESS_MATRIX",
+    "REAL_TIME_IMPLEMENTABILITY_GAPS",
+    "PARAMETER_FREE_PERMITTED_LABEL",
+    "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+    "OPPORTUNITY_COST_ASSESSMENT",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null local SHA-256 before analysis; any mismatch, missing input, link, reparse point, duplicate locator, or wrong type is BLOCKED and MISSING_PROOF.",
+    "Use only the three listed primary papers and their DOI, publisher, author, or journal pages. Do not use blogs, Reddit, search snippets, derivative datasets, or later summaries as primary evidence.",
+    "Do not access canonical/server state, Local inbox/outbox, future evidence, diagnostic outcomes, sealed OOS, unlisted historical artifacts, Trading data, or any outcome-bearing file beyond the three listed sealed summaries.",
+    "Give Moreira-Muir positive evidence and Cederburg et al. real-time/OOS falsification evidence co-equal weight. A favorable spanning alpha or in-sample Sharpe result cannot by itself justify a future DRA design audit.",
+    "Separate multi-factor and cross-sectional cryptocurrency findings from one unlevered BTC spot time series. Unsupported transfer, leverage dependence, cost omission, or unstable real-time estimation is MISSING_PROOF.",
+    "Prove causal distinctness from the listed closed range sleeve, route-substitution, and one-slot rotation mechanisms. Any overlap that cannot be separated without outcomes returns PRIOR_REJECTS_SINGLE_BTC_DRA_TRANSFER.",
+    "Keep the only permitted mechanism label parameter-free. Do not select or recommend a volatility estimator, lookback, target, threshold, scaling formula, leverage, side, exit, stop, regime, route, capacity, or DRA parameter.",
+    "Return exactly one of PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT, PRIOR_REJECTS_SINGLE_BTC_DRA_TRANSFER, or PRIMARY_SOURCE_PRIOR_INSUFFICIENT.",
+    "A positive disposition may authorize only one separately frozen future Coach-authored hypothesis-design audit with zero outcome access. It cannot create a hypothesis, candidate, manifest, experiment, adapter, runner, OOS access, or Trading action.",
+    "Keep fee-adjusted PnL, drawdown, fills, turnover, slippage, capacity, annual breadth, regime breadth, statistical significance, and deployability MISSING_PROOF; this prior audit has zero immediate PnL and drawdown effect.",
+    "Make no file changes. Return exactly one local-research-result JSON tied to this task SHA-256, with empty artifacts and files_changed, concrete PASS or MISSING_PROOF checks, all safety assertions false, and no repository result file."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

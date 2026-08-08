@@ -1,0 +1,183 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-crypto-carry-forward-source-design-v1",
+  "issued_at": "2026-08-08T16:05:20Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Execute the one forward-source design audit authorized by the accepted crypto-carry primary-prior V2 result. Compare exactly two raw, credential-free OKX source families and select exactly one causal design or close: (A) lagged BTC-USDT linear expiry-futures basis atoms paired with the BTC-USDT index, matching the BIS fixed-maturity prior; or (B) lagged BTC-USDT perpetual funding/premium state with explicit formula-version identity. The selected design must fit the sole 09:05 Asia/Taipei cloud clock, use a one-way credential-free source identity, keep the Research Worker network-denied, deny backfill, and make each source day eligible only for a later DRA decision after capture. Produce only a terminal source-design disposition and exact design requirements. Do not call market endpoints, choose a strategy threshold, calculate carry, implement a producer, create a trigger/source contract/hypothesis/candidate/manifest/runner/experiment, open OOS, or alter any runtime.",
+  "canonical_research_status": "WAITING;GENERAL_FORWARD_2_OF_90_LAG_0;MICROSTRUCTURE_R1_WAITING_FOR_DAY_0_OF_14;QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "2465198fea55728cd087d244827b37bf6196723334f05c54db8f076b84bd5334"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "7de32f0e2ed160cbba8553230c790e5a002dae2367c278aa4ed4630ada6f56bc"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-forward-evidence-source-v1.md",
+      "sha256": "946c6dab1f772bca743ff1c769f988c276cf1bef47fada4fea29340cd65b71e5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-dra-runtime-v1.md",
+      "sha256": "eddff4af35c9f46b6487297feb64cfd7ceedf6a829aa7981c407f5479b889b60"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence-source-contract.schema.json",
+      "sha256": "3b126fe0b6c91c48bbb50148dc980852a99b592933f195b4f37dafff0d970c65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v7.json",
+      "sha256": "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/prospective-mechanism-neutral-evidence-refresh-2026q4-r1.source-contract.json",
+      "sha256": "5af5f7aab936a350cac7c96d962b1f95c242af57870d1c2ec4e225fa28839a48"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-crypto-carry-primary-prior-audit.v2.json",
+      "sha256": "c0c4da2b3eb4cfccc2fc125d0f8a098e064040223e8ba118233573748826840b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.dra-crypto-carry-primary-prior-audit.v2.json",
+      "sha256": "a4d18f357df054fb13081b7ba8fd7fc14c1ca8942153cde12db481356155319b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/service/trading/OkxTradingService.java",
+      "sha256": "cd5b08bfd58fde3c0d722aba12018a2123fd13aea84d7c48dd724e765e314e37"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-08T16:01:54Z; policy and Worker READY; CLOUD_OPS_SCHEDULE_V7 READY with one 09:05 Asia/Taipei recurrence; queues IDLE; general forward evidence 2/90 lag 0; microstructure R1 WAITING_FOR_DAY 0/14 for 2026-08-09; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Accepted V2 closure: task SHA-256 c0c4da2b3eb4cfccc2fc125d0f8a098e064040223e8ba118233573748826840b; dispatch SHA-256 a4d18f357df054fb13081b7ba8fd7fc14c1ca8942153cde12db481356155319b; raw result SHA-256 f5535883a8325145a74bab7309da19daa6ff1b9a203ab2fce00da5bbc52530f5; canonical result SHA-256 b8222f3d21877d45caec4c51408ef1c8fb4210eda682069c895d11af8ecd8bed; disposition PRIMARY_PRIOR_SUPPORTS_ONE_FORWARD_SOURCE_DESIGN_AUDIT. Preserve all V1/V2 claims and MISSING_PROOF boundaries.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Official OKX technical source: read only https://www.okx.com/docs-v5/en/ and navigate the exact Public Data / Get instruments, Market Data / Candlesticks, Market Data / Index tickers, Market Data / Index candlesticks, Public Data / Get funding rate, Public Data / Get funding rate history, and Public Data / Get premium history sections. Bind endpoint paths, authentication class, fields, timestamps, confirm semantics, pagination/retention, instrument state, ctType, instFamily, listTime, expTime, ruleType, formulaType and documented cache-order caveats. Search may only resolve these exact sections on official OKX domains.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Official version-drift source: read only https://www.okx.com/docs-v5/log_en/ and the exact official OKX funding-formula update at https://www.okx.com/en-us/help/important-update-revision-of-the-funding-rate-formula-for-okx-perpetual. Treat the 2025 formulaType introduction, the 2026 8/N change, variable settlement intervals, X-Perp FUTURES ruleType drift, and alias deprecation in favor of expTime as fail-closed design constraints.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Official use-boundary source: read only https://www.okx.com/en-us/help/okx-api-agreement. Record that public no-key access does not authorize redistribution, commercial market-data products, or commercial AI training/evaluation. This audit may assess only bounded personal non-commercial research use and must leave any broader product or jurisdictional use MISSING_PROOF.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Source option A label: LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1. It may include only prior-inventory-frozen, normal-rule, live, linear BTC-USDT expiry FUTURES and the BTC-USDT index; exact instrument metadata and confirmed 1Dutc futures/index candles are raw atoms. A daily inventory snapshot must be sealed one cloud cycle before its target UTC day, and the completed target-day atoms captured at the next cloud cycle can become eligible only for the following UTC daily DRA decision. No basis value, annualization, maturity bucket, roll preference, liquidity filter, threshold or signal is selected here.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Source option B label: LAGGED_OKX_BTC_USDT_PERPETUAL_FUNDING_STATE_V1. It may include only the normal BTC-USDT-SWAP contract's complete target-day funding events, premium observations and exact instrument/formula/settlement metadata, captured after day close and eligible only for the following UTC daily DRA decision. It must preserve formulaType, funding interval and every documented formula change; no funding aggregation, normalization, threshold or signal is selected here.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_LOCAL_INPUT_HASHES",
+    "READ_EXACT_LISTED_OFFICIAL_OKX_SOURCES",
+    "AUDIT_PUBLIC_NO_KEY_ENDPOINT_CONTRACTS",
+    "AUDIT_SINGLE_CLOUD_CLOCK_CAUSALITY",
+    "AUDIT_PRIOR_DAY_INVENTORY_CHAIN",
+    "AUDIT_COMPLETE_UTC_DAY_AND_TIMESTAMP_SEMANTICS",
+    "AUDIT_INSTRUMENT_AND_FORMULA_VERSION_DRIFT",
+    "COMPARE_EXACTLY_TWO_SOURCE_FAMILIES",
+    "SELECT_AT_MOST_ONE_SOURCE_DESIGN",
+    "DEFINE_FAIL_CLOSED_MISSING_DATA_BEHAVIOR",
+    "ASSESS_ISOLATION_RESOURCE_AND_OPPORTUNITY_COST",
+    "ASSESS_PERSONAL_NON_COMMERCIAL_USE_BOUNDARY",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_CANDIDATE_MANIFEST_TRIGGER_OR_SOURCE_CONTRACT_AUTHORING",
+    "MARKET_ENDPOINT_OR_WEBSOCKET_CALL",
+    "PRODUCER_TRANSPORT_SCHEMA_RUNNER_OR_CAPTURE_IMPLEMENTATION",
+    "CARRY_BASIS_FUNDING_FEATURE_OR_THRESHOLD_CALCULATION",
+    "MATURITY_BUCKET_ROLL_LIQUIDITY_FILTER_OR_PARAMETER_SELECTION",
+    "DERIVATIVE_EXECUTION_CARRY_TRADE_LEVERAGE_OR_SHORTING",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "SEARCH_SNIPPET_OR_SECONDARY_SOURCE_AS_EVIDENCE",
+    "LEGACY_RUNTIME_CODE_REUSE_EXECUTION_OR_RESTORATION",
+    "COMMERCIAL_REDISTRIBUTION_OR_AI_TRAINING_USE_CLAIM"
+  ],
+  "expected_outputs": [
+    "TERMINAL_FORWARD_SOURCE_DESIGN_VERDICT",
+    "EXACTLY_TWO_SOURCE_FAMILY_COMPARISON",
+    "SELECTED_SOURCE_LABEL_OR_NONE",
+    "OFFICIAL_ENDPOINT_AND_FIELD_CONTRACT_MATRIX",
+    "SINGLE_CLOCK_CAUSAL_AVAILABILITY_TIMELINE",
+    "PRIOR_DAY_INSTRUMENT_INVENTORY_CHAIN",
+    "COMPLETE_DAY_MISSING_DUPLICATE_AND_DRIFT_VETOES",
+    "SOURCE_ISOLATION_AND_ONE_WAY_TRANSPORT_BOUNDARY",
+    "PERSONAL_NON_COMMERCIAL_USE_BOUNDARY",
+    "PERFORMANCE_DRAWDOWN_AND_PREDICTIVE_GAPS",
+    "IMPLEMENTATION_RESOURCE_AND_OPPORTUNITY_COST",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null local SHA-256 before analysis; any mismatch, missing input, link, reparse point, duplicate locator, wrong type, or dirty source worktree is BLOCKED and MISSING_PROOF.",
+    "Use only the exact listed repository inputs and official OKX pages. Search may locate exact sections on official OKX domains only; search snippets, third-party SDKs, examples, blogs and secondary sources are never design evidence.",
+    "If official full sections cannot prove authentication class, endpoint path, required request identity, response fields, timestamps, completeness semantics, limits and version drift for a source family, that family is ineligible rather than inferred.",
+    "Compare only the two frozen source labels. Select at most one; do not combine them, add open interest, mark price, books, trades, another venue, another quote currency, or another source variant.",
+    "Prefer option A only if a prior-cycle instrument inventory plus exact listTime/expTime/state/ruleType/ctType metadata can prevent after-the-fact contract selection and every target-day futures/index candle can be exact, UTC-aligned and confirmed. Otherwise reject A before considering B.",
+    "Option B is eligible only if every target-day funding event, premium observation, funding interval and formula identity can be frozen without equating funding with fixed-maturity basis. Missing formulaType or undocumented interval/formula drift rejects B.",
+    "The sole 09:05 Asia/Taipei cloud cycle occurs after the DRA next-hour-open fill. Therefore target UTC day D data captured on D+1 cannot affect the D+1 decision or fill and may become eligible only at the D+2 UTC daily decision. Any same-day or retroactive use is leakage and closes the design.",
+    "A selected design must use one credential-free network source identity, one-way hash-bound drop, network-denied canonical intake, strict day and inventory chains, no caller-controlled URL/symbol/path, no retry after deadline, no backfill and no second timer or writer.",
+    "Do not select or calculate carry, basis, funding aggregation, annualization, maturity bucket, roll rule, liquidity rule, lookback, threshold, direction, DRA parameter or economic gate. Raw point-in-time source atoms and causal availability are the only permitted design outputs.",
+    "Return exactly one of ONE_LAGGED_CAUSAL_SOURCE_DESIGN_SELECTED, NO_CAUSAL_FORWARD_SOURCE_CONTRACT_CLOSE, or OFFICIAL_SOURCE_CONTRACT_INSUFFICIENT. A positive result must name exactly one frozen label and authorizes only one separately frozen bounded implementation task, not capture activation or research registration.",
+    "Keep predictive value, fee-adjusted PnL, realized/unrealized PnL, drawdown, turnover, missed winners, false-veto rate, breadth, statistical significance, capacity and deployability MISSING_PROOF; immediate performance effect is zero.",
+    "Make no file changes and return one task-hash-bound local-research-result JSON with empty artifacts/files_changed and all safety assertions false. Preserve the active general and microstructure forward lanes unchanged."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

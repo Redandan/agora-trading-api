@@ -243,6 +243,16 @@ Do not rerun a V6-to-V7 cutover merely because an older document calls V7
 prepared. Platform-side same-chat binding and exact active-recurrence readback
 remain `MISSING_PROOF` and require readback, not another timer.
 
+The 2026-08-08 platform audit proved that the existing paused V6 task is bound
+to a different ChatGPT Work conversation and that its exposed update schema has
+no destination field. Do not update or resume that task as V7. Follow
+[the platform binding audit](cloud-ops-v7-platform-binding-audit-2026-08-08.md)
+and use the frozen fallback path: prepare a disabled V7 task from the intended
+Coach chat, prove its same-chat destination with zero active recurrences, then
+activate it and prove exactly one active recurrence. The current audit created
+no successor because this Codex session did not expose scheduled-task
+management.
+
 Before packaging a reviewed clean commit, run the focused queue,
 server-contract, same-chat contract, and evidence suites offline. Run
 `PackageOnly` only as the separate post-commit closure gate described above.

@@ -271,6 +271,24 @@ keeps the permitted label
 V3 byte, creates no hypothesis or candidate, and continues only the already
 frozen 14-day evidence screen. Immediate PnL and drawdown effect remain zero.
 
+The first post-deployment cloud-prompt consistency audit used task
+`local-node-cloud-ops-v7-prompt-consistency-audit-v1`, task SHA-256
+`8485d2e8fa7fa12e5adb2ab6efd1dec84ae1917b43271756c9793321051bacb5`,
+Manager dispatch SHA-256
+`ebb6ca5f8ea9507c06ed4e2417e6b8d94f51299c0ab68d67c52f1caf84fb84af`,
+and source commit `ffffe3e9cfcd4a887614be7c81d1c58b1d2560c5`.
+The Manager independently validated the schema-bound, zero-file-change result
+as SHA-256
+`086dfe2aa4e187353257fdd0ee3551ec82ff6c755d6cfbda8bd7c099931d5b61`.
+Its disposition was `V7_PROMPT_CONSISTENT_READY_FOR_PLATFORM_BINDING`: every
+executable write instruction uses the exact V7 attestation, V6 remains only a
+predecessor or cutover stop, same-turn receipt and cross-task operations remain
+denied, and the sole 09:05 clock preserves `NOT_DUE` before 09:00. This proves
+repository prompt-to-contract consistency only. Same-Coach-chat platform
+binding, exactly one active recurrence, unattended prior-context visibility,
+the next normal heartbeat, and live two-turn receipt acceptance remain
+`MISSING_PROOF`. Immediate PnL and drawdown effect remain zero.
+
 ## Current recovery evidence
 
 The canonical heartbeat failure sealed on 2026-08-07 was traced to one migrated

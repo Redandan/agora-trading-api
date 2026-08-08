@@ -1,0 +1,136 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-order-flow-literature-prior-audit-v1",
+  "issued_at": "2026-08-08T07:11:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Before the first OKX BTC-USDT microstructure V3 evidence day is available, independently audit whether primary market-microstructure research supports the frozen causal prior that point-in-time buy-pressure may predict later 15- and 60-minute returns. Separate contemporaneous mechanical price impact from genuine lagged predictability, identify the scope gap between cross-sectional or multi-venue research and one OKX spot venue, and determine whether the existing next-minute entry, matched-control, simplest-tier, and later 30-bps economic gates are sufficient to proceed without changing any frozen V3 byte. Produce only a prior-evidence disposition and claim boundary; do not create a hypothesis, candidate, result, or contract change.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE_V3_PRE_START_0_OF_14",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "97f742f6ec1fde12dd46666cd5ac17dab6af201964fdd8a62283f969b55a7700"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "4775be74e6f0d50486c25ed5e94a25d95f51a3295f187ded2d15861f8b6c3271"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-price-midline-diagnostic-v3.md",
+      "sha256": "16ac07719bd15c02002ab50263e64386009d6ef101a472e68c2faac97358f348"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-forward-interpretation-v1.md",
+      "sha256": "fb98ece9c732d2029c7dcdb8adbbb4f3ed30dc02b866199ae185f18a80187752"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-positive-route-hypothesis-design-v2.md",
+      "sha256": "fcef768dab696e2399a05f29b174488b91bc49ff1f409ef577a31c87ae1f6e61"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-intraday-economic-route-v1.md",
+      "sha256": "aeed92c03934fc85d1119a723eb8605a1bedc9b257e6c7d25b3098d87b963a76"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+      "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-interpretation-contract.v1.json",
+      "sha256": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-08T07:10:49Z; policy READY V3; worker READY release 20260808T052741Z; queue IDLE; general evidence 2/90 with lag 0; microstructure V3 WAITING_FOR_DAY/PRE_START; start 2026-08-09; accepted 0/14; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source A: Cont, Kukanov and Stoikov, The Price Impact of Order Book Events, https://arxiv.org/abs/1011.6402 . Audit its contemporaneous price-impact result without re-labelling it as forward alpha.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source B: Anastasopoulos, Gradojevic, Liu, Maynard and Tsiakas, Order flow and cryptocurrency returns, Journal of Financial Markets 79 (2026) 101047, https://doi.org/10.1016/j.finmar.2026.101047 . Audit its daily cross-sectional world-order-flow scope before transfer to one OKX intraday venue.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source C: Jakob Albers, Mihai Cucuringu, Sam Howison and Alexander Y. Shestopaloff, Fragmentation, Price Formation and Cross-Impact in Bitcoin Markets, https://arxiv.org/abs/2108.09750 and https://doi.org/10.1080/1350486X.2022.2080083 . Audit the multi-venue leader-lag limitation on a single-venue causal claim.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_REPOSITORY_INPUT_HASHES",
+    "READ_LISTED_PRIMARY_PUBLIC_SOURCES",
+    "AUDIT_CONTEMPORANEOUS_VS_LAGGED_PREDICTION",
+    "AUDIT_SINGLE_VENUE_TRANSFER_LIMIT",
+    "ASSESS_EXISTING_V3_GATE_ALIGNMENT",
+    "DEFINE_PREOUTCOME_CLAIM_BOUNDARY",
+    "ASSESS_PERFORMANCE_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+    "TIER_HORIZON_THRESHOLD_OR_COST_CHANGE",
+    "REPOSITORY_OR_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "SECONDARY_SOURCE_AS_PRIMARY_EVIDENCE"
+  ],
+  "expected_outputs": [
+    "PRIMARY_SOURCE_PRIOR_VERDICT",
+    "CONTEMPORANEOUS_VS_PREDICTIVE_BOUNDARY",
+    "SINGLE_VENUE_AND_CROSS_VENUE_BOUNDARY",
+    "CURRENT_V3_CONTRACT_ALIGNMENT",
+    "PERMITTED_CAUSAL_CLAIM_LABEL",
+    "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+    "OPPORTUNITY_COST_ASSESSMENT",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository SHA-256 before analysis; any mismatch is BLOCKED and MISSING_PROOF.",
+    "Use only the listed primary papers and their publisher, DOI, author, or arXiv pages. Do not use blogs, Reddit, search snippets, or later summaries as primary evidence.",
+    "Do not access canonical/server state, .research-state, Local inbox/outbox, future V3 days, diagnostic outputs, sealed OOS, or any outcome-bearing artifact.",
+    "Separate contemporaneous order-flow price impact from lagged predictive return evidence. A same-interval relation must never be reported as tradable forward alpha.",
+    "Separate daily cross-sectional world-order-flow and multi-venue leader-lag evidence from the frozen single-venue OKX spot 15/60-minute question. Unsupported transfer is MISSING_PROOF.",
+    "Audit the existing frozen V3 next-minute entry, matched controls, simplest-first tier, 15/60-minute screen, and later 30-bps economic route without changing or proposing any contract byte.",
+    "Return exactly one of PRIOR_SUPPORTS_EXISTING_V3_SCREEN_WITH_SCOPE_LIMITS, PRIOR_DOES_NOT_SUPPORT_OKX_INTRADAY_TRANSFER, or PRIMARY_SOURCE_PRIOR_INSUFFICIENT.",
+    "A supportive prior may authorize only continued frozen evidence collection. It cannot create a hypothesis, candidate, adapter, V4 source, manifest, experiment, OOS access, or Trading action.",
+    "Keep fee-adjusted PnL, drawdown, fills, slippage, capacity, statistical significance, and cross-venue causal origin as MISSING_PROOF unless the listed evidence directly proves the exact frozen question.",
+    "Make no file changes. Return exactly one local-research-result JSON tied to this task SHA-256, with empty artifacts and files_changed and all safety assertions false."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

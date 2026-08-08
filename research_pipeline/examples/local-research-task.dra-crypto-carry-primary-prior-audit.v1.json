@@ -1,0 +1,173 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-crypto-carry-primary-prior-audit-v1",
+  "issued_at": "2026-08-08T15:40:19Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Independently audit whether elevated crypto carry has enough primary prior and credential-free forward-data feasibility to justify exactly one later source-design audit for a pre-entry risk veto on the existing unlevered BTC spot DRA entry stream. Separate fixed-maturity futures basis, perpetual funding, predictive crash-risk information, and executable carry returns. Prove whether the mechanism is causally distinct from archived strategy 508 funding-low BUY gates, the legacy short-build low-or-negative-funding score, the two-leg funding-arbitrage product, microstructure order flow, and closed range, route-substitution, and one-slot-rotation branches. Produce only a terminal prior and non-duplication disposition; do not select an endpoint, instrument, maturity, formula, threshold, lookback, side, exit, stop, DRA parameter, hypothesis, candidate, manifest, runner, experiment, or capture implementation.",
+  "canonical_research_status": "WAITING;GENERAL_FORWARD_2_OF_90_LAG_0;MICROSTRUCTURE_R1_PRE_START_0_OF_14;QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "2465198fea55728cd087d244827b37bf6196723334f05c54db8f076b84bd5334"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "7de32f0e2ed160cbba8553230c790e5a002dae2367c278aa4ed4630ada6f56bc"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/strategy-driven-minimal-runtime.md",
+      "sha256": "70fb3767d14cefa0a5093f24fc001be2697a760e729a60a6c860ba7f52a4cd64"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-dra-runtime-v1.md",
+      "sha256": "eddff4af35c9f46b6487297feb64cfd7ceedf6a829aa7981c407f5479b889b60"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/service/indicator/impl/ShortBuildIndicator.java",
+      "sha256": "503ef0f08fff71c7617d0d73a544c179931c79c025a1e70faa3459b1cb08c5e0"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/model/BtFundingArb.java",
+      "sha256": "756935b5b831f6dda215f8239227fc8bad9f562321c825f95d22d7d596e39920"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/service/trading/OkxTradingService.java",
+      "sha256": "cd5b08bfd58fde3c0d722aba12018a2123fd13aea84d7c48dd724e765e314e37"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/one-slot-profitable-incumbent-signal-rotation-v1/artifacts/diagnostic.json",
+      "sha256": "44245c9b393f3c3fd08c58c455f80f52a8024832a52639185b33b678e13ee609"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
+      "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": "C:/Users/Redan/.codex/visualizations/2026/07/28/019fa77a-6bcb-71c3-9194-53c63407c2d4/btc-range-factor-research/immutable-core-dra-sleeve-monthly-validation-v1/FINAL_DECISION.md",
+      "sha256": "3308acd4176b18bc2967d6e3a140231cc243d7b6dbd2e56558c4b72239263255"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-08T15:34:25Z; policy and Worker READY; CLOUD_OPS_SCHEDULE_V7 READY; queues IDLE; general forward evidence 2/90 lag 0; microstructure R1 PRE_START 0/14 for 2026-08-09; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source A: Auer, Farag, Lewrick, Orazem and Zoss, Crypto carry, BIS Working Papers No 1087 (2023). Read the full primary paper only at https://www.bis.org/publ/work1087.pdf and bind it to the BIS identity page https://www.bis.org/publ/work1087.htm. Audit its leveraged trend-chasing, arbitrage-capital, carry, crash-risk, and liquidation evidence without assuming transfer from multi-venue fixed-maturity futures to OKX perpetual funding or to the BTC spot DRA.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source B: He, Manela, Ross and von Wachter, Fundamentals of Perpetual Futures, arXiv:2212.06888. Read the full primary paper only at https://arxiv.org/pdf/2212.06888 and bind it to https://arxiv.org/abs/2212.06888. Treat no guaranteed convergence, funding-basis arbitrage risk, market-wide comovement, and market-maturation evidence as co-equal falsification constraints; do not convert an arbitrage strategy result into spot DRA prediction.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Official data-contract sources: read only the OKX V5 official documentation at https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history, https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate, https://www.okx.com/docs-v5/en/#public-data-rest-api-get-open-interest and https://www.okx.com/docs-v5/en/#change-log. Verify public no-key feasibility, field semantics, retention limits, and funding-formula/version drift. Do not call the endpoints, import data, backfill history, or implement capture.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Exact legacy comparator: inspect only Git blob c648154412018c06ae2c91d1244ba7eee46da119, formerly src/main/java/com/agora/service/trading/Strategy508HoldCounterfactualService.java at e6f60f14^, plus the listed current source files. The archived 508 gates included funding_low, oi_stable, volume_confirmed, above_sma200, dex_flow and spread_ok. Missing sealed performance disposition remains MISSING_PROOF; do not execute or restore legacy code.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The only permitted future-mechanism label is CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO. It means a possible pre-entry participation veto on the existing unlevered BTC spot DRA only. It must remain parameter-free and must not imply derivative execution, carry harvesting, leverage, shorting, exit changes, route substitution, one-slot rotation, a range sleeve, microstructure order flow, or a performance claim.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_LOCAL_INPUT_HASHES",
+    "READ_EXACT_HISTORICAL_GIT_BLOB",
+    "READ_EXACT_LISTED_PRIMARY_PUBLIC_SOURCES",
+    "READ_EXACT_LISTED_OFFICIAL_OKX_DOCS",
+    "AUDIT_POSITIVE_AND_FALSIFICATION_PRIORS",
+    "SEPARATE_BASIS_FUNDING_PREDICTION_AND_ARBITRAGE",
+    "AUDIT_SINGLE_BTC_SPOT_DRA_TRANSFER_LIMIT",
+    "AUDIT_LEGACY_AND_CLOSED_BRANCH_NON_DUPLICATION",
+    "ASSESS_CREDENTIAL_FREE_FORWARD_SOURCE_FEASIBILITY",
+    "DEFINE_PARAMETER_FREE_PRIOR_BOUNDARY",
+    "ASSESS_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_CANDIDATE_OR_MANIFEST_AUTHORING",
+    "ENDPOINT_INSTRUMENT_MATURITY_FORMULA_OR_THRESHOLD_SELECTION",
+    "DERIVATIVE_EXECUTION_CARRY_TRADE_LEVERAGE_OR_SHORTING",
+    "ADAPTER_RUNNER_CAPTURE_OR_CONTRACT_IMPLEMENTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "SEARCH_SNIPPET_OR_SECONDARY_SOURCE_AS_EVIDENCE",
+    "LEGACY_RUNTIME_CODE_EXECUTION_OR_RESTORATION",
+    "CLOSED_BRANCH_REOPEN_OR_RELABEL"
+  ],
+  "expected_outputs": [
+    "TERMINAL_PRIMARY_PRIOR_AND_NON_DUPLICATION_VERDICT",
+    "POSITIVE_AND_FALSIFICATION_EVIDENCE_MATRIX",
+    "BASIS_FUNDING_PREDICTION_AND_ARBITRAGE_BOUNDARY",
+    "SINGLE_BTC_SPOT_DRA_TRANSFER_BOUNDARY",
+    "LEGACY_AND_CLOSED_BRANCH_DISTINCTNESS_MATRIX",
+    "CREDENTIAL_FREE_FORWARD_SOURCE_FEASIBILITY",
+    "FORMULA_VERSION_AND_RETENTION_GAPS",
+    "PARAMETER_FREE_PERMITTED_LABEL",
+    "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+    "OPPORTUNITY_COST_ASSESSMENT",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null local SHA-256 before analysis; any mismatch, missing input, link, reparse point, duplicate locator, wrong type, or missing Git blob is BLOCKED and MISSING_PROOF.",
+    "Use only the exact full primary papers, identity pages, official OKX pages, listed source files, exact Git blob, and three sealed summaries. Search may resolve those exact identities only; search snippets and secondary sources are never evidence.",
+    "If either full primary paper is inaccessible or its identity cannot be bound, return PRIMARY_SOURCE_PRIOR_INSUFFICIENT without substitution, inference from an abstract, or loosening the source standard.",
+    "Do not access canonical/server state, Local inbox/outbox, future evidence, diagnostic outcomes, sealed OOS, unlisted historical artifacts, Trading data, or any outcome-bearing file beyond the three listed sealed summaries.",
+    "Separate fixed-maturity futures basis from perpetual funding, predictive crash-risk information from carry-trade return, and a spot-entry veto from derivative execution. Unsupported equivalence returns PRIMARY_SOURCE_PRIOR_INSUFFICIENT or a negative disposition.",
+    "Prove causal distinctness from archived 508 funding-low BUY gates, legacy low-or-negative-funding short-build scoring, two-leg funding arbitrage, microstructure order flow, and the listed closed range, route-substitution, and one-slot-rotation mechanisms. Unresolved duplication returns DUPLICATE_OR_RUNTIME_MISMATCH_CLOSE.",
+    "Reject the mechanism if its claimed benefit requires opening, hedging, rolling, or liquidating derivatives, harvesting funding, using leverage, shorting BTC, changing DRA exits, or restoring archived runtime code.",
+    "A source-feasibility conclusion requires official proof of credential-free forward collection plus unambiguous field, instrument, timing, retention, and formula-version semantics. Any unresolved source identity or formula drift stays MISSING_PROOF.",
+    "Keep the permitted label parameter-free. Do not select or recommend an endpoint, instrument, contract maturity, funding formula, basis construction, threshold, lookback, sampling cadence, side, exit, stop, regime, route, capacity, or DRA parameter.",
+    "Return exactly one of PRIMARY_PRIOR_SUPPORTS_ONE_FORWARD_SOURCE_DESIGN_AUDIT, DUPLICATE_OR_RUNTIME_MISMATCH_CLOSE, or PRIMARY_SOURCE_PRIOR_INSUFFICIENT. A positive disposition authorizes only one separately frozen future source-design audit and nothing else.",
+    "Keep fee-adjusted PnL, drawdown, fills, turnover, slippage, capacity, annual breadth, regime breadth, statistical significance, predictive value, and deployability MISSING_PROOF; make no file changes and return exactly one task-hash-bound local-research-result JSON with empty artifacts/files_changed and all safety assertions false."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

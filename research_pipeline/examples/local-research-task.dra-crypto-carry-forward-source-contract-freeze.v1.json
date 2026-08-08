@@ -165,7 +165,7 @@
     "RECOMMENDED_NEXT_ACTION"
   ],
   "stop_conditions": [
-    "Validate this exact task, clean source commit 83f3cac21c2b0c71d33072ab777832e03947fbf5, branch and every non-null input SHA-256 before editing. Any drift, missing input, link, reparse point, duplicate locator or dirty worktree is BLOCKED and MISSING_PROOF.",
+    "Validate this exact task, its Manager dispatch, the clean checked-out source commit and branch, and every non-null input SHA-256 before editing. Any task/dispatch drift, missing input, link, reparse point, duplicate locator or dirty worktree is BLOCKED and MISSING_PROOF.",
     "Create exactly five new paths only: research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v1.json, research_pipeline/okx-dra-crypto-carry-expiry-futures-inventory.v1.schema.json, research_pipeline/okx-dra-crypto-carry-basis-atoms-day.v1.schema.json, research_pipeline/dra_crypto_carry_source_contract.py, and research_pipeline/tests/test_dra_crypto_carry_source_contract.py. Modify no existing byte.",
     "The source contract must remain OFFLINE_DISABLED_NOT_REGISTERED and bind only LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1. Record LAGGED_OKX_BTC_USDT_PERPETUAL_FUNDING_STATE_V1 as rejected; no combined or third source is allowed.",
     "Freeze credential-free GET requests only to https://www.okx.com/api/v5/public/instruments with instType=FUTURES and instFamily=BTC-USDT, /api/v5/market/candles with inventory-derived instId and bar=1Dutc, and /api/v5/market/index-candles with instId=BTC-USDT and bar=1Dutc. Deny caller URL host path symbol family bar date output and retry overrides.",

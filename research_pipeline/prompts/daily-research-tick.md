@@ -61,7 +61,7 @@ submitting any new candidate. `IDLE` permits the normal evidence-ready flow.
 partial canonical registration: require queue `IDLE`, copy the canonical
 `bundle` byte-for-value without changing its timestamp, text, mechanism, OOS
 window, or any other field, and call `submit_research_candidate_bundle` exactly
-once with the normal V6 attestation. Verify that the canonical
+once with the normal V7 attestation. Verify that the canonical
 `payload_sha256` is unchanged and poll that replay's run. This is recovery of
 the same logical candidate, not permission for a second candidate. If recovery
 is `INTEGRITY_BLOCKED`, including repeated replay failure or partial-state

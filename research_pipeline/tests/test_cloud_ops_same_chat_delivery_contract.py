@@ -180,6 +180,8 @@ class CloudOpsSameChatDeliveryContractTest(unittest.TestCase):
         self.assertIn("`PREPARED_NOT_ACTIVE_V7`", self.prompt)
         self.assertIn("stop before every V7\nwrite call", self.prompt)
         self.assertIn("current assistant turn is never receipt proof", self.prompt)
+        self.assertIn("normal V7 attestation", self.prompt)
+        self.assertNotIn("normal V6 attestation", self.prompt)
         self.assertNotIn("Use `list_threads`", self.prompt)
         self.assertNotIn("call `send_message_to_thread`", self.prompt)
 

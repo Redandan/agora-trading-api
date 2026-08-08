@@ -1,0 +1,207 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-crypto-carry-forward-source-contract-freeze-v2",
+  "issued_at": "2026-08-08T16:31:45Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Recover the V1 source-contract implementation task without requesting sandbox permission or weakening scientific gates. Local must re-hash exact task/dispatch and frozen inputs with PowerShell, then create exactly the same five offline files: one disabled expiry-futures source contract, strict D-1 inventory and D-day raw-atom schemas, one standard-library validator, and deterministic fixture tests. Local performs only static JSON/hash/path/diff checks; Manager owns executable task/result validation, Python compile, schema and focused test acceptance before staging. Bind the accepted D-1/D+1/D+2 clock, fixed credential-free OKX paths, complete confirmed raw rows, one-way transport, network-denied intake and no backfill. Do not connect, deploy, calculate carry, register research state or alter runtime.",
+  "canonical_research_status": "WAITING;GENERAL_FORWARD_2_OF_90_LAG_0;MICROSTRUCTURE_R1_WAITING_FOR_DAY_0_OF_14;QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "SERVICE_BOUNDARY.md",
+      "sha256": "584da5b7fac21ba4a8ded695dbebbcd34a30b5d9cea69c2840c102249205f3dd"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/strategy-driven-minimal-runtime.md",
+      "sha256": "70fb3767d14cefa0a5093f24fc001be2697a760e729a60a6c860ba7f52a4cd64"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "2465198fea55728cd087d244827b37bf6196723334f05c54db8f076b84bd5334"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "7de32f0e2ed160cbba8553230c790e5a002dae2367c278aa4ed4630ada6f56bc"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-forward-evidence-source-v1.md",
+      "sha256": "946c6dab1f772bca743ff1c769f988c276cf1bef47fada4fea29340cd65b71e5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_dispatch.py",
+      "sha256": "f1fbe40f63a38f4c362c94ef1c8b4dd6a15f347a2e82f8f432a7f6f47064c64b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-task.schema.json",
+      "sha256": "bcb72265dfffcea0ba52a7c200d1c499b2cab112251049f4f5e7f8acc4ab79cf"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-dispatch.schema.json",
+      "sha256": "05e83891222afba5c526afc1de668c0f24e6e3872a224627dd773d665bf1e435"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v7.json",
+      "sha256": "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-crypto-carry-forward-source-design.v1.json",
+      "sha256": "32e1539c171a847bb9a8bc087c59e546ed9c86bb262e600c611830884d0cc110"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.dra-crypto-carry-forward-source-design.v1.json",
+      "sha256": "292a2b8a57b9ac9cf730f6b2830db316f8cc4938a0340a7a5d09ae4048dbfc5d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-crypto-carry-forward-source-contract-freeze.v1.json",
+      "sha256": "818fd31de9f6c7259f699e0ec2e41a099a53236808fadb2e8f7e8c55bd68d046"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.dra-crypto-carry-forward-source-contract-freeze.v1.json",
+      "sha256": "3c34b51771ea00470629dad7548c8a92c10191f0dc8e9adbed4bdddd908761cd"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "1e98f439cdf6921d6299ac2f5b27e33ac0ca818b5a52a3d10e38e213563c34ee"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_source_contract.py",
+      "sha256": "009c2b9d25980e25be298756b19a12a9bc73be96137d3e978a4fafecb3dbce46"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-08T16:21:31Z; policy Worker and CLOUD_OPS_SCHEDULE_V7 READY; exactly one 09:05 Asia/Taipei recurrence; queues IDLE; general forward 2/90 lag 0; microstructure R1 WAITING_FOR_DAY 0/14; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Manager independently validated V1 BLOCKED result: raw SHA-256 4c351ba18fa5a7e33f98ba3ec0e307a1c2b4ca5d3c087c1e3acf8f2f8cdc0ab2; canonical SHA-256 d00f88cae025abc08250b86c151bb69262e80c5d7914ed5b1de8e7dfa3d3a470; zero files changed and all safety flags false. The only blocker was Local sandbox Python access. V2 keeps the exact five-file science scope and moves every executable validation to Manager acceptance.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Accepted source design remains ONE_LAGGED_CAUSAL_SOURCE_DESIGN_SELECTED for LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1. Require D-1 frozen normal linear USDT-settled live FUTURES inventory, complete confirmed D-day futures and BTC-USDT index 1Dutc raw rows, D+1 capture, D+2 first use, no cache-order inference, no derived carry field, and perpetual funding rejected.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_TASK_DISPATCH_BYTES_WITH_POWERSHELL",
+    "VERIFY_INPUT_HASHES_WITH_POWERSHELL",
+    "ADD_FROZEN_DISABLED_SOURCE_CONTRACT",
+    "ADD_STRICT_INVENTORY_SCHEMA",
+    "ADD_STRICT_BASIS_ATOMS_DAY_SCHEMA",
+    "ADD_DETERMINISTIC_OFFLINE_VALIDATOR",
+    "ADD_DETERMINISTIC_FIXTURE_TESTS",
+    "RUN_STATIC_POWERSHELL_JSON_PARSE",
+    "RUN_STATIC_PATH_AND_HASH_INVENTORY",
+    "RUN_STATIC_FORBIDDEN_TOKEN_SCAN",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_MANAGER_VALIDATION_PENDING_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "SOURCE_PRODUCER_INTAKE_OR_SERVICE_IMPLEMENTATION",
+    "SOURCE_REGISTRATION_TRIGGER_OR_CANONICAL_BINDING",
+    "SERVICE_PACKAGE_DEPLOY_START_OR_SYSTEMD_ACTION",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "BASIS_CARRY_FUNDING_OR_ANNUALIZATION_CALCULATION",
+    "MATURITY_ROLL_LIQUIDITY_THRESHOLD_OR_SIGNAL_SELECTION",
+    "HYPOTHESIS_MANIFEST_CANDIDATE_OR_EXPERIMENT_REGISTRATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "EXISTING_FILE_MODIFICATION",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_BRANCH_CHANGE",
+    "PYTHON_JAVA_MAVEN_SPRING_OR_SUBPROCESS_EXECUTION",
+    "RESEARCH_STATE_OR_IGNORED_OUTPUT_WRITE",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_FIVE_FILE_CHANGESET",
+    "FROZEN_DISABLED_EXPIRY_FUTURES_SOURCE_CONTRACT",
+    "STRICT_PRIOR_CYCLE_INVENTORY_SCHEMA",
+    "STRICT_COMPLETE_TARGET_DAY_ATOMS_SCHEMA",
+    "DETERMINISTIC_STANDARD_LIBRARY_VALIDATOR",
+    "CANONICAL_HASH_BOUND_FIXTURES",
+    "D_MINUS_1_D_PLUS_1_D_PLUS_2_CLOCK_CONTRACT",
+    "COMPLETE_INVENTORY_COVERAGE_VETOES",
+    "STATIC_POWERSHELL_EVIDENCE",
+    "MANAGER_EXECUTABLE_VALIDATION_PENDING",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Manager must validate V2 task/dispatch before dispatch. Local must re-hash their exact bytes and every non-null input with PowerShell, prove the clean checked-out commit/branch, regular non-link/non-reparse files and unique locators. Any drift or dirty worktree is BLOCKED before editing; Local Python is neither required nor permitted.",
+    "Create exactly five new paths only: research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v1.json, research_pipeline/okx-dra-crypto-carry-expiry-futures-inventory.v1.schema.json, research_pipeline/okx-dra-crypto-carry-basis-atoms-day.v1.schema.json, research_pipeline/dra_crypto_carry_source_contract.py, and research_pipeline/tests/test_dra_crypto_carry_source_contract.py. Modify no existing byte.",
+    "The source contract must remain OFFLINE_DISABLED_NOT_REGISTERED and bind only LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1. Record LAGGED_OKX_BTC_USDT_PERPETUAL_FUNDING_STATE_V1 as rejected; no combined or third source is allowed.",
+    "Freeze credential-free GET requests only to https://www.okx.com/api/v5/public/instruments with instType=FUTURES and instFamily=BTC-USDT, /api/v5/market/candles with inventory-derived instId and bar=1Dutc, and /api/v5/market/index-candles with instId=BTC-USDT and bar=1Dutc. Deny caller URL host path symbol family bar date output and retry overrides.",
+    "The inventory schema and validator must require one or more unique rows with exact raw metadata instType FUTURES, instFamily and uly BTC-USDT, ctType linear, settleCcy USDT, state live, ruleType normal, unique instId, listTime no later than capture, and nonempty expTime strictly after target day end. Alias and inferred maturity labels are forbidden.",
+    "Bind target day D to one frozen inventory scheduled at the sole D-1 09:05 Asia/Taipei cycle. Record scheduled_cycle_at separately from actual captured_at; require capture no earlier than schedule and before D starts. Canonically seal inventory bytes and reject noncanonical JSON, duplicate keys, changed source hash, empty inventory or conflicting duplicates.",
+    "The day schema and validator must preserve exact OKX raw arrays: futures [ts,o,h,l,c,vol,volCcy,volCcyQuote,confirm] and index [ts,o,h,l,c,confirm]. Require exactly one row per frozen instId, no extras, one BTC-USDT index row, ts equal to D 00:00:00Z, confirm=1, finite positive OHLC, and nonnegative volumes.",
+    "Capture D atoms only at the sole D+1 09:05 Asia/Taipei cycle and before D+1 06:00Z. First eligibility is exactly the D+2 UTC daily decision; D or D+1 use, retroactive admission, late retry, backfill, alternate endpoint or partial-day salvage must fail closed.",
+    "Hash-bind each day bundle to exact canonical inventory bytes, source contract bytes, schema bytes, target day, scheduled and actual capture timestamps, expected and observed instrument counts, and raw rows. Deterministically sort only by frozen instId after validation; never infer freshness from response order because OKX caches may return older responses later.",
+    "Use Python standard library only in the authored validator/test files. Expose no CLI, URL fetch, file scan, output writer, service path, timer, callback, subprocess, source lifecycle action or canonical-state mutation. Local must not execute Python; Manager will run all executable acceptance checks before staging.",
+    "Do not calculate basis, carry, annualization, funding, tenor, maturity preference, roll, liquidity, threshold, signal, return, PnL or drawdown. Synthetic fixture prices exist only to prove raw-atom integrity; tests must assert that no derived economic field is admitted.",
+    "Author focused tests for canonical fixtures, frozen files, closed schemas, source identity, D-1/D+1/D+2 drift, same-day leakage, missing/extra/duplicate/unconfirmed rows, inventory/expiry drift, timestamp mismatch, invalid OHLC/volume, cache-order independence, duplicate keys, noncanonical bytes and derived fields. Do not claim they passed locally.",
+    "Local static acceptance is limited to PowerShell JSON parsing of the three JSON files, exact five-path inventory and SHA-256, forbidden-token/source scan, git diff --check and proof that no existing path changed. Any executable test, schema behavior, syntax or result-contract claim remains MISSING_PROOF_MANAGER_PENDING.",
+    "Keep one Codex cloud Ops clock, future credential-free fixed-origin producer, create-only hash-bound one-way drop, network-denied canonical intake, Server Canonical sole writer, no backfill and no retry after deadline as frozen future boundaries. This task implements none of those services or registrations.",
+    "Predictive value, statistical significance, fee-adjusted PnL, realized/unrealized PnL, drawdown, turnover, capacity, concentration, false-veto cost, endpoint availability, rate limits, commercial use and deployability remain MISSING_PROOF. Immediate performance and drawdown effect are zero.",
+    "Return one valid-shaped local-research-result JSON bound to exact task bytes, listing exactly five files_changed and artifact SHA-256 values, source_git_dirty_after=true and all safety assertions false. Status COMPLETED means only ready for Manager validation. Do not stage, commit or push; Manager must validate result, rehash diff and run every executable check before acceptance."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 5,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

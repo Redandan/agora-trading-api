@@ -41,6 +41,8 @@ from research_pipeline.tests.test_microstructure_handoff_contract import (
     _diagnostic_result,
 )
 from research_pipeline.tests.test_microstructure_handoff_runner import (
+    R1_DIAGNOSTIC_ID,
+    R1_START_DAY,
     _Fixture,
 )
 from research_pipeline.tests.test_microstructure_interpretation import (
@@ -57,15 +59,21 @@ class MicrostructureInterpretationRunnerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.fixture = _Fixture()
+        cls.r1_fixture = _Fixture(R1_DIAGNOSTIC_ID, R1_START_DAY)
+        cls.insufficient_raw = cls._source_result(cls.fixture)
+        cls.r1_insufficient_raw = cls._source_result(cls.r1_fixture)
+
+    @staticmethod
+    def _source_result(fixture: _Fixture) -> bytes:
         with TemporaryDirectory() as directory:
-            source_paths = cls.fixture.install(Path(directory))
+            source_paths = fixture.install(Path(directory))
             context, _observed = _validate_fixed_package(source_paths)
             diagnostic = _diagnostic_result(context)
             run_handoff(
                 source_paths,
                 analyzer=lambda *_args, **_kwargs: diagnostic,
             )
-            cls.insufficient_raw = (
+            return (
                 source_paths.task_owned_root / SOURCE_RESULT_NAME
             ).read_bytes()
 
@@ -106,8 +114,10 @@ class MicrostructureInterpretationRunnerTest(unittest.TestCase):
         *,
         source_result: bytes | None = None,
         provision_output: bool = True,
+        fixture: _Fixture | None = None,
     ) -> RuntimePaths:
-        source_paths = self.fixture.install(base)
+        fixture = self.fixture if fixture is None else fixture
+        source_paths = fixture.install(base)
         repository_root = source_paths.repository_root
         required = (
             set(EXPECTED_REPOSITORY_INPUTS)
@@ -153,7 +163,7 @@ class MicrostructureInterpretationRunnerTest(unittest.TestCase):
         self.assertEqual(
             OUTPUT_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/outbox/"
-            "local-node-microstructure-v3-interpretation-runner-v1",
+            "local-node-microstructure-v3-interpretation-runner-v2",
         )
         with patch(
             "research_pipeline.microstructure_interpretation_runner.run_interpretation",
@@ -187,6 +197,21 @@ class MicrostructureInterpretationRunnerTest(unittest.TestCase):
                     ).read_bytes()
                 ).hexdigest(),
             )
+
+    def test_r1_source_is_interpreted_without_runtime_code_change(self) -> None:
+        with TemporaryDirectory() as directory:
+            paths = self._install(
+                Path(directory),
+                fixture=self.r1_fixture,
+                source_result=self.r1_insufficient_raw,
+            )
+            result = run_interpretation(paths)
+            parsed = validate_interpretation_result_bytes(
+                (paths.output_root / OUTPUT_RESULT_NAME).read_bytes()
+            )
+            self.assertEqual("CREATED", result["status"])
+            self.assertEqual("INSUFFICIENT_FORWARD_EVIDENCE", result["disposition"])
+            self.assertEqual(result["disposition"], parsed["disposition"])
 
     def test_all_four_frozen_dispositions(self) -> None:
         cases = {

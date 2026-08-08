@@ -12,6 +12,7 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
+import research_pipeline.microstructure_handoff_runner as runner_module
 from research_pipeline.microstructure_handoff import (
     HANDOFF_CANONICALIZATION,
     INFERENCE_BOUNDARIES,
@@ -20,15 +21,12 @@ from research_pipeline.microstructure_handoff import (
     RESULT_NAME,
 )
 from research_pipeline.microstructure_handoff_runner import (
-    DIAGNOSTIC_ID,
     DIAGNOSTIC_TASK_ID,
     DIAGNOSTIC_TASK_RELATIVE,
     DIAGNOSTIC_TASK_SHA256,
     EXPECTED_REPOSITORY_INPUTS,
-    ORDERED_DAYS,
     PRODUCTION_PATHS,
     REPOSITORY_ROOT,
-    START_DAY,
     TASK_OWNED_ROOT,
     HandoffRunnerBlocked,
     RuntimePaths,
@@ -57,6 +55,10 @@ from research_pipeline.tests.test_microstructure_v3_intake_isolation import (
 
 PRODUCER_RELEASE_ID = "deterministic-v3-local-runner-fixture"
 PRODUCER_MANIFEST_SHA256 = "b" * 64
+LEGACY_DIAGNOSTIC_ID = "okx-btcusdt-microstructure-forward-v3-20260808"
+LEGACY_START_DAY = date(2026, 8, 8)
+R1_DIAGNOSTIC_ID = "okx-btcusdt-microstructure-forward-v3-20260809-r1"
+R1_START_DAY = date(2026, 8, 9)
 
 
 def _seal_manifest(value: dict[str, object]) -> None:
@@ -82,17 +84,26 @@ def _envelope_name(bundle_day: date) -> str:
 
 
 class _Fixture:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        diagnostic_id: str = LEGACY_DIAGNOSTIC_ID,
+        start_day: date = LEGACY_START_DAY,
+    ) -> None:
+        self.diagnostic_id = diagnostic_id
+        self.start_day = start_day
+        self.ordered_days = tuple(
+            start_day + timedelta(days=index) for index in range(14)
+        )
         state = initial_v3_intake_state(
-            DIAGNOSTIC_ID,
-            START_DAY,
-            as_of_day=START_DAY - timedelta(days=1),
+            self.diagnostic_id,
+            self.start_day,
+            as_of_day=self.start_day - timedelta(days=1),
         )
         self.initial_state_raw = canonical_v3_state_bytes(state)
         day_material: list[tuple[date, bytes, bytes]] = []
         predecessor_day: date | None = None
         predecessor_hash: str | None = None
-        for bundle_day in ORDERED_DAYS:
+        for bundle_day in self.ordered_days:
             bundle = _v3_day_bundle(bundle_day)
             envelope = _v3_envelope(
                 bundle,
@@ -101,11 +112,11 @@ class _Fixture:
             )
             bundle_raw = canonical_json_bytes(bundle)
             bundle_hash = hashlib.sha256(bundle_raw).hexdigest()
-            envelope["diagnostic_id"] = DIAGNOSTIC_ID
+            envelope["diagnostic_id"] = self.diagnostic_id
             envelope["producer_release_id"] = PRODUCER_RELEASE_ID
             envelope["producer_manifest_sha256"] = PRODUCER_MANIFEST_SHA256
             envelope["idempotency_key"] = (
-                f"{DIAGNOSTIC_ID}:{bundle_day.isoformat()}:{bundle_hash}"
+                f"{self.diagnostic_id}:{bundle_day.isoformat()}:{bundle_hash}"
             )
             envelope["envelope_seal"]["payload_sha256"] = canonical_sha256(
                 envelope, exclude_key="envelope_seal"
@@ -128,7 +139,7 @@ class _Fixture:
             predecessor_hash = bundle_hash
 
         state_raw = canonical_v3_state_bytes(state)
-        state_name = f"canonical/{DIAGNOSTIC_ID}.json"
+        state_name = f"canonical/{self.diagnostic_id}.json"
         self.package_files: dict[str, bytes] = {state_name: state_raw}
         manifest_days: list[dict[str, object]] = []
         for (bundle_day, bundle_raw, envelope_raw), record in zip(
@@ -147,7 +158,7 @@ class _Fixture:
                     "envelope_sha256": hashlib.sha256(envelope_raw).hexdigest(),
                     "predecessor_day": (
                         None
-                        if bundle_day == START_DAY
+                        if bundle_day == self.start_day
                         else (bundle_day - timedelta(days=1)).isoformat()
                     ),
                     "predecessor_bundle_sha256": record[
@@ -169,10 +180,10 @@ class _Fixture:
                 "intake_state_schema_sha256": V3_INTAKE_STATE_SCHEMA_SHA256,
                 "state_type": "SERVER_CANONICAL_MICROSTRUCTURE_V3_INTAKE",
                 "state_authority": "SERVER_CANONICAL",
-                "diagnostic_id": DIAGNOSTIC_ID,
+                "diagnostic_id": self.diagnostic_id,
                 "status": "DIAGNOSTIC_READY",
-                "start_day": START_DAY.isoformat(),
-                "last_day": ORDERED_DAYS[-1].isoformat(),
+                "start_day": self.start_day.isoformat(),
+                "last_day": self.ordered_days[-1].isoformat(),
                 "required_day_count": 14,
                 "accepted_day_count": 14,
                 "chain_head_sha256": state["chain_head_sha256"],
@@ -223,7 +234,7 @@ class _Fixture:
 
     def chain_drift_files(self) -> dict[str, bytes]:
         changed = dict(self.package_files)
-        envelope_name = _envelope_name(ORDERED_DAYS[1])
+        envelope_name = _envelope_name(self.ordered_days[1])
         envelope = json.loads(changed[envelope_name].decode("utf-8"))
         envelope["predecessor_bundle_sha256"] = "f" * 64
         envelope["envelope_seal"]["payload_sha256"] = canonical_sha256(
@@ -244,6 +255,7 @@ class MicrostructureHandoffRunnerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.fixture = _Fixture()
+        cls.r1_fixture = _Fixture(R1_DIAGNOSTIC_ID, R1_START_DAY)
 
     def test_production_constants_and_zero_argument_cli_are_fixed(self) -> None:
         self.assertEqual(REPOSITORY_ROOT, PRODUCTION_PATHS.repository_root)
@@ -253,8 +265,9 @@ class MicrostructureHandoffRunnerTest(unittest.TestCase):
             "C:/Users/Redan/.codex/local-research-node/inbox/"
             "local-node-microstructure-v3-evidence-diagnostic-v1",
         )
-        self.assertEqual(ORDERED_DAYS[0], date(2026, 8, 8))
-        self.assertEqual(ORDERED_DAYS[-1], date(2026, 8, 21))
+        self.assertFalse(hasattr(runner_module, "DIAGNOSTIC_ID"))
+        self.assertFalse(hasattr(runner_module, "START_DAY"))
+        self.assertFalse(hasattr(runner_module, "ORDERED_DAYS"))
         with patch(
             "research_pipeline.microstructure_handoff_runner.run_handoff",
             return_value={"status": "CREATED"},
@@ -266,32 +279,40 @@ class MicrostructureHandoffRunnerTest(unittest.TestCase):
             mocked.assert_not_called()
 
     def test_valid_creation_order_wrapping_idempotency_and_conflict_rejection(self) -> None:
-        with TemporaryDirectory() as directory:
-            paths = self.fixture.install(Path(directory))
-            first = run_handoff(paths)
-            result_path = paths.task_owned_root / RESULT_NAME
-            raw = result_path.read_bytes()
-            result = json.loads(raw.decode("utf-8"))
-            diagnostic = result["diagnostic_result"]
+        legacy_diagnostic: dict[str, object] | None = None
+        for label, fixture in (("legacy", self.fixture), ("r1", self.r1_fixture)):
+            with self.subTest(label=label), TemporaryDirectory() as directory:
+                paths = fixture.install(Path(directory))
+                first = run_handoff(paths)
+                result_path = paths.task_owned_root / RESULT_NAME
+                raw = result_path.read_bytes()
+                result = json.loads(raw.decode("utf-8"))
+                diagnostic = result["diagnostic_result"]
+                if label == "legacy":
+                    legacy_diagnostic = diagnostic
 
-            self.assertEqual(first["status"], "CREATED")
-            self.assertEqual(raw, canonical_json_bytes(result))
-            self.assertEqual(result["task_id"], DIAGNOSTIC_TASK_ID)
-            self.assertEqual(result["task_sha256"], DIAGNOSTIC_TASK_SHA256)
-            self.assertEqual(result["inference_boundaries"], INFERENCE_BOUNDARIES)
-            self.assertEqual(
-                [item["path"] for item in diagnostic["input"]["files"]],
-                [_bundle_name(bundle_day) for bundle_day in ORDERED_DAYS],
-            )
-            self.assertEqual(
-                first["sha256"], hashlib.sha256(raw).hexdigest()
-            )
-            modified_time = result_path.stat().st_mtime_ns
-            second = run_handoff(paths, analyzer=lambda *_args, **_kwargs: diagnostic)
-            self.assertEqual(second["status"], "IDEMPOTENT_IDENTICAL")
-            self.assertEqual(result_path.stat().st_mtime_ns, modified_time)
-            self.assertEqual(result_path.read_bytes(), raw)
+                self.assertEqual(first["status"], "CREATED")
+                self.assertEqual(raw, canonical_json_bytes(result))
+                self.assertEqual(result["task_id"], DIAGNOSTIC_TASK_ID)
+                self.assertEqual(result["task_sha256"], DIAGNOSTIC_TASK_SHA256)
+                self.assertEqual(result["inference_boundaries"], INFERENCE_BOUNDARIES)
+                self.assertEqual(
+                    result["canonical_state"]["diagnostic_id"], fixture.diagnostic_id
+                )
+                self.assertEqual(
+                    [item["path"] for item in diagnostic["input"]["files"]],
+                    [_bundle_name(bundle_day) for bundle_day in fixture.ordered_days],
+                )
+                self.assertEqual(first["sha256"], hashlib.sha256(raw).hexdigest())
+                modified_time = result_path.stat().st_mtime_ns
+                second = run_handoff(
+                    paths, analyzer=lambda *_args, **_kwargs: diagnostic
+                )
+                self.assertEqual(second["status"], "IDEMPOTENT_IDENTICAL")
+                self.assertEqual(result_path.stat().st_mtime_ns, modified_time)
+                self.assertEqual(result_path.read_bytes(), raw)
 
+        assert legacy_diagnostic is not None
         for conflicting in (b"{", canonical_json_bytes({"conflict": True})):
             with self.subTest(conflicting=conflicting), TemporaryDirectory() as directory:
                 paths = self.fixture.install(Path(directory))
@@ -300,7 +321,9 @@ class MicrostructureHandoffRunnerTest(unittest.TestCase):
                 with self.assertRaisesRegex(
                     HandoffRunnerBlocked, "conflicting or partial"
                 ):
-                    run_handoff(paths, analyzer=lambda *_args, **_kwargs: diagnostic)
+                    run_handoff(
+                        paths, analyzer=lambda *_args, **_kwargs: legacy_diagnostic
+                    )
                 self.assertEqual(result_path.read_bytes(), conflicting)
 
     def test_absent_or_not_ready_package_creates_no_result(self) -> None:
@@ -320,7 +343,11 @@ class MicrostructureHandoffRunnerTest(unittest.TestCase):
 
         with TemporaryDirectory() as directory:
             paths = self.fixture.install(Path(directory))
-            state_path = paths.task_owned_root / "canonical" / f"{DIAGNOSTIC_ID}.json"
+            state_path = (
+                paths.task_owned_root
+                / "canonical"
+                / f"{self.fixture.diagnostic_id}.json"
+            )
             state_path.write_bytes(self.fixture.initial_state_raw)
             with self.assertRaises(HandoffRunnerBlocked):
                 run_handoff(paths, analyzer=lambda *_args, **_kwargs: {})
@@ -347,13 +374,13 @@ class MicrostructureHandoffRunnerTest(unittest.TestCase):
     def test_missing_extra_hash_and_chain_drift_fail_closed(self) -> None:
         cases: list[tuple[str, dict[str, bytes]]] = []
         missing = dict(self.fixture.package_files)
-        missing.pop(_bundle_name(ORDERED_DAYS[0]))
+        missing.pop(_bundle_name(self.fixture.ordered_days[0]))
         cases.append(("missing", missing))
         extra = dict(self.fixture.package_files)
         extra["unexpected.json"] = b"{}"
         cases.append(("extra", extra))
         hash_drift = dict(self.fixture.package_files)
-        first_bundle = _bundle_name(ORDERED_DAYS[0])
+        first_bundle = _bundle_name(self.fixture.ordered_days[0])
         hash_drift[first_bundle] = hash_drift[first_bundle] + b" "
         cases.append(("hash", hash_drift))
         identity_drift = dict(self.fixture.package_files)
@@ -371,11 +398,41 @@ class MicrostructureHandoffRunnerTest(unittest.TestCase):
                     run_handoff(paths, analyzer=lambda *_args, **_kwargs: {})
                 self.assertFalse((paths.task_owned_root / RESULT_NAME).exists())
 
+    def test_manifest_authority_canonicalization_and_paths_fail_closed(self) -> None:
+        cases: list[tuple[str, bytes]] = []
+        task_id = deepcopy(self.fixture.manifest)
+        task_id["task_id"] = "alternate-task"
+        _seal_manifest(task_id)
+        cases.append(("task-id", canonical_json_bytes(task_id)))
+        task_sha = deepcopy(self.fixture.manifest)
+        task_sha["task_sha256"] = "f" * 64
+        _seal_manifest(task_sha)
+        cases.append(("task-sha", canonical_json_bytes(task_sha)))
+        unsafe = deepcopy(self.fixture.manifest)
+        unsafe["canonical_state"]["diagnostic_id"] = "../unsafe"
+        unsafe["canonical_state"]["relative_name"] = "canonical/../unsafe.json"
+        _seal_manifest(unsafe)
+        cases.append(("unsafe", canonical_json_bytes(unsafe)))
+        unsealed = deepcopy(self.fixture.manifest)
+        unsealed["canonical_state"]["start_day"] = "2026-08-09"
+        cases.append(("unsealed", canonical_json_bytes(unsealed)))
+        cases.append(
+            ("noncanonical", self.fixture.package_files[MANIFEST_NAME] + b"\n")
+        )
+        for label, manifest_raw in cases:
+            with self.subTest(label=label), TemporaryDirectory() as directory:
+                changed = dict(self.fixture.package_files)
+                changed[MANIFEST_NAME] = manifest_raw
+                paths = self.fixture.install(Path(directory), package_files=changed)
+                with self.assertRaises(HandoffRunnerBlocked):
+                    run_handoff(paths, analyzer=lambda *_args, **_kwargs: {})
+                self.assertFalse((paths.task_owned_root / RESULT_NAME).exists())
+
     def test_link_or_reparse_input_is_rejected_when_supported(self) -> None:
         with TemporaryDirectory() as directory:
             paths = self.fixture.install(Path(directory))
             target = paths.task_owned_root.joinpath(
-                *_bundle_name(ORDERED_DAYS[0]).split("/")
+                *_bundle_name(self.fixture.ordered_days[0]).split("/")
             )
             outside = Path(directory) / "outside.json"
             outside.write_bytes(target.read_bytes())
@@ -396,7 +453,7 @@ class MicrostructureHandoffRunnerTest(unittest.TestCase):
 
             def mutate_package(*_args: object, **_kwargs: object) -> dict[str, object]:
                 target = paths.task_owned_root.joinpath(
-                    *_bundle_name(ORDERED_DAYS[-1]).split("/")
+                    *_bundle_name(self.fixture.ordered_days[-1]).split("/")
                 )
                 target.write_bytes(target.read_bytes() + b" ")
                 return {}

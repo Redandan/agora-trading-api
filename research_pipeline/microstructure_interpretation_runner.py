@@ -38,11 +38,11 @@ from research_pipeline.microstructure_source_contract import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 RUNNER_TASK_RELATIVE = (
     "research_pipeline/examples/"
-    "local-research-task.microstructure-v3-interpretation-runner.v1.json"
+    "local-research-task.microstructure-v3-interpretation-runner.v2.json"
 )
-RUNNER_TASK_ID = "local-node-microstructure-v3-interpretation-runner-v1"
+RUNNER_TASK_ID = "local-node-microstructure-v3-interpretation-runner-v2"
 RUNNER_TASK_SHA256 = (
-    "cc6bcf53cd31e134ce31b92a38a56499dbcc2a43c1f81bc18a708c801d31bcc5"
+    "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f"
 )
 SOURCE_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/inbox/"
@@ -50,7 +50,7 @@ SOURCE_ROOT = Path(
 )
 OUTPUT_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/outbox/"
-    "local-node-microstructure-v3-interpretation-runner-v1"
+    "local-node-microstructure-v3-interpretation-runner-v2"
 )
 OUTPUT_RESULT_NAME = "interpretation-result.json"
 INTERPRETATION_CONTRACT_RELATIVE = (
@@ -68,7 +68,7 @@ EXPECTED_REPOSITORY_INPUTS = {
         "eda4e965a0e91636d19e62902488f57db900d4b37c61a058d54879b84b350865"
     ),
     "research_pipeline/microstructure_handoff_runner.py": (
-        "897ab23abde5ccf2976697d1101ad0bd8cbd03c083a9038ece196a585d9e06be"
+        "6f44d5afc5f3254670414028a00843a79da1f94e97c168cc834d463b187384bc"
     ),
     "research_pipeline/microstructure-handoff-manifest.v1.schema.json": (
         "9f1d65c144ee34cd49cd74fc4b74218dbc7232d0622a8cba1ccdbe667171b090"

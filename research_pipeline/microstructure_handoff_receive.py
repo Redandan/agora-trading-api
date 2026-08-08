@@ -21,9 +21,12 @@ from research_pipeline.microstructure_handoff import (
 from research_pipeline.microstructure_handoff_runner import (
     DIAGNOSTIC_TASK_ID,
     DIAGNOSTIC_TASK_SHA256,
+    HandoffRunnerBlocked,
+    ManifestIdentity,
     RuntimePaths as HandoffRuntimePaths,
     _expected_directory_names,
     _expected_file_names,
+    _manifest_identity_from_bytes,
     _validate_fixed_package,
 )
 from research_pipeline.microstructure_source_contract import (
@@ -35,11 +38,11 @@ from research_pipeline.microstructure_source_contract import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 TRANSFER_TASK_RELATIVE = (
     "research_pipeline/examples/"
-    "local-research-task.microstructure-v3-handoff-transfer.v2.json"
+    "local-research-task.microstructure-v3-handoff-transfer.v3.json"
 )
-TRANSFER_TASK_ID = "local-node-microstructure-v3-handoff-transfer-v2"
+TRANSFER_TASK_ID = "local-node-microstructure-v3-handoff-transfer-v3"
 TRANSFER_TASK_SHA256 = (
-    "600c6a818469c4ad8c9d5aa1846f74b6344c8825b974ff3b52f357da9c77c532"
+    "1147fa58e09eb74e4ed58a2c88c9a3c5bc58a76e30083635f2fdd94a9b30a2a2"
 )
 LOCAL_NODE_ROOT = Path("C:/Users/Redan/.codex/local-research-node")
 TRANSPORT_PARENT = LOCAL_NODE_ROOT / "transport"
@@ -52,6 +55,7 @@ FINAL_ROOT = FINAL_PARENT / DIAGNOSTIC_TASK_ID
 MAX_ARCHIVE_BYTES = 2 * 1024 * 1024 * 1024
 MAX_MEMBER_BYTES = 512 * 1024 * 1024
 MAX_PACKAGE_BYTES = 2 * 1024 * 1024 * 1024
+MAX_MANIFEST_BYTES = 1024 * 1024
 
 EXPECTED_REPOSITORY_INPUTS = {
     "research_pipeline/examples/"
@@ -68,7 +72,7 @@ EXPECTED_REPOSITORY_INPUTS = {
         "eda4e965a0e91636d19e62902488f57db900d4b37c61a058d54879b84b350865"
     ),
     "research_pipeline/microstructure_handoff_runner.py": (
-        "897ab23abde5ccf2976697d1101ad0bd8cbd03c083a9038ece196a585d9e06be"
+        "6f44d5afc5f3254670414028a00843a79da1f94e97c168cc834d463b187384bc"
     ),
     "scripts/pull_microstructure_v3_handoff_ssh.ps1": (
         "b8645a9b98807bd1bb9ff64e0f42681c8fecb9f06d921132970ca6fa8f218062"
@@ -87,8 +91,8 @@ MANDATORY_FORBIDDEN_ACTIONS = {
     "SERVER_NETWORK_OR_SSH_EXECUTION",
     "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
     "REAL_FIXED_ROOT_RECEIVER_EXECUTION",
-    "CALLER_SELECTED_REMOTE_PATH_OR_LOCAL_DESTINATION",
-    "TAR_EXTRACTALL_OR_UNVALIDATED_ARCHIVE_EXTRACTION",
+    "CALLER_SELECTED_REMOTE_PATH_LOCAL_DESTINATION_TASK_OR_IDENTITY",
+    "TAR_EXTRACTALL_OR_UNVALIDATED_ARCHIVE_WRITE",
     "FINAL_INBOX_OVERWRITE_DELETE_REPAIR_OR_CLEANUP",
     "SOURCE_EXPORT_WRITE_DELETE_REPAIR_OR_CLEANUP",
     "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
@@ -288,30 +292,49 @@ def _safe_member_name(name: str) -> str:
     return name
 
 
-def _archive_expected() -> tuple[set[str], set[str]]:
+def _archive_expected(identity: ManifestIdentity) -> tuple[set[str], set[str]]:
     expected_directories = {DIAGNOSTIC_TASK_ID}
     expected_directories.update(
-        f"{DIAGNOSTIC_TASK_ID}/{name}" for name in _expected_directory_names()
+        f"{DIAGNOSTIC_TASK_ID}/{name}"
+        for name in _expected_directory_names(identity)
     )
     expected_files = {
-        f"{DIAGNOSTIC_TASK_ID}/{name}" for name in _expected_file_names()
+        f"{DIAGNOSTIC_TASK_ID}/{name}"
+        for name in _expected_file_names(identity)
     }
     return expected_directories, expected_files
 
 
-def _validated_members(members: Sequence[tarfile.TarInfo]) -> dict[str, tarfile.TarInfo]:
-    expected_directories, expected_files = _archive_expected()
-    expected_names = expected_directories | expected_files
-    if len(members) != len(expected_names):
-        raise HandoffReceiveBlocked("archive member count changed")
+def _read_manifest_member(
+    archive: tarfile.TarFile, member: tarfile.TarInfo
+) -> bytes:
+    if member.size <= 0 or member.size > MAX_MANIFEST_BYTES:
+        raise HandoffReceiveBlocked("archive manifest size is invalid")
+    source = archive.extractfile(member)
+    if source is None:
+        raise HandoffReceiveBlocked("archive manifest payload is unavailable")
+    try:
+        raw = source.read(MAX_MANIFEST_BYTES + 1)
+    finally:
+        source.close()
+    if len(raw) != member.size or len(raw) > MAX_MANIFEST_BYTES:
+        raise HandoffReceiveBlocked("archive manifest payload size changed")
+    return raw
+
+
+def _validated_members(
+    archive: tarfile.TarFile,
+) -> tuple[dict[str, tarfile.TarInfo], ManifestIdentity]:
+    members = archive.getmembers()
     observed: dict[str, tarfile.TarInfo] = {}
     package_bytes = 0
+    fixed_prefix = f"{DIAGNOSTIC_TASK_ID}/"
     for member in members:
         name = _safe_member_name(member.name)
         if name in observed:
             raise HandoffReceiveBlocked("archive contains duplicate members")
-        if name not in expected_names:
-            raise HandoffReceiveBlocked("archive contains an unexpected member")
+        if name != DIAGNOSTIC_TASK_ID and not name.startswith(fixed_prefix):
+            raise HandoffReceiveBlocked("archive member is outside the fixed task root")
         if member.linkname:
             raise HandoffReceiveBlocked("archive links are forbidden")
         if member.pax_headers and any(
@@ -321,21 +344,41 @@ def _validated_members(members: Sequence[tarfile.TarInfo]) -> dict[str, tarfile.
         sparse = getattr(member, "sparse", None)
         if sparse:
             raise HandoffReceiveBlocked("archive sparse members are forbidden")
-        if name in expected_directories:
-            if not member.isdir() or member.size != 0:
+        if member.isdir():
+            if member.size != 0:
                 raise HandoffReceiveBlocked("archive directory shape changed")
-        else:
-            if not member.isreg():
-                raise HandoffReceiveBlocked("archive file type changed")
+        elif member.isreg():
             if member.size < 0 or member.size > MAX_MEMBER_BYTES:
                 raise HandoffReceiveBlocked("archive member exceeds its size bound")
             package_bytes += member.size
             if package_bytes > MAX_PACKAGE_BYTES:
                 raise HandoffReceiveBlocked("archive package exceeds its size bound")
+        else:
+            raise HandoffReceiveBlocked("archive file type changed")
         observed[name] = member
+    manifest_name = f"{DIAGNOSTIC_TASK_ID}/handoff-manifest.json"
+    manifest_member = observed.get(manifest_name)
+    if manifest_member is None or not manifest_member.isreg():
+        raise HandoffReceiveBlocked("archive manifest member is missing or invalid")
+    try:
+        identity = _manifest_identity_from_bytes(
+            _read_manifest_member(archive, manifest_member)
+        )
+    except HandoffRunnerBlocked as error:
+        raise HandoffReceiveBlocked(str(error)) from error
+    expected_directories, expected_files = _archive_expected(identity)
+    expected_names = expected_directories | expected_files
+    if len(members) != len(expected_names):
+        raise HandoffReceiveBlocked("archive member count changed")
     if set(observed) != expected_names:
         raise HandoffReceiveBlocked("archive closure has missing or extra members")
-    return observed
+    for name, member in observed.items():
+        if name in expected_directories:
+            if not member.isdir() or member.size != 0:
+                raise HandoffReceiveBlocked("archive directory shape changed")
+        elif not member.isreg():
+            raise HandoffReceiveBlocked("archive file type changed")
+    return observed, identity
 
 
 def _write_member(
@@ -379,12 +422,12 @@ def _stage_archive(paths: RuntimePaths) -> _FileSnapshot:
             if _snapshot(os.fstat(stream.fileno())) != archive_snapshot:
                 raise HandoffReceiveBlocked("fixed transport archive identity changed")
             with tarfile.open(fileobj=stream, mode="r:") as archive:
-                members = _validated_members(archive.getmembers())
+                members, identity = _validated_members(archive)
                 try:
                     paths.staging_root.mkdir()
                 except OSError as error:
                     raise HandoffReceiveBlocked("fixed staging root create failed") from error
-                expected_directories, expected_files = _archive_expected()
+                expected_directories, expected_files = _archive_expected(identity)
                 relative_directories = sorted(
                     (
                         name.removeprefix(f"{DIAGNOSTIC_TASK_ID}/")

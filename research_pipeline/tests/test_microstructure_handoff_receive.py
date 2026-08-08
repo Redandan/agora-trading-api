@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import redirect_stdout
+from copy import deepcopy
 import io
 import json
 import os
@@ -28,14 +29,27 @@ from research_pipeline.microstructure_handoff_runner import (
     DIAGNOSTIC_TASK_ID,
     EXPECTED_REPOSITORY_INPUTS as SOURCE_REPOSITORY_INPUTS,
     REPOSITORY_ROOT,
+    _manifest_identity_from_bytes,
 )
-from research_pipeline.tests.test_microstructure_handoff_runner import _Fixture
+from research_pipeline.microstructure_handoff import MANIFEST_NAME
+from research_pipeline.microstructure_source_contract import canonical_json_bytes
+from research_pipeline.tests.test_microstructure_handoff_runner import (
+    R1_DIAGNOSTIC_ID,
+    R1_START_DAY,
+    _Fixture,
+    _seal_manifest,
+)
 
 
 class HandoffReceiveTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.fixture = _Fixture()
+        cls.r1_fixture = _Fixture(R1_DIAGNOSTIC_ID, R1_START_DAY)
+
+    @staticmethod
+    def _identity(fixture: _Fixture):
+        return _manifest_identity_from_bytes(fixture.package_files[MANIFEST_NAME])
 
     @staticmethod
     def _write(path: Path, raw: bytes) -> None:
@@ -68,15 +82,21 @@ class HandoffReceiveTest(unittest.TestCase):
     def _entries(
         self,
         *,
+        fixture: _Fixture | None = None,
+        identity_fixture: _Fixture | None = None,
         rename: dict[str, str] | None = None,
         omit: set[str] | None = None,
         type_overrides: dict[str, tuple[bytes, str]] | None = None,
         extras: list[tuple[tarfile.TarInfo, bytes]] | None = None,
     ) -> list[tuple[tarfile.TarInfo, bytes]]:
+        fixture = self.fixture if fixture is None else fixture
+        identity_fixture = fixture if identity_fixture is None else identity_fixture
         rename = rename or {}
         omit = omit or set()
         type_overrides = type_overrides or {}
-        expected_directories, expected_files = _archive_expected()
+        expected_directories, expected_files = _archive_expected(
+            self._identity(identity_fixture)
+        )
         entries: list[tuple[tarfile.TarInfo, bytes]] = []
         for original_name in sorted(expected_directories):
             if original_name in omit:
@@ -92,7 +112,7 @@ class HandoffReceiveTest(unittest.TestCase):
                 continue
             name = rename.get(original_name, original_name)
             relative_name = original_name.removeprefix(f"{DIAGNOSTIC_TASK_ID}/")
-            raw = self.fixture.package_files[relative_name]
+            raw = fixture.package_files[relative_name]
             info = tarfile.TarInfo(name)
             info.mode = 0o400
             info.mtime = 0
@@ -122,7 +142,7 @@ class HandoffReceiveTest(unittest.TestCase):
         self.assertEqual(PRODUCTION_PATHS.archive_path, ARCHIVE_PATH)
         self.assertEqual(PRODUCTION_PATHS.staging_root, STAGING_ROOT)
         self.assertEqual(PRODUCTION_PATHS.final_root, FINAL_ROOT)
-        self.assertEqual(TRANSFER_TASK_ID, "local-node-microstructure-v3-handoff-transfer-v2")
+        self.assertEqual(TRANSFER_TASK_ID, "local-node-microstructure-v3-handoff-transfer-v3")
         with redirect_stdout(io.StringIO()) as output:
             self.assertEqual(main(["unexpected"]), 2)
         self.assertEqual(json.loads(output.getvalue())["status"], "BLOCKED")
@@ -138,23 +158,32 @@ class HandoffReceiveTest(unittest.TestCase):
             self.assertEqual(json.loads(valid_output.getvalue())["status"], "RECEIVED")
 
     def test_valid_archive_is_validated_published_and_idempotent_without_archive(self) -> None:
-        with TemporaryDirectory() as directory:
-            paths = self._install(Path(directory))
-            self._install_archive(paths)
-            archive_before = paths.archive_path.read_bytes()
-            first = receive_handoff(paths)
-            self.assertEqual(first["status"], "RECEIVED")
-            self.assertEqual(first["task_id"], DIAGNOSTIC_TASK_ID)
-            self.assertFalse(paths.staging_root.exists())
-            self.assertTrue(paths.final_root.is_dir())
-            self.assertEqual(paths.archive_path.read_bytes(), archive_before)
-            self.assertEqual(
-                len([item for item in paths.final_root.rglob("*") if item.is_file()]),
-                30,
-            )
-            paths.archive_path.unlink()
-            second = receive_handoff(paths)
-            self.assertEqual(second, {**first, "status": "IDEMPOTENT_IDENTICAL"})
+        for label, fixture in (("legacy", self.fixture), ("r1", self.r1_fixture)):
+            with self.subTest(label=label), TemporaryDirectory() as directory:
+                paths = self._install(Path(directory))
+                self._install_archive(paths, fixture=fixture)
+                archive_before = paths.archive_path.read_bytes()
+                first = receive_handoff(paths)
+                self.assertEqual(first["status"], "RECEIVED")
+                self.assertEqual(first["task_id"], DIAGNOSTIC_TASK_ID)
+                self.assertFalse(paths.staging_root.exists())
+                self.assertTrue(paths.final_root.is_dir())
+                self.assertEqual(paths.archive_path.read_bytes(), archive_before)
+                self.assertEqual(
+                    len(
+                        [
+                            item
+                            for item in paths.final_root.rglob("*")
+                            if item.is_file()
+                        ]
+                    ),
+                    30,
+                )
+                paths.archive_path.unlink()
+                second = receive_handoff(paths)
+                self.assertEqual(
+                    second, {**first, "status": "IDEMPOTENT_IDENTICAL"}
+                )
 
     def test_task_and_repository_drift_fail_before_archive_use(self) -> None:
         cases = (
@@ -173,7 +202,7 @@ class HandoffReceiveTest(unittest.TestCase):
                 self.assertFalse(paths.staging_root.exists())
                 self.assertFalse(paths.final_root.exists())
 
-    def test_v2_runtime_trust_root_is_exact_and_excludes_documentation(self) -> None:
+    def test_v3_runtime_trust_root_is_exact_and_excludes_documentation(self) -> None:
         self.assertEqual(len(EXPECTED_REPOSITORY_INPUTS), 6)
         self.assertIn(
             "scripts/pull_microstructure_v3_handoff_ssh.ps1",
@@ -189,7 +218,9 @@ class HandoffReceiveTest(unittest.TestCase):
         )
 
     def test_missing_empty_extra_duplicate_and_truncated_archives_fail_pre_publish(self) -> None:
-        expected_directories, expected_files = _archive_expected()
+        expected_directories, expected_files = _archive_expected(
+            self._identity(self.fixture)
+        )
         missing_name = sorted(expected_files)[0]
         duplicate_source = sorted(expected_files)[1]
         duplicate_target = sorted(expected_files)[2]
@@ -231,7 +262,9 @@ class HandoffReceiveTest(unittest.TestCase):
         self.assertGreater(len(expected_directories), 0)
 
     def test_unsafe_root_path_and_type_members_fail_before_writes(self) -> None:
-        _expected_directories, expected_files = _archive_expected()
+        _expected_directories, expected_files = _archive_expected(
+            self._identity(self.fixture)
+        )
         target = sorted(expected_files)[0]
         unsafe_names = {
             "traversal": f"{DIAGNOSTIC_TASK_ID}/days/../escape.json",
@@ -289,16 +322,57 @@ class HandoffReceiveTest(unittest.TestCase):
         with TemporaryDirectory() as directory:
             paths = self._install(Path(directory))
             corrupted = dict(self.fixture.package_files)
-            corrupted["handoff-manifest.json"] += b" "
-            original = self.fixture.package_files
-            try:
-                self.fixture.package_files = corrupted
-                self._install_archive(paths)
-            finally:
-                self.fixture.package_files = original
+            corrupted[MANIFEST_NAME] += b" "
+            altered = _Fixture()
+            altered.package_files = corrupted
+            self._install_archive(
+                paths, fixture=altered, identity_fixture=self.fixture
+            )
             with self.assertRaises(HandoffReceiveBlocked):
                 receive_handoff(paths)
-            self.assertTrue(paths.staging_root.exists())
+            self.assertFalse(paths.staging_root.exists())
+            self.assertFalse(paths.final_root.exists())
+
+    def test_manifest_authority_and_sparse_archive_fail_before_writes(self) -> None:
+        manifests: list[tuple[str, bytes]] = []
+        task_drift = deepcopy(self.fixture.manifest)
+        task_drift["task_id"] = "alternate-task"
+        _seal_manifest(task_drift)
+        manifests.append(("task", canonical_json_bytes(task_drift)))
+        unsafe = deepcopy(self.fixture.manifest)
+        unsafe["days"][0]["bundle_relative_name"] = "days/../escape.json"
+        _seal_manifest(unsafe)
+        manifests.append(("unsafe", canonical_json_bytes(unsafe)))
+        unsealed = deepcopy(self.fixture.manifest)
+        unsealed["canonical_state"]["start_day"] = "2026-08-09"
+        manifests.append(("unsealed", canonical_json_bytes(unsealed)))
+        for label, manifest_raw in manifests:
+            with self.subTest(label=label), TemporaryDirectory() as directory:
+                paths = self._install(Path(directory))
+                altered = _Fixture()
+                altered.package_files = dict(altered.package_files)
+                altered.package_files[MANIFEST_NAME] = manifest_raw
+                self._install_archive(
+                    paths, fixture=altered, identity_fixture=self.fixture
+                )
+                with self.assertRaises(HandoffReceiveBlocked):
+                    receive_handoff(paths)
+                self.assertFalse(paths.staging_root.exists())
+                self.assertFalse(paths.final_root.exists())
+
+        with TemporaryDirectory() as directory:
+            paths = self._install(Path(directory))
+            entries = self._entries()
+            sparse_target = next(info for info, _raw in entries if info.isreg())
+            sparse_target.pax_headers = {"GNU.sparse.map": "0,1"}
+            with tarfile.open(
+                paths.archive_path, mode="w", format=tarfile.PAX_FORMAT
+            ) as archive:
+                for info, raw in entries:
+                    archive.addfile(info, io.BytesIO(raw) if info.isreg() else None)
+            with self.assertRaisesRegex(HandoffReceiveBlocked, "sparse"):
+                receive_handoff(paths)
+            self.assertFalse(paths.staging_root.exists())
             self.assertFalse(paths.final_root.exists())
 
     def test_stale_staging_and_conflicting_final_are_preserved(self) -> None:

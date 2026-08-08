@@ -1,0 +1,145 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-interpretation-runner-v2",
+  "issued_at": "2026-08-08T08:09:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Preserve the bounded Local Research interpretation link while consuming the fully validated manifest-bound microstructure V3 handoff context from the fixed diagnostic task root. The zero-argument runner validates this exact self-attestation task, the exact evidence-diagnostic task and repository hashes, the immutable source package and diagnostic-result.json, runs the unchanged pure interpreter in process, revalidates all inputs, and creates interpretation-result.json once in the separate fixed outbox. It accepts lawful pre-outcome restart identities only through the sealed manifest and authorizes no outcome tuning, hypothesis, candidate, OOS, schedule, server write or Trading action.",
+  "canonical_research_status": "WAITING_FOR_MICROSTRUCTURE_V3_R1_14_DAY_HANDOFF",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-evidence-diagnostic.v1.json",
+      "sha256": "d50e41e5fe98e76c1ff9930baeb89ba357040dd70b2cfdd51656edbc8c03ad86"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff.py",
+      "sha256": "eda4e965a0e91636d19e62902488f57db900d4b37c61a058d54879b84b350865"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff_runner.py",
+      "sha256": "6f44d5afc5f3254670414028a00843a79da1f94e97c168cc834d463b187384bc"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-handoff-manifest.v1.schema.json",
+      "sha256": "9f1d65c144ee34cd49cd74fc4b74218dbc7232d0622a8cba1ccdbe667171b090"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-handoff-result.v1.schema.json",
+      "sha256": "11efb602cc8365034ea5128f9b76fa53c24d1480ab075dfec115ea1b7ac385f9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_interpretation.py",
+      "sha256": "3892ae7a14161de3505bcb31de4b26ea897f52bc20a54db642b7b5706c520e39"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-interpretation-result.v1.schema.json",
+      "sha256": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-interpretation-contract.v1.json",
+      "sha256": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "1e98f439cdf6921d6299ac2f5b27e33ac0ca818b5a52a3d10e38e213563c34ee"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-08T07:54:51Z Server Canonical microstructure diagnostic okx-btcusdt-microstructure-forward-v3-20260809-r1 is PRE_START/WAITING_FOR_DAY with start_day 2026-08-09 and accepted_day_count 0/14. No future result or outcome was accessed.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The source remains fixed to the evidence-diagnostic task inbox and the output remains fixed to the separate interpretation-runner V2 outbox. Diagnostic identity and day inventory come only from the fully validated sealed handoff manifest; no caller-selected path, task, identity, contract, horizon, threshold or tier is allowed.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "ADD_FIXED_ROOT_INTERPRETATION_RUNNER",
+    "VALIDATE_MANIFEST_BOUND_SOURCE_PACKAGE",
+    "VALIDATE_SOURCE_DIAGNOSTIC_RESULT",
+    "CALL_PURE_INTERPRETER_IN_PROCESS",
+    "REVALIDATE_ALL_INPUTS_BEFORE_OUTPUT",
+    "CREATE_LOCAL_INTERPRETATION_RESULT_ONCE",
+    "ADD_FOCUSED_OFFLINE_TESTS",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_PYTHON_COMPILE_CHECK",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_INTERPRETATION_RESULT_SCHEMA"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "SOURCE_HANDOFF_OR_DIAGNOSTIC_RESULT_WRITE_DELETE_REPAIR",
+    "CALLER_SELECTED_PATH_TASK_IDENTITY_CONTRACT_HORIZON_THRESHOLD_OR_TIER",
+    "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+    "INTERPRETATION_CONTRACT_OR_SCREEN_CHANGE",
+    "JAVA_MAVEN_SPRING_OR_SUBPROCESS_EXECUTION",
+    "REAL_FIXED_ROOT_RUNNER_EXECUTION",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_CLEAN",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "ZERO_ARGUMENT_FIXED_ROOT_RUNNER",
+    "EXACT_TASK_AND_REPOSITORY_HASH_GATES",
+    "MANIFEST_BOUND_SOURCE_PACKAGE_AND_RESULT_GATE",
+    "IN_PROCESS_PURE_INTERPRETATION",
+    "POST_INTERPRETATION_INPUT_REVALIDATION",
+    "SEPARATE_CREATE_ONCE_LOCAL_OUTPUT",
+    "IDEMPOTENT_IDENTICAL_RETRY",
+    "LEGACY_AND_R1_SYNTHETIC_TEST_EVIDENCE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository input SHA-256 before execution. Any drift is BLOCKED and MISSING_PROOF.",
+    "Keep the zero-argument production runner, fixed repository root, fixed evidence-diagnostic task source inbox, separate fixed interpretation-runner V2 outbox and exact output leaf. Reject every argument and do not read environment variables or the clock.",
+    "Validate this task's exact bytes and SHA, all ten repository hashes, WORKTREE_WRITE tooling authority, zero candidate variants, network NONE and mandatory prohibitions before reading the source result.",
+    "Validate the immutable source package through the existing manifest-bound fixed-task package validator with exact evidence-diagnostic task id/SHA. Require exactly thirty source files plus diagnostic-result.json and no extra, partial, linked, reparsed, wrong-type or noncanonical input.",
+    "Read diagnostic-result.json as raw bytes and invoke only interpret_handoff_result_bytes with the validated HandoffContext. Do not copy, change, parameterize or rank the frozen interpretation rules.",
+    "After interpretation and before output, revalidate this task, every repository hash, the complete source package, identical context and identical raw diagnostic-result.json bytes. Any concurrent change creates no output.",
+    "Use one fixed pre-provisioned outbox separate from the source. It may contain no files or exactly interpretation-result.json. Write only by exclusive create after all validations pass.",
+    "An exact canonical existing output may return IDEMPOTENT_IDENTICAL after full validation. Any conflicting, partial, noncanonical, unsealed, linked, wrong-type or extra output fails closed without overwrite, delete, repair, cleanup, chmod, copy or move.",
+    "Expose only create status, fixed result identity, SHA-256 and one frozen scientific disposition. Do not claim significance, compatibility, fees, slippage, fills, capacity, PnL, drawdown, candidate readiness, OOS value or activation.",
+    "Keep only bounded RuntimePaths and interpreter injection seams for deterministic temporary-directory tests. Production accepts no alternate root, identity or interpreter and scans for no other task, package, result or contract.",
+    "Tests must prove legacy 20260808 and synthetic 20260809-r1 source packages both traverse unchanged interpretation, all four frozen dispositions remain available, and every task/repository/package/result drift, concurrent mutation, interpreter failure, invalid outbox or conflict fails closed.",
+    "Use only synthetic deterministic fixtures. Do not execute the real fixed-root runner, server, network, future evidence, OOS, candidate or Trading action.",
+    "Return only schema-bound Local Research evidence with all safety assertions false. Real package, predictive evidence, DRA compatibility, economics, PnL, drawdown, OOS and activation remain MISSING_PROOF.",
+    "Stop after the offline interpretation link. Review, commit, output provisioning, real execution, hypothesis design, candidate registration, OOS, deployment and Trading remain separate gates."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 2,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

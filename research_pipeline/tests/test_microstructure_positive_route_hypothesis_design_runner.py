@@ -163,17 +163,17 @@ class MicrostructurePositiveRouteHypothesisDesignRunnerTest(unittest.TestCase):
         self.assertEqual(
             SOURCE_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/outbox/"
-            "local-node-microstructure-v3-interpretation-runner-v1",
+            "local-node-microstructure-v3-interpretation-runner-v2",
         )
         self.assertEqual(
             PROPOSAL_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/inbox/"
-            "local-node-microstructure-positive-route-design-runner-v2",
+            "local-node-microstructure-positive-route-design-runner-v3",
         )
         self.assertEqual(
             OUTPUT_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/outbox/"
-            "local-node-microstructure-positive-route-design-runner-v2",
+            "local-node-microstructure-positive-route-design-runner-v3",
         )
         self.assertEqual(
             ["paths"],
@@ -207,9 +207,30 @@ class MicrostructurePositiveRouteHypothesisDesignRunnerTest(unittest.TestCase):
                 "research_pipeline/microstructure-positive-route-coach-hypothesis-proposal.v2.schema.json",
                 "research_pipeline/microstructure_positive_route_hypothesis_design_runner.py",
                 "research_pipeline/tests/test_microstructure_positive_route_hypothesis_design_runner.py",
-                "docs/okx-microstructure-positive-route-hypothesis-design-runner-v2.md",
+                "docs/okx-microstructure-positive-route-hypothesis-design-runner-v3.md",
             ),
             IMPLEMENTATION_FILES,
+        )
+        self.assertEqual(
+            "7f5461a5354596a5bdaec57074eafadb0993f2cc8e3c6e997c9275b219345a5a",
+            EXPECTED_REPOSITORY_INPUTS[
+                "research_pipeline/examples/"
+                "local-research-task.microstructure-positive-route-design-runner.v2.json"
+            ],
+        )
+        self.assertEqual(
+            "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f",
+            EXPECTED_REPOSITORY_INPUTS[
+                "research_pipeline/examples/"
+                "local-research-task.microstructure-v3-interpretation-runner.v2.json"
+            ],
+        )
+        self.assertEqual(
+            "7224171c14252fd0b6e0e0c14e0a30820fdc614fcf47e107b1836af3910f9114",
+            EXPECTED_REPOSITORY_INPUTS[
+                "research_pipeline/examples/"
+                "local-research-task.microstructure-v3-hypothesis-design-runner.v2.json"
+            ],
         )
 
     def test_schema_canonical_envelope_and_positive_result_validate(self) -> None:

@@ -158,17 +158,17 @@ class MicrostructureHypothesisDesignRunnerTest(unittest.TestCase):
         self.assertEqual(
             SOURCE_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/outbox/"
-            "local-node-microstructure-v3-interpretation-runner-v1",
+            "local-node-microstructure-v3-interpretation-runner-v2",
         )
         self.assertEqual(
             PROPOSAL_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/inbox/"
-            "local-node-microstructure-v3-hypothesis-design-runner-v1",
+            "local-node-microstructure-v3-hypothesis-design-runner-v2",
         )
         self.assertEqual(
             OUTPUT_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/outbox/"
-            "local-node-microstructure-v3-hypothesis-design-runner-v1",
+            "local-node-microstructure-v3-hypothesis-design-runner-v2",
         )
         with patch(
             "research_pipeline.microstructure_hypothesis_design_runner.run_hypothesis_design",
@@ -196,9 +196,36 @@ class MicrostructureHypothesisDesignRunnerTest(unittest.TestCase):
                 "research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json",
                 "research_pipeline/microstructure_hypothesis_design_runner.py",
                 "research_pipeline/tests/test_microstructure_hypothesis_design_runner.py",
-                "docs/okx-microstructure-hypothesis-design-runner-v1.md",
+                "docs/okx-microstructure-hypothesis-design-runner-v2.md",
             ),
             IMPLEMENTATION_FILES,
+        )
+        historical = {
+            "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v1.json": (
+                "fd0e4270f5f459b35e986f1e46f6aace568dc9b14a23ecfd82e8d342f1a97dc2"
+            ),
+            "docs/okx-microstructure-hypothesis-design-runner-v1.md": (
+                "5bafd8f0ce14948bf13872e43f90e61008ca927e7a1f5991d04a1e2000520bbb"
+            ),
+        }
+        for relative_name, expected_hash in historical.items():
+            self.assertEqual(
+                expected_hash,
+                hashlib.sha256(
+                    REPOSITORY_ROOT.joinpath(*relative_name.split("/")).read_bytes()
+                ).hexdigest(),
+            )
+        self.assertEqual(
+            "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f",
+            EXPECTED_REPOSITORY_INPUTS[
+                "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v2.json"
+            ],
+        )
+        self.assertEqual(
+            "5d1de7e1e8006ca066fb857c55ad834b24bbe709a10d25ace5ea16a13dc0c04f",
+            EXPECTED_REPOSITORY_INPUTS[
+                "research_pipeline/microstructure_interpretation_runner.py"
+            ],
         )
 
     def test_proposal_and_result_schemas_validate_generated_positive_fixture(self) -> None:

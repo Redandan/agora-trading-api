@@ -38,25 +38,25 @@ from research_pipeline.microstructure_source_contract import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 RUNNER_TASK_RELATIVE = (
     "research_pipeline/examples/"
-    "local-research-task.microstructure-v3-hypothesis-design-runner.v1.json"
+    "local-research-task.microstructure-v3-hypothesis-design-runner.v2.json"
 )
-RUNNER_TASK_ID = "local-node-microstructure-v3-hypothesis-design-runner-v1"
+RUNNER_TASK_ID = "local-node-microstructure-v3-hypothesis-design-runner-v2"
 RUNNER_TASK_SHA256 = (
-    "fd0e4270f5f459b35e986f1e46f6aace568dc9b14a23ecfd82e8d342f1a97dc2"
+    "7224171c14252fd0b6e0e0c14e0a30820fdc614fcf47e107b1836af3910f9114"
 )
 SOURCE_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/outbox/"
-    "local-node-microstructure-v3-interpretation-runner-v1"
+    "local-node-microstructure-v3-interpretation-runner-v2"
 )
 SOURCE_RESULT_NAME = "interpretation-result.json"
 PROPOSAL_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/inbox/"
-    "local-node-microstructure-v3-hypothesis-design-runner-v1"
+    "local-node-microstructure-v3-hypothesis-design-runner-v2"
 )
 PROPOSAL_NAME = "coach-proposal.json"
 OUTPUT_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/outbox/"
-    "local-node-microstructure-v3-hypothesis-design-runner-v1"
+    "local-node-microstructure-v3-hypothesis-design-runner-v2"
 )
 OUTPUT_RESULT_NAME = "hypothesis-design-result.json"
 
@@ -78,17 +78,20 @@ IMPLEMENTATION_FILES = (
     "research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json",
     "research_pipeline/microstructure_hypothesis_design_runner.py",
     "research_pipeline/tests/test_microstructure_hypothesis_design_runner.py",
-    "docs/okx-microstructure-hypothesis-design-runner-v1.md",
+    "docs/okx-microstructure-hypothesis-design-runner-v2.md",
 )
 EXPECTED_REPOSITORY_INPUTS = {
-    "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v1.json": (
-        "cc6bcf53cd31e134ce31b92a38a56499dbcc2a43c1f81bc18a708c801d31bcc5"
+    "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v2.json": (
+        "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f"
     ),
     "research_pipeline/local_node.py": (
         "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
     ),
     "research_pipeline/microstructure_interpretation_runner.py": (
-        "499ca3564f34e7a9a6de59ea09b0b981e254d0ea142429642a610aa36774363f"
+        "5d1de7e1e8006ca066fb857c55ad834b24bbe709a10d25ace5ea16a13dc0c04f"
+    ),
+    "research_pipeline/microstructure_handoff_runner.py": (
+        "6f44d5afc5f3254670414028a00843a79da1f94e97c168cc834d463b187384bc"
     ),
     "research_pipeline/microstructure_interpretation.py": (
         "3892ae7a14161de3505bcb31de4b26ea897f52bc20a54db642b7b5706c520e39"
@@ -108,26 +111,38 @@ EXPECTED_REPOSITORY_INPUTS = {
     "research_pipeline/okx-microstructure-hypothesis-design-contract.v1.json": (
         "d3e3df7d629938a33cddec00f251bbaaefb4ce17b51eb0b0b558061c692f6948"
     ),
+    "research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json": (
+        "c2a1db83aa62c92fd86d2c6fc3b1516829d282f81c683d9d082375600de28bb0"
+    ),
+    "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v1.json": (
+        "fd0e4270f5f459b35e986f1e46f6aace568dc9b14a23ecfd82e8d342f1a97dc2"
+    ),
+    "docs/okx-microstructure-hypothesis-design-runner-v1.md": (
+        "5bafd8f0ce14948bf13872e43f90e61008ca927e7a1f5991d04a1e2000520bbb"
+    ),
     "research_pipeline/microstructure_source_contract.py": (
         "1e98f439cdf6921d6299ac2f5b27e33ac0ca818b5a52a3d10e38e213563c34ee"
     ),
     "research_pipeline/policy.v3.json": (
         "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
     ),
+    "docs/okx-microstructure-hypothesis-design-runner-v2.md": (
+        "9c62ff0427428752037aaf77b17f0e282883bff3ff32c471e882b77741176c5a"
+    ),
 }
 EXPECTED_ALLOWED_ACTIONS = {
     "READ_FROZEN_REPOSITORY_CONTRACTS",
     "VERIFY_ALL_NON_NULL_INPUT_HASHES",
-    "ADD_COACH_PROPOSAL_SCHEMA",
-    "ADD_FIXED_ROOT_DESIGN_RUNNER",
-    "ADD_FOCUSED_OFFLINE_RUNNER_TESTS",
-    "ADD_DESIGN_RUNNER_DOCUMENTATION",
+    "ADD_VERSIONED_RUNNER_SELF_TASK",
+    "MODIFY_FIXED_ROOT_DESIGN_RUNNER",
+    "MODIFY_FOCUSED_OFFLINE_RUNNER_TESTS",
+    "ADD_VERSIONED_DESIGN_RUNNER_DOCUMENTATION",
     "BUILD_SYNTHETIC_PROPOSAL_ENVELOPES",
     "VALIDATE_SOURCE_INTERPRETATION",
     "VALIDATE_SOURCE_BOUND_PROPOSAL",
     "CALL_EXISTING_PURE_DESIGN_BUILDER",
     "REVALIDATE_ALL_INPUTS_BEFORE_OUTPUT",
-    "CREATE_LOCAL_DESIGN_RESULT_ONCE",
+    "CREATE_LOCAL_DESIGN_RESULT_ONCE_IN_TEMPORARY_FIXTURES",
     "RUN_LOCAL_TASK_VALIDATION",
     "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
     "RUN_PYTHON_COMPILE_CHECK",
@@ -145,17 +160,20 @@ EXPECTED_FORBIDDEN_ACTIONS = {
     "PRODUCTION_OR_DATABASE_MUTATION",
     "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
     "REAL_FIXED_ROOT_RUNNER_EXECUTION",
+    "LOCAL_INBOX_OR_OUTBOX_ACCESS",
     "SERVER_NETWORK_OR_SSH_ACCESS",
     "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
     "SOURCE_INTERPRETATION_WRITE_DELETE_OR_REPAIR",
-    "COACH_THESIS_INVENTION_OR_SELECTION",
+    "COACH_THESIS_INVENTION_ENRICHMENT_OR_SELECTION",
     "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
     "ADAPTER_MANIFEST_OR_OOS_IMPLEMENTATION",
     "CALLER_SELECTED_PATH_TASK_CONTRACT_TIER_OR_MECHANISM",
-    "JAVA_MAVEN_SPRING_OR_SUBPROCESS_EXECUTION",
-    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
-    "EXISTING_FILE_EDIT",
-    "OTHER_FILE_EDIT",
+    "SCIENTIFIC_CONTRACT_SCHEMA_THRESHOLD_TIER_HORIZON_OR_GATE_CHANGE",
+    "HISTORICAL_TASK_DOCUMENTATION_CONTRACT_SCHEMA_OR_PURE_BUILDER_EDIT",
+    "RESEARCH_STATE_WRITE_OR_UNLISTED_ARTIFACT_ACCESS",
+    "JAVA_MAVEN_SPRING_OR_EXTERNAL_SUBPROCESS_EXECUTION",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_CLEAN",
+    "UNLISTED_FILE_EDIT",
 }
 PROPOSAL_SAFETY_ASSERTIONS = {
     "hypothesis_registration_authorized": False,

@@ -34,26 +34,26 @@ from research_pipeline.microstructure_source_contract import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 RUNNER_TASK_RELATIVE = (
     "research_pipeline/examples/"
-    "local-research-task.microstructure-positive-route-design-runner.v2.json"
+    "local-research-task.microstructure-positive-route-design-runner.v3.json"
 )
-RUNNER_TASK_ID = "local-node-microstructure-positive-route-design-runner-v2"
+RUNNER_TASK_ID = "local-node-microstructure-positive-route-design-runner-v3"
 RUNNER_TASK_SHA256 = (
-    "7f5461a5354596a5bdaec57074eafadb0993f2cc8e3c6e997c9275b219345a5a"
+    "63f38fe038e0795fc970dfe2d1557a481696eb492132d3af4594ab2f0e60a153"
 )
 SOURCE_COMMIT = "5e033de21d2b1c8fa1a6e21aa7aa87841448f568"
 SOURCE_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/outbox/"
-    "local-node-microstructure-v3-interpretation-runner-v1"
+    "local-node-microstructure-v3-interpretation-runner-v2"
 )
 SOURCE_RESULT_NAME = "interpretation-result.json"
 PROPOSAL_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/inbox/"
-    "local-node-microstructure-positive-route-design-runner-v2"
+    "local-node-microstructure-positive-route-design-runner-v3"
 )
 PROPOSAL_NAME = "coach-proposal.json"
 OUTPUT_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/outbox/"
-    "local-node-microstructure-positive-route-design-runner-v2"
+    "local-node-microstructure-positive-route-design-runner-v3"
 )
 OUTPUT_RESULT_NAME = "positive-route-hypothesis-design-result.json"
 
@@ -76,53 +76,58 @@ IMPLEMENTATION_FILES = (
     PROPOSAL_SCHEMA_RELATIVE,
     "research_pipeline/microstructure_positive_route_hypothesis_design_runner.py",
     "research_pipeline/tests/test_microstructure_positive_route_hypothesis_design_runner.py",
-    "docs/okx-microstructure-positive-route-hypothesis-design-runner-v2.md",
+    "docs/okx-microstructure-positive-route-hypothesis-design-runner-v3.md",
 )
 EXPECTED_REPOSITORY_INPUTS = {
     "AGENTS.md": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50",
-    "docs/autonomous-research-charter.md": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1",
-    "docs/local-codex-research-node-v1.md": "1c438bca305a4195aa16cd08d70eb535770092b45bd6acd3ea4cf21d6643830f",
     ".agents/skills/autonomous-trading-research/SKILL.md": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65",
+    "docs/autonomous-research-charter.md": "2465198fea55728cd087d244827b37bf6196723334f05c54db8f076b84bd5334",
+    "docs/local-codex-research-node-v1.md": "7de32f0e2ed160cbba8553230c790e5a002dae2367c278aa4ed4630ada6f56bc",
+    "docs/strategy-driven-minimal-runtime.md": "70fb3767d14cefa0a5093f24fc001be2697a760e729a60a6c860ba7f52a4cd64",
     "research_pipeline/local_node.py": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed",
     "research_pipeline/policy.v3.json": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6",
-    "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v1.json": "cc6bcf53cd31e134ce31b92a38a56499dbcc2a43c1f81bc18a708c801d31bcc5",
-    "research_pipeline/microstructure_interpretation_runner.py": "499ca3564f34e7a9a6de59ea09b0b981e254d0ea142429642a610aa36774363f",
+    "research_pipeline/microstructure_source_contract.py": "1e98f439cdf6921d6299ac2f5b27e33ac0ca818b5a52a3d10e38e213563c34ee",
+    "research_pipeline/microstructure_handoff_runner.py": "6f44d5afc5f3254670414028a00843a79da1f94e97c168cc834d463b187384bc",
+    "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v2.json": "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f",
+    "research_pipeline/microstructure_interpretation_runner.py": "5d1de7e1e8006ca066fb857c55ad834b24bbe709a10d25ace5ea16a13dc0c04f",
     "research_pipeline/microstructure_interpretation.py": "3892ae7a14161de3505bcb31de4b26ea897f52bc20a54db642b7b5706c520e39",
     "research_pipeline/microstructure-interpretation-result.v1.schema.json": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564",
     "research_pipeline/okx-microstructure-forward-interpretation-contract.v1.json": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509",
     "research_pipeline/examples/local-research-task.microstructure-positive-route-design-bridge.v1.json": "4d99360b0faa034498eb85f4f4d6f2e2edf3cc91784942bd3376c54e53e90504",
     "research_pipeline/okx-microstructure-positive-route-hypothesis-design-contract.v2.json": "802fda49c9b0a3d6a32b3e8e6d66dc6fa25312eb4ea3f0deddb715216b489f41",
     "research_pipeline/microstructure-positive-route-hypothesis-design-result.v2.schema.json": "1c829c05288d7a4d5a925cad1b1738eb5fe156f4f6ed2babc423efd4b4a9cb94",
+    "research_pipeline/microstructure-positive-route-coach-hypothesis-proposal.v2.schema.json": "827f7b6f48d881ca2811a255d2efd4e8b936261a775e1b5ef5214936c4769262",
+    "research_pipeline/okx-microstructure-intraday-economic-route-contract.v1.json": "33fdef52654845911eda5f9f0dc9a3d1281ae6a6e0d4c0aab1bc93b51f34304e",
     "research_pipeline/microstructure_positive_route_hypothesis_design.py": "f01fdae107d362bb53d1f9bec0bec7b2f24c6c905ef6eed83e8693cbd572fcfb",
     "research_pipeline/tests/test_microstructure_positive_route_hypothesis_design.py": "18604a518bd36444bf08b3a7ec7e7bd0de357ff109e1b582904985c8d09e0bf2",
     "docs/okx-microstructure-positive-route-hypothesis-design-v2.md": "fcef768dab696e2399a05f29b174488b91bc49ff1f409ef577a31c87ae1f6e61",
-    "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v1.json": "fd0e4270f5f459b35e986f1e46f6aace568dc9b14a23ecfd82e8d342f1a97dc2",
     "research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json": "c2a1db83aa62c92fd86d2c6fc3b1516829d282f81c683d9d082375600de28bb0",
-    "research_pipeline/microstructure_hypothesis_design_runner.py": "94293205c29475487e1569804e064213f29e4f9292c8f0f801ccb44c20fcad21",
-    "research_pipeline/tests/test_microstructure_hypothesis_design_runner.py": "83164d16606ea1359c322daa7621ae2f283c726ccafcdb2254cd179b7d7c3d03",
-    "docs/okx-microstructure-hypothesis-design-runner-v1.md": "5bafd8f0ce14948bf13872e43f90e61008ca927e7a1f5991d04a1e2000520bbb",
-    "research_pipeline/microstructure_source_contract.py": "1e98f439cdf6921d6299ac2f5b27e33ac0ca818b5a52a3d10e38e213563c34ee",
-    "research_pipeline/okx-microstructure-intraday-economic-route-contract.v1.json": "33fdef52654845911eda5f9f0dc9a3d1281ae6a6e0d4c0aab1bc93b51f34304e",
+    "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v2.json": "7224171c14252fd0b6e0e0c14e0a30820fdc614fcf47e107b1836af3910f9114",
+    "research_pipeline/microstructure_hypothesis_design_runner.py": "8b59e8cbabc5bfe8bff7ff7d19bc8cf9b677583eeb0203571be23f25bfebfc95",
+    "research_pipeline/tests/test_microstructure_hypothesis_design_runner.py": "cc41cbb3263b533c199cafe6d19c145fa9e55bd635e1d48b20c337f12d2d9723",
+    "docs/okx-microstructure-hypothesis-design-runner-v2.md": "9c62ff0427428752037aaf77b17f0e282883bff3ff32c471e882b77741176c5a",
+    "research_pipeline/examples/local-research-task.microstructure-positive-route-design-runner.v2.json": "7f5461a5354596a5bdaec57074eafadb0993f2cc8e3c6e997c9275b219345a5a",
+    "docs/okx-microstructure-positive-route-hypothesis-design-runner-v2.md": "964a1d7e193100444c9b1a009571590647e015ef5ab1f0d71865eee7920b6689",
+    "docs/okx-microstructure-positive-route-hypothesis-design-runner-v3.md": "554593065b9b7cfa92dade274cc08f8280f969e077fd90ea1482de04695608e6",
 }
 EXPECTED_ALLOWED_ACTIONS = {
     "READ_FROZEN_REPOSITORY_CONTRACTS",
     "VERIFY_ALL_NON_NULL_INPUT_HASHES",
-    "ADD_V2_COACH_PROPOSAL_SCHEMA",
-    "ADD_FIXED_ROOT_V2_DESIGN_RUNNER",
-    "ADD_FOCUSED_OFFLINE_V2_RUNNER_TESTS",
-    "ADD_V2_DESIGN_RUNNER_DOCUMENTATION",
+    "ADD_VERSIONED_POSITIVE_ROUTE_RUNNER_SELF_TASK",
+    "MODIFY_FIXED_ROOT_POSITIVE_ROUTE_DESIGN_RUNNER",
+    "MODIFY_FOCUSED_OFFLINE_POSITIVE_ROUTE_RUNNER_TESTS",
+    "ADD_VERSIONED_POSITIVE_ROUTE_RUNNER_DOCUMENTATION",
     "BUILD_SYNTHETIC_PROPOSAL_ENVELOPES",
     "VALIDATE_SOURCE_INTERPRETATION",
     "VALIDATE_SOURCE_BOUND_PROPOSAL",
     "CALL_EXISTING_PURE_V2_DESIGN_BUILDER",
     "REVALIDATE_ALL_INPUTS_BEFORE_OUTPUT",
-    "CREATE_LOCAL_DESIGN_RESULT_ONCE",
+    "CREATE_LOCAL_DESIGN_RESULT_ONCE_IN_TEMPORARY_FIXTURES",
     "RUN_LOCAL_TASK_VALIDATION",
     "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
     "RUN_PYTHON_COMPILE_CHECK",
     "RUN_GIT_DIFF_CHECK",
     "VALIDATE_JSON_SCHEMAS_AND_SEALS",
-    "RETURN_LOCAL_RESEARCH_RESULT",
 }
 EXPECTED_FORBIDDEN_ACTIONS = {
     "CANONICAL_STATE_WRITE",
@@ -135,6 +140,7 @@ EXPECTED_FORBIDDEN_ACTIONS = {
     "PRODUCTION_OR_DATABASE_MUTATION",
     "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
     "REAL_FIXED_ROOT_RUNNER_EXECUTION",
+    "LOCAL_INBOX_OR_OUTBOX_ACCESS",
     "SERVER_NETWORK_OR_SSH_ACCESS",
     "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
     "SOURCE_INTERPRETATION_WRITE_DELETE_OR_REPAIR",
@@ -142,11 +148,12 @@ EXPECTED_FORBIDDEN_ACTIONS = {
     "TIER_ROUTE_OVERRIDE_FALLBACK_OR_SWITCH",
     "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
     "SOURCE_MANIFEST_ADAPTER_OR_OOS_IMPLEMENTATION",
+    "SCIENTIFIC_CONTRACT_SCHEMA_THRESHOLD_TIER_HORIZON_OR_GATE_CHANGE",
+    "HISTORICAL_TASK_DOCUMENTATION_CONTRACT_SCHEMA_OR_PURE_BUILDER_EDIT",
     "RESEARCH_STATE_WRITE_OR_UNLISTED_ARTIFACT_ACCESS",
-    "JAVA_MAVEN_SPRING_OR_SUBPROCESS_EXECUTION",
-    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
-    "EXISTING_FILE_EDIT",
-    "OTHER_FILE_EDIT",
+    "JAVA_MAVEN_SPRING_OR_EXTERNAL_SUBPROCESS_EXECUTION",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_CLEAN",
+    "UNLISTED_FILE_EDIT",
 }
 PROPOSAL_SAFETY_ASSERTIONS = {
     "hypothesis_registration_authorized": False,

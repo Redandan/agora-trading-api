@@ -39,6 +39,26 @@ from research_pipeline.microstructure_interpretation_runner import (
     OUTPUT_RESULT_NAME as INTERPRETATION_RESULT_NAME,
     run_interpretation,
 )
+from research_pipeline.microstructure_positive_route_hypothesis_design import (
+    MISSING_PROOF as POSITIVE_ROUTE_MISSING_PROOF,
+    ROUTE_CONTRACT_SHA256,
+    ROUTE_ID,
+    SAFETY_ASSERTIONS as POSITIVE_ROUTE_SAFETY_ASSERTIONS,
+    validate_positive_route_hypothesis_design_result_bytes,
+)
+from research_pipeline.microstructure_positive_route_hypothesis_design_runner import (
+    EXPECTED_REPOSITORY_INPUTS as POSITIVE_ROUTE_REPOSITORY_INPUTS,
+    IMPLEMENTATION_FILES as POSITIVE_ROUTE_IMPLEMENTATION_FILES,
+    OUTPUT_RESULT_NAME as POSITIVE_ROUTE_RESULT_NAME,
+    PROPOSAL_NAME as POSITIVE_ROUTE_PROPOSAL_NAME,
+    REPOSITORY_ROOT as POSITIVE_ROUTE_REPOSITORY_ROOT,
+    RUNNER_TASK_ID as POSITIVE_ROUTE_TASK_ID,
+    RUNNER_TASK_RELATIVE as POSITIVE_ROUTE_TASK_RELATIVE,
+    RuntimePaths as PositiveRouteRuntimePaths,
+    build_positive_route_coach_proposal_envelope_bytes,
+    run_positive_route_hypothesis_design,
+    validate_positive_route_coach_proposal_envelope_bytes,
+)
 from research_pipeline.tests import (
     test_microstructure_interpretation_runner as interpretation_fixture_module,
 )
@@ -49,6 +69,16 @@ SYNTHETIC_PROPOSAL = {
     "design_id": "synthetic-local-pipeline-e2e-v1",
     "created_at": "2026-08-08T02:00:00Z",
     "title": "Synthetic local pipeline E2E design",
+    "thesis": "Synthetic test-only thesis; this is not a real strategy hypothesis.",
+    "economic_rationale": "Synthetic test-only rationale with no economic claim.",
+    "performance_thesis": "Synthetic test-only performance statement; PnL is unproved.",
+    "drawdown_thesis": "Synthetic test-only drawdown statement; drawdown is unproved.",
+    "opportunity_cost": "Synthetic test-only opportunity-cost statement.",
+}
+SYNTHETIC_POSITIVE_ROUTE_PROPOSAL = {
+    "design_id": "synthetic-positive-route-local-pipeline-e2e-v1",
+    "created_at": "2026-08-08T02:00:00Z",
+    "title": "Synthetic positive-route local pipeline E2E design",
     "thesis": "Synthetic test-only thesis; this is not a real strategy hypothesis.",
     "economic_rationale": "Synthetic test-only rationale with no economic claim.",
     "performance_thesis": "Synthetic test-only performance statement; PnL is unproved.",
@@ -167,6 +197,62 @@ class MicrostructureLocalPipelineE2ETest(unittest.TestCase):
                 interpretation_raw,
             )
 
+            positive_route_proposal_raw = (
+                build_positive_route_coach_proposal_envelope_bytes(
+                    interpretation_raw,
+                    SYNTHETIC_POSITIVE_ROUTE_PROPOSAL,
+                )
+            )
+            positive_route_proposal = (
+                validate_positive_route_coach_proposal_envelope_bytes(
+                    positive_route_proposal_raw,
+                    interpretation_raw,
+                )
+            )
+            required_positive_route_files = (
+                set(POSITIVE_ROUTE_REPOSITORY_INPUTS)
+                | set(POSITIVE_ROUTE_IMPLEMENTATION_FILES)
+                | {POSITIVE_ROUTE_TASK_RELATIVE}
+            )
+            for relative_name in required_positive_route_files:
+                source = POSITIVE_ROUTE_REPOSITORY_ROOT.joinpath(
+                    *relative_name.split("/")
+                )
+                target = interpretation_paths.repository_root.joinpath(
+                    *relative_name.split("/")
+                )
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(source.read_bytes())
+            positive_route_proposal_root = (
+                base / "inbox" / POSITIVE_ROUTE_TASK_ID
+            )
+            positive_route_output_root = (
+                base / "outbox" / POSITIVE_ROUTE_TASK_ID
+            )
+            positive_route_proposal_root.mkdir(parents=True)
+            positive_route_output_root.mkdir(parents=True)
+            (
+                positive_route_proposal_root / POSITIVE_ROUTE_PROPOSAL_NAME
+            ).write_bytes(positive_route_proposal_raw)
+            positive_route_paths = PositiveRouteRuntimePaths(
+                repository_root=interpretation_paths.repository_root,
+                source_root=interpretation_paths.output_root,
+                proposal_root=positive_route_proposal_root,
+                output_root=positive_route_output_root,
+            )
+            positive_route_run = run_positive_route_hypothesis_design(
+                positive_route_paths
+            )
+            positive_route_raw = (
+                positive_route_paths.output_root / POSITIVE_ROUTE_RESULT_NAME
+            ).read_bytes()
+            positive_route_design = (
+                validate_positive_route_hypothesis_design_result_bytes(
+                    positive_route_raw,
+                    interpretation_raw,
+                )
+            )
+
             handoff_document_sha256 = hashlib.sha256(
                 positive_handoff_raw
             ).hexdigest()
@@ -214,6 +300,65 @@ class MicrostructureLocalPipelineE2ETest(unittest.TestCase):
                 positive_handoff["diagnostic_payload_hashes"]["payload_sha256"],
                 design["source_interpretation"]["diagnostic_payload_sha256"],
             )
+            self.assertEqual(
+                TIER_ORDER[0],
+                design["source_interpretation"]["selected_tier"],
+            )
+
+            self.assertEqual(
+                interpretation_document_sha256,
+                positive_route_proposal["source_interpretation"][
+                    "document_sha256"
+                ],
+            )
+            self.assertEqual(
+                interpretation["seal"]["payload_sha256"],
+                positive_route_proposal["source_interpretation"]["payload_sha256"],
+            )
+            positive_route_source = positive_route_design["source_interpretation"]
+            self.assertEqual(
+                interpretation_document_sha256,
+                positive_route_source["document_sha256"],
+            )
+            self.assertEqual(
+                interpretation["seal"]["payload_sha256"],
+                positive_route_source["payload_sha256"],
+            )
+            self.assertEqual(
+                handoff_document_sha256,
+                positive_route_source["handoff_document_sha256"],
+            )
+            self.assertEqual(
+                positive_handoff["seal"]["payload_sha256"],
+                positive_route_source["handoff_payload_sha256"],
+            )
+            self.assertEqual(
+                positive_handoff["diagnostic_payload_hashes"]["payload_sha256"],
+                positive_route_source["diagnostic_payload_sha256"],
+            )
+            self.assertEqual(TIER_ORDER[0], positive_route_source["selected_tier"])
+
+            expected_route = {
+                "route_id": ROUTE_ID,
+                "route_contract_sha256": ROUTE_CONTRACT_SHA256,
+                "priority": "SOLE_PRIMARY",
+                "source_selected_tier": TIER_ORDER[0],
+                "maximum_routes": 1,
+                "maximum_designs": 1,
+                "maximum_eventual_candidate_variants": 1,
+                "caller_override_authorized": False,
+                "multiple_routes_authorized": False,
+                "dra_fallback_authorized": False,
+                "route_switch_after_design_outcome_authorized": False,
+                "route_switch_after_validation_outcome_authorized": False,
+                "route_switch_after_oos_outcome_authorized": False,
+            }
+            self.assertEqual(expected_route, positive_route_proposal["route_selection"])
+            self.assertEqual(expected_route, positive_route_design["route_selection"])
+            self.assertEqual(
+                TIER_ORDER[0],
+                positive_route_design["hypothesis_design"]["source_selected_tier"],
+            )
 
             self.assertEqual("CREATED", design_run["status"])
             self.assertEqual("DESIGN_ONLY_NOT_REGISTERED", design_run["design_status"])
@@ -235,6 +380,51 @@ class MicrostructureLocalPipelineE2ETest(unittest.TestCase):
             self.assertFalse(any(proposal["safety_assertions"].values()))
             self.assertEqual(SAFETY_ASSERTIONS, design["safety_assertions"])
             self.assertFalse(any(design["safety_assertions"].values()))
+
+            self.assertEqual("CREATED", positive_route_run["status"])
+            self.assertEqual(ROUTE_ID, positive_route_run["route_id"])
+            self.assertEqual(
+                "DESIGN_ONLY_NOT_REGISTERED",
+                positive_route_run["design_status"],
+            )
+            self.assertEqual(
+                "DESIGN_ONLY_NOT_REGISTERED",
+                positive_route_design["status"],
+            )
+            self.assertEqual(
+                SYNTHETIC_POSITIVE_ROUTE_PROPOSAL,
+                {
+                    name: positive_route_design["hypothesis_design"][name]
+                    for name in SYNTHETIC_POSITIVE_ROUTE_PROPOSAL
+                },
+            )
+            self.assertEqual(
+                POSITIVE_ROUTE_MISSING_PROOF,
+                positive_route_design["missing_proof"],
+            )
+            for economic_boundary in (
+                "fees_slippage_friction_value",
+                "strategy_pnl",
+                "drawdown",
+                "capacity",
+                "candidate_readiness",
+                "oos_value",
+                "activation",
+            ):
+                self.assertEqual(
+                    "MISSING_PROOF",
+                    positive_route_design["missing_proof"][economic_boundary],
+                )
+            self.assertFalse(
+                any(positive_route_proposal["safety_assertions"].values())
+            )
+            self.assertEqual(
+                POSITIVE_ROUTE_SAFETY_ASSERTIONS,
+                positive_route_design["safety_assertions"],
+            )
+            self.assertFalse(
+                any(positive_route_design["safety_assertions"].values())
+            )
             for boundary in (
                 "canonical_state_write_authorized",
                 "candidate_registration_authorized",

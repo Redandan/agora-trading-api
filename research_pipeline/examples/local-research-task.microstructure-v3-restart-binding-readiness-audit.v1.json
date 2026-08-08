@@ -1,0 +1,173 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-restart-binding-readiness-audit-v1",
+  "issued_at": "2026-08-08T07:56:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "CAPABILITY_READINESS",
+  "execution_mode": "READ_ONLY",
+  "objective": "Determine the smallest fail-closed, versioned Local Research pipeline correction needed after Server Canonical restarted the untouched microstructure V3 window from diagnostic okx-btcusdt-microstructure-forward-v3-20260808 / 2026-08-08 to okx-btcusdt-microstructure-forward-v3-20260809-r1 / 2026-08-09. Audit the fixed exporter, task-bound handoff, local diagnostic runner, receiver, interpreter, pinned hashes, and tests without reading any forward outcome. Return one implementation-readiness disposition that preserves the old V1 bytes as historical evidence and prevents the future 14-day handoff from failing only because of the lawful restart identity.",
+  "canonical_research_status": "MICROSTRUCTURE_V3_R1_LOCAL_PIPELINE_BINDING_AUDIT",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-evidence-diagnostic.v1.json",
+      "sha256": "d50e41e5fe98e76c1ff9930baeb89ba357040dd70b2cfdd51656edbc8c03ad86"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff.py",
+      "sha256": "eda4e965a0e91636d19e62902488f57db900d4b37c61a058d54879b84b350865"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff_export.py",
+      "sha256": "c178baf3e841267c30a59e9ff168b3de3ab9b992651c89196e9384fc4e792148"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff_runner.py",
+      "sha256": "897ab23abde5ccf2976697d1101ad0bd8cbd03c083a9038ece196a585d9e06be"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_handoff_receive.py",
+      "sha256": "0c39be022f5bb0749291e8cb2803cafa7fb82c748a7026e9e8e8d4fcadbe30b3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_interpretation_runner.py",
+      "sha256": "499ca3564f34e7a9a6de59ea09b0b981e254d0ea142429642a610aa36774363f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-local-runner.v1.json",
+      "sha256": "f608278aab42b9681fecd331ff990af85439db3e62411c5da18eb2f72b891129"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-handoff-transfer.v2.json",
+      "sha256": "600c6a818469c4ad8c9d5aa1846f74b6344c8825b974ff3b52f357da9c77c532"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v1.json",
+      "sha256": "cc6bcf53cd31e134ce31b92a38a56499dbcc2a43c1f81bc18a708c801d31bcc5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-handoff-manifest.v1.schema.json",
+      "sha256": "9f1d65c144ee34cd49cd74fc4b74218dbc7232d0622a8cba1ccdbe667171b090"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure-handoff-result.v1.schema.json",
+      "sha256": "11efb602cc8365034ea5128f9b76fa53c24d1480ab075dfec115ea1b7ac385f9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_handoff_runner.py",
+      "sha256": "099a493f2fc315015db6146edc47c0c83f764a2e7affc4ff73a4b83f04c71b12"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_handoff_receive.py",
+      "sha256": "e5710ec48b8120f5582e630a9ce1775efc0b30528c2d32db0e45571d7bd42b49"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_interpretation_runner.py",
+      "sha256": "5966387e77508853581ad48e8884d40c1d2db11a88de7faae2c676e3e96c4fee"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/pull_microstructure_v3_handoff_ssh.ps1",
+      "sha256": "b8645a9b98807bd1bb9ff64e0f42681c8fecb9f06d921132970ca6fa8f218062"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "1ca51fd80b8c96c87448276adfa0eef1761cec297594b4431842f6ae618454a3"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-08T07:54:51Z Server Canonical: policy AUTONOMOUS_TRADING_RESEARCH_V3 READY; Worker READY release 20260808T052741Z; CLOUD_OPS_SCHEDULE_V7 READY; all request queues IDLE; microstructure diagnostic okx-btcusdt-microstructure-forward-v3-20260809-r1 is PRE_START/WAITING_FOR_DAY with start_day and next_expected_day 2026-08-09, accepted_day_count 0/14, state SHA-256 bf5a840569df8926f6e90acc721c1bbf7b8e4d533eeb4f5258a74a61793c3821. No microstructure outcome was accessed.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Audit only the listed bytes. The old 20260808 task and implementation contracts are immutable historical design evidence. The current server exporter derives the live diagnostic identity from Server Canonical and binds the unchanged evidence-diagnostic task SHA-256 into the create-once manifest. Determine whether a restart-tolerant manifest-bound runner can remain fail-closed or whether an exact R1 versioned rebinding is required. Do not implement either choice in this task.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "TRACE_HANDOFF_IDENTITY_AND_HASH_AUTHORITY",
+    "COMPARE_SERVER_DERIVED_AND_LOCAL_FIXED_BINDINGS",
+    "CLASSIFY_HISTORICAL_AND_EXECUTABLE_BYTES",
+    "DERIVE_MINIMAL_VERSIONED_DEPENDENCY_CLOSURE",
+    "ASSESS_FAIL_CLOSED_MANIFEST_BOUND_BINDING",
+    "ASSESS_RESTART_TIME_TO_EVIDENCE_RISK",
+    "VALIDATE_LOCAL_TASK",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+    "DIAGNOSTIC_ANALYZER_OR_INTERPRETER_EXECUTION",
+    "HANDOFF_EXPORT_RECEIVE_OR_FIXED_ROOT_EXECUTION",
+    "GIT_WORKTREE_WRITE",
+    "JAVA_MAVEN_SPRING_OR_SUBPROCESS_EXECUTION",
+    "SECOND_LOCAL_TIMER",
+    "THRESHOLD_TIER_HORIZON_OR_GATE_CHANGE",
+    "FROZEN_TASK_OR_ARTIFACT_REWRITE",
+    "UNLISTED_REPOSITORY_OR_RESEARCH_STATE_ACCESS"
+  ],
+  "expected_outputs": [
+    "EXACT_INPUT_HASH_VALIDATION",
+    "OLD_AND_CURRENT_BINDING_MISMATCH_PROOF",
+    "EXPORTER_TASK_AND_CANONICAL_IDENTITY_TRACE",
+    "LOCAL_RUNNER_IDENTITY_TRACE",
+    "FAIL_CLOSED_MANIFEST_BOUND_FEASIBILITY",
+    "EXACT_VERSIONED_DEPENDENCY_CLOSURE",
+    "HISTORICAL_BYTE_PRESERVATION_PLAN",
+    "TIME_TO_EVIDENCE_IMPACT",
+    "IMPLEMENTATION_READINESS_DISPOSITION",
+    "PERFORMANCE_AND_DRAWDOWN_CLAIM_BOUNDARY",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null input SHA-256 before analysis. Any drift is BLOCKED and MISSING_PROOF; do not search for, substitute, or repair another file.",
+    "Read only the listed repository inputs and embedded canonical status. Do not inspect current or future microstructure day bundles, canonical files, Local inbox/outbox, research state, network, server, OOS, or strategy outcomes.",
+    "Prove whether the current server exporter derives diagnostic id/start/day inventory from canonical binding while the Local production runner fixes the superseded 20260808 identity and 2026-08-08..2026-08-21 inventory. Separate direct code facts from inference.",
+    "Treat every old task and its hash as immutable historical evidence. Do not recommend editing an old task in place. Any executable correction must be versioned or must change only non-artifact runtime code under a new validated implementation task.",
+    "Assess manifest-bound feasibility only if the immutable manifest, source release, canonical state, ordered fourteen-day inventory, task id/SHA, authorization, seal, path grammar, and create-once validation jointly prevent caller-selected substitution. If any authority becomes broader or outcome-dependent, choose exact R1 rebinding instead.",
+    "List the smallest complete dependency closure whose hashes or self-task identities must change for the recommended implementation. Include transitive receiver, interpreter, task, and test references; do not omit a downstream pinned hash merely to keep the slice small.",
+    "Preserve the unchanged evidence-diagnostic task SHA-256 only if its objective and stop conditions do not bind the superseded diagnostic id or dates and the server exporter already binds that exact task into the current handoff. Otherwise report a new task/version requirement.",
+    "Return exactly one disposition: MANIFEST_BOUND_RESTART_TOLERANT_SLICE_READY, EXACT_R1_VERSIONED_REBIND_REQUIRED, or MISSING_PROOF_BLOCK_IMPLEMENTATION.",
+    "Immediate PnL and drawdown effect are zero. The only supported benefit is avoiding a deterministic post-collection handoff failure and another fourteen-day evidence delay; predictive value, fees, slippage, candidate readiness, OOS, and Trading usefulness remain MISSING_PROOF.",
+    "Do not execute a handoff, diagnostic, interpreter, fixed-root tool, network command, subprocess, or test that reads outcomes. Static source reading, task validation, hash validation, and git diff checks are the full scope.",
+    "Return one schema-valid local-research-result JSON tied to the exact task SHA-256 with no files_changed, no artifacts, all safety assertions false, concrete PASS/FAIL/MISSING_PROOF checks, the exact disposition, and one bounded implementation next action. Stop without requesting permissions if any boundary cannot be met."
+  ],
+  "limits": {
+    "timeout_seconds": 3600,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

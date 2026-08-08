@@ -171,8 +171,8 @@ The first vertical slice is complete only when:
 1. the capability-readiness task validates before dispatch;
 2. the Local Research task returns a result tied to the exact task SHA-256;
 3. all safety assertions remain false and no files are changed by that task;
-4. the Manager/Coach can interpret the result without changing V6, canonical
-   state, or any Trading runtime; and
+4. the Manager/Coach can interpret the result without changing the sole cloud
+   Ops contract, canonical state, or any Trading runtime; and
 5. the result identifies a bounded next task or records `MISSING_PROOF`.
 
 Passing this gate proves orchestration and safety only. It is not evidence of
@@ -284,10 +284,36 @@ Its disposition was `V7_PROMPT_CONSISTENT_READY_FOR_PLATFORM_BINDING`: every
 executable write instruction uses the exact V7 attestation, V6 remains only a
 predecessor or cutover stop, same-turn receipt and cross-task operations remain
 denied, and the sole 09:05 clock preserves `NOT_DUE` before 09:00. This proves
-repository prompt-to-contract consistency only. Same-Coach-chat platform
-binding, exactly one active recurrence, unattended prior-context visibility,
-the next normal heartbeat, and live two-turn receipt acceptance remain
-`MISSING_PROOF`. Immediate PnL and drawdown effect remain zero.
+repository prompt-to-contract consistency only. Canonical V7 and the deployed
+Worker were subsequently proven `READY`; platform same-Coach-chat binding,
+platform-side exact one-active-recurrence readback, unattended prior-context
+visibility, and live two-turn receipt acceptance remain `MISSING_PROOF`.
+Immediate PnL and drawdown effect remain zero.
+
+The first restart-tolerant Local V3 pipeline closure used task
+`local-node-microstructure-v3-restart-tolerant-local-pipeline-v1`, task
+SHA-256
+`ae8153da68a68aa5df8af36ce582a879c846af596440937385f7f991edde4a89`,
+Manager dispatch SHA-256
+`302d002e6558efab8196607ad6248c7f5d3b01feb96f8562ed7f12934a56c945`,
+and clean source commit `433df647165e062db2e83db2162cf562aa80ea48`.
+The exact returned UTF-8 JSON has SHA-256
+`d0ebd63264e83b0f4b36a85c7ef1b72614045702c52e9037c25b5c8ee9d7b3d7`.
+It reported exactly eight authorized files, `source_git_dirty_after=true`, and
+all safety assertions false. The Manager/Coach independently revalidated the
+dispatch/task/result closure, rehashed every artifact, inspected the exact
+diff, and repeated all 34 focused deterministic tests before committing and
+pushing the accepted slice as
+`875da23d4de3c3e0eaecb7da36fd9d75e098f19a`.
+
+That slice removes the obsolete hard-coded 2026-08-08 diagnostic identity from
+the Local handoff and interpretation path. Runtime identity and the exact
+contiguous 14-day inventory now come only from the fixed-task, canonical,
+sealed manifest; the receiver derives the exact allowlist before staging any
+byte. Legacy 2026-08-08 and synthetic 2026-08-09-r1 packages both pass without
+caller-selected roots, task ids, diagnostic ids, or dates. Real R1 evidence,
+predictive value, fees, slippage, capacity, PnL, drawdown, OOS, and activation
+remain `MISSING_PROOF`; immediate PnL and drawdown effect are zero.
 
 ## Current recovery evidence
 
@@ -296,11 +322,13 @@ closed-review reference containing Windows path separators while the
 hash-identical sealed review existed at the corresponding POSIX path. The
 strict portability correction is commit
 `261367c52cb1cc2d68610fad816e9f5b2795a842`, which is an ancestor of the
-currently installed, source-tree-verified Worker commit
-`ed414241c67a253362c3453ec44e3c458fb78828`. The focused storage and evidence
-regression suites pass 42 tests on the current branch.
+currently installed, clean, source-tree-verified Worker commit
+`c6247e8074803227c8a83b44dcc331aec2956e6d`. Fresh canonical status at
+`2026-08-08T09:05:16Z` reports the latest heartbeat `HEARTBEAT_OK`, all queues
+idle, and the 2026-08-07 companion evidence day `SEALED` before its deadline.
+This proves live heartbeat and evidence-path recovery.
 
-This proves source and deployment readiness, not live recovery. Only the next
-normally due cloud heartbeat can prove canonical recovery and accept a verified
-Coach delivery receipt. An early heartbeat, local fallback, second timer, or
-manual canonical repair remains forbidden.
+It does not repair the old Coach event's delivery history. That event remains
+pending with `BREACH_PENDING_DELIVERY_PROOF`; only a future normally due V7
+two-turn same-chat receipt can close it honestly. An early heartbeat, local
+fallback, second timer, or manual canonical repair remains forbidden.

@@ -125,8 +125,10 @@ worktree implementation capacity under
 `docs/local-codex-research-node-v1.md`. It receives a validated task package and
 returns a task-hash-bound result to the Manager/Coach. It has no routine wake-up,
 cannot become a second writer, and cannot call Research MCP writes or mutate
-canonical server state. The V1 pilot is manually message-dispatched and leaves
-the sole V6 cloud schedule unchanged.
+canonical server state. The V1 node is manually message-dispatched and leaves
+the sole cloud clock and its server-canonical contract unchanged. As of
+2026-08-08 the canonical contract is V7; Local work cannot activate, replace,
+pause, or acknowledge that schedule.
 
 The generic Spring strategy runtime must not depend on `research_pipeline`.
 
@@ -146,10 +148,12 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The active sole cloud Ops schedule semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v6.json`; V1 through V5 remain
-immutable historical contract evidence. V6 keeps the canonical heartbeat due
-boundary at `09:00 Asia/Taipei` but schedules the sole cloud recurrence at
+The current server-canonical cloud Ops semantics are frozen in
+`research_pipeline/cloud-ops-schedule-contract.v7.json`, exact SHA-256
+`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`;
+V1 through V6 remain immutable historical contract evidence. V7 keeps the
+canonical heartbeat due boundary at `09:00 Asia/Taipei` but declares the sole
+cloud recurrence at
 `09:05 Asia/Taipei`. The frozen 300-second nominal delay tolerates small
 platform early-fire jitter without weakening the server's `NOT_DUE` gate or
 adding a catch-up timer. It was introduced after the nominal 09:00 cycle on
@@ -344,10 +348,10 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
 
-The V6 Ops contract and `SEALED_COACH_THREAD_DELIVERY_V3` bind that basis,
+The V7 Ops contract and `SEALED_COACH_SAME_CHAT_DELIVERY_V1` bind that basis,
 10,800-second completion window, pending/breach labels, terminal labels, and
 legacy missing-proof labels into the same caller attestation required by both
-write operations. V3 through V5 remain sealed history and cannot attest the
+write operations. V3 through V6 remain sealed history and cannot attest the
 active schedule.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
@@ -384,17 +388,17 @@ experiment passes its preregistered Design and Validation gates to
 `CANDIDATE_FROZEN`, while sealed OOS remains unopened, and only when the overlay
 exercises material lot-management semantics absent from Phase B.
 
-## Prepared same-chat Coach delivery V7
+## Current same-chat Coach delivery V7
 
-`CLOUD_OPS_SCHEDULE_V6` remains `CURRENT_ACTIVE_V6`. The repository also
-contains lifecycle-neutral frozen document `CLOUD_OPS_SCHEDULE_V7` with
-`document_status=FROZEN` and exact SHA-256
+Fresh OAuth Research MCP status at `2026-08-08T09:05:16Z` reported
+`CLOUD_OPS_SCHEDULE_V7` `READY`, `schema_version=7`, `schedule_count=1`, and
+exact SHA-256
 `426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
-Its repository rollout state is externally `PREPARED_NOT_ACTIVE_V7`.
-Repository preparation does not activate V7, change the current schedule, or
-authorize its hash on a write call while canonical status still reports V6.
-Canonical activation is a separately proven external state and never requires
-editing the frozen V7 bytes.
+The installed Worker release `20260808T052741Z` was clean and source-tree
+verified at commit `c6247e8074803227c8a83b44dcc331aec2956e6d`.
+This proves the server-canonical V7 attestation and Worker release, not the
+Codex platform recurrence definition or unattended same-chat context behavior.
+Repository preparation alone still cannot activate or change a cloud schedule.
 
 V7 preserves one daily `09:05 Asia/Taipei` cloud clock, the `09:00` canonical
 due boundary, 300-second margin, Server Canonical as sole writer, the durable
@@ -415,11 +419,11 @@ summaries, truncation, alteration, Scheduled inbox, notifications, and inferred
 context are never proof. Context loss leaves the event pending and permits at
 most one exact rerender in that turn without resetting its clock.
 
-Server V7 attestation implementation, Worker deployment, platform same-chat
-binding, exact one-active-schedule readback, unattended prior-context access,
-Turn-N render, Turn-N+1 receipt acceptance, deduplication, and the live SLA
-outcome remain `MISSING_PROOF`. Cutover may use an in-place destination update
-only after atomic one-schedule behavior is proven. Otherwise V6 must be paused
-and proven inactive before V7 can become active; rollback pauses and proves V7
-inactive before V6 resumes. The current pending event keeps its original
-deadline and may honestly end in `BREACH`.
+Server V7 attestation implementation and Worker deployment are now proven.
+Platform same-chat binding, platform-side exact one-active-recurrence readback,
+unattended prior-context access, a normal Turn-N render, Turn-N+1 receipt
+acceptance, and a live `PASS` delivery SLA remain `MISSING_PROOF`. The retained
+legacy integrity event still has its original deadline and canonical status
+`BREACH_PENDING_DELIVERY_PROOF`; recovery of the heartbeat does not rewrite
+that delivery history. Any rollback must first pause and prove V7 inactive
+before restoring V6, and must never overlap two clocks.

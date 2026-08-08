@@ -4,18 +4,12 @@ from dataclasses import dataclass
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import stat
 import sys
 from typing import Any, Callable, Iterable
 
 from research_pipeline.local_node import validate_local_research_task
-from research_pipeline.microstructure_handoff_runner import (
-    HandoffRunnerBlocked,
-    _has_reparse_point,
-    _repository_path,
-    _require_type,
-)
 from research_pipeline.microstructure_hypothesis_design import (
     NON_POSITIVE_DISPOSITIONS,
     POSITIVE_DISPOSITION,
@@ -38,11 +32,11 @@ from research_pipeline.microstructure_source_contract import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 RUNNER_TASK_RELATIVE = (
     "research_pipeline/examples/"
-    "local-research-task.microstructure-v3-hypothesis-design-runner.v2.json"
+    "local-research-task.microstructure-v3-hypothesis-design-runner.v3.json"
 )
-RUNNER_TASK_ID = "local-node-microstructure-v3-hypothesis-design-runner-v2"
+RUNNER_TASK_ID = "local-node-microstructure-v3-hypothesis-design-runner-v3"
 RUNNER_TASK_SHA256 = (
-    "7224171c14252fd0b6e0e0c14e0a30820fdc614fcf47e107b1836af3910f9114"
+    "0dee2f121f549b2cecddc0342c07ff7ed368791362af9db665e0811cf3fe2725"
 )
 SOURCE_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/outbox/"
@@ -51,12 +45,12 @@ SOURCE_ROOT = Path(
 SOURCE_RESULT_NAME = "interpretation-result.json"
 PROPOSAL_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/inbox/"
-    "local-node-microstructure-v3-hypothesis-design-runner-v2"
+    "local-node-microstructure-v3-hypothesis-design-runner-v3"
 )
 PROPOSAL_NAME = "coach-proposal.json"
 OUTPUT_ROOT = Path(
     "C:/Users/Redan/.codex/local-research-node/outbox/"
-    "local-node-microstructure-v3-hypothesis-design-runner-v2"
+    "local-node-microstructure-v3-hypothesis-design-runner-v3"
 )
 OUTPUT_RESULT_NAME = "hypothesis-design-result.json"
 
@@ -77,21 +71,16 @@ CANONICALIZATION = (
 IMPLEMENTATION_FILES = (
     "research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json",
     "research_pipeline/microstructure_hypothesis_design_runner.py",
-    "research_pipeline/tests/test_microstructure_hypothesis_design_runner.py",
-    "docs/okx-microstructure-hypothesis-design-runner-v2.md",
 )
 EXPECTED_REPOSITORY_INPUTS = {
-    "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v2.json": (
-        "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f"
-    ),
     "research_pipeline/local_node.py": (
         "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
     ),
-    "research_pipeline/microstructure_interpretation_runner.py": (
-        "5d1de7e1e8006ca066fb857c55ad834b24bbe709a10d25ace5ea16a13dc0c04f"
+    "research_pipeline/policy.v3.json": (
+        "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
     ),
-    "research_pipeline/microstructure_handoff_runner.py": (
-        "6f44d5afc5f3254670414028a00843a79da1f94e97c168cc834d463b187384bc"
+    "research_pipeline/microstructure_source_contract.py": (
+        "1e98f439cdf6921d6299ac2f5b27e33ac0ca818b5a52a3d10e38e213563c34ee"
     ),
     "research_pipeline/microstructure_interpretation.py": (
         "3892ae7a14161de3505bcb31de4b26ea897f52bc20a54db642b7b5706c520e39"
@@ -114,29 +103,16 @@ EXPECTED_REPOSITORY_INPUTS = {
     "research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json": (
         "c2a1db83aa62c92fd86d2c6fc3b1516829d282f81c683d9d082375600de28bb0"
     ),
-    "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v1.json": (
-        "fd0e4270f5f459b35e986f1e46f6aace568dc9b14a23ecfd82e8d342f1a97dc2"
-    ),
-    "docs/okx-microstructure-hypothesis-design-runner-v1.md": (
-        "5bafd8f0ce14948bf13872e43f90e61008ca927e7a1f5991d04a1e2000520bbb"
-    ),
-    "research_pipeline/microstructure_source_contract.py": (
-        "1e98f439cdf6921d6299ac2f5b27e33ac0ca818b5a52a3d10e38e213563c34ee"
-    ),
-    "research_pipeline/policy.v3.json": (
-        "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
-    ),
-    "docs/okx-microstructure-hypothesis-design-runner-v2.md": (
-        "9c62ff0427428752037aaf77b17f0e282883bff3ff32c471e882b77741176c5a"
-    ),
 }
 EXPECTED_ALLOWED_ACTIONS = {
     "READ_FROZEN_REPOSITORY_CONTRACTS",
     "VERIFY_ALL_NON_NULL_INPUT_HASHES",
-    "ADD_VERSIONED_RUNNER_SELF_TASK",
-    "MODIFY_FIXED_ROOT_DESIGN_RUNNER",
-    "MODIFY_FOCUSED_OFFLINE_RUNNER_TESTS",
-    "ADD_VERSIONED_DESIGN_RUNNER_DOCUMENTATION",
+    "ADD_GENERIC_V3_RUNNER_SELF_TASK",
+    "MODIFY_FIXED_GENERIC_DESIGN_RUNNER",
+    "MODIFY_FOCUSED_GENERIC_RUNNER_TESTS",
+    "ADD_GENERIC_V3_RUNNER_DOCUMENTATION",
+    "REMOVE_NON_SEMANTIC_RUNTIME_HASH_COUPLING",
+    "PRESERVE_EXECUTABLE_AND_SCIENTIFIC_AUTHORITY",
     "BUILD_SYNTHETIC_PROPOSAL_ENVELOPES",
     "VALIDATE_SOURCE_INTERPRETATION",
     "VALIDATE_SOURCE_BOUND_PROPOSAL",
@@ -247,11 +223,48 @@ def _absolute(path: Path) -> Path:
     return Path(os.path.abspath(path))
 
 
+def _has_reparse_point(info: os.stat_result) -> bool:
+    flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    return bool(getattr(info, "st_file_attributes", 0) & flag)
+
+
 def _require_runner_type(path: Path, *, directory: bool, label: str) -> os.stat_result:
     try:
-        return _require_type(path, directory=directory, label=label)
-    except HandoffRunnerBlocked as error:
-        raise HypothesisDesignRunnerBlocked(str(error)) from error
+        info = path.lstat()
+    except OSError as error:
+        raise HypothesisDesignRunnerBlocked(f"{label} is unavailable") from error
+    expected = stat.S_ISDIR(info.st_mode) if directory else stat.S_ISREG(info.st_mode)
+    if path.is_symlink() or _has_reparse_point(info) or not expected:
+        kind = "directory" if directory else "file"
+        raise HypothesisDesignRunnerBlocked(
+            f"{label} must be a regular non-link {kind}"
+        )
+    return info
+
+
+def _repository_path(root: Path, relative_name: str) -> Path:
+    relative = PurePosixPath(relative_name)
+    if relative.is_absolute() or ".." in relative.parts or not relative.parts:
+        raise HypothesisDesignRunnerBlocked("repository path is unsafe")
+    root = _absolute(root)
+    current = root
+    _require_runner_type(current, directory=True, label="repository root")
+    for part in relative.parts[:-1]:
+        current = current / part
+        _require_runner_type(
+            current,
+            directory=True,
+            label=f"repository directory {part}",
+        )
+    target = root.joinpath(*relative.parts)
+    try:
+        if os.path.commonpath((str(root), str(_absolute(target)))) != str(root):
+            raise HypothesisDesignRunnerBlocked("repository path escaped its root")
+    except ValueError as error:
+        raise HypothesisDesignRunnerBlocked(
+            "repository path escaped its root"
+        ) from error
+    return target
 
 
 def _validate_separate_roots(paths: RuntimePaths) -> None:

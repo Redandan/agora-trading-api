@@ -163,12 +163,12 @@ class MicrostructureHypothesisDesignRunnerTest(unittest.TestCase):
         self.assertEqual(
             PROPOSAL_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/inbox/"
-            "local-node-microstructure-v3-hypothesis-design-runner-v2",
+            "local-node-microstructure-v3-hypothesis-design-runner-v3",
         )
         self.assertEqual(
             OUTPUT_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/outbox/"
-            "local-node-microstructure-v3-hypothesis-design-runner-v2",
+            "local-node-microstructure-v3-hypothesis-design-runner-v3",
         )
         with patch(
             "research_pipeline.microstructure_hypothesis_design_runner.run_hypothesis_design",
@@ -195,17 +195,45 @@ class MicrostructureHypothesisDesignRunnerTest(unittest.TestCase):
             (
                 "research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json",
                 "research_pipeline/microstructure_hypothesis_design_runner.py",
-                "research_pipeline/tests/test_microstructure_hypothesis_design_runner.py",
-                "docs/okx-microstructure-hypothesis-design-runner-v2.md",
             ),
             IMPLEMENTATION_FILES,
         )
+        self.assertEqual(10, len(EXPECTED_REPOSITORY_INPUTS))
+        self.assertEqual(
+            {
+                "research_pipeline/local_node.py",
+                "research_pipeline/policy.v3.json",
+                "research_pipeline/microstructure_source_contract.py",
+                "research_pipeline/microstructure_interpretation.py",
+                "research_pipeline/microstructure-interpretation-result.v1.schema.json",
+                "research_pipeline/okx-microstructure-forward-interpretation-contract.v1.json",
+                "research_pipeline/microstructure_hypothesis_design.py",
+                "research_pipeline/okx-microstructure-hypothesis-design-contract.v1.json",
+                "research_pipeline/microstructure-hypothesis-design-result.v1.schema.json",
+                "research_pipeline/microstructure-coach-hypothesis-proposal.v1.schema.json",
+            },
+            set(EXPECTED_REPOSITORY_INPUTS),
+        )
+        prohibited = {
+            "research_pipeline/microstructure_handoff_runner.py",
+            "research_pipeline/microstructure_interpretation_runner.py",
+            "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v2.json",
+            "research_pipeline/tests/test_microstructure_hypothesis_design_runner.py",
+            "docs/okx-microstructure-hypothesis-design-runner-v3.md",
+        }
+        self.assertTrue(prohibited.isdisjoint(EXPECTED_REPOSITORY_INPUTS))
         historical = {
             "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v1.json": (
                 "fd0e4270f5f459b35e986f1e46f6aace568dc9b14a23ecfd82e8d342f1a97dc2"
             ),
             "docs/okx-microstructure-hypothesis-design-runner-v1.md": (
                 "5bafd8f0ce14948bf13872e43f90e61008ca927e7a1f5991d04a1e2000520bbb"
+            ),
+            "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v2.json": (
+                "7224171c14252fd0b6e0e0c14e0a30820fdc614fcf47e107b1836af3910f9114"
+            ),
+            "docs/okx-microstructure-hypothesis-design-runner-v2.md": (
+                "9c62ff0427428752037aaf77b17f0e282883bff3ff32c471e882b77741176c5a"
             ),
         }
         for relative_name, expected_hash in historical.items():
@@ -215,18 +243,6 @@ class MicrostructureHypothesisDesignRunnerTest(unittest.TestCase):
                     REPOSITORY_ROOT.joinpath(*relative_name.split("/")).read_bytes()
                 ).hexdigest(),
             )
-        self.assertEqual(
-            "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f",
-            EXPECTED_REPOSITORY_INPUTS[
-                "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v2.json"
-            ],
-        )
-        self.assertEqual(
-            "5d1de7e1e8006ca066fb857c55ad834b24bbe709a10d25ace5ea16a13dc0c04f",
-            EXPECTED_REPOSITORY_INPUTS[
-                "research_pipeline/microstructure_interpretation_runner.py"
-            ],
-        )
 
     def test_proposal_and_result_schemas_validate_generated_positive_fixture(self) -> None:
         interpretation = self._positive(TIER_ORDER[1])
@@ -369,7 +385,7 @@ class MicrostructureHypothesisDesignRunnerTest(unittest.TestCase):
     def test_task_repository_source_and_proposal_concurrent_drift(self) -> None:
         interpretation = self._positive()
         envelope = build_coach_proposal_envelope_bytes(interpretation, PROPOSAL)
-        for mode in ("task", "repository", "source", "proposal"):
+        for mode in ("task", "repository", "runner", "schema", "source", "proposal"):
             with self.subTest(mode=mode), TemporaryDirectory() as directory:
                 paths = self._install(
                     Path(directory),
@@ -383,6 +399,10 @@ class MicrostructureHypothesisDesignRunnerTest(unittest.TestCase):
                         target = paths.repository_root.joinpath(*RUNNER_TASK_RELATIVE.split("/"))
                     elif mode == "repository":
                         target = paths.repository_root / "research_pipeline" / "policy.v3.json"
+                    elif mode == "runner":
+                        target = paths.repository_root / IMPLEMENTATION_FILES[1]
+                    elif mode == "schema":
+                        target = paths.repository_root / IMPLEMENTATION_FILES[0]
                     elif mode == "source":
                         target = paths.source_root / SOURCE_RESULT_NAME
                     else:

@@ -168,12 +168,12 @@ class MicrostructurePositiveRouteHypothesisDesignRunnerTest(unittest.TestCase):
         self.assertEqual(
             PROPOSAL_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/inbox/"
-            "local-node-microstructure-positive-route-design-runner-v3",
+            "local-node-microstructure-positive-route-design-runner-v4",
         )
         self.assertEqual(
             OUTPUT_ROOT.as_posix(),
             "C:/Users/Redan/.codex/local-research-node/outbox/"
-            "local-node-microstructure-positive-route-design-runner-v3",
+            "local-node-microstructure-positive-route-design-runner-v4",
         )
         self.assertEqual(
             ["paths"],
@@ -206,32 +206,51 @@ class MicrostructurePositiveRouteHypothesisDesignRunnerTest(unittest.TestCase):
             (
                 "research_pipeline/microstructure-positive-route-coach-hypothesis-proposal.v2.schema.json",
                 "research_pipeline/microstructure_positive_route_hypothesis_design_runner.py",
-                "research_pipeline/tests/test_microstructure_positive_route_hypothesis_design_runner.py",
-                "docs/okx-microstructure-positive-route-hypothesis-design-runner-v3.md",
             ),
             IMPLEMENTATION_FILES,
         )
+        self.assertEqual(11, len(EXPECTED_REPOSITORY_INPUTS))
         self.assertEqual(
-            "7f5461a5354596a5bdaec57074eafadb0993f2cc8e3c6e997c9275b219345a5a",
-            EXPECTED_REPOSITORY_INPUTS[
-                "research_pipeline/examples/"
-                "local-research-task.microstructure-positive-route-design-runner.v2.json"
-            ],
+            {
+                "research_pipeline/local_node.py",
+                "research_pipeline/policy.v3.json",
+                "research_pipeline/microstructure_source_contract.py",
+                "research_pipeline/microstructure_interpretation.py",
+                "research_pipeline/microstructure-interpretation-result.v1.schema.json",
+                "research_pipeline/okx-microstructure-forward-interpretation-contract.v1.json",
+                "research_pipeline/microstructure_positive_route_hypothesis_design.py",
+                "research_pipeline/okx-microstructure-positive-route-hypothesis-design-contract.v2.json",
+                "research_pipeline/microstructure-positive-route-hypothesis-design-result.v2.schema.json",
+                "research_pipeline/microstructure-positive-route-coach-hypothesis-proposal.v2.schema.json",
+                "research_pipeline/okx-microstructure-intraday-economic-route-contract.v1.json",
+            },
+            set(EXPECTED_REPOSITORY_INPUTS),
         )
-        self.assertEqual(
-            "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f",
-            EXPECTED_REPOSITORY_INPUTS[
-                "research_pipeline/examples/"
-                "local-research-task.microstructure-v3-interpretation-runner.v2.json"
-            ],
-        )
-        self.assertEqual(
-            "7224171c14252fd0b6e0e0c14e0a30820fdc614fcf47e107b1836af3910f9114",
-            EXPECTED_REPOSITORY_INPUTS[
-                "research_pipeline/examples/"
-                "local-research-task.microstructure-v3-hypothesis-design-runner.v2.json"
-            ],
-        )
+        prohibited = {
+            "AGENTS.md",
+            ".agents/skills/autonomous-trading-research/SKILL.md",
+            "research_pipeline/microstructure_handoff_runner.py",
+            "research_pipeline/microstructure_interpretation_runner.py",
+            "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v2.json",
+            "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v3.json",
+            "research_pipeline/microstructure_hypothesis_design_runner.py",
+            "research_pipeline/tests/test_microstructure_positive_route_hypothesis_design_runner.py",
+            "docs/okx-microstructure-positive-route-hypothesis-design-runner-v4.md",
+        }
+        self.assertTrue(prohibited.isdisjoint(EXPECTED_REPOSITORY_INPUTS))
+        historical = {
+            "research_pipeline/examples/local-research-task.microstructure-positive-route-design-runner.v2.json": "7f5461a5354596a5bdaec57074eafadb0993f2cc8e3c6e997c9275b219345a5a",
+            "docs/okx-microstructure-positive-route-hypothesis-design-runner-v2.md": "964a1d7e193100444c9b1a009571590647e015ef5ab1f0d71865eee7920b6689",
+            "research_pipeline/examples/local-research-task.microstructure-positive-route-design-runner.v3.json": "63f38fe038e0795fc970dfe2d1557a481696eb492132d3af4594ab2f0e60a153",
+            "docs/okx-microstructure-positive-route-hypothesis-design-runner-v3.md": "554593065b9b7cfa92dade274cc08f8280f969e077fd90ea1482de04695608e6",
+        }
+        for relative_name, expected_hash in historical.items():
+            self.assertEqual(
+                expected_hash,
+                hashlib.sha256(
+                    REPOSITORY_ROOT.joinpath(*relative_name.split("/")).read_bytes()
+                ).hexdigest(),
+            )
 
     def test_schema_canonical_envelope_and_positive_result_validate(self) -> None:
         interpretation = self._positive(TIER_ORDER[1])
@@ -424,7 +443,7 @@ class MicrostructurePositiveRouteHypothesisDesignRunnerTest(unittest.TestCase):
             interpretation,
             PROPOSAL,
         )
-        for mode in ("task", "repository", "implementation", "source", "proposal"):
+        for mode in ("task", "repository", "runner", "schema", "source", "proposal"):
             with self.subTest(mode=mode), TemporaryDirectory() as directory:
                 paths = self._install(
                     Path(directory),
@@ -437,7 +456,8 @@ class MicrostructurePositiveRouteHypothesisDesignRunnerTest(unittest.TestCase):
                     relative = {
                         "task": RUNNER_TASK_RELATIVE,
                         "repository": "research_pipeline/policy.v3.json",
-                        "implementation": IMPLEMENTATION_FILES[3],
+                        "runner": IMPLEMENTATION_FILES[1],
+                        "schema": IMPLEMENTATION_FILES[0],
                     }.get(mode)
                     if relative is not None:
                         target = paths.repository_root.joinpath(*relative.split("/"))

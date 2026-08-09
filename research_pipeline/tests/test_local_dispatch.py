@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+from contextlib import redirect_stderr, redirect_stdout
 from copy import deepcopy
 import hashlib
+from io import StringIO
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from research_pipeline.cli import main as pipeline_main
 from research_pipeline.local_dispatch import (
     canonical_json_document_bytes,
     canonical_json_bytes,
@@ -164,8 +169,6 @@ class LocalResearchDispatchContractTest(unittest.TestCase):
             b'{"schema_version":"1","authorization":',
             1,
         )
-        from tempfile import TemporaryDirectory
-
         with TemporaryDirectory() as temporary:
             root = Path(temporary)
             noncanonical = root / noncanonical.name
@@ -178,8 +181,6 @@ class LocalResearchDispatchContractTest(unittest.TestCase):
                 load_and_validate_dispatch(duplicate, TASK_PATH)
 
     def test_result_closure_binds_dispatch_task_and_result_hashes(self) -> None:
-        from tempfile import TemporaryDirectory
-
         with TemporaryDirectory() as temporary:
             result_path = Path(temporary) / "result.json"
             result_raw = canonical_json_document_bytes(valid_result(self.task_sha256))
@@ -200,8 +201,6 @@ class LocalResearchDispatchContractTest(unittest.TestCase):
         )
 
     def test_result_closure_rejects_wrong_task_hash_or_unsafe_assertion(self) -> None:
-        from tempfile import TemporaryDirectory
-
         for mutation, message in (
             (("task_sha256",), "does not match task bytes"),
             (("safety_assertions", "paid_api_used"), "unsafe result assertions"),
@@ -220,6 +219,108 @@ class LocalResearchDispatchContractTest(unittest.TestCase):
                         TASK_PATH,
                         result_path,
                     )
+
+    def test_top_level_cli_task_only_matches_reusable_validator_before_store(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state_dir = root / "state-must-not-exist"
+            missing_policy = root / "policy-must-not-be-read.json"
+            stdout = StringIO()
+            stderr = StringIO()
+            with (
+                patch("research_pipeline.cli.load_policy") as load_policy,
+                patch("research_pipeline.cli.ResearchStore") as research_store,
+                redirect_stdout(stdout),
+                redirect_stderr(stderr),
+            ):
+                exit_code = pipeline_main(
+                    [
+                        "--state-dir",
+                        str(state_dir),
+                        "--policy",
+                        str(missing_policy),
+                        "validate-local-research-dispatch",
+                        str(DISPATCH_PATH),
+                        "--task",
+                        str(TASK_PATH),
+                    ]
+                )
+            expected = load_and_validate_dispatch(DISPATCH_PATH, TASK_PATH)
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr.getvalue(), "")
+            self.assertEqual(
+                stdout.getvalue(),
+                canonical_json_bytes(expected).decode("utf-8") + "\n",
+            )
+            self.assertFalse(state_dir.exists())
+            load_policy.assert_not_called()
+            research_store.assert_not_called()
+
+    def test_top_level_cli_optional_result_matches_reusable_validator(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state_dir = root / "state-must-not-exist"
+            result_path = root / "result.json"
+            result_path.write_bytes(
+                canonical_json_document_bytes(valid_result(self.task_sha256))
+            )
+            stdout = StringIO()
+            stderr = StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = pipeline_main(
+                    [
+                        "--state-dir",
+                        str(state_dir),
+                        "validate-local-research-dispatch",
+                        str(DISPATCH_PATH),
+                        "--task",
+                        str(TASK_PATH),
+                        "--result",
+                        str(result_path),
+                    ]
+                )
+            expected = load_and_validate_dispatch(
+                DISPATCH_PATH,
+                TASK_PATH,
+                result_path,
+            )
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr.getvalue(), "")
+            self.assertEqual(
+                stdout.getvalue(),
+                canonical_json_bytes(expected).decode("utf-8") + "\n",
+            )
+            self.assertFalse(state_dir.exists())
+
+    def test_top_level_cli_invalid_dispatch_fails_without_state(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state_dir = root / "state-must-not-exist"
+            invalid_dispatch = root / "invalid-dispatch.json"
+            invalid_dispatch.write_text(
+                json.dumps(self.dispatch, indent=2),
+                encoding="utf-8",
+            )
+            stdout = StringIO()
+            stderr = StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = pipeline_main(
+                    [
+                        "--state-dir",
+                        str(state_dir),
+                        "validate-local-research-dispatch",
+                        str(invalid_dispatch),
+                        "--task",
+                        str(TASK_PATH),
+                    ]
+                )
+            error = json.loads(stderr.getvalue())
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(stdout.getvalue(), "")
+            self.assertEqual(error["status"], "PIPELINE_ERROR")
+            self.assertEqual(error["type"], "ValueError")
+            self.assertIn("canonical JSON", error["detail"])
+            self.assertFalse(state_dir.exists())
 
 
 if __name__ == "__main__":

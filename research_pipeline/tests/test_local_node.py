@@ -19,6 +19,7 @@ TASK_PATH = (
     / "examples"
     / "local-research-task.capability-readiness.v1.json"
 )
+ACTIVE_CHAIN_SCRIPT = REPO_ROOT / "scripts" / "verify_local_research_active_chain.ps1"
 
 
 def load_task() -> dict[str, object]:
@@ -65,6 +66,13 @@ def valid_result() -> dict[str, object]:
 
 
 class LocalResearchNodeContractTest(unittest.TestCase):
+    def test_active_chain_verifier_keeps_windows_powershell_compatible_json_io(self) -> None:
+        script = ACTIVE_CHAIN_SCRIPT.read_text(encoding="utf-8")
+        self.assertNotIn("ConvertFrom-Json -Depth", script)
+        self.assertIn("$bindingCode | & $python.Source - 2>&1", script)
+        self.assertIn('print(json.dumps({"bindings": [', script)
+        self.assertIn("$runnerBindings = @($bindingDocument.bindings)", script)
+
     def test_capability_task_and_result_validate(self) -> None:
         task = validate_local_research_task(load_task())
         result = validate_local_research_result(

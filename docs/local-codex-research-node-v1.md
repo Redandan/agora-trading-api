@@ -198,6 +198,9 @@ dispatch. It deliberately leaves the slower focused offline test suites to the
 separate implementation or release gate. It never treats historical task
 snapshots as current execution authority and never writes Local roots,
 canonical state, a server, a schedule, OOS, or Trading state.
+Its JSON validation path must execute identically under the bundled Windows
+PowerShell 5.1 and PowerShell 7; the release check runs the gate through both
+shells when both are installed.
 
 Historical task input drift is expected after an accepted versioned change:
 those immutable tasks remain evidence of what was authorized at their source

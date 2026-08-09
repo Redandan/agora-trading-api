@@ -55,7 +55,7 @@ function Invoke-JsonValidation {
         throw "$Description failed: $($output -join [Environment]::NewLine)"
     }
     try {
-        return (($output -join [Environment]::NewLine) | ConvertFrom-Json -Depth 100)
+        return (($output -join [Environment]::NewLine) | ConvertFrom-Json)
     }
     catch {
         throw "$Description returned non-JSON output: $($output -join [Environment]::NewLine)"
@@ -111,20 +111,21 @@ from research_pipeline.microstructure_handoff_receive import TRANSFER_TASK_ID, T
 from research_pipeline.microstructure_interpretation_runner import RUNNER_TASK_ID as INTERPRETATION_TASK_ID, RUNNER_TASK_SHA256 as INTERPRETATION_TASK_SHA256
 from research_pipeline.microstructure_hypothesis_design_runner import RUNNER_TASK_ID as HYPOTHESIS_TASK_ID, RUNNER_TASK_SHA256 as HYPOTHESIS_TASK_SHA256
 from research_pipeline.microstructure_positive_route_hypothesis_design_runner import RUNNER_TASK_ID as POSITIVE_TASK_ID, RUNNER_TASK_SHA256 as POSITIVE_TASK_SHA256
-print(json.dumps([
+print(json.dumps({"bindings": [
     {"task_id": DIAGNOSTIC_TASK_ID, "task_sha256": DIAGNOSTIC_TASK_SHA256},
     {"task_id": TRANSFER_TASK_ID, "task_sha256": TRANSFER_TASK_SHA256},
     {"task_id": INTERPRETATION_TASK_ID, "task_sha256": INTERPRETATION_TASK_SHA256},
     {"task_id": HYPOTHESIS_TASK_ID, "task_sha256": HYPOTHESIS_TASK_SHA256},
     {"task_id": POSITIVE_TASK_ID, "task_sha256": POSITIVE_TASK_SHA256},
-], separators=(",", ":"), sort_keys=True))
+]}, separators=(",", ":"), sort_keys=True))
 '@
-    $bindingOutput = & $python.Source -c $bindingCode 2>&1
+    $bindingOutput = $bindingCode | & $python.Source - 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "Active runner binding import failed: $($bindingOutput -join [Environment]::NewLine)"
     }
     try {
-        $runnerBindings = @(($bindingOutput -join [Environment]::NewLine) | ConvertFrom-Json -Depth 100)
+        $bindingDocument = (($bindingOutput -join [Environment]::NewLine) | ConvertFrom-Json)
+        $runnerBindings = @($bindingDocument.bindings)
     }
     catch {
         throw "Active runner binding import returned non-JSON output: $($bindingOutput -join [Environment]::NewLine)"

@@ -37,6 +37,9 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         cls.wrapper = text(REPOSITORY / "scripts/deploy_research_worker_upgrade_ssh.ps1")
         cls.installer = text(WORKER / "install-upgrade.sh")
         cls.verifier = text(WORKER / "verify-worker.sh")
+        cls.carry_unit = text(
+            WORKER / "agora-research-dra-crypto-carry-source.service"
+        )
         cls.documentation = text(REPOSITORY / "docs/server-research-worker-v2.md")
 
     def test_control_units_use_only_fixed_control_lane(self) -> None:
@@ -248,6 +251,48 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             "microstructure handoff exporter is not cleanly inactive outside an explicit handoff request",
             self.verifier,
         )
+
+    def test_carry_oneshot_has_effective_timeout_without_lifecycle_authority(self) -> None:
+        unit_lines = self.carry_unit.splitlines()
+        self.assertEqual(unit_lines.count("Type=oneshot"), 1)
+        self.assertEqual(unit_lines.count("Restart=no"), 1)
+        self.assertEqual(unit_lines.count("TimeoutStartSec=30m"), 1)
+        self.assertFalse(any(line.startswith("RuntimeMaxSec=") for line in unit_lines))
+        self.assertNotIn("[Install]", unit_lines)
+        self.assertFalse(any(WORKER.glob("agora-research-dra-crypto-carry*.timer")))
+        self.assertFalse(any(WORKER.glob("agora-research-dra-crypto-carry*.path")))
+
+        for script in (self.installer, self.verifier):
+            with self.subTest(
+                script="installer" if script is self.installer else "verifier"
+            ):
+                self.assertIn(
+                    '[ "$(systemctl show "$CARRY_UNIT" '
+                    '--property=TimeoutStartUSec --value)" = 30min ]',
+                    script,
+                )
+                self.assertIn(
+                    '[ "$(systemctl show "$CARRY_UNIT" '
+                    '--property=RuntimeMaxUSec --value)" = infinity ]',
+                    script,
+                )
+                self.assertIn(
+                    'carry source effective start timeout is not exactly 30 minutes',
+                    script,
+                )
+                self.assertIn(
+                    'carry source retains an effective runtime maximum', script
+                )
+                self.assertIn('systemctl is-enabled "$CARRY_UNIT"', script)
+                self.assertIn('systemctl is-active "$CARRY_UNIT"', script)
+                self.assertIn('--property=MainPID --value', script)
+                for command in ("enable", "enable --now", "start", "restart"):
+                    self.assertNotIn(
+                        f'systemctl {command} "$CARRY_UNIT"', script
+                    )
+
+        self.assertIn("grep -Fxq 'TimeoutStartSec=30m'", self.verifier)
+        self.assertIn("grep -Eq '^RuntimeMaxSec='", self.verifier)
 
     def test_preserve_has_exact_post_install_invariants(self) -> None:
         required = (

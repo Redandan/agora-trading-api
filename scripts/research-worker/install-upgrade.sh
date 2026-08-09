@@ -1019,6 +1019,10 @@ if [ "$install_carry_unit" = true ]; then
   fi
   [ "$(systemctl show "$CARRY_UNIT" --property=MainPID --value)" = 0 ] \
     || fail "carry source unit ended upgrade with a MainPID"
+  [ "$(systemctl show "$CARRY_UNIT" --property=TimeoutStartUSec --value)" = 30min ] \
+    || fail "carry source effective start timeout is not exactly 30 minutes"
+  [ "$(systemctl show "$CARRY_UNIT" --property=RuntimeMaxUSec --value)" = infinity ] \
+    || fail "carry source retains an effective runtime maximum"
 fi
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
   [ "$(readlink "$WORKER_ROOT/current")" = "$preserve_data_current_link" ] \

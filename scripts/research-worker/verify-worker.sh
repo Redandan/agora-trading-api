@@ -1070,6 +1070,12 @@ if [ "$carry_unit_present" = true ]; then
   echo "$carry_unit_text" \
     | grep -Fxq 'ExecStart=/opt/agora-research-worker/current/scripts/research-worker/run-dra-crypto-carry-phase.sh' \
     || fail "carry source does not execute the fixed zero-argument launcher"
+  echo "$carry_unit_text" \
+    | grep -Fxq 'TimeoutStartSec=30m' \
+    || fail "carry source unit text does not freeze the 30-minute start timeout"
+  if echo "$carry_unit_text" | grep -Eq '^RuntimeMaxSec='; then
+    fail "carry source unit retains an ineffective oneshot runtime maximum"
+  fi
   if echo "$carry_unit_text" | grep -Fxq '[Install]'; then
     fail "carry source unit has an Install section"
   fi
@@ -1083,6 +1089,10 @@ if [ "$carry_unit_present" = true ]; then
     || fail "carry source is not oneshot"
   [ "$(systemctl show "$CARRY_UNIT" --property=Restart --value)" = no ] \
     || fail "carry source restart policy is not fail-closed"
+  [ "$(systemctl show "$CARRY_UNIT" --property=TimeoutStartUSec --value)" = 30min ] \
+    || fail "carry source effective start timeout is not exactly 30 minutes"
+  [ "$(systemctl show "$CARRY_UNIT" --property=RuntimeMaxUSec --value)" = infinity ] \
+    || fail "carry source retains an effective runtime maximum"
   [ "$(systemctl show "$CARRY_UNIT" --property=NoNewPrivileges --value)" = yes ] \
     || fail "carry source permits privilege gain"
   [ "$(systemctl show "$CARRY_UNIT" --property=PrivateDevices --value)" = yes ] \

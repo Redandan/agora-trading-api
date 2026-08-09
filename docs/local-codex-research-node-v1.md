@@ -189,6 +189,23 @@ tier. The first passing tier is the sole selected tier. No Local Research
 result, prompt text, or observed magnitude may reorder that list or revive a
 later tier after a simpler tier passes.
 
+### Active-chain health
+
+`scripts/verify_local_research_active_chain.ps1` is the Manager-side read-only
+resume gate. It validates only the current five-task microstructure execution
+chain, their five fixed runner bindings, and the exact Manager diagnostic
+dispatch. It deliberately leaves the slower focused offline test suites to the
+separate implementation or release gate. It never treats historical task
+snapshots as current execution authority and never writes Local roots,
+canonical state, a server, a schedule, OOS, or Trading state.
+
+Historical task input drift is expected after an accepted versioned change:
+those immutable tasks remain evidence of what was authorized at their source
+commit and must not be edited to match the current worktree. Goal resumption is
+blocked only when this explicit active-chain gate fails or canonical state is
+not evidence-ready, not merely because a repository-wide scan finds sealed
+historical hashes that no longer match current files.
+
 ## Operational acceptance gate
 
 The first vertical slice is complete only when:

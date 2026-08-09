@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-dra-crypto-carry-producer-envelope.v1.schema.json",
+  "title": "OKX DRA Crypto Carry Offline Producer Envelope V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "envelope_type",
+    "authorization",
+    "status",
+    "source_label",
+    "source_contract_sha256",
+    "producer_envelope_schema_sha256",
+    "producer_id",
+    "target_day",
+    "generated_at",
+    "inventory",
+    "day",
+    "first_eligible_utc_decision_day",
+    "transport_status",
+    "envelope_seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "OKX_DRA_CRYPTO_CARRY_PRODUCER_ENVELOPE_V1"},
+    "envelope_type": {"const": "OFFLINE_JAVA_PRODUCER_CORE_OUTPUT"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "status": {"const": "OFFLINE_DISABLED_NOT_REGISTERED"},
+    "source_label": {"const": "LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1"},
+    "source_contract_sha256": {"const": "0944ab401717360f6eccc31ab967461af7ebc8122f7b77ee7b1f46eaa8fac48e"},
+    "producer_envelope_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "producer_id": {"const": "OKX_DRA_CRYPTO_CARRY_JAVA_PRODUCER_CORE_V1"},
+    "target_day": {"$ref": "#/$defs/day"},
+    "generated_at": {"$ref": "#/$defs/timestamp"},
+    "inventory": {"$ref": "#/$defs/artifact"},
+    "day": {"$ref": "#/$defs/artifact"},
+    "first_eligible_utc_decision_day": {"$ref": "#/$defs/day"},
+    "transport_status": {"const": "NOT_IMPLEMENTED_CREATE_ONLY_HASH_BOUND_ONE_WAY_DROP"},
+    "envelope_seal": {"$ref": "#/$defs/seal"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "day": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "size_bytes"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1}
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization", "sealed_at"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact sorted-key JSON excluding envelope_seal"},
+        "sealed_at": {"$ref": "#/$defs/timestamp"}
+      }
+    }
+  }
+}

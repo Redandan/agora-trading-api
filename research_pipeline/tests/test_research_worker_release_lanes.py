@@ -35,12 +35,16 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.wrapper = text(REPOSITORY / "scripts/deploy_research_worker_upgrade_ssh.ps1")
+        cls.standalone_verifier = text(
+            REPOSITORY / "scripts/verify_research_worker_ssh.ps1"
+        )
         cls.installer = text(WORKER / "install-upgrade.sh")
         cls.verifier = text(WORKER / "verify-worker.sh")
         cls.carry_unit = text(
             WORKER / "agora-research-dra-crypto-carry-source.service"
         )
         cls.documentation = text(REPOSITORY / "docs/server-research-worker-v2.md")
+        cls.deploy_runbook = text(REPOSITORY / "docs/deploy-runbook.md")
 
     def test_control_units_use_only_fixed_control_lane(self) -> None:
         for name in CONTROL_UNITS:
@@ -362,6 +366,54 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             'binding forward start day is not strictly future for an inactive source',
             self.verifier,
         )
+
+    def test_standalone_verifier_requires_explicit_active_source_expectations(self) -> None:
+        wrapper = self.standalone_verifier
+        self.assertIn(
+            "[string]$ExpectedControlReleaseId = $env:AGORA_RESEARCH_EXPECTED_CONTROL_RELEASE_ID",
+            wrapper,
+        )
+        self.assertIn(
+            "[string]$ExpectedDataReleaseId = $env:AGORA_RESEARCH_EXPECTED_DATA_RELEASE_ID",
+            wrapper,
+        )
+        self.assertIn(
+            "[string]$ExpectMicrostructureSource = $env:AGORA_RESEARCH_EXPECT_MICROSTRUCTURE_SOURCE",
+            wrapper,
+        )
+        self.assertEqual(wrapper.count("^[A-Za-z0-9._-]+$"), 2)
+        self.assertIn(
+            '$ExpectMicrostructureSource -notin @("disabled", "active")', wrapper
+        )
+        self.assertIn(
+            '$intakePreflightFlag = if ($ExpectMicrostructureSource -eq "active") { "1" } else { "0" }',
+            wrapper,
+        )
+        for assignment in (
+            "EXPECTED_CONTROL_RELEASE_ID='$ExpectedControlReleaseId'",
+            "EXPECTED_DATA_RELEASE_ID='$ExpectedDataReleaseId'",
+            "EXPECT_MICROSTRUCTURE_SOURCE='$ExpectMicrostructureSource'",
+            "MICROSTRUCTURE_INTAKE_PREFLIGHT='$intakePreflightFlag'",
+            "EXPECT_TIMER='$ExpectTimer'",
+            "RUN_HEARTBEAT='$runFlag'",
+            "RUN_SOURCE_PROBE='$probeFlag'",
+        ):
+            self.assertIn(assignment, wrapper)
+        self.assertIn("[switch]$RunHeartbeat", wrapper)
+        self.assertIn("[switch]$RunSourceProbe", wrapper)
+        self.assertNotIn("Read-Host", wrapper)
+        self.assertNotIn("readlink", wrapper)
+
+        runbook = self.deploy_runbook
+        self.assertIn("Explicit standalone Research Worker verification", runbook)
+        self.assertIn("-ExpectMicrostructureSource disabled", runbook)
+        self.assertIn("-ExpectMicrostructureSource active", runbook)
+        self.assertIn("is not strictly read-only", runbook)
+        self.assertIn("bounded temporary permission probe", runbook)
+        self.assertIn("cleanup trap", runbook)
+        self.assertIn("does not write canonical research state or Trading state", runbook)
+        self.assertIn("does not prove uninterrupted day completion", runbook)
+        self.assertIn("predictive value, PnL, or drawdown", runbook)
 
     def test_wrapper_runs_exact_verifier_before_provenance_output(self) -> None:
         invocation = (

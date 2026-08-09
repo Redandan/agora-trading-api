@@ -229,6 +229,47 @@ it in a dirty worktree; failure there is intentional, and the task that prepares
 the commit may use only static parser/closure checks. A successful package-only
 result is still not Linux/server/deployment proof.
 
+### Explicit standalone Research Worker verification
+
+The standalone verifier requires the expected control and data release IDs and
+the expected microstructure-source state. The two release IDs are independent
+operator expectations; the wrapper does not discover or infer either value on
+the server. Values may be supplied as parameters or through the dedicated
+`AGORA_RESEARCH_EXPECTED_CONTROL_RELEASE_ID`,
+`AGORA_RESEARCH_EXPECTED_DATA_RELEASE_ID`, and
+`AGORA_RESEARCH_EXPECT_MICROSTRUCTURE_SOURCE` environment variables. Release
+IDs are restricted to letters, digits, dot, underscore, and hyphen.
+
+Verify a worker where the microstructure source must remain disabled:
+
+```powershell
+.\scripts\verify_research_worker_ssh.ps1 `
+  -ExpectedControlReleaseId <control-release-id> `
+  -ExpectedDataReleaseId <data-release-id> `
+  -ExpectMicrostructureSource disabled
+```
+
+Verify a worker where the microstructure source must be active:
+
+```powershell
+.\scripts\verify_research_worker_ssh.ps1 `
+  -ExpectedControlReleaseId <control-release-id> `
+  -ExpectedDataReleaseId <data-release-id> `
+  -ExpectMicrostructureSource active
+```
+
+Active-source verification also enables the verifier's fixed microstructure
+intake preflight. The full verifier is not strictly read-only: it creates one
+bounded temporary permission probe below the fixed microstructure drop,
+freezes the probe metadata, checks that the source cannot read, modify, rename,
+or delete the frozen probe, and removes only that probe through its cleanup trap.
+This probe does not write canonical research state or Trading state.
+`RunHeartbeat` and `RunSourceProbe` remain off unless explicitly requested.
+
+A successful verification establishes the requested release identities and
+source-state contract at that instant. It does not prove uninterrupted day completion,
+predictive value, PnL, or drawdown.
+
 ### Current Cloud Ops V7 same-chat contract
 
 Repository preparation alone does not activate `CLOUD_OPS_SCHEDULE_V7`.

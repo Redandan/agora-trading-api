@@ -1,0 +1,113 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-research-worker-active-source-explicit-verification-v2",
+  "task_sha256": "5090a5ae786f357420cb24682192715769d332666883caa9f74bf7a98453c3b2",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-09T10:20:00Z",
+  "completed_at": "2026-08-09T10:33:32Z",
+  "source_git_commit": "b6bb180eff69f8b5a99e384dba1de3a7ad8950d1",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": true,
+  "summary": "ACTIVE_SOURCE_EXPLICIT_VERIFIER_SOURCE_READY_FOR_MANAGER_VALIDATION. Exactly three authorized files implement explicit control/data release expectations, fail-closed disabled-or-active microstructure-source routing, active-only intake preflight, preserved timer/heartbeat/source-probe controls, focused offline assertions, and accurate disclosure that the full verifier uses a bounded temporary permission probe and therefore is not strictly read-only. No remote verifier, SSH, server, systemd, heartbeat, source probe, deployment, state, schedule, OOS, or Trading action was executed.",
+  "checks": [
+    {
+      "name": "MANAGER_SEMANTIC_VALIDATION_RECEIPT",
+      "status": "PASS",
+      "evidence": "Authoritative receipt reports VALID for task SHA 5090a5ae786f357420cb24682192715769d332666883caa9f74bf7a98453c3b2 and dispatch SHA 10ca8036d17c4fefcdb74e5d4dde90c6daf210b5434af16559796080188cbb65."
+    },
+    {
+      "name": "NATIVE_PREFLIGHT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Independently rehashed exact task and dispatch, verified canonical 14-stop hash c02a8f47a2bc223381a8369e24c805da3c0775b6ec9f96ba84498832d111b2bb, 16 non-null repository inputs across 19 unique safe locators, and sealed V1 task/dispatch/result inputs."
+    },
+    {
+      "name": "SOURCE_IDENTITY",
+      "status": "PASS",
+      "evidence": "Branch, HEAD, and local origin all matched codex/autonomous-research-control-plane-v3 at b6bb180eff69f8b5a99e384dba1de3a7ad8950d1; worktree was clean before editing."
+    },
+    {
+      "name": "POWERSHELL_AST",
+      "status": "PASS",
+      "evidence": "scripts/verify_research_worker_ssh.ps1 parsed successfully through the native PowerShell AST parser without execution."
+    },
+    {
+      "name": "EXPLICIT_RELEASE_BINDING",
+      "status": "PASS",
+      "evidence": "Wrapper requires independently supplied control and data release IDs, restricts both to A-Z/a-z/0-9/dot/underscore/hyphen, and forwards exact EXPECTED_CONTROL_RELEASE_ID and EXPECTED_DATA_RELEASE_ID values without remote discovery."
+    },
+    {
+      "name": "EXPLICIT_SOURCE_ROUTING",
+      "status": "PASS",
+      "evidence": "Absent, blank, or unsupported source expectation fails before SSH; only disabled or active is accepted, and MICROSTRUCTURE_INTAKE_PREFLIGHT is 1 only for active and 0 for disabled."
+    },
+    {
+      "name": "EXISTING_CONTROLS_PRESERVED",
+      "status": "PASS",
+      "evidence": "EXPECT_TIMER remains explicit; RunHeartbeat and RunSourceProbe remain switches whose default routed values are 0. No Read-Host or readlink discovery was introduced."
+    },
+    {
+      "name": "VERIFIER_EFFECT_DISCLOSURE",
+      "status": "PASS",
+      "evidence": "Runbook provides separate disabled/active commands, states the verifier is not strictly read-only, and documents the fixed-drop bounded probe, metadata freeze, negative source-access checks, cleanup trap, and absence of canonical research or Trading-state writes."
+    },
+    {
+      "name": "FOCUSED_TEST_SOURCE",
+      "status": "PASS",
+      "evidence": "Focused release-lane assertions bind dedicated environment defaults, release-ID alphabet, source-state routing, all forwarded variables, noninteractive behavior, disclosure text, and scientific/performance limits."
+    },
+    {
+      "name": "FOCUSED_PYTHON_EXECUTION",
+      "status": "MISSING_PROOF",
+      "evidence": "Local Python/jsonschema execution was unavailable in the sandbox. The focused test suite was not run and remains MISSING_PROOF_MANAGER_PENDING; no permission was requested and no substitute validator was created."
+    },
+    {
+      "name": "EXACT_THREE_FILE_SCOPE",
+      "status": "PASS",
+      "evidence": "Git reports only docs/deploy-runbook.md, research_pipeline/tests/test_research_worker_release_lanes.py, and scripts/verify_research_worker_ssh.ps1 modified; verify-worker.sh and every fourth path remain unchanged."
+    },
+    {
+      "name": "DIFF_AND_STATIC_CONTRACT",
+      "status": "PASS",
+      "evidence": "git diff --check passed. Static contract checks found every required forwarded variable and disclosure phrase and found no interactive or remote-discovery token."
+    },
+    {
+      "name": "RESULT_EXECUTABLE_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "The result was shaped directly against research_pipeline/local-research-result.schema.json, but executable result/dispatch validation remains MISSING_PROOF_MANAGER_PENDING."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "scripts/verify_research_worker_ssh.ps1",
+      "sha256": "0e061c5a88f438dd3d11806897e37b97359fa6e21d41b6f1f6c687614e81db2a"
+    },
+    {
+      "path": "research_pipeline/tests/test_research_worker_release_lanes.py",
+      "sha256": "9eb554098ad829dedf4f7dd1c9c1c0fcbd02d529204482890e4a077bf5f8919f"
+    },
+    {
+      "path": "docs/deploy-runbook.md",
+      "sha256": "b73b575ba75d6c0d5965a8f1e0d009b393a1ef20ba7e4f2c046b135dc6dade6c"
+    }
+  ],
+  "files_changed": [
+    "scripts/verify_research_worker_ssh.ps1",
+    "research_pipeline/tests/test_research_worker_release_lanes.py",
+    "docs/deploy-runbook.md"
+  ],
+  "uncertainty": [
+    "Focused Python tests and executable result validation remain Manager-pending.",
+    "No SSH/server/systemd execution proved installed release identities, effective source state, liveness, probe cleanup, or runtime permissions.",
+    "Uninterrupted day completion, predictive value, PnL, drawdown, OOS suitability, and economic value remain MISSING_PROOF."
+  ],
+  "recommended_next_action": "Manager should rehash the three artifacts, run the official result/dispatch validators and the focused offline release-lane test module in the provisioned Python environment, and review the exact three-file diff. Any later server verification must be a separately authorized noninteractive operation using explicit release IDs and source expectation; do not deploy or mutate lifecycle, schedule, canonical state, or Trading state in this task.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

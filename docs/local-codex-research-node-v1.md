@@ -80,6 +80,31 @@ requires the full mandatory prohibition set, a SHA-256 link from result to task,
 zero changed files for `READ_ONLY`, and zero candidate variants for
 `CAPABILITY_READINESS`.
 
+### Runtime-neutral Local preflight
+
+Manager/Coach owns semantic validation. Before dispatch it must run the
+authoritative task and performance-dispatch validators and deliver their exact
+`VALID` receipt together with the task SHA-256, dispatch SHA-256, stop-condition
+count and hash, branch, and clean `HEAD` / local-origin commit. After Local
+returns, Manager/Coach must run the authoritative result and transitive-closure
+validators. These two Manager gates are never delegated or skipped.
+
+Local does not need a runnable Python validator to execute an otherwise valid
+bounded assignment. When Python is unavailable, Local may use native read-only
+host capabilities to re-hash the committed task, dispatch, every non-null input,
+and the Manager receipt; it must also verify the exact branch, `HEAD`, local
+origin, clean worktree, repository containment, regular-file type, non-link /
+non-reparse status, and authorized execution scope. Any mismatch remains an
+immediate zero-change stop.
+
+This split avoids a second schema implementation and does not weaken the task
+contract. Local must not infer a missing receipt, correct frozen bytes, install
+a validator, or replace semantic validation with native JSON parsing. The
+accepted runtime-neutral proof is
+`local-node-local-native-hash-preflight-audit-v1`, whose Manager-validated
+result is stored at
+`research_pipeline/examples/local-research-result.local-native-hash-preflight-audit.v1.json`.
+
 Validate a task before dispatch:
 
 ```text

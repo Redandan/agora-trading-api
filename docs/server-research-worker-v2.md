@@ -41,11 +41,13 @@ both server write operations return
 `WORKER_RELEASE_INTEGRITY_BLOCKED` before touching either queue. This never adds
 a new MCP operation or exposes a server filesystem path.
 
-The same status exposes the active frozen `CLOUD_OPS_SCHEDULE_V6` contract, its
-unchanged `09:00 Asia/Taipei` canonical heartbeat due boundary, the sole
-`09:05 Asia/Taipei` cloud recurrence, the 300-second nominal dispatch margin,
-and its byte-level SHA-256. The two write operations require that hash in the
-`ops_schedule_contract_sha256` argument. A missing or changed contract returns
+The same status exposes the active server-canonical frozen
+`CLOUD_OPS_SCHEDULE_V7` contract, its unchanged `09:00 Asia/Taipei` canonical
+heartbeat due boundary, the intended sole `09:05 Asia/Taipei` cloud recurrence,
+the 300-second nominal dispatch margin, and its byte-level SHA-256. The V6
+contract remains immutable predecessor evidence. The two write operations
+require the V7 hash in the `ops_schedule_contract_sha256` argument. A missing or
+changed contract returns
 `OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED`; a missing or mismatched caller
 attestation returns `OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED`. Both outcomes
 occur before the request or companion evidence-capture queues are touched.
@@ -564,15 +566,17 @@ The systemd path unit is an event consumer, not an additional schedule.
 
 ## Prepared same-chat Coach delivery V7
 
-The deployed and canonical contract remains `CURRENT_ACTIVE_V6`. The repository
-contains lifecycle-neutral frozen document `CLOUD_OPS_SCHEDULE_V7` with
+Fresh server-canonical status reports `CLOUD_OPS_SCHEDULE_V7` `READY`, and the
+deployed Worker accepts only that V7 attestation. An authenticated platform
+readback on 2026-08-09 found the predecessor V6 task paused in a different
+ChatGPT Work conversation and zero active recurrences. The repository contains
+the lifecycle-neutral frozen document `CLOUD_OPS_SCHEDULE_V7` with
 `document_status=FROZEN` and exact SHA-256
 `426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
-Its repository rollout state is externally `PREPARED_NOT_ACTIVE_V7`; canonical
-activation is separately proven and never requires editing the frozen V7 bytes.
-The Worker must reject V7 attestation until a separately reviewed implementation
-and deployment make canonical status report that exact V7 id and hash. This
-repository preparation does not modify the MCP or queue implementation.
+Its platform rollout state remains externally `PREPARED_NOT_ACTIVE_V7`: no
+same-Coach-chat V7 recurrence has been bound or activated. Platform activation
+is separately proven and never requires editing the frozen V7 bytes. The paused
+V6 task must not be updated or resumed as V7.
 
 V7 retains the V6 Research MCP operation set and all server-side outbox state:
 artifact SHA-256 delivery id, exact token prefix, maximum eight five-field
@@ -596,8 +600,8 @@ resetting its clock.
 Cutover never permits two active schedules. An in-place destination change is
 eligible only with platform proof of atomic retargeting and one active schedule.
 Otherwise V6 is paused and proven inactive before V7 activation; rollback
-pauses and proves V7 inactive before V6 resumes. Server attestation code,
-deployment, platform binding, active-schedule readback, prior-context access,
-Turn-N render, Turn-N+1 receipt acceptance, deduplication and live SLA outcome
-remain `MISSING_PROOF`. The current pending event keeps its original deadline
-and may correctly seal `BREACH`.
+pauses and proves V7 inactive before V6 resumes. Server attestation code and
+deployment are proven; platform binding, active-schedule readback, prior-context
+access, Turn-N render, Turn-N+1 receipt acceptance, deduplication and live SLA
+outcome remain `MISSING_PROOF`. The current pending event keeps its original
+deadline and may correctly seal `BREACH`.

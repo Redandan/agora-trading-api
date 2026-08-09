@@ -169,7 +169,7 @@ class CloudOpsSameChatDeliveryContractTest(unittest.TestCase):
             )
         )
 
-    def test_prompt_is_hash_bound_and_stops_on_current_v6(self) -> None:
+    def test_prompt_is_hash_bound_and_retains_v6_fail_closed_guard(self) -> None:
         self.assertIn("CLOUD_OPS_SCHEDULE_V7", self.prompt)
         self.assertIn(V7_SHA256, self.prompt)
         self.assertNotIn(
@@ -187,12 +187,18 @@ class CloudOpsSameChatDeliveryContractTest(unittest.TestCase):
 
     def test_docs_freeze_document_and_external_rollout_state(self) -> None:
         for content in self.docs:
-            self.assertIn("CURRENT_ACTIVE_V6", content)
-            self.assertIn("PREPARED_NOT_ACTIVE_V7", content)
-            self.assertIn("`document_status=FROZEN`", content)
+            self.assertIn("CLOUD_OPS_SCHEDULE_V7", content)
             self.assertIn(V7_SHA256, content)
             self.assertIn("MISSING_PROOF", content)
+            self.assertNotIn("CURRENT_ACTIVE_V6", content)
+            self.assertNotIn("reports the frozen `CLOUD_OPS_SCHEDULE_V6`", content)
+            self.assertNotIn("active frozen `CLOUD_OPS_SCHEDULE_V6`", content)
             self.assertNotIn("V7 is active", content)
+        for content in self.docs[1:]:
+            self.assertIn("PREPARED_NOT_ACTIVE_V7", content)
+            self.assertIn("`document_status=FROZEN`", content)
+            self.assertIn("zero active recurrences", content)
+            self.assertIn("updated or resumed as V7", content)
         self.assertEqual(6, len(EXACT_FILES))
         self.assertEqual(6, len(set(EXACT_FILES)))
 

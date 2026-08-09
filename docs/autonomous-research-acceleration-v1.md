@@ -115,13 +115,14 @@ provenance is an integrity blocker, not permission to continue from local
 assumptions. Both MCP write operations enforce this before any queue mutation;
 the cloud prompt is not the only guard.
 
-Canonical status also reports the frozen `CLOUD_OPS_SCHEDULE_V6` id, the
-platform recurrence `09:05 Asia/Taipei`, the unchanged canonical due boundary
-`09:00 Asia/Taipei`, the 300-second nominal dispatch margin, and byte-level
-SHA-256. V1 through V5 remain immutable history. V6 prevents a small platform
-early-fire from consuming the only daily call before the server due boundary;
-it does not permit an early heartbeat or add a catch-up timer. Each heartbeat
-and candidate submission must attest the active exact hash. Missing or altered
+Canonical status also reports the frozen `CLOUD_OPS_SCHEDULE_V7` id, the
+intended platform recurrence `09:05 Asia/Taipei`, the unchanged canonical due
+boundary `09:00 Asia/Taipei`, the 300-second nominal dispatch margin, and
+byte-level SHA-256. V1 through V6 remain immutable history. V7 preserves the V6
+margin that prevents a small platform early-fire from consuming the only daily
+call before the server due boundary; it does not permit an early heartbeat or
+add a catch-up timer. Each heartbeat and candidate submission must attest the
+active server-canonical exact hash. Missing or altered
 contract bytes and a stale/missing attestation
 fail before either the research request queue or companion capture queue is
 created. The live schedule definition is read back after a contract change,
@@ -279,13 +280,18 @@ database query, or backfill.
 
 ## Prepared same-chat delivery successor
 
-The direct cross-task path remains `CURRENT_ACTIVE_V6`. The versioned successor
-is lifecycle-neutral frozen document `CLOUD_OPS_SCHEDULE_V7` with
+Fresh server-canonical status reports `CLOUD_OPS_SCHEDULE_V7` `READY` with the
+exact hash below, and the deployed Worker accepts only that V7 attestation. An
+authenticated platform readback on 2026-08-09 found the predecessor V6 task
+paused in a different ChatGPT Work conversation and zero active recurrences.
+The versioned V7 contract remains the lifecycle-neutral frozen document
+`CLOUD_OPS_SCHEDULE_V7` with
 `document_status=FROZEN` and exact SHA-256
 `426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
-Its repository rollout state is externally `PREPARED_NOT_ACTIVE_V7`; it cannot
-be attested or used while canonical status still reports V6. Canonical
-activation is separately proven outside the document and never edits V7 bytes.
+Its platform rollout state remains `PREPARED_NOT_ACTIVE_V7`: no same-Coach-chat
+V7 recurrence has been bound or activated. Platform activation is separately
+proven outside the document and never edits V7 bytes. The paused V6 task must
+not be updated or resumed as V7.
 
 V7 is designed to return the sole scheduled run to the existing Coach chat and
 reuse only that chat's prior assistant context. Turn N reads fresh canonical
@@ -298,12 +304,13 @@ altered, user-quoted, Scheduled-inbox-only, notification-only, or inferred
 context keeps the event pending and permits at most one exact rerender that
 turn. Queue/deadline timestamps never reset.
 
-This preserves one clock, Server Canonical, hash deduplication, next-normal-
+This design preserves one clock, Server Canonical, hash deduplication, next-normal-
 heartbeat acknowledgement, and the 10,800-second `PASS`/`BREACH` measure while
 removing the cross-task tool dependency from the prepared design. It has zero
-immediate PnL and drawdown effect. Server attestation implementation, Worker
-deployment, same-chat binding, one-active-schedule readback, unattended context
-visibility, Turn-N render, Turn-N+1 receipt acceptance, live deduplication,
-SLA result, and any quantified learning-latency benefit remain `MISSING_PROOF`.
+immediate PnL and drawdown effect. Server attestation implementation and Worker
+deployment are proven; same-chat binding, one-active-schedule readback,
+unattended context visibility, Turn-N render, Turn-N+1 receipt acceptance, live
+deduplication, SLA result, and any quantified learning-latency benefit remain
+`MISSING_PROOF`.
 The current pending event retains its existing deadline and is not promised a
 `PASS`.

@@ -79,7 +79,7 @@
     "RECOMMENDED_NEXT_ACTION"
   ],
   "stop_conditions": [
-    "Before editing, re-hash exact task/dispatch bytes and every non-null input; prove the Manager-provided dispatch commit equals clean branch HEAD and local origin at 7f65494c8dc273108c3aa8c12fef0888f3e95534, every input is a regular non-link/non-reparse file, locators are unique, and scripts/deploy_research_worker_upgrade_ssh.ps1 is the sole authorized target. Any drift is BLOCKED.",
+    "Before editing, re-hash exact task/dispatch bytes and every non-null input; prove the Manager-provided dispatch commit equals clean branch HEAD and local origin and contains frozen implementation baseline 7f65494c8dc273108c3aa8c12fef0888f3e95534 as an ancestor, every input is a regular non-link/non-reparse file, locators are unique, and scripts/deploy_research_worker_upgrade_ssh.ps1 is the sole authorized target. Any drift is BLOCKED.",
     "Change exactly one path: scripts/deploy_research_worker_upgrade_ssh.ps1. Modify no other tracked byte and create no ignored output.",
     "Add one explicit IncludeCarryDistribution switch. It is valid only when PackageOnly is also present and must reject every non-PackageOnly use before host, key, release staging, Maven, SSH or SCP. PackageOnly without the switch and every ordinary non-PackageOnly invocation must retain the existing microstructure-only package behavior.",
     "When IncludeCarryDistribution is false, preserve the exact committed roots, top-level package inventory, microstructure profile, microstructure distribution path, manifest/archive/roundtrip proof and output semantics. Do not silently alter the current release uploaded by ordinary upgrades.",

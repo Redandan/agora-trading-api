@@ -25,6 +25,17 @@ MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3"
 LEGACY_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
 LEGACY_MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
 LEGACY_MICROSTRUCTURE_PRESERVATION="$DATA_ROOT/microstructure-v3-cutover/legacy-v2.sha256"
+CARRY_USER=agora-dra-carry-source
+CARRY_GROUP=agora-dra-carry-publish
+CARRY_UNIT=agora-research-dra-crypto-carry-source.service
+CARRY_BINDING=/etc/agora-research/okx-dra-crypto-carry-source-v2.json
+CARRY_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v2"
+CARRY_ROOT=/var/lib/agora-dra-carry-source
+CARRY_PRIVATE="$CARRY_ROOT/dra-crypto-carry-v2-private"
+CARRY_INVENTORY_STAGING="$CARRY_ROOT/dra-crypto-carry-v2-inventory-staging"
+CARRY_INVENTORY_DROP="$CARRY_ROOT/dra-crypto-carry-v2-inventory-drop"
+CARRY_DAY_STAGING="$CARRY_ROOT/dra-crypto-carry-v2-day-staging"
+CARRY_DAY_DROP="$CARRY_ROOT/dra-crypto-carry-v2-day-drop"
 
 fail() { echo "[research-worker-upgrade] FAIL: $*" >&2; exit 1; }
 ok() { echo "[research-worker-upgrade] OK: $*"; }
@@ -79,6 +90,22 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] && [ "$microstructure_active" = active ]
 fi
 if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
   fail "microstructure source has a lingering failed state; explicit read-only review and reset-failed are required before upgrade"
+fi
+carry_unit_preexisting=false
+if systemctl cat "$CARRY_UNIT" >/dev/null 2>&1; then
+  carry_unit_preexisting=true
+  case "$(systemctl is-enabled "$CARRY_UNIT" 2>/dev/null || true)" in
+    enabled|enabled-runtime|linked|linked-runtime|alias)
+      fail "carry source unit must be disabled before upgrade"
+      ;;
+  esac
+  [ "$(systemctl is-active "$CARRY_UNIT" 2>/dev/null || true)" = inactive ] \
+    || fail "carry source unit must be inactive before upgrade"
+  if systemctl is-failed --quiet "$CARRY_UNIT" 2>/dev/null; then
+    fail "carry source has a lingering failed state; explicit review is required before upgrade"
+  fi
+  [ "$(systemctl show "$CARRY_UNIT" --property=MainPID --value)" = 0 ] \
+    || fail "carry source unit must not have a MainPID before upgrade"
 fi
 binding_present=false
 if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
@@ -359,12 +386,26 @@ from pathlib import Path, PurePosixPath
 import re
 import stat
 import sys
+import zipfile
 
 root = Path(sys.argv[1])
 manifest = Path(sys.argv[2])
 source_roots = {"research_pipeline", "research_mcp", "research_source", "research"}
 expected_top = source_roots | {"docs", "scripts", "target"}
 dist_jar = "agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar"
+carry_dist_jar = "agora-trading-api-1.0-SNAPSHOT-dra-crypto-carry-research.jar"
+carry_libraries = {
+    "jackson-annotations-2.18.3.jar": "8aa5740d80b5a5025508b41bbadbaa1fb3772267c628b2e30681a4f45f8b8931",
+    "jackson-core-2.18.3.jar": "056bc4d3e5e53ce821450fa97b3f9e0f8dde125cf6da6884353bb1f09582e1d9",
+    "jackson-databind-2.18.3.jar": "510bdda75a7a6186c5bf33b851239488a1450906ae5757121f2e1cc48a7e108f",
+}
+carry_families = {
+    "OkxDraCryptoCarryForwardSource",
+    "OkxDraCryptoCarryProducerEnvelopeV2",
+    "OkxDraCryptoCarryCanonicalDropV2",
+    "OkxDraCryptoCarryNetworkDeniedIntakeV2",
+    "OkxDraCryptoCarryPhaseCli",
+}
 
 
 def fail(message: str) -> None:
@@ -405,7 +446,10 @@ def allowed(relative: str) -> bool:
         return True
     if parts[:2] == ("scripts", "research-worker"):
         return True
-    return parts[:2] == ("target", "microstructure-dist")
+    return parts[:2] in {
+        ("target", "microstructure-dist"),
+        ("target", "dra-crypto-carry-dist"),
+    }
 
 
 for required_path in (
@@ -413,6 +457,7 @@ for required_path in (
     "scripts/research-worker/x",
     "target",
     "target/microstructure-dist/x",
+    "target/dra-crypto-carry-dist/x",
     "docs",
     "docs/autonomous-research-charter.md",
 ):
@@ -447,16 +492,25 @@ if {entry.name for entry in top_entries} != expected_top:
 if any(entry.is_symlink() or not entry.is_dir(follow_symlinks=False) for entry in top_entries):
     fail("staged package top level must contain regular directories only")
 exact_directory(root / "scripts", {"research-worker"}, "scripts inventory")
-exact_directory(root / "target", {"microstructure-dist"}, "target inventory")
+target_names = {entry.name for entry in os.scandir(root / "target")}
+if target_names == {"microstructure-dist"}:
+    dual_package = False
+elif target_names == {"microstructure-dist", "dra-crypto-carry-dist"}:
+    dual_package = True
+else:
+    fail("target inventory is neither the frozen micro-only nor dual closure")
 exact_directory(
     root / "docs",
     {"autonomous-research-charter.md"},
     "documentation inventory",
 )
-for required_directory in (
+required_directories = [
     root / "scripts" / "research-worker",
     root / "target" / "microstructure-dist",
-):
+]
+if dual_package:
+    required_directories.append(root / "target" / "dra-crypto-carry-dist")
+for required_directory in required_directories:
     details = required_directory.lstat()
     if stat.S_ISLNK(details.st_mode) or not stat.S_ISDIR(details.st_mode):
         fail(f"staged package path is not a regular directory: {required_directory.name}")
@@ -487,6 +541,39 @@ patterns = (
 )
 if any(re.fullmatch(pattern, name) is None for pattern, name in zip(patterns, library_names)):
     fail("microstructure distribution contains unexpected libraries")
+
+if dual_package:
+    carry_dist = root / "target" / "dra-crypto-carry-dist"
+    exact_directory(carry_dist, {carry_dist_jar, "lib"}, "carry distribution root")
+    carry_jar = carry_dist / carry_dist_jar
+    carry_lib = carry_dist / "lib"
+    for path, expected_type in ((carry_jar, stat.S_ISREG), (carry_lib, stat.S_ISDIR)):
+        details = path.lstat()
+        if stat.S_ISLNK(details.st_mode) or not expected_type(details.st_mode):
+            fail("carry distribution entry type is invalid")
+    carry_library_paths = {path.name: path for path in carry_lib.iterdir()}
+    if set(carry_library_paths) != set(carry_libraries):
+        fail("carry Jackson inventory is not exact")
+    for name, path in carry_library_paths.items():
+        details = path.lstat()
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            fail("carry Jackson dependency is not a regular file")
+        if hashlib.sha256(path.read_bytes()).hexdigest() != carry_libraries[name]:
+            fail("carry Jackson dependency hash mismatch")
+    with zipfile.ZipFile(carry_jar) as archive:
+        carry_classes = {name for name in archive.namelist() if name.endswith(".class")}
+    if any(name.startswith("BOOT-INF/") for name in carry_classes):
+        fail("carry classifier contains BOOT-INF")
+    for name in carry_classes:
+        if not any(
+            name == f"com/agora/research/{family}.class"
+            or name.startswith(f"com/agora/research/{family}$")
+            for family in carry_families
+        ):
+            fail(f"unexpected carry class: {name}")
+    for family in carry_families:
+        if f"com/agora/research/{family}.class" not in carry_classes:
+            fail(f"missing carry class family: {family}")
 
 files: dict[str, Path] = {}
 directories: set[str] = set()
@@ -534,6 +621,12 @@ for relative, expected in listed.items():
     if hashlib.sha256(files[relative].read_bytes()).hexdigest() != expected:
         fail(f"source manifest hash mismatch: {relative}")
 PY
+carry_package=false
+if [ -d "$SOURCE_DIR/target/dra-crypto-carry-dist" ]; then
+  carry_package=true
+  [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \
+    || fail "dual carry package is forbidden in preserve-bound-data-plane mode"
+fi
 [ -f "$SOURCE_DIR/research_pipeline/policy.v3.json" ] || fail "V3 policy missing"
 [ -f "$SOURCE_DIR/scripts/research-worker/research-mcp-requirements.lock" ] || fail "MCP lock missing"
 [ -s "$SOURCE_MANIFEST" ] || fail "source manifest missing"
@@ -550,6 +643,39 @@ require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-forward-day.v3.
   205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709
 require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
   7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a
+
+if [ "$carry_package" = true ]; then
+  require_sha256 "$SOURCE_DIR/research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v2.json" \
+    183eeb35dc4729ff91970e4b892f141f58452abfa350591888587ce01035e4ad
+  require_sha256 "$SOURCE_DIR/research_pipeline/okx-dra-crypto-carry-producer-envelope.v2.schema.json" \
+    814fbef9722dcdd2a6dac8c56e159c1a34e7c2db559c306709c0c393e05230ee
+  require_sha256 "$SOURCE_DIR/research_pipeline/okx-dra-crypto-carry-inventory-drop-envelope.v2.schema.json" \
+    59e85d80aa4d2188af57872b7a2731881c85fd949fd7378c8a75cbff4dcdb196
+  require_sha256 "$SOURCE_DIR/research_pipeline/okx-dra-crypto-carry-drop-envelope.v2.schema.json" \
+    a438ba041e0ac80e3757f842659f2afa14b701c9a94034b1f59dffa5e2aa0563
+  require_sha256 "$SOURCE_DIR/research_pipeline/okx-dra-crypto-carry-intake-state.v2.schema.json" \
+    2c8af00a076616ffc25b95a2709bde1d4b6b7efb5899240e50d7c9f9322060d8
+
+  if ! getent group "$CARRY_GROUP" >/dev/null; then
+    sudo groupadd --system "$CARRY_GROUP"
+  fi
+  if ! id -u "$CARRY_USER" >/dev/null 2>&1; then
+    sudo useradd --system --no-create-home --home-dir /nonexistent \
+      --shell /usr/sbin/nologin --gid "$CARRY_GROUP" "$CARRY_USER"
+  fi
+fi
+if [ "$carry_package" = true ] || [ "$carry_unit_preexisting" = true ]; then
+  id -u "$CARRY_USER" >/dev/null 2>&1 \
+    || fail "carry source identity is missing"
+  getent group "$CARRY_GROUP" >/dev/null \
+    || fail "carry publisher group is missing"
+  [ "$(id -gn "$CARRY_USER")" = "$CARRY_GROUP" ] \
+    || fail "carry source identity primary group is not exact"
+  mapfile -t carry_identity_groups < <(id -nG "$CARRY_USER" | tr ' ' '\n' | sort -u)
+  [ "${#carry_identity_groups[@]}" = 1 ] \
+    && [ "${carry_identity_groups[0]}" = "$CARRY_GROUP" ] \
+    || fail "carry source identity has unexpected supplementary groups"
+fi
 
 MICROSTRUCTURE_DIST="$SOURCE_DIR/target/microstructure-dist"
 MICROSTRUCTURE_JAR="$MICROSTRUCTURE_DIST/agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar"
@@ -638,6 +764,13 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
   sudo install -d -o root -g "$EVIDENCE_GROUP" -m 1770 "$MICROSTRUCTURE_DROP"
   sudo install -d -o "$WORKER_USER" -g "$WORKER_GROUP" -m 0700 \
     "$MICROSTRUCTURE_STATE"
+  if [ "$carry_package" = true ]; then
+    sudo install -d -o root -g "$CARRY_GROUP" -m 0710 "$CARRY_ROOT"
+    sudo install -d -o "$CARRY_USER" -g "$CARRY_GROUP" -m 0700 \
+      "$CARRY_PRIVATE" "$CARRY_INVENTORY_STAGING" "$CARRY_DAY_STAGING"
+    sudo install -d -o root -g "$CARRY_GROUP" -m 1770 \
+      "$CARRY_INVENTORY_DROP" "$CARRY_DAY_DROP"
+  fi
 fi
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \
     && [ ! -f "$DATA_ROOT/auth/enrollment-consumed" ] \
@@ -808,6 +941,10 @@ PY
   ok "existing microstructure intake state exactly validated without overwrite"
 fi
 
+install_carry_unit=false
+if [ "$carry_package" = true ] || [ "$carry_unit_preexisting" = true ]; then
+  install_carry_unit=true
+fi
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
   units_to_install=(
     agora-research-heartbeat.service
@@ -826,6 +963,9 @@ else
     agora-research-microstructure-intake.path
     agora-research-microstructure-handoff-export.service
   )
+fi
+if [ "$install_carry_unit" = true ]; then
+  units_to_install+=("$CARRY_UNIT")
 fi
 for unit in "${units_to_install[@]}"; do
   sudo install -o root -g root -m 0644 \
@@ -846,6 +986,9 @@ sudo systemd-analyze verify \
   /etc/systemd/system/agora-research-microstructure-intake.service \
   /etc/systemd/system/agora-research-microstructure-intake.path \
   /etc/systemd/system/agora-research-microstructure-handoff-export.service
+if [ "$install_carry_unit" = true ]; then
+  sudo systemd-analyze verify "/etc/systemd/system/$CARRY_UNIT"
+fi
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
   sudo systemctl enable --now agora-research-mcp.service agora-research-dispatch.path >/dev/null
 else
@@ -862,6 +1005,20 @@ case "$(systemctl is-enabled "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)" in
 esac
 if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
   fail "microstructure source ended upgrade in a failed state"
+fi
+if [ "$install_carry_unit" = true ]; then
+  case "$(systemctl is-enabled "$CARRY_UNIT" 2>/dev/null || true)" in
+    enabled|enabled-runtime|linked|linked-runtime|alias)
+      fail "carry source unit became enabled"
+      ;;
+  esac
+  [ "$(systemctl is-active "$CARRY_UNIT" 2>/dev/null || true)" = inactive ] \
+    || fail "carry source unit did not remain inactive"
+  if systemctl is-failed --quiet "$CARRY_UNIT" 2>/dev/null; then
+    fail "carry source unit ended upgrade in a failed state"
+  fi
+  [ "$(systemctl show "$CARRY_UNIT" --property=MainPID --value)" = 0 ] \
+    || fail "carry source unit ended upgrade with a MainPID"
 fi
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
   [ "$(readlink "$WORKER_ROOT/current")" = "$preserve_data_current_link" ] \
@@ -970,4 +1127,9 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
 else
   ok "main, public-source, and network-denied ingest paths active; server timer disabled"
   ok "microstructure intake path active; producer source unit disabled and inactive"
+  if [ "$carry_package" = true ]; then
+    ok "carry capability installed with dedicated identity; source unit is disabled, inactive, unfailed, unbound, and unregistered"
+  elif [ "$carry_unit_preexisting" = true ]; then
+    ok "previously installed carry unit refreshed without activation; no carry readiness claim"
+  fi
 fi

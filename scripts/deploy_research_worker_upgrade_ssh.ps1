@@ -12,8 +12,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-if ($IncludeCarryDistribution -and -not $PackageOnly) {
-    throw "IncludeCarryDistribution is valid only with PackageOnly."
+if ($IncludeCarryDistribution -and $PreserveBoundDataPlane) {
+    throw "IncludeCarryDistribution is unavailable in preserve-bound-data-plane mode."
 }
 if (-not $PackageOnly) {
     if ([string]::IsNullOrWhiteSpace($SshHost) -or $SshHost.StartsWith("-") -or $SshHost -notmatch "^[A-Za-z0-9][A-Za-z0-9._@:-]*$") {

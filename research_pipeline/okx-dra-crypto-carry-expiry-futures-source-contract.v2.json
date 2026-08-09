@@ -1,0 +1,136 @@
+{
+  "schema_version": "2",
+  "contract_id": "OKX_DRA_CRYPTO_CARRY_EXPIRY_FUTURES_SOURCE_V2",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "document_status": "OFFLINE_DISABLED_NOT_REGISTERED",
+  "source_label": "LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1",
+  "source_identity": "agora-dra-carry-source",
+  "source_group": "agora-dra-carry-publish",
+  "intake_identity": "agora-research",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "state_authority": "SERVER_CANONICAL",
+  "clock": {
+    "timezone": "Asia/Taipei",
+    "single_cloud_cycle": "09:05:00",
+    "prepare_inventory": "D_MINUS_1_01_05_UTC",
+    "inventory_acceptance_deadline": "STRICTLY_BEFORE_D_00_00_UTC",
+    "finalize_day": "D_PLUS_1_01_05_UTC",
+    "complete_day_acceptance_deadline": "STRICTLY_BEFORE_D_PLUS_1_06_00_UTC",
+    "first_eligible_utc_decision": "D_PLUS_2",
+    "retry": "DENY",
+    "backfill": "DENY"
+  },
+  "phases": [
+    {
+      "operation": "PREPARE_INVENTORY",
+      "publication": "INVENTORY_ONLY_CREATE_ONCE",
+      "accepted_state": "INVENTORY_ACCEPTED",
+      "required_child": "V1_INVENTORY_FULL_FILE_BYTES"
+    },
+    {
+      "operation": "FINALIZE_DAY",
+      "publication": "COMPLETE_DAY_CREATE_ONCE",
+      "accepted_state": "DAY_ACCEPTED",
+      "required_children": [
+        "EXACT_ACCEPTED_V1_INVENTORY_FULL_FILE_BYTES",
+        "V1_DAY_FULL_FILE_BYTES",
+        "V1_PRODUCER_ENVELOPE_FULL_FILE_BYTES"
+      ],
+      "required_predecessor": "EXACT_INVENTORY_ACCEPTED_STATE_SHA256"
+    }
+  ],
+  "v1_child_lineage": {
+    "source_contract": {
+      "path": "research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v1.json",
+      "sha256": "0944ab401717360f6eccc31ab967461af7ebc8122f7b77ee7b1f46eaa8fac48e"
+    },
+    "inventory_schema": {
+      "path": "research_pipeline/okx-dra-crypto-carry-expiry-futures-inventory.v1.schema.json",
+      "sha256": "8dd38f2ea2e73f236f56416aa1db86f6f82818ed7d8a9f69738b194c1965b340"
+    },
+    "day_schema": {
+      "path": "research_pipeline/okx-dra-crypto-carry-basis-atoms-day.v1.schema.json",
+      "sha256": "1028d4b6f53cae6ad096038142173b650726fe744d358c2c16c7c57bc32dd8d8"
+    },
+    "producer_envelope_schema": {
+      "path": "research_pipeline/okx-dra-crypto-carry-producer-envelope.v1.schema.json",
+      "sha256": "e39263edd8362e91722134aefd11ee04f76def8b4d409aa01f396a2a481ea6d5"
+    },
+    "drop_envelope_schema": {
+      "path": "research_pipeline/okx-dra-crypto-carry-drop-envelope.v1.schema.json",
+      "sha256": "c3881cfc36f79168efd41a579fdb4f8e207fee0ca33b15b2e0b39c1e6bd43ee0"
+    },
+    "producer_id": "OKX_DRA_CRYPTO_CARRY_JAVA_PRODUCER_CORE_V1",
+    "source_identity": "agora-evidence-source",
+    "identity_semantics": "IMMUTABLE_CHILD_EVIDENCE_NOT_V2_AUTHORITY"
+  },
+  "schemas": {
+    "producer_envelope": {
+      "path": "research_pipeline/okx-dra-crypto-carry-producer-envelope.v2.schema.json",
+      "id": "https://agora.local/research/okx-dra-crypto-carry-producer-envelope.v2.schema.json",
+      "sha256": "814fbef9722dcdd2a6dac8c56e159c1a34e7c2db559c306709c0c393e05230ee"
+    },
+    "inventory_drop_envelope": {
+      "path": "research_pipeline/okx-dra-crypto-carry-inventory-drop-envelope.v2.schema.json",
+      "id": "https://agora.local/research/okx-dra-crypto-carry-inventory-drop-envelope.v2.schema.json",
+      "sha256": "59e85d80aa4d2188af57872b7a2731881c85fd949fd7378c8a75cbff4dcdb196"
+    },
+    "day_drop_envelope": {
+      "path": "research_pipeline/okx-dra-crypto-carry-drop-envelope.v2.schema.json",
+      "id": "https://agora.local/research/okx-dra-crypto-carry-drop-envelope.v2.schema.json",
+      "sha256": "a438ba041e0ac80e3757f842659f2afa14b701c9a94034b1f59dffa5e2aa0563"
+    },
+    "intake_state": {
+      "path": "research_pipeline/okx-dra-crypto-carry-intake-state.v2.schema.json",
+      "id": "https://agora.local/research/okx-dra-crypto-carry-intake-state.v2.schema.json",
+      "sha256": "2c8af00a076616ffc25b95a2709bde1d4b6b7efb5899240e50d7c9f9322060d8"
+    }
+  },
+  "transport": {
+    "mode": "CREATE_ONLY_ATOMIC_TWO_PHASE_ONE_WAY_DROP",
+    "roots": "EXISTING_DISTINCT_PHASE_NAMED_INTERNAL_BINDING_ONLY",
+    "same_filesystem": true,
+    "symlinks": "DENY",
+    "overwrite": "DENY",
+    "publisher_read_after_publish": "DENY",
+    "delete_repair_or_retry": "DENY",
+    "source_canonical_state_access": "DENY",
+    "intake_network_access": "DENY",
+    "intake_drop_write_access": "DENY"
+  },
+  "canonicalization": {
+    "parent_envelopes": "UTF-8 compact sorted-key JSON including envelope_seal",
+    "intake_state": "UTF-8 compact sorted-key JSON including state_seal",
+    "child_transport": "UNCHANGED_FULL_FILE_BYTES",
+    "hash_algorithm": "SHA-256"
+  },
+  "forbidden_derived_fields": [
+    "basis",
+    "carry",
+    "annualization",
+    "funding",
+    "tenor",
+    "maturity_preference",
+    "roll",
+    "liquidity",
+    "threshold",
+    "signal",
+    "return",
+    "pnl",
+    "drawdown"
+  ],
+  "readiness": {
+    "package_profile": false,
+    "cli_or_main": false,
+    "service_or_timer": false,
+    "source_registered": false,
+    "capture_authorized": false,
+    "canonical_integration": false,
+    "hypothesis_authorized": false,
+    "candidate_authorized": false,
+    "oos_authorized": false,
+    "trading_authorized": false,
+    "immediate_performance_effect": "ZERO",
+    "immediate_drawdown_effect": "ZERO"
+  }
+}

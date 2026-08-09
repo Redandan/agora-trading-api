@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-dra-crypto-carry-producer-envelope.v2.schema.json",
+  "title": "OKX DRA Crypto Carry Two-Phase Parent Envelope V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "envelope_type",
+    "authorization",
+    "status",
+    "phase",
+    "source_label",
+    "source_contract_sha256",
+    "producer_envelope_schema_sha256",
+    "source_identity",
+    "source_group",
+    "intake_identity",
+    "target_day",
+    "generated_at",
+    "v1_child_lineage",
+    "inventory",
+    "day",
+    "v1_producer_envelope",
+    "accepted_inventory_state_sha256",
+    "first_eligible_utc_decision_day",
+    "envelope_seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "OKX_DRA_CRYPTO_CARRY_PRODUCER_ENVELOPE_V2"},
+    "envelope_type": {"const": "OFFLINE_TWO_PHASE_PARENT_OVER_IMMUTABLE_V1_CHILDREN"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "status": {"const": "OFFLINE_DISABLED_NOT_REGISTERED"},
+    "phase": {"enum": ["INVENTORY_PREPARED", "DAY_FINALIZED"]},
+    "source_label": {"const": "LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1"},
+    "source_contract_sha256": {"$ref": "#/$defs/sha256"},
+    "producer_envelope_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "source_identity": {"const": "agora-dra-carry-source"},
+    "source_group": {"const": "agora-dra-carry-publish"},
+    "intake_identity": {"const": "agora-research"},
+    "target_day": {"$ref": "#/$defs/day"},
+    "generated_at": {"$ref": "#/$defs/timestamp"},
+    "v1_child_lineage": {"$ref": "#/$defs/v1_lineage"},
+    "inventory": {"$ref": "#/$defs/inventory_artifact"},
+    "day": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/day_artifact"}]},
+    "v1_producer_envelope": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/producer_artifact"}]},
+    "accepted_inventory_state_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/nonzero_sha256"}]},
+    "first_eligible_utc_decision_day": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/day"}]},
+    "envelope_seal": {"$ref": "#/$defs/seal"}
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "phase": {"const": "INVENTORY_PREPARED"},
+        "day": {"type": "null"},
+        "v1_producer_envelope": {"type": "null"},
+        "accepted_inventory_state_sha256": {"type": "null"},
+        "first_eligible_utc_decision_day": {"type": "null"}
+      }
+    },
+    {
+      "properties": {
+        "phase": {"const": "DAY_FINALIZED"},
+        "day": {"$ref": "#/$defs/day_artifact"},
+        "v1_producer_envelope": {"$ref": "#/$defs/producer_artifact"},
+        "accepted_inventory_state_sha256": {"$ref": "#/$defs/nonzero_sha256"},
+        "first_eligible_utc_decision_day": {"$ref": "#/$defs/day"}
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonzero_sha256": {"type": "string", "pattern": "^(?!0{64}$)[0-9a-f]{64}$"},
+    "day": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "v1_lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_contract_sha256", "inventory_schema_sha256", "day_schema_sha256", "producer_envelope_schema_sha256", "drop_envelope_schema_sha256", "producer_id", "source_identity"],
+      "properties": {
+        "source_contract_sha256": {"const": "0944ab401717360f6eccc31ab967461af7ebc8122f7b77ee7b1f46eaa8fac48e"},
+        "inventory_schema_sha256": {"const": "8dd38f2ea2e73f236f56416aa1db86f6f82818ed7d8a9f69738b194c1965b340"},
+        "day_schema_sha256": {"const": "1028d4b6f53cae6ad096038142173b650726fe744d358c2c16c7c57bc32dd8d8"},
+        "producer_envelope_schema_sha256": {"const": "e39263edd8362e91722134aefd11ee04f76def8b4d409aa01f396a2a481ea6d5"},
+        "drop_envelope_schema_sha256": {"const": "c3881cfc36f79168efd41a579fdb4f8e207fee0ca33b15b2e0b39c1e6bd43ee0"},
+        "producer_id": {"const": "OKX_DRA_CRYPTO_CARRY_JAVA_PRODUCER_CORE_V1"},
+        "source_identity": {"const": "agora-evidence-source"}
+      }
+    },
+    "base_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256", "size_bytes", "hash_scope", "schema_version", "schema_sha256", "source_contract_sha256"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "hash_scope": {"const": "FULL_FILE_BYTES"},
+        "schema_version": {"type": "string", "minLength": 1},
+        "schema_sha256": {"$ref": "#/$defs/sha256"},
+        "source_contract_sha256": {"const": "0944ab401717360f6eccc31ab967461af7ebc8122f7b77ee7b1f46eaa8fac48e"}
+      }
+    },
+    "inventory_artifact": {
+      "allOf": [
+        {"$ref": "#/$defs/base_artifact"},
+        {"properties": {
+          "name": {"pattern": "^okx-dra-crypto-carry-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.inventory\\.json$"},
+          "schema_version": {"const": "OKX_DRA_CRYPTO_CARRY_EXPIRY_FUTURES_INVENTORY_V1"},
+          "schema_sha256": {"const": "8dd38f2ea2e73f236f56416aa1db86f6f82818ed7d8a9f69738b194c1965b340"}
+        }}
+      ]
+    },
+    "day_artifact": {
+      "allOf": [
+        {"$ref": "#/$defs/base_artifact"},
+        {"properties": {
+          "name": {"pattern": "^okx-dra-crypto-carry-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.day\\.json$"},
+          "schema_version": {"const": "OKX_DRA_CRYPTO_CARRY_BASIS_ATOMS_DAY_V1"},
+          "schema_sha256": {"const": "1028d4b6f53cae6ad096038142173b650726fe744d358c2c16c7c57bc32dd8d8"}
+        }}
+      ]
+    },
+    "producer_artifact": {
+      "allOf": [
+        {"$ref": "#/$defs/base_artifact"},
+        {"properties": {
+          "name": {"pattern": "^okx-dra-crypto-carry-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.producer-envelope\\.json$"},
+          "schema_version": {"const": "OKX_DRA_CRYPTO_CARRY_PRODUCER_ENVELOPE_V1"},
+          "schema_sha256": {"const": "e39263edd8362e91722134aefd11ee04f76def8b4d409aa01f396a2a481ea6d5"}
+        }}
+      ]
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization", "sealed_at"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact sorted-key JSON excluding envelope_seal"},
+        "sealed_at": {"$ref": "#/$defs/timestamp"}
+      }
+    }
+  }
+}

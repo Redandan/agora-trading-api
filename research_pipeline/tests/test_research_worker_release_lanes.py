@@ -436,6 +436,22 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn("PACKAGE_ONLY=COMPLETE_NO_NETWORK", section)
         self.assertIn("return", section)
 
+    def test_runbook_freezes_opt_in_dual_distribution_package_only(self) -> None:
+        command = (
+            ".\\scripts\\deploy_research_worker_upgrade_ssh.ps1 "
+            "-PackageOnly -IncludeCarryDistribution"
+        )
+        self.assertIn(command, self.deploy_runbook)
+        self.assertIn("`target/microstructure-dist`", self.deploy_runbook)
+        self.assertIn("`target/dra-crypto-carry-dist`", self.deploy_runbook)
+        self.assertIn("`PACKAGE_ONLY=COMPLETE_NO_NETWORK`", self.deploy_runbook)
+        self.assertIn("does not\ninstall a release", self.deploy_runbook)
+        self.assertIn("start or enable the inactive carry\noneshot", self.deploy_runbook)
+        self.assertIn(
+            "Omitting\n`-IncludeCarryDistribution` deliberately retains the microstructure-only",
+            self.deploy_runbook,
+        )
+
     def test_documentation_freezes_the_two_lane_boundary(self) -> None:
         self.assertIn("## Immutable dual release lanes", self.documentation)
         self.assertIn("`control-current`", self.documentation)

@@ -229,6 +229,22 @@ it in a dirty worktree; failure there is intentional, and the task that prepares
 the commit may use only static parser/closure checks. A successful package-only
 result is still not Linux/server/deployment proof.
 
+When the reviewed release intentionally includes the frozen DRA crypto-carry
+producer bytes, run the opt-in dual-distribution closure instead:
+
+```powershell
+.\scripts\deploy_research_worker_upgrade_ssh.ps1 -PackageOnly -IncludeCarryDistribution
+```
+
+This builds and verifies both `target/microstructure-dist` and
+`target/dra-crypto-carry-dist`, requires their exact jars and identical pinned
+Jackson byte inventory, and still exits with
+`PACKAGE_ONLY=COMPLETE_NO_NETWORK` before any host or key is used. It does not
+install a release, create a carry binding, start or enable the inactive carry
+oneshot, change canonical state, or authorize strategy execution. Omitting
+`-IncludeCarryDistribution` deliberately retains the microstructure-only
+package closure.
+
 ### Explicit standalone Research Worker verification
 
 The standalone verifier requires the expected control and data release IDs and

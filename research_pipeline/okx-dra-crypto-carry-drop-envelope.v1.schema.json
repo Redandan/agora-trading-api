@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-dra-crypto-carry-drop-envelope.v1.schema.json",
+  "title": "OKX DRA Crypto Carry Offline Drop Envelope V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "envelope_type",
+    "authorization",
+    "status",
+    "source_label",
+    "source_contract_sha256",
+    "producer_id",
+    "producer_envelope_schema_sha256",
+    "drop_envelope_schema_sha256",
+    "source_identity",
+    "intake_identity",
+    "target_day",
+    "first_eligible_utc_decision_day",
+    "capture_deadline_utc",
+    "published_at",
+    "predecessor",
+    "files",
+    "delivery_semantics",
+    "idempotency_key",
+    "envelope_seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "OKX_DRA_CRYPTO_CARRY_DROP_ENVELOPE_V1"},
+    "envelope_type": {"const": "IMMUTABLE_ONE_WAY_DRA_CRYPTO_CARRY_DAY"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "status": {"const": "OFFLINE_DISABLED_NOT_DEPLOYED"},
+    "source_label": {"const": "LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1"},
+    "source_contract_sha256": {"const": "0944ab401717360f6eccc31ab967461af7ebc8122f7b77ee7b1f46eaa8fac48e"},
+    "producer_id": {"const": "OKX_DRA_CRYPTO_CARRY_JAVA_PRODUCER_CORE_V1"},
+    "producer_envelope_schema_sha256": {"const": "e39263edd8362e91722134aefd11ee04f76def8b4d409aa01f396a2a481ea6d5"},
+    "drop_envelope_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "source_identity": {"const": "agora-evidence-source"},
+    "intake_identity": {"const": "agora-research"},
+    "target_day": {"$ref": "#/$defs/day"},
+    "first_eligible_utc_decision_day": {"$ref": "#/$defs/day"},
+    "capture_deadline_utc": {"$ref": "#/$defs/timestamp"},
+    "published_at": {"$ref": "#/$defs/timestamp"},
+    "predecessor": {"$ref": "#/$defs/predecessor"},
+    "files": {"$ref": "#/$defs/files"},
+    "delivery_semantics": {"$ref": "#/$defs/delivery"},
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^DRA_CRYPTO_CARRY:[0-9]{4}-[0-9]{2}-[0-9]{2}:[0-9a-f]{64}:[0-9a-f]{64}$"
+    },
+    "envelope_seal": {"$ref": "#/$defs/seal"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "day": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "predecessor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "day", "drop_envelope_sha256"],
+          "properties": {
+            "type": {"const": "GENESIS"},
+            "day": {"type": "null"},
+            "drop_envelope_sha256": {"const": "0000000000000000000000000000000000000000000000000000000000000000"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "day", "drop_envelope_sha256"],
+          "properties": {
+            "type": {"const": "CHAIN"},
+            "day": {"$ref": "#/$defs/day"},
+            "drop_envelope_sha256": {
+              "type": "string",
+              "pattern": "^(?!0{64}$)[0-9a-f]{64}$"
+            }
+          }
+        }
+      ]
+    },
+    "inventory_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256", "size_bytes", "hash_scope"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^okx-dra-crypto-carry-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.inventory\\.json$"
+        },
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "hash_scope": {"const": "FULL_FILE_BYTES"}
+      }
+    },
+    "day_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256", "size_bytes", "hash_scope"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^okx-dra-crypto-carry-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.day\\.json$"
+        },
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "hash_scope": {"const": "FULL_FILE_BYTES"}
+      }
+    },
+    "producer_envelope_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256", "size_bytes", "hash_scope"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^okx-dra-crypto-carry-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.producer-envelope\\.json$"
+        },
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "hash_scope": {"const": "FULL_FILE_BYTES"}
+      }
+    },
+    "drop_envelope_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256", "size_bytes", "hash_scope"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^okx-dra-crypto-carry-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.drop-envelope\\.json$"
+        },
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "hash_scope": {"const": "CANONICAL_PAYLOAD_EXCLUDING_SELF_DESCRIPTOR_AND_ENVELOPE_SEAL"}
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inventory", "day", "producer_envelope", "drop_envelope"],
+      "properties": {
+        "inventory": {"$ref": "#/$defs/inventory_file"},
+        "day": {"$ref": "#/$defs/day_file"},
+        "producer_envelope": {"$ref": "#/$defs/producer_envelope_file"},
+        "drop_envelope": {"$ref": "#/$defs/drop_envelope_file"}
+      }
+    },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "atomic_rename",
+        "overwrite",
+        "publisher_read_after_publish",
+        "symlinks",
+        "existing_roots_only",
+        "same_filesystem",
+        "reservation_required",
+        "intake_network_access",
+        "intake_write_access",
+        "canonical_state_access",
+        "retry",
+        "backfill"
+      ],
+      "properties": {
+        "transport": {"const": "DRA_CRYPTO_CARRY_CREATE_ONLY_ATOMIC_ONE_WAY_DROP"},
+        "atomic_rename": {"const": true},
+        "overwrite": {"const": false},
+        "publisher_read_after_publish": {"const": false},
+        "symlinks": {"const": false},
+        "existing_roots_only": {"const": true},
+        "same_filesystem": {"const": true},
+        "reservation_required": {"const": true},
+        "intake_network_access": {"const": false},
+        "intake_write_access": {"const": false},
+        "canonical_state_access": {"const": false},
+        "retry": {"const": false},
+        "backfill": {"const": false}
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization", "sealed_at"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact sorted-key JSON excluding files.drop_envelope and envelope_seal"},
+        "sealed_at": {"$ref": "#/$defs/timestamp"}
+      }
+    }
+  }
+}

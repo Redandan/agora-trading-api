@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-dra-crypto-carry-basis-atoms-day.v1.schema.json",
+  "title": "OKX DRA Crypto Carry Basis Atoms Day V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "authorization",
+    "source_label",
+    "source_contract_sha256",
+    "inventory_schema_sha256",
+    "day_schema_sha256",
+    "inventory_sha256",
+    "target_day",
+    "scheduled_cycle_at",
+    "captured_at",
+    "first_eligible_utc_decision_day",
+    "requests",
+    "expected_instrument_count",
+    "observed_instrument_count",
+    "cache_order_semantics",
+    "futures",
+    "index",
+    "eligibility",
+    "day_seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "OKX_DRA_CRYPTO_CARRY_BASIS_ATOMS_DAY_V1"},
+    "document_type": {"const": "COMPLETE_CONFIRMED_TARGET_DAY_RAW_ATOMS"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "source_label": {"const": "LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1"},
+    "source_contract_sha256": {"$ref": "#/$defs/sha256"},
+    "inventory_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "day_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "inventory_sha256": {"$ref": "#/$defs/sha256"},
+    "target_day": {"$ref": "#/$defs/day"},
+    "scheduled_cycle_at": {"$ref": "#/$defs/timestamp"},
+    "captured_at": {"$ref": "#/$defs/timestamp"},
+    "first_eligible_utc_decision_day": {"$ref": "#/$defs/day"},
+    "requests": {"$ref": "#/$defs/requests"},
+    "expected_instrument_count": {"type": "integer", "minimum": 1},
+    "observed_instrument_count": {"type": "integer", "minimum": 1},
+    "cache_order_semantics": {"const": "VALIDATE_COMPLETE_SET_THEN_SORT_BY_FROZEN_INST_ID"},
+    "futures": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/futures_atom"}
+    },
+    "index": {"$ref": "#/$defs/index_atom"},
+    "eligibility": {"$ref": "#/$defs/eligibility"},
+    "day_seal": {"$ref": "#/$defs/seal"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "day": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "millis": {"type": "string", "pattern": "^(?:0|[1-9][0-9]*)$"},
+    "positive_decimal": {"type": "string", "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$"},
+    "nonnegative_decimal": {"type": "string", "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+    "requests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["futures", "index"],
+      "properties": {
+        "futures": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "origin", "path", "instId", "bar", "credentials"],
+          "properties": {
+            "method": {"const": "GET"},
+            "origin": {"const": "https://www.okx.com"},
+            "path": {"const": "/api/v5/market/candles"},
+            "instId": {"const": "INVENTORY_DERIVED_ONLY"},
+            "bar": {"const": "1Dutc"},
+            "credentials": {"const": "NONE"}
+          }
+        },
+        "index": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "origin", "path", "instId", "bar", "credentials"],
+          "properties": {
+            "method": {"const": "GET"},
+            "origin": {"const": "https://www.okx.com"},
+            "path": {"const": "/api/v5/market/index-candles"},
+            "instId": {"const": "BTC-USDT"},
+            "bar": {"const": "1Dutc"},
+            "credentials": {"const": "NONE"}
+          }
+        }
+      }
+    },
+    "futures_atom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instId", "row"],
+      "properties": {
+        "instId": {"type": "string", "pattern": "^BTC-USDT-[0-9]{6}$"},
+        "row": {
+          "type": "array",
+          "prefixItems": [
+            {"$ref": "#/$defs/millis"},
+            {"$ref": "#/$defs/positive_decimal"},
+            {"$ref": "#/$defs/positive_decimal"},
+            {"$ref": "#/$defs/positive_decimal"},
+            {"$ref": "#/$defs/positive_decimal"},
+            {"$ref": "#/$defs/nonnegative_decimal"},
+            {"$ref": "#/$defs/nonnegative_decimal"},
+            {"$ref": "#/$defs/nonnegative_decimal"},
+            {"const": "1"}
+          ],
+          "items": false,
+          "minItems": 9,
+          "maxItems": 9
+        }
+      }
+    },
+    "index_atom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instId", "row"],
+      "properties": {
+        "instId": {"const": "BTC-USDT"},
+        "row": {
+          "type": "array",
+          "prefixItems": [
+            {"$ref": "#/$defs/millis"},
+            {"$ref": "#/$defs/positive_decimal"},
+            {"$ref": "#/$defs/positive_decimal"},
+            {"$ref": "#/$defs/positive_decimal"},
+            {"$ref": "#/$defs/positive_decimal"},
+            {"const": "1"}
+          ],
+          "items": false,
+          "minItems": 6,
+          "maxItems": 6
+        }
+      }
+    },
+    "eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_day_use", "d_plus_1_use", "first_eligible_utc_decision_day", "retroactive_admission", "late_retry", "backfill", "partial_day_salvage"],
+      "properties": {
+        "target_day_use": {"const": "DENY_LEAKAGE"},
+        "d_plus_1_use": {"const": "DENY_CAPTURE_AFTER_DECISION"},
+        "first_eligible_utc_decision_day": {"$ref": "#/$defs/day"},
+        "retroactive_admission": {"const": "DENY"},
+        "late_retry": {"const": "DENY"},
+        "backfill": {"const": "DENY"},
+        "partial_day_salvage": {"const": "DENY"}
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization", "sealed_at"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact sorted-key JSON excluding day_seal"},
+        "sealed_at": {"$ref": "#/$defs/timestamp"}
+      }
+    }
+  }
+}

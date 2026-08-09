@@ -1,0 +1,163 @@
+{
+  "schema_version": "1",
+  "contract_id": "OKX_DRA_CRYPTO_CARRY_EXPIRY_FUTURES_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "document_status": "OFFLINE_DISABLED_NOT_REGISTERED",
+  "selected_source_label": "LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1",
+  "rejected_source_labels": [
+    "LAGGED_OKX_BTC_USDT_PERPETUAL_FUNDING_STATE_V1"
+  ],
+  "source_identity": {
+    "venue": "OKX",
+    "inst_family": "BTC-USDT",
+    "underlying": "BTC-USDT",
+    "instrument_type": "FUTURES",
+    "contract_type": "linear",
+    "settlement_currency": "USDT",
+    "rule_type": "normal",
+    "instrument_state": "live",
+    "mode": "FORWARD_ONLY",
+    "credentials": "NONE",
+    "source_origin": "https://www.okx.com"
+  },
+  "requests": {
+    "inventory": {
+      "method": "GET",
+      "origin": "https://www.okx.com",
+      "path": "/api/v5/public/instruments",
+      "query": {
+        "instType": "FUTURES",
+        "instFamily": "BTC-USDT"
+      }
+    },
+    "futures_candles": {
+      "method": "GET",
+      "origin": "https://www.okx.com",
+      "path": "/api/v5/market/candles",
+      "instId": "INVENTORY_DERIVED_ONLY",
+      "bar": "1Dutc"
+    },
+    "index_candles": {
+      "method": "GET",
+      "origin": "https://www.okx.com",
+      "path": "/api/v5/market/index-candles",
+      "instId": "BTC-USDT",
+      "bar": "1Dutc"
+    }
+  },
+  "clock": {
+    "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+    "cloud_schedule_count": 1,
+    "timezone": "Asia/Taipei",
+    "local_cycle_time": "09:05:00",
+    "inventory_cycle": "D_MINUS_1",
+    "target_day_capture_cycle": "D_PLUS_1",
+    "capture_deadline_utc": "06:00:00Z",
+    "first_eligible_utc_decision": "D_PLUS_2",
+    "target_day_use": "DENY_LEAKAGE",
+    "d_plus_1_use": "DENY_CAPTURE_AFTER_DECISION",
+    "retry_after_deadline": "DENY",
+    "backfill": "DENY"
+  },
+  "inventory_policy": {
+    "required_raw_fields": [
+      "instId",
+      "instType",
+      "instFamily",
+      "uly",
+      "ctType",
+      "settleCcy",
+      "state",
+      "ruleType",
+      "listTime",
+      "expTime"
+    ],
+    "minimum_instrument_count": 1,
+    "unique_identity": "instId",
+    "list_time_rule": "NO_LATER_THAN_CAPTURE",
+    "expiry_rule": "STRICTLY_AFTER_TARGET_DAY_END",
+    "alias": "FORBIDDEN",
+    "inferred_maturity_label": "FORBIDDEN",
+    "ordering": "VALIDATE_SET_THEN_SORT_BY_INST_ID"
+  },
+  "day_policy": {
+    "futures_raw_row": ["ts", "o", "h", "l", "c", "vol", "volCcy", "volCcyQuote", "confirm"],
+    "index_raw_row": ["ts", "o", "h", "l", "c", "confirm"],
+    "timestamp": "TARGET_DAY_00_00_00Z",
+    "confirm": "1",
+    "coverage": "EXACT_FROZEN_INVENTORY_NO_MISSING_NO_EXTRAS",
+    "index_identity": "BTC-USDT",
+    "cache_order": "NEVER_INFER_FRESHNESS_FROM_RESPONSE_ORDER",
+    "ordering": "VALIDATE_COMPLETE_SET_THEN_SORT_BY_FROZEN_INST_ID"
+  },
+  "schemas": {
+    "inventory": {
+      "path": "research_pipeline/okx-dra-crypto-carry-expiry-futures-inventory.v1.schema.json",
+      "id": "https://agora.local/research/okx-dra-crypto-carry-expiry-futures-inventory.v1.schema.json",
+      "sha256": "8dd38f2ea2e73f236f56416aa1db86f6f82818ed7d8a9f69738b194c1965b340"
+    },
+    "day": {
+      "path": "research_pipeline/okx-dra-crypto-carry-basis-atoms-day.v1.schema.json",
+      "id": "https://agora.local/research/okx-dra-crypto-carry-basis-atoms-day.v1.schema.json",
+      "sha256": "1028d4b6f53cae6ad096038142173b650726fe744d358c2c16c7c57bc32dd8d8"
+    }
+  },
+  "canonicalization": {
+    "inventory_document": "UTF-8 compact sorted-key JSON including inventory_seal",
+    "inventory_payload": "UTF-8 compact sorted-key JSON excluding inventory_seal",
+    "day_document": "UTF-8 compact sorted-key JSON including day_seal",
+    "day_payload": "UTF-8 compact sorted-key JSON excluding day_seal",
+    "hash_algorithm": "SHA-256"
+  },
+  "transport_and_authority": {
+    "future_source_status": "NOT_IMPLEMENTED",
+    "source_network_scope": "FIXED_CREDENTIAL_FREE_ORIGIN_ONLY",
+    "drop_transport": "FUTURE_CREATE_ONLY_HASH_BOUND_ONE_WAY_DROP",
+    "canonical_intake_network_access": "DENY",
+    "state_authority": "SERVER_CANONICAL",
+    "source_canonical_state_access": "DENY",
+    "source_canonical_state_write": "DENY",
+    "research_worker_network_access": "DENY",
+    "trading_runtime_access": "DENY",
+    "database_access": "DENY",
+    "order_or_fund_access": "DENY"
+  },
+  "caller_overrides": {
+    "url": "DENY",
+    "host": "DENY",
+    "path": "DENY",
+    "symbol": "DENY",
+    "family": "DENY",
+    "bar": "DENY",
+    "date": "DENY",
+    "output": "DENY",
+    "retry": "DENY"
+  },
+  "forbidden_derived_fields": [
+    "basis",
+    "carry",
+    "annualization",
+    "funding",
+    "tenor",
+    "maturity_preference",
+    "roll",
+    "liquidity",
+    "threshold",
+    "signal",
+    "return",
+    "pnl",
+    "drawdown"
+  ],
+  "readiness": {
+    "source_registered": false,
+    "producer_implemented": false,
+    "intake_implemented": false,
+    "capture_authorized": false,
+    "hypothesis_authorized": false,
+    "candidate_authorized": false,
+    "oos_authorized": false,
+    "trading_authorized": false,
+    "immediate_performance_effect": "ZERO",
+    "immediate_drawdown_effect": "ZERO"
+  }
+}

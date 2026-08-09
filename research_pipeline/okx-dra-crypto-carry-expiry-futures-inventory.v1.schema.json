@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-dra-crypto-carry-expiry-futures-inventory.v1.schema.json",
+  "title": "OKX DRA Crypto Carry Expiry Futures Inventory V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "authorization",
+    "source_label",
+    "source_contract_sha256",
+    "target_day",
+    "scheduled_cycle_at",
+    "captured_at",
+    "request",
+    "inventory_count",
+    "instruments",
+    "inventory_seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "OKX_DRA_CRYPTO_CARRY_EXPIRY_FUTURES_INVENTORY_V1"},
+    "document_type": {"const": "PRIOR_CYCLE_EXPIRY_FUTURES_INVENTORY"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "source_label": {"const": "LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1"},
+    "source_contract_sha256": {"$ref": "#/$defs/sha256"},
+    "target_day": {"$ref": "#/$defs/day"},
+    "scheduled_cycle_at": {"$ref": "#/$defs/timestamp"},
+    "captured_at": {"$ref": "#/$defs/timestamp"},
+    "request": {"$ref": "#/$defs/inventory_request"},
+    "inventory_count": {"type": "integer", "minimum": 1},
+    "instruments": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/instrument"}
+    },
+    "inventory_seal": {"$ref": "#/$defs/seal"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "day": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "inventory_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "origin", "path", "query", "credentials"],
+      "properties": {
+        "method": {"const": "GET"},
+        "origin": {"const": "https://www.okx.com"},
+        "path": {"const": "/api/v5/public/instruments"},
+        "query": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["instType", "instFamily"],
+          "properties": {
+            "instType": {"const": "FUTURES"},
+            "instFamily": {"const": "BTC-USDT"}
+          }
+        },
+        "credentials": {"const": "NONE"}
+      }
+    },
+    "instrument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instId",
+        "instType",
+        "instFamily",
+        "uly",
+        "ctType",
+        "settleCcy",
+        "state",
+        "ruleType",
+        "listTime",
+        "expTime"
+      ],
+      "properties": {
+        "instId": {"type": "string", "pattern": "^BTC-USDT-[0-9]{6}$"},
+        "instType": {"const": "FUTURES"},
+        "instFamily": {"const": "BTC-USDT"},
+        "uly": {"const": "BTC-USDT"},
+        "ctType": {"const": "linear"},
+        "settleCcy": {"const": "USDT"},
+        "state": {"const": "live"},
+        "ruleType": {"const": "normal"},
+        "listTime": {"type": "string", "pattern": "^[0-9]+$"},
+        "expTime": {"type": "string", "pattern": "^[0-9]+$"}
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization", "sealed_at"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact sorted-key JSON excluding inventory_seal"},
+        "sealed_at": {"$ref": "#/$defs/timestamp"}
+      }
+    }
+  }
+}

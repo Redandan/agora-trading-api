@@ -1,0 +1,52 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-utc-day-3pct-shock-diagnostic-vertical-slice-v1",
+  "task_sha256": "d65795e5208ebf7f5472c36eff720461d03170e72ad01b8751f1dd6f214abfb8",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T06:20:00Z",
+  "completed_at": "2026-08-10T06:35:36Z",
+  "source_git_commit": "dc6c820d4132e8827335dbc95bc9aa77515fe5d3",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": true,
+  "summary": "SHOCK_DIAGNOSTIC_SOURCE_READY_FOR_MANAGER_VALIDATION. Implemented the exact four-path offline vertical slice: a closed Draft 2020-12 diagnostic schema, deterministic R1 shock-attribution builder/sealer, forward-only heartbeat child integration, and 13 focused temporary-fixture tests. Manager-reported fixture failures were corrected without weakening production validation: CONTEXT_ONLY activation is now valid but later than receipt, heartbeat tests isolate the unrelated microstructure monitor, and the event-order test activates the contract before receiving its target day. No real heartbeat, evidence, canonical state, network, OOS, or Trading action occurred.",
+  "checks": [
+    {"name":"TASK_DISPATCH_AND_SOURCE_PREFLIGHT","status":"PASS","evidence":"Independent native checks matched task SHA d65795e5208ebf7f5472c36eff720461d03170e72ad01b8751f1dd6f214abfb8, dispatch SHA 9239401a6e2d90fa85085c0a7d0c4e607a97757296ba94fc07f6aa853f8d85e5, branch, clean pre-edit HEAD/origin dc6c820d4132e8827335dbc95bc9aa77515fe5d3, 14-stop seal and all frozen input hashes/types."},
+    {"name":"EXACT_FOUR_FILE_SCOPE","status":"PASS","evidence":"Final status contains only heartbeat.py plus the three authorized new files; staged diff is empty and no fifth path changed."},
+    {"name":"CLOSED_SCHEMA_STATIC_VALIDATION","status":"PASS","evidence":"PowerShell parsed the schema JSON; it is closed and binds exact R1 identity, 3.00% threshold, causal references, path metrics, eligibility and UNKNOWN-safe guardrails."},
+    {"name":"SCHEMA_HASH_BINDING","status":"PASS","evidence":"Schema SHA-256 4892456b848951237436538af429f083ca70c497d70cdef7ca5cf2bae1e01ef1 exactly matches the validator constant."},
+    {"name":"FORWARD_ONLY_HEARTBEAT_INTEGRATION","status":"PASS","evidence":"Static review confirms heartbeat activation is persisted once, pre-activation target receipts remain CONTEXT_ONLY, and only post-activation qualifying artifacts can emit the existing MATERIAL_LEARNING event."},
+    {"name":"FOCUSED_FIXTURE_CORRECTIONS","status":"PASS","evidence":"Only test_shock_attribution.py was corrected: activation 2026-08-08T01:30:00Z is <= now but after target receipt; heartbeat helper patches only the microstructure status; event-order fixture activates before target acceptance."},
+    {"name":"FORBIDDEN_RUNTIME_SURFACE","status":"PASS","evidence":"Static import scan found no requests, urllib, HTTP, socket, subprocess, Spring or database runtime dependency in the production slice."},
+    {"name":"STATIC_DIFF_AND_INVENTORY","status":"PASS","evidence":"Schema JSON parse and git diff --check passed; HEAD/origin remained exact, no files were staged, and all four final hashes were computed read-only."},
+    {"name":"FOCUSED_AND_REGRESSION_EXECUTION","status":"MISSING_PROOF","evidence":"Manager's last executable result before the final event-order fixture correction was 12/13. Local Python is unavailable, so the corrected 13-test suite, affected heartbeat/evidence suites and full suite remain MISSING_PROOF_MANAGER_PENDING."},
+    {"name":"COMPILE_SCHEMA_AND_RESULT_VALIDATORS","status":"MISSING_PROOF","evidence":"Python compileall, Draft 2020-12 behavioral validation, task/dispatch executable validation and local-result validation could not run in the Local sandbox and remain Manager pending."},
+    {"name":"REAL_EVIDENCE_AND_PERFORMANCE","status":"MISSING_PROOF","evidence":"No real future UTC-day shock, causal explanation, predictive value, PnL, drawdown, false-positive rate or operational heartbeat behavior was observed."}
+  ],
+  "artifacts": [
+    {"path":"research_pipeline/btc-utc-day-3pct-shock-diagnostic.v1.schema.json","sha256":"4892456b848951237436538af429f083ca70c497d70cdef7ca5cf2bae1e01ef1"},
+    {"path":"research_pipeline/shock_attribution.py","sha256":"af9a55d7e05ba14ec010948656b16ab99cddd9285d4fa002939bd024fd8cf50e"},
+    {"path":"research_pipeline/heartbeat.py","sha256":"eae32aa356afe0bdcc73b4c2c1a184150f119686e6cf0a0e69fec6577605f5f8"},
+    {"path":"research_pipeline/tests/test_shock_attribution.py","sha256":"8932d884f9d63336cef14e35148d64f609bc802fc168ef0a901bc2601fdacfff"}
+  ],
+  "files_changed": [
+    "research_pipeline/btc-utc-day-3pct-shock-diagnostic.v1.schema.json",
+    "research_pipeline/shock_attribution.py",
+    "research_pipeline/heartbeat.py",
+    "research_pipeline/tests/test_shock_attribution.py"
+  ],
+  "uncertainty": [
+    "The final focused fixture correction has not yet received an executable Manager rerun.",
+    "Affected heartbeat/evidence regression suites and the complete offline suite remain unexecuted locally.",
+    "Future diagnostic usefulness and every economic or predictive claim remain MISSING_PROOF."
+  ],
+  "recommended_next_action": "Manager should validate this result and exact four hashes, run compileall and Draft 2020-12 checks, rerun research_pipeline.tests.test_shock_attribution plus affected heartbeat/evidence and full offline suites, and accept the slice only if all gates pass without activating a real heartbeat or runtime path.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-direction-symmetry-closure-v1",
+  "task_sha256": "a67127b56699c4361266efd3353e46bfdc931bd51882fff8431b11621dec5970",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T11:42:00Z",
+  "completed_at": "2026-08-10T11:45:53Z",
+  "source_git_commit": "0d65a414bb82c76cccc97997164ae15e7fa93ace",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "HISTORICAL_WINDOW_LEVEL_BIDIRECTIONAL_REVERSAL_PRIOR. The sealed semantic closure is VALID. In both frozen Design and Validation windows, UP-shock and DOWN-shock signed-h24 medians are negative and each direction has more negative than positive responses. Exact counts reconcile to Design UP/DOWN totals 224/196 and Validation totals 83/60 with zero ties. This supports only a descriptive window-level historical bidirectional reversal prior. Annual-by-direction breadth, directional concentration, significance, causality, forward confirmation and every economic claim remain MISSING_PROOF. Immediate fee-adjusted PnL and drawdown effects are zero; no strategy, hypothesis, candidate, OOS or Trading action is authorized.",
+  "checks": [
+    {
+      "name": "SOURCE_IDENTITY_AND_CLEAN_WORKTREE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched 0d65a414bb82c76cccc97997164ae15e7fa93ace. Worktree status was clean before and after the audit."
+    },
+    {
+      "name": "TASK_DISPATCH_AND_INPUT_VALIDATION",
+      "status": "PASS",
+      "evidence": "Task validator returned VALID at SHA-256 a67127b56699c4361266efd3353e46bfdc931bd51882fff8431b11621dec5970. Dispatch validator returned VALID at SHA-256 f13b49fb4068a41efe29a5d9b704c5843e3aeccaa5184dab9008e6a7cb646ba3. All 12 non-null inputs matched as unique contained regular non-link/non-reparse files; the dispatch bound all 16 stops at SHA-256 0c4fdafef4a91bcd6d7031bcab992da10b86bfd56b4c71e41a4ac9453d39345a."
+    },
+    {
+      "name": "SEMANTIC_CLOSURE_VALIDATION",
+      "status": "PASS",
+      "evidence": "Existing top-level validator returned VALID for closure SHA-256 35007ccb9899b1115135958b8c4ea73518e5bf8a3454109e9db37873f7c5e22a, sealed result SHA-256 2c2d200d4a6a29808b35ec2c80442ad9288867243b116fdd197f1308973c84a7, six TARGET_YEAR rows and disposition HISTORICAL_REVERSAL_PRIOR_STABLE."
+    },
+    {
+      "name": "DESIGN_UP_DIRECTION",
+      "status": "PASS",
+      "evidence": "The exact PASS check DESIGN_STATISTICS_UNCHANGED reports Design UP median signed h24 -0.001655578559551297273173065654, with 106 positive and 118 negative responses. The median is negative and 118 exceeds 106."
+    },
+    {
+      "name": "DESIGN_DOWN_DIRECTION",
+      "status": "PASS",
+      "evidence": "The exact PASS check DESIGN_STATISTICS_UNCHANGED reports Design DOWN median signed h24 -0.00676680328194897633254755728, with 74 positive and 122 negative responses. The median is negative and 122 exceeds 74."
+    },
+    {
+      "name": "VALIDATION_UP_DIRECTION",
+      "status": "PASS",
+      "evidence": "The exact PASS check VALIDATION_STATISTICS_UNCHANGED reports Validation UP median signed h24 -0.00301525268779838438056338178765991798940384605103, with 38 positive and 45 negative responses. The median is negative and 45 exceeds 38."
+    },
+    {
+      "name": "VALIDATION_DOWN_DIRECTION",
+      "status": "PASS",
+      "evidence": "The exact PASS check VALIDATION_STATISTICS_UNCHANGED reports Validation DOWN median signed h24 -0.005308393539968761545467460685, with 24 positive and 36 negative responses. The median is negative and 36 exceeds 24."
+    },
+    {
+      "name": "DIRECTION_ARITHMETIC_RECONCILIATION",
+      "status": "PASS",
+      "evidence": "Design UP 106+118=224 and DOWN 74+122=196. Validation UP 38+45=83 and DOWN 24+36=60. These equal the frozen event totals, and ties are exactly zero."
+    },
+    {
+      "name": "FROZEN_DIRECTION_RULE",
+      "status": "PASS",
+      "evidence": "All four required medians are below zero, all four negative-response counts strictly exceed positive-response counts, exact arithmetic reconciles and the upstream semantic closure is VALID. The frozen positive disposition therefore applies without threshold, horizon or outcome scanning."
+    },
+    {
+      "name": "ANNUAL_BY_DIRECTION_BREADTH",
+      "status": "MISSING_PROOF",
+      "evidence": "The sealed result exposes aggregate annual TARGET_YEAR medians but not separate annual UP-versus-DOWN medians or sign counts. No annual directional breadth claim is supported."
+    },
+    {
+      "name": "CONCENTRATION_SIGNIFICANCE_AND_CAUSALITY",
+      "status": "MISSING_PROOF",
+      "evidence": "Directional contribution concentration, confidence intervals, statistical significance and causal attribution are absent from the two authorized sealed checks and were not inferred."
+    },
+    {
+      "name": "ECONOMIC_AND_FORWARD_VALUE",
+      "status": "MISSING_PROOF",
+      "evidence": "Fees, slippage, strategy mapping, matched-capital PnL, drawdown, forward predictive value, candidate readiness, OOS and activation remain untested and unauthorized. Immediate PnL and drawdown effects are zero."
+    },
+    {
+      "name": "OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "This sealed closure prevents unsupported one-sided strategy engineering and repeated raw-data work without consuming candidate budget. The retained cost is that no annual-directional or economic conclusion may advance until separately frozen evidence exists."
+    },
+    {
+      "name": "SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No repository or .research-state write, server or canonical MCP write, heartbeat, schedule, queue, network, external import, OOS, hypothesis, candidate, Trading, database, order, fund, SHADOW, PAPER or LIVE action occurred."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: Annual-by-direction medians, sign counts and breadth are not present in the sealed authorized checks.",
+    "MISSING_PROOF: Directional contribution concentration, confidence intervals, significance and causal attribution are unproven.",
+    "MISSING_PROOF: Predictive value, fees, slippage, matched-capital PnL, drawdown, forward confirmation, candidate readiness, OOS and activation remain unproven and unauthorized."
+  ],
+  "recommended_next_action": "Preserve this result as descriptive historical context and wait for the untouched forward evaluator. Do not create a strategy, hypothesis or candidate; any annual-by-direction or economic extension requires a separately frozen bounded task with new independent evidence.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

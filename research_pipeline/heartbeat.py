@@ -10,6 +10,7 @@ from typing import Any
 from .microstructure_monitor import microstructure_diagnostic_status
 from .models import parse_timestamp
 from .report import load_result, monthly_report, performance_lines, weekly_report
+from .shock_attribution import seal_r1_shock_diagnostics
 from .storage import (
     ResearchStore,
     atomic_write_json,
@@ -123,6 +124,24 @@ def run_heartbeat_cycle(
 
     review_events, announced_reviews = _new_closed_evidence_review_events(store, state)
     events.extend(review_events)
+
+    shock_contract_activated_at = state.get(
+        "btc_utc_day_3pct_shock_contract_activated_at"
+    )
+    if shock_contract_activated_at is None:
+        shock_contract_activated_at = _iso_utc(now)
+        state[
+            "btc_utc_day_3pct_shock_contract_activated_at"
+        ] = shock_contract_activated_at
+    elif not isinstance(shock_contract_activated_at, str):
+        raise ValueError("shock contract activation state is invalid")
+    events.extend(
+        seal_r1_shock_diagnostics(
+            store,
+            now=now,
+            contract_activated_at=shock_contract_activated_at,
+        )
+    )
 
     due = _schedule(now, state, tick_result)
     report_events = [

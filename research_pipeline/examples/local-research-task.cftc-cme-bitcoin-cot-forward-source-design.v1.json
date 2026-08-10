@@ -1,0 +1,184 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-cftc-cme-bitcoin-cot-forward-source-design-v1",
+  "issued_at": "2026-08-10T08:12:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Freeze one exact point-in-time forward-source design for the sole family selected by the accepted no-cost public source audit: CFTC Traders in Financial Futures, Futures Only, BITCOIN - CHICAGO MERCANTILE EXCHANGE, contract market code 133741. The design must bind the official credential-free weekly file identity without retrieving its contents, the Tuesday observation and Friday or holiday-adjusted publication clocks, the existing daily Codex Cloud Ops cycle, one-way raw-byte and selected-row sealing, deterministic absence and drift states, public-domain acknowledgement, and the earliest later DRA decision that may lawfully consume a sealed observation. Produce only a design disposition and exact future implementation requirements. Do not call the data file or API, inspect any current or historical report value, select a field-derived factor, define a threshold/direction/horizon, implement a producer or parser, create a trigger/source contract/hypothesis/candidate/manifest/experiment, open OOS, or change any runtime.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE_R1_4_OF_90_R2_PRE_START_0_OF_14_QUEUE_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-forward-evidence-source-v1.md",
+      "sha256": "946c6dab1f772bca743ff1c769f988c276cf1bef47fada4fea29340cd65b71e5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "76a62fdc769c3c9a8c96df2d588a07674285ff040df37894b4be52cfc417da09"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence-source-contract.schema.json",
+      "sha256": "3b126fe0b6c91c48bbb50148dc980852a99b592933f195b4f37dafff0d970c65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v9.json",
+      "sha256": "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/prospective-mechanism-neutral-evidence-refresh-2026q4-r1.source-contract.json",
+      "sha256": "5af5f7aab936a350cac7c96d962b1f95c242af57870d1c2ec4e225fa28839a48"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.no-cost-public-forward-factor-source-audit.v1.json",
+      "sha256": "04190f16a0398f7dc7a1ec76d5853aa784f30e5fccabb264340cd8b31af041ab"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.no-cost-public-forward-factor-source-audit.v1.json",
+      "sha256": "ced825d59a7064dd4a717335b5a4c83ece230478d86abbea50507b707c08987a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.no-cost-public-forward-factor-source-audit.v1.json",
+      "sha256": "4ac252b17da905fbaea792e7507b9dc012c68953635bd3d9ce0a81ab9c844f32"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-10T08:09:33Z; policy READY V3; worker READY release 20260810T065829Z from commit 3c8e5ae4; queue IDLE; R1 4/90 lag 0 awaiting 2026-08-10 day close; microstructure R2 PRE_START 0/14 starting 2026-08-11; next heartbeat due 2026-08-11T01:00:00Z; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Accepted source-family audit closure: task SHA-256 04190f16a0398f7dc7a1ec76d5853aa784f30e5fccabb264340cd8b31af041ab; dispatch SHA-256 ced825d59a7064dd4a717335b5a4c83ece230478d86abbea50507b707c08987a; result SHA-256 4ac252b17da905fbaea792e7507b9dc012c68953635bd3d9ce0a81ab9c844f32; disposition ONE_NO_COST_FORWARD_SOURCE_DESIGN_READY; sole ranked family CFTC CME Bitcoin COT. Preserve every MISSING_PROOF and zero-performance boundary.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Official CFTC methodology and release evidence: read only https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm and https://www.cftc.gov/MarketReports/CommitmentsofTraders/ReleaseSchedule/index.htm . Bind Tuesday close observation, Friday 3:30 p.m. US Eastern general publication, holiday-adjusted schedule, three-day processing, weekly cadence, missing-contract rule, no backdated historical updates, static-history semantics and the no-token-under-non-abusive-use statement. Do not navigate to or download a report or API dataset.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Exact report family and field dictionary: read only the methodology page's description of Traders in Financial Futures Futures Only, the official field dictionary https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalViewable/cotvariablestfm.html and the official explanatory notes https://www.cftc.gov/idc/groups/public/%40commitmentsoftraders/documents/file/tfmexplanatorynotes.pdf . Freeze the identity label CFTC_CME_BITCOIN_TFF_FUTURES_ONLY_V1 and contract market code 133741; do not inspect any report values.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Fixed future producer locator identity is https://www.cftc.gov/dea/newcot/FinFutWk.txt as linked by the official methodology page under Traders in Financial Futures Futures-Only Commitments of Traders Comma Delimited. Record the exact locator without opening, fetching, downloading, or quoting it. The design must select exactly one row by immutable CFTC identity and preserve the whole raw response bytes separately.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Historical and change-control evidence: read only https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalCompressed/index.htm and https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalSpecialAnnouncements/index.htm . Historical archives are design/change-control evidence only and may never be downloaded, imported, backfilled or used for selection by this task.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Official reuse boundary: read only https://www.cftc.gov/WebPolicy/index.htm . Government information is public domain and may be copied with requested CFTC acknowledgement, but privately contributed or licensed material and the CFTC seal remain excluded. Freeze acknowledgement and no-seal rules; this is not legal advice.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_REPOSITORY_INPUT_HASHES",
+    "READ_EXACT_LISTED_OFFICIAL_CFTC_DOCUMENTATION",
+    "AUDIT_FIXED_CREDENTIAL_FREE_LOCATOR_IDENTITY",
+    "AUDIT_TFF_FUTURES_ONLY_FIELD_DICTIONARY",
+    "AUDIT_RELEASE_HOLIDAY_AND_TIMEZONE_TIMELINE",
+    "AUDIT_SINGLE_CLOUD_CLOCK_CAUSAL_AVAILABILITY",
+    "DEFINE_RAW_BYTES_AND_EXACT_ROW_SEALING_REQUIREMENTS",
+    "DEFINE_ABSENCE_DUPLICATE_CORRECTION_AND_DRIFT_STATES",
+    "DEFINE_PUBLIC_DOMAIN_ACKNOWLEDGEMENT_BOUNDARY",
+    "ASSESS_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "CFTC_REPORT_API_OR_DATA_FILE_CALL",
+    "CURRENT_OR_HISTORICAL_REPORT_VALUE_ACCESS",
+    "HYPOTHESIS_CANDIDATE_MANIFEST_TRIGGER_OR_SOURCE_CONTRACT_AUTHORING",
+    "PRODUCER_PARSER_TRANSPORT_SCHEMA_RUNNER_OR_CAPTURE_IMPLEMENTATION",
+    "FACTOR_FIELD_FORMULA_THRESHOLD_DIRECTION_HORIZON_OR_PARAMETER_SELECTION",
+    "LEGACY_COMBINED_MICRO_BITCOIN_OR_ALTERNATE_CONTRACT_SUBSTITUTION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "SEARCH_SNIPPET_OR_SECONDARY_SOURCE_AS_EVIDENCE",
+    "CFTC_SEAL_USE_OR_LEGAL_CONCLUSION"
+  ],
+  "expected_outputs": [
+    "CFTC_SOURCE_DESIGN_VERDICT",
+    "EXACT_REPORT_FAMILY_CONTRACT_AND_LOCATOR_IDENTITY",
+    "OFFICIAL_FIELD_AND_ROW_COMPLETENESS_CONTRACT",
+    "RELEASE_HOLIDAY_AND_TIMEZONE_TIMELINE",
+    "SINGLE_CLOCK_CAPTURE_AND_EARLIEST_ELIGIBILITY_TIMELINE",
+    "RAW_BYTES_SELECTED_ROW_AND_HASH_CHAIN_REQUIREMENTS",
+    "ABSENCE_DUPLICATE_CORRECTION_AND_DRIFT_STATE_MACHINE",
+    "ONE_WAY_TRANSPORT_AND_NETWORK_DENIED_INTAKE_BOUNDARY",
+    "PUBLIC_DOMAIN_ACKNOWLEDGEMENT_AND_NO_SEAL_BOUNDARY",
+    "PERFORMANCE_DRAWDOWN_AND_PREDICTIVE_GAPS",
+    "IMPLEMENTATION_RESOURCE_AND_OPPORTUNITY_COST",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository SHA-256 before analysis; any mismatch, missing input, duplicate locator, link, reparse point, wrong type, dirty source, wrong branch or HEAD/origin drift is BLOCKED and MISSING_PROOF.",
+    "Use only the exact listed repository inputs and official CFTC documentation. Search may locate an exact listed CFTC page only; snippets, third-party datasets, SDKs, blogs and secondary sources are never design evidence.",
+    "Do not open, fetch, download or quote FinFutWk.txt, a PRE/API dataset, a weekly report, a historical archive or any current or historical report value. The fixed data-file URL is locator identity only.",
+    "Freeze only CFTC_CME_BITCOIN_TFF_FUTURES_ONLY_V1: Traders in Financial Futures, Futures Only; market name BITCOIN - CHICAGO MERCANTILE EXCHANGE; CFTC contract market code 133741. Do not substitute Legacy, Combined, Micro Bitcoin, another exchange, another code or another report family.",
+    "The future producer design must use exactly the fixed credential-free FinFutWk.txt locator with no caller-controlled URL, query, market, code, path or report variant and must seal the complete raw response bytes before parsing.",
+    "Bind the official 87-field TFF dictionary, exact one-row identity, report date, contract market code, market code, commodity code, contract units and FutOnly marker. Preserve suppressed trader-count markers as raw values; any wrong count, zero match, duplicate match or identity drift is fail closed.",
+    "Bind Tuesday close as the observation boundary and the official Friday 3:30 p.m. US Eastern or holiday-adjusted publication schedule as the earliest possible source availability. Convert time zones deterministically; never infer availability from observation date alone.",
+    "Use only the existing daily 09:05 Asia/Taipei Codex Cloud Ops clock. A future bounded check may run from that cycle; no CFTC timer, watcher, Local timer, server scheduler or user-managed wakeup may be added.",
+    "A new report becomes evidence only after its raw bytes and selected row are received, hash-bound and accepted by the network-denied canonical intake. It cannot affect the same DRA decision or fill cycle; earliest eligibility is the first pre-existing DRA decision strictly after sealed receipt.",
+    "Define deterministic states for NO_NEW_REPORT, CONTRACT_ABSENT, DUPLICATE_CONTRACT_ROW, MALFORMED_REPORT, WRONG_REPORT_FAMILY, REPORT_DATE_IN_FUTURE, RELEASE_NOT_DUE, SOURCE_UNAVAILABLE, SAME_REPORT_BYTES_DRIFT and NEW_REPORT_SEALED. No state may trigger an alternate source or relaxed identity.",
+    "Because CFTC says published historical data is not backdated, changed bytes for an already accepted report date are an integrity alert and must never overwrite the sealed artifact. Special announcements may explain drift but cannot mutate prior evidence.",
+    "Use a one-way hash-bound source drop and keep canonical Research Worker network access and database access denied. No source may write canonical state directly and no caller-controlled payload may enter the producer.",
+    "Backfill, historical import, catch-up, endpoint retry beyond the frozen due policy, manual report upload and selection from historical values are denied. A missed week remains a visible missing observation.",
+    "Do not select a COT field, netting formula, normalization, lookback, threshold, direction, horizon, regime, DRA parameter, strategy rule, economic gate, hypothesis, candidate, manifest, experiment, trigger or source contract. Source identity and causal availability are the only permitted design outputs.",
+    "Return exactly one of CFTC_CME_BITCOIN_TFF_SOURCE_DESIGN_READY, CFTC_CME_BITCOIN_TFF_SOURCE_DESIGN_CLOSE, or CFTC_POINT_IN_TIME_SOURCE_PROOF_INSUFFICIENT. A positive result authorizes only one separately frozen bounded implementation task, not capture activation, registration or factor research.",
+    "Immediate fee-adjusted PnL and drawdown effect is exactly zero; predictive value, field usefulness, fees, slippage, utilization, false-veto cost, capacity and economic value remain MISSING_PROOF. Make no file changes and return one task-hash-bound local-research-result JSON with empty artifacts/files_changed and all safety assertions false."
+  ],
+  "limits": {
+    "timeout_seconds": 2400,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

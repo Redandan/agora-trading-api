@@ -1,0 +1,167 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-direction-symmetry-closure-v1",
+  "issued_at": "2026-08-10T11:40:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform one bounded no-recomputation closure audit over the exact sealed BTC complete-UTC-day 3 percent historical post-shock result. Determine whether the already accepted window-level reversal prior is supported independently after UP shocks and DOWN shocks in both frozen Design and Validation windows, or whether it is one-sided or sign-unstable. Use only exact result checks and the machine-validated target-year closure; do not read the H1 corpus, rerun an evaluator, inspect another threshold or horizon, infer annual-by-direction breadth, map a strategy, compute economics, access forward evidence or OOS, or change any file or state.",
+  "canonical_research_status": "2026-08-10T11:37:28Z_SERVER_CANONICAL_V9_ONE_SCHEDULE_R1_4_OF_90_LAG_0_R2_PRE_START_0_OF_14_QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "92da73b7f900810de32ae9b61aa9fd54476fc7fa2c922473b7345a6dcaddf33c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "48d119c8f4eb1b0a3a2501cd5beccb2a84a22ce72c0084ffcc94dd14089c43e4"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "2c2d200d4a6a29808b35ec2c80442ad9288867243b116fdd197f1308973c84a7"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-partitioned-event-semantic-closure.v1.schema.json",
+      "sha256": "fb174e1e19954ec0bdfef28541b9c0be5df61a8dac36209d679bc434128492f5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_semantic_closure.py",
+      "sha256": "e24c2e1c1b78e43147bb29f3d729b604f54d9007023da97c8db1471f759b3f92"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-semantic-closure.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "35007ccb9899b1115135958b8c4ea73518e5bf8a3454109e9db37873f7c5e22a"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Manager read canonical OAuth Research MCP status at 2026-08-10T11:37:28Z: timer CODEX_CLOUD_OPS_ONLY; state SERVER_CANONICAL; policy and Worker READY; exact V9 schedule count 1; queues IDLE; R1 4/90 lag 0; R2 PRE_START 0/14. This Local task authorizes no server call or write.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Frozen direction rule: use the exact DESIGN_STATISTICS_UNCHANGED and VALIDATION_STATISTICS_UNCHANGED evidence only. For each window and each UP/DOWN shock direction, signed-h24 median must be negative and negative signed-response count must exceed positive count for bidirectional reversal support. Missing, unparsable, contradictory or non-PASS source checks are insufficient.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "This audit is window-level only. The sealed result does not expose annual UP-versus-DOWN medians, directional contribution concentration, confidence intervals, fees, slippage or strategy mapping. Preserve each as MISSING_PROOF and do not infer it from aggregate annual rows.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "VALIDATE_EXISTING_SEMANTIC_CLOSURE",
+    "READ_EXACT_SEALED_RESULT_CHECKS",
+    "EXTRACT_FROZEN_DIRECTIONAL_MEDIANS",
+    "EXTRACT_FROZEN_DIRECTIONAL_SIGN_COUNTS",
+    "VERIFY_WINDOW_DIRECTION_ARITHMETIC",
+    "CLASSIFY_WINDOW_LEVEL_DIRECTION_SYMMETRY",
+    "REPORT_MISSING_ANNUAL_DIRECTIONAL_BREADTH",
+    "REPORT_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST_BOUNDARY",
+    "VALIDATE_LOCAL_TASK",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "UNLISTED_ARTIFACT_OR_DATA_ACCESS",
+    "H1_CORPUS_OR_RAW_EPISODE_ACCESS",
+    "POST2024_OR_FORWARD_EVIDENCE_ACCESS",
+    "CURRENT_SERVER_STATUS_REFRESH_OR_NETWORK_ACCESS",
+    "HYPOTHESIS_MANIFEST_CANDIDATE_OR_ADAPTER_REGISTRATION",
+    "STRATEGY_MAPPING_OR_TRADE_RULE_AUTHORING",
+    "STRATEGY_EQUITY_CURVE_PNL_OR_DRAWDOWN_COMPUTATION",
+    "THRESHOLD_HORIZON_DIRECTION_WINDOW_OR_GATE_TUNING",
+    "NEIGHBORING_PARAMETER_OR_EVENT_DEFINITION_SEARCH",
+    "EXISTING_FORWARD_CONTRACT_OR_EVALUATOR_CHANGE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "JAVA_MAVEN_SPRING_OR_TRADING_RUNNER_EXECUTION",
+    "SECOND_LOCAL_TIMER"
+  ],
+  "expected_outputs": [
+    "EXACT_TASK_DISPATCH_AND_INPUT_VALIDATION",
+    "EXISTING_SEMANTIC_CLOSURE_VALIDATION",
+    "DESIGN_UP_AND_DOWN_SIGNED_H24_MEDIANS",
+    "VALIDATION_UP_AND_DOWN_SIGNED_H24_MEDIANS",
+    "DESIGN_UP_AND_DOWN_SIGN_COUNTS",
+    "VALIDATION_UP_AND_DOWN_SIGN_COUNTS",
+    "WINDOW_LEVEL_DIRECTION_SYMMETRY_DISPOSITION",
+    "ANNUAL_DIRECTIONAL_BREADTH_MISSING_PROOF",
+    "PERFORMANCE_DRAWDOWN_AND_FORWARD_CLAIM_BOUNDARY",
+    "MISSING_PROOF_REGISTER",
+    "OPPORTUNITY_COST",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and Manager dispatch before analysis. Re-hash every non-null input; require Manager-provided branch, clean HEAD equal local origin, contained regular non-link non-reparse paths. Any mismatch is SEALED_DIRECTION_EVIDENCE_INSUFFICIENT.",
+    "Read only listed repository paths. Do not read the sealed H1 corpus, raw episodes, adjacent state, Local history, canonical artifacts, current server state, network data, post-2024 data, forward R1/R2 outcomes or OOS.",
+    "Run the existing semantic-closure command over its exact closure, historical task, dispatch and result. Require status VALID, six validated rows and disposition HISTORICAL_REVERSAL_PRIOR_STABLE; otherwise return insufficient evidence.",
+    "Use only PASS checks named DESIGN_STATISTICS_UNCHANGED and VALIDATION_STATISTICS_UNCHANGED from the exact sealed result. Do not recompute, reinterpret another check, parse raw data or repair evidence text.",
+    "Require exact Design counts UP positive/negative 106/118 and DOWN positive/negative 74/122, with exact signed-h24 medians UP -0.001655578559551297273173065654 and DOWN -0.00676680328194897633254755728.",
+    "Require exact Validation counts UP positive/negative 38/45 and DOWN positive/negative 24/36, with exact signed-h24 medians UP -0.00301525268779838438056338178765991798940384605103 and DOWN -0.005308393539968761545467460685.",
+    "Verify within each window that UP positive plus negative equals UP event count and DOWN positive plus negative equals DOWN event count from the sealed result. Require Design 224/196 and Validation 83/60; ties remain exactly zero.",
+    "Return HISTORICAL_WINDOW_LEVEL_BIDIRECTIONAL_REVERSAL_PRIOR only when all four medians are negative and all four negative counts exceed their corresponding positive counts. Do not introduce a magnitude, ratio, significance or concentration threshold.",
+    "Return HISTORICAL_DIRECTION_ASYMMETRY_OR_SIGN_INSTABILITY_CLOSE when exact evidence is valid but any direction/window median is nonnegative or any negative count does not exceed its positive count.",
+    "Return SEALED_DIRECTION_EVIDENCE_INSUFFICIENT when input, closure, check status, exact value, arithmetic or parse evidence is missing, changed, contradictory or invalid. Do not partially classify one window or direction.",
+    "Do not claim annual-by-direction breadth, directional contribution concentration, significance, causal attribution or robustness. The aggregate annual semantic closure cannot be decomposed; mark these MISSING_PROOF.",
+    "Do not compare UP versus DOWN magnitude as a tradable asymmetry or choose a side. A more negative DOWN median is descriptive context only because matched uncertainty and economic ledgers are absent.",
+    "Do not compute or infer fees, slippage, total/realized/unrealized PnL, drawdown, utilization, holding age, capacity, turnover, Sharpe, sizing, equity curves or matched-capital value. Immediate economic effect is zero.",
+    "This closure may only prevent unsupported one-sided strategy work. It cannot change the deployed forward evaluator, define a factor, register a hypothesis/candidate, open OOS, deploy, change canonical state or authorize Trading.",
+    "Recommend only continuing the untouched forward evaluator. A later strategy-specification task remains forbidden until prospective evidence supports the same mechanism; no one-sided branch may be inferred from this audit.",
+    "Return exactly one schema-valid local-research-result bound to this task SHA, with empty artifacts/files_changed, dirty before/after false, all safety assertions false, concrete checks, uncertainty, opportunity cost and one allowed disposition. Stop without requesting permission on any boundary conflict."
+  ],
+  "limits": {
+    "timeout_seconds": 1200,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

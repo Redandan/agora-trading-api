@@ -1,0 +1,144 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-utc-day-3pct-historical-post-shock-stability-audit-v1",
+  "task_sha256": "92da73b7f900810de32ae9b61aa9fd54476fc7fa2c922473b7345a6dcaddf33c",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T11:02:00Z",
+  "completed_at": "2026-08-10T11:05:14Z",
+  "source_git_commit": "65e5abcf433b58932dbc81f59c378bf2969b7d64",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "HISTORICAL_REVERSAL_PRIOR_STABLE. The annual projection defect was corrected by grouping episodes by target year rather than outcome t0 year. One boundary episode moved from 2022 to 2021 and one from 2024 to 2023; Design remains 420 episodes and Validation remains 143. All exact _gates_and_statistics outputs remain unchanged: both windows pass every breadth/concentration gate, reversal_conditions_met=true and continuation_conditions_met=false. Corrected annual signed-h24 medians remain negative in all four Design years and both Validation years, satisfying the frozen reversal annual-breadth rule. This remains pre-2025 mechanism context only and cannot alter the untouched forward evaluator, select a strategy direction, create a factor/hypothesis/candidate, open OOS or authorize Trading. Immediate PnL and drawdown effects are zero; matched-capital performance and forward predictive value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_AND_INPUT_VALIDATION",
+      "status": "PASS",
+      "evidence": "The immutable task SHA remains 92da73b7f900810de32ae9b61aa9fd54476fc7fa2c922473b7345a6dcaddf33c and dispatch SHA remains 48d119c8f4eb1b0a3a2501cd5beccb2a84a22ce72c0084ffcc94dd14089c43e4. Canonical 18-stop SHA remains 6a274d515c2c2e9fb051fc2e42919be460612e7841eb954a662a45caffc084b6. HEAD and origin remained 65e5abcf433b58932dbc81f59c378bf2969b7d64 on codex/autonomous-research-control-plane-v3 with a clean worktree."
+    },
+    {
+      "name": "ANNUAL_TARGET_YEAR_DEFECT_CORRECTED",
+      "status": "PASS",
+      "evidence": "The prior JSON grouped annual statistics by outcome t0 year. The corrected projection uses the frozen episode target year. Exactly one episode moved from 2022 to 2021 and one moved from 2024 to 2023. No episode, response, window, gate, threshold, horizon, direction or disposition rule changed."
+    },
+    {
+      "name": "H1_CORPUS_INTEGRITY",
+      "status": "PASS",
+      "evidence": "The same sealed corpus SHA e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd was used. It retained exactly 52,608 continuous one-hour seven-field rows and 2,192 complete UTC days from 2019-01-01T00:00:00Z through 2025-01-01T00:00:00Z."
+    },
+    {
+      "name": "DESIGN_TOTAL_RECONCILIATION",
+      "status": "PASS",
+      "evidence": "Corrected target-year counts reconcile exactly: 2019 90 + 2020 98 + 2021 145 + 2022 87 = 420. UP totals are 45+62+78+39=224; DOWN totals are 45+36+67+48=196. Design episode inventory and all exact evaluator outputs are unchanged."
+    },
+    {
+      "name": "VALIDATION_TOTAL_RECONCILIATION",
+      "status": "PASS",
+      "evidence": "Corrected target-year counts reconcile exactly: 2023 57 + 2024 86 = 143. UP totals are 35+48=83; DOWN totals are 22+38=60. Validation episode inventory and all exact evaluator outputs are unchanged."
+    },
+    {
+      "name": "DESIGN_GATE_OUTPUT_UNCHANGED",
+      "status": "PASS",
+      "evidence": "Design remains 420 episodes, UP/DOWN 224/196, halves 210/210, UTC months 48, maximum month share 0.0380952380952380952380952381, maximum single absolute h24 contribution share 0.0131617294365126170944313225, duplicates 0 and missing labels 0. Every breadth/concentration gate passes; all_breadth_pass=true."
+    },
+    {
+      "name": "DESIGN_STATISTICS_UNCHANGED",
+      "status": "PASS",
+      "evidence": "Design signed-h24 medians overall/UP/DOWN remain -0.004630313799205581892932879953, -0.001655578559551297273173065654 and -0.00676680328194897633254755728. UP/DOWN positive counts remain 106/74 and negative counts 118/122; continuation_conditions_met=false and reversal_conditions_met=true."
+    },
+    {
+      "name": "VALIDATION_GATE_OUTPUT_UNCHANGED",
+      "status": "PASS",
+      "evidence": "Validation remains 143 episodes, UP/DOWN 83/60, halves 71/72, UTC months 23, maximum month share 0.07692307692307692307692307692, maximum single absolute h24 contribution share 0.03482293072088649783530003034, duplicates 0 and missing labels 0. Every breadth/concentration gate passes; all_breadth_pass=true."
+    },
+    {
+      "name": "VALIDATION_STATISTICS_UNCHANGED",
+      "status": "PASS",
+      "evidence": "Validation signed-h24 medians overall/UP/DOWN remain -0.003650933675322653580138920806244764524044270814, -0.00301525268779838438056338178765991798940384605103 and -0.005308393539968761545467460685. UP/DOWN positive counts remain 38/24 and negative counts 45/36; continuation_conditions_met=false and reversal_conditions_met=true."
+    },
+    {
+      "name": "PATH_DIAGNOSTICS_UNCHANGED",
+      "status": "PASS",
+      "evidence": "Design h1 overall/UP/DOWN medians remain -0.001495077739034677695665066224/-0.000968834693233625504684502363/-0.002330326057604878274112026084; h6 remain -0.002542942868260800543699687567/-0.002278080463341723765589202247/-0.002677706622970981381937390275. Validation h1 remain -0.0008496811361450620453972492740361721397958897842/-0.00133140981131057914641463135116186572647786489055/-0.0003826364685866315329365572563; h6 remain -0.0014882195275662295654550838642075610663548492418/-0.00139419902225724289860219409470010154763027784098/-0.001605918041428017624208125375."
+    },
+    {
+      "name": "WINDOW_LABEL_COUNTS_UNCHANGED",
+      "status": "PASS",
+      "evidence": "Design continuation/reversal/tie remains 180/240/0 with shares 0.4285714285714285714285714286/0.5714285714285714285714285714/0 and adjacent-target count 135. Validation remains 62/81/0 with shares 0.4335664335664335664335664336/0.5664335664335664335664335664/0 and adjacent-target count 36."
+    },
+    {
+      "name": "ANNUAL_2019_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2019 target-year: 90 events, UP/DOWN 45/45; median signed h24 -0.003134615689069911367014701466; continuation/reversal/tie 41/49/0; shares 0.4555555555555555555555555556/0.5444444444444444444444444444/0."
+    },
+    {
+      "name": "ANNUAL_2020_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2020 target-year: 98 events, UP/DOWN 62/36; median signed h24 -0.007249667626024678989555629535; continuation/reversal/tie 37/61/0; shares 0.377551020408163265306122449/0.622448979591836734693877551/0."
+    },
+    {
+      "name": "ANNUAL_2021_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2021 target-year: 145 events, UP/DOWN 78/67; median signed h24 -0.0047559281281212049707382266368590532489010307223; continuation/reversal/tie 66/79/0; shares 0.4551724137931034482758620690/0.5448275862068965517241379310/0."
+    },
+    {
+      "name": "ANNUAL_2022_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2022 target-year: 87 events, UP/DOWN 39/48; median signed h24 -0.00442343772550151537018328763169288497618703997691; continuation/reversal/tie 36/51/0; shares 0.4137931034482758620689655172/0.5862068965517241379310344828/0."
+    },
+    {
+      "name": "ANNUAL_2023_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2023 target-year: 57 events, UP/DOWN 35/22; median signed h24 -0.0051093006967228222803848564161167840159250930807; continuation/reversal/tie 23/34/0; shares 0.4035087719298245614035087719/0.5964912280701754385964912281/0."
+    },
+    {
+      "name": "ANNUAL_2024_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2024 target-year: 86 events, UP/DOWN 48/38; median signed h24 -0.001860079042482871783652795292; continuation/reversal/tie 39/47/0; shares 0.4534883720930232558139534884/0.5465116279069767441860465116/0."
+    },
+    {
+      "name": "ANNUAL_DIRECTIONAL_BREADTH",
+      "status": "PASS",
+      "evidence": "All four corrected Design target-year signed-h24 medians are negative and both corrected Validation target-year medians are negative. Frozen reversal breadth remains Design 4 of 4 and Validation 2 of 2; all six annual totals sum exactly to their unchanged window totals."
+    },
+    {
+      "name": "HISTORICAL_PRIOR_DISPOSITION",
+      "status": "PASS",
+      "evidence": "HISTORICAL_REVERSAL_PRIOR_STABLE remains unchanged. Both windows pass all_breadth_pass and reversal_conditions_met, neither meets continuation_conditions_met, and corrected annual target-year breadth satisfies the symmetric negative rule."
+    },
+    {
+      "name": "NO_TUNING_OR_SCOPE_EXPANSION",
+      "status": "PASS",
+      "evidence": "Only the annual target-year projection was corrected. No threshold, formula, horizon, window, gate, direction, event definition, episode set, strategy mapping or forward evaluator changed; no adjacent data or analysis was accessed."
+    },
+    {
+      "name": "PERFORMANCE_AND_DRAWDOWN_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "No strategy equity curve, fee-adjusted PnL, realized/unrealized PnL, drawdown, utilization, holdings, fills, capacity, sizing or matched-capital comparison was computed. Immediate PnL and drawdown effects are zero; forward predictive and economic value remain MISSING_PROOF."
+    },
+    {
+      "name": "ZERO_CHANGE_AND_SAFETY_CLOSURE",
+      "status": "PASS",
+      "evidence": "No file or state was written. Final HEAD and origin remained 65e5abcf433b58932dbc81f59c378bf2969b7d64 and the worktree remained clean. artifacts/files_changed are empty and every safety assertion is false."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: untouched forward episodes have not reached the deployed evaluator's own terminal evidence gate; historical stability cannot substitute for prospective confirmation.",
+    "MISSING_PROOF: causal attribution among flow persistence, forced positioning and liquidity normalization was not tested.",
+    "MISSING_PROOF: matched-capital fee-adjusted PnL, drawdown, slippage, capacity, utilization, holding risk, stability after costs and strategy mapping were not evaluated.",
+    "MISSING_PROOF: statistical uncertainty and sensitivity outside the frozen threshold, windows and horizons were intentionally not estimated.",
+    "Validation 2023-2024 is historical validation, not clean OOS, and the annual breadth result does not authorize opening OOS.",
+    "Consecutive shocks remain retained rather than removed or tuned; Design has 135 adjacent-target pairs and Validation has 36."
+  ],
+  "recommended_next_action": "Continue the deployed forward evaluator unchanged and wait for its own terminal evidence. Only if that separate untouched forward result supports the same reversal mechanism may Manager freeze one later matched-capital strategy-specification task; do not implement, register a hypothesis or candidate, or open OOS now.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/cftc-cme-bitcoin-tff-source-contract.v2.schema.json",
+  "title": "CFTC CME Bitcoin TFF Headerless Offline Source Contract V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_id",
+    "authorization",
+    "document_status",
+    "source_label",
+    "source_identity",
+    "ordered_fields",
+    "release_policy",
+    "row_policy",
+    "state_machine",
+    "sealing",
+    "schemas",
+    "architecture",
+    "readiness"
+  ],
+  "properties": {
+    "schema_version": {"const": "2"},
+    "contract_id": {"const": "CFTC_CME_BITCOIN_TFF_SOURCE_CONTRACT_V2"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "document_status": {"const": "OFFLINE_DISABLED_NOT_REGISTERED"},
+    "source_label": {"const": "CFTC_CME_BITCOIN_TFF_FUTURES_ONLY_V2"},
+    "source_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["publisher", "report_family", "report_variant", "market_and_exchange_name", "cftc_contract_market_code", "locator", "credentials", "mode", "caller_overrides", "fallback"],
+      "properties": {
+        "publisher": {"const": "U.S. COMMODITY FUTURES TRADING COMMISSION"},
+        "report_family": {"const": "TRADERS_IN_FINANCIAL_FUTURES"},
+        "report_variant": {"const": "FUTURES_ONLY"},
+        "market_and_exchange_name": {"const": "BITCOIN - CHICAGO MERCANTILE EXCHANGE"},
+        "cftc_contract_market_code": {"const": "133741"},
+        "locator": {"const": "https://www.cftc.gov/dea/newcot/FinFutWk.txt"},
+        "credentials": {"const": "NONE"},
+        "mode": {"const": "FORWARD_ONLY_OFFLINE_PACKAGE"},
+        "caller_overrides": {"const": "DENY"},
+        "fallback": {"const": "DENY"}
+      }
+    },
+    "ordered_fields": {
+      "const": [
+        "Market_and_Exchange_Names", "As_of_Date_In_Form_YYMMDD", "Report_Date_as_MM_DD_YYYY", "CFTC_Contract_Market_Code", "CFTC_Market_Code", "CFTC_Region_Code", "CFTC_Commodity_Code", "Open_Interest_All", "Dealer_Positions_Long_All", "Dealer_Positions_Short_All", "Dealer_Positions_Spread_All", "Asset_Mgr_Positions_Long_All", "Asset_Mgr_Positions_Short_All", "Asset_Mgr_Positions_Spread_All", "Lev_Money_Positions_Long_All", "Lev_Money_Positions_Short_All", "Lev_Money_Positions_Spread_All", "Other_Rept_Positions_Long_All", "Other_Rept_Positions_Short_All", "Other_Rept_Positions_Spread_All", "Tot_Rept_Positions_Long_All", "Tot_Rept_Positions_Short_All", "NonRept_Positions_Long_All", "NonRept_Positions_Short_All", "Change_in_Open_Interest_All", "Change_in_Dealer_Long_All", "Change_in_Dealer_Short_All", "Change_in_Dealer_Spread_All", "Change_in_Asset_Mgr_Long_All", "Change_in_Asset_Mgr_Short_All", "Change_in_Asset_Mgr_Spread_All", "Change_in_Lev_Money_Long_All", "Change_in_Lev_Money_Short_All", "Change_in_Lev_Money_Spread_All", "Change_in_Other_Rept_Long_All", "Change_in_Other_Rept_Short_All", "Change_in_Other_Rept_Spread_All", "Change_in_Tot_Rept_Long_All", "Change_in_Tot_Rept_Short_All", "Change_in_NonRept_Long_All", "Change_in_NonRept_Short_All", "Pct_of_Open_Interest_All", "Pct_of_OI_Dealer_Long_All", "Pct_of_OI_Dealer_Short_All", "Pct_of_OI_Dealer_Spread_All", "Pct_of_OI_Asset_Mgr_Long_All", "Pct_of_OI_Asset_Mgr_Short_All", "Pct_of_OI_Asset_Mgr_Spread_All", "Pct_of_OI_Lev_Money_Long_All", "Pct_of_OI_Lev_Money_Short_All", "Pct_of_OI_Lev_Money_Spread_All", "Pct_of_OI_Other_Rept_Long_All", "Pct_of_OI_Other_Rept_Short_All", "Pct_of_OI_Other_Rept_Spread_All", "Pct_of_OI_Tot_Rept_Long_All", "Pct_of_OI_Tot_Rept_Short_All", "Pct_of_OI_NonRept_Long_All", "Pct_of_OI_NonRept_Short_All", "Traders_Tot_All", "Traders_Dealer_Long_All", "Traders_Dealer_Short_All", "Traders_Dealer_Spread_All", "Traders_Asset_Mgr_Long_All", "Traders_Asset_Mgr_Short_All", "Traders_Asset_Mgr_Spread_All", "Traders_Lev_Money_Long_All", "Traders_Lev_Money_Short_All", "Traders_Lev_Money_Spread_All", "Traders_Other_Rept_Long_All", "Traders_Other_Rept_Short_All", "Traders_Other_Rept_Spread_All", "Traders_Tot_Rept_Long_All", "Traders_Tot_Rept_Short_All", "Conc_Gross_LE_4_TDR_Long_All", "Conc_Gross_LE_4_TDR_Short_All", "Conc_Gross_LE_8_TDR_Long_All", "Conc_Gross_LE_8_TDR_Short_All", "Conc_Net_LE_4_TDR_Long_All", "Conc_Net_LE_4_TDR_Short_All", "Conc_Net_LE_8_TDR_Long_All", "Conc_Net_LE_8_TDR_Short_All", "Contract_Units", "CFTC_Contract_Market_Code_Quotes", "CFTC_Market_Code_Quotes", "CFTC_Commodity_Code_Quotes", "CFTC_SubGroup_Code", "FutOnly_or_Combined"
+      ]
+    },
+    "release_policy": {"$ref": "#/$defs/releasePolicy"},
+    "row_policy": {"$ref": "#/$defs/rowPolicy"},
+    "state_machine": {"$ref": "#/$defs/stateMachine"},
+    "sealing": {"$ref": "#/$defs/sealing"},
+    "schemas": {"$ref": "#/$defs/schemaBindings"},
+    "architecture": {"$ref": "#/$defs/architecture"},
+    "readiness": {"$ref": "#/$defs/readiness"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "releasePolicy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["release_schedule_proof", "observation_weekday", "release_timezone", "release_local_time", "release_lag_calendar_days", "cloud_timer_authority", "cloud_schedule_count", "scheduled_cycle_timezone", "scheduled_cycle_local_time", "scheduled_cycle_semantics", "receipt_window", "first_eligible_decision"],
+      "properties": {
+        "release_schedule_proof": {"const": "CALLER_SUPPLIED_IMMUTABLE_VERSION_AND_SHA256"},
+        "observation_weekday": {"const": "TUESDAY"},
+        "release_timezone": {"const": "America/New_York"},
+        "release_local_time": {"const": "15:30:00"},
+        "release_lag_calendar_days": {"type": "object", "additionalProperties": false, "required": ["minimum", "maximum"], "properties": {"minimum": {"const": 3}, "maximum": {"const": 6}}},
+        "cloud_timer_authority": {"const": "CODEX_CLOUD_OPS_ONLY"},
+        "cloud_schedule_count": {"const": 1},
+        "scheduled_cycle_timezone": {"const": "Asia/Taipei"},
+        "scheduled_cycle_local_time": {"const": "09:05:00"},
+        "scheduled_cycle_semantics": {"const": "FIRST_SOLE_CLOUD_CYCLE_STRICTLY_AFTER_RELEASE"},
+        "receipt_window": {"const": "AT_OR_AFTER_SCHEDULED_CYCLE_BEFORE_NEXT_CYCLE"},
+        "first_eligible_decision": {"const": "STRICTLY_AFTER_SEALED_RECEIPT"}
+      }
+    },
+    "rowPolicy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["transport", "field_count", "field_2_grammar", "field_3_grammar", "date_equality", "observation_weekday", "target_row", "raw_values", "suppression_markers", "secondary_identity", "derived_value_selection"],
+      "properties": {
+        "transport": {"const": "HEADER_ABSENT_POSITIONAL_87_FIELDS"},
+        "field_count": {"const": 87},
+        "field_2_grammar": {"const": "YYMMDD_COMPACT/%y%m%d"},
+        "field_3_grammar": {"const": "YYYY_DASH_MM_DASH_DD/%Y-%m-%d"},
+        "date_equality": {"const": "LOSSLESS_SAME_TUESDAY"},
+        "observation_weekday": {"const": "TUESDAY"},
+        "target_row": {"const": "EXACTLY_ONE_CONTRACT_CODE_133741"},
+        "raw_values": {"const": "PRESERVE_ALL_STRINGS"},
+        "suppression_markers": {"const": "PRESERVE_RAW"},
+        "secondary_identity": {"const": "NONEMPTY_THEN_EXACT_PREDECESSOR_BOUND"},
+        "derived_value_selection": {"const": "DENY"}
+      }
+    },
+    "stateMachine": {
+      "type": "object", "additionalProperties": false,
+      "required": ["states", "same_date_changed_bytes", "alternate_source", "overwrite"],
+      "properties": {
+        "states": {"const": ["NO_NEW_REPORT", "CONTRACT_ABSENT", "DUPLICATE_CONTRACT_ROW", "MALFORMED_REPORT", "WRONG_REPORT_FAMILY", "REPORT_DATE_IN_FUTURE", "RELEASE_NOT_DUE", "SOURCE_UNAVAILABLE", "SAME_REPORT_BYTES_DRIFT", "NEW_REPORT_SEALED"]},
+        "same_date_changed_bytes": {"const": "INTEGRITY_BLOCK_NEVER_OVERWRITE"},
+        "alternate_source": {"const": "DENY"},
+        "overwrite": {"const": "DENY"}
+      }
+    },
+    "sealing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["raw_response", "selected_record", "canonical_row", "observation_document", "chain_algorithm", "predecessor"],
+      "properties": {
+        "raw_response": {"const": "BYTE_LENGTH_AND_SHA256_BEFORE_DECODE"},
+        "selected_record": {"const": "EXACT_BYTES_WITH_ORIGINAL_TERMINATOR_LENGTH_AND_SHA256"},
+        "canonical_row": {"const": "UTF8_COMPACT_SORTED_KEY_JSON_SHA256"},
+        "observation_document": {"const": "UTF8_COMPACT_SORTED_KEY_JSON"},
+        "chain_algorithm": {"const": "SHA-256"},
+        "predecessor": {"const": "EXACT_PRIOR_CHAIN_OR_64_ZERO_GENESIS"}
+      }
+    },
+    "contractSchemaBinding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "id", "sha256"],
+      "properties": {"path": {"const": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.schema.json"}, "id": {"const": "https://agora.local/research/cftc-cme-bitcoin-tff-source-contract.v2.schema.json"}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "observationSchemaBinding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "id", "sha256"],
+      "properties": {"path": {"const": "research_pipeline/cftc-cme-bitcoin-tff-observation.v2.schema.json"}, "id": {"const": "https://agora.local/research/cftc-cme-bitcoin-tff-observation.v2.schema.json"}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "schemaBindings": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "observation"],
+      "properties": {"contract": {"$ref": "#/$defs/contractSchemaBinding"}, "observation": {"$ref": "#/$defs/observationSchemaBinding"}}
+    },
+    "architecture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["future_producer", "transport", "canonical_intake", "state_authority", "network_access", "database_access", "registration", "capture"],
+      "properties": {
+        "future_producer": {"const": "NOT_IMPLEMENTED_FIXED_ZERO_PARAMETER"},
+        "transport": {"const": "NOT_IMPLEMENTED_CREATE_ONLY_ONE_WAY_HASH_BOUND"},
+        "canonical_intake": {"const": "NOT_IMPLEMENTED_NETWORK_DATABASE_DENIED"},
+        "state_authority": {"const": "SERVER_CANONICAL"},
+        "network_access": {"const": "DENY_IN_THIS_PACKAGE"},
+        "database_access": {"const": "DENY"},
+        "registration": {"const": "DENY"},
+        "capture": {"const": "DENY"}
+      }
+    },
+    "readiness": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_registered", "producer_implemented", "transport_implemented", "intake_implemented", "capture_authorized", "factor_authorized", "hypothesis_authorized", "candidate_authorized", "oos_authorized", "trading_authorized", "immediate_performance_effect", "immediate_drawdown_effect"],
+      "properties": {
+        "source_registered": {"const": false}, "producer_implemented": {"const": false}, "transport_implemented": {"const": false}, "intake_implemented": {"const": false}, "capture_authorized": {"const": false}, "factor_authorized": {"const": false}, "hypothesis_authorized": {"const": false}, "candidate_authorized": {"const": false}, "oos_authorized": {"const": false}, "trading_authorized": {"const": false}, "immediate_performance_effect": {"const": "ZERO"}, "immediate_drawdown_effect": {"const": "ZERO"}
+      }
+    }
+  }
+}

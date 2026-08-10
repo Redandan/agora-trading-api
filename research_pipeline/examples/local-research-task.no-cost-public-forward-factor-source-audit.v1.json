@@ -1,0 +1,157 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-no-cost-public-forward-factor-source-audit-v1",
+  "issued_at": "2026-08-10T07:55:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Independently audit exactly four official, credential-free public forward-data source families and decide whether at most one contains sufficiently distinct point-in-time information to justify a later bounded source-design task for BTC spot risk-adjusted performance research. Compare Deribit BTC options surface data, OKX public liquidation-order events, CFTC CME Bitcoin Commitments of Traders, and Bitcoin network congestion or fee state from the open-source mempool project. Exclude the existing OKX spot candle, OKX trades/books5 microstructure, crypto carry, and derived 3 percent UTC-day shock lanes. Produce only a source-readiness disposition, evidence matrix, performance claim boundary, and opportunity-cost ranking; do not call an endpoint, download data, implement a source, define a factor formula or threshold, create a hypothesis or candidate, or change any frozen contract.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE_R1_4_OF_90_R2_PRE_START_0_OF_14_QUEUE_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-forward-evidence-source-v1.md",
+      "sha256": "946c6dab1f772bca743ff1c769f988c276cf1bef47fada4fea29340cd65b71e5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "76a62fdc769c3c9a8c96df2d588a07674285ff040df37894b4be52cfc417da09"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence-source-contract.schema.json",
+      "sha256": "3b126fe0b6c91c48bbb50148dc980852a99b592933f195b4f37dafff0d970c65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-crypto-carry-primary-prior-audit.v2.json",
+      "sha256": "c0c4da2b3eb4cfccc2fc125d0f8a098e064040223e8ba118233573748826840b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-crypto-carry-forward-source-design.v1.json",
+      "sha256": "32e1539c171a847bb9a8bc087c59e546ed9c86bb262e600c611830884d0cc110"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-order-flow-literature-prior-audit.v1.json",
+      "sha256": "d7a0057e795b3199df4f834012c9bd90f171257bef84bbdd6fcee9dbe6ba349f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-factor-contract.v1.json",
+      "sha256": "8fcd2fcd822bfc1b2965580f1600c8af0a1faa769f476b9b364575038b430ae2"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-10T07:53:30Z; policy READY V3; worker READY release 20260810T065829Z from commit 3c8e5ae4; queue IDLE; R1 4/90 lag 0 awaiting 2026-08-10 day close; microstructure R2 PRE_START 0/14 starting 2026-08-11; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Source family A, Deribit BTC options surface: use only official public market-data documentation, beginning with https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency . Determine whether point-in-time implied-volatility or skew fields are credential-free, timestampable, semantically stable, and distinct from spot candles, order flow, and carry. Do not retrieve values or define a feature.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Source family B, OKX public liquidation-order events: use only the official API guide https://www.okx.com/docs-v5/en/ and official changelog https://www.okx.com/docs-v5/log_en/ . Explicitly account for the removal of the historical liquidation REST endpoint and the forward-only real-time WebSocket burden. Do not connect to the stream or retrieve values.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Source family C, CFTC CME Bitcoin Commitments of Traders: use only official CFTC pages beginning with https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm and https://www.cftc.gov/dea/futures/deacmelf.htm . Audit observation date, publication lag, cadence, revisions, credential requirement, and whether weekly positioning could add information to the current daily and intraday lanes. Do not download a report.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Source family D, Bitcoin network congestion or fee state: use only the official open-source mempool repository and its directly linked project documentation, beginning with https://github.com/mempool/mempool . Audit whether a stable, timestamped, credential-free point-in-time field contract and acceptable provenance are documented. If exact field semantics or change control are absent, mark MISSING_PROOF rather than inferring them.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_REPOSITORY_INPUT_HASHES",
+    "READ_LISTED_OFFICIAL_PUBLIC_DOCUMENTATION",
+    "READ_DIRECTLY_LINKED_ORIGINAL_RESEARCH_PAPERS",
+    "AUDIT_CREDENTIAL_FREE_ACCESS",
+    "AUDIT_POINT_IN_TIME_TIMESTAMP_AND_REVISION_SEMANTICS",
+    "AUDIT_CAUSAL_DISTINCTNESS_FROM_EXISTING_LANES",
+    "AUDIT_FORWARD_CAPTURE_AND_OPERATIONAL_BURDEN",
+    "ASSESS_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+    "RANK_AT_MOST_ONE_LATER_SOURCE_DESIGN",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "ENDPOINT_CALL_OR_WEBSOCKET_CONNECTION",
+    "SOURCE_IMPLEMENTATION_OR_DEPLOYMENT",
+    "FACTOR_FORMULA_THRESHOLD_OR_DIRECTION_SELECTION",
+    "HYPOTHESIS_CANDIDATE_MANIFEST_OR_EXPERIMENT_REGISTRATION",
+    "REPOSITORY_OR_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "SECONDARY_SOURCE_AS_PRIMARY_EVIDENCE"
+  ],
+  "expected_outputs": [
+    "FOUR_SOURCE_OFFICIAL_EVIDENCE_MATRIX",
+    "EXISTING_LANE_DUPLICATION_BOUNDARY",
+    "POINT_IN_TIME_AND_REVISION_READINESS",
+    "CAUSAL_DISTINCTNESS_ASSESSMENT",
+    "FORWARD_CAPTURE_AND_OPERATIONAL_COST_ASSESSMENT",
+    "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+    "AT_MOST_ONE_SOURCE_FAMILY_RANKING",
+    "SOURCE_READINESS_DISPOSITION",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository SHA-256 before analysis; any mismatch is BLOCKED and MISSING_PROOF.",
+    "Audit exactly the four listed source families and no fifth family, combination, or alternative provider.",
+    "Use only official provider or regulator documentation and directly linked original research papers. Do not use blogs, Reddit, search snippets, vendor comparisons, or later summaries as primary evidence.",
+    "Do not call any REST endpoint, connect to a WebSocket, download a dataset or report, log in, use an API key, or inspect current or historical values.",
+    "Exclude the existing OKX BTC-USDT candle R1, OKX trades and books5 microstructure R2, crypto carry, and derived 3 percent UTC-day shock lanes. Any source that only repackages them fails the distinctness test.",
+    "For each family, record credential requirement, official origin, point-in-time timestamp, publication or observation lag, cadence, revision or retention behavior, field-semantics proof, provenance or licensing proof, and capture continuity burden. Unknown items are MISSING_PROOF.",
+    "Separate a plausible causal mechanism from predictive and economic evidence. Documentation availability or a contemporaneous association is not forward alpha.",
+    "Assess whether the source could be sealed through the existing one-way evidence architecture without adding a research clock, Local writer, canonical writer, Trading scheduler, database writer, or user-managed operation.",
+    "Treat continuous WebSocket capture, source gaps, provider schema drift, and self-hosting as explicit opportunity costs; do not hide them behind the zero subscription price.",
+    "Do not define a factor formula, threshold, direction, horizon, regime, strategy rule, candidate, adapter, manifest, experiment, OOS trigger, or promotion path.",
+    "Rank at most one source family. Do not recommend a blended feed or parallel implementation backlog.",
+    "Return exactly one of ONE_NO_COST_FORWARD_SOURCE_DESIGN_READY, NO_INCREMENTAL_PUBLIC_SOURCE_CLOSE, or PRIMARY_DOC_OR_POINT_IN_TIME_PROOF_INSUFFICIENT.",
+    "ONE_NO_COST_FORWARD_SOURCE_DESIGN_READY requires official credential-free access, a fixed point-in-time timestamp or publication contract, source semantics sufficient for deterministic sealing, a mechanism distinct from existing lanes, and a capture burden proportionate to the incremental learning value.",
+    "A positive disposition authorizes only one later bounded source-design task. It does not authorize implementation, data retrieval, historical backfill, factor construction, candidate registration, server deployment, or schedule changes.",
+    "Immediate fee-adjusted PnL and drawdown effect is exactly zero; predictive value, capacity, slippage, utilization, and economic value remain MISSING_PROOF.",
+    "Make no file changes. Return exactly one local-research-result JSON tied to this task SHA-256, with empty artifacts and files_changed and all safety assertions false."
+  ],
+  "limits": {
+    "timeout_seconds": 2400,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

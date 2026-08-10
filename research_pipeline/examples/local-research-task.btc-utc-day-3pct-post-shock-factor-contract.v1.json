@@ -1,0 +1,153 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-post-shock-factor-contract-v1",
+  "issued_at": "2026-08-10T07:39:36Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Freeze one bounded, pre-outcome factor-evaluation contract for future BTC complete-UTC-day shocks already identified by the deployed inclusive 3.00% diagnostic. Define an exact delayed label using only later accepted contiguous hourly evidence, a 24-hour primary signed response with 1-hour and 6-hour path diagnostics, mutually exclusive continuation and reversal interpretations, breadth and concentration gates, and a spot-only strategy-mapping boundary. Produce only a design disposition and the smallest next implementation scope. Do not inspect any post-activation shock outcome, select a winning direction or horizon, author a hypothesis or candidate, open OOS, change the deployed diagnostic, or modify any repository, schedule, source, server, canonical state, or Trading path.",
+  "canonical_research_status": "WAITING;R1_4_OF_90_LAG_0;MICROSTRUCTURE_R2_PRE_START_0_OF_14;QUEUES_IDLE;WORKER_20260810T065829Z_READY;V9_READY",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence-day.schema.json",
+      "sha256": "e517d734f4f8002d474f2ea35529df6b2713d8c2ecabf8dff7a7ab799506c8c5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/btc-utc-day-3pct-shock-diagnostic.v1.schema.json",
+      "sha256": "4892456b848951237436538af429f083ca70c497d70cdef7ca5cf2bae1e01ef1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/shock_attribution.py",
+      "sha256": "af9a55d7e05ba14ec010948656b16ab99cddd9285d4fa002939bd024fd8cf50e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/heartbeat.py",
+      "sha256": "eae32aa356afe0bdcc73b4c2c1a184150f119686e6cf0a0e69fec6577605f5f8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-shock-attribution-design.v1.json",
+      "sha256": "1a225219209890172e26a634f19bedba164e4461189927e96b4fe0fc2989bdd9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-shock-diagnostic-vertical-slice.v1.json",
+      "sha256": "3329bfa0fe5e7ff0c5f3bb51f69258bf3e5da92ad1f8ae61b213d78b5915dabb"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-10T07:38:38Z; Worker 20260810T065829Z READY at commit 3c8e5ae4; one V9 clock; R1 4/90 lag 0; R2 PRE_START 0/14; queues IDLE; no post-activation shock outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Manager throughput goal: increase useful research while prospective evidence matures by freezing a post-shock evaluation contract before any eligible outcome exists. The sponsor does not operate individual tasks.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Required factor boundary: event is known only after the qualifying UTC day closes; use future contiguous accepted hourly evidence only, make next-24-hour signed response primary, keep 1-hour and 6-hour responses as preregistered path diagnostics, and never select a direction or horizon after outcome access.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_LOCAL_INPUT_HASHES",
+    "AUDIT_DEPLOYED_SHOCK_CONTRACT",
+    "DEFINE_DELAYED_OUTCOME_IDENTITY",
+    "DEFINE_24H_PRIMARY_RESPONSE",
+    "DEFINE_1H_AND_6H_PATH_DIAGNOSTICS",
+    "DEFINE_CONTINUATION_AND_REVERSAL_LABELS",
+    "DEFINE_SPOT_ONLY_STRATEGY_MAPPING",
+    "DEFINE_SAMPLE_BREADTH_GATES",
+    "DEFINE_CONCENTRATION_AND_MISSINGNESS_GATES",
+    "DEFINE_MATCHED_CAPITAL_EXPERIMENT_BOUNDARY",
+    "ASSESS_PERFORMANCE_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CURRENT_OR_FUTURE_OUTCOME_ACCESS",
+    "POST_ACTIVATION_SHOCK_RESULT_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_CANDIDATE_OR_MANIFEST_AUTHORING",
+    "DIRECTION_HORIZON_OR_THRESHOLD_TUNING",
+    "DEPLOYED_SHOCK_CONTRACT_CHANGE",
+    "ADAPTER_RUNNER_SCHEMA_OR_CONTRACT_IMPLEMENTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "SERVER_NETWORK_SSH_OR_DEPLOYMENT",
+    "SHORT_LEVERAGE_DERIVATIVE_OR_FUNDING_ACTION",
+    "CLOSED_BRANCH_REOPEN_OR_RELABEL",
+    "SPRING_SCHEDULER_OR_TRADING_GATE"
+  ],
+  "expected_outputs": [
+    "TERMINAL_FACTOR_CONTRACT_DISPOSITION",
+    "EXACT_EVENT_AND_DELAYED_LABEL_TIMELINE",
+    "PRIMARY_24H_SIGNED_RESPONSE_FORMULA",
+    "FIXED_1H_AND_6H_PATH_DIAGNOSTICS",
+    "CONTINUATION_REVERSAL_DECISION_RULE",
+    "SPOT_ONLY_ACTION_MAPPING_BOUNDARY",
+    "SAMPLE_BREADTH_AND_CONCENTRATION_GATES",
+    "MATCHED_CAPITAL_EXPERIMENT_BOUNDARY",
+    "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+    "SMALLEST_NEXT_IMPLEMENTATION_SCOPE"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null local SHA-256 before analysis; any mismatch, missing input, link, reparse point, duplicate locator, wrong type, branch drift, HEAD/origin mismatch, or dirty worktree is BLOCKED and MISSING_PROOF.",
+    "Do not read a post-activation shock artifact, a later accepted day used as its outcome, current price, Local inbox or outbox, server path, OOS, or any unlisted outcome-bearing file. This task must remain pre-outcome.",
+    "Keep the deployed shock event unchanged: inclusive abs((target UTC-day close / prior UTC-day close) - 1) >= 0.0300 over two contiguous complete source-produced UTC days. Do not compare neighboring thresholds or rolling definitions.",
+    "Freeze event time t0 at the qualifying UTC-day close. A factor label may use only contiguous complete hourly bars accepted after t0 and hash-bound to the same canonical evidence chain; missing or noncontiguous future hours make that episode unevaluable.",
+    "Use signed_response_h = shock_direction_sign * ((close_at_t0_plus_h / shock_day_close) - 1). Freeze h=24 as the sole primary response and h=1 and h=6 as path diagnostics; do not add, remove, rank, or tune horizons after outcomes.",
+    "Define continuation and reversal as mutually exclusive interpretations of the same signed response. A positive signed response supports continuation, a negative signed response supports reversal, and zero is a tie; the task cannot choose which interpretation wins.",
+    "Preserve the existing minimum episode gate: at least 8 eligible post-activation shocks, at least 2 UP and 2 DOWN, at least 2 events in each chronological half, at least 3 UTC months, and no month above 50 percent. Failure means WAIT_FOR_MORE_UNTOUCHED_EVIDENCE without lowering 3 percent or extending a frozen window after review.",
+    "Freeze deterministic completeness, duplicate, timing, concentration, direction-breadth, and sign-breadth checks before any outcome review. One event, month, direction, or extreme return must not carry a positive disposition by itself.",
+    "Do not convert qualitative news attribution into a factor. Cause remains UNKNOWN unless a separately frozen point-in-time source contract exists; the price-response contract must stand independently of narrative labels.",
+    "Map factor evidence only to spot-feasible later hypotheses: BUY or increased admission after an eligible state, or HOLD_CASH or reduced admission. Short, leverage, derivative, funding, forced sell, OCO, Grid, or live execution is outside scope.",
+    "Any later economic experiment must compare one frozen spot-feasible overlay with its unchanged parent under equal capital and the same fees, adverse slippage, fill timing, valuation boundary, realized and unrealized PnL, drawdown, utilization, blocked entries, terminal inventory, and holding ages.",
+    "A positive diagnostic disposition may authorize only one separate bounded evaluator implementation task with at most two fixed interpretation variants. It cannot author or register a hypothesis, candidate, manifest, OOS trigger, strategy action, or deployment.",
+    "Return exactly one of POST_SHOCK_FACTOR_CONTRACT_READY, POST_SHOCK_FACTOR_DUPLICATE_OR_NONCAUSAL_CLOSE, or POST_SHOCK_FACTOR_SOURCE_OR_BREADTH_INSUFFICIENT. Do not invent a fourth disposition or tune a gate to obtain a positive result.",
+    "Keep immediate fee-adjusted PnL and drawdown effect at zero. Predictive value, significance, fees, slippage, capacity, annual or regime breadth, matched-capital PnL, drawdown improvement, candidate readiness, OOS value, and deployability remain MISSING_PROOF.",
+    "Make no repository, research-state, server, schedule, source, task, or Trading change. Return exactly one task-hash-bound local-research-result JSON with empty artifacts and files_changed and every safety assertion false.",
+    "Recommend only the smallest bounded next action implied by the terminal disposition. Do not begin the free-source audit, implement an evaluator, request additional permissions, or ask the sponsor to operate the task."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 2,
+    "network_access": "NONE"
+  }
+}

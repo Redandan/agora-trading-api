@@ -126,10 +126,10 @@ worktree implementation capacity under
 returns a task-hash-bound result to the Manager/Coach. It has no routine wake-up,
 cannot become a second writer, and cannot call Research MCP writes or mutate
 canonical server state. The V1 node is manually message-dispatched and leaves
-the sole cloud clock and its server-canonical contract unchanged. As of
-2026-08-10 the deployed canonical contract remains V8 while the reviewed V9
-successor is prepared; Local work cannot activate, replace, pause, or
-acknowledge either schedule contract.
+the sole cloud clock and its server-canonical contract unchanged. Post-cutover
+readback on 2026-08-10 proved the active canonical contract is V9 and the exact
+existing ChatGPT Work task is the sole active recurrence; Local work cannot
+activate, replace, pause, or acknowledge that schedule contract.
 
 The generic Spring strategy runtime must not depend on `research_pipeline`.
 
@@ -149,7 +149,7 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The prepared successor `CLOUD_OPS_SCHEDULE_V9` cloud Ops semantics are frozen in
+The active `CLOUD_OPS_SCHEDULE_V9` cloud Ops semantics are frozen in
 `research_pipeline/cloud-ops-schedule-contract.v9.json`, exact SHA-256
 `04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`;
 V1 through V8 remain immutable historical contract evidence. V9 keeps the
@@ -389,15 +389,19 @@ experiment passes its preregistered Design and Validation gates to
 `CANDIDATE_FROZEN`, while sealed OOS remains unopened, and only when the overlay
 exercises material lot-management semantics absent from Phase B.
 
-## Prepared cross-task Coach delivery V9
+## Active cross-task Coach delivery V9
 
-Fresh OAuth Research MCP status at `2026-08-10T03:31:06Z` reports the deployed
-`CLOUD_OPS_SCHEDULE_V8` `READY`. Platform readback proved the exact existing
-ChatGPT Work task `6a71a1ed2f608191b0621c52bed3fd81` is the only active
-recurrence at `09:05 Asia/Taipei`, while the desktop automation remains paused.
-V8 has not yet executed its first normal cloud cycle.
+Fresh OAuth Research MCP status at `2026-08-10T04:36:55Z` reports deployed
+Worker release `20260810T042111Z`, source commit
+`9b436c4fcd8f996cc682e2c14bfe8b2f3148ce57`, and
+`CLOUD_OPS_SCHEDULE_V9` `READY` at the exact frozen hash below. The cutover
+paused the exact existing ChatGPT Work task
+`6a71a1ed2f608191b0621c52bed3fd81`, proved zero active schedules, updated it
+in place, then proved exactly one active recurrence at `09:05 Asia/Taipei` and
+zero paused recurrences. No second schedule was created and the desktop
+automation remains paused.
 
-The frozen V9 successor preserves that one daily `09:05 Asia/Taipei` cloud clock,
+V9 preserves that one daily `09:05 Asia/Taipei` cloud clock,
 the `09:00` canonical due boundary, 300-second margin, Server Canonical as sole
 writer, durable artifact-hash outbox, five-field receipt, idempotency,
 immutable queue/deadline timestamps, and the 10,800-second `PASS`/`BREACH`
@@ -415,10 +419,11 @@ next normal cycle. Tool or host unavailability leaves an event pending as
 `CROSS_TASK_DELIVERY_PENDING`; it never adds a timer, messenger, user step, or
 early ACK.
 
-Repository V9 contract, prompt, Worker attestation code, and focused tests are
-the preparation gate. Worker deployment, in-place update of the exact existing
-task, zero-active readback during cutover, exactly-one-active readback after
-activation, live Coach delivery/readback, receipt acceptance, and a live
-`PASS` or `BREACH` remain `MISSING_PROOF` until separately proven. Retained
+Repository implementation, packaging, Worker deployment, in-place update of
+the exact existing task, zero-active cutover readback, and exactly-one-active
+post-activation readback are proven. The first normally due V9 task execution,
+live initial Coach delivery/readback, same-cycle receipt acceptance, preserved
+historical `BREACH`, weekly-event terminal `PASS` or `BREACH`, post-heartbeat
+delivery, and economic value remain `MISSING_PROOF` until observed. Retained
 pending events keep their original timestamps. Rollback must first pause V9 and
 prove zero active schedules; two clocks may never overlap.

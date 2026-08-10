@@ -163,14 +163,14 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
         self.assertNotIn("do not send before the normally due heartbeat", self.prompt)
         self.assertNotIn("new post-send receipt may be carried only", self.prompt)
 
-    def test_current_docs_distinguish_prepared_v9_from_live_v8(self) -> None:
+    def test_current_docs_record_active_v9_and_remaining_live_cycle_proof(self) -> None:
         for content in self.docs:
             self.assertIn("CLOUD_OPS_SCHEDULE_V9", content)
             self.assertIn(V9_SHA256, content)
             self.assertIn("MISSING_PROOF", content)
         for content in self.docs[1:]:
             self.assertIn("CROSS_TASK_DELIVERY_PENDING", content)
-        self.assertIn("deployed canonical contract remains V8", self.docs[0])
+        self.assertIn("active canonical contract is V9", self.docs[0])
         self.assertIn("exactly one active", self.docs[1])
         self.assertIn(EXISTING_CLOUD_SCHEDULE_ID, self.docs[2])
         self.assertIn(EXISTING_CLOUD_SCHEDULE_ID, self.docs[3])

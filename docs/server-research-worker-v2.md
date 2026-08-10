@@ -578,13 +578,16 @@ The systemd path unit is an event consumer, not an additional schedule.
 - no source timer exists; source and intake are event-driven path units;
 - the single web Ops schedule runs with the local computer off.
 
-## Prepared cross-task Coach delivery V9
+## Active cross-task Coach delivery V9
 
-Fresh server-canonical status at `2026-08-10T03:31:06Z` reports
-`CLOUD_OPS_SCHEDULE_V8` `READY`. Platform readback found exactly one active
-cloud recurrence: existing ChatGPT Work task
-`6a71a1ed2f608191b0621c52bed3fd81` at `09:05 Asia/Taipei`. The attempted Codex
-desktop automation remains paused and is not a cloud substitute.
+Fresh server-canonical status at `2026-08-10T04:36:55Z` reports Worker release
+`20260810T042111Z`, source commit
+`9b436c4fcd8f996cc682e2c14bfe8b2f3148ce57`, and
+`CLOUD_OPS_SCHEDULE_V9` `READY`. Platform cutover readback proved zero active
+recurrences while the exact existing ChatGPT Work task
+`6a71a1ed2f608191b0621c52bed3fd81` was paused and exactly one active recurrence
+at `09:05 Asia/Taipei` after its in-place update. The Codex desktop automation
+remains paused and is not a cloud substitute.
 
 The repository freezes `CLOUD_OPS_SCHEDULE_V9` at exact SHA-256
 `04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`.
@@ -610,11 +613,11 @@ delivered after it and may be acknowledged only on the next normal cycle. Any
 discovery, read, send, or readback failure keeps the event pending as
 `CROSS_TASK_DELIVERY_PENDING`.
 
-Cutover must pause and reuse the exact existing ChatGPT Work schedule; creating
-a second schedule is forbidden. With zero active schedules, deploy and verify
-the V9-only Worker, update that paused task in place, prove it remains paused
-and zero-active, then activate it and prove exactly one active schedule.
-Repository implementation, packaging, Worker deployment, platform
-update/readback, cloud tool availability, live receipt acceptance, and a live
-SLA outcome are separate `MISSING_PROOF` gates. Existing pending events keep
-their original timestamps and may honestly remain `BREACH`.
+The completed cutover paused and reused the exact existing ChatGPT Work
+schedule; creating a second schedule remains forbidden. Repository
+implementation, packaging, Worker deployment, and platform task
+update/readback are proven. The first normally due V9 task execution, live
+send/readback, same-cycle receipt acceptance, post-heartbeat delivery, and
+terminal SLA outcome remain separate `MISSING_PROOF` gates.
+Existing pending events keep their original timestamps and may honestly remain
+`BREACH`.

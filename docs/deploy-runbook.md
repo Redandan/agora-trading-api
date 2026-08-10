@@ -286,16 +286,17 @@ A successful verification establishes the requested release identities and
 source-state contract at that instant. It does not prove uninterrupted day completion,
 predictive value, PnL, or drawdown.
 
-### Prepared Cloud Ops V9 receipt-SLA contract
+### Active Cloud Ops V9 receipt-SLA contract
 
-Repository preparation alone does not activate `CLOUD_OPS_SCHEDULE_V9`.
+Repository preparation alone did not activate `CLOUD_OPS_SCHEDULE_V9`.
 The frozen V9 bytes have exact SHA-256
 `04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`;
 V8 remains immutable predecessor evidence at
 `7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`.
-Fresh canonical status at `2026-08-10T03:31:06Z` reports the deployed V8 Worker
-`READY`. Do not call a V9 write until deployment readback reports V9 `READY`
-with the exact hash.
+Fresh canonical status at `2026-08-10T04:36:55Z` reports deployed Worker release
+`20260810T042111Z`, source commit
+`9b436c4fcd8f996cc682e2c14bfe8b2f3148ce57`, and V9 `READY` with the exact
+hash. V9 writes must continue to attest that hash.
 
 Platform readback proved exactly one active cloud recurrence: existing ChatGPT
 Work task `6a71a1ed2f608191b0621c52bed3fd81`, daily at 09:05 with no end date.
@@ -314,8 +315,10 @@ server-contract, V7/V8 historical immutability, V9 cross-task contract, and
 evidence suites offline. Run `PackageOnly` only as the separate post-commit
 closure gate described above.
 
-Perform cutover only after both queues are idle and enough time remains before
-the next canonical due boundary:
+The 2026-08-10 cutover completed the following historical sequence while both
+queues were idle and before the next canonical due boundary. A future reviewed
+cutover must preserve the same zero-active boundary while naming its exact
+source and target contracts; do not infer authorization from this record:
 
 1. Pause the exact active V8 ChatGPT Work task, re-read platform state, and
    prove exactly zero active schedules. Keep the desktop automation paused.
@@ -341,11 +344,12 @@ pause the V9 task and prove zero active schedules first. Restore the V8 Worker
 and prompt only as one reviewed unit; do not resume V8 until its canonical hash
 and exact platform prompt both match.
 
-Worker deployment, in-place cloud-task update, cloud Research MCP and
-list/read/send availability, zero-active and exactly-one-active readback, live
-same-cycle receipt acceptance, post-heartbeat delivery, and economic value
-remain `MISSING_PROOF` until separately proven. Any unavailable target or
-delivery tool must leave the canonical event as
+Worker deployment, in-place cloud-task update, cloud Research MCP readback,
+zero-active readback, and exactly-one-active readback are proven. The first
+normally due V9 task execution, live Coach send/readback, same-cycle receipt
+acceptance, post-heartbeat delivery, terminal `PASS` or `BREACH`, and economic
+value remain `MISSING_PROOF` until separately proven. Any unavailable target
+or delivery tool must leave the canonical event as
 `CROSS_TASK_DELIVERY_PENDING`.
 
 Optional

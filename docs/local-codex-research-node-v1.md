@@ -374,7 +374,7 @@ idle, and the 2026-08-07 companion evidence day `SEALED` before its deadline.
 This proves live heartbeat and evidence-path recovery.
 
 It does not repair the old Coach event's delivery history. That event remains
-pending with `BREACH_PENDING_DELIVERY_PROOF`. The prepared
+pending with `BREACH_PENDING_DELIVERY_PROOF`. The active
 `CLOUD_OPS_SCHEDULE_V9` contract, exact SHA-256
 `04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`,
 allows an initial pending event to be sent and readback-verified before the
@@ -382,5 +382,7 @@ single normally due heartbeat, so its verified receipt can close canonical
 pending state in that same cycle while preserving the historical `BREACH`.
 Events created by the heartbeat wait for the next normal cycle. An early
 heartbeat, local fallback, second timer, or manual canonical repair remains
-forbidden, and live V9 delivery remains `MISSING_PROOF` until cutover and the
-first scheduled cycle succeed.
+forbidden. Worker deployment and the zero-active/exactly-one-active platform
+cutover are proven; live V9 delivery, readback, receipt acceptance, and terminal
+SLA disposition remain `MISSING_PROOF` until the first normally due scheduled
+cycle succeeds.

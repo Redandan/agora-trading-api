@@ -279,14 +279,15 @@ database query, or backfill.
 - `agora-research-heartbeat.timer` remains disabled and the path unit remains
   an event consumer only.
 
-## Prepared cross-task delivery successor
+## Active cross-task delivery contract
 
-Fresh server-canonical status at `2026-08-10T03:31:06Z` reports
-`CLOUD_OPS_SCHEDULE_V8` `READY`. Platform readback proved exactly one active
-ChatGPT Work recurrence, the existing task
-`6a71a1ed2f608191b0621c52bed3fd81`; the desktop automation remains paused.
+Fresh server-canonical status at `2026-08-10T04:36:55Z` reports deployed
+Worker release `20260810T042111Z` and `CLOUD_OPS_SCHEDULE_V9` `READY`.
+Platform cutover readback proved zero active recurrences while the existing
+ChatGPT Work task `6a71a1ed2f608191b0621c52bed3fd81` was paused, then exactly one active
+recurrence after its in-place update; the desktop automation remains paused.
 
-The lifecycle-neutral successor is `CLOUD_OPS_SCHEDULE_V9`, frozen at exact
+The active lifecycle-neutral contract is `CLOUD_OPS_SCHEDULE_V9`, frozen at exact
 SHA-256
 `04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`.
 It keeps the scientific gates, one 09:05 cloud clock, 09:00 canonical due
@@ -302,9 +303,10 @@ Tool or host unavailability remains a hash-identified
 `CROSS_TASK_DELIVERY_PENDING` event and does not authorize a timer, messenger,
 user step, paid API, or inferred ACK.
 
-Cutover pauses and reuses the exact existing active ChatGPT Work task and
-forbids creation of a second schedule. Repository V9 implementation, focused
-tests, Worker deployment, in-place task update, zero-active and exactly-one-active
-readbacks, live delivery, receipt acceptance, SLA result, and any quantified
-learning-latency or economic benefit remain separate `MISSING_PROOF` gates. Immediate
-PnL and drawdown effect are zero.
+Cutover reused the exact existing ChatGPT Work task and created no second
+schedule. Repository V9 implementation, focused tests, Worker deployment,
+in-place task update, and zero-active/exactly-one-active readbacks are proven.
+The first normally due V9 task execution, live delivery/readback, receipt
+acceptance, SLA result, and any quantified learning-latency or economic benefit
+remain separate `MISSING_PROOF` gates. Immediate PnL and drawdown effect are
+zero.

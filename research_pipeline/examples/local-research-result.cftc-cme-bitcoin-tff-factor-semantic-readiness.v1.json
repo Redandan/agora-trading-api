@@ -1,0 +1,52 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-cftc-tff-factor-semantic-readiness-v1",
+  "task_sha256": "e5816fe3d7371140a89a2b9df0b92de8b5fd96b00e3c9bb7c14905fe20a97b18",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T15:50:00Z",
+  "completed_at": "2026-08-10T15:52:25Z",
+  "source_git_commit": "3adee85ba11f74519eaa803c889a9cbf18048d38",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "CFTC_TFF_FACTOR_SEMANTIC_BOUNDARY_READY. The accepted source design and disabled V2 contract explicitly seal the publisher, report family, futures-only variant, CME Bitcoin market and contract code; four named participant categories; long, short and spread representations; absolute positions, changes, percentages of open interest, trader counts and concentration families; raw contract-unit, percentage, count and concentration-unit boundaries; Tuesday observation and Friday/holiday-aware release timing; strictly-post-receipt eligibility; and explicit absence, suppression, duplicate, malformed, family-drift, future-date, release-not-due, unavailable and same-date-byte-drift states. Those pre-outcome semantics are sufficient for Manager to freeze one later concrete single-factor preregistration question by selecting exactly one input family, one normalization unit, one leakage-safe eligibility rule and one missingness rule before values or outcomes are opened. This audit selects no field, category, formula, transform, sign, threshold, horizon or strategy mapping. It is NON_COUNTING/NON_COUNTING_NOT_APPLICABLE. Immediate fee-adjusted PnL and drawdown effects are zero; continuity, operations, prediction and economics remain MISSING_PROOF.",
+  "checks": [
+    {"name":"SOURCE_IDENTITY_AND_CLEANLINESS","status":"PASS","evidence":"Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched 3adee85ba11f74519eaa803c889a9cbf18048d38. Worktree was clean before analysis and remained clean after all read-only checks."},
+    {"name":"TASK_DISPATCH_INTENT_VALIDATION","status":"PASS","evidence":"Task SHA e5816fe3d7371140a89a2b9df0b92de8b5fd96b00e3c9bb7c14905fe20a97b18, canonical dispatch SHA ede3e43e5bd9882ce7c595a0e5f91b305a97398711af5f770a657f656dd3e069 and canonical intent SHA db5da01bbd1e5216896c1022b3be97a319c6d8b8df43c2995d2a9591a98f3898 matched. Repository task, dispatch and dependency-neutral classification validators returned VALID with exact task/dispatch/claim binding."},
+    {"name":"STOP_AND_INPUT_CLOSURE","status":"PASS","evidence":"All 20 non-null inputs were unique repository-contained regular non-link non-reparse files with exact SHA-256. Task, dispatch and intent worktree bytes equaled current HEAD objects. The 18 canonical stop conditions hashed to b475f73f248d87f8aa70abec8d02ef22d041e40f78cfd2cddd9e6c5777e949e3."},
+    {"name":"PRIOR_READINESS_LIFECYCLE","status":"PASS","evidence":"The predecessor readiness task/dispatch/result closure returned VALIDATED_RESULT_BOUND_TO_PERFORMANCE_DISPATCH. Its canonical intent and Manager acceptance passed Git-object, ancestry, timestamp, task/dispatch/result and claim-boundary validation. The accepted result was COMPLETED, classified EXCLUDE under NON_COUNTING_NOT_APPLICABLE, and accepted source-contract readiness for later review."},
+    {"name":"SEALED_SOURCE_SEMANTIC_EVIDENCE","status":"PASS","evidence":"Only the listed accepted source-design result, disabled V2 contract and its closed schemas were used. Transport proof and parser completeness were treated as semantic boundary evidence only, never as predictive or economic evidence."},
+    {"name":"EXACT_SOURCE_IDENTITY_AXIS","status":"PASS","evidence":"The frozen identity is explicit: U.S. Commodity Futures Trading Commission; Traders in Financial Futures; Futures Only; Bitcoin - Chicago Mercantile Exchange; contract market code 133741. Caller override, fallback and alternate-source substitution remain denied."},
+    {"name":"PARTICIPANT_CATEGORY_AXIS","status":"PASS","evidence":"The ordered frozen contract names exactly the relevant semantic category families: Dealer, Asset Manager, Leveraged Money and Other Reportable. This audit records their availability only and does not select, rank or recommend one."},
+    {"name":"POSITION_REPRESENTATION_AXIS","status":"PASS","evidence":"Long, short and spread representations are explicit across the frozen participant-category position families. The audit does not select a representation, construct a net measure or assign a sign."},
+    {"name":"INPUT_AND_UNIT_FAMILY_AXIS","status":"PASS","evidence":"The frozen contract distinguishes absolute positions, changes, percentages of open interest, trader counts and concentration representations, while preserving Contract_Units and raw strings. This makes a later choice of one input family and one normalization unit expressible without making that choice here."},
+    {"name":"TIMING_AND_ELIGIBILITY_AXIS","status":"PASS","evidence":"Observation weekday is Tuesday; release is frozen at 15:30 America/New_York with versioned holiday-aware lag bounds and the sole 09:05 Asia/Taipei cloud-cycle semantics. Eligibility is explicitly the first pre-existing decision strictly after sealed receipt, preventing same-cycle use."},
+    {"name":"MISSINGNESS_SUPPRESSION_DRIFT_AXIS","status":"PASS","evidence":"The ten-state machine explicitly represents no new report, contract absence, duplicate row, malformed report, wrong family, future report date, release not due, source unavailable, same-date byte drift and a newly sealed report. Suppression markers remain raw; overwrite and alternate-source repair are denied."},
+    {"name":"SCHEMA_SEMANTIC_CLOSURE","status":"PASS","evidence":"Both listed Draft 2020-12 schema documents are closed across all 28 reachable object nodes, and the contract binds exact schema identities and hashes. No schema or contract byte was changed."},
+    {"name":"PREREGISTRATION_EXPRESSIBILITY","status":"PASS","evidence":"The sealed axes are sufficient for a future separately frozen task to select exactly one input family, one normalization unit, one leakage-safe eligibility rule and one missingness rule before outcome access. No report value, BTC price, return, sample, correlation or performance statistic was opened."},
+    {"name":"SEMANTIC_PROOF_GAP","status":"PASS","evidence":"No additional semantic fact required merely to express the later bounded single-factor question is absent from the sealed bytes. Future values, source continuity, operational capture and predictive evidence are deliberately outside this semantic-readiness condition."},
+    {"name":"ZERO_SELECTION_ATTESTATION","status":"PASS","evidence":"No TFF field, participant category, representation, formula, transform, normalization, sign, threshold, horizon, strategy mapping, ranking, score, hypothesis, candidate, manifest, experiment or evaluation plan was selected, suggested or created."},
+    {"name":"NON_COUNTING_CLASSIFICATION","status":"PASS","evidence":"The canonical prospective intent freezes NON_COUNTING / NON_COUNTING_NOT_APPLICABLE for the existing cftc-cme-bitcoin-tff-headerless-transport family, max_candidate_variants=0 and EXCLUDE for every possible disposition. This review cannot become another weekly output or alpha family."},
+    {"name":"OPERATIONAL_AND_PREDICTIVE_BOUNDARY","status":"MISSING_PROOF","evidence":"Future CFTC continuity, operational capture, registration, intake, deployment, factor validity, predictive value, matched-capital PnL, drawdown improvement, candidate readiness and OOS authority were neither accessed nor proven."},
+    {"name":"PERFORMANCE_DRAWDOWN_OPPORTUNITY_COST","status":"PASS","evidence":"Immediate fee-adjusted total PnL delta and immediate drawdown effect are exactly zero. Stability, turnover, capacity, holding age and opportunity-cost reduction remain MISSING_PROOF. The bounded knowledge value is preventing post-outcome formula invention before one concrete preregistration question is frozen."},
+    {"name":"LOCAL_JSONSCHEMA_EXECUTABLE","status":"MISSING_PROOF","evidence":"The bundled Local Python runtime does not contain jsonschema. Repository canonical task, dispatch, result and dependency-neutral classification validators remained available and passed; no dependency was installed and no permission was requested."},
+    {"name":"ZERO_WRITE_AND_SAFETY_BOUNDARY","status":"PASS","evidence":"No repository, Git, .research-state, canonical, server, MCP, heartbeat, schedule, source, hypothesis, candidate, OOS, deployment or Trading state was changed. artifacts and files_changed are empty and all safety assertions remain false."}
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: future CFTC availability, layout continuity, publication continuity and operational liveness are not established by sealed semantic evidence.",
+    "MISSING_PROOF: source registration, live capture, intake, deployment and canonical integration remain unauthorized and unproven.",
+    "MISSING_PROOF: no field, category, formula, transform, normalization, sign, threshold, horizon, predictive value, matched-capital economics, candidate readiness or OOS authority has been selected or proven.",
+    "MISSING_PROOF: Local executable Draft 2020-12 validation was unavailable because the bundled runtime lacks jsonschema; repository dependency-neutral validators and exact hash/canonical checks passed."
+  ],
+  "recommended_next_action": "Manager may freeze exactly one separate zero-outcome single-factor preregistration-definition task. Before any report value or BTC outcome is accessible, that task must select exactly one input family, one normalization unit, one leakage-safe strictly-post-receipt eligibility rule and one missingness rule, then freeze any required field/category/formula/transform/direction/horizon choices without implementation, capture, candidate, OOS, deployment or Trading action.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

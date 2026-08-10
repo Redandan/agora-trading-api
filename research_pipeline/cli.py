@@ -43,6 +43,7 @@ from .forward_candidate import (
 )
 from .learning import build_learning
 from .local_dispatch import canonical_json_bytes, load_and_validate_dispatch
+from .local_semantic_closure import load_and_validate_semantic_closure
 from .local_node import (
     validate_local_research_result,
     validate_local_research_task,
@@ -159,6 +160,13 @@ def parser() -> argparse.ArgumentParser:
     validate_local_dispatch.add_argument("dispatch", type=Path)
     validate_local_dispatch.add_argument("--task", type=Path, required=True)
     validate_local_dispatch.add_argument("--result", type=Path)
+    validate_semantic_closure = commands.add_parser(
+        "validate-local-research-semantic-closure"
+    )
+    validate_semantic_closure.add_argument("closure", type=Path)
+    validate_semantic_closure.add_argument("--dispatch", type=Path, required=True)
+    validate_semantic_closure.add_argument("--task", type=Path, required=True)
+    validate_semantic_closure.add_argument("--result", type=Path, required=True)
     validate_microstructure = commands.add_parser(
         "validate-okx-microstructure-bundle"
     )
@@ -1447,6 +1455,15 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "validate-local-research-dispatch":
             validation = load_and_validate_dispatch(
+                args.dispatch,
+                args.task,
+                args.result,
+            )
+            print(canonical_json_bytes(validation).decode("utf-8"))
+            return 0
+        if args.command == "validate-local-research-semantic-closure":
+            validation = load_and_validate_semantic_closure(
+                args.closure,
                 args.dispatch,
                 args.task,
                 args.result,

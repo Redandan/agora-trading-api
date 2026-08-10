@@ -1,0 +1,121 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-partitioned-event-semantic-closure-capability-v1",
+  "task_sha256": "55091545a9eba9afd6d9c8fe699fef1a3b713a097b4fff77f3cc33285d443900",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T11:17:15Z",
+  "completed_at": "2026-08-10T11:32:19Z",
+  "source_git_commit": "ba4046ca1723f7a7f4519aaa29a2aea5c6f88bc7",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": true,
+  "summary": "SEMANTIC_CLOSURE_CAPABILITY_ACCEPTED. The unchanged exact five-path slice binds canonical task, dispatch and sealed-result bytes; enforces ordered TARGET_YEAR Design 2019-2022 and Validation 2023-2024 rows, dual row arithmetic, exact partition totals, deterministic PASS-evidence prefixes, six negative SIGNED_H24_MEDIAN values and HISTORICAL_REVERSAL_PRIOR_STABLE. The top-level command validates the sealed example before policy/store construction. Local compile, validator, scope and diff checks passed; Manager independently completed the provisioned Python 3.12 gate with 32/32 tests, zero skips, and validated the closed Draft 2020-12 schema and example. Immediate fee-adjusted PnL and drawdown effects are zero; predictive and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "PREFLIGHT_SOURCE_IDENTITY",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin matched ba4046ca1723f7a7f4519aaa29a2aea5c6f88bc7; the worktree was clean before editing."
+    },
+    {
+      "name": "TASK_VALIDATION",
+      "status": "PASS",
+      "evidence": "Top-level validator returned VALID for task_id local-node-partitioned-event-semantic-closure-capability-v1 and exact task SHA-256 55091545a9eba9afd6d9c8fe699fef1a3b713a097b4fff77f3cc33285d443900."
+    },
+    {
+      "name": "DISPATCH_VALIDATION",
+      "status": "PASS",
+      "evidence": "Top-level dispatch validator returned VALID for dispatch_id manager-partitioned-event-semantic-closure-capability-v1, dispatch SHA-256 5e9a868b271af4ed75c3b4b199f950426bf7bade2a35e08a5136ee4a5e886042 and exact task binding."
+    },
+    {
+      "name": "FROZEN_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "All 19 non-null repository inputs were independently rehashed before editing as unique contained regular non-link and non-reparse paths; all matched their frozen SHA-256 values and all four new targets were absent."
+    },
+    {
+      "name": "SEMANTIC_VALIDATOR_CLI",
+      "status": "PASS",
+      "evidence": "Local and Manager both obtained canonical VALID output for the sealed example: six rows, closure SHA-256 35007ccb9899b1115135958b8c4ea73518e5bf8a3454109e9db37873f7c5e22a, result SHA-256 2c2d200d4a6a29808b35ec2c80442ad9288867243b116fdd197f1308973c84a7 and disposition HISTORICAL_REVERSAL_PRIOR_STABLE."
+    },
+    {
+      "name": "PYTHON_COMPILE",
+      "status": "PASS",
+      "evidence": "Local bundled offline Python compiled research_pipeline/local_semantic_closure.py, research_pipeline/cli.py and research_pipeline/tests/test_local_semantic_closure.py successfully with bytecode redirected outside the repository; Manager independently confirmed source compile."
+    },
+    {
+      "name": "FOCUSED_LOCAL_TESTS",
+      "status": "PASS",
+      "evidence": "Local executed all locally available semantic validator tests successfully. Manager then ran the complete provisioned command covering local_node, local_dispatch and local_semantic_closure: 32 tests in 0.223s, OK, zero skips."
+    },
+    {
+      "name": "DRAFT_2020_12_SCHEMA_EXECUTION",
+      "status": "PASS",
+      "evidence": "MANAGER_REPORTED_NOT_LOCAL_PROOF: Draft202012Validator.check_schema passed, the exact sealed closure example passed, and an unexpected root property was rejected. Manager receipt was {\"closed_root_rejected\":true,\"document_type\":\"LOCAL_PARTITIONED_EVENT_SEMANTIC_CLOSURE_V1\",\"status\":\"DRAFT_2020_12_VALID\"}."
+    },
+    {
+      "name": "EXISTING_DISPATCH_TEST_SUITE",
+      "status": "PASS",
+      "evidence": "MANAGER_REPORTED_NOT_LOCAL_PROOF: provisioned offline Python 3.12 executed research_pipeline.tests.test_local_node, research_pipeline.tests.test_local_dispatch and research_pipeline.tests.test_local_semantic_closure together; all 32 tests passed with zero skips."
+    },
+    {
+      "name": "EXACT_FIVE_FILE_SCOPE",
+      "status": "PASS",
+      "evidence": "Read-only refresh confirmed exactly one modified tracked path and four authorized new paths. All five are regular non-reparse files, all hashes match Manager receipts, and no sixth changed or untracked repository path exists."
+    },
+    {
+      "name": "GIT_DIFF_CHECK",
+      "status": "PASS",
+      "evidence": "Local git diff --check passed; Manager independently confirmed compile, diff, exact scope, regular non-reparse paths and forbidden-token scan. No staging, commit or push occurred."
+    },
+    {
+      "name": "SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No network, server, canonical state, .research-state, schedule, source, OOS, hypothesis, candidate, Trading, database, order, fund, SHADOW, PAPER or LIVE action occurred."
+    },
+    {
+      "name": "PERFORMANCE_EFFECT",
+      "status": "MISSING_PROOF",
+      "evidence": "Immediate fee-adjusted PnL and drawdown effects are exactly zero. Predictive value, fees, slippage, matched-capital PnL, drawdown, forward confirmation, candidate readiness, OOS and activation remain untested and unauthorized."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "research_pipeline/local-partitioned-event-semantic-closure.v1.schema.json",
+      "sha256": "fb174e1e19954ec0bdfef28541b9c0be5df61a8dac36209d679bc434128492f5"
+    },
+    {
+      "path": "research_pipeline/local_semantic_closure.py",
+      "sha256": "e24c2e1c1b78e43147bb29f3d729b604f54d9007023da97c8db1471f759b3f92"
+    },
+    {
+      "path": "research_pipeline/cli.py",
+      "sha256": "a2f0e8f960f40cd52f4511351763bc6dfdca5ddbcf1c96b87d03fc2dd457fc23"
+    },
+    {
+      "path": "research_pipeline/tests/test_local_semantic_closure.py",
+      "sha256": "c0b2d33da71f83519ed4ae294f58c84b7e5f7362b5e009bd48ccb8e703c199ae"
+    },
+    {
+      "path": "research_pipeline/examples/local-semantic-closure.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "35007ccb9899b1115135958b8c4ea73518e5bf8a3454109e9db37873f7c5e22a"
+    }
+  ],
+  "files_changed": [
+    "research_pipeline/local-partitioned-event-semantic-closure.v1.schema.json",
+    "research_pipeline/local_semantic_closure.py",
+    "research_pipeline/cli.py",
+    "research_pipeline/tests/test_local_semantic_closure.py",
+    "research_pipeline/examples/local-semantic-closure.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json"
+  ],
+  "uncertainty": [
+    "MISSING_PROOF: This evidence-quality capability does not establish forward predictive value, economic value, fees, slippage, matched-capital PnL, drawdown, candidate readiness, OOS eligibility or activation."
+  ],
+  "recommended_next_action": "Manager should validate this replacement result against the frozen task and dispatch, then accept and commit the unchanged exact five-artifact slice if the result-binding gate passes.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

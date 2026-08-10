@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/local-partitioned-event-semantic-closure.v1.schema.json",
+  "title": "Local partitioned event semantic closure V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "authorization",
+    "bindings",
+    "year_basis",
+    "metric",
+    "decision_rule",
+    "partitions",
+    "disposition",
+    "boundaries"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "LOCAL_PARTITIONED_EVENT_SEMANTIC_CLOSURE_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "bindings": {"$ref": "#/$defs/bindings"},
+    "year_basis": {"const": "TARGET_YEAR"},
+    "metric": {"const": "SIGNED_H24_MEDIAN"},
+    "decision_rule": {"const": "ALL_REQUIRED_TARGET_YEAR_MEDIANS_NEGATIVE"},
+    "partitions": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {"$ref": "#/$defs/design_partition"},
+        {"$ref": "#/$defs/validation_partition"}
+      ],
+      "items": false
+    },
+    "disposition": {"const": "HISTORICAL_REVERSAL_PRIOR_STABLE"},
+    "boundaries": {"$ref": "#/$defs/boundaries"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "git_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "task_sha256",
+        "dispatch_id",
+        "dispatch_sha256",
+        "result_task_id",
+        "result_sha256",
+        "result_source_git_commit"
+      ],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 3, "maxLength": 80},
+        "task_sha256": {"$ref": "#/$defs/sha256"},
+        "dispatch_id": {"type": "string", "minLength": 3, "maxLength": 80},
+        "dispatch_sha256": {"$ref": "#/$defs/sha256"},
+        "result_task_id": {"type": "string", "minLength": 3, "maxLength": 80},
+        "result_sha256": {"$ref": "#/$defs/sha256"},
+        "result_source_git_commit": {"$ref": "#/$defs/git_commit"}
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_name",
+        "key",
+        "event_count",
+        "up_count",
+        "down_count",
+        "continuation_count",
+        "reversal_count",
+        "tie_count",
+        "metric_value"
+      ],
+      "properties": {
+        "check_name": {"type": "string", "pattern": "^ANNUAL_[0-9]{4}_TARGET_YEAR$"},
+        "key": {"type": "string", "pattern": "^[0-9]{4}$"},
+        "event_count": {"type": "integer", "minimum": 0},
+        "up_count": {"type": "integer", "minimum": 0},
+        "down_count": {"type": "integer", "minimum": 0},
+        "continuation_count": {"type": "integer", "minimum": 0},
+        "reversal_count": {"type": "integer", "minimum": 0},
+        "tie_count": {"type": "integer", "minimum": 0},
+        "metric_value": {
+          "type": "string",
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_count",
+        "up_count",
+        "down_count",
+        "continuation_count",
+        "reversal_count",
+        "tie_count"
+      ],
+      "properties": {
+        "event_count": {"type": "integer", "minimum": 0},
+        "up_count": {"type": "integer", "minimum": 0},
+        "down_count": {"type": "integer", "minimum": 0},
+        "continuation_count": {"type": "integer", "minimum": 0},
+        "reversal_count": {"type": "integer", "minimum": 0},
+        "tie_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "design_partition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "required_keys", "rows", "totals"],
+      "properties": {
+        "name": {"const": "DESIGN"},
+        "required_keys": {"const": ["2019", "2020", "2021", "2022"]},
+        "rows": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "prefixItems": [
+            {"allOf": [{"$ref": "#/$defs/row"}, {"properties": {"key": {"const": "2019"}, "check_name": {"const": "ANNUAL_2019_TARGET_YEAR"}}}]},
+            {"allOf": [{"$ref": "#/$defs/row"}, {"properties": {"key": {"const": "2020"}, "check_name": {"const": "ANNUAL_2020_TARGET_YEAR"}}}]},
+            {"allOf": [{"$ref": "#/$defs/row"}, {"properties": {"key": {"const": "2021"}, "check_name": {"const": "ANNUAL_2021_TARGET_YEAR"}}}]},
+            {"allOf": [{"$ref": "#/$defs/row"}, {"properties": {"key": {"const": "2022"}, "check_name": {"const": "ANNUAL_2022_TARGET_YEAR"}}}]}
+          ],
+          "items": false
+        },
+        "totals": {"$ref": "#/$defs/totals"}
+      }
+    },
+    "validation_partition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "required_keys", "rows", "totals"],
+      "properties": {
+        "name": {"const": "VALIDATION"},
+        "required_keys": {"const": ["2023", "2024"]},
+        "rows": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {"allOf": [{"$ref": "#/$defs/row"}, {"properties": {"key": {"const": "2023"}, "check_name": {"const": "ANNUAL_2023_TARGET_YEAR"}}}]},
+            {"allOf": [{"$ref": "#/$defs/row"}, {"properties": {"key": {"const": "2024"}, "check_name": {"const": "ANNUAL_2024_TARGET_YEAR"}}}]}
+          ],
+          "items": false
+        },
+        "totals": {"$ref": "#/$defs/totals"}
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "immediate_fee_adjusted_pnl_effect",
+        "immediate_drawdown_effect",
+        "predictive_value",
+        "canonical_state_write_authorized",
+        "oos_authorized",
+        "trading_action_authorized"
+      ],
+      "properties": {
+        "immediate_fee_adjusted_pnl_effect": {"const": "ZERO"},
+        "immediate_drawdown_effect": {"const": "ZERO"},
+        "predictive_value": {"const": "MISSING_PROOF"},
+        "canonical_state_write_authorized": {"const": false},
+        "oos_authorized": {"const": false},
+        "trading_action_authorized": {"const": false}
+      }
+    }
+  }
+}

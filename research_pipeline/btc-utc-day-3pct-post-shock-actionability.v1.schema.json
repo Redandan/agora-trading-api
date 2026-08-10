@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BTC UTC Day 3 Percent Post Shock Actionability V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "capability_scope",
+    "terminal_result",
+    "manager_review",
+    "evidence_contract",
+    "shock_diagnostic",
+    "decision",
+    "fill_observation",
+    "sealed_at",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_UTC_DAY_3PCT_POST_SHOCK_ACTIONABILITY_V1"},
+    "capability_scope": {"const": "CAUSAL_TIMING_AND_BYTE_INTEGRITY_ONLY"},
+    "terminal_result": {"$ref": "#/$defs/terminalResult"},
+    "manager_review": {"$ref": "#/$defs/managerReview"},
+    "evidence_contract": {"$ref": "#/$defs/evidenceContract"},
+    "shock_diagnostic": {"$ref": "#/$defs/shockDiagnostic"},
+    "decision": {"$ref": "#/$defs/decision"},
+    "fill_observation": {"$ref": "#/$defs/fillObservation"},
+    "sealed_at": {"type": "string", "format": "date-time"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "artifactPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "positiveDecimalText": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$"
+    },
+    "terminalResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_path",
+        "artifact_sha256",
+        "document_type",
+        "terminal",
+        "disposition",
+        "sealed_at",
+        "latest_outcome_day",
+        "cumulative_chain_binding"
+      ],
+      "properties": {
+        "artifact_path": {"$ref": "#/$defs/artifactPath"},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "document_type": {"const": "BTC_UTC_DAY_3PCT_POST_SHOCK_FACTOR_RESULT_V1"},
+        "terminal": {"const": true},
+        "disposition": {
+          "enum": [
+            "CONTINUATION_FACTOR_READY_FOR_MANAGER_REVIEW",
+            "REVERSAL_FACTOR_READY_FOR_MANAGER_REVIEW",
+            "NO_DIRECTIONAL_POST_SHOCK_FACTOR_CLOSE"
+          ]
+        },
+        "sealed_at": {"type": "string", "format": "date-time"},
+        "latest_outcome_day": {"type": "string", "format": "date"},
+        "cumulative_chain_binding": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "managerReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_id", "reviewed_at", "terminal_result_sha256"],
+      "properties": {
+        "review_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"
+        },
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "terminal_result_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "evidenceContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_activated_at", "untouched_future_evidence_start"],
+      "properties": {
+        "contract_activated_at": {"type": "string", "format": "date-time"},
+        "untouched_future_evidence_start": {"type": "string", "format": "date-time"}
+      }
+    },
+    "shockDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_path",
+        "artifact_sha256",
+        "diagnostic_type",
+        "eligibility",
+        "t0",
+        "target_received_at",
+        "sealed_at"
+      ],
+      "properties": {
+        "artifact_path": {"$ref": "#/$defs/artifactPath"},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "diagnostic_type": {"const": "BTC_UTC_DAY_3PCT_SHOCK_DIAGNOSTIC_V1"},
+        "eligibility": {"const": "FORWARD_FACTOR_ELIGIBLE"},
+        "t0": {"type": "string", "format": "date-time"},
+        "target_received_at": {"type": "string", "format": "date-time"},
+        "sealed_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_available_at", "fill_policy"],
+      "properties": {
+        "decision_available_at": {"type": "string", "format": "date-time"},
+        "fill_policy": {"const": "FIRST_COMPLETE_UTC_HOUR_OPEN_STRICTLY_AFTER_DECISION_V1"}
+      }
+    },
+    "fillObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_contract_id",
+        "source_contract_sha256",
+        "artifact_path",
+        "artifact_sha256",
+        "interval_start",
+        "observed_at",
+        "received_at",
+        "open_price"
+      ],
+      "properties": {
+        "source_contract_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"
+        },
+        "source_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "artifact_path": {"$ref": "#/$defs/artifactPath"},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "interval_start": {"type": "string", "format": "date-time"},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "received_at": {"type": "string", "format": "date-time"},
+        "open_price": {"$ref": "#/$defs/positiveDecimalText"}
+      }
+    }
+  }
+}

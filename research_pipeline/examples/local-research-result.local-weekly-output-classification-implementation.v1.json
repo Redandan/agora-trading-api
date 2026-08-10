@@ -1,0 +1,133 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-local-weekly-output-classification-implementation-v1",
+  "task_sha256": "29f36ff460f749f7665729cb3335be3a02c53ac6c837fcdd41b210a019e37c71",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T14:13:40Z",
+  "completed_at": "2026-08-10T14:30:27Z",
+  "source_git_commit": "9d34922d746f965457db860984e73eb6ef9e2cc2",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": true,
+  "summary": "WEEKLY_OUTPUT_CLASSIFICATION_VERIFIER_READY. The same exact four-file prospective companion slice now closes both Manager acceptance gaps without changing schema or documentation bytes. The dependency-neutral validator enforces the schema repositoryPath pattern and 1000-character maximum in addition to containment, so paths with spaces fail closed. Every allowlisted row now proves exact source-commit task and dispatch blobs after current bytes and hashes validate, alongside the existing source-commit intent, accepted-result object and ancestry proofs. Two new deterministic negative fixtures cover schema-invalid paths and dispatch creation after the result source commit. The complete focused suite passes 19/19. No bootstrap intent or acceptance record was created. Immediate PnL and drawdown effects are zero; prediction, economic value, forward evidence, candidate readiness, OOS, deployment and Trading authority remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_VALIDATION",
+      "status": "PASS",
+      "evidence": "Top-level validator returned VALID for exact unchanged task SHA-256 29f36ff460f749f7665729cb3335be3a02c53ac6c837fcdd41b210a019e37c71 after the correction."
+    },
+    {
+      "name": "DISPATCH_VALIDATION",
+      "status": "PASS",
+      "evidence": "Top-level dispatch validator returned VALID for exact unchanged dispatch SHA-256 9f4b873edce41a3808ff85edbe444f0803e48aeebac01cc5cca4221407a54b3b and task binding."
+    },
+    {
+      "name": "SOURCE_AND_INPUT_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "The correction retained branch codex/autonomous-research-control-plane-v3 at HEAD and local origin 9d34922d746f965457db860984e73eb6ef9e2cc2 with only the original four authorized untracked files."
+    },
+    {
+      "name": "DRAFT_2020_12_MANAGER_ACCEPTANCE",
+      "status": "PASS",
+      "evidence": "Manager independently reported Draft202012Validator.check_schema PASS, one PRE_DISPATCH_INTENT PASS, one MANAGER_ACCEPTANCE PASS, unknown-root rejection PASS, original focused suite 17/17 PASS, and exact four-file scope."
+    },
+    {
+      "name": "REPOSITORY_PATH_SCHEMA_PARITY",
+      "status": "PASS",
+      "evidence": "The dependency-neutral validator now requires length 1..1000 and exact pattern ^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$, while retaining traversal and containment rejection. A focused path containing a space fails closed."
+    },
+    {
+      "name": "SOURCE_COMMIT_TASK_DISPATCH_PROOF",
+      "status": "PASS",
+      "evidence": "After current task and dispatch identities and hashes validate, each row now requires source_git_commit:task_path and source_git_commit:dispatch_path bytes to equal the current frozen bytes. A fixture whose dispatch appears only after source_git_commit fails exact Git proof."
+    },
+    {
+      "name": "PYTHON_COMPILE_IMPORT",
+      "status": "PASS",
+      "evidence": "The corrected module and test compiled using an external temporary pycache prefix; the module imported and exposed the record validator, classification verifier and canonical-byte helper."
+    },
+    {
+      "name": "FOCUSED_OFFLINE_TESTS",
+      "status": "PASS",
+      "evidence": "python -B -m unittest research_pipeline.tests.test_local_weekly_output_classification ran 19 tests in 43.808 seconds: OK, zero failures/errors."
+    },
+    {
+      "name": "TWO_STAGE_GIT_OBJECT_PROOF",
+      "status": "PASS",
+      "evidence": "Synthetic temporary Git fixtures prove exact source-commit task, dispatch and intent bytes, exact HEAD acceptance, accepted-result bytes, commit ancestry and pre-outcome ordering; post-outcome intent, post-source dispatch and non-ancestor result cases fail closed."
+    },
+    {
+      "name": "COUNT_EXCLUDE_AND_FAMILY_RULES",
+      "status": "PASS",
+      "evidence": "Focused fixtures reject status, safety, disposition, exclusion, duplicate output/result, repeated label and ambiguous family drift. Two nested mechanism outputs yield raw count 2 and unique family count 1."
+    },
+    {
+      "name": "DETERMINISM_AND_NO_WRITE",
+      "status": "PASS",
+      "evidence": "Repeated verification returns byte-identical canonical output and leaves synthetic repository status unchanged; production verification scans no directory or Git history and writes no file, cache, report, state or repository object."
+    },
+    {
+      "name": "EXACT_FOUR_FILE_SCOPE",
+      "status": "PASS",
+      "evidence": "Final status lists exactly the original schema, module, test and document paths. Only the already-created module and test changed during this correction; schema and document hashes remain unchanged. No fifth path, stage or cache exists."
+    },
+    {
+      "name": "DIFF_HASH_AND_BOUNDARY",
+      "status": "PASS",
+      "evidence": "Read-only Git checks prove HEAD/origin unchanged, exact four-path scope, tracked git diff --check and per-new-file no-index whitespace checks clean; no unauthorized runtime or state action occurred."
+    },
+    {
+      "name": "PROSPECTIVE_AUTHORITY",
+      "status": "MISSING_PROOF",
+      "evidence": "This bootstrap cannot count itself and has no retrospective PRE_DISPATCH_INTENT or MANAGER_ACCEPTANCE. Classification authority begins only after Manager accepts and commits the exact four bytesets."
+    },
+    {
+      "name": "ECONOMIC_FORWARD_AND_ACTIVATION_VALUE",
+      "status": "MISSING_PROOF",
+      "evidence": "The tooling proves deterministic evidence classification only. Prediction, fees, slippage, utilization, capacity, matched-capital PnL, drawdown, R2 outcome, forward confirmation, candidate readiness, OOS, deployment and Trading activation remain unproven; immediate PnL and drawdown effects are zero."
+    },
+    {
+      "name": "SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No install, permission request, network, server, canonical state, Research MCP write, schedule, timer, .research-state, hypothesis, candidate, OOS, Trading, database, order, fund, SHADOW, PAPER, LIVE, stage, commit or push action occurred."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "research_pipeline/local-weekly-output-classification.v1.schema.json",
+      "sha256": "f2cd52859496f91c4e708fd522f8481765cb63ad7e87aa889befe05600a4ba19"
+    },
+    {
+      "path": "research_pipeline/local_weekly_output_classification.py",
+      "sha256": "970c9fddef6392afef18a075fd4a9f7e44ee022f4d8245d251e1d200f80d442b"
+    },
+    {
+      "path": "research_pipeline/tests/test_local_weekly_output_classification.py",
+      "sha256": "198f4c237cb22d6840e9cffa10a0aa8073d3ee2241c0d07c8cbbddcc83246693"
+    },
+    {
+      "path": "docs/local-weekly-output-classification-v1.md",
+      "sha256": "95664c57b8684ad0874d5e1c80ec9f6cc1980754cc10d81735db5fa278199195"
+    }
+  ],
+  "files_changed": [
+    "research_pipeline/local-weekly-output-classification.v1.schema.json",
+    "research_pipeline/local_weekly_output_classification.py",
+    "research_pipeline/tests/test_local_weekly_output_classification.py",
+    "docs/local-weekly-output-classification-v1.md"
+  ],
+  "uncertainty": [
+    "MISSING_PROOF: This bootstrap cannot count itself; no retrospective classification records exist, and prospective authority begins only after Manager accepts and commits these exact bytes.",
+    "MISSING_PROOF: Synthetic Windows Git fixtures prove bounded object and ancestry behavior; other platform execution remains for later operational acceptance.",
+    "MISSING_PROOF: Output visibility and family counts establish no predictive or economic value; forward evidence, matched-capital PnL, drawdown, candidate readiness, OOS and activation remain unproven."
+  ],
+  "recommended_next_action": "Manager should rehash the four artifacts, rerun the corrected 19-test focused suite and compile/import checks, and validate the unchanged Draft 2020-12 schema against the corrected module behavior; if unchanged and PASS, commit only these four files. Do not create retrospective classification records, add a CLI/report/timer/writer, or perform any server, canonical, candidate, OOS or Trading action.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

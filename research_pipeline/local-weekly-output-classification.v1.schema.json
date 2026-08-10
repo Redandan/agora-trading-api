@@ -1,0 +1,420 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/local-weekly-output-classification.v1.schema.json",
+  "title": "Local weekly output classification companion V1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/preDispatchIntent"
+    },
+    {
+      "$ref": "#/$defs/managerAcceptance"
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "gitCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"
+    },
+    "disposition": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]{3,100}$"
+    },
+    "dispositionAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "disposition"
+      ],
+      "properties": {
+        "action": {
+          "enum": [
+            "COUNT",
+            "EXCLUDE"
+          ]
+        },
+        "disposition": {
+          "$ref": "#/$defs/disposition"
+        }
+      }
+    },
+    "safetyAssertions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_state_changed",
+        "oos_opened",
+        "paid_api_used",
+        "second_timer_created",
+        "server_research_mcp_write_attempted",
+        "trading_action_attempted"
+      ],
+      "properties": {
+        "canonical_state_changed": {
+          "const": false
+        },
+        "oos_opened": {
+          "const": false
+        },
+        "paid_api_used": {
+          "const": false
+        },
+        "second_timer_created": {
+          "const": false
+        },
+        "server_research_mcp_write_attempted": {
+          "const": false
+        },
+        "trading_action_attempted": {
+          "const": false
+        }
+      }
+    },
+    "preDispatchIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorization",
+        "claim_boundary_sha256",
+        "dispatch_id",
+        "dispatch_path",
+        "dispatch_sha256",
+        "disposition_actions",
+        "document_type",
+        "duplicate_family_key",
+        "independence_semantics",
+        "intent_id",
+        "intent_path",
+        "issued_at",
+        "manager_thread_id",
+        "max_candidate_variants",
+        "output_class",
+        "output_id",
+        "record_stage",
+        "schema_version",
+        "task_id",
+        "task_path",
+        "task_sha256"
+      ],
+      "properties": {
+        "authorization": {
+          "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+        },
+        "claim_boundary_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "dispatch_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "dispatch_path": {
+          "$ref": "#/$defs/repositoryPath"
+        },
+        "dispatch_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "disposition_actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/dispositionAction"
+          }
+        },
+        "document_type": {
+          "const": "LOCAL_WEEKLY_OUTPUT_CLASSIFICATION_V1"
+        },
+        "duplicate_family_key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"
+        },
+        "independence_semantics": {
+          "enum": [
+            "UNIQUE_FAMILY",
+            "NESTED_NON_INDEPENDENT",
+            "NON_COUNTING_NOT_APPLICABLE"
+          ]
+        },
+        "intent_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "intent_path": {
+          "$ref": "#/$defs/repositoryPath"
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "manager_thread_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "max_candidate_variants": {
+          "const": 0
+        },
+        "output_class": {
+          "enum": [
+            "MECHANISM_CONCLUSION",
+            "SPEC_OR_CAPABILITY_SLICE",
+            "NON_COUNTING"
+          ]
+        },
+        "output_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "record_stage": {
+          "const": "PRE_DISPATCH_INTENT"
+        },
+        "schema_version": {
+          "const": "1"
+        },
+        "task_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "task_path": {
+          "$ref": "#/$defs/repositoryPath"
+        },
+        "task_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "output_class": {
+                "const": "NON_COUNTING"
+              }
+            },
+            "required": [
+              "output_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "independence_semantics": {
+                "const": "NON_COUNTING_NOT_APPLICABLE"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "independence_semantics": {
+                "enum": [
+                  "UNIQUE_FAMILY",
+                  "NESTED_NON_INDEPENDENT"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "managerAcceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptance_id",
+        "accepted_at",
+        "accepted_disposition",
+        "accepted_result_commit",
+        "authorization",
+        "classification_outcome",
+        "dispatch_id",
+        "dispatch_path",
+        "dispatch_sha256",
+        "document_type",
+        "exclusion_reason",
+        "intent_path",
+        "intent_sha256",
+        "manager_thread_id",
+        "output_id",
+        "record_stage",
+        "result_completed_at",
+        "result_path",
+        "result_sha256",
+        "result_source_git_commit",
+        "result_status",
+        "result_task_id",
+        "safety_assertions",
+        "schema_version",
+        "task_id",
+        "task_path",
+        "task_sha256"
+      ],
+      "properties": {
+        "acceptance_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "accepted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "accepted_disposition": {
+          "$ref": "#/$defs/disposition"
+        },
+        "accepted_result_commit": {
+          "$ref": "#/$defs/gitCommit"
+        },
+        "authorization": {
+          "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+        },
+        "classification_outcome": {
+          "enum": [
+            "COUNT",
+            "EXCLUDE"
+          ]
+        },
+        "dispatch_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "dispatch_path": {
+          "$ref": "#/$defs/repositoryPath"
+        },
+        "dispatch_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "document_type": {
+          "const": "LOCAL_WEEKLY_OUTPUT_CLASSIFICATION_V1"
+        },
+        "exclusion_reason": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          ]
+        },
+        "intent_path": {
+          "$ref": "#/$defs/repositoryPath"
+        },
+        "intent_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "manager_thread_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "output_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "record_stage": {
+          "const": "MANAGER_ACCEPTANCE"
+        },
+        "result_completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "result_path": {
+          "$ref": "#/$defs/repositoryPath"
+        },
+        "result_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "result_source_git_commit": {
+          "$ref": "#/$defs/gitCommit"
+        },
+        "result_status": {
+          "enum": [
+            "COMPLETED",
+            "BLOCKED",
+            "FAILED"
+          ]
+        },
+        "result_task_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "safety_assertions": {
+          "$ref": "#/$defs/safetyAssertions"
+        },
+        "schema_version": {
+          "const": "1"
+        },
+        "task_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "task_path": {
+          "$ref": "#/$defs/repositoryPath"
+        },
+        "task_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "classification_outcome": {
+                "const": "COUNT"
+              }
+            },
+            "required": [
+              "classification_outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "exclusion_reason": {
+                "type": "null"
+              },
+              "result_status": {
+                "const": "COMPLETED"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "exclusion_reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result_status": {
+                "enum": [
+                  "BLOCKED",
+                  "FAILED"
+                ]
+              }
+            },
+            "required": [
+              "result_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "classification_outcome": {
+                "const": "EXCLUDE"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

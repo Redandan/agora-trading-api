@@ -21,7 +21,7 @@ DATA_UNITS = {
     "agora-research-evidence-ingest.service":
         "909525bea874ec348573012cf3c0d755fb467528199636b9f9f53857ad7de03d",
     "agora-research-microstructure-source.service":
-        "729d76608ad8b6e3609a321db3bb89ba208cf0c2dc31d6d3b3a5306274ae581f",
+        "067257baf9905787b491f1566ba86fca4676624e76aedd57c1f9ec653fb83a6f",
     "agora-research-microstructure-intake.service":
         "a8adf884a0c7b086e5fc9a486e16ec7b85b8b9f70a04108df68dc63cad887dba",
 }

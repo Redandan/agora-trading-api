@@ -1205,15 +1205,11 @@ if systemctl list-unit-files 'agora-research-microstructure*.timer' --no-legend 
   fail "a microstructure timer exists"
 fi
 microstructure_writes="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ReadWritePaths --value)"
-echo "$microstructure_writes" \
-  | grep -Fq '/var/lib/agora-evidence-source/microstructure-private-staging' \
-  || fail "microstructure private staging is not writable"
-echo "$microstructure_writes" \
-  | grep -Fq '/var/lib/agora-evidence-source/microstructure-drop' \
-  || fail "microstructure drop is not writable"
 if echo "$microstructure_writes" | grep -Fq '/var/lib/agora-research/source-drop'; then
   fail "microstructure source can write the candle drop"
 fi
+[ "$microstructure_writes" = "/var/lib/agora-evidence-source" ] \
+  || fail "microstructure source writable paths are not the exact atomic-publication parent"
 
 [ "$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=User --value)" = "$WORKER_USER" ] \
   || fail "microstructure intake identity is incorrect"

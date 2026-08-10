@@ -768,6 +768,37 @@ class MicrostructureV3IntakeCliTest(unittest.TestCase):
                 "/etc/agora-research/okx-microstructure-continuous-source-v3.json",
                 content,
             )
+        source_write_lines = [
+            line for line in source.splitlines() if line.startswith("ReadWritePaths=")
+        ]
+        self.assertEqual(
+            ["ReadWritePaths=/var/lib/agora-evidence-source"], source_write_lines
+        )
+        former_two_child_line = (
+            "ReadWritePaths=/var/lib/agora-evidence-source/"
+            "microstructure-private-staging "
+            "/var/lib/agora-evidence-source/microstructure-drop"
+        )
+        self.assertNotIn(former_two_child_line, source)
+        self.assertIn(
+            '[ "$microstructure_writes" = "/var/lib/agora-evidence-source" ]',
+            verifier,
+        )
+        self.assertIn(
+            "microstructure source writable paths are not the exact "
+            "atomic-publication parent",
+            verifier,
+        )
+        self.assertIn("microstructure source can write the candle drop", verifier)
+        self.assertNotEqual(
+            "/var/lib/agora-evidence-source",
+            "/var/lib/agora-evidence-source/microstructure-private-staging "
+            "/var/lib/agora-evidence-source/microstructure-drop",
+        )
+        self.assertNotEqual(
+            "/var/lib/agora-evidence-source",
+            "/var/lib/agora-evidence-source /var/lib/agora-research/source-drop",
+        )
         for digest in (
             V3_SOURCE_CONTRACT_SHA256,
             V3_DROP_ENVELOPE_SCHEMA_SHA256,

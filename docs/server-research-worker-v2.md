@@ -372,9 +372,14 @@ Ordinary upgrades without both parameters do not create or replace it.
 The dedicated source unit runs as credential-free `agora-evidence-source`, has
 `Restart=no`, a bounded runtime, no `EnvironmentFile`, no timer, no `[Install]`
 enablement, no canonical-state or Trading-secret access, and write access only
-to its fixed private staging and microstructure-drop roots. Installation leaves
-the unit disabled and inactive. The legacy candle source and evidence-ingest
-units retain their existing `pending.json` paths and are never reused.
+through the fixed common `/var/lib/agora-evidence-source` mount-namespace
+parent. That single `ReadWritePaths` entry preserves same-namespace atomic
+rename from private staging to the microstructure drop. It does not grant Unix
+write permission by itself: the common parent remains `root:root` mode `0755`,
+and the existing ownership and modes of the staging and drop children remain
+the DAC boundary. Installation leaves the unit disabled and inactive. The
+legacy candle source and evidence-ingest units retain their existing
+`pending.json` paths and are never reused.
 
 The separate microstructure intake preparation is
 `research_pipeline.microstructure_intake_cli`. The historical V2 commands
@@ -392,6 +397,13 @@ through the corresponding frozen canonical validator and atomic commit APIs.
 Invalid contract bytes seal `INTEGRITY_BLOCKED`; stale
 locks, temporary files, symlinks, ambiguous structures, capacity failure, or
 filesystem mismatch stop for manual recovery without moving or deleting bytes.
+
+The failed R1 private-staging bytes and unmatched drop reservation remain
+preserved and are unusable as a complete 14-day diagnostic. This namespace fix
+does not recover, retry, move, remove, or reinterpret them. A separately
+authorized Manager recovery must archive rather than delete R1, deploy only a
+clean reviewed commit, create a new strictly future untouched generation, and
+prove source and intake health as separate gates.
 
 Every accepted day has one matching zero-byte publication reservation and
 exactly one canonical bundle plus envelope. The envelope release id and

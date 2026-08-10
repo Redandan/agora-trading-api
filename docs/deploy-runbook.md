@@ -371,6 +371,20 @@ override. The drop mount is metadata-capable for those calls, while DAC denies
 intake create/write/unlink and denies the source read/modify/rename/delete after
 freeze.
 
+The source unit exposes exactly one writable mount-namespace parent,
+`/var/lib/agora-evidence-source`, so the frozen same-filesystem rename from
+private staging into the drop remains atomic inside one namespace. The common
+parent remains `root:root` mode `0755`; existing staging/drop ownership and
+modes, the sticky drop parent, inaccessible paths, and empty source capabilities
+remain the Unix DAC and systemd isolation boundary. This does not authorize a
+broader runtime permission.
+
+The failed R1 staged day and unmatched reservation must remain preserved and
+cannot count toward a complete 14-day diagnostic. This source change does not
+recover or delete them. Any later Manager recovery must archive rather than
+delete R1, deploy only from a clean reviewed commit, create a new strictly
+future untouched generation, and prove source and intake health separately.
+
 Before any separately authorized source start, server preflight must prove the
 active intake path, no microstructure timer, fixed release/binding identity,
 same-filesystem staging/drop, at least 2 GiB free, at most 14 exact

@@ -1,0 +1,230 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-local-weekly-output-classification-contract-design-audit-v1",
+  "issued_at": "2026-08-10T13:49:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Design and audit one minimum deterministic classification contract for accepted Local Research weekly outputs, using only the exact accepted matrix and schemas listed below. Determine whether a single closed companion schema with immutable PRE_DISPATCH_INTENT and MANAGER_ACCEPTANCE record stages can classify mechanism conclusions, specification/capability slices, and non-counting work without changing existing Local task/dispatch/result schemas, scanning history, modifying the canonical weekly report, or adding a timer or writer. Freeze exact identities, lifecycle, count and non-independence semantics, claim-boundary binding, failure states, and a maximum four-file implementation slice only if every ambiguity closes. Do not implement any file, inspect unlisted results, change research state, formulate a strategy, register a hypothesis or candidate, open OOS, or perform any Trading action.",
+  "canonical_research_status": "SERVER_CANONICAL_UNCHANGED_NO_STATUS_REFRESH_AUTHORIZED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-task.schema.json",
+      "sha256": "bcb72265dfffcea0ba52a7c200d1c499b2cab112251049f4f5e7f8acc4ab79cf"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-dispatch.schema.json",
+      "sha256": "05e83891222afba5c526afc1de668c0f24e6e3872a224627dd773d665bf1e435"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_dispatch.py",
+      "sha256": "f1fbe40f63a38f4c362c94ef1c8b4dd6a15f347a2e82f8f432a7f6f47064c64b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.local-weekly-output-evidence-matrix-audit.v2.json",
+      "sha256": "b97e3977fcb9bdfd929fc5c00184dcb3ec404455dbb83306626cd4612a3a946c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.local-weekly-output-evidence-matrix-audit.v2.json",
+      "sha256": "6abba439f5349c30859002dd41be490ad590d3df1a01d6e66d7b7841effcc83e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.local-weekly-output-evidence-matrix-audit.v2.json",
+      "sha256": "c266120f86222215fe4e93e6152d2270248c57408afc073ded6120c3d3e2aa8c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "92da73b7f900810de32ae9b61aa9fd54476fc7fa2c922473b7345a6dcaddf33c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "48d119c8f4eb1b0a3a2501cd5beccb2a84a22ce72c0084ffcc94dd14089c43e4"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "2c2d200d4a6a29808b35ec2c80442ad9288867243b116fdd197f1308973c84a7"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.btc-utc-day-3pct-direction-symmetry-closure.v1.json",
+      "sha256": "a67127b56699c4361266efd3353e46bfdc931bd51882fff8431b11621dec5970"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.btc-utc-day-3pct-direction-symmetry-closure.v1.json",
+      "sha256": "f13b49fb4068a41efe29a5d9b704c5843e3aeccaa5184dab9008e6a7cb646ba3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-direction-symmetry-closure.v1.json",
+      "sha256": "07caced46a22a9d721a986f7704f0befbd50dbcc14e2ac0b6dd5f9da24f0b5fe"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
+      "sha256": "42e5a5e507787669c5d45c86605d692b20030b3e34a2616e5874170c898d32ae"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
+      "sha256": "2661218a60499a66e56a470c7815b1a50933efbc6806cdd80cc750c04df6257a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
+      "sha256": "2363f93fd68f23f01a6b1e6de27409a7f791a253a9bb139307f1d90df5fc050d"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Accepted matrix V2 proves exact current-week raw counts mechanism_conclusion_count=2 and capability_or_spec_slice_count=1, while also proving the two mechanism rows share one post-shock reversal family and are not independent alpha. Preserve both the raw output count and a separate unique-family count; never add economic confidence from row count.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Existing task_type, filename, summary and recommended_next_action are not classification authority. Do not modify the existing V1 task, dispatch or result schemas. Audit only one new closed companion document type that supports two immutable record stages: PRE_DISPATCH_INTENT created and committed before Local execution, and MANAGER_ACCEPTANCE created only after Manager validates and commits the result.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "PRE_DISPATCH_INTENT must bind unique output_id, task/dispatch ids and hashes, output_class MECHANISM_CONCLUSION or SPEC_OR_CAPABILITY_SLICE or NON_COUNTING, allowed accepted-disposition labels and count/exclude actions, claim-boundary SHA-256 derived from canonical UTF-8 dispatch.performance_case.claim_boundary bytes, duplicate_family_key, explicit independence semantics, and pre-execution source-commit proof. MANAGER_ACCEPTANCE must bind the intent hash/path, exact task/dispatch/result hashes, result status/completed_at, accepted disposition, accepted result commit, Manager identity, exclusion reason when applicable, and all-false safety closure.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "A later verifier may receive only an explicit allowlist of MANAGER_ACCEPTANCE record paths plus a half-open UTC period. It must validate exact companion/task/dispatch/result bytes, prove the intent existed at result.source_git_commit through one exact Git object lookup, prove accepted result commit ancestry, reject duplicate output_id or ambiguous intent/result binding, report raw class counts and unique duplicate_family_key counts separately, and write only deterministic JSON to memory or stdout. It may not scan directories, write files/state, modify canonical weekly reporting, or add a timer.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_EXACT_LISTED_REPOSITORY_PATHS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "VALIDATE_ACCEPTED_MATRIX_AND_THREE_CLOSURES",
+    "AUDIT_EXISTING_SCHEMA_CLASSIFICATION_GAPS",
+    "COMPARE_SINGLE_STAGE_AND_TWO_STAGE_AUTHORITY",
+    "DEFINE_PRE_DISPATCH_INTENT_RECORD",
+    "DEFINE_MANAGER_ACCEPTANCE_RECORD",
+    "DEFINE_CLAIM_BOUNDARY_DIGEST",
+    "DEFINE_RAW_AND_UNIQUE_FAMILY_COUNTS",
+    "DEFINE_EXCLUSION_AND_DUPLICATE_FAILURES",
+    "DEFINE_EXPLICIT_ALLOWLIST_VERIFIER_BOUNDARY",
+    "DEFINE_MAXIMUM_FOUR_FILE_IMPLEMENTATION_SLICE",
+    "REPORT_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST_BOUNDARY",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "UNLISTED_LOCAL_RESULT_OR_BROAD_GIT_HISTORY_SCAN",
+    "CURRENT_SERVER_STATUS_REFRESH_OR_NETWORK_ACCESS",
+    "CANONICAL_WEEKLY_REPORT_CHANGE_OR_MERGE",
+    "EXISTING_TASK_DISPATCH_RESULT_SCHEMA_CHANGE",
+    "SUMMARY_KEYWORD_FILENAME_OR_TASK_TYPE_CLASSIFICATION",
+    "POST_OUTCOME_INTENT_CREATION_OR_RECLASSIFICATION",
+    "UNLISTED_RESULT_COUNTING",
+    "ALPHA_CONFIDENCE_FROM_OUTPUT_COUNT",
+    "HYPOTHESIS_MANIFEST_CANDIDATE_OR_ADAPTER_REGISTRATION",
+    "STRATEGY_DIRECTION_SIDE_PARENT_OR_RULE_AUTHORING",
+    "STRATEGY_EQUITY_CURVE_PNL_OR_DRAWDOWN_COMPUTATION",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_BRANCH_CHANGE",
+    "JAVA_MAVEN_SPRING_OR_TRADING_RUNNER_EXECUTION",
+    "NEW_SCHEMA_MODULE_TEST_DOCUMENT_OR_SCHEDULER_IMPLEMENTATION"
+  ],
+  "expected_outputs": [
+    "ACCEPTED_MATRIX_AND_SCHEMA_GAP_PROOF",
+    "TWO_STAGE_CLASSIFICATION_LIFECYCLE",
+    "PRE_DISPATCH_INTENT_REQUIRED_FIELDS",
+    "MANAGER_ACCEPTANCE_REQUIRED_FIELDS",
+    "CLAIM_BOUNDARY_DIGEST_RULE",
+    "DISPOSITION_COUNT_AND_EXCLUSION_RULES",
+    "RAW_OUTPUT_AND_UNIQUE_FAMILY_COUNT_RULES",
+    "PREEXECUTION_INTENT_GIT_OBJECT_PROOF",
+    "DUPLICATE_AMBIGUITY_AND_DRIFT_FAILURES",
+    "EXPLICIT_ALLOWLIST_VERIFIER_BOUNDARY",
+    "MAXIMUM_FOUR_FILE_IMPLEMENTATION_SLICE",
+    "MISSING_PROOF_REGISTER",
+    "OPPORTUNITY_COST",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and Manager dispatch before analysis. Re-hash every non-null input and require the Manager-provided branch, clean HEAD equal local origin, contained regular non-link non-reparse paths and exact post-commit execution HEAD. Any mismatch is CLASSIFICATION_AUTHORITY_OR_DUPLICATE_RULE_INSUFFICIENT.",
+    "Read only exact listed paths and frozen task messages. Do not scan examples, broad Git history, .research-state, Local task history, current server state, network data, market data, OOS or any unlisted artifact.",
+    "Validate the accepted matrix V2 and the exact three countable task/dispatch/result closures. Require matrix disposition WEEKLY_LOCAL_OUTPUT_TARGET_PROVEN_CLASSIFICATION_CONTRACT_REQUIRED and exact raw counts two mechanism conclusions plus one specification/capability slice before designing a generic contract.",
+    "Prove existing task_type, execution mode, filename, summary and recommended-next-action fields cannot deterministically classify all accepted outputs. Do not propose keyword inference, directory scanning or a mutable Manager spreadsheet.",
+    "Do not modify existing Local task, dispatch or result schemas. Historical evidence must remain valid. A positive design may add only one new companion document schema supporting two immutable record stages plus one pure verifier module, one deterministic test module and one bounded document.",
+    "PRE_DISPATCH_INTENT must be created after exact task and dispatch bytes exist but committed before Local execution. It must bind schema version, record stage, unique output_id, intent id/path, task and dispatch ids/hashes, one explicit output class, frozen accepted-disposition labels with COUNT or EXCLUDE actions, canonical claim-boundary SHA-256, duplicate_family_key, independence semantics, issued_at, Manager identity, research-only authorization and zero candidate variants.",
+    "The pre-dispatch intent must be proven present with exact bytes at result.source_git_commit through one exact Git object lookup by supplied commit and path. Timestamps or later repository membership alone cannot substitute. Missing, post-outcome, changed or multiply matching intent is fail-closed.",
+    "MANAGER_ACCEPTANCE must be created only after Manager validates the exact result and commits it. It must bind schema version, record stage, acceptance id, Manager identity, intent path/hash, task/dispatch/result ids and hashes, result status and completed_at, accepted disposition, accepted result commit, all-false safety closure, classification outcome, exclusion reason when required, accepted_at and research-only authorization.",
+    "The accepted disposition must be one of the exact pre-dispatch intent labels and its COUNT or EXCLUDE action cannot change after outcome. Existing result summary text is evidence only and cannot be parsed as authority. A classification outcome inconsistent with intent, result status or safety closure fails closed.",
+    "Freeze output classes MECHANISM_CONCLUSION, SPEC_OR_CAPABILITY_SLICE and NON_COUNTING only. COMPLETED alone never makes a row countable. BLOCKED or FAILED must default EXCLUDE unless the pre-dispatch intent explicitly defines one accepted non-performance learning label as COUNT; this task may recommend the safer default but cannot retrospectively count V1.",
+    "Bind claim_boundary_sha256 to canonical UTF-8 JSON bytes of the exact dispatch.performance_case.claim_boundary string, not free-form rewritten text. Any dispatch or digest drift fails before counting.",
+    "Use output_id uniqueness to reject exact duplicate rows. Use duplicate_family_key to report unique evidence families separately from raw row counts. Rows sharing a family may retain separate raw conclusions only when their distinct output_ids and pre-frozen independence semantics say NESTED_NON_INDEPENDENT; they must never increase alpha confidence or unique-family count.",
+    "A later verifier must accept only an explicit allowlist of MANAGER_ACCEPTANCE record paths plus one half-open UTC period. It may read only the transitively named exact companion/task/dispatch/result paths and exact Git objects; it must not scan directories, Git logs, Local threads, server state or canonical reports.",
+    "The verifier must reject duplicate output_id, duplicate acceptance for one intent, one result bound to multiple intents, missing exact intent-at-source proof, non-ancestor accepted result commit, completed_at outside the period, disposition drift, claim-boundary drift, safety assertion true, missing exclusion reason, unknown field or ambiguous family semantics. It returns deterministic sorted JSON only in memory or stdout.",
+    "Return TWO_STAGE_EXPLICIT_OUTPUT_CLASSIFICATION_CONTRACT_READY only if the single-schema two-stage lifecycle closes pre-outcome intent, post-result Manager acceptance, exact hash/commit proof, count/exclusion rules, raw-versus-family counts and all fail-closed ambiguities within a maximum four-file later implementation.",
+    "Return EXISTING_LOCAL_SCHEMA_CANNOT_SUPPORT_SAFE_WEEKLY_CLASSIFICATION_CLOSE if exact evidence proves no companion-only four-file design can close authority without changing existing schemas or adding a writer/scanner. Do not recommend a larger integration in this task.",
+    "Return CLASSIFICATION_AUTHORITY_OR_DUPLICATE_RULE_INSUFFICIENT if any exact input, closure, authority transition, disposition mapping, preexecution proof, duplicate/family semantic, claim digest, file boundary or failure rule remains ambiguous or unverifiable. Do not partially freeze a contract.",
+    "A positive result may recommend exactly four later files: one closed Draft 2020-12 companion schema, one pure validation/supplement module, one deterministic synthetic test module and one bounded document. No CLI registration, heartbeat hook, canonical report change, timer, state writer, server call, network client or dependency installation is allowed.",
+    "Return exactly one schema-valid local-research-result bound to this task SHA, with empty artifacts/files_changed, dirty before/after false, all safety assertions false, concrete design checks, uncertainty, immediate zero PnL/drawdown, opportunity cost and one frozen disposition. Stop without requesting permission on any boundary conflict."
+  ],
+  "limits": {
+    "timeout_seconds": 1200,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

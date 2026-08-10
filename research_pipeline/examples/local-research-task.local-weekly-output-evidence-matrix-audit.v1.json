@@ -1,0 +1,215 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-local-weekly-output-evidence-matrix-audit-v1",
+  "issued_at": "2026-08-10T13:30:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform one bounded read-only audit of the exact three accepted Local Research task/dispatch/result closures listed below. Determine whether the current UTC week already contains at least two verifiable mechanism conclusions and at least one accepted specification or capability slice, produce a hash-bound evidence matrix, and identify the minimum explicit classification contract required for a future deterministic Coach supplement. Do not scan or count other Local results, infer output class from summary keywords, modify the canonical weekly report, write any file or state, refresh server status, create a timer, formulate a strategy, register a hypothesis or candidate, open OOS, or perform any Trading action.",
+  "canonical_research_status": "SERVER_CANONICAL_UNCHANGED_NO_STATUS_REFRESH_AUTHORIZED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-task.schema.json",
+      "sha256": "bcb72265dfffcea0ba52a7c200d1c499b2cab112251049f4f5e7f8acc4ab79cf"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-dispatch.schema.json",
+      "sha256": "05e83891222afba5c526afc1de668c0f24e6e3872a224627dd773d665bf1e435"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "92da73b7f900810de32ae9b61aa9fd54476fc7fa2c922473b7345a6dcaddf33c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "48d119c8f4eb1b0a3a2501cd5beccb2a84a22ce72c0084ffcc94dd14089c43e4"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "2c2d200d4a6a29808b35ec2c80442ad9288867243b116fdd197f1308973c84a7"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.btc-utc-day-3pct-direction-symmetry-closure.v1.json",
+      "sha256": "a67127b56699c4361266efd3353e46bfdc931bd51882fff8431b11621dec5970"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.btc-utc-day-3pct-direction-symmetry-closure.v1.json",
+      "sha256": "f13b49fb4068a41efe29a5d9b704c5843e3aeccaa5184dab9008e6a7cb646ba3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-direction-symmetry-closure.v1.json",
+      "sha256": "07caced46a22a9d721a986f7704f0befbd50dbcc14e2ac0b6dd5f9da24f0b5fe"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
+      "sha256": "42e5a5e507787669c5d45c86605d692b20030b3e34a2616e5874170c898d32ae"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
+      "sha256": "2661218a60499a66e56a470c7815b1a50933efbc6806cdd80cc750c04df6257a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
+      "sha256": "2363f93fd68f23f01a6b1e6de27409a7f791a253a9bb139307f1d90df5fc050d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/btc-utc-day-3pct-post-shock-actionability.v1.schema.json",
+      "sha256": "adddc582b677262c243b62b74ba00593874634ee89688aede40bab4120d7e7a5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/post_shock_actionability.py",
+      "sha256": "36b5ccc0a4f769d918436041dd045028f075a5bfa14b4f7aecda9e0e6b977ca3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_post_shock_actionability.py",
+      "sha256": "edaa7616bb44688d87d83ae911634c00a462721e4555337fea8d168a319dd4fb"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-utc-day-3pct-post-shock-actionability-v1.md",
+      "sha256": "58547a520e1adeacce4616c71db795006558e4243c6a36c0e879b9a549e9a4dd"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Frozen reporting period is UTC [2026-08-10T00:00:00Z, 2026-08-17T00:00:00Z). The weekly Local output target is at least two verifiable mechanism conclusions and at least one accepted specification or capability slice. This audit itself never counts toward that target.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Manager acceptance proof is repository membership on clean branch codex/autonomous-research-control-plane-v3 at HEAD/origin f340ec0346d1c8b8429ad3dbee371830407cc5a4 plus ancestry of result commits 83dcf88f71e4036099f2fe12dda8a5cb3294dea8, 0f55e2ab1a5935a9534a2043631775f08a02ed44 and 2a95361e1a1a11722cc5ade7aa11e2531569a220. Do not inspect or count unlisted results.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Frozen explicit matrix classification: count the historical post-shock stability result and direction-symmetry result as two descriptive historical mechanism conclusions only if their exact positive dispositions, evidence checks and MISSING_PROOF boundaries validate. Count the actionability result as one accepted capability slice only if its exact positive disposition, four artifact hashes and Manager acceptance commit validate. Do not infer a reusable generic class from task_type, filenames or summary keywords.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_EXACT_LISTED_REPOSITORY_PATHS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "VALIDATE_THREE_TASK_DISPATCH_RESULT_CLOSURES",
+    "VERIFY_THREE_ACCEPTANCE_COMMIT_ANCESTRIES",
+    "VERIFY_RESULT_COMPLETION_WITHIN_FROZEN_WEEK",
+    "VERIFY_EXACT_DISPOSITION_MATCHES",
+    "VERIFY_ACTIONABILITY_ARTIFACT_HASHES",
+    "CLASSIFY_ONLY_FROZEN_EXPLICIT_MATRIX_ROWS",
+    "COUNT_MECHANISM_AND_CAPABILITY_OUTPUTS",
+    "REPORT_DUPLICATION_AND_CLAIM_BOUNDARIES",
+    "IDENTIFY_GENERIC_CLASSIFICATION_SCHEMA_GAP",
+    "DESIGN_MINIMUM_LATER_VERIFIER_CONTRACT",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "UNLISTED_LOCAL_RESULT_OR_GIT_HISTORY_SCAN",
+    "CURRENT_SERVER_STATUS_REFRESH_OR_NETWORK_ACCESS",
+    "CANONICAL_WEEKLY_REPORT_CHANGE_OR_MERGE",
+    "SUMMARY_KEYWORD_OR_FILENAME_CLASSIFICATION",
+    "UNLISTED_RESULT_COUNTING",
+    "AUDIT_SELF_COUNTING",
+    "HYPOTHESIS_MANIFEST_CANDIDATE_OR_ADAPTER_REGISTRATION",
+    "STRATEGY_DIRECTION_SIDE_PARENT_OR_RULE_AUTHORING",
+    "STRATEGY_EQUITY_CURVE_PNL_OR_DRAWDOWN_COMPUTATION",
+    "THRESHOLD_HORIZON_WINDOW_OR_GATE_TUNING",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_BRANCH_CHANGE",
+    "JAVA_MAVEN_SPRING_OR_TRADING_RUNNER_EXECUTION",
+    "NEW_SCHEMA_TOOL_REPORT_FILE_OR_SCHEDULER_IMPLEMENTATION"
+  ],
+  "expected_outputs": [
+    "EXACT_THREE_ROW_ACCEPTED_OUTPUT_MATRIX",
+    "TWO_MECHANISM_CONCLUSION_COUNT",
+    "ONE_CAPABILITY_SLICE_COUNT",
+    "FROZEN_WEEK_BOUNDARY",
+    "EXACT_TASK_DISPATCH_RESULT_AND_COMMIT_HASHES",
+    "DISPOSITION_AND_EVIDENCE_BOUNDARIES",
+    "ACTIONABILITY_ARTIFACT_CLOSURE",
+    "DUPLICATION_AND_NON_INDEPENDENCE_NOTE",
+    "GENERIC_CLASSIFICATION_GAP",
+    "MINIMUM_LATER_VERIFIER_CONTRACT",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and Manager dispatch before analysis. Re-hash every non-null input and require the Manager-provided branch, clean HEAD equal local origin, contained regular non-link non-reparse paths and exact source commit. Any mismatch is WEEKLY_LOCAL_OUTPUT_ACCEPTANCE_OR_CLASSIFICATION_PROOF_INSUFFICIENT.",
+    "Read only the exact listed repository paths and the three frozen Manager messages. Do not scan the examples directory, Git history beyond the three exact supplied commits and ancestry checks, .research-state, Local task history, current server state, network data, raw market data, OOS or any unlisted artifact.",
+    "Use the half-open UTC reporting period [2026-08-10T00:00:00Z, 2026-08-17T00:00:00Z). Require each counted result status COMPLETED and completed_at inside that period. issued_at, commit time, file mtime and conversation time cannot substitute for completed_at.",
+    "For every row, validate the exact local task and performance dispatch, then the exact result closure bound to both task and dispatch. Require all safety assertions false. A schema-valid result without the transitive closure is not countable.",
+    "Require clean branch codex/autonomous-research-control-plane-v3 at HEAD and local origin f340ec0346d1c8b8429ad3dbee371830407cc5a4. Require exact result commits 83dcf88f71e4036099f2fe12dda8a5cb3294dea8, 0f55e2ab1a5935a9534a2043631775f08a02ed44 and 2a95361e1a1a11722cc5ade7aa11e2531569a220 to be ancestors of that HEAD. Do not derive acceptance from an uncommitted file or Local self-report.",
+    "Count the historical post-shock stability row as one mechanism conclusion only if its completed result applies the exact positive disposition ONE_HISTORICAL_DIRECTIONAL_PRIOR_STABLE_FOR_FORWARD_CONFIRMATION and proves unchanged window statistics plus negative signed-h24 annual medians in all four Design years and both Validation years.",
+    "Preserve the historical-stability boundary: pre-2025 context is not forward confirmation, clean OOS, a strategy, alpha, fees, slippage, matched-capital PnL or drawdown proof. Immediate PnL and drawdown effect are zero.",
+    "Count the direction-symmetry row as one mechanism conclusion only if its completed result applies the exact positive disposition HISTORICAL_WINDOW_LEVEL_BIDIRECTIONAL_REVERSAL_PRIOR and proves negative signed-h24 medians plus more negative than positive responses for UP and DOWN shocks in both Design and Validation.",
+    "Preserve the direction-symmetry boundary: it is a descriptive window-level historical conclusion. Annual-by-direction breadth, concentration, significance, causality, forward value, fees, slippage, matched-capital PnL and drawdown remain MISSING_PROOF.",
+    "State explicitly that the two mechanism conclusions are nested evidence about one post-shock reversal family, not two independent alpha sources. They satisfy the output-count target but must not be added together, promoted, or used to inflate candidate confidence.",
+    "Count the actionability row as one capability slice only if its completed result applies ACTIONABILITY_CAPABILITY_SOURCE_READY_FOR_MANAGER_VALIDATION, its exact result commit is accepted, its four listed artifacts re-hash exactly, and the task/dispatch/result closure remains valid.",
+    "Preserve the actionability boundary: it proves only a closed offline schema, pure builder/validator, deterministic synthetic tests and documentation. It adds no source, timer, writer, adapter, strategy, candidate, OOS, deployment or Trading path and has zero immediate PnL/drawdown effect.",
+    "Do not count this audit or any unlisted result. Do not classify by task_type alone: EVIDENCE_DIAGNOSTIC includes source, infrastructure and prioritization audits, while TOOLING_VERTICAL_SLICE completion can precede Manager acceptance. Do not classify by filename, summary prefix or recommended_next_action keywords.",
+    "Return WEEKLY_LOCAL_OUTPUT_TARGET_PROVEN_CLASSIFICATION_CONTRACT_REQUIRED only when exactly the three frozen rows validate and yield mechanism_conclusion_count=2 and capability_or_spec_slice_count=1 with no double-count, invalid closure or missing acceptance proof.",
+    "Return WEEKLY_LOCAL_OUTPUT_TARGET_NOT_MET_PRESERVE_EXACT_SHORTFALL only when all three closures and classifications are trustworthy but one or more frozen rows fails its countability rule. Report the exact shortfall without substituting another task.",
+    "Return WEEKLY_LOCAL_OUTPUT_ACCEPTANCE_OR_CLASSIFICATION_PROOF_INSUFFICIENT when any input, closure, completion clock, commit ancestry, artifact hash, disposition, evidence boundary or classification rule is missing, changed, contradictory or unverifiable. Do not partially count an invalid row.",
+    "If the positive disposition applies, define but do not implement the minimum later deterministic verifier contract: an explicit Manager-authored per-row output class, exact task/dispatch/result hashes, accepted commit, completed_at period rule, claim-boundary digest, unique output id, duplicate-family key and exclusion reason. It must remain read-only, receive an explicit file allowlist, write no canonical state and add no timer.",
+    "Return exactly one schema-valid local-research-result bound to this task SHA, with empty artifacts/files_changed, dirty before/after false, all safety assertions false, concrete matrix checks, uncertainty, opportunity cost and one allowed disposition. Stop without requesting permission on any boundary conflict."
+  ],
+  "limits": {
+    "timeout_seconds": 1200,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

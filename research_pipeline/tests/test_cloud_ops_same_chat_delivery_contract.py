@@ -9,23 +9,12 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 V6_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v6.json"
 V7_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v7.json"
-PROMPT_PATH = ROOT / "research_pipeline" / "prompts" / "daily-research-tick.md"
-DOC_PATHS = [
-    ROOT / "docs" / "autonomous-research-charter.md",
-    ROOT / "docs" / "autonomous-research-acceleration-v1.md",
-    ROOT / "docs" / "server-research-worker-v2.md",
-]
-
 V6_SHA256 = "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85"
 V7_SHA256 = "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144"
 TARGET_THREAD_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
 EXACT_FILES = [
     "research_pipeline/cloud-ops-schedule-contract.v7.json",
     "research_pipeline/tests/test_cloud_ops_same_chat_delivery_contract.py",
-    "research_pipeline/prompts/daily-research-tick.md",
-    "docs/autonomous-research-charter.md",
-    "docs/autonomous-research-acceleration-v1.md",
-    "docs/server-research-worker-v2.md",
 ]
 
 
@@ -42,8 +31,6 @@ class CloudOpsSameChatDeliveryContractTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.v6 = _load(V6_PATH)
         cls.v7 = _load(V7_PATH)
-        cls.prompt = PROMPT_PATH.read_text(encoding="utf-8")
-        cls.docs = [path.read_text(encoding="utf-8") for path in DOC_PATHS]
 
     def test_v7_document_is_frozen_and_preserves_v6_clock(self) -> None:
         self.assertEqual(V6_SHA256, _sha256(V6_PATH))
@@ -169,38 +156,9 @@ class CloudOpsSameChatDeliveryContractTest(unittest.TestCase):
             )
         )
 
-    def test_prompt_is_hash_bound_and_retains_v6_fail_closed_guard(self) -> None:
-        self.assertIn("CLOUD_OPS_SCHEDULE_V7", self.prompt)
-        self.assertIn(V7_SHA256, self.prompt)
-        self.assertNotIn(
-            "6ff8979811d8b797d5cace5055b807ab7c0473f07ec11f77a1ac4c37c489d6a8",
-            self.prompt,
-        )
-        self.assertIn("`document_status=FROZEN`", self.prompt)
-        self.assertIn("`PREPARED_NOT_ACTIVE_V7`", self.prompt)
-        self.assertIn("stop before every V7\nwrite call", self.prompt)
-        self.assertIn("current assistant turn is never receipt proof", self.prompt)
-        self.assertIn("normal V7 attestation", self.prompt)
-        self.assertNotIn("normal V6 attestation", self.prompt)
-        self.assertNotIn("Use `list_threads`", self.prompt)
-        self.assertNotIn("call `send_message_to_thread`", self.prompt)
-
-    def test_docs_freeze_document_and_external_rollout_state(self) -> None:
-        for content in self.docs:
-            self.assertIn("CLOUD_OPS_SCHEDULE_V7", content)
-            self.assertIn(V7_SHA256, content)
-            self.assertIn("MISSING_PROOF", content)
-            self.assertNotIn("CURRENT_ACTIVE_V6", content)
-            self.assertNotIn("reports the frozen `CLOUD_OPS_SCHEDULE_V6`", content)
-            self.assertNotIn("active frozen `CLOUD_OPS_SCHEDULE_V6`", content)
-            self.assertNotIn("V7 is active", content)
-        for content in self.docs[1:]:
-            self.assertIn("PREPARED_NOT_ACTIVE_V7", content)
-            self.assertIn("`document_status=FROZEN`", content)
-            self.assertIn("zero active recurrences", content)
-            self.assertIn("updated or resumed as V7", content)
-        self.assertEqual(6, len(EXACT_FILES))
-        self.assertEqual(6, len(set(EXACT_FILES)))
+    def test_historical_test_scope_is_only_the_immutable_v7_artifact(self) -> None:
+        self.assertEqual(2, len(EXACT_FILES))
+        self.assertEqual(2, len(set(EXACT_FILES)))
 
 
 if __name__ == "__main__":

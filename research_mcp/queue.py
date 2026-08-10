@@ -38,16 +38,16 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v7.json"
+    "research_pipeline/cloud-ops-schedule-contract.v8.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256 = (
-    "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144"
+    "7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     r"""
 {
-  "schema_version": "7",
-  "contract_id": "CLOUD_OPS_SCHEDULE_V7",
+  "schema_version": "8",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V8",
   "document_status": "FROZEN",
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
   "timer_authority": "CODEX_CLOUD_OPS_ONLY",
@@ -77,62 +77,57 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "get_research_run",
     "get_research_briefing"
   ],
-  "allowed_codex_operations": [],
+  "allowed_codex_operations": [
+    "list_threads",
+    "read_thread",
+    "send_message_to_thread"
+  ],
   "write_attestation": {
     "parameter": "ops_schedule_contract_sha256",
     "required": true,
-    "activation_rule": "V7_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V7_READY",
-    "v6_status_behavior": "STOP_BEFORE_ANY_V7_WRITE_CALL"
+    "activation_rule": "V8_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V8_READY",
+    "v7_status_behavior": "STOP_BEFORE_ANY_V8_WRITE_CALL"
   },
   "predecessor": {
-    "contract_id": "CLOUD_OPS_SCHEDULE_V6",
-    "sha256": "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V7",
+    "sha256": "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144",
     "bytes_modified": false,
-    "current_active_until_cutover": true
+    "server_attestation_active_until_cutover": true,
+    "platform_activation_proven": false
+  },
+  "platform_schedule": {
+    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V6",
+    "existing_paused_schedule_id": "6a71a1ed2f608191b0621c52bed3fd81",
+    "execution_surface": "CHATGPT_WORK_CLOUD_SCHEDULE",
+    "local_computer_may_be_off": true,
+    "migration": "UPDATE_EXISTING_PAUSED_SCHEDULE_IN_PLACE",
+    "create_second_schedule": "DENY"
   },
   "coach_delivery": {
-    "contract_id": "SEALED_COACH_SAME_CHAT_DELIVERY_V1",
+    "contract_id": "SEALED_COACH_CROSS_TASK_DELIVERY_V4",
     "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
-    "destination": "RETURN_TO_SAME_CHAT_WITH_EXISTING_CONTEXT",
+    "destination": "EXACT_COACH_TASK_BY_THREAD_ID",
     "delivery_id_source": "SEALED_ARTIFACT_SHA256",
     "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
     "durability": "SERVER_HEARTBEAT_STATE_UNTIL_VERIFIED_ACK",
-    "cross_task_operations_required": false,
-    "turn_start_context_scope": "PRIOR_ASSISTANT_MESSAGES_IN_SAME_COACH_CHAT_ONLY",
-    "turn_order": [
-      "SCAN_PRIOR_ASSISTANT_MESSAGES_FOR_EXACT_FULL_DELIVERY_TOKENS",
-      "READ_FRESH_CANONICAL_STATUS",
-      "FORM_RECEIPTS_ONLY_FOR_PRIOR_ASSISTANT_TOKENS_WITH_IDENTICAL_PENDING_IDS",
-      "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT",
+    "cross_task_operations_required": true,
+    "cycle_order": [
+      "READ_FRESH_CANONICAL_STATUS_FIRST",
+      "RESOLVE_AND_PREFLIGHT_READ_EXACT_COACH_TASK",
+      "FORM_RECEIPTS_ONLY_FROM_EXACT_PREFLIGHT_TOKEN_AND_PENDING_ID",
+      "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT_WITH_PREFLIGHT_RECEIPTS",
       "READ_FRESH_CANONICAL_STATUS_AFTER_HEARTBEAT",
-      "RENDER_EACH_STILL_PENDING_CANONICAL_PROMPT_WITHOUT_PRIOR_ASSISTANT_TOKEN_ONCE"
+      "DELIVER_STILL_PENDING_EVENTS_AND_REQUIRE_POST_SEND_READBACK",
+      "DEFER_POST_SEND_RECEIPTS_TO_NEXT_NORMALLY_DUE_HEARTBEAT"
     ],
-    "current_turn_render_receipt_proof": "DENY",
-    "render": "RENDER_EXACT_CANONICAL_DELIVERY_PROMPT_AS_CURRENT_ASSISTANT_OUTPUT",
-    "prior_context_proof": {
-      "required_role": "assistant",
-      "required_location": "PRIOR_MESSAGE_IN_SAME_COACH_CHAT",
-      "required_value": "EXACT_FULL_DELIVERY_TOKEN",
-      "required_canonical_state": "IDENTICAL_DELIVERY_ID_STILL_PENDING_IN_FRESH_STATUS",
-      "insufficient_sources": [
-        "CURRENT_TURN_OUTPUT",
-        "USER_QUOTED_TOKEN",
-        "SUMMARIZED_CONTEXT",
-        "TRUNCATED_CONTEXT",
-        "ALTERED_TOKEN",
-        "SCHEDULED_INBOX",
-        "NOTIFICATION",
-        "INFERRED_CONTEXT"
-      ]
-    },
-    "context_loss": {
-      "receipt": "DENY",
-      "canonical_event_state": "KEEP_PENDING",
-      "rerender": "AT_MOST_ONCE_PER_TURN_USING_EXACT_CANONICAL_PROMPT",
-      "deadline_reset": "DENY",
-      "additional_timer_poller_messenger_or_user_step": "DENY"
-    },
-    "canonical_ack": "VERIFIED_PRIOR_ASSISTANT_TOKEN_RECEIPT_ON_NEXT_NORMALLY_DUE_HEARTBEAT",
+    "target_resolution": "LIST_THREADS_AND_REQUIRE_EXACT_THREAD_ID",
+    "preflight": "READ_TARGET_THREAD_AND_SKIP_IF_EXACT_FULL_DELIVERY_TOKEN_PRESENT",
+    "send": "SEND_EXACT_CANONICAL_DELIVERY_PROMPT",
+    "verification": "READ_TARGET_THREAD_AFTER_SEND_AND_REQUIRE_EXACT_FULL_DELIVERY_TOKEN",
+    "retry": "RETRY_ONLY_ON_A_LATER_NORMAL_CLOUD_CYCLE_WHEN_TOKEN_IS_ABSENT",
+    "target_unavailable": "KEEP_CANONICAL_EVENT_PENDING_AND_REPORT_CROSS_TASK_DELIVERY_PENDING",
+    "same_cycle_send_receipt_proof": "ALLOW_ONLY_AFTER_POST_SEND_TARGET_READBACK",
+    "canonical_ack": "VERIFIED_TARGET_READBACK_RECEIPT_ON_NEXT_NORMALLY_DUE_HEARTBEAT",
     "receipt_parameter": "coach_delivery_receipts",
     "receipt_schema": {
       "exact_fields": [
@@ -150,6 +145,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     },
     "deduplication": {
       "pending_id_source": "SEALED_ARTIFACT_SHA256",
+      "exact_token_required": true,
       "same_id_changed_payload": "INTEGRITY_BLOCKED",
       "repeated_verified_receipt": "IDEMPOTENT",
       "unknown_or_unverified_receipt": "REJECT"
@@ -183,39 +179,39 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "DISTINCT_SEALED_CANDIDATE_OOS",
     "HASH_VERIFIED_COACH_OUTBOX",
     "DURABLE_COACH_OUTBOX_UNTIL_VERIFIED_ACK",
-    "PRIOR_ASSISTANT_MESSAGES_ONLY_AT_TURN_START",
-    "FRESH_CANONICAL_PENDING_ID_REQUIRED_FOR_RECEIPT",
-    "NO_SAME_TURN_RENDER_ACKNOWLEDGEMENT",
-    "EXACT_PRIOR_ASSISTANT_DELIVERY_TOKEN",
-    "CURRENT_ASSISTANT_OUTPUT_EXACT_CANONICAL_PROMPT",
-    "CONTEXT_LOSS_PRESERVES_PENDING_EVENT",
+    "EXACT_COACH_THREAD_ID_RESOLUTION",
+    "COACH_THREAD_READ_BEFORE_SEND",
+    "EXACT_FULL_DELIVERY_TOKEN_DEDUPLICATION",
+    "EXACT_CANONICAL_PROMPT_SEND",
+    "COACH_THREAD_POST_SEND_READBACK",
     "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
-    "COACH_DELIVERY_PROOF_SLA_CANONICAL"
+    "COACH_DELIVERY_PROOF_SLA_CANONICAL",
+    "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE"
   ],
   "cutover": {
     "activation_authorized_by_repository_preparation": false,
-    "preferred_path": "IN_PLACE_DESTINATION_UPDATE_ONLY_IF_ATOMIC_AND_PLATFORM_PROVEN",
-    "fallback_order": [
-      "PAUSE_V6_AND_PROVE_INACTIVE",
-      "CREATE_OR_BIND_V7_WITHOUT_ACTIVATING_IF_PLATFORM_SUPPORTS_DISABLED_PREPARATION",
-      "PROVE_V7_DESTINATION_AND_EXACTLY_ZERO_ACTIVE_SCHEDULES",
-      "ACTIVATE_V7_AND_PROVE_EXACTLY_ONE_ACTIVE_SCHEDULE",
-      "DELETE_PAUSED_V6_ONLY_AFTER_LIVE_ACCEPTANCE"
+    "required_order": [
+      "PROVE_EXISTING_V6_PLATFORM_SCHEDULE_PAUSED_AND_ZERO_ACTIVE",
+      "DEPLOY_AND_VERIFY_SERVER_V8_ATTESTATION",
+      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V8",
+      "PROVE_UPDATED_PLATFORM_SCHEDULE_REMAINS_PAUSED_AND_ZERO_ACTIVE",
+      "ACTIVATE_UPDATED_PLATFORM_SCHEDULE_AND_PROVE_EXACTLY_ONE_ACTIVE"
     ],
     "overlapping_active_schedules": "DENY",
+    "new_schedule_creation": "DENY",
     "successor_activation_before_old_clock_exclusion": "DENY",
-    "rollback": "PAUSE_V7_AND_PROVE_INACTIVE_BEFORE_RESUMING_V6"
+    "rollback": "PAUSE_V8_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_ANY_PREDECESSOR"
   },
   "missing_proof": [
-    "SERVER_V7_ATTESTATION_IMPLEMENTATION",
-    "WORKER_DEPLOYMENT",
-    "PLATFORM_SAME_CHAT_BINDING",
+    "SERVER_V8_ATTESTATION_IMPLEMENTATION",
+    "WORKER_V8_DEPLOYMENT",
+    "EXISTING_CLOUD_SCHEDULE_IN_PLACE_UPDATE",
     "ONE_ACTIVE_SCHEDULE_READBACK",
-    "UNATTENDED_PRIOR_ASSISTANT_CONTEXT_VISIBILITY",
-    "SCHEDULED_COACH_RESEARCH_MCP_AVAILABILITY",
-    "TURN_N_EXACT_RENDER",
-    "TURN_N_PLUS_1_RECEIPT_ACCEPTANCE",
-    "LIVE_DEDUPLICATION",
+    "SCHEDULED_RESEARCH_MCP_AVAILABILITY",
+    "CLOUD_LIST_READ_SEND_TOOL_AVAILABILITY",
+    "LIVE_PREFLIGHT_DEDUPLICATION",
+    "LIVE_POST_SEND_READBACK",
+    "LIVE_RECEIPT_ACCEPTANCE",
     "LIVE_PASS_OR_BREACH_SLA_OUTCOME",
     "LEARNING_LATENCY_OR_ECONOMIC_VALUE"
   ],
@@ -232,9 +228,8 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "LOCAL_RESEARCH_STATE_FALLBACK",
     "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
     "OOS_REOPEN_OR_GATE_RELAXATION",
-    "CROSS_TASK_LIST_READ_OR_SEND",
-    "SAME_TURN_DELIVERY_ACKNOWLEDGEMENT",
-    "ACK_WITHOUT_EXACT_PRIOR_ASSISTANT_TOKEN",
+    "FUZZY_OR_INFERRED_COACH_TASK_SELECTION",
+    "ACK_WITHOUT_EXACT_TARGET_THREAD_READBACK",
     "SCHEDULED_INBOX_NOTIFICATION_SUMMARY_OR_USER_QUOTE_AS_PROOF",
     "DEADLINE_OR_QUEUE_TIMESTAMP_RESET",
     "UNVERIFIED_COACH_DELIVERY_CLAIM",
@@ -324,7 +319,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if actual_sha256 != EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract bytes do not match the frozen V7 hash",
+            "reason": "cloud Ops schedule contract bytes do not match the frozen V8 hash",
         }
     try:
         value = json.loads(raw.decode("utf-8"))
@@ -336,7 +331,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V7 object",
+            "reason": "cloud Ops schedule contract does not match the frozen V8 object",
         }
     recurrence = value["recurrence"]
     return {

@@ -115,10 +115,11 @@ provenance is an integrity blocker, not permission to continue from local
 assumptions. Both MCP write operations enforce this before any queue mutation;
 the cloud prompt is not the only guard.
 
-Canonical status also reports the frozen `CLOUD_OPS_SCHEDULE_V7` id, the
+Canonical status also reports the installed frozen cloud Ops contract id, the
 intended platform recurrence `09:05 Asia/Taipei`, the unchanged canonical due
 boundary `09:00 Asia/Taipei`, the 300-second nominal dispatch margin, and
-byte-level SHA-256. V1 through V6 remain immutable history. V7 preserves the V6
+byte-level SHA-256. V1 through V7 remain immutable history. The prepared V8
+successor preserves the V7
 margin that prevents a small platform early-fire from consuming the only daily
 call before the server due boundary; it does not permit an early heartbeat or
 add a catch-up timer. Each heartbeat and candidate submission must attest the
@@ -278,39 +279,35 @@ database query, or backfill.
 - `agora-research-heartbeat.timer` remains disabled and the path unit remains
   an event consumer only.
 
-## Prepared same-chat delivery successor
+## Prepared cross-task delivery successor
 
-Fresh server-canonical status reports `CLOUD_OPS_SCHEDULE_V7` `READY` with the
-exact hash below, and the deployed Worker accepts only that V7 attestation. An
-authenticated platform readback on 2026-08-09 found the predecessor V6 task
-paused in a different ChatGPT Work conversation and zero active recurrences.
-The versioned V7 contract remains the lifecycle-neutral frozen document
-`CLOUD_OPS_SCHEDULE_V7` with
-`document_status=FROZEN` and exact SHA-256
-`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
-Its platform rollout state remains `PREPARED_NOT_ACTIVE_V7`: no same-Coach-chat
-V7 recurrence has been bound or activated. Platform activation is separately
-proven outside the document and never edits V7 bytes. The paused V6 task must
-not be updated or resumed as V7.
+Fresh server-canonical status at `2026-08-10T02:19:11Z` still reports
+`CLOUD_OPS_SCHEDULE_V7` `READY`; this is live-state evidence, not proof that
+V8 is deployed. Platform readback found zero active cloud recurrences and one
+paused ChatGPT Work V6 task. A separately attempted Codex desktop V7 automation
+was paused after proving it depends on the local computer and therefore cannot
+meet the PC-off requirement.
 
-V7 is designed to return the sole scheduled run to the existing Coach chat and
-reuse only that chat's prior assistant context. Turn N reads fresh canonical
-status and renders each still-pending exact canonical delivery prompt whose
-token was absent from prior assistant messages; it sends no receipt for its own
-new output. Turn N+1 may include the unchanged five-field receipt only when the
-complete token is present in a prior assistant message and the identical id
-remains pending in fresh canonical status. Missing, summarized, truncated,
-altered, user-quoted, Scheduled-inbox-only, notification-only, or inferred
-context keeps the event pending and permits at most one exact rerender that
-turn. Queue/deadline timestamps never reset.
+The lifecycle-neutral successor is `CLOUD_OPS_SCHEDULE_V8`, frozen at exact
+SHA-256
+`7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`.
+It keeps the scientific gates, one 09:05 cloud clock, 09:00 canonical due
+boundary, 300-second margin, Server Canonical single writer, durable outbox,
+five-field receipts, and the 10,800-second delivery SLA. It changes only the
+delivery locus: the existing paused ChatGPT Work schedule uses bounded
+list/read/send operations to reach exact Coach task
+`019fca63-4f8f-71e3-9d88-297bca468eb9`.
 
-This design preserves one clock, Server Canonical, hash deduplication, next-normal-
-heartbeat acknowledgement, and the 10,800-second `PASS`/`BREACH` measure while
-removing the cross-task tool dependency from the prepared design. It has zero
-immediate PnL and drawdown effect. Server attestation implementation and Worker
-deployment are proven; same-chat binding, one-active-schedule readback,
-unattended context visibility, Turn-N render, Turn-N+1 receipt acceptance, live
-deduplication, SLA result, and any quantified learning-latency benefit remain
-`MISSING_PROOF`.
-The current pending event retains its existing deadline and is not promised a
-`PASS`.
+Each event requires exact-task preflight read, exact full-token deduplication,
+one canonical prompt send when absent, and exact-task post-send readback.
+Only verified readback may create a receipt for the next normally due
+heartbeat. Tool or host unavailability remains a hash-identified
+`CROSS_TASK_DELIVERY_PENDING` event and does not authorize a timer, messenger,
+user step, paid API, or inferred ACK.
+
+Cutover reuses the exact existing paused ChatGPT Work task and forbids creation
+of a second schedule. Repository V8 implementation, focused tests, Worker
+deployment, paused-task in-place update, zero-active and exactly-one-active
+readbacks, live delivery, receipt acceptance, SLA result, and any quantified
+learning-latency or economic benefit remain separate `MISSING_PROOF` gates. Immediate
+PnL and drawdown effect are zero.

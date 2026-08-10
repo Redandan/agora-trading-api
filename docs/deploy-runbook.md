@@ -286,65 +286,60 @@ A successful verification establishes the requested release identities and
 source-state contract at that instant. It does not prove uninterrupted day completion,
 predictive value, PnL, or drawdown.
 
-### Current Cloud Ops V7 same-chat contract
+### Prepared Cloud Ops V8 cross-task contract
 
-Repository preparation alone does not activate `CLOUD_OPS_SCHEDULE_V7`.
-Fresh canonical status at `2026-08-08T09:05:16Z` reports the server contract
-`READY`, `schema_version=7`, `schedule_count=1`, and exact SHA-256
-`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`;
-the preserved V6 bytes remain immutable predecessor evidence at
-`d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85`.
-The installed Worker release `20260808T052741Z` is clean and source-tree
-verified at `c6247e8074803227c8a83b44dcc331aec2956e6d`.
-Do not rerun a V6-to-V7 cutover merely because an older document calls V7
-prepared. Platform-side same-chat binding and exact active-recurrence readback
-remain `MISSING_PROOF` and require readback, not another timer.
+Repository preparation alone does not activate `CLOUD_OPS_SCHEDULE_V8`.
+The frozen V8 bytes have exact SHA-256
+`7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`;
+V7 remains immutable predecessor evidence at
+`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
+Fresh canonical status at `2026-08-10T02:19:11Z` still reports the deployed
+V7 Worker `READY`. Do not call a V8 write until deployment readback reports
+V8 `READY` with the exact hash.
 
-The 2026-08-08 platform audit proved that the existing paused V6 task is bound
-to a different ChatGPT Work conversation and that its exposed update schema has
-no destination field. Do not update or resume that task as V7. Follow
-[the platform binding audit](cloud-ops-v7-platform-binding-audit-2026-08-08.md)
-and use the frozen fallback path: prepare a disabled V7 task from the intended
-Coach chat, prove its same-chat destination with zero active recurrences, then
-activate it and prove exactly one active recurrence. The current audit created
-no successor because this Codex session did not expose scheduled-task
-management.
+Platform readback proved zero active cloud recurrences and the exact existing
+ChatGPT Work task `6a71a1ed2f608191b0621c52bed3fd81` paused. Reuse that
+task. Do not create another cloud schedule. The separately created Codex
+desktop V7 automation must remain paused because it requires the local computer
+and app to stay on and is not the PC-off cloud execution surface.
 
 Before packaging a reviewed clean commit, run the focused queue,
-server-contract, same-chat contract, and evidence suites offline. Run
-`PackageOnly` only as the separate post-commit closure gate described above.
+server-contract, V7 historical immutability, V8 cross-task contract, and
+evidence suites offline. Run `PackageOnly` only as the separate post-commit
+closure gate described above.
 
-An ordinary V7 platform repair must first pause V7 and prove zero active
-recurrences before replacing or retargeting it. If a future rollback has
-deliberately restored V6 and a later authorized V6-to-V7 recutover is required,
-perform it after a completed normal heartbeat with both queues idle and enough
-time before the next canonical due boundary. Use this fail-closed zero-overlap
-order:
+Perform cutover only after a completed normal heartbeat, both queues are idle,
+and enough time remains before the next canonical due boundary:
 
-1. Pause V6 and prove from canonical and platform readback that it is inactive
-   and exactly zero schedules are active.
-2. Deploy and verify the V7-only Worker while zero schedules are active. Prove
+1. Re-read platform state and prove the existing ChatGPT Work task is paused,
+   the desktop V7 automation is paused, and exactly zero schedules are active.
+2. Deploy and verify the V8-only Worker while zero schedules are active. Prove
    its installed release inventory and exact frozen contract hash.
 3. Prove canonical `ops_schedule_contract.status=READY`,
-   `contract_id=CLOUD_OPS_SCHEDULE_V7`, and the exact V7 SHA-256 above.
-4. Bind the same-Coach-chat schedule without activating it; prove its
-   destination and that the active schedule count remains zero.
-5. Activate exactly one V7 schedule, then re-read both canonical status and
-   platform state to prove exactly one active clock and the fixed V7 binding.
-6. Wait for the normal Turn N. Render the exact canonical prompt without a
-   receipt and without changing `delivery_queued_at` or `delivery_deadline_at`.
-7. Wait for normal Turn N+1. Submit a receipt only for the exact prior assistant
-   token after fresh canonical pending-id verification, and preserve the honest
-   canonical `PASS` or `BREACH` result.
+   `contract_id=CLOUD_OPS_SCHEDULE_V8`, and the exact V8 SHA-256 above.
+4. Update only the exact existing paused ChatGPT Work task in place with the
+   exact repository prompt, the same daily 09:05 recurrence, and no end date.
+5. Re-read the task while it remains paused and prove the stored prompt,
+   recurrence, execution surface, and zero active schedule count.
+6. Activate that task and re-read platform state to prove exactly one active
+   schedule. Never activate the desktop automation.
+7. On the next normal cycle, require exact Coach-task preflight read,
+   hash-token deduplication, exact canonical prompt send when absent, and
+   post-send task readback.
+8. Carry a verified five-field receipt only on the following normally due
+   heartbeat and preserve the canonical `PASS` or `BREACH` result.
 
-Never accept both attestation hashes, overlap V6 and V7 schedules, add a catch-up
-clock, or run a V6 schedule against a V7-only Worker. If rollback is required,
-pause V7 and prove it inactive first, restore and verify the V6 Worker and
-canonical V6 READY hash, and only then resume exactly one V6 schedule.
-Platform same-chat binding, one-active-recurrence readback, Turn N rendering,
-Turn N+1 receipt acceptance, and live learning-latency or economic value remain
-`MISSING_PROOF` until separately proven. Canonical V7 readiness is not proof of
-those platform behaviors.
+Never accept both attestation hashes, overlap schedules, add a catch-up clock,
+or run the old prompt against the V8-only Worker. If rollback is required,
+pause the V8 task and prove zero active schedules first. Restore a predecessor
+Worker and prompt only as one reviewed unit; do not resume any predecessor
+until its canonical hash and exact platform prompt both match.
+
+Worker deployment, in-place cloud-task update, cloud Research MCP and
+list/read/send availability, zero-active and exactly-one-active readback, live
+deduplication, post-send readback, receipt acceptance, and economic value remain
+`MISSING_PROOF` until separately proven. Any unavailable target or delivery
+tool must leave the canonical event as `CROSS_TASK_DELIVERY_PENDING`.
 
 Optional
 `MicrostructureForwardStartDay` and `MicrostructureDiagnosticId` parameters

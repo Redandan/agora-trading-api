@@ -127,8 +127,9 @@ returns a task-hash-bound result to the Manager/Coach. It has no routine wake-up
 cannot become a second writer, and cannot call Research MCP writes or mutate
 canonical server state. The V1 node is manually message-dispatched and leaves
 the sole cloud clock and its server-canonical contract unchanged. As of
-2026-08-08 the canonical contract is V7; Local work cannot activate, replace,
-pause, or acknowledge that schedule.
+2026-08-10 the deployed canonical contract remains V7 while the reviewed V8
+successor is prepared; Local work cannot activate, replace, pause, or
+acknowledge either schedule contract.
 
 The generic Spring strategy runtime must not depend on `research_pipeline`.
 
@@ -148,10 +149,10 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The current server-canonical cloud Ops semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v7.json`, exact SHA-256
-`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`;
-V1 through V6 remain immutable historical contract evidence. V7 keeps the
+The prepared successor `CLOUD_OPS_SCHEDULE_V8` cloud Ops semantics are frozen in
+`research_pipeline/cloud-ops-schedule-contract.v8.json`, exact SHA-256
+`7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`;
+V1 through V7 remain immutable historical contract evidence. V8 keeps the
 canonical heartbeat due boundary at `09:00 Asia/Taipei` but declares the sole
 cloud recurrence at
 `09:05 Asia/Taipei`. The frozen 300-second nominal delay tolerates small
@@ -348,10 +349,10 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
 
-The V7 Ops contract and `SEALED_COACH_SAME_CHAT_DELIVERY_V1` bind that basis,
+The V8 Ops contract and `SEALED_COACH_CROSS_TASK_DELIVERY_V4` bind that basis,
 10,800-second completion window, pending/breach labels, terminal labels, and
 legacy missing-proof labels into the same caller attestation required by both
-write operations. V3 through V6 remain sealed history and cannot attest the
+write operations. V3 through V7 remain sealed history and cannot attest the
 active schedule.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
@@ -388,42 +389,36 @@ experiment passes its preregistered Design and Validation gates to
 `CANDIDATE_FROZEN`, while sealed OOS remains unopened, and only when the overlay
 exercises material lot-management semantics absent from Phase B.
 
-## Current same-chat Coach delivery V7
+## Prepared cross-task Coach delivery V8
 
-Fresh OAuth Research MCP status at `2026-08-08T09:05:16Z` reported
-`CLOUD_OPS_SCHEDULE_V7` `READY`, `schema_version=7`, `schedule_count=1`, and
-exact SHA-256
-`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
-The installed Worker release `20260808T052741Z` was clean and source-tree
-verified at commit `c6247e8074803227c8a83b44dcc331aec2956e6d`.
-This proves the server-canonical V7 attestation and Worker release, not the
-Codex platform recurrence definition or unattended same-chat context behavior.
-Repository preparation alone still cannot activate or change a cloud schedule.
+Fresh OAuth Research MCP status at `2026-08-10T02:19:11Z` still reports the
+deployed `CLOUD_OPS_SCHEDULE_V7` `READY`; V8 has not yet been deployed or
+activated. Platform readback proved the old V6 ChatGPT Work task is paused,
+zero cloud schedules are active, and the attempted Codex desktop V7 automation
+is also paused because it requires the local computer and app to remain on.
+That local surface cannot satisfy the sponsor's PC-off requirement.
 
-V7 preserves one daily `09:05 Asia/Taipei` cloud clock, the `09:00` canonical
-due boundary, 300-second margin, Server Canonical as sole writer, the durable
-artifact-hash outbox, five-field receipt, verified status vocabulary,
-idempotency, immutable queue/deadline timestamps, and the 10,800-second
-`PASS`/`BREACH` basis. It changes only delivery proof: the scheduled task is
-bound to the existing Coach chat and requires no cross-task list, read, or send
-operation.
+The frozen V8 successor preserves one daily `09:05 Asia/Taipei` cloud clock,
+the `09:00` canonical due boundary, 300-second margin, Server Canonical as sole
+writer, durable artifact-hash outbox, five-field receipt, idempotency,
+immutable queue/deadline timestamps, and the 10,800-second `PASS`/`BREACH`
+basis. It changes only the delivery locus: the existing paused ChatGPT Work
+schedule uses the bounded `list_threads`, `read_thread`, and
+`send_message_to_thread` operations to reach exact Coach task
+`019fca63-4f8f-71e3-9d88-297bca468eb9`.
 
-At the start of Turn N, only prior assistant messages in that Coach chat may be
-scanned for exact full delivery tokens. Fresh canonical status must still show
-the identical id pending before a receipt may be included in the normally due
-heartbeat. A newly pending event is rendered once as the exact canonical prompt
-in the current assistant output and cannot be acknowledged in Turn N. Turn
-N+1 may acknowledge it only when the exact token is present in prior assistant
-context and fresh canonical status still shows it pending. User quotations,
-summaries, truncation, alteration, Scheduled inbox, notifications, and inferred
-context are never proof. Context loss leaves the event pending and permits at
-most one exact rerender in that turn without resetting its clock.
+For each pending canonical event, the cloud cycle must read the exact Coach
+task before sending, deduplicate by the exact full sealed token, send only the
+canonical delivery prompt when absent, and read the exact task again. A
+verified preflight or post-send readback may be carried only by the next
+normally due heartbeat. Tool or host unavailability leaves the event pending
+as `CROSS_TASK_DELIVERY_PENDING`; it never adds a timer, messenger, user step,
+or early ACK.
 
-Server V7 attestation implementation and Worker deployment are now proven.
-Platform same-chat binding, platform-side exact one-active-recurrence readback,
-unattended prior-context access, a normal Turn-N render, Turn-N+1 receipt
-acceptance, and a live `PASS` delivery SLA remain `MISSING_PROOF`. The retained
-legacy integrity event still has its original deadline and canonical status
-`BREACH_PENDING_DELIVERY_PROOF`; recovery of the heartbeat does not rewrite
-that delivery history. Any rollback must first pause and prove V7 inactive
-before restoring V6, and must never overlap two clocks.
+Repository V8 contract, prompt, Worker attestation code, and focused tests are
+the preparation gate. Worker deployment, in-place update of the exact existing
+paused cloud task, zero-active readback before activation, exactly-one-active
+readback after activation, live Coach delivery/readback, receipt acceptance,
+and a live `PASS` or `BREACH` remain `MISSING_PROOF` until separately proven.
+The retained pending events keep their original timestamps. Rollback must first
+pause V8 and prove zero active schedules; two clocks may never overlap.

@@ -374,6 +374,6 @@ idle, and the 2026-08-07 companion evidence day `SEALED` before its deadline.
 This proves live heartbeat and evidence-path recovery.
 
 It does not repair the old Coach event's delivery history. That event remains
-pending with `BREACH_PENDING_DELIVERY_PROOF`; only a future normally due V7
-two-turn same-chat receipt can close it honestly. An early heartbeat, local
+pending with `BREACH_PENDING_DELIVERY_PROOF`; only a future normally due V8
+cross-task readback receipt can close it honestly. An early heartbeat, local
 fallback, second timer, or manual canonical repair remains forbidden.

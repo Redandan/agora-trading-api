@@ -1,0 +1,103 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-utc-day-3pct-shock-attribution-design-v1",
+  "task_sha256": "e08cbc9d4dda7a2757ad60d3739fd55a929aec1927e4f9cf9d7c22ebe8e942d1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T06:02:00Z",
+  "completed_at": "2026-08-10T06:10:28Z",
+  "source_git_commit": "0d155f7889165a4e11a938ffafda9a0226d3ea14",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "ONE_3PCT_SHOCK_DIAGNOSTIC_VERTICAL_SLICE_READY. Two contiguous, canonical, source-produced COMPLETE_UTC_DAY bundles provide the exact prior close, target close and 24-hour OHLCV path needed for the inclusive event abs((target_close/prior_close)-1)>=0.0300. The diagnostic is causally distinct from lagged-realized-volatility participation and the closed V2/V2B/V2C exit branches: it describes a completed shock without selecting a volatility estimator, entry, exit, direction, holding period, size or Trading action. The future-only deterministic record is hash-bound to both day artifacts and chain heads and contains day identities, closes, signed and absolute simple return, UP/DOWN direction, target open/high/low/close/volume, open gap, high/low excursions from prior close, 24 hourly incremental and cumulative close returns, earliest close-threshold crossing, earliest-tie peak/trough hours, largest absolute hourly return, first-12h and last-12h returns, hourly sign counts, close-in-range and largest-hour volume share. Causal explanation remains UNKNOWN unless a separately frozen source record includes immutable identity or URL, publication time, observed time, decision cutoff and confidence and was available by that cutoff. Factor-eligible episodes must be sealed after contract activation and before any post-shock outcome; earlier accepted days are context-only. The smallest integration is an idempotent logical child inside the existing heartbeat, after canonical day-reference validation and before event sorting/Coach delivery, using the existing Server Canonical writer and Coach outbox. No second timer, source, writer, LLM, news fetch, R1/R2 mutation, hypothesis, candidate or experiment is introduced. Immediate PnL and drawdown effect is zero.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_SOURCE_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task SHA e08cbc9d4dda7a2757ad60d3739fd55a929aec1927e4f9cf9d7c22ebe8e942d1, dispatch SHA 199cc7ceae3584683032115d9ba0b82e9e13e1f44dc9bc7e8b31a94954b1ba6b, 14-stop canonical SHA 2da380ed421cb7a59ba2cf3ccf24c022ec928906e0d3bfc0a7677014855deda5 and all 12 unique non-null repository inputs matched. Inputs were regular contained non-link/non-reparse files."
+    },
+    {
+      "name": "SOURCE_IDENTITY_AND_CLEAN_STATE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched 0d155f7889165a4e11a938ffafda9a0226d3ea14. Worktree was clean before and after."
+    },
+    {
+      "name": "EXACT_UTC_DAY_EVENT",
+      "status": "PASS",
+      "evidence": "Freeze exactly two contiguous complete source-produced UTC days and event=true iff abs((target UTC-day close/prior UTC-day close)-1)>=0.0300, inclusive. Rolling-24h, high-low, log-return and 2%/4% neighbors are excluded."
+    },
+    {
+      "name": "FORWARD_DAY_SOURCE_SUFFICIENCY",
+      "status": "PASS",
+      "evidence": "The frozen schema and validator require exactly 24 ordered complete 1H bars per UTC day, valid OHLCV, canonical normalization, source provenance, capture after close within deadline, contiguous day sequence, sealed artifact hashes and cumulative chain validation."
+    },
+    {
+      "name": "DETERMINISTIC_PATH_FIELDS",
+      "status": "PASS",
+      "evidence": "Freeze source/trigger/day/artifact/chain identities; prior and target closes; signed/absolute return and direction; target daily OHLCV; open/high/low excursions from prior close; 24 incremental and cumulative close returns; earliest close-threshold crossing; earliest-tie peak/trough; largest hourly absolute return; first/last 12h returns; sign counts; close-in-range with null on zero range; and earliest-tie largest-hour volume share."
+    },
+    {
+      "name": "QUALITATIVE_COACH_BOUNDARY",
+      "status": "PASS",
+      "evidence": "OHLCV may state when and how, never why. Unsupported cause is UNKNOWN. Any qualitative claim requires source identity or URL, published_at, observed_at, separately frozen decision_cutoff and confidence. Post-cutoff material is EDUCATIONAL_ONLY and cannot become factor evidence."
+    },
+    {
+      "name": "POINT_IN_TIME_FACTOR_ELIGIBILITY",
+      "status": "PASS",
+      "evidence": "Only episodes whose diagnostic was sealed after contract activation from already accepted day hashes and before any later outcome are eligible. Pre-contract episodes are CONTEXT_ONLY; point-in-time violations, changed hashes or noncontiguous days reject the episode."
+    },
+    {
+      "name": "VOLATILITY_BRANCH_DISTINCTNESS",
+      "status": "PASS",
+      "evidence": "Lagged-realized-volatility participation concerns a lagged admission/participation mechanism. V2 tested ATR targets/trails, V2B volatility-percentile exits and V2C reversal-confirmed ATR exits; all three are closed NO_CANDIDATE exit/action studies. This diagnostic changes no entry, exit, participation or closed conclusion."
+    },
+    {
+      "name": "SINGLE_CLOCK_INTEGRATION",
+      "status": "PASS",
+      "evidence": "The existing heartbeat already validates hash-backed canonical artifacts, sorts bounded events and advances the Coach delivery outbox. A future pure/idempotent shock child can run after accepted-day validation and before events.sort/_advance_coach_delivery, under the same heartbeat and Server Canonical writer."
+    },
+    {
+      "name": "SAMPLE_AND_PROMOTION_GATES",
+      "status": "PASS",
+      "evidence": "Before outcomes, freeze one accumulation window ending with the existing R1 window: at least 8 eligible shocks, at least 2 UP and 2 DOWN, at least 2 events in each chronological half, at least 3 UTC calendar months, no month above 50%, zero deterministic-field missingness, zero duplicate/point-in-time violations. Any qualitative-factor proposal additionally requires at least 75% point-in-time eligible sourced labels, UNKNOWN at most 25%, complete provenance for every non-UNKNOWN label and no attribution class above 50%. Failure closes without lowering 3% or extending the window."
+    },
+    {
+      "name": "OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "The bounded deterministic detector structures rare moves while R1/R2 mature. A daily LLM/news narrative would add cost, hindsight bias and false causal confidence; it is excluded. Waiting for sufficient episodes is preferred to threshold or window relaxation."
+    },
+    {
+      "name": "PERFORMANCE_AND_OOS_VALUE",
+      "status": "MISSING_PROOF",
+      "evidence": "Prediction, significance, fees, slippage, capacity, annual/regime breadth, matched-capital PnL, drawdown improvement, candidate readiness and OOS value were not measured and cannot be inferred from this design."
+    },
+    {
+      "name": "DEPLOYMENT_AND_CONTINUOUS_COVERAGE",
+      "status": "MISSING_PROOF",
+      "evidence": "No implementation, deployed heartbeat child, continued evidence availability after the frozen R1 window, runtime liveness or operational capacity was inspected."
+    },
+    {
+      "name": "ZERO_WRITE_AND_OUTCOME_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No current/new day, price, Local inbox/outbox, server state, OOS or unlisted outcome was accessed. No repository, research-state, canonical, schedule, source or Trading write occurred."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "The number and direction mix of future 3% episodes inside the untouched eligible window are unknown.",
+    "Qualitative point-in-time sources and their UNKNOWN rate are not yet established.",
+    "The design does not establish continuation, reversal, risk avoidance or any other tradable direction.",
+    "Coverage after the existing frozen R1 window would require separate authority and remains MISSING_PROOF.",
+    "Economic value, drawdown effect beyond immediate zero, deployability and OOS behavior remain MISSING_PROOF."
+  ],
+  "recommended_next_action": "Freeze one separate bounded WORKTREE_WRITE task limited to a closed shock-diagnostic schema, one pure hash-bound builder/validator, focused deterministic temporary-fixture tests and one idempotent heartbeat/Coach-event wiring change. It must process only already accepted canonical day pairs, mark pre-activation episodes CONTEXT_ONLY, add no source/timer/LLM/experiment and stop before any factor hypothesis.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

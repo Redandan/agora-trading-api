@@ -1,0 +1,172 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-local-weekly-output-classification-contract-design-audit-v1",
+  "task_sha256": "868f5b4c12a742670964fb8fd9f8fca47c2ef32052231ff196c2abc74f1d1c8a",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T13:50:00Z",
+  "completed_at": "2026-08-10T13:55:18Z",
+  "source_git_commit": "cd8bc14152d408070f78512025a872e86aec461d",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "TWO_STAGE_EXPLICIT_OUTPUT_CLASSIFICATION_CONTRACT_READY. The accepted matrix and all three countable task/dispatch/result closures validate. Existing task, dispatch and result contracts correctly bind research authority, performance intent, result bytes and safety, but contain no immutable output class, count/exclude action, duplicate-family key, accepted-result commit or pre-execution classification proof. One recursively closed companion Draft 2020-12 schema can add two immutable record alternatives without changing historical schemas: PRE_DISPATCH_INTENT, committed before Local execution, and MANAGER_ACCEPTANCE, created only after Manager validates and commits the result. Exact Git-object lookup of intent_path at result.source_git_commit proves classification existed before outcome access; the later acceptance binds the intent hash, exact closure bytes and accepted result commit. Raw count and unique duplicate-family count remain separate. Shared-family rows may retain distinct raw conclusions only as NESTED_NON_INDEPENDENT and never increase alpha confidence. The design closes classification authority and ambiguity within exactly four later offline files, with no CLI, scanner, report mutation, state writer or timer. Immediate PnL and drawdown effects are zero; predictive and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_VALIDATION",
+      "status": "PASS",
+      "evidence": "The authoritative validator returned VALID for task SHA-256 868f5b4c12a742670964fb8fd9f8fca47c2ef32052231ff196c2abc74f1d1c8a."
+    },
+    {
+      "name": "DISPATCH_VALIDATION",
+      "status": "PASS",
+      "evidence": "The authoritative validator returned VALID for dispatch SHA-256 6d25a81354196245a8996cb7bceabdfc81738c1268f2b749eeddfd5cbabd2ff1 and bound the exact task. Its 19 stop conditions canonicalize to SHA-256 47f52268b77d229fcd90f3e9712c6a039593fa059f5ea5a3cf5ba29899fc3e81."
+    },
+    {
+      "name": "SOURCE_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3 was clean; HEAD and local origin both equaled cd8bc14152d408070f78512025a872e86aec461d. All 22 non-null inputs matched their frozen hashes as unique repository-contained regular non-link non-reparse files."
+    },
+    {
+      "name": "ACCEPTED_MATRIX_CLOSURE",
+      "status": "PASS",
+      "evidence": "Official closure validation returned VALIDATED_RESULT_BOUND_TO_PERFORMANCE_DISPATCH for matrix task b97e3977fcb9bdfd929fc5c00184dcb3ec404455dbb83306626cd4612a3a946c, dispatch 6abba439f5349c30859002dd41be490ad590d3df1a01d6e66d7b7841effcc83e and result c266120f86222215fe4e93e6152d2270248c57408afc073ded6120c3d3e2aa8c. The disposition is WEEKLY_LOCAL_OUTPUT_TARGET_PROVEN_CLASSIFICATION_CONTRACT_REQUIRED, with raw counts two mechanism conclusions and one capability/specification slice."
+    },
+    {
+      "name": "THREE_SOURCE_CLOSURES",
+      "status": "PASS",
+      "evidence": "Official closure validation passed for historical stability task/dispatch/result 92da73b7f900810de32ae9b61aa9fd54476fc7fa2c922473b7345a6dcaddf33c/48d119c8f4eb1b0a3a2501cd5beccb2a84a22ce72c0084ffcc94dd14089c43e4/2c2d200d4a6a29808b35ec2c80442ad9288867243b116fdd197f1308973c84a7; direction symmetry a67127b56699c4361266efd3353e46bfdc931bd51882fff8431b11621dec5970/f13b49fb4068a41efe29a5d9b704c5843e3aeccaa5184dab9008e6a7cb646ba3/07caced46a22a9d721a986f7704f0befbd50dbcc14e2ac0b6dd5f9da24f0b5fe; actionability 42e5a5e507787669c5d45c86605d692b20030b3e34a2616e5874170c898d32ae/2661218a60499a66e56a470c7815b1a50933efbc6806cdd80cc750c04df6257a/2363f93fd68f23f01a6b1e6de27409a7f791a253a9bb139307f1d90df5fc050d."
+    },
+    {
+      "name": "EXISTING_SCHEMA_CLASSIFICATION_GAP",
+      "status": "PASS",
+      "evidence": "Exact listed schemas and validators contain no output_class, record_stage, PRE_DISPATCH_INTENT, MANAGER_ACCEPTANCE, duplicate_family_key, classification_outcome, accepted_result_commit or claim_boundary_sha256 fields. task_type is broad; summary and recommended_next_action are bounded prose. Existing bytes therefore cannot be deterministic classification authority."
+    },
+    {
+      "name": "COMPANION_ONLY_COMPATIBILITY",
+      "status": "PASS",
+      "evidence": "No existing task, dispatch or result field must change. The companion can transitively bind their paths, ids and raw hashes while existing validators continue to own task/dispatch/result semantics and historical closures remain byte-valid."
+    },
+    {
+      "name": "TWO_STAGE_LIFECYCLE",
+      "status": "PASS",
+      "evidence": "Stage 1: after exact task and dispatch bytes exist, Manager authors and commits PRE_DISPATCH_INTENT before Local execution. Stage 2: after Local returns, Manager validates and commits the exact result, then authors MANAGER_ACCEPTANCE binding that prior result commit. Acceptance itself must be committed before the later weekly verifier consumes it."
+    },
+    {
+      "name": "PRE_DISPATCH_INTENT_FIELDS",
+      "status": "PASS",
+      "evidence": "Required closed fields: schema_version, document_type, record_stage=PRE_DISPATCH_INTENT, output_id, intent_id, intent_path, task path/id/SHA-256, dispatch path/id/SHA-256, output_class, unique accepted-disposition label/action mappings, claim_boundary_sha256, duplicate_family_key, independence_semantics, issued_at, manager_thread_id, RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE authorization and max_candidate_variants=0."
+    },
+    {
+      "name": "PREEXECUTION_GIT_OBJECT_PROOF",
+      "status": "PASS",
+      "evidence": "For a countable result, source_git_commit must be a non-null exact 40-hex commit. The verifier performs one exact lookup of source_git_commit:intent_path and requires those blob bytes to hash to MANAGER_ACCEPTANCE.intent_sha256. Missing path, changed bytes or a later-only intent fails closed; timestamps and present-day repository membership cannot substitute."
+    },
+    {
+      "name": "MANAGER_ACCEPTANCE_FIELDS",
+      "status": "PASS",
+      "evidence": "Required closed fields: schema_version, document_type, record_stage=MANAGER_ACCEPTANCE, acceptance_id, manager_thread_id, output_id, intent path/SHA-256, exact task path/id/SHA-256, dispatch path/id/SHA-256, result path/task_id/SHA-256, result status/completed_at/source_git_commit, accepted disposition, accepted_result_commit, exact all-false safety closure, classification_outcome COUNT or EXCLUDE, exclusion_reason, accepted_at and research-only authorization."
+    },
+    {
+      "name": "ACCEPTED_RESULT_COMMIT_PROOF",
+      "status": "PASS",
+      "evidence": "The verifier requires accepted_result_commit to be an ancestor of its clean current HEAD and performs an exact accepted_result_commit:result_path object lookup whose bytes must match result_sha256. The acceptance record is later than that commit, avoiding a circular self-commit hash."
+    },
+    {
+      "name": "CLAIM_BOUNDARY_DIGEST_RULE",
+      "status": "PASS",
+      "evidence": "claim_boundary_sha256 is SHA-256 of the no-trailing-LF canonical UTF-8 JSON scalar bytes for the exact dispatch.performance_case.claim_boundary string, including JSON quotes and escapes. Dispatch or digest drift fails before counting. The three frozen examples deterministically hash to d1000e2f09e4a0f35d407965a5022b91254c93a005f522d4c09527939cc56acb, 04f92358884cfeb80556a4383ba281ad07a90da48b3b9bd3663f6d750f0f56f4 and f06d312cce58b4da2d9a1cd3cc4d17e61a44fcf6821044410f0ea8dc40dabc16."
+    },
+    {
+      "name": "OUTPUT_CLASS_ENUM",
+      "status": "PASS",
+      "evidence": "The only output classes are MECHANISM_CONCLUSION, SPEC_OR_CAPABILITY_SLICE and NON_COUNTING. No task type, filename, summary prefix, check name or recommended action can create or override the class."
+    },
+    {
+      "name": "DISPOSITION_ACTION_RULE",
+      "status": "PASS",
+      "evidence": "PRE_DISPATCH_INTENT freezes unique disposition labels with COUNT or EXCLUDE before execution. MANAGER_ACCEPTANCE.accepted_disposition must match exactly one label, and classification_outcome must equal its frozen action. Outcome-time remapping or an unknown label fails closed."
+    },
+    {
+      "name": "STATUS_AND_EXCLUSION_RULE",
+      "status": "PASS",
+      "evidence": "COMPLETED is necessary but insufficient for COUNT. A row counts only with COMPLETED, a pre-frozen COUNT disposition, valid closure, all-false safety and in-period completed_at. The V1 companion uses the safer rule that BLOCKED or FAILED always EXCLUDE. NON_COUNTING allows EXCLUDE only. EXCLUDE requires a nonempty exclusion_reason; COUNT requires exclusion_reason=null."
+    },
+    {
+      "name": "RAW_AND_UNIQUE_FAMILY_COUNTS",
+      "status": "PASS",
+      "evidence": "The verifier reports raw COUNT records by output_class and separately reports distinct duplicate_family_key values by class. For the accepted matrix, mechanism raw count is two while the shared post-shock-reversal family count is one; capability/specification raw and family counts are each one."
+    },
+    {
+      "name": "INDEPENDENCE_SEMANTICS",
+      "status": "PASS",
+      "evidence": "Allowed semantics are UNIQUE_FAMILY, NESTED_NON_INDEPENDENT and NON_COUNTING_NOT_APPLICABLE. Multiple counted output_ids sharing one duplicate_family_key are valid only when each is NESTED_NON_INDEPENDENT. They retain separate raw output rows but add one unique family and zero extra alpha confidence."
+    },
+    {
+      "name": "DUPLICATE_AND_AMBIGUITY_FAILURES",
+      "status": "PASS",
+      "evidence": "Fail closed on duplicate output_id, duplicate acceptance for one intent, one result bound to multiple intents, conflicting duplicate_family_key semantics, repeated disposition labels, unknown fields, missing exact intent-at-source proof, missing or non-ancestor result commit, hash/path drift, period drift, safety true, outcome/action mismatch or missing exclusion reason."
+    },
+    {
+      "name": "EXPLICIT_ALLOWLIST_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The later verifier accepts only an explicit list of MANAGER_ACCEPTANCE paths plus one half-open UTC start/end. It may read those files, their transitively named intent/task/dispatch/result paths and exact Git objects only. Directory scans, Git-log scans, Local history, server state, canonical reports and network are forbidden."
+    },
+    {
+      "name": "DETERMINISTIC_OUTPUT_RULE",
+      "status": "PASS",
+      "evidence": "The verifier returns lexicographically sorted deterministic JSON in memory or stdout containing validated row identities, exclusions, raw class counts and distinct family counts. It writes no repository, state, cache, report or temporary artifact."
+    },
+    {
+      "name": "MAXIMUM_FOUR_FILE_SLICE",
+      "status": "PASS",
+      "evidence": "A complete later implementation fits exactly: research_pipeline/local-weekly-output-classification.v1.schema.json; research_pipeline/local_weekly_output_classification.py; research_pipeline/tests/test_local_weekly_output_classification.py; docs/local-weekly-output-classification-v1.md. No CLI registration, heartbeat hook, canonical-report change, timer, writer, server client or dependency is required."
+    },
+    {
+      "name": "HISTORICAL_IMMUTABILITY",
+      "status": "PASS",
+      "evidence": "The accepted matrix and its three source closures remain evidence only. The new contract cannot retrospectively create PRE_DISPATCH_INTENT records or count blocked matrix V1; classification applies prospectively to separately committed intents and acceptances."
+    },
+    {
+      "name": "OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "This four-file ceiling prevents a misleading broad report integration and preserves research capacity for active forward evidence. The cost is one extra pre-dispatch Manager record and one post-acceptance record per future output, traded for deterministic authority and duplicate control."
+    },
+    {
+      "name": "ECONOMIC_AND_FORWARD_VALUE",
+      "status": "MISSING_PROOF",
+      "evidence": "Output counts and unique-family counts do not prove prediction, causal value, fees, slippage, utilization, capacity, matched-capital PnL, drawdown, forward confirmation, candidate readiness, OOS or activation. Immediate PnL and drawdown effects are zero."
+    },
+    {
+      "name": "IMPLEMENTATION_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "No companion schema, module, tests or document was created in this READ_ONLY audit. Draft 2020-12 behavior, exact Git-object handling and deterministic failure fixtures remain for the separately frozen implementation task."
+    },
+    {
+      "name": "ZERO_WRITE_AND_DIFF_BOUNDARY",
+      "status": "PASS",
+      "evidence": "HEAD and local origin remained cd8bc14152d408070f78512025a872e86aec461d, worktree remained clean, git diff --check passed, and artifacts/files_changed are empty."
+    },
+    {
+      "name": "SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No repository or research-state write, network/server/canonical access, Research MCP write, heartbeat, schedule, timer, strategy, hypothesis, manifest, candidate, adapter, OOS, Trading, database, order, fund, SHADOW, PAPER or LIVE action occurred."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: The companion schema and verifier do not yet exist; executable schema, Git-object, duplicate, period and deterministic-output tests remain pending a separately frozen implementation task.",
+    "MISSING_PROOF: Existing historical results cannot acquire valid PRE_DISPATCH_INTENT proof retrospectively. The accepted matrix remains design evidence rather than input to the future prospective classifier.",
+    "MISSING_PROOF: Platform portability of exact Git-object lookup and path containment must be proven with deterministic synthetic repositories in the later test slice.",
+    "MISSING_PROOF: Weekly output visibility has no proven predictive or economic effect; matched-capital PnL, drawdown, forward confirmation, candidate readiness and OOS remain unproven."
+  ],
+  "recommended_next_action": "Manager may freeze one bounded WORKTREE_WRITE task creating exactly the four named companion schema/module/test/document files. It should use synthetic temporary Git repositories to prove pre-execution intent lookup, later accepted-result commit ancestry, strict disposition actions, duplicate and family semantics, half-open period filtering, closed-schema rejection and deterministic JSON. Do not add a CLI, scan history, modify existing Local schemas or canonical reports, create a timer/writer, or perform any strategy, candidate, OOS or Trading action.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

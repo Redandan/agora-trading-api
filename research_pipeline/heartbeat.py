@@ -9,6 +9,7 @@ from typing import Any
 
 from .microstructure_monitor import microstructure_diagnostic_status
 from .models import parse_timestamp
+from .post_shock_factor import seal_r1_post_shock_factor_snapshots
 from .report import load_result, monthly_report, performance_lines, weekly_report
 from .shock_attribution import seal_r1_shock_diagnostics
 from .storage import (
@@ -140,6 +141,12 @@ def run_heartbeat_cycle(
             store,
             now=now,
             contract_activated_at=shock_contract_activated_at,
+        )
+    )
+    events.extend(
+        seal_r1_post_shock_factor_snapshots(
+            store,
+            now=now,
         )
     )
 

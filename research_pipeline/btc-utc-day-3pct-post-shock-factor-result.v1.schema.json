@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BTC UTC Day 3 Percent Post Shock Factor Result V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "trigger_id",
+    "trigger_fingerprint",
+    "snapshot_key",
+    "latest_outcome_day",
+    "cumulative_chain_binding",
+    "sealed_at",
+    "disposition",
+    "terminal",
+    "episodes",
+    "gate_evidence",
+    "statistics",
+    "guardrails",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_UTC_DAY_3PCT_POST_SHOCK_FACTOR_RESULT_V1"},
+    "trigger_id": {"const": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1"},
+    "trigger_fingerprint": {"const": "0e5a4675e937613202f0a4a243360a405e9ace1823c4b999edb5d479849d2589"},
+    "snapshot_key": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}:[0-9a-f]{64}$"},
+    "latest_outcome_day": {"type": "string", "format": "date"},
+    "cumulative_chain_binding": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sealed_at": {"type": "string", "format": "date-time"},
+    "disposition": {
+      "enum": [
+        "WAIT_FOR_MORE_UNTOUCHED_EVIDENCE",
+        "CONTINUATION_FACTOR_READY_FOR_MANAGER_REVIEW",
+        "REVERSAL_FACTOR_READY_FOR_MANAGER_REVIEW",
+        "NO_DIRECTIONAL_POST_SHOCK_FACTOR_CLOSE"
+      ]
+    },
+    "terminal": {"type": "boolean"},
+    "episodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/episode"}
+    },
+    "gate_evidence": {"$ref": "#/$defs/gateEvidence"},
+    "statistics": {"$ref": "#/$defs/statistics"},
+    "guardrails": {"$ref": "#/$defs/guardrails"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"disposition": {"const": "WAIT_FOR_MORE_UNTOUCHED_EVIDENCE"}}},
+      "then": {
+        "properties": {
+          "terminal": {"const": false},
+          "gate_evidence": {"properties": {"all_breadth_pass": {"const": false}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"disposition": {"const": "CONTINUATION_FACTOR_READY_FOR_MANAGER_REVIEW"}}},
+      "then": {
+        "properties": {
+          "terminal": {"const": true},
+          "gate_evidence": {"properties": {"all_breadth_pass": {"const": true}}},
+          "statistics": {
+            "properties": {
+              "continuation_conditions_met": {"const": true},
+              "reversal_conditions_met": {"const": false}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"disposition": {"const": "REVERSAL_FACTOR_READY_FOR_MANAGER_REVIEW"}}},
+      "then": {
+        "properties": {
+          "terminal": {"const": true},
+          "gate_evidence": {"properties": {"all_breadth_pass": {"const": true}}},
+          "statistics": {
+            "properties": {
+              "continuation_conditions_met": {"const": false},
+              "reversal_conditions_met": {"const": true}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"disposition": {"const": "NO_DIRECTIONAL_POST_SHOCK_FACTOR_CLOSE"}}},
+      "then": {
+        "properties": {
+          "terminal": {"const": true},
+          "gate_evidence": {"properties": {"all_breadth_pass": {"const": true}}},
+          "statistics": {
+            "properties": {
+              "continuation_conditions_met": {"const": false},
+              "reversal_conditions_met": {"const": false}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "decimalText": {
+      "type": "string",
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+    },
+    "dayReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["day", "artifact_path", "artifact_sha256", "chain_head", "received_at"],
+      "properties": {
+        "day": {"type": "string", "format": "date"},
+        "artifact_path": {"type": "string", "minLength": 1},
+        "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "chain_head": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "received_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "episode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "episode_id",
+        "shock_diagnostic_path",
+        "shock_diagnostic_sha256",
+        "diagnostic_target_reference",
+        "outcome_day_reference",
+        "t0",
+        "sealed_at",
+        "shock_direction",
+        "signed_response_h1",
+        "signed_response_h6",
+        "signed_response_h24",
+        "primary_label"
+      ],
+      "properties": {
+        "episode_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "shock_diagnostic_path": {"type": "string", "minLength": 1},
+        "shock_diagnostic_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "diagnostic_target_reference": {"$ref": "#/$defs/dayReference"},
+        "outcome_day_reference": {"$ref": "#/$defs/dayReference"},
+        "t0": {"type": "string", "format": "date-time"},
+        "sealed_at": {"type": "string", "format": "date-time"},
+        "shock_direction": {"enum": ["UP", "DOWN"]},
+        "signed_response_h1": {"$ref": "#/$defs/decimalText"},
+        "signed_response_h6": {"$ref": "#/$defs/decimalText"},
+        "signed_response_h24": {"$ref": "#/$defs/decimalText"},
+        "primary_label": {"enum": ["CONTINUATION", "REVERSAL", "TIE"]}
+      }
+    },
+    "gateEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "episode_count",
+        "up_count",
+        "down_count",
+        "first_half_count",
+        "second_half_count",
+        "utc_month_count",
+        "maximum_month_share",
+        "duplicate_episode_count",
+        "missing_label_count",
+        "maximum_single_absolute_h24_contribution_share",
+        "minimum_episode_count_pass",
+        "up_breadth_pass",
+        "down_breadth_pass",
+        "first_half_breadth_pass",
+        "second_half_breadth_pass",
+        "utc_month_breadth_pass",
+        "month_concentration_pass",
+        "unique_episode_pass",
+        "labels_complete_pass",
+        "episode_concentration_pass",
+        "all_breadth_pass"
+      ],
+      "properties": {
+        "episode_count": {"type": "integer", "minimum": 1},
+        "up_count": {"type": "integer", "minimum": 0},
+        "down_count": {"type": "integer", "minimum": 0},
+        "first_half_count": {"type": "integer", "minimum": 0},
+        "second_half_count": {"type": "integer", "minimum": 0},
+        "utc_month_count": {"type": "integer", "minimum": 1},
+        "maximum_month_share": {"$ref": "#/$defs/decimalText"},
+        "duplicate_episode_count": {"type": "integer", "minimum": 0},
+        "missing_label_count": {"type": "integer", "minimum": 0},
+        "maximum_single_absolute_h24_contribution_share": {"$ref": "#/$defs/decimalText"},
+        "minimum_episode_count_pass": {"type": "boolean"},
+        "up_breadth_pass": {"type": "boolean"},
+        "down_breadth_pass": {"type": "boolean"},
+        "first_half_breadth_pass": {"type": "boolean"},
+        "second_half_breadth_pass": {"type": "boolean"},
+        "utc_month_breadth_pass": {"type": "boolean"},
+        "month_concentration_pass": {"type": "boolean"},
+        "unique_episode_pass": {"type": "boolean"},
+        "labels_complete_pass": {"type": "boolean"},
+        "episode_concentration_pass": {"type": "boolean"},
+        "all_breadth_pass": {"type": "boolean"}
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall_h24_median",
+        "up_h24_median",
+        "down_h24_median",
+        "up_positive_label_count",
+        "down_positive_label_count",
+        "up_negative_label_count",
+        "down_negative_label_count",
+        "continuation_conditions_met",
+        "reversal_conditions_met"
+      ],
+      "properties": {
+        "overall_h24_median": {"$ref": "#/$defs/decimalText"},
+        "up_h24_median": {"oneOf": [{"$ref": "#/$defs/decimalText"}, {"type": "null"}]},
+        "down_h24_median": {"oneOf": [{"$ref": "#/$defs/decimalText"}, {"type": "null"}]},
+        "up_positive_label_count": {"type": "integer", "minimum": 0},
+        "down_positive_label_count": {"type": "integer", "minimum": 0},
+        "up_negative_label_count": {"type": "integer", "minimum": 0},
+        "down_negative_label_count": {"type": "integer", "minimum": 0},
+        "continuation_conditions_met": {"type": "boolean"},
+        "reversal_conditions_met": {"type": "boolean"}
+      }
+    },
+    "guardrails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary_horizon",
+        "path_diagnostic_horizons",
+        "immediate_pnl_effect",
+        "immediate_drawdown_effect",
+        "predictive_value",
+        "strategy_mapping_evaluated",
+        "hypothesis_created",
+        "candidate_created",
+        "oos_opened",
+        "trading_action_attempted"
+      ],
+      "properties": {
+        "primary_horizon": {"const": "H24"},
+        "path_diagnostic_horizons": {
+          "type": "array",
+          "prefixItems": [{"const": "H1"}, {"const": "H6"}],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "immediate_pnl_effect": {"const": "ZERO"},
+        "immediate_drawdown_effect": {"const": "ZERO"},
+        "predictive_value": {"const": "MISSING_PROOF"},
+        "strategy_mapping_evaluated": {"const": false},
+        "hypothesis_created": {"const": false},
+        "candidate_created": {"const": false},
+        "oos_opened": {"const": false},
+        "trading_action_attempted": {"const": false}
+      }
+    }
+  }
+}

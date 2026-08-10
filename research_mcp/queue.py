@@ -38,16 +38,16 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v8.json"
+    "research_pipeline/cloud-ops-schedule-contract.v9.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256 = (
-    "7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1"
+    "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     r"""
 {
-  "schema_version": "8",
-  "contract_id": "CLOUD_OPS_SCHEDULE_V8",
+  "schema_version": "9",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V9",
   "document_status": "FROZEN",
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
   "timer_authority": "CODEX_CLOUD_OPS_ONLY",
@@ -66,7 +66,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
   "dispatch_margin": {
     "scheduled_seconds_after_canonical_due": 300,
     "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
-    "early_call_behavior": "NOT_DUE",
+    "early_call_behavior": "NOT_DUE_NO_CROSS_TASK_WRITE",
     "additional_timer": "DENY"
   },
   "first_operation": "get_research_status",
@@ -85,26 +85,26 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
   "write_attestation": {
     "parameter": "ops_schedule_contract_sha256",
     "required": true,
-    "activation_rule": "V8_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V8_READY",
-    "v7_status_behavior": "STOP_BEFORE_ANY_V8_WRITE_CALL"
+    "activation_rule": "V9_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V9_READY",
+    "v8_status_behavior": "STOP_BEFORE_ANY_V9_WRITE_CALL"
   },
   "predecessor": {
-    "contract_id": "CLOUD_OPS_SCHEDULE_V7",
-    "sha256": "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V8",
+    "sha256": "7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1",
     "bytes_modified": false,
     "server_attestation_active_until_cutover": true,
-    "platform_activation_proven": false
+    "platform_activation_proven": true
   },
   "platform_schedule": {
-    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V6",
-    "existing_paused_schedule_id": "6a71a1ed2f608191b0621c52bed3fd81",
+    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V8",
+    "existing_active_schedule_id": "6a71a1ed2f608191b0621c52bed3fd81",
     "execution_surface": "CHATGPT_WORK_CLOUD_SCHEDULE",
     "local_computer_may_be_off": true,
-    "migration": "UPDATE_EXISTING_PAUSED_SCHEDULE_IN_PLACE",
+    "migration": "PAUSE_UPDATE_REACTIVATE_EXISTING_SCHEDULE_IN_PLACE",
     "create_second_schedule": "DENY"
   },
   "coach_delivery": {
-    "contract_id": "SEALED_COACH_CROSS_TASK_DELIVERY_V4",
+    "contract_id": "SEALED_COACH_CROSS_TASK_DELIVERY_V5",
     "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
     "destination": "EXACT_COACH_TASK_BY_THREAD_ID",
     "delivery_id_source": "SEALED_ARTIFACT_SHA256",
@@ -113,21 +113,23 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "cross_task_operations_required": true,
     "cycle_order": [
       "READ_FRESH_CANONICAL_STATUS_FIRST",
+      "REQUIRE_NORMALLY_DUE_HEARTBEAT_BEFORE_CROSS_TASK_WRITE",
       "RESOLVE_AND_PREFLIGHT_READ_EXACT_COACH_TASK",
-      "FORM_RECEIPTS_ONLY_FROM_EXACT_PREFLIGHT_TOKEN_AND_PENDING_ID",
-      "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT_WITH_PREFLIGHT_RECEIPTS",
+      "DELIVER_INITIAL_PENDING_EVENTS_AND_REQUIRE_POST_SEND_READBACK",
+      "FORM_RECEIPTS_FOR_INITIAL_PENDING_EVENTS_ONLY_AFTER_EXACT_READBACK",
+      "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT_WITH_VERIFIED_RECEIPTS",
       "READ_FRESH_CANONICAL_STATUS_AFTER_HEARTBEAT",
-      "DELIVER_STILL_PENDING_EVENTS_AND_REQUIRE_POST_SEND_READBACK",
-      "DEFER_POST_SEND_RECEIPTS_TO_NEXT_NORMALLY_DUE_HEARTBEAT"
+      "DELIVER_STILL_PENDING_OR_NEW_EVENTS_AND_REQUIRE_POST_SEND_READBACK",
+      "DEFER_ONLY_POST_HEARTBEAT_NEW_EVENT_RECEIPTS_TO_NEXT_NORMALLY_DUE_HEARTBEAT"
     ],
     "target_resolution": "LIST_THREADS_AND_REQUIRE_EXACT_THREAD_ID",
-    "preflight": "READ_TARGET_THREAD_AND_SKIP_IF_EXACT_FULL_DELIVERY_TOKEN_PRESENT",
+    "preflight": "READ_TARGET_THREAD_AND_SKIP_SEND_IF_EXACT_FULL_DELIVERY_TOKEN_PRESENT",
     "send": "SEND_EXACT_CANONICAL_DELIVERY_PROMPT",
     "verification": "READ_TARGET_THREAD_AFTER_SEND_AND_REQUIRE_EXACT_FULL_DELIVERY_TOKEN",
     "retry": "RETRY_ONLY_ON_A_LATER_NORMAL_CLOUD_CYCLE_WHEN_TOKEN_IS_ABSENT",
     "target_unavailable": "KEEP_CANONICAL_EVENT_PENDING_AND_REPORT_CROSS_TASK_DELIVERY_PENDING",
-    "same_cycle_send_receipt_proof": "ALLOW_ONLY_AFTER_POST_SEND_TARGET_READBACK",
-    "canonical_ack": "VERIFIED_TARGET_READBACK_RECEIPT_ON_NEXT_NORMALLY_DUE_HEARTBEAT",
+    "same_cycle_send_receipt_proof": "ALLOW_FOR_INITIAL_PENDING_ONLY_AFTER_POST_SEND_READBACK_BEFORE_DUE_HEARTBEAT",
+    "canonical_ack": "INITIAL_PENDING_VERIFIED_RECEIPT_ON_CURRENT_DUE_HEARTBEAT_POST_HEARTBEAT_NEW_EVENT_ON_NEXT_DUE_HEARTBEAT",
     "receipt_parameter": "coach_delivery_receipts",
     "receipt_schema": {
       "exact_fields": [
@@ -182,36 +184,38 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "EXACT_COACH_THREAD_ID_RESOLUTION",
     "COACH_THREAD_READ_BEFORE_SEND",
     "EXACT_FULL_DELIVERY_TOKEN_DEDUPLICATION",
-    "EXACT_CANONICAL_PROMPT_SEND",
-    "COACH_THREAD_POST_SEND_READBACK",
+    "INITIAL_PENDING_DELIVERY_BEFORE_DUE_HEARTBEAT",
+    "INITIAL_PENDING_POST_SEND_READBACK_BEFORE_RECEIPT",
+    "RECEIPTS_LIMITED_TO_INITIAL_CANONICAL_SNAPSHOT",
     "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
     "COACH_DELIVERY_PROOF_SLA_CANONICAL",
+    "POST_HEARTBEAT_NEW_EVENT_DELIVERY_WITHOUT_EARLY_ACK",
     "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE"
   ],
   "cutover": {
     "activation_authorized_by_repository_preparation": false,
     "required_order": [
-      "PROVE_EXISTING_V6_PLATFORM_SCHEDULE_PAUSED_AND_ZERO_ACTIVE",
-      "DEPLOY_AND_VERIFY_SERVER_V8_ATTESTATION",
-      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V8",
+      "PAUSE_EXACT_ACTIVE_V8_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
+      "DEPLOY_AND_VERIFY_SERVER_V9_ATTESTATION",
+      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V9",
       "PROVE_UPDATED_PLATFORM_SCHEDULE_REMAINS_PAUSED_AND_ZERO_ACTIVE",
       "ACTIVATE_UPDATED_PLATFORM_SCHEDULE_AND_PROVE_EXACTLY_ONE_ACTIVE"
     ],
     "overlapping_active_schedules": "DENY",
     "new_schedule_creation": "DENY",
     "successor_activation_before_old_clock_exclusion": "DENY",
-    "rollback": "PAUSE_V8_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_ANY_PREDECESSOR"
+    "rollback": "PAUSE_V9_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V8_WORKER_AND_PROMPT"
   },
   "missing_proof": [
-    "SERVER_V8_ATTESTATION_IMPLEMENTATION",
-    "WORKER_V8_DEPLOYMENT",
+    "SERVER_V9_ATTESTATION_IMPLEMENTATION",
+    "WORKER_V9_DEPLOYMENT",
     "EXISTING_CLOUD_SCHEDULE_IN_PLACE_UPDATE",
     "ONE_ACTIVE_SCHEDULE_READBACK",
     "SCHEDULED_RESEARCH_MCP_AVAILABILITY",
     "CLOUD_LIST_READ_SEND_TOOL_AVAILABILITY",
-    "LIVE_PREFLIGHT_DEDUPLICATION",
-    "LIVE_POST_SEND_READBACK",
-    "LIVE_RECEIPT_ACCEPTANCE",
+    "LIVE_INITIAL_PENDING_PRE_HEARTBEAT_DELIVERY",
+    "LIVE_SAME_CYCLE_RECEIPT_ACCEPTANCE",
+    "LIVE_POST_HEARTBEAT_NEW_EVENT_DELIVERY",
     "LIVE_PASS_OR_BREACH_SLA_OUTCOME",
     "LEARNING_LATENCY_OR_ECONOMIC_VALUE"
   ],
@@ -225,11 +229,13 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
   "forbidden_actions": [
     "SECOND_TIMER_OR_WRITER",
     "EARLY_HEARTBEAT_OR_CATCHUP_TIMER",
+    "CROSS_TASK_WRITE_BEFORE_HEARTBEAT_DUE",
     "LOCAL_RESEARCH_STATE_FALLBACK",
     "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
     "OOS_REOPEN_OR_GATE_RELAXATION",
     "FUZZY_OR_INFERRED_COACH_TASK_SELECTION",
     "ACK_WITHOUT_EXACT_TARGET_THREAD_READBACK",
+    "RECEIPT_FOR_POST_HEARTBEAT_NEW_EVENT_IN_SAME_CYCLE",
     "SCHEDULED_INBOX_NOTIFICATION_SUMMARY_OR_USER_QUOTE_AS_PROOF",
     "DEADLINE_OR_QUEUE_TIMESTAMP_RESET",
     "UNVERIFIED_COACH_DELIVERY_CLAIM",
@@ -319,7 +325,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if actual_sha256 != EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract bytes do not match the frozen V8 hash",
+            "reason": "cloud Ops schedule contract bytes do not match the frozen V9 hash",
         }
     try:
         value = json.loads(raw.decode("utf-8"))
@@ -331,7 +337,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V8 object",
+            "reason": "cloud Ops schedule contract does not match the frozen V9 object",
         }
     recurrence = value["recurrence"]
     return {

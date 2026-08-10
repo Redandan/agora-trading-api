@@ -286,60 +286,67 @@ A successful verification establishes the requested release identities and
 source-state contract at that instant. It does not prove uninterrupted day completion,
 predictive value, PnL, or drawdown.
 
-### Prepared Cloud Ops V8 cross-task contract
+### Prepared Cloud Ops V9 receipt-SLA contract
 
-Repository preparation alone does not activate `CLOUD_OPS_SCHEDULE_V8`.
-The frozen V8 bytes have exact SHA-256
-`7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`;
-V7 remains immutable predecessor evidence at
-`426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144`.
-Fresh canonical status at `2026-08-10T02:19:11Z` still reports the deployed
-V7 Worker `READY`. Do not call a V8 write until deployment readback reports
-V8 `READY` with the exact hash.
+Repository preparation alone does not activate `CLOUD_OPS_SCHEDULE_V9`.
+The frozen V9 bytes have exact SHA-256
+`04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`;
+V8 remains immutable predecessor evidence at
+`7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`.
+Fresh canonical status at `2026-08-10T03:31:06Z` reports the deployed V8 Worker
+`READY`. Do not call a V9 write until deployment readback reports V9 `READY`
+with the exact hash.
 
-Platform readback proved zero active cloud recurrences and the exact existing
-ChatGPT Work task `6a71a1ed2f608191b0621c52bed3fd81` paused. Reuse that
-task. Do not create another cloud schedule. The separately created Codex
-desktop V7 automation must remain paused because it requires the local computer
-and app to stay on and is not the PC-off cloud execution surface.
+Platform readback proved exactly one active cloud recurrence: existing ChatGPT
+Work task `6a71a1ed2f608191b0621c52bed3fd81`, daily at 09:05 with no end date.
+Reuse that task. Do not create another cloud schedule. The Codex desktop
+automation must remain paused.
+
+V9 corrects the receipt-ordering defect before V8's first normal run. For the
+initial pending snapshot, exact Coach send and post-send readback occur before
+the single due heartbeat, allowing those verified receipts to meet the frozen
+next-cycle-plus-three-hour SLA. An event newly created by that heartbeat is
+delivered afterward and remains pending until the next normal cycle; no second
+heartbeat or writer is added.
 
 Before packaging a reviewed clean commit, run the focused queue,
-server-contract, V7 historical immutability, V8 cross-task contract, and
+server-contract, V7/V8 historical immutability, V9 cross-task contract, and
 evidence suites offline. Run `PackageOnly` only as the separate post-commit
 closure gate described above.
 
-Perform cutover only after a completed normal heartbeat, both queues are idle,
-and enough time remains before the next canonical due boundary:
+Perform cutover only after both queues are idle and enough time remains before
+the next canonical due boundary:
 
-1. Re-read platform state and prove the existing ChatGPT Work task is paused,
-   the desktop V7 automation is paused, and exactly zero schedules are active.
-2. Deploy and verify the V8-only Worker while zero schedules are active. Prove
+1. Pause the exact active V8 ChatGPT Work task, re-read platform state, and
+   prove exactly zero active schedules. Keep the desktop automation paused.
+2. Deploy and verify the V9-only Worker while zero schedules are active. Prove
    its installed release inventory and exact frozen contract hash.
 3. Prove canonical `ops_schedule_contract.status=READY`,
-   `contract_id=CLOUD_OPS_SCHEDULE_V8`, and the exact V8 SHA-256 above.
+   `contract_id=CLOUD_OPS_SCHEDULE_V9`, and the exact V9 SHA-256 above.
 4. Update only the exact existing paused ChatGPT Work task in place with the
    exact repository prompt, the same daily 09:05 recurrence, and no end date.
 5. Re-read the task while it remains paused and prove the stored prompt,
    recurrence, execution surface, and zero active schedule count.
 6. Activate that task and re-read platform state to prove exactly one active
    schedule. Never activate the desktop automation.
-7. On the next normal cycle, require exact Coach-task preflight read,
-   hash-token deduplication, exact canonical prompt send when absent, and
-   post-send task readback.
-8. Carry a verified five-field receipt only on the following normally due
-   heartbeat and preserve the canonical `PASS` or `BREACH` result.
+7. On the next normal cycle, freeze the initial canonical pending ids, perform
+   exact Coach-task preflight/send/readback, and include only verified receipts
+   for those ids in the single normally due heartbeat.
+8. Re-read canonical status after the heartbeat, require accepted ids to leave
+   pending state, and deliver any post-heartbeat new event without early ACK.
 
 Never accept both attestation hashes, overlap schedules, add a catch-up clock,
-or run the old prompt against the V8-only Worker. If rollback is required,
-pause the V8 task and prove zero active schedules first. Restore a predecessor
-Worker and prompt only as one reviewed unit; do not resume any predecessor
-until its canonical hash and exact platform prompt both match.
+or run the old prompt against the V9-only Worker. If rollback is required,
+pause the V9 task and prove zero active schedules first. Restore the V8 Worker
+and prompt only as one reviewed unit; do not resume V8 until its canonical hash
+and exact platform prompt both match.
 
 Worker deployment, in-place cloud-task update, cloud Research MCP and
 list/read/send availability, zero-active and exactly-one-active readback, live
-deduplication, post-send readback, receipt acceptance, and economic value remain
-`MISSING_PROOF` until separately proven. Any unavailable target or delivery
-tool must leave the canonical event as `CROSS_TASK_DELIVERY_PENDING`.
+same-cycle receipt acceptance, post-heartbeat delivery, and economic value
+remain `MISSING_PROOF` until separately proven. Any unavailable target or
+delivery tool must leave the canonical event as
+`CROSS_TASK_DELIVERY_PENDING`.
 
 Optional
 `MicrostructureForwardStartDay` and `MicrostructureDiagnosticId` parameters

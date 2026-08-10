@@ -858,8 +858,8 @@ class DurableQueueContractTest(unittest.TestCase):
             "RECOVERY_BLOCKED",
         )
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["schema_version"], "8")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V8")
+        self.assertEqual(contract["schema_version"], "9")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V9")
         self.assertEqual(contract["document_status"], "FROZEN")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(
@@ -883,7 +883,7 @@ class DurableQueueContractTest(unittest.TestCase):
             {
                 "scheduled_seconds_after_canonical_due": 300,
                 "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
-                "early_call_behavior": "NOT_DUE",
+                "early_call_behavior": "NOT_DUE_NO_CROSS_TASK_WRITE",
                 "additional_timer": "DENY",
             },
         )
@@ -894,7 +894,7 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         self.assertEqual(
             contract["coach_delivery"]["contract_id"],
-            "SEALED_COACH_CROSS_TASK_DELIVERY_V4",
+            "SEALED_COACH_CROSS_TASK_DELIVERY_V5",
         )
         self.assertEqual(
             contract["coach_delivery"]["delivery_proof_sla"],
@@ -1256,7 +1256,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(outbox["event_count"], 1)
         self.assertEqual(
             outbox["delivery_contract"]["contract_id"],
-            "SEALED_COACH_CROSS_TASK_DELIVERY_V4",
+            "SEALED_COACH_CROSS_TASK_DELIVERY_V5",
         )
         self.assertEqual(
             outbox["delivery_contract"]["target_thread_id"],
@@ -1481,7 +1481,7 @@ class DurableQueueContractTest(unittest.TestCase):
         invalid = queue._ops_schedule_contract_summary()
         self.assertEqual(invalid["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
 
-    def test_same_value_raw_byte_mutations_fail_the_frozen_v8_hash(self) -> None:
+    def test_same_value_raw_byte_mutations_fail_the_frozen_v9_hash(self) -> None:
         contract = self.app / queue.OPS_SCHEDULE_CONTRACT_RELATIVE_PATH
         exact = contract.read_bytes()
 
@@ -1500,7 +1500,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(reordered["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
         self.assertIn("bytes", reordered["reason"])
 
-    def test_exact_v8_attestation_is_accepted_by_both_write_preflights(self) -> None:
+    def test_exact_v9_attestation_is_accepted_by_both_write_preflights(self) -> None:
         self._heartbeat_state("2026-01-02T00:00:00Z")
         heartbeat = self._request_heartbeat(
             now=datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -1514,7 +1514,7 @@ class DurableQueueContractTest(unittest.TestCase):
             queue.EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256,
         )
 
-    def test_both_v8_verified_receipt_statuses_are_accepted(self) -> None:
+    def test_both_v9_verified_receipt_statuses_are_accepted(self) -> None:
         delivery_id = "e" * 64
         for delivery_status in (
             "DELIVERED_TO_COACH_TASK_VERIFIED",

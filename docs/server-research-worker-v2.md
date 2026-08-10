@@ -42,11 +42,11 @@ both server write operations return
 a new MCP operation or exposes a server filesystem path.
 
 The same status exposes the installed server-canonical frozen
-`CLOUD_OPS_SCHEDULE_V8` contract, its unchanged `09:00 Asia/Taipei` canonical
+`CLOUD_OPS_SCHEDULE_V9` contract, its unchanged `09:00 Asia/Taipei` canonical
 heartbeat due boundary, the intended sole `09:05 Asia/Taipei` cloud recurrence,
 the 300-second nominal dispatch margin, and its byte-level SHA-256. V1 through
-V7 remain immutable predecessor evidence. The two write operations require the
-V8 hash in the `ops_schedule_contract_sha256` argument. A missing or
+V8 remain immutable predecessor evidence. The two write operations require the
+V9 hash in the `ops_schedule_contract_sha256` argument. A missing or
 changed contract returns
 `OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED`; a missing or mismatched caller
 attestation returns `OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED`. Both outcomes
@@ -193,13 +193,15 @@ re-hashes the artifact, rejects missing or duplicate delivery ids, and returns
 the complete structured event under `EVENTS_PENDING_EXTERNAL_DELIVERY`. The
 sealed artifact SHA-256 is the delivery id. Routine heartbeats leave older
 pending events intact. Each verified event also includes a deterministic
-delivery token and exact canonical delivery prompt. The V8 schedule contract
+delivery token and exact canonical delivery prompt. The V9 schedule contract
 permits only task
-list/read/send operations for this handoff: the cloud cycle reads the exact
-Coach task before sending, deduplicates by artifact SHA-256, sends once, and
-reads back before claiming verified delivery. If the target host is unavailable,
-the event remains pending. A bounded exact receipt for a preflight or post-send
-readback may be carried only by the next normally due heartbeat. The queue and
+list/read/send operations for this handoff. After proving the heartbeat is due,
+the cloud cycle snapshots initial pending ids, reads the exact Coach task,
+deduplicates by artifact SHA-256, sends an absent canonical prompt once, and
+reads back before claiming verified delivery. An initial-snapshot receipt is
+carried by that same due heartbeat. An event created by the heartbeat is sent
+afterward and its receipt waits for the next normal cycle. If the target host
+is unavailable, the event remains pending. The queue and
 Worker both validate the receipt schema, target, token, status, and canonical
 delivery id before removing the pending event. Repeated verified receipts are
 idempotent; unverified or unknown receipts fail closed. An unavailable or
@@ -214,10 +216,10 @@ task-readback receipt, canonical state preserves the queue time, deadline,
 acknowledgement time, integer lead time, and `PASS` or `BREACH`. Untimed legacy
 events or receipts remain explicit `MISSING_PROOF`; no task output or chat
 history may synthesize the missing clock.
-`SEALED_COACH_CROSS_TASK_DELIVERY_V4` freezes the same basis, 10,800-second
+`SEALED_COACH_CROSS_TASK_DELIVERY_V5` freezes the same basis, 10,800-second
 completion window, PASS/BREACH labels, and legacy missing-proof labels inside
-the V8 write attestation. An older caller hash therefore fails before queue
-mutation instead of silently opting out of delivery measurement. V8
+the V9 write attestation. An older caller hash therefore fails before queue
+mutation instead of silently opting out of delivery measurement. V9
 binds the platform recurrence `09:05 Asia/Taipei` and the unchanged canonical
 due boundary `09:00 Asia/Taipei`. The nominal five-minute delay was introduced
 after the 2026-08-06 nominal 09:00 platform run was read back at
@@ -576,40 +578,43 @@ The systemd path unit is an event consumer, not an additional schedule.
 - no source timer exists; source and intake are event-driven path units;
 - the single web Ops schedule runs with the local computer off.
 
-## Prepared cross-task Coach delivery V8
+## Prepared cross-task Coach delivery V9
 
-Fresh server-canonical status at `2026-08-10T02:19:11Z` still reports
-`CLOUD_OPS_SCHEDULE_V7` `READY`; the deployed Worker has not yet moved to
-V8. Platform readback found zero active cloud recurrences. The exact existing
-ChatGPT Work V6 schedule
-`6a71a1ed2f608191b0621c52bed3fd81` is paused. The attempted Codex desktop V7
-automation is also paused and is not a cloud substitute because it requires the
-local computer and app to stay on.
+Fresh server-canonical status at `2026-08-10T03:31:06Z` reports
+`CLOUD_OPS_SCHEDULE_V8` `READY`. Platform readback found exactly one active
+cloud recurrence: existing ChatGPT Work task
+`6a71a1ed2f608191b0621c52bed3fd81` at `09:05 Asia/Taipei`. The attempted Codex
+desktop automation remains paused and is not a cloud substitute.
 
-The repository freezes `CLOUD_OPS_SCHEDULE_V8` at exact SHA-256
-`7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`.
-V8 retains the Research MCP operation set and all server-side outbox state:
+The repository freezes `CLOUD_OPS_SCHEDULE_V9` at exact SHA-256
+`04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`.
+V9 retains the Research MCP operation set and all server-side outbox state:
 artifact SHA-256 delivery id, exact token prefix, maximum eight five-field
 receipts, verified receipt statuses, idempotent replay, pending-to-delivered
 transition, immutable queue/deadline timestamps, integer lead time, and the
 10,800-second canonical `PASS`/`BREACH` calculation. No new ACK operation,
 writer, timer, messenger, paid API, or user step is introduced.
 
-V8 restores only the bounded cross-task delivery operations already present in
-the immutable V6 design. The cloud cycle resolves exact Coach task
-`019fca63-4f8f-71e3-9d88-297bca468eb9`, reads it before sending, skips an
-event only when the exact full sealed token is already present, sends the exact
-canonical prompt once when absent, and reads the exact task again. Only a
-verified preflight or post-send readback may create the five-field receipt, and
-that receipt is carried by the next normally due heartbeat. Any discovery,
-read, send, or readback failure keeps the canonical event pending as
+V9 corrects a V8 orchestration contradiction discovered before V8's first
+normal run. V8 delivered an initially pending event only after the due
+heartbeat and deferred its verified receipt to another daily heartbeat, while
+the immutable SLA deadline ended three hours after the first due heartbeat.
+That ordering could not produce a timely canonical ACK.
+
+V9 first requires the heartbeat to be normally due, snapshots the initial
+pending ids, resolves and reads exact Coach task
+`019fca63-4f8f-71e3-9d88-297bca468eb9`, sends only absent exact canonical
+prompts, and requires post-send readback. Only those initial-snapshot verified
+receipts enter the same due heartbeat. A new event created by that heartbeat is
+delivered after it and may be acknowledged only on the next normal cycle. Any
+discovery, read, send, or readback failure keeps the event pending as
 `CROSS_TASK_DELIVERY_PENDING`.
 
-Cutover must reuse the exact existing paused ChatGPT Work schedule; creating a
-second schedule is forbidden. With zero active schedules, deploy and verify the
-V8-only Worker, update that paused task in place, prove it remains paused and
-zero-active, then activate it and prove exactly one active schedule. Repository
-implementation, packaging, Worker deployment, platform update/readback, cloud
-tool availability, live deduplication, receipt acceptance, and a live SLA
-outcome are separate proof gates. Existing pending events keep their original
-timestamps and may honestly remain `BREACH`.
+Cutover must pause and reuse the exact existing ChatGPT Work schedule; creating
+a second schedule is forbidden. With zero active schedules, deploy and verify
+the V9-only Worker, update that paused task in place, prove it remains paused
+and zero-active, then activate it and prove exactly one active schedule.
+Repository implementation, packaging, Worker deployment, platform
+update/readback, cloud tool availability, live receipt acceptance, and a live
+SLA outcome are separate `MISSING_PROOF` gates. Existing pending events keep
+their original timestamps and may honestly remain `BREACH`.

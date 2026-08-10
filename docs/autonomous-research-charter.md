@@ -127,7 +127,7 @@ returns a task-hash-bound result to the Manager/Coach. It has no routine wake-up
 cannot become a second writer, and cannot call Research MCP writes or mutate
 canonical server state. The V1 node is manually message-dispatched and leaves
 the sole cloud clock and its server-canonical contract unchanged. As of
-2026-08-10 the deployed canonical contract remains V7 while the reviewed V8
+2026-08-10 the deployed canonical contract remains V8 while the reviewed V9
 successor is prepared; Local work cannot activate, replace, pause, or
 acknowledge either schedule contract.
 
@@ -149,10 +149,10 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The prepared successor `CLOUD_OPS_SCHEDULE_V8` cloud Ops semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v8.json`, exact SHA-256
-`7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`;
-V1 through V7 remain immutable historical contract evidence. V8 keeps the
+The prepared successor `CLOUD_OPS_SCHEDULE_V9` cloud Ops semantics are frozen in
+`research_pipeline/cloud-ops-schedule-contract.v9.json`, exact SHA-256
+`04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`;
+V1 through V8 remain immutable historical contract evidence. V9 keeps the
 canonical heartbeat due boundary at `09:00 Asia/Taipei` but declares the sole
 cloud recurrence at
 `09:05 Asia/Taipei`. The frozen 300-second nominal delay tolerates small
@@ -349,10 +349,10 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
 
-The V8 Ops contract and `SEALED_COACH_CROSS_TASK_DELIVERY_V4` bind that basis,
+The V9 Ops contract and `SEALED_COACH_CROSS_TASK_DELIVERY_V5` bind that basis,
 10,800-second completion window, pending/breach labels, terminal labels, and
 legacy missing-proof labels into the same caller attestation required by both
-write operations. V3 through V7 remain sealed history and cannot attest the
+write operations. V3 through V8 remain sealed history and cannot attest the
 active schedule.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
@@ -389,36 +389,36 @@ experiment passes its preregistered Design and Validation gates to
 `CANDIDATE_FROZEN`, while sealed OOS remains unopened, and only when the overlay
 exercises material lot-management semantics absent from Phase B.
 
-## Prepared cross-task Coach delivery V8
+## Prepared cross-task Coach delivery V9
 
-Fresh OAuth Research MCP status at `2026-08-10T02:19:11Z` still reports the
-deployed `CLOUD_OPS_SCHEDULE_V7` `READY`; V8 has not yet been deployed or
-activated. Platform readback proved the old V6 ChatGPT Work task is paused,
-zero cloud schedules are active, and the attempted Codex desktop V7 automation
-is also paused because it requires the local computer and app to remain on.
-That local surface cannot satisfy the sponsor's PC-off requirement.
+Fresh OAuth Research MCP status at `2026-08-10T03:31:06Z` reports the deployed
+`CLOUD_OPS_SCHEDULE_V8` `READY`. Platform readback proved the exact existing
+ChatGPT Work task `6a71a1ed2f608191b0621c52bed3fd81` is the only active
+recurrence at `09:05 Asia/Taipei`, while the desktop automation remains paused.
+V8 has not yet executed its first normal cloud cycle.
 
-The frozen V8 successor preserves one daily `09:05 Asia/Taipei` cloud clock,
+The frozen V9 successor preserves that one daily `09:05 Asia/Taipei` cloud clock,
 the `09:00` canonical due boundary, 300-second margin, Server Canonical as sole
 writer, durable artifact-hash outbox, five-field receipt, idempotency,
 immutable queue/deadline timestamps, and the 10,800-second `PASS`/`BREACH`
-basis. It changes only the delivery locus: the existing paused ChatGPT Work
-schedule uses the bounded `list_threads`, `read_thread`, and
-`send_message_to_thread` operations to reach exact Coach task
-`019fca63-4f8f-71e3-9d88-297bca468eb9`.
+basis. It corrects only an orchestration ordering defect discovered before the
+first V8 run: delivering an already-pending event after the due heartbeat and
+deferring its receipt by another daily cycle cannot satisfy a deadline ending
+three hours after that due heartbeat.
 
-For each pending canonical event, the cloud cycle must read the exact Coach
-task before sending, deduplicate by the exact full sealed token, send only the
-canonical delivery prompt when absent, and read the exact task again. A
-verified preflight or post-send readback may be carried only by the next
-normally due heartbeat. Tool or host unavailability leaves the event pending
-as `CROSS_TASK_DELIVERY_PENDING`; it never adds a timer, messenger, user step,
-or early ACK.
+V9 first proves the heartbeat is normally due, snapshots the initial pending
+ids, reads exact Coach task `019fca63-4f8f-71e3-9d88-297bca468eb9`, delivers
+each absent exact canonical prompt, and requires post-send readback. Only those
+initial-snapshot verified receipts enter the same due heartbeat. Events created
+by that heartbeat are delivered afterward and can be acknowledged only on the
+next normal cycle. Tool or host unavailability leaves an event pending as
+`CROSS_TASK_DELIVERY_PENDING`; it never adds a timer, messenger, user step, or
+early ACK.
 
-Repository V8 contract, prompt, Worker attestation code, and focused tests are
+Repository V9 contract, prompt, Worker attestation code, and focused tests are
 the preparation gate. Worker deployment, in-place update of the exact existing
-paused cloud task, zero-active readback before activation, exactly-one-active
-readback after activation, live Coach delivery/readback, receipt acceptance,
-and a live `PASS` or `BREACH` remain `MISSING_PROOF` until separately proven.
-The retained pending events keep their original timestamps. Rollback must first
-pause V8 and prove zero active schedules; two clocks may never overlap.
+task, zero-active readback during cutover, exactly-one-active readback after
+activation, live Coach delivery/readback, receipt acceptance, and a live
+`PASS` or `BREACH` remain `MISSING_PROOF` until separately proven. Retained
+pending events keep their original timestamps. Rollback must first pause V9 and
+prove zero active schedules; two clocks may never overlap.

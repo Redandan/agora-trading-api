@@ -281,33 +281,30 @@ database query, or backfill.
 
 ## Prepared cross-task delivery successor
 
-Fresh server-canonical status at `2026-08-10T02:19:11Z` still reports
-`CLOUD_OPS_SCHEDULE_V7` `READY`; this is live-state evidence, not proof that
-V8 is deployed. Platform readback found zero active cloud recurrences and one
-paused ChatGPT Work V6 task. A separately attempted Codex desktop V7 automation
-was paused after proving it depends on the local computer and therefore cannot
-meet the PC-off requirement.
+Fresh server-canonical status at `2026-08-10T03:31:06Z` reports
+`CLOUD_OPS_SCHEDULE_V8` `READY`. Platform readback proved exactly one active
+ChatGPT Work recurrence, the existing task
+`6a71a1ed2f608191b0621c52bed3fd81`; the desktop automation remains paused.
 
-The lifecycle-neutral successor is `CLOUD_OPS_SCHEDULE_V8`, frozen at exact
+The lifecycle-neutral successor is `CLOUD_OPS_SCHEDULE_V9`, frozen at exact
 SHA-256
-`7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1`.
+`04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`.
 It keeps the scientific gates, one 09:05 cloud clock, 09:00 canonical due
 boundary, 300-second margin, Server Canonical single writer, durable outbox,
-five-field receipts, and the 10,800-second delivery SLA. It changes only the
-delivery locus: the existing paused ChatGPT Work schedule uses bounded
-list/read/send operations to reach exact Coach task
-`019fca63-4f8f-71e3-9d88-297bca468eb9`.
+five-field receipts, and the 10,800-second delivery SLA.
 
-Each event requires exact-task preflight read, exact full-token deduplication,
-one canonical prompt send when absent, and exact-task post-send readback.
-Only verified readback may create a receipt for the next normally due
-heartbeat. Tool or host unavailability remains a hash-identified
+V9 corrects the V8 receipt-ordering defect before the first normal V8 run.
+After proving the heartbeat is due, the cycle delivers and readback-verifies
+the initial pending snapshot before the heartbeat, so those receipts can be
+accepted in that same due cycle. Events newly created by the heartbeat are
+delivered after it and wait only until the next normal cycle for receipt ACK.
+Tool or host unavailability remains a hash-identified
 `CROSS_TASK_DELIVERY_PENDING` event and does not authorize a timer, messenger,
 user step, paid API, or inferred ACK.
 
-Cutover reuses the exact existing paused ChatGPT Work task and forbids creation
-of a second schedule. Repository V8 implementation, focused tests, Worker
-deployment, paused-task in-place update, zero-active and exactly-one-active
+Cutover pauses and reuses the exact existing active ChatGPT Work task and
+forbids creation of a second schedule. Repository V9 implementation, focused
+tests, Worker deployment, in-place task update, zero-active and exactly-one-active
 readbacks, live delivery, receipt acceptance, SLA result, and any quantified
 learning-latency or economic benefit remain separate `MISSING_PROOF` gates. Immediate
 PnL and drawdown effect are zero.

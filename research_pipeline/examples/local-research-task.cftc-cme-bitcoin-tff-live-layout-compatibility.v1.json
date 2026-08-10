@@ -93,7 +93,7 @@
     "RECOMMENDED_NEXT_ACTION"
   ],
   "stop_conditions": [
-    "Before network access, validate exact task/dispatch, re-hash every non-null input, and require clean branch codex/autonomous-research-control-plane-v3 at HEAD/origin cee3ffa36bbf9a756d6936637918d57bceff6689. Any mismatch, missing input, link, dirty state or drift is BLOCKED.",
+    "Before network access, validate exact task/dispatch, re-hash every non-null input, and require clean branch codex/autonomous-research-control-plane-v3 at the exact matching HEAD/origin commit supplied by Manager after this task is committed. Any mismatch, missing input, link, dirty state or drift is BLOCKED.",
     "Make at most one in-memory HTTP retrieval of exactly https://www.cftc.gov/dea/newcot/FinFutWk.txt. Do not retry, add query parameters, use a cache or substitute another locator. Any redirect outside cftc.gov is unavailable/ambiguous.",
     "Keep the response only in process memory. Do not save raw bytes, decoded text, rows, excerpts, screenshots, command output files, artifacts, caches, repository files or research state; max_files_changed remains zero.",
     "Report only HTTP/final-locator/content-type metadata, complete raw byte length and SHA-256, UTF-8 status, line-ending classes, total logical record count, header presence, field-count distribution and structural identity/date/family checks.",

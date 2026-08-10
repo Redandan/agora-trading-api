@@ -1,0 +1,158 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-utc-day-3pct-shock-attribution-design-v1",
+  "issued_at": "2026-08-10T06:01:22Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Freeze one bounded design for an event-triggered BTC complete-UTC-day shock diagnostic. The detector must reuse the existing sealed OKX BTC-USDT 1H forward-day evidence, trigger only when the inclusive absolute close-to-close simple return is at least 3.00%, separate deterministic market-path attribution from later qualitative Coach explanation, and define the point-in-time boundary by which an accumulated diagnostic could support exactly one future factor hypothesis. Decide whether this is causally distinct from the existing lagged-realized-volatility participation prior and the closed volatility-exit branches, and identify the smallest same-heartbeat integration point. Produce only a design disposition and proof boundary; do not implement, inspect new outcomes, create a hypothesis, choose a strategy action, or change a schedule.",
+  "canonical_research_status": "WAITING;R1_4_OF_90_LAG_0;MICROSTRUCTURE_R2_PRE_START_0_OF_14;QUEUES_IDLE;V9_READY",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-forward-evidence-source-v1.md",
+      "sha256": "946c6dab1f772bca743ff1c769f988c276cf1bef47fada4fea29340cd65b71e5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence-day.schema.json",
+      "sha256": "e517d734f4f8002d474f2ea35529df6b2713d8c2ecabf8dff7a7ab799506c8c5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/evidence.py",
+      "sha256": "ba6d00c32eeb43071b6b29058b9c08c9a208177703c8c12c6c360c88decd0e90"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/heartbeat.py",
+      "sha256": "209e6784b3525fcc867c0006b76cb4560bf0b144c2b9659d425652b4ab4be845"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-volatility-management-primary-prior-audit.v2.json",
+      "sha256": "1b10d9a3e371267a5b946e2b7e86956ab93f90a27b838114c8edf6984df175e0"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-dra-volatility-exit-v2-result-2026-07-31.md",
+      "sha256": "fe35749c491901f60e6574b8358131ad6bd06cfb13279d371fe2af51d0ddd3b9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-dra-volatility-exit-v2b-result-2026-07-31.md",
+      "sha256": "15fd932ed1ad26832b5b72b9ab975dcb56a545ccdb9d94a6531de594083ce33f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-dra-reversal-confirmed-volatility-exit-v2c-result-2026-07-31.md",
+      "sha256": "1fa91317accfe200b33c364b83cf4eef782ac51dbd3391243e987d9b96a24ddb"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-10T05:59:56Z; policy/Worker/V9 READY; one 09:05 Asia/Taipei recurrence; R1 4/90 lag 0; R2 PRE_START 0/14; queues IDLE; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Sponsor requirement: inspect every complete UTC day and, only when BTC rises or falls by at least 3%, explain the movement and assess whether repeated evidence could become a factor or strategy. The sponsor does not operate individual research tasks.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Required architecture: the 3% detector is a logical child of the sole cloud heartbeat and existing sealed day intake, not another timer, writer, data import, API key, Spring scheduler, Trading gate, or daily LLM narrative. Deterministic path anatomy may be factor evidence; post-event explanations remain qualitative unless a separately frozen source proves point-in-time availability.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_LOCAL_INPUT_HASHES",
+    "AUDIT_EXISTING_VOLATILITY_BRANCHES",
+    "AUDIT_FORWARD_DAY_DATA_SUFFICIENCY",
+    "DEFINE_UTC_DAY_SHOCK_EVENT_CONTRACT",
+    "DEFINE_DETERMINISTIC_PATH_ATTRIBUTION",
+    "DEFINE_QUALITATIVE_COACH_BOUNDARY",
+    "DEFINE_POINT_IN_TIME_FACTOR_BOUNDARY",
+    "DEFINE_SINGLE_CLOCK_INTEGRATION_POINT",
+    "DEFINE_SAMPLE_AND_PROMOTION_GATES",
+    "ASSESS_PERFORMANCE_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CURRENT_OR_FUTURE_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_CANDIDATE_OR_MANIFEST_AUTHORING",
+    "THRESHOLD_OR_NEIGHBOR_PARAMETER_TUNING",
+    "NEWS_NARRATIVE_AS_CAUSAL_FACTOR",
+    "ADAPTER_RUNNER_SCHEMA_OR_CONTRACT_IMPLEMENTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "SERVER_NETWORK_SSH_OR_DEPLOYMENT",
+    "CLOSED_BRANCH_REOPEN_OR_RELABEL",
+    "SPRING_SCHEDULER_OR_TRADING_GATE"
+  ],
+  "expected_outputs": [
+    "TERMINAL_DESIGN_DISPOSITION",
+    "EXACT_UTC_DAY_AND_RETURN_FORMULA",
+    "DETERMINISTIC_PATH_ATTRIBUTION_FIELDS",
+    "QUALITATIVE_COACH_ATTRIBUTION_BOUNDARY",
+    "POINT_IN_TIME_FACTOR_ELIGIBILITY_RULE",
+    "VOLATILITY_BRANCH_DISTINCTNESS_MATRIX",
+    "SINGLE_CLOCK_INTEGRATION_POINT",
+    "SAMPLE_BREADTH_AND_PROMOTION_GATES",
+    "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null local SHA-256 before analysis; any mismatch, missing input, link, reparse point, duplicate locator, wrong type, branch drift, HEAD/origin mismatch, or dirty worktree is BLOCKED and MISSING_PROOF.",
+    "Use the existing sealed OKX BTC-USDT complete-UTC-day evidence contract only. Do not inspect a new canonical day, raw server data, current market price, Local inbox/outbox, OOS, unlisted artifact, or any outcome-bearing file beyond the listed closed summaries.",
+    "Freeze the shock event as inclusive abs((UTC-day close / prior UTC-day close) - 1) >= 0.0300 over two contiguous complete source-produced UTC days. Do not compare 2%, 4%, rolling 24-hour, intraday high-low, log-return, or neighboring definitions.",
+    "Separate deterministic path anatomy from causal explanation. OHLCV may describe when and how the move occurred but cannot alone prove why it occurred; an unsupported reason must remain UNKNOWN rather than an LLM narrative.",
+    "Any qualitative Coach attribution must preserve source publication time, observed time, URL or immutable identity, and confidence. Information unavailable by a separately frozen future decision cutoff is educational only and cannot become factor evidence.",
+    "Define only the promotion boundary from repeated forward shock episodes to one later factor hypothesis. Do not select continuation, reversal, risk avoidance, holding horizon, position size, DRA action, estimator, threshold, feature weight, or strategy rule in this task.",
+    "Prove causal distinctness from LAGGED_REALIZED_VOLATILITY_CONDITIONED_DRA_PARTICIPATION and the listed closed volatility-exit branches. If distinctness requires outcome inspection or relabeling a closed result, return DUPLICATE_OR_NONCAUSAL_SHOCK_TASK_CLOSE.",
+    "Preserve the one cloud Ops recurrence, Server Canonical writer, existing R1 and R2 evidence lanes, V9 contract, Coach outbox, and Trading separation. The design may identify one same-heartbeat integration point but cannot change any byte or propose another clock.",
+    "The smallest positive slice may only seal a deterministic shock-episode diagnostic from already accepted day bundles and emit a generic Coach event. It must not fetch news, add a source, call an LLM, alter R1/R2 conclusions, or register an experiment.",
+    "Define sample breadth, label-quality, concentration, missingness, and point-in-time gates that must be frozen before accumulated shock outcomes are reviewed. Insufficient qualifying episodes or excessive UNKNOWN attribution is a valid close, not permission to lower 3% or extend the window post hoc.",
+    "Return exactly one of ONE_3PCT_SHOCK_DIAGNOSTIC_VERTICAL_SLICE_READY, DUPLICATE_OR_NONCAUSAL_SHOCK_TASK_CLOSE, or SOURCE_OR_INTEGRATION_PROOF_INSUFFICIENT. A positive result authorizes only one separately frozen bounded implementation task.",
+    "Keep immediate fee-adjusted PnL and drawdown effect at zero. Prediction, statistical significance, fees, slippage, capacity, annual or regime breadth, matched-capital PnL, drawdown improvement, candidate readiness, OOS value, and deployability remain MISSING_PROOF.",
+    "Make no repository, research-state, server, schedule, source, task, or Trading change. Return exactly one task-hash-bound local-research-result JSON with empty artifacts/files_changed and all safety assertions false.",
+    "Recommend only the smallest bounded next action implied by the terminal disposition. Do not design a second lane, tune the trigger, implement code, request additional permissions, or ask the sponsor to operate the task."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

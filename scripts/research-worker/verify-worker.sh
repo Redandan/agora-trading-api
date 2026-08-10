@@ -10,6 +10,7 @@ EXPECT_TIMER="${EXPECT_TIMER:-disabled}"
 RUN_HEARTBEAT="${RUN_HEARTBEAT:-0}"
 RUN_SOURCE_PROBE="${RUN_SOURCE_PROBE:-0}"
 EXPECT_MICROSTRUCTURE_SOURCE="${EXPECT_MICROSTRUCTURE_SOURCE:-disabled}"
+EXPECT_CARRY_SOURCE="${EXPECT_CARRY_SOURCE:-auto}"
 MICROSTRUCTURE_INTAKE_PREFLIGHT="${MICROSTRUCTURE_INTAKE_PREFLIGHT:-0}"
 EXPECTED_CONTROL_RELEASE_ID="${EXPECTED_CONTROL_RELEASE_ID:?EXPECTED_CONTROL_RELEASE_ID is required}"
 EXPECTED_DATA_RELEASE_ID="${EXPECTED_DATA_RELEASE_ID:?EXPECTED_DATA_RELEASE_ID is required}"
@@ -106,6 +107,10 @@ PY
 
 case "$EXPECTED_CONTROL_RELEASE_ID" in *[!A-Za-z0-9._-]*|'') fail "invalid expected control release id" ;; esac
 case "$EXPECTED_DATA_RELEASE_ID" in *[!A-Za-z0-9._-]*|'') fail "invalid expected data release id" ;; esac
+case "$EXPECT_CARRY_SOURCE" in
+  auto|absent|inactive) ;;
+  *) fail "unsupported EXPECT_CARRY_SOURCE: $EXPECT_CARRY_SOURCE" ;;
+esac
 [ -L "$WORKER_ROOT/control-current" ] || fail "control-current release symlink missing"
 [ -L "$WORKER_ROOT/current" ] || fail "data-current release symlink missing"
 control_current="$(readlink -f "$WORKER_ROOT/control-current")"
@@ -920,6 +925,37 @@ carry_unit_present=false
 if systemctl cat "$CARRY_UNIT" >/dev/null 2>&1; then
   carry_unit_present=true
 fi
+case "$EXPECT_CARRY_SOURCE" in
+  auto)
+    ;;
+  absent)
+    [ "$carry_package" = false ] \
+      || fail "carry distribution is present when absence was required"
+    [ "$carry_unit_present" = false ] \
+      || fail "carry source unit is present when absence was required"
+    if id -u "$CARRY_USER" >/dev/null 2>&1; then
+      fail "carry source identity is present when absence was required"
+    fi
+    if getent group "$CARRY_GROUP" >/dev/null 2>&1; then
+      fail "carry publisher group is present when absence was required"
+    fi
+    for absent_path in "$CARRY_ROOT" "$CARRY_BINDING" "$CARRY_REQUEST_ROOT"; do
+      [ ! -e "$absent_path" ] && [ ! -L "$absent_path" ] \
+        || fail "carry path is present when absence was required: $absent_path"
+    done
+    if systemctl list-unit-files 'agora-research-dra-crypto-carry*.timer' --no-legend | grep -q . \
+        || systemctl list-unit-files 'agora-research-dra-crypto-carry*.path' --no-legend | grep -q .; then
+      fail "carry timer or path is present when absence was required"
+    fi
+    ok "explicit carry absence expectation verified"
+    ;;
+  inactive)
+    [ "$carry_package" = true ] \
+      || fail "carry distribution is absent when inactive installation was required"
+    [ "$carry_unit_present" = true ] \
+      || fail "carry source unit is absent when inactive installation was required"
+    ;;
+esac
 if [ "$carry_package" = true ] && [ "$carry_unit_present" = false ]; then
   fail "carry distribution is installed without the carry source unit"
 fi
@@ -1184,6 +1220,9 @@ PY
   else
     ok "pre-existing carry unit remains safely inactive; carry bytes absent and no readiness claimed"
   fi
+fi
+if [ "$EXPECT_CARRY_SOURCE" = inactive ]; then
+  ok "explicit carry inactive expectation verified through the full isolation gate"
 fi
 
 [ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=User --value)" = "$SOURCE_USER" ] \

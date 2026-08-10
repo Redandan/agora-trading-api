@@ -248,13 +248,18 @@ package closure.
 ### Explicit standalone Research Worker verification
 
 The standalone verifier requires the expected control and data release IDs and
-the expected microstructure-source state. The two release IDs are independent
-operator expectations; the wrapper does not discover or infer either value on
-the server. Values may be supplied as parameters or through the dedicated
+the expected microstructure-source state plus one explicit carry-source state.
+The two release IDs are independent operator expectations; the wrapper does
+not discover or infer either value on the server. Values may be supplied as
+parameters or through the dedicated
 `AGORA_RESEARCH_EXPECTED_CONTROL_RELEASE_ID`,
 `AGORA_RESEARCH_EXPECTED_DATA_RELEASE_ID`, and
-`AGORA_RESEARCH_EXPECT_MICROSTRUCTURE_SOURCE` environment variables. Release
-IDs are restricted to letters, digits, dot, underscore, and hyphen.
+`AGORA_RESEARCH_EXPECT_MICROSTRUCTURE_SOURCE` environment variables. The carry
+expectation is supplied by `-ExpectCarrySource` or
+`AGORA_RESEARCH_EXPECT_CARRY_SOURCE` and must be exactly `absent` or
+`inactive`; the standalone wrapper never passes `auto`. The server verifier's
+internal `auto` default exists only for installer compatibility. Release IDs
+are restricted to letters, digits, dot, underscore, and hyphen.
 
 Verify a worker where the microstructure source must remain disabled:
 
@@ -262,7 +267,8 @@ Verify a worker where the microstructure source must remain disabled:
 .\scripts\verify_research_worker_ssh.ps1 `
   -ExpectedControlReleaseId <control-release-id> `
   -ExpectedDataReleaseId <data-release-id> `
-  -ExpectMicrostructureSource disabled
+  -ExpectMicrostructureSource disabled `
+  -ExpectCarrySource absent
 ```
 
 Verify a worker where the microstructure source must be active:
@@ -271,8 +277,25 @@ Verify a worker where the microstructure source must be active:
 .\scripts\verify_research_worker_ssh.ps1 `
   -ExpectedControlReleaseId <control-release-id> `
   -ExpectedDataReleaseId <data-release-id> `
-  -ExpectMicrostructureSource active
+  -ExpectMicrostructureSource active `
+  -ExpectCarrySource absent
 ```
+
+For a future separately reviewed dual release whose carry distribution and
+unit must already be installed but remain disabled, inactive, unfailed,
+PID-free, unbound, and without a timer or path, use the explicit inactive
+expectation:
+
+```powershell
+.\scripts\verify_research_worker_ssh.ps1 `
+  -ExpectedControlReleaseId <control-release-id> `
+  -ExpectedDataReleaseId <data-release-id> `
+  -ExpectMicrostructureSource disabled `
+  -ExpectCarrySource inactive
+```
+
+Inactive carry verification is not source registration, execution, evidence,
+PnL, or drawdown proof. It grants no carry lifecycle authority.
 
 Active-source verification also enables the verifier's fixed microstructure
 intake preflight. The full verifier is not strictly read-only: it creates one

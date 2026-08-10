@@ -415,6 +415,64 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn("does not prove uninterrupted day completion", runbook)
         self.assertIn("predictive value, PnL, or drawdown", runbook)
 
+    def test_standalone_verifier_binds_explicit_carry_state_expectation(self) -> None:
+        wrapper = self.standalone_verifier
+        self.assertIn(
+            "[string]$ExpectCarrySource = $env:AGORA_RESEARCH_EXPECT_CARRY_SOURCE",
+            wrapper,
+        )
+        validation = '$ExpectCarrySource -notin @("absent", "inactive")'
+        self.assertIn(validation, wrapper)
+        self.assertLess(wrapper.index(validation), wrapper.index("$localVerifier ="))
+        self.assertIn("EXPECT_CARRY_SOURCE='$ExpectCarrySource'", wrapper)
+        self.assertNotIn("EXPECT_CARRY_SOURCE='auto'", wrapper)
+
+        verifier = self.verifier
+        self.assertIn('EXPECT_CARRY_SOURCE="${EXPECT_CARRY_SOURCE:-auto}"', verifier)
+        self.assertIn("auto|absent|inactive)", verifier)
+        self.assertLess(
+            verifier.index('case "$EXPECT_CARRY_SOURCE" in'),
+            verifier.index('carry_package="$(python3'),
+        )
+        state_gate = verifier[verifier.index("carry_unit_present=false"):]
+        required = (
+            '[ "$carry_package" = false ]',
+            '[ "$carry_unit_present" = false ]',
+            'id -u "$CARRY_USER"',
+            'getent group "$CARRY_GROUP"',
+            '"$CARRY_ROOT" "$CARRY_BINDING" "$CARRY_REQUEST_ROOT"',
+            '[ ! -e "$absent_path" ] && [ ! -L "$absent_path" ]',
+            "list-unit-files 'agora-research-dra-crypto-carry*.timer'",
+            "list-unit-files 'agora-research-dra-crypto-carry*.path'",
+            '[ "$carry_package" = true ]',
+            '[ "$carry_unit_present" = true ]',
+            "explicit carry inactive expectation verified through the full isolation gate",
+        )
+        for value in required:
+            with self.subTest(value=value):
+                self.assertIn(value, state_gate)
+        self.assertLess(
+            state_gate.index('inactive)'),
+            state_gate.index('if [ "$carry_unit_present" = true ]; then'),
+        )
+        for command in (
+            'systemctl enable "$CARRY_UNIT"',
+            'systemctl disable "$CARRY_UNIT"',
+            'systemctl start "$CARRY_UNIT"',
+            'systemctl stop "$CARRY_UNIT"',
+            'systemctl restart "$CARRY_UNIT"',
+            'systemctl reset-failed "$CARRY_UNIT"',
+            'systemctl daemon-reload',
+        ):
+            self.assertNotIn(command, verifier)
+
+        runbook = self.deploy_runbook
+        self.assertGreaterEqual(runbook.count("-ExpectCarrySource absent"), 2)
+        self.assertIn("-ExpectCarrySource inactive", runbook)
+        self.assertIn("never passes `auto`", runbook)
+        self.assertIn("is not source registration", runbook)
+        self.assertIn("execution, evidence,\nPnL, or drawdown proof", runbook)
+
     def test_wrapper_runs_exact_verifier_before_provenance_output(self) -> None:
         invocation = (
             "EXPECTED_CONTROL_RELEASE_ID='$ReleaseId' "

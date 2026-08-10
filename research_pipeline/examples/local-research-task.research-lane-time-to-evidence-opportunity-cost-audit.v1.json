@@ -1,0 +1,185 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-research-lane-time-to-evidence-opportunity-cost-audit-v1",
+  "issued_at": "2026-08-10T12:36:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform one bounded no-recomputation audit of the current lawful research lanes and rank them only by deterministic time to first falsifiable mechanism evidence and opportunity cost. Compare the frozen 14-day OKX microstructure R2 diagnostic, the 90-day mechanism-neutral R1 refresh, the post-shock factor breadth/actionability chain, the deferred carry lane, and the closed no-cost public-source branch. Use only the exact listed contracts, accepted results and Manager-supplied canonical snapshot. Do not estimate alpha probability, inspect outcomes, refresh server state, create a source, change a gate, formulate a strategy, register a hypothesis or candidate, open OOS, or change any file or state.",
+  "canonical_research_status": "2026-08-10T12:28:53Z_SERVER_CANONICAL_V9_R1_4_OF_90_R2_PRE_START_0_OF_14_ALL_QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/prospective-mechanism-neutral-evidence-refresh-2026q4-r1.trigger.json",
+      "sha256": "6883d6c4d5c1629c910fad8287575981aa26f81d44542b0e2735167f7c2a34f1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+      "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.dra-crypto-carry-r2-cohabitation-audit.v1.json",
+      "sha256": "6a047f421bf92632e63384a13beb4afefea8d01880aac7f0a3124889616cf2b9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.public-forward-source-branch-closure-matrix.v1.json",
+      "sha256": "ae2dee13807b3c835cc39f13859514857b34a414cd7931479d675bd897d03da1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-factor-contract.v1.json",
+      "sha256": "8fcd2fcd822bfc1b2965580f1600c8af0a1faa769f476b9b364575038b430ae2"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/btc-utc-day-3pct-post-shock-factor-result.v1.schema.json",
+      "sha256": "8f41ecce6cf5820ee28404fef9bcefac4db1d42771ed01586752488142c6b317"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/post_shock_factor.py",
+      "sha256": "61535e047a16ba2e20b25c9198a73ded6b3ee4c44596a9f08fd50347f442e4a4"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/btc-utc-day-3pct-post-shock-actionability.v1.schema.json",
+      "sha256": "adddc582b677262c243b62b74ba00593874634ee89688aede40bab4120d7e7a5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/post_shock_actionability.py",
+      "sha256": "36b5ccc0a4f769d918436041dd045028f075a5bfa14b4f7aecda9e0e6b977ca3"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Manager read canonical OAuth Research MCP status at 2026-08-10T12:28:53Z: timer CODEX_CLOUD_OPS_ONLY; state SERVER_CANONICAL; policy, Worker and exact V9 sole schedule READY; all queues IDLE; R1 4/90 lag 0 with next evidence day 2026-08-10; R2 PRE_START 0/14 with start 2026-08-11; no active experiment or evidence-ready candidate. This Local task authorizes no server call or write.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Frozen ranking rule: rank only by the earliest deterministic boundary at which a currently authorized lane can produce a contract-valid falsifiable mechanism disposition, then by incremental implementation burden. Do not rank by expected alpha, historical PnL, subjective promise or data volume.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "R2 begins with the 2026-08-11 complete UTC day and requires 14 complete contiguous days, so its earliest complete evidence inventory is after the 2026-08-24 UTC day closes and is accepted; exact terminal Manager-learning time remains conditional on integrity, receipt, handoff and interpretation. R1 cannot be reviewed before 2026-11-04. Post-shock evidence must span at least three UTC months and eight eligible shocks, so its completion date is not guaranteed.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "READ_MANAGER_CANONICAL_STATUS_SNAPSHOT",
+    "EXTRACT_R1_MINIMUM_EVIDENCE_CLOCK",
+    "EXTRACT_R2_MINIMUM_EVIDENCE_CLOCK",
+    "EXTRACT_POST_SHOCK_BREADTH_AND_ACTIONABILITY_CLOCKS",
+    "VERIFY_PUBLIC_SOURCE_BRANCH_DISPOSITION",
+    "VERIFY_CARRY_R2_DEPENDENCY",
+    "DERIVE_DETERMINISTIC_EARLIEST_EVIDENCE_BOUNDARIES",
+    "RANK_LANES_BY_TIME_TO_FIRST_FALSIFICATION",
+    "REPORT_CRITICAL_PATH_AND_INCREMENTAL_BURDEN",
+    "REPORT_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST_BOUNDARY",
+    "VALIDATE_LOCAL_TASK",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "UNLISTED_ARTIFACT_OR_DATA_ACCESS",
+    "CURRENT_SERVER_STATUS_REFRESH_OR_NETWORK_ACCESS",
+    "R1_R2_OR_POST_SHOCK_OUTCOME_ACCESS",
+    "HISTORICAL_CORPUS_OR_RAW_EPISODE_ACCESS",
+    "HYPOTHESIS_MANIFEST_CANDIDATE_OR_ADAPTER_REGISTRATION",
+    "STRATEGY_MAPPING_OR_TRADE_RULE_AUTHORING",
+    "ALPHA_PROBABILITY_OR_RETURN_FORECAST",
+    "STRATEGY_EQUITY_CURVE_PNL_OR_DRAWDOWN_COMPUTATION",
+    "THRESHOLD_HORIZON_SOURCE_WINDOW_OR_GATE_TUNING",
+    "NEW_SOURCE_PARSER_CAPTURE_OR_SCHEDULER_IMPLEMENTATION",
+    "EXISTING_FORWARD_CONTRACT_OR_EVALUATOR_CHANGE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "JAVA_MAVEN_SPRING_OR_TRADING_RUNNER_EXECUTION",
+    "SECOND_LOCAL_TIMER"
+  ],
+  "expected_outputs": [
+    "EXACT_TASK_DISPATCH_AND_INPUT_VALIDATION",
+    "CURRENT_LAWFUL_RESEARCH_LANE_MATRIX",
+    "R1_EARLIEST_REVIEW_BOUNDARY",
+    "R2_EARLIEST_COMPLETE_INVENTORY_BOUNDARY",
+    "POST_SHOCK_MINIMUM_BREADTH_AND_LATENCY_BOUNDARY",
+    "PUBLIC_SOURCE_AND_CARRY_DEPENDENCY_DISPOSITIONS",
+    "TIME_TO_FIRST_FALSIFICATION_RANKING",
+    "PRIMARY_AND_SECONDARY_LANE_DISPOSITION",
+    "PERFORMANCE_DRAWDOWN_AND_CLAIM_BOUNDARY",
+    "MISSING_PROOF_REGISTER",
+    "OPPORTUNITY_COST",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and Manager dispatch before analysis. Re-hash every non-null input; require Manager-provided branch, clean HEAD equal local origin, contained regular non-link non-reparse paths. Any mismatch is SEALED_LANE_CLOCK_EVIDENCE_INSUFFICIENT.",
+    "Read only listed repository paths and the frozen Manager status messages. Do not read .research-state, Local history, current server state, network data, raw market data, R1/R2/post-shock outcomes, historical corpora or OOS.",
+    "Treat the 2026-08-10T12:28:53Z canonical snapshot as frozen scheduling evidence only. Do not refresh it, infer later progress, deliver or acknowledge a Coach event, or invoke a heartbeat.",
+    "For R2, require the V3 contract's 14 complete contiguous UTC days, no historical backfill, clean integrity and fixed preregistered interpretation. With start day 2026-08-11, derive only that the earliest complete inventory is after the 2026-08-24 UTC day closes and is accepted; preserve receipt, handoff and interpretation latency as conditional MISSING_PROOF.",
+    "For R1, require the exact 90 complete UTC-day minimum, evidence start 2026-08-06 and review_not_before 2026-11-04. Treat R1 as mechanism-neutral hypothesis-generation evidence, not strategy performance evidence or OOS.",
+    "For post-shock, require at least eight eligible shocks, at least two UP and two DOWN, two chronological halves, at least three UTC months, month and single-episode concentration limits, terminal Manager review, untouched future evidence and a later point-in-time fill. Do not estimate shock arrival rate or a guaranteed completion date.",
+    "Require the accepted public-source result disposition NO_PUBLIC_FACTOR_SOURCE_EVIDENCE_READY_WAIT. Treat that branch as unavailable until independently sealed CFTC V2 transport proof exists; do not retry a locator, documentation audit or parser.",
+    "Require the accepted carry result disposition DEFER_CARRY_INSTALL_PRESERVE_R2. Treat carry as dependent on observable R2 terminal disposition and not a parallel near-term source install.",
+    "Rank lanes only by deterministic earliest time to contract-valid first falsification and then incremental implementation burden. Do not rank by expected alpha, historical returns, subjective confidence or available compute.",
+    "Return R2_FASTEST_CURRENT_MECHANISM_EVIDENCE_LANE_PRESERVE_ORDER only if all exact evidence is valid, R2 remains the sole current lane with a fixed 14-day complete-inventory boundary, R1 is review-blocked until 2026-11-04, post-shock completion is not guaranteed before three-month breadth, public source is closed and carry is deferred behind R2.",
+    "Return NO_CURRENT_LANE_HAS_NEAR_TERM_BOUNDED_EVIDENCE_CLOSE_GAP only if exact evidence is valid but no lane has a deterministic bounded first-falsification inventory earlier than the R1 review boundary. Do not invent a replacement lane inside this task.",
+    "Return SEALED_LANE_CLOCK_EVIDENCE_INSUFFICIENT when any exact input, status clock, contract requirement, accepted disposition or arithmetic boundary is missing, changed, contradictory or invalid. Do not partially rank unverifiable lanes.",
+    "Do not call R2 a strategy, candidate or economic result. Its first terminal output remains hypothesis-discovery evidence and must still pass later causal, actionability and matched-capital economic gates.",
+    "Do not claim fees, slippage, total/realized/unrealized PnL, drawdown, Sharpe, capacity, utilization, holding age, turnover, candidate readiness, OOS, deployment or Trading value. Immediate fee-adjusted PnL and drawdown effect are zero.",
+    "Recommend preserving R2 as the primary near-term mechanism lane and R1/post-shock as slower independent lanes only if the positive disposition is proven. Do not add compute, a timer, writer, source, parser, task variant or manual user step.",
+    "Return exactly one schema-valid local-research-result bound to this task SHA, with empty artifacts/files_changed, dirty before/after false, all safety assertions false, concrete checks, uncertainty, opportunity cost and one allowed disposition. Stop without requesting permission on any boundary conflict."
+  ],
+  "limits": {
+    "timeout_seconds": 1200,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

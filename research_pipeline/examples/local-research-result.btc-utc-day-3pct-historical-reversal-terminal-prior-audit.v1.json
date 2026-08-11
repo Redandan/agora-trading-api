@@ -1,0 +1,97 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-utc-day-3pct-historical-reversal-terminal-prior-audit-v1",
+  "task_sha256": "ee7f6e4e8b321b760eaa7437a1fec035e8a5d7f8bb7edbe3d95f36fd60cc647f",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T02:44:00Z",
+  "completed_at": "2026-08-11T02:46:44Z",
+  "source_git_commit": "49e628a871b1f9b888baf158bde5a55b984ab406",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "HISTORICAL_POST_SHOCK_BIDIRECTIONAL_REVERSAL_PRIOR_RETAIN. The two sealed and dispatch-bound historical evidence families agree without contradiction. The corrected target-year stability result reports negative signed-h24 medians in all four Design years and both Validation years, with reversal_conditions true and continuation_conditions false in both windows. The direction-symmetry result reports negative signed-h24 medians and negative-count majorities for both UP and DOWN shocks in Design and Validation, with exact arithmetic and zero ties. Retain only the descriptive label HISTORICAL_BTC_UTC_DAY_3PCT_BIDIRECTIONAL_H24_REVERSAL_PRIOR. This pre-2025 historical context is not a prediction, factor, strategy, candidate, OOS authorization, or Trading authorization. Immediate PnL and drawdown effects are zero.",
+  "checks": [
+    {
+      "name": "SOURCE_IDENTITY_AND_ZERO_WRITE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3; HEAD and local origin both 49e628a871b1f9b888baf158bde5a55b984ab406; worktree clean before and after; git diff --check passed."
+    },
+    {
+      "name": "TASK_DISPATCH_INTENT_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Exact task SHA-256 ee7f6e4e8b321b760eaa7437a1fec035e8a5d7f8bb7edbe3d95f36fd60cc647f, dispatch SHA-256 451006e11b67cd7b74819eb9c961c3adb6c1b8969b2dcf0e6eb0c90e2e5596b3 and intent SHA-256 b1072b80a4e06c35cee6b6d56c6231278442c5c3a37b9561f34fa454d3a36cc8 matched. All nine non-null inputs were unique, repository-contained regular non-link/non-reparse files with exact hashes."
+    },
+    {
+      "name": "STOP_CONDITION_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly 10 frozen stop conditions canonicalized to SHA-256 11b9b592b4ab2f4899d05cd6ee53728b5e4374426535e7c69f5561ad8321d445."
+    },
+    {
+      "name": "STABILITY_TASK_DISPATCH_RESULT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Sealed stability task 92da73b7f900810de32ae9b61aa9fd54476fc7fa2c922473b7345a6dcaddf33c, dispatch 48d119c8f4eb1b0a3a2501cd5beccb2a84a22ce72c0084ffcc94dd14089c43e4 and result 2c2d200d4a6a29808b35ec2c80442ad9288867243b116fdd197f1308973c84a7 were mutually bound; result status COMPLETED, files/artifacts empty and all safety assertions false."
+    },
+    {
+      "name": "DIRECTION_TASK_DISPATCH_RESULT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Sealed direction task a67127b56699c4361266efd3353e46bfdc931bd51882fff8431b11621dec5970, dispatch f13b49fb4068a41efe29a5d9b704c5843e3aeccaa5184dab9008e6a7cb646ba3 and result 07caced46a22a9d721a986f7704f0befbd50dbcc14e2ac0b6dd5f9da24f0b5fe were mutually bound; semantic closure was VALID with six TARGET_YEAR rows."
+    },
+    {
+      "name": "ANNUAL_STABILITY_EVIDENCE_MATRIX",
+      "status": "PASS",
+      "evidence": "Design total 420 and Validation total 143 remained sealed. Target-year signed-h24 medians were negative for 2019 -0.003134615689069911367014701466, 2020 -0.007249667626024678989555629535, 2021 -0.0047559281281212049707382266368590532489010307223, 2022 -0.00442343772550151537018328763169288497618703997691, 2023 -0.0051093006967228222803848564161167840159250930807 and 2024 -0.001860079042482871783652795292. Both windows sealed reversal_conditions=true and continuation_conditions=false."
+    },
+    {
+      "name": "DIRECTION_SYMMETRY_MATRIX",
+      "status": "PASS",
+      "evidence": "Design UP median -0.001655578559551297273173065654 with positive/negative 106/118; Design DOWN median -0.00676680328194897633254755728 with 74/122. Validation UP median -0.00301525268779838438056338178765991798940384605103 with 38/45; Validation DOWN median -0.005308393539968761545467460685 with 24/36. Totals reconcile to Design UP/DOWN 224/196 and Validation 83/60, with zero ties."
+    },
+    {
+      "name": "TERMINAL_RETENTION_RULE",
+      "status": "PASS",
+      "evidence": "All six annual medians and all four direction-window medians are negative; every direction-window negative count exceeds its positive count; sealed arithmetic reconciles; neither upstream result contains a conflicting continuation conclusion."
+    },
+    {
+      "name": "ANNUAL_DIRECTION_BREADTH_AND_SIGNIFICANCE",
+      "status": "MISSING_PROOF",
+      "evidence": "The sealed inputs do not establish annual-by-direction breadth, concentration, statistical significance or robustness beyond the frozen descriptive gates."
+    },
+    {
+      "name": "CAUSALITY_AND_FORWARD_PREDICTION",
+      "status": "MISSING_PROOF",
+      "evidence": "Historical descriptive agreement does not prove causality or untouched forward predictive value. No forward outcome was accessed."
+    },
+    {
+      "name": "PERFORMANCE_AND_DRAWDOWN_CASE",
+      "status": "MISSING_PROOF",
+      "evidence": "No matched-capital economics, fees, slippage, PnL, drawdown, utilization, capacity or execution-path risk was computed or proven. Immediate PnL and drawdown effects are zero."
+    },
+    {
+      "name": "FORWARD_EVALUATOR_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The retained prior authorizes only waiting for the untouched forward evaluator's own terminal evidence; it does not authorize hypothesis, candidate, OOS, strategy mapping or Trading actions."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_FINAL_CLEANLINESS",
+      "status": "PASS",
+      "evidence": "No repository/state write, network, canonical/server access, corpus/raw-episode access, recomputation, schedule, Research MCP write, OOS or Trading action occurred. Final worktree remained clean."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: annual-by-direction breadth and concentration.",
+    "MISSING_PROOF: statistical significance, robustness and causal attribution.",
+    "MISSING_PROOF: untouched forward predictive value and terminal forward-evaluator evidence.",
+    "MISSING_PROOF: matched-capital economics, fees, slippage, PnL, drawdown, utilization, capacity and execution-path risk."
+  ],
+  "recommended_next_action": "Preserve the retained descriptive label and wait for the untouched forward evaluator's own terminal evidence; do not create a hypothesis, candidate, OOS path, strategy mapping or Trading action from the historical prior alone.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

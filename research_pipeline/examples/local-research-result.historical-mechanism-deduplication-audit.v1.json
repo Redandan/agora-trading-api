@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-historical-mechanism-deduplication-audit-v1",
+  "task_sha256": "e834bc966a3d0538e4e5280ff1f3a71ee9067ce1bf29f46ab125dcc63f7d0a1b",
+  "status": "BLOCKED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T07:45:00Z",
+  "completed_at": "2026-08-11T07:52:57Z",
+  "source_git_commit": "6ae06e2bc16647824595f03121fac814e31a7462",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "HISTORICAL_BRANCH_EVIDENCE_INCOMPLETE. Pre-evidence validation failed closed because docs/autonomous-research-charter.md hashes to 902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8, while this frozen task requires 1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1. The other 15 non-null inputs matched, but stop condition 1 forbids any partial conclusion after one mismatch. No sealed artifact content was opened, no historical mechanism fingerprint or deduplication matrix was produced, and no performance value was recomputed. Immediate PnL and drawdown effects are zero.",
+  "checks": [
+    {
+      "name": "TASK_VALIDATION",
+      "status": "PASS",
+      "evidence": "The repository validator returned VALID for task local-node-historical-mechanism-deduplication-audit-v1 at exact SHA-256 e834bc966a3d0538e4e5280ff1f3a71ee9067ce1bf29f46ab125dcc63f7d0a1b."
+    },
+    {
+      "name": "DISPATCH_VALIDATION",
+      "status": "PASS",
+      "evidence": "The repository dispatch validator returned VALID for manager-historical-mechanism-deduplication-audit-v1 at exact SHA-256 3dbcfd35c8989476b66ad953eb18077231ed8c442694384f2bac6b060dd5fcf1 and bound it to the exact task SHA."
+    },
+    {
+      "name": "STOP_CONDITION_SEAL",
+      "status": "PASS",
+      "evidence": "The canonical compact stop_conditions array contains 9 entries and hashes to 1547db843f89747ac31f5981ca35a2e75c1c77c1d52ad124ee1818f0e4890f33, matching the dispatch decision contract."
+    },
+    {
+      "name": "SOURCE_IDENTITY",
+      "status": "PASS",
+      "evidence": "Native read-only repository metadata identified branch refs/heads/codex/autonomous-research-control-plane-v3 with HEAD and local origin both 6ae06e2bc16647824595f03121fac814e31a7462, matching the Manager-accepted 6ae06e2b identity. No Git command or mutation was used."
+    },
+    {
+      "name": "NON_NULL_INPUT_HASH_CLOSURE",
+      "status": "FAIL",
+      "evidence": "Exactly 16 non-null inputs were checked as unique regular non-reparse files. Fifteen matched. docs/autonomous-research-charter.md mismatched: expected 1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1; actual 902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8. Stop condition 1 therefore required BLOCKED with no partial conclusion."
+    },
+    {
+      "name": "SEALED_EVIDENCE_ANALYSIS",
+      "status": "MISSING_PROOF",
+      "evidence": "Not performed. After the input mismatch, no listed sealed artifact content was opened and no branch disposition, causal fingerprint, failed dimension, duplicate guard, open evidence question, or cross-study comparison was derived."
+    },
+    {
+      "name": "PERFORMANCE_AND_OPPORTUNITY_COST",
+      "status": "MISSING_PROOF",
+      "evidence": "No PnL, drawdown, breadth, path risk, holding age, terminal inventory, or matched-capital value was recomputed or compared. The only established opportunity-cost fact is procedural: fail-closed validation avoided spending analysis capacity on a task whose frozen governance input drifted. Immediate PnL and drawdown effect is zero."
+    },
+    {
+      "name": "ZERO_WRITE_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No repository or .research-state file was written; no network, runner, OOS, Research MCP, schedule, timer, writer, server, canonical, Trading, database, order, fund, SHADOW, PAPER, or LIVE action occurred. The accepted checkout remained unmodified."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "The historical branch dispositions, causal fingerprints, duplicate guards, and open evidence questions remain MISSING_PROOF because sealed evidence analysis was prohibited after the governance hash mismatch.",
+    "It is unknown whether the frozen task intended an older charter byte set or was dispatched from the wrong source commit; this result does not infer either cause.",
+    "All historical performance, economic value, and future research-throughput benefit remain MISSING_PROOF."
+  ],
+  "recommended_next_action": "Manager should freeze a corrected successor task against exactly one committed charter byte set and revalidate every non-null input before redispatching this same READ_ONLY audit; do not modify this sealed task or infer any historical branch disposition from the blocked attempt.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-post-shock-volatility-persistence-v1",
+  "issued_at": "2026-08-11T09:34:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Test exactly one pre-registered pre-2025 BTC risk mechanism: whether a complete UTC day whose close-to-close absolute return is at least 3 percent is followed by persistently elevated next-day 24-hour realized variance relative to a fixed trailing 20-complete-day pre-shock baseline. Use only the exact sealed 2019-2024 H1 corpus and frozen shock definition. Evaluate fixed Design 2019-2022 and Validation 2023-2024 windows, both shock directions, annual breadth, calendar breadth and concentration, then retain or close only this historical volatility-persistence prior. Do not select a risk budget, position size, entry, exit, factor transform, strategy, hypothesis, candidate, OOS path or Trading action, and do not access post-2024 or forward evidence.",
+  "canonical_research_status": "2026-08-11T09:25:25Z_SERVER_CANONICAL_V10_ONE_SCHEDULE_ACTIVE_R1_4_OF_90_LAG_1_R2_0_OF_14_QUEUES_IDLE_NO_CANDIDATE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "05663da57a35a705ea2aec5c4349ffbe412ccb0acc1deb30fdeacd33cadc78cb"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/shock_attribution.py",
+      "sha256": "b320eb759f8f0017e1528c1ab70acabe7f9e006a9ecb192b02e2c140104314dd"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-historical-post-shock-stability-audit.v1.json",
+      "sha256": "2c2d200d4a6a29808b35ec2c80442ad9288867243b116fdd197f1308973c84a7"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.dra-volatility-management-primary-prior-audit.v3.json",
+      "sha256": "b20433cf61ed3f8dbbea589618c892467a1a76d1326c7f72b9ce596c1a4fa3d0"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Manager read canonical OAuth Research MCP status at 2026-08-11T09:25:25Z: timer CODEX_CLOUD_OPS_ONLY; state SERVER_CANONICAL; policy READY V3; Worker READY release 20260811T091340Z at clean source commit 4d4aa0b329d9e4dcb68148a2f05971817ef26348; exact V10 schedule contract READY with count 1; platform readback separately proved the same schedule ACTIVE; all queues IDLE; R1 4/90 with one missed capture window; R2 0/14 waiting for the current UTC day. This Local task authorizes no server or canonical refresh or write.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Fixed event and windows before outcome access: shock day D qualifies only when abs(close[D,23:00] / close[D-1,23:00] - 1) is at least Decimal 0.0300. Design is [2019-01-01T00:00:00Z, 2023-01-01T00:00:00Z); Validation is [2023-01-01T00:00:00Z, 2025-01-01T00:00:00Z). The 20 baseline days, shock day and next outcome day must all be complete and wholly inside the same window. Validation is historical validation, never clean OOS.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Fixed volatility formula before outcome access: hourly simple return r[t] equals close[t] / close[t-1] - 1, including each UTC day's first hour against the preceding day's 23:00 close. RV24(day) equals the Decimal sum of the 24 squared hourly simple returns. BaselineRV20(D) equals the ordinary median of RV24 for exactly D-20 through D-1. OutcomeRatio(D) equals RV24(D+1) / BaselineRV20(D). Use Decimal precision at least 50; never use log returns, ATR, high-low estimators, annualization, volatility targeting or another lookback.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Frozen positive rule: retain only when Design has at least 100 episodes with at least 40 UP and 40 DOWN, Validation has at least 40 with at least 15 UP and 15 DOWN, both windows have at least 36 and 18 distinct target UTC months respectively, maximum single-month event share is at most 0.10 in each window, overall median OutcomeRatio is at least 1.10 in both windows, UP and DOWN medians are each greater than 1.00 in both windows, the share with OutcomeRatio greater than 1 is at least 0.55 in both windows, and annual overall median OutcomeRatio is greater than 1 in at least three of four Design years and both Validation years. Any valid gate failure closes the prior; no neighbor or rescue variant is allowed.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The earlier literature audit stopped at PRIMARY_SOURCE_PRIOR_INSUFFICIENT because one exact NBER full text was inaccessible. Do not relabel that literature result as support. This task stands only on the frozen historical event study and may retain at most HISTORICAL_BTC_UTC_DAY_3PCT_NEXT_DAY_VOLATILITY_PERSISTENCE_PRIOR for later untouched forward confirmation; it cannot define DRA participation or any executable risk-control rule.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "READ_EXACT_SEALED_PRE2025_H1_CORPUS",
+    "VALIDATE_H1_ROW_AND_CLOCK_INTEGRITY",
+    "AGGREGATE_COMPLETE_UTC_DAYS_IN_MEMORY",
+    "COMPUTE_FIXED_3PCT_SHOCK_EVENTS",
+    "COMPUTE_FIXED_RV24_BASELINE_AND_OUTCOME_RATIO",
+    "EVALUATE_FIXED_DESIGN_AND_VALIDATION_WINDOWS",
+    "COMPUTE_DIRECTION_ANNUAL_MONTHLY_BREADTH",
+    "COMPUTE_DESCRIPTIVE_COUNTS_SHARES_AND_MEDIANS",
+    "CLASSIFY_HISTORICAL_VOLATILITY_PERSISTENCE_PRIOR",
+    "ASSESS_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+    "VALIDATE_LOCAL_TASK",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "UNLISTED_ARTIFACT_OR_DATA_ACCESS",
+    "POST2024_OR_FORWARD_EVIDENCE_ACCESS",
+    "CURRENT_SERVER_STATUS_REFRESH_OR_NETWORK_ACCESS",
+    "HYPOTHESIS_MANIFEST_CANDIDATE_OR_ADAPTER_REGISTRATION",
+    "RISK_BUDGET_POSITION_SIZE_ENTRY_EXIT_OR_STRATEGY_AUTHORING",
+    "STRATEGY_EQUITY_CURVE_PNL_OR_DRAWDOWN_COMPUTATION",
+    "THRESHOLD_LOOKBACK_FORMULA_WINDOW_OR_GATE_TUNING",
+    "NEIGHBORING_PARAMETER_EVENT_OR_VOLATILITY_ESTIMATOR_SEARCH",
+    "EXISTING_FORWARD_CONTRACT_EVALUATOR_OR_SOURCE_CHANGE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "JAVA_MAVEN_SPRING_OR_TRADING_RUNNER_EXECUTION",
+    "SECOND_LOCAL_TIMER",
+    "LITERATURE_PRIOR_RELABELLING_OR_SUBSTITUTION"
+  ],
+  "expected_outputs": [
+    "EXACT_TASK_DISPATCH_AND_INPUT_VALIDATION",
+    "H1_CORPUS_INTEGRITY",
+    "FIXED_EVENT_WINDOW_AND_VOLATILITY_FORMULA_CONFIRMATION",
+    "DESIGN_AND_VALIDATION_EPISODE_INVENTORY",
+    "OUTCOME_RATIO_MEDIANS_OVERALL_AND_BY_DIRECTION",
+    "OUTCOME_RATIO_GREATER_THAN_ONE_COUNTS_AND_SHARES",
+    "ANNUAL_OUTCOME_RATIO_MEDIAN_BREADTH_2019_2024",
+    "UTC_MONTH_BREADTH_AND_MAX_MONTH_SHARE",
+    "HISTORICAL_VOLATILITY_PERSISTENCE_DISPOSITION",
+    "PERFORMANCE_DRAWDOWN_AND_FORWARD_CLAIM_BOUNDARY",
+    "MISSING_PROOF_REGISTER",
+    "OPPORTUNITY_COST",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and its Manager performance dispatch before analysis. Re-hash every non-null input, require the Manager-provided branch and clean HEAD to equal local origin, and require every path to be contained, regular, non-link and non-reparse. Any mismatch is HISTORICAL_VOLATILITY_SAMPLE_OR_INTEGRITY_INSUFFICIENT with zero partial conclusion.",
+    "Read only the listed repository paths and the one exact sealed TSV. Do not inspect Local inbox or outbox history, adjacent .research-state files, canonical artifacts, current server state, network data, post-2024 bars, forward R1 or R2 outcomes or OOS.",
+    "Require the sealed corpus SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd, exactly 52,608 headerless seven-field rows, finite positive OHLC, finite nonnegative volume, exact one-hour bars and complete continuity from 2019-01-01T00:00:00Z through 2025-01-01T00:00:00Z. Any failure is insufficient evidence.",
+    "Aggregate only complete groups of 24 contiguous hourly bars aligned to UTC midnight. Require every day to have exactly 24 bars and preserve Decimal source values. Do not fill, interpolate, backfill, drop or repair a day.",
+    "Use only the frozen close-to-close shock formula and inclusive absolute threshold 0.0300. Do not inspect 2 percent, 4 percent, intraday, high-low, open-close, rolling-24-hour, normalized or news-conditioned alternatives.",
+    "Use only the frozen hourly simple-return RV24, trailing 20-day median baseline and next-complete-day outcome ratio. Do not inspect log returns, ATR, high-low estimators, other lookbacks, other horizons, annualization, winsorization, clipping, ranking or normalization.",
+    "Keep Design 2019-2022 and Validation 2023-2024 fixed. Require all 20 baseline days, D and D+1 wholly inside one window. Do not cross a boundary, pool windows for selection or call Validation clean OOS.",
+    "Create one in-memory episode per unique qualifying shock day. Consecutive shocks remain visible and may overlap a prior event's outcome; report adjacent-target count rather than deleting, spacing or selecting clustered events.",
+    "Require every RV24 and baseline to be finite and strictly positive. A zero, negative, missing, non-finite or non-reproducible value is integrity insufficiency; do not silently exclude the event.",
+    "Report each window's episode count, UP/DOWN counts, distinct target months, maximum month share, median OutcomeRatio overall/UP/DOWN, count and share strictly above one, adjacent-target count and every frozen positive gate.",
+    "Report each target year 2019 through 2024 with event count, UP/DOWN counts, median OutcomeRatio and count/share above one. A missing or empty year is explicit and fails the annual breadth rule; do not pool or repair it.",
+    "Return HISTORICAL_VOLATILITY_PERSISTENCE_PRIOR_RETAIN only if every count, month, median, direction, share and annual gate in the frozen positive-rule task message passes exactly. Do not add significance, confidence, causal or economic criteria after observing results.",
+    "Return HISTORICAL_VOLATILITY_PERSISTENCE_PRIOR_CLOSE for any valid sample that fails one or more frozen positive gates. Do not tune, invert, split regimes, change a boundary, choose one shock direction or create a rescue variant.",
+    "Return exactly one of HISTORICAL_VOLATILITY_PERSISTENCE_PRIOR_RETAIN, HISTORICAL_VOLATILITY_PERSISTENCE_PRIOR_CLOSE or HISTORICAL_VOLATILITY_SAMPLE_OR_INTEGRITY_INSUFFICIENT. Do not invent another disposition.",
+    "A retained prior proves only pre-2025 descriptive risk-state persistence. It does not authorize DRA participation, a risk budget, size, side, entry, exit, factor, hypothesis, candidate, manifest, adapter, OOS, deployment or Trading. A closed result closes this exact historical mechanism family.",
+    "Do not compute strategy PnL, realized or unrealized PnL, drawdown, utilization, holdings, fills, fees, slippage, turnover, capacity, Sharpe, Sortino, leverage, sizing, trade mapping or matched-capital results. Immediate PnL and drawdown effect are zero; every economic claim remains MISSING_PROOF.",
+    "For a retained prior, recommend at most one separately frozen forward diagnostic-contract task that reuses the existing complete-day source and adds no timer or source; for close, recommend no forward implementation. Do not implement either path in this task.",
+    "Return exactly one schema-valid local-research-result JSON bound to this task SHA-256, with empty artifacts and files_changed, source_git_dirty_before and after false, all safety assertions false, concrete PASS/FAIL/MISSING_PROOF checks, uncertainty, opportunity cost and one bounded next action.",
+    "Stop without requesting permission if any action would require an unlisted file, write, dependency installation, network, server call, post-2024 data, gate change, adjacent analysis, candidate action, OOS or Trading action. Preserve the exact missing proof instead."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

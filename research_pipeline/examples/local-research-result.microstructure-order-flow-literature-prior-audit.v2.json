@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-order-flow-literature-prior-audit-v2",
+  "task_sha256": "b5afbcb5494b96fc9d23ea3d91e43e316648f83a8bb8ff2f4e4518fb033b79a4",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T07:24:00Z",
+  "completed_at": "2026-08-11T07:29:20Z",
+  "source_git_commit": "f9a4ede6e53957ea81542abe7aa2b0517c5bdd78",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "PRIMARY_SOURCE_PRIOR_INSUFFICIENT. The three-paper audit cannot be sealed because primary source B was not readable through its DOI, publisher, author-linked publisher route, or author-posted paper route; all returned access denial rather than primary content, and search snippets were excluded. Source A establishes contemporaneous short-interval order-flow price impact in equities, not forward alpha. Source C establishes multi-venue Bitcoin leader-lag predictability at 500/1000 ms, not a single OKX BTC-USDT spot claim at 15/60 minutes. The frozen V3 next-complete-minute entry, matched controls, simplest-first tier selection, 15/60-minute screen, and separate later 30-bps economic route correctly guard the identified causal and economic gaps, but literature support for the exact OKX transfer remains unsealed. Immediate PnL and drawdown effects are zero.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task and dispatch validators returned VALID with exact hashes b5afbcb5494b96fc9d23ea3d91e43e316648f83a8bb8ff2f4e4518fb033b79a4 and 1f883f9c02030d49f5fc94d776cf3691cfbfd9ce62499e22e646a31075d130e8. The 11-stop canonical SHA-256 was 087bb933919e0be49985ca127f68ad52c3440120947f031c913b27202ae533ac. Branch, HEAD, origin, cleanliness, containment, regular-file/non-reparse type, and all nine non-null repository hashes matched."
+    },
+    {
+      "name": "PRIMARY_SOURCE_A_CONTEMPORANEOUS_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The full primary paper [Cont, Kukanov and Stoikov](https://arxiv.org/pdf/1011.6402) models same-interval short-horizon mid-price changes as a function of concurrent order-flow imbalance and depth, explicitly describing instantaneous/contemporaneous impact. This supports a price-formation mechanism prior only and is not evidence of later 15/60-minute tradable alpha."
+    },
+    {
+      "name": "PRIMARY_SOURCE_B_ACCESS_AND_SCOPE",
+      "status": "MISSING_PROOF",
+      "evidence": "The exact [DOI](https://doi.org/10.1016/j.finmar.2026.101047), publisher page, author-linked publisher route, and author-posted paper route returned access denial rather than readable primary content. The [University of Guelph author page](https://www.uoguelph.ca/profile/nikola-gradojevic) confirms the paper identity and publisher link only. Search-result snippets were not used. Therefore its daily cross-sectional world-order-flow design and predictive findings were not independently audited."
+    },
+    {
+      "name": "PRIMARY_SOURCE_C_MULTI_VENUE_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The full primary paper [Albers et al.](https://arxiv.org/pdf/2108.09750) uses microstructural features across 14 fragmented Bitcoin markets, constructs a leader-lagger network, and evaluates 500/1000 ms future returns. It directly supports a cross-market asynchronous-information mechanism, while leaving a single OKX spot venue and 15/60-minute transfer MISSING_PROOF."
+    },
+    {
+      "name": "CURRENT_V3_CONTRACT_ALIGNMENT",
+      "status": "PASS",
+      "evidence": "Frozen repository bytes separate signal-minute completion from NEXT_COMPLETE_MINUTE_OPEN, require point-in-time completeness and at least 80% strictly earlier same-minute matched controls, screen fixed 15- and 60-minute horizons, select only the first passing simplest tier, prohibit outcome-driven tier/horizon/threshold changes, and defer fee/slippage/PnL evidence to a separate 30-bps economic route. No contract byte was changed or proposed."
+    },
+    {
+      "name": "PERMITTED_CAUSAL_CLAIM_LABEL",
+      "status": "PASS",
+      "evidence": "Permitted label: PRIMARY_LITERATURE_MECHANISM_PLAUSIBLE_BUT_EXACT_OKX_15_60_MINUTE_FORWARD_TRANSFER_UNSEALED. Neither contemporaneous impact nor cross-venue sub-second prediction is labelled single-venue OKX forward alpha."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+      "status": "MISSING_PROOF",
+      "evidence": "Exact OKX predictive value, statistical significance, cross-venue causal origin, fee-adjusted PnL, drawdown, 30-bps survivability, fills, slippage, capacity, and deployment behavior were not established. No performance value was recomputed or inferred."
+    },
+    {
+      "name": "OPPORTUNITY_COST_ASSESSMENT",
+      "status": "PASS",
+      "evidence": "Failing closed avoids treating contemporaneous equity impact or multi-venue sub-second cross-impact as proof for one OKX spot 15/60-minute lane. The cost is that the prior cannot be closed before evidence interpretation until source B is directly auditable; preserving the frozen V3 gates avoids both byte churn and outcome-driven rescue."
+    },
+    {
+      "name": "FINAL_ZERO_CHANGE_SAFETY_GATE",
+      "status": "PASS",
+      "evidence": "Final branch, HEAD, and origin remained codex/autonomous-research-control-plane-v3 at f9a4ede6e53957ea81542abe7aa2b0517c5bdd78; git status remained clean. No repository, research-state, server, canonical, schedule, OOS, or Trading mutation occurred."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "Primary source B content was inaccessible; its task-described daily cross-sectional world-order-flow scope and findings were not independently verified from primary text.",
+    "Sources A and C do not establish that one OKX BTC-USDT spot venue carries predictive information for 15- or 60-minute returns after the frozen entry and control rules.",
+    "Cross-venue causal origin, statistical significance, fees, slippage, fills, capacity, PnL, drawdown, OOS behavior, and activation remain MISSING_PROOF."
+  ],
+  "recommended_next_action": "Manager may freeze one READ_ONLY retry of this same three-paper prior audit only after primary source B full text or a readable primary publisher/author page is directly accessible; preserve every V3 byte and do not interpret outcomes, create a hypothesis/candidate, open OOS, deploy, or trade in that retry.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

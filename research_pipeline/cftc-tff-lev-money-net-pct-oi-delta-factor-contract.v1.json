@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "contract_id": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_DELTA_FACTOR_CONTRACT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "document_status": "OFFLINE_EVALUATOR_ONLY_NOT_REGISTERED",
+  "factor_identity": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_168H_V1",
+  "source_binding": {
+    "source_label": "CFTC_CME_BITCOIN_TFF_FUTURES_ONLY_V2",
+    "observation_state": "NEW_REPORT_SEALED",
+    "source_contract_sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5",
+    "source_contract_schema_sha256": "f8daf4c6f9014c4874bb2c62865597c764ffd46833b4b31222fbc20617013a73",
+    "observation_schema_sha256": "44d46dc857dab5d874f6b730060c798266e6ed386597a7ab18245274ee98f53b"
+  },
+  "ordered_fields": [
+    "Market_and_Exchange_Names", "As_of_Date_In_Form_YYMMDD", "Report_Date_as_MM_DD_YYYY", "CFTC_Contract_Market_Code", "CFTC_Market_Code", "CFTC_Region_Code", "CFTC_Commodity_Code", "Open_Interest_All", "Dealer_Positions_Long_All", "Dealer_Positions_Short_All", "Dealer_Positions_Spread_All", "Asset_Mgr_Positions_Long_All", "Asset_Mgr_Positions_Short_All", "Asset_Mgr_Positions_Spread_All", "Lev_Money_Positions_Long_All", "Lev_Money_Positions_Short_All", "Lev_Money_Positions_Spread_All", "Other_Rept_Positions_Long_All", "Other_Rept_Positions_Short_All", "Other_Rept_Positions_Spread_All", "Tot_Rept_Positions_Long_All", "Tot_Rept_Positions_Short_All", "NonRept_Positions_Long_All", "NonRept_Positions_Short_All", "Change_in_Open_Interest_All", "Change_in_Dealer_Long_All", "Change_in_Dealer_Short_All", "Change_in_Dealer_Spread_All", "Change_in_Asset_Mgr_Long_All", "Change_in_Asset_Mgr_Short_All", "Change_in_Asset_Mgr_Spread_All", "Change_in_Lev_Money_Long_All", "Change_in_Lev_Money_Short_All", "Change_in_Lev_Money_Spread_All", "Change_in_Other_Rept_Long_All", "Change_in_Other_Rept_Short_All", "Change_in_Other_Rept_Spread_All", "Change_in_Tot_Rept_Long_All", "Change_in_Tot_Rept_Short_All", "Change_in_NonRept_Long_All", "Change_in_NonRept_Short_All", "Pct_of_Open_Interest_All", "Pct_of_OI_Dealer_Long_All", "Pct_of_OI_Dealer_Short_All", "Pct_of_OI_Dealer_Spread_All", "Pct_of_OI_Asset_Mgr_Long_All", "Pct_of_OI_Asset_Mgr_Short_All", "Pct_of_OI_Asset_Mgr_Spread_All", "Pct_of_OI_Lev_Money_Long_All", "Pct_of_OI_Lev_Money_Short_All", "Pct_of_OI_Lev_Money_Spread_All", "Pct_of_OI_Other_Rept_Long_All", "Pct_of_OI_Other_Rept_Short_All", "Pct_of_OI_Other_Rept_Spread_All", "Pct_of_OI_Tot_Rept_Long_All", "Pct_of_OI_Tot_Rept_Short_All", "Pct_of_OI_NonRept_Long_All", "Pct_of_OI_NonRept_Short_All", "Traders_Tot_All", "Traders_Dealer_Long_All", "Traders_Dealer_Short_All", "Traders_Dealer_Spread_All", "Traders_Asset_Mgr_Long_All", "Traders_Asset_Mgr_Short_All", "Traders_Asset_Mgr_Spread_All", "Traders_Lev_Money_Long_All", "Traders_Lev_Money_Short_All", "Traders_Lev_Money_Spread_All", "Traders_Other_Rept_Long_All", "Traders_Other_Rept_Short_All", "Traders_Other_Rept_Spread_All", "Traders_Tot_Rept_Long_All", "Traders_Tot_Rept_Short_All", "Conc_Gross_LE_4_TDR_Long_All", "Conc_Gross_LE_4_TDR_Short_All", "Conc_Gross_LE_8_TDR_Long_All", "Conc_Gross_LE_8_TDR_Short_All", "Conc_Net_LE_4_TDR_Long_All", "Conc_Net_LE_4_TDR_Short_All", "Conc_Net_LE_8_TDR_Long_All", "Conc_Net_LE_8_TDR_Short_All", "Contract_Units", "CFTC_Contract_Market_Code_Quotes", "CFTC_Market_Code_Quotes", "CFTC_Commodity_Code_Quotes", "CFTC_SubGroup_Code", "FutOnly_or_Combined"
+  ],
+  "formula": {
+    "fields": ["Pct_of_OI_Lev_Money_Long_All", "Pct_of_OI_Lev_Money_Short_All"],
+    "ascii_trim": "OUTER_ASCII_SPACE_ONCE",
+    "decimal_pattern": "^[+-]?(?:[0-9]+(?:[.][0-9]+)?|[.][0-9]+)$",
+    "input_bounds": ["0", "100"],
+    "level_formula": "long_pct-short_pct",
+    "level_bounds": ["-100", "100"],
+    "factor_formula": "current_level-prior_level",
+    "factor_bounds": ["-200", "200"],
+    "zero_transition": "NO_FACTOR_ACTION",
+    "positive_sign": 1,
+    "negative_sign": -1,
+    "forbidden_transforms": ["INVERT", "THRESHOLD", "NORMALIZE", "WINSORIZE", "RANK", "LAG", "SMOOTH", "SUBSTITUTE"]
+  },
+  "eligibility": {
+    "report_gap_days": 7,
+    "predecessor_rule": "CURRENT_PREDECESSOR_EQUALS_PRIOR_CHAIN",
+    "decision_rule": "DECISION_STRICTLY_AFTER_RECEIPT",
+    "anchor_symbol": "BTCUSDT",
+    "anchor_interval": "1h",
+    "anchor_rule": "FIRST_COMPLETE_CANONICAL_CLOSE_STRICTLY_AFTER_DECISION",
+    "anchor_truth": "CALLER_ASSERTED_SYNTHETIC_ONLY_REAL_MISSING_PROOF"
+  },
+  "outcome": {
+    "interval_count": 168,
+    "interval_seconds": 3600,
+    "contiguity": "EXACT_ANCHOR_PLUS_1H_THROUGH_PLUS_168H",
+    "raw_return": "last_close/anchor_close-1",
+    "signed_response": "factor_sign*raw_return",
+    "path_risk": "ABSOLUTE_SIGN_ADJUSTED_MAXIMUM_ADVERSE_EXCURSION"
+  },
+  "sample_policy": {
+    "sort": "ANCHOR_THEN_CURRENT_CHAIN",
+    "one_per_current_report": true,
+    "overlap_rule": "LATER_ANCHOR_BEFORE_PRIOR_KEPT_ANCHOR_PLUS_168H",
+    "overlap_disposition": "OVERLAPPING_WINDOW_EXCLUDED"
+  },
+  "review_gates": {
+    "minimum_episodes": 26,
+    "minimum_positive_factors": 8,
+    "minimum_negative_factors": 8,
+    "quartile_formula": "floor(4*i/n)+1",
+    "minimum_per_quartile": 4,
+    "minimum_anchor_months": 6,
+    "maximum_month_share": "0.25",
+    "median_signed_response": ">0",
+    "positive_factor_median_raw_return": ">0",
+    "negative_factor_median_raw_return": "<0",
+    "sign_test": "EXACT_ONE_SIDED_NONZERO_P_LE_0.10",
+    "maximum_episode_absolute_share": "0.20",
+    "reported_path_statistics": ["MEDIAN_ABS_RETURN", "NEAREST_RANK_P90_ABS_RETURN", "MEDIAN_ABS_SIGN_ADJUSTED_MAE", "NEAREST_RANK_P90_ABS_SIGN_ADJUSTED_MAE"]
+  },
+  "dispositions": ["WAIT_FOR_MORE_UNTOUCHED_EVIDENCE", "CFTC_TFF_LEV_MONEY_NET_PCT_OI_DELTA_POSITIVE_FOR_MANAGER_REVIEW", "CFTC_TFF_LEV_MONEY_NET_PCT_OI_DELTA_ROUTE_CLOSE"],
+  "architecture": {
+    "mode": "PURE_OFFLINE_SYNTHETIC_EVALUATOR",
+    "filesystem_input": "ADJACENT_CONTRACT_AND_SCHEMAS_ONLY",
+    "output_write": "DENY", "network": "DENY", "subprocess": "DENY", "environment_credentials": "DENY", "database": "DENY", "research_store": "DENY", "heartbeat": "DENY", "schedule": "DENY", "queue": "DENY", "mcp": "DENY", "spring": "DENY", "java": "DENY", "trading": "DENY"
+  },
+  "readiness": {
+    "implementation_capability_only": true,
+    "source_continuity_proven": false,
+    "real_first_close_proven": false,
+    "predictive_value_proven": false,
+    "economic_value_proven": false,
+    "candidate_authorized": false,
+    "oos_authorized": false,
+    "trading_authorized": false,
+    "immediate_pnl_effect": "ZERO",
+    "immediate_drawdown_effect": "ZERO"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-cftc-tff-lev-money-net-pct-oi-delta-evaluator-v1",
+  "task_sha256": "32d3174d06a8b938141b31434e17576eaf8b2d852aec6313cd3e5bf7e4ec8550",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-10T16:34:03Z",
+  "completed_at": "2026-08-11T00:43:10Z",
+  "source_git_commit": "2f506844aa3c90b56d86b34a6f36c4a205627cf5",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": true,
+  "summary": "CFTC_TFF_LEV_MONEY_FACTOR_EVALUATOR_READY. Exactly five new offline-only files freeze the preregistered CFTC_TFF_LEV_MONEY_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_168H_V1 contract, closed Draft 2020-12 contract and evaluation schemas, a pure hash-bound evaluator and focused synthetic tests. The evaluator validates exact V2 source/schema hashes, the complete 87-field canonical row and observation seals before selecting only Leveraged Money long/short percent-of-OI fields; applies exact Decimal net-level and week-over-week delta arithmetic; excludes zero factors; enforces seven-day predecessor continuity, strictly post-decision anchor assertion, 168 contiguous hourly closes, deterministic episode hashes and nonoverlap; and freezes breadth, exact one-sided sign, concentration and path-risk gates without inversion. Manager review strengthened the validator so the entire document is deterministically recomputed from sealed transitions and rejects identity, statistics, gate or disposition drift. All 13 focused tests and executable Draft 2020-12 positive/negative validation pass. Immediate fee-adjusted PnL and drawdown effects remain zero. No real report, price, return, state, server, network, candidate, OOS or Trading action was accessed or changed. This capability is NON_COUNTING.",
+  "checks": [
+    {"name":"SOURCE_IDENTITY_AND_PREFLIGHT","status":"PASS","evidence":"Branch codex/autonomous-research-control-plane-v3, HEAD and origin matched 2f506844aa3c90b56d86b34a6f36c4a205627cf5 before implementation. Worktree was clean and all five authorized targets were absent."},
+    {"name":"TASK_DISPATCH_INTENT_VALIDATION","status":"PASS","evidence":"Task SHA 32d3174d06a8b938141b31434e17576eaf8b2d852aec6313cd3e5bf7e4ec8550, dispatch SHA 6ee07743962a3531a4f2db5ff72500632b587536359a7af9eb753b28f584c861 and intent SHA 45b767b07b5d02e9edc9c0188291f7f0329d4bbdce6c13b7a40a0c83368f3322 passed repository validators with NON_COUNTING/NON_COUNTING_NOT_APPLICABLE and every disposition EXCLUDE."},
+    {"name":"STOP_AND_INPUT_CLOSURE","status":"PASS","evidence":"All 24 non-null inputs were exact repository-contained regular files with matching SHA-256. The 22 stop conditions hashed to e3416395863c9c04b72c3a5b34ad0771d0313226ccc1255fa84a1222b3c8f561."},
+    {"name":"PREREGISTRATION_LIFECYCLE","status":"PASS","evidence":"The predecessor task, dispatch, result, intent and Manager acceptance form a valid sealed lifecycle with COMPLETED disposition CFTC_TFF_LEV_MONEY_NET_PCT_OI_DELTA_PREREG_READY and classification EXCLUDE."},
+    {"name":"EXACT_FIVE_FILE_SCOPE","status":"PASS","evidence":"Implementation changed exactly the five authorized new paths and no tracked pre-existing byte, sixth implementation path, schedule, heartbeat, state or deployment file."},
+    {"name":"CONTRACT_AND_SCHEMA_CLOSURE","status":"PASS","evidence":"Both schemas declare Draft 2020-12 and close every object. The factor contract validates against its schema, binds the exact V2 hashes and 87-field ordered set, selects only the two frozen fields and preserves zero immediate PnL/drawdown."},
+    {"name":"SEALED_V2_OBSERVATION_AND_ROW_BINDING","status":"PASS","evidence":"The evaluator checks closed V2 observation structure, exact source/schema hashes, NEW_REPORT_SEALED, raw/record/canonical-row/predecessor/chain seals, whole-second timestamps, New York release offset, bounded identifier grammar, non-boolean byte sizes, fixed market identity and the recomputed canonical-row SHA before factor selection."},
+    {"name":"DECIMAL_FORMULA_AND_ZERO_TIE","status":"PASS","evidence":"Outer ASCII-space trim, the frozen full-string decimal grammar, exact Decimal arithmetic and [0,100], [-100,100], [-200,200] bounds are enforced. Zero emits NO_FACTOR_ACTION without outcome access; invalid, suppressed, exponent, comma and non-finite forms reject."},
+    {"name":"CAUSAL_ANCHOR_AND_168H_PATH","status":"PASS","evidence":"Tests prove exact seven-day predecessor continuity, decision strictly after receipt, caller-asserted first complete BTCUSDT 1h close strictly after decision, exactly 168 contiguous positive-close intervals, fixed raw/signed return and sign-adjusted adverse-excursion calculations."},
+    {"name":"NONOVERLAP_AND_FIXED_REVIEW_GATES","status":"PASS","evidence":"Deterministic ordering and overlap exclusion, 26/8/8 breadth, chronological quartiles, six-month breadth, <=0.25 month share, exact one-sided nonzero sign test, medians, <=0.20 episode concentration, P90 path metrics, WAIT, positive-review and terminal route-close dispositions are covered."},
+    {"name":"DETERMINISTIC_DOCUMENT_RECOMPUTATION","status":"PASS","evidence":"Manager hardening makes validate_evaluation_document reconstruct the complete document from sealed transitions and compare exact bytes semantically. Tampered schema identity, statistics, gates, disposition or episode/package hashes fail closed."},
+    {"name":"FOCUSED_SYNTHETIC_TESTS","status":"PASS","evidence":"Manager reran all 13 focused tests with jsonschema available; 13 passed with no skip or failure using only synthetic in-memory inputs."},
+    {"name":"DRAFT_2020_12_EXECUTABLE_VALIDATION","status":"PASS","evidence":"Manager ran Draft202012Validator.check_schema for both schemas, validated the contract and a 26-transition positive evaluation, and confirmed extra root properties fail for both documents."},
+    {"name":"PYTHON_COMPILE_AND_IMPORT","status":"PASS","evidence":"Evaluator and test modules compile and import successfully with bytecode cache redirected outside the repository."},
+    {"name":"FORBIDDEN_BOUNDARY_SCAN","status":"PASS","evidence":"No network, credential, subprocess, database, ResearchStore, heartbeat, scheduler, queue, MCP, Spring, Java or Trading integration is present. The evaluator reads only its three adjacent frozen package files and writes no output."},
+    {"name":"DIFF_AND_ARTIFACT_HASHES","status":"PASS","evidence":"git diff --check passed; exact final five SHA-256 values are recorded in artifacts. The three JSON and two Python files parse successfully."},
+    {"name":"ZERO_REAL_DATA_AND_PERFORMANCE_EFFECT","status":"PASS","evidence":"No real CFTC report, BTC price/return, .research-state, Local message store, server, canonical state, network, OOS, candidate or Trading surface was accessed. Immediate fee-adjusted PnL and drawdown effects are exactly ZERO."},
+    {"name":"LOCAL_RESULT_VALIDATION","status":"PASS","evidence":"This result is bound to the exact task SHA and passes the repository local-research-result validator and Draft 2020-12 result schema."}
+  ],
+  "artifacts": [
+    {"path":"research_pipeline/cftc-tff-lev-money-net-pct-oi-delta-factor-contract.v1.schema.json","sha256":"452dacaee85d00d125e66c75decf251e1572b05279abd39e0c233c9d4466cc1b"},
+    {"path":"research_pipeline/cftc-tff-lev-money-net-pct-oi-delta-factor-contract.v1.json","sha256":"7592f347d1948193d7c39a70e4a838a0516643de95e57870a8542da505274d50"},
+    {"path":"research_pipeline/cftc-tff-lev-money-net-pct-oi-delta-evaluation.v1.schema.json","sha256":"79ee846660aa02637f82fc2ecbb196f8ce981e5f937a337ae59578db832b85c6"},
+    {"path":"research_pipeline/cftc_tff_lev_money_net_pct_oi_delta_evaluator_v1.py","sha256":"a0a9f3c9d1b190e1cac21dfd9255b7d19b7f0c88afa48c482744c0d5da78eb70"},
+    {"path":"research_pipeline/tests/test_cftc_tff_lev_money_net_pct_oi_delta_evaluator_v1.py","sha256":"e4b6521a5069f33805988ac6880fb692538af39df34ed97c0601806e278f3457"}
+  ],
+  "files_changed": [
+    "research_pipeline/cftc-tff-lev-money-net-pct-oi-delta-factor-contract.v1.schema.json",
+    "research_pipeline/cftc-tff-lev-money-net-pct-oi-delta-factor-contract.v1.json",
+    "research_pipeline/cftc-tff-lev-money-net-pct-oi-delta-evaluation.v1.schema.json",
+    "research_pipeline/cftc_tff_lev_money_net_pct_oi_delta_evaluator_v1.py",
+    "research_pipeline/tests/test_cftc_tff_lev_money_net_pct_oi_delta_evaluator_v1.py"
+  ],
+  "uncertainty": [
+    "MISSING_PROOF: actual CFTC source continuity, capture, registration, intake, deployment and canonical integration remain unauthorized and unproven.",
+    "MISSING_PROOF: the assertion that an anchor is the real first complete canonical BTCUSDT hourly close strictly after decision_at is proven only by synthetic fixtures.",
+    "MISSING_PROOF: real predictive value, significance, matched-capital PnL, drawdown, fees, slippage, turnover, capacity, annual/regime breadth and stability remain untested.",
+    "MISSING_PROOF: at least 26 nonzero nonoverlapping weekly transitions are required before positive review; candidate readiness and OOS authority remain denied."
+  ],
+  "recommended_next_action": "Manager should seal this NON_COUNTING evaluator capability and keep the CFTC source disabled until a separate opportunity-cost and sole-clock activation decision authorizes real forward capture. Continue R2 evidence accumulation independently. Do not capture or evaluate real data, register a source, create a hypothesis/candidate, open OOS, deploy or touch Trading in this task.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

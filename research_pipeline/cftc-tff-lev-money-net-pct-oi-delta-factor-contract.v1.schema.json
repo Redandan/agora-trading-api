@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/cftc-tff-lev-money-net-pct-oi-delta-factor-contract.v1.schema.json",
+  "title": "CFTC TFF Leveraged Money Net Percent OI Delta Factor Contract V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "contract_id", "authorization", "document_status", "factor_identity", "source_binding", "ordered_fields", "formula", "eligibility", "outcome", "sample_policy", "review_gates", "dispositions", "architecture", "readiness"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "contract_id": {"const": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_DELTA_FACTOR_CONTRACT_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "document_status": {"const": "OFFLINE_EVALUATOR_ONLY_NOT_REGISTERED"},
+    "factor_identity": {"const": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_168H_V1"},
+    "source_binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_label", "observation_state", "source_contract_sha256", "source_contract_schema_sha256", "observation_schema_sha256"],
+      "properties": {
+        "source_label": {"const": "CFTC_CME_BITCOIN_TFF_FUTURES_ONLY_V2"},
+        "observation_state": {"const": "NEW_REPORT_SEALED"},
+        "source_contract_sha256": {"const": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5"},
+        "source_contract_schema_sha256": {"const": "f8daf4c6f9014c4874bb2c62865597c764ffd46833b4b31222fbc20617013a73"},
+        "observation_schema_sha256": {"const": "44d46dc857dab5d874f6b730060c798266e6ed386597a7ab18245274ee98f53b"}
+      }
+    },
+    "ordered_fields": {"type": "array", "minItems": 87, "maxItems": 87, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "formula": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fields", "ascii_trim", "decimal_pattern", "input_bounds", "level_formula", "level_bounds", "factor_formula", "factor_bounds", "zero_transition", "positive_sign", "negative_sign", "forbidden_transforms"],
+      "properties": {
+        "fields": {"const": ["Pct_of_OI_Lev_Money_Long_All", "Pct_of_OI_Lev_Money_Short_All"]},
+        "ascii_trim": {"const": "OUTER_ASCII_SPACE_ONCE"},
+        "decimal_pattern": {"const": "^[+-]?(?:[0-9]+(?:[.][0-9]+)?|[.][0-9]+)$"},
+        "input_bounds": {"const": ["0", "100"]},
+        "level_formula": {"const": "long_pct-short_pct"},
+        "level_bounds": {"const": ["-100", "100"]},
+        "factor_formula": {"const": "current_level-prior_level"},
+        "factor_bounds": {"const": ["-200", "200"]},
+        "zero_transition": {"const": "NO_FACTOR_ACTION"},
+        "positive_sign": {"const": 1},
+        "negative_sign": {"const": -1},
+        "forbidden_transforms": {"const": ["INVERT", "THRESHOLD", "NORMALIZE", "WINSORIZE", "RANK", "LAG", "SMOOTH", "SUBSTITUTE"]}
+      }
+    },
+    "eligibility": {
+      "type": "object", "additionalProperties": false,
+      "required": ["report_gap_days", "predecessor_rule", "decision_rule", "anchor_symbol", "anchor_interval", "anchor_rule", "anchor_truth"],
+      "properties": {
+        "report_gap_days": {"const": 7},
+        "predecessor_rule": {"const": "CURRENT_PREDECESSOR_EQUALS_PRIOR_CHAIN"},
+        "decision_rule": {"const": "DECISION_STRICTLY_AFTER_RECEIPT"},
+        "anchor_symbol": {"const": "BTCUSDT"},
+        "anchor_interval": {"const": "1h"},
+        "anchor_rule": {"const": "FIRST_COMPLETE_CANONICAL_CLOSE_STRICTLY_AFTER_DECISION"},
+        "anchor_truth": {"const": "CALLER_ASSERTED_SYNTHETIC_ONLY_REAL_MISSING_PROOF"}
+      }
+    },
+    "outcome": {
+      "type": "object", "additionalProperties": false,
+      "required": ["interval_count", "interval_seconds", "contiguity", "raw_return", "signed_response", "path_risk"],
+      "properties": {
+        "interval_count": {"const": 168},
+        "interval_seconds": {"const": 3600},
+        "contiguity": {"const": "EXACT_ANCHOR_PLUS_1H_THROUGH_PLUS_168H"},
+        "raw_return": {"const": "last_close/anchor_close-1"},
+        "signed_response": {"const": "factor_sign*raw_return"},
+        "path_risk": {"const": "ABSOLUTE_SIGN_ADJUSTED_MAXIMUM_ADVERSE_EXCURSION"}
+      }
+    },
+    "sample_policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sort", "one_per_current_report", "overlap_rule", "overlap_disposition"],
+      "properties": {
+        "sort": {"const": "ANCHOR_THEN_CURRENT_CHAIN"},
+        "one_per_current_report": {"const": true},
+        "overlap_rule": {"const": "LATER_ANCHOR_BEFORE_PRIOR_KEPT_ANCHOR_PLUS_168H"},
+        "overlap_disposition": {"const": "OVERLAPPING_WINDOW_EXCLUDED"}
+      }
+    },
+    "review_gates": {
+      "type": "object", "additionalProperties": false,
+      "required": ["minimum_episodes", "minimum_positive_factors", "minimum_negative_factors", "quartile_formula", "minimum_per_quartile", "minimum_anchor_months", "maximum_month_share", "median_signed_response", "positive_factor_median_raw_return", "negative_factor_median_raw_return", "sign_test", "maximum_episode_absolute_share", "reported_path_statistics"],
+      "properties": {
+        "minimum_episodes": {"const": 26},
+        "minimum_positive_factors": {"const": 8},
+        "minimum_negative_factors": {"const": 8},
+        "quartile_formula": {"const": "floor(4*i/n)+1"},
+        "minimum_per_quartile": {"const": 4},
+        "minimum_anchor_months": {"const": 6},
+        "maximum_month_share": {"const": "0.25"},
+        "median_signed_response": {"const": ">0"},
+        "positive_factor_median_raw_return": {"const": ">0"},
+        "negative_factor_median_raw_return": {"const": "<0"},
+        "sign_test": {"const": "EXACT_ONE_SIDED_NONZERO_P_LE_0.10"},
+        "maximum_episode_absolute_share": {"const": "0.20"},
+        "reported_path_statistics": {"const": ["MEDIAN_ABS_RETURN", "NEAREST_RANK_P90_ABS_RETURN", "MEDIAN_ABS_SIGN_ADJUSTED_MAE", "NEAREST_RANK_P90_ABS_SIGN_ADJUSTED_MAE"]}
+      }
+    },
+    "dispositions": {"const": ["WAIT_FOR_MORE_UNTOUCHED_EVIDENCE", "CFTC_TFF_LEV_MONEY_NET_PCT_OI_DELTA_POSITIVE_FOR_MANAGER_REVIEW", "CFTC_TFF_LEV_MONEY_NET_PCT_OI_DELTA_ROUTE_CLOSE"]},
+    "architecture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "filesystem_input", "output_write", "network", "subprocess", "environment_credentials", "database", "research_store", "heartbeat", "schedule", "queue", "mcp", "spring", "java", "trading"],
+      "properties": {
+        "mode": {"const": "PURE_OFFLINE_SYNTHETIC_EVALUATOR"},
+        "filesystem_input": {"const": "ADJACENT_CONTRACT_AND_SCHEMAS_ONLY"},
+        "output_write": {"const": "DENY"}, "network": {"const": "DENY"}, "subprocess": {"const": "DENY"}, "environment_credentials": {"const": "DENY"}, "database": {"const": "DENY"}, "research_store": {"const": "DENY"}, "heartbeat": {"const": "DENY"}, "schedule": {"const": "DENY"}, "queue": {"const": "DENY"}, "mcp": {"const": "DENY"}, "spring": {"const": "DENY"}, "java": {"const": "DENY"}, "trading": {"const": "DENY"}
+      }
+    },
+    "readiness": {
+      "type": "object", "additionalProperties": false,
+      "required": ["implementation_capability_only", "source_continuity_proven", "real_first_close_proven", "predictive_value_proven", "economic_value_proven", "candidate_authorized", "oos_authorized", "trading_authorized", "immediate_pnl_effect", "immediate_drawdown_effect"],
+      "properties": {
+        "implementation_capability_only": {"const": true},
+        "source_continuity_proven": {"const": false}, "real_first_close_proven": {"const": false}, "predictive_value_proven": {"const": false}, "economic_value_proven": {"const": false}, "candidate_authorized": {"const": false}, "oos_authorized": {"const": false}, "trading_authorized": {"const": false},
+        "immediate_pnl_effect": {"const": "ZERO"}, "immediate_drawdown_effect": {"const": "ZERO"}
+      }
+    }
+  }
+}

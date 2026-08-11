@@ -1,0 +1,103 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-volatility-evaluator-acceptance-recovery-v1",
+  "task_sha256": "67a29bc19d117c0fa6d3caef5ae52226e060fdc1bd0ac6d3e2366e16bdf00aac",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T11:10:35Z",
+  "completed_at": "2026-08-11T11:14:46Z",
+  "source_git_commit": "b896b55112d7109f37614e6873775330f595070a",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "FORWARD_VOLATILITY_PERSISTENCE_EVALUATOR_MANAGER_ACCEPTANCE_RECOVERED. Exact Git lineage, current four-artifact byte equivalence, immutable original BLOCKED history, sealed Manager validation receipt, Local focused tests, dependency-neutral imports and all read-only safety gates passed. This NON_COUNTING recovery proves only traceable Manager acceptance of dormant offline source. It does not deploy or activate the evaluator, create an activation receipt, establish a forward episode, or prove prediction, causality, significance, economic value, candidate readiness, OOS or Trading value. Immediate PnL and drawdown effects are ZERO.",
+  "checks": [
+    {
+      "name": "CURRENT_TASK_DISPATCH_INTENT_VALIDATION",
+      "status": "PASS",
+      "evidence": "The authoritative repository validators returned VALID for task SHA-256 67a29bc19d117c0fa6d3caef5ae52226e060fdc1bd0ac6d3e2366e16bdf00aac and dispatch SHA-256 65bc865e0332b37d94ab1265bb242cdb88b15d0de0554cac20f53d313a9ce78f. The prospective intent hash is 6f5904c58a72f7b0f194ea47f020a453b13d050a0d7323e651b7b4c5b5d93af1 and its dependency-neutral record validation passed."
+    },
+    {
+      "name": "STOP_CONDITION_SEAL",
+      "status": "PASS",
+      "evidence": "The task contains exactly 12 stop conditions. Recursive canonical serialization produced SHA-256 b2e2db4f106bdb75822b09b4d44e5057d888eabf23c1c0eae77235b806fe84e6."
+    },
+    {
+      "name": "SOURCE_GIT_IDENTITY",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3 is clean. HEAD and local origin both equal b896b55112d7109f37614e6873775330f595070a before and after execution."
+    },
+    {
+      "name": "FROZEN_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "All 20 non-null task inputs were unique, repository-contained regular non-reparse files with exact SHA-256 values. Current task, dispatch, intent and Manager receipt bytes also matched their expected hashes and the execution commit."
+    },
+    {
+      "name": "IMPLEMENTATION_GIT_LINEAGE",
+      "status": "PASS",
+      "evidence": "Implementation commit 5f4040de9e6a90864f4dc92477e5e377787d6a62 is an ancestor of the execution source, has sole parent 77eff7fd685c0bdc2794f4ef8e6b1e7368fe1bae and changes exactly the schema, evaluator, heartbeat and focused-test paths named by the receipt."
+    },
+    {
+      "name": "CURRENT_ARTIFACT_BYTE_EQUIVALENCE",
+      "status": "PASS",
+      "evidence": "All four current implementation files are byte-equivalent to commit 5f4040de9e6a90864f4dc92477e5e377787d6a62 and match receipt hashes 0562230e380f81082c3f4e57f2ce3b6fbee7e0af89d3f01019e1c5aa7e320352, 070b8354599d570c1ddfacdfcbf07c82d1108f4c4c0570d20b9c0fdffd38fdc3, 6909034347720915b893d05d8b5259ca208656b92504ebd3fe1b105130c20fd7 and f8ced79355e7be6b17103c525ce4e8d2dbba9982321318a094aaf3ac5d3739ce."
+    },
+    {
+      "name": "ORIGINAL_BLOCKED_HISTORY_VALIDATION",
+      "status": "PASS",
+      "evidence": "The original V2 task, result and dispatch/result closure validated successfully. Result SHA-256 cf4a6e336d35080a88892c236dfbcf2473503d072570287ecdda6990194ec21d remains BLOCKED, binds source commit 77eff7fd685c0bdc2794f4ef8e6b1e7368fe1bae, has all-false safety assertions and remains classified EXCLUDE. Commit 81ca460174a6fa6edfb52dd0e2370b9b0f4c77c9 contains the unchanged result bytes."
+    },
+    {
+      "name": "MANAGER_RECEIPT_CLOSED_OBJECT_AUDIT",
+      "status": "PASS",
+      "evidence": "Receipt SHA-256 16c485ec7d7414d00568bb53ee060c6c55867c3084e3dc60f834620a4e5f8456 has the exact closed root, validation, artifact and safety fields. It binds the original task/result, implementation parent and commit, exact four artifacts, all-false safety and disposition MANAGER_VALIDATED_DORMANT_SOURCE_READY_FOR_ACCEPTANCE_RECOVERY."
+    },
+    {
+      "name": "MANAGER_EXECUTABLE_VALIDATION_EVIDENCE",
+      "status": "PASS",
+      "evidence": "The sealed Manager receipt records 53 focused and affected tests PASS, Draft 2020-12 meta-schema PASS, four positive instances PASS, four negative instances REJECTED, dependency-neutral import PASS, exact four-path PASS, 26 frozen inputs PASS and the original 24-stop seal 7b925fc8306329a5c209cb77a68a06c847678e58ac67719e7a07a1fa1cd3691b. This is Manager-reported sealed evidence, not a claim that Local reran those Manager-only gates."
+    },
+    {
+      "name": "LOCAL_FOCUSED_TEST",
+      "status": "PASS",
+      "evidence": "Local bundled Python ran exactly research_pipeline.tests.test_forward_volatility_persistence: 15 tests completed with zero failures or errors."
+    },
+    {
+      "name": "DEPENDENCY_NEUTRAL_IMPORT",
+      "status": "PASS",
+      "evidence": "research_pipeline.forward_volatility_persistence and research_pipeline.heartbeat imported successfully with jsonschema deliberately unavailable."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_BOUNDARY_SCAN",
+      "status": "PASS",
+      "evidence": "AST and exact-scope inspection found no network, HTTP, subprocess, database or Trading operational import in the implementation slice. No server, MCP, heartbeat, schedule, deployment, activation, writer, candidate, OOS or Trading action was executed."
+    },
+    {
+      "name": "FINAL_READ_ONLY_CLOSURE",
+      "status": "PASS",
+      "evidence": "Final HEAD and origin remained exact, all frozen hashes remained valid, Git status remained clean, git diff --check passed and the focused checks created no evaluator pyc or other ignored output."
+    },
+    {
+      "name": "PERFORMANCE_AND_FORWARD_EVIDENCE_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "Immediate fee-adjusted PnL and drawdown effects are ZERO. No canonical activation receipt, deployed Worker package, eligible forward episode, source continuity, predictive effect, causal effect, significance, fees, slippage, capacity, matched-capital performance, candidate, OOS or Trading value was evaluated."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "The 53-test and Draft 2020-12 acceptance gates are exact sealed Manager evidence; Local independently ran only the task-authorized 15-test focused module and dependency-neutral import.",
+    "Canonical activation-receipt existence and validity remain MISSING_PROOF because this task prohibited canonical refresh and activation.",
+    "Deployment, Worker packaging, live forward continuity and the first eligible volatility-persistence episode remain MISSING_PROOF.",
+    "Prediction, causality, statistical significance, strategy mapping, fees, slippage, capacity, matched-capital PnL and drawdown improvement remain MISSING_PROOF.",
+    "Hypothesis, candidate, OOS, SHADOW, PAPER, LIVE and all Trading authorization remain absent and unauthorized."
+  ],
+  "recommended_next_action": "Manager may seal this NON_COUNTING acceptance-recovery result and, only through a separately frozen bounded task, audit deployment and activation readiness without deploying, creating an activation receipt, accessing forward outcomes, creating a hypothesis or candidate, opening OOS, or authorizing Trading.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

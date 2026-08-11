@@ -1,0 +1,119 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-crypto-carry-factor-definition-boundary-v1",
+  "task_sha256": "36e5bf700a42bade5a32ad056e95eb31d06c5dd376efe388b0bb6740d5cd6d12",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T11:59:18Z",
+  "completed_at": "2026-08-11T12:01:21Z",
+  "source_git_commit": "122e29f8658af003870aa2f229f1d9b3e37a5160",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "ONE_CARRY_PRE_OUTCOME_FACTOR_DEFINITION_READY. CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO can be frozen as one source-agnostic, parameter-free semantic boundary: an immutable point-in-time description of crypto derivative demand and constrained arbitrage capital, fully received before an otherwise valid unlevered BTC spot DRA entry decision, whose only possible downstream use is admitting that unchanged entry or HOLD_CASH. The definition does not select a source, venue, contract, maturity, field, formula, normalization, sign, threshold, lookback, cadence or horizon. Fixed-maturity basis, perpetual funding transfers, liquidation or margin stress, executable carry-trade return and BTC spot-return prediction remain separately typed and non-interchangeable. The label is distinct from archived 508 funding_low only because it cannot be implemented as that Boolean, its sign reversal or a renamed funding gate; it must preserve both causal axes and strict pre-decision provenance. ShortBuildIndicator and BtFundingArb remain separate bearish-context and two-leg execution mechanisms. DRA source, spot-only long execution, arm, cooldown, one-lot limit, entry confirmation, profit-only exit, route and capacity remain unchanged. This result is NON_COUNTING and authorizes only one later bounded source-readiness and representation-proof audit. R2 remains untouched. Immediate PnL and drawdown effects are ZERO; all predictive and economic effects remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_INTENT_AND_SOURCE_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Task SHA-256 36e5bf700a42bade5a32ad056e95eb31d06c5dd376efe388b0bb6740d5cd6d12, dispatch SHA-256 be9e62ebddeeb1b45ea2914b27b0c86afdaa5fa64f391a864ea69f38c553c521 and intent SHA-256 72c827eaa81d3b02ac30f8a82b3cd3d757f431c4c9acdef7d5918c333136c566 matched exactly. Repository task and dispatch validators returned VALID. The intent validator accepted output_class NON_COUNTING, independence NON_COUNTING_NOT_APPLICABLE and EXCLUDE for every disposition."
+    },
+    {
+      "name": "SOURCE_GIT_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3 was clean. HEAD and local origin both equaled 122e29f8658af003870aa2f229f1d9b3e37a5160 before and after analysis. All 15 non-null inputs were unique, present, exact-hash regular non-reparse files, and the task, dispatch and intent matched committed bytes."
+    },
+    {
+      "name": "STOP_CONDITION_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly 15 stop conditions canonicalized to SHA-256 0d6ebcd25a50a3fb3f66d84688810d9255d2f8e307b0e16d22e6cd55339090aa, matching the Manager dispatch."
+    },
+    {
+      "name": "V4_ACCEPTED_LIFECYCLE_VALIDATION",
+      "status": "PASS",
+      "evidence": "The exact V4 task and result validators returned VALID, and transitive dispatch/result validation returned VALIDATED_RESULT_BOUND_TO_PERFORMANCE_DISPATCH. Result SHA-256 1120dbcc30bbf6e268daf55e1fb0869e56effb5d1114a7bbfb3827d4b6aae334 has status COMPLETED and disposition PRIMARY_PRIOR_SUPPORTS_ONE_CARRY_FACTOR_DEFINITION_AUDIT. Its PRE_DISPATCH_INTENT and MANAGER_ACCEPTANCE records passed the dependency-neutral validator; acceptance records classification_outcome COUNT and preserves the accepted result bytes."
+    },
+    {
+      "name": "V4_CLAIM_BOUNDARY_PRESERVED",
+      "status": "PASS",
+      "evidence": "V4 was used only as evidence that one semantic-definition audit is worthwhile. It was not treated as proof of a predictive factor, source availability, representation, sign, threshold, economic improvement, candidate readiness, capture or deployment."
+    },
+    {
+      "name": "SOURCE_AGNOSTIC_SEMANTIC_AXIS_MATRIX",
+      "status": "PASS",
+      "evidence": "Axis 1 is derivative-demand state, with representation and direction unchosen. Axis 2 is constrained-arbitrage-capital state, with proxy and magnitude unchosen. Axis 3 is contract family, requiring fixed-maturity and perpetual observations to remain separately typed. Axis 4 is point-in-time provenance and immutable payload identity. Liquidation, margin realization, carry-trade return and BTC spot return are downstream risk or outcome constructs, not interchangeable state inputs. No axis supplies a score or operational veto value in this task."
+    },
+    {
+      "name": "PARAMETER_FREE_SEMANTIC_DEFINITION",
+      "status": "PASS",
+      "evidence": "CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO denotes only a pre-decision derivative-demand and constrained-arbitrage state plus the purpose of a possible participation veto. It contains no venue, contract, maturity, field, formula, normalization, sign, threshold, lookback, cadence, horizon, ranking or factor score."
+    },
+    {
+      "name": "STRICT_PRE_DECISION_ELIGIBILITY_RULE",
+      "status": "PASS",
+      "evidence": "Any future observation is eligible only when its publisher or venue time, Manager receipt time and immutable payload identity are each independently proven strictly before the DRA decision timestamp. A late, revised, missing, mutable or identity-unbound observation is ineligible and cannot be repaired or inferred. Settlement, subsequent funding, liquidation, revision, post-entry price and every outcome remain forbidden."
+    },
+    {
+      "name": "BASIS_FUNDING_LIQUIDATION_PREDICTION_SEPARATION",
+      "status": "PASS",
+      "evidence": "Fixed-maturity basis requires expiry-specific semantics; perpetual funding is a recurring transfer without guaranteed expiry convergence; liquidation and margin stress are risk realizations; carry-trade return requires executable derivative and hedge legs; BTC spot-return prediction is a distinct empirical claim. The semantic definition requires none to substitute for another."
+    },
+    {
+      "name": "EXACT_LEGACY_BLOB_AUDIT",
+      "status": "PASS",
+      "evidence": "Git object c648154412018c06ae2c91d1244ba7eee46da119 exists as the exact 49,158-byte frozen blob. Read-only inspection confirmed archived all-gates logic combined gate_funding_low with gate_oi_stable, gate_volume_confirmed, gate_above_sma200, gate_dex_flow and gate_spread_ok. The blob was not restored or executed."
+    },
+    {
+      "name": "LEGACY_AND_RUNTIME_NON_DUPLICATION",
+      "status": "PASS",
+      "evidence": "The new label cannot be satisfied by funding_low alone, a funding sign inversion or a renamed funding gate; any such representation would close the branch as duplicate. ShortBuildIndicator combines low or negative funding with OI divergence and short-ratio context for bearish short-build scoring. BtFundingArb represents a delta-neutral spot-long/perpetual-short execution state machine earning funding. Neither is the source-agnostic two-axis DRA participation boundary frozen here."
+    },
+    {
+      "name": "UNCHANGED_SPOT_DRA_PARTICIPATION_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The possible future action set is exactly ADMIT_UNCHANGED_DRA_ENTRY or HOLD_CASH. DRA remains BTC spot, unlevered, long-only, one lot, with its existing source, daily confirmation, arm, cooldown, entry timing and profit-only exit. No short, perpetual or futures leg, hedge, leverage, forced exit, route substitution, capacity change or new Trading path is permitted."
+    },
+    {
+      "name": "OFFLINE_SOURCE_AND_R2_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The V2 source contract remains OFFLINE_DISABLED_NOT_REGISTERED and its fixed representation choices were not adopted by reference. The accepted cohabitation result remains DEFER_CARRY_INSTALL_PRESERVE_R2. No source availability, public continuity, capture completeness, formula validity, registration, installation or activation was inferred, and R2 was not interrupted."
+    },
+    {
+      "name": "EXACT_MISSING_SEMANTIC_PROOF",
+      "status": "MISSING_PROOF",
+      "evidence": "No source or representation has yet proven that both semantic axes can be observed through immutable point-in-time public evidence before DRA decisions without collapsing into legacy funding logic. Source rights, continuity, timestamp semantics, revision behavior, payload identity and cross-family comparability remain MISSING_PROOF."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_COST_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "Immediate fee-adjusted PnL and drawdown effects are exactly ZERO. Prediction, causal spot-path value, statistical significance, matched-capital PnL, drawdown improvement, fees, slippage, utilization, blocked entries, missed winners, holding age, annual and regime breadth, concentration, capacity, deployability and candidate readiness were not evaluated and remain MISSING_PROOF."
+    },
+    {
+      "name": "OPPORTUNITY_COST_AND_NON_COUNTING_STATUS",
+      "status": "PASS",
+      "evidence": "The audit prevents source and parameter choices from being hidden inside a promising prior and prevents archived funding logic from being counted again as new alpha. The current intent classifies all dispositions EXCLUDE, so this downstream governance result is NON_COUNTING and does not add a weekly mechanism, specification or capability slice."
+    },
+    {
+      "name": "FINAL_ZERO_WRITE_SAFETY_CLOSURE",
+      "status": "PASS",
+      "evidence": "Final Git status remained clean with unchanged HEAD/origin. No repository, result, .research-state, canonical, server, schedule, source or Trading state changed. No network, browser, public source, market value, outcome, hypothesis, candidate, trigger, OOS, deployment, installation or capture action occurred."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "The semantic boundary is complete, but no eligible source representation has been selected or proven.",
+    "A later representation that reduces to funding_low, its sign reversal or a renamed single funding field must close as legacy duplication.",
+    "It remains MISSING_PROOF whether any source can represent derivative demand and constrained arbitrage capital without forbidden cross-family equivalence.",
+    "Publisher time, Manager receipt time, revision behavior, immutable payload identity, continuity and pre-decision availability remain MISSING_PROOF.",
+    "No veto mapping, direction, score, threshold, formula, cadence or horizon exists.",
+    "Prediction, causality, significance, matched-capital economics, candidate, OOS, SHADOW, PAPER, LIVE and Trading authorization remain absent."
+  ],
+  "recommended_next_action": "Freeze exactly one bounded READ_ONLY, NON_COUNTING source-readiness and representation-proof audit. It may inspect only preregistered source identity, timing, revision, payload-sealing and semantic-axis coverage metadata; it must access no market values or outcomes, choose no formula, sign or threshold, preserve fixed-maturity and perpetual typing, reject legacy funding-only duplication, leave the V2 source disabled, preserve R2 and stop before capture, implementation, hypothesis, candidate or OOS.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

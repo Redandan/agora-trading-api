@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-forward-volatility-persistence-evaluator-v1",
+  "task_sha256": "7beee429473d7edf1a9ee72530384d5ac9508c83d780a5273c399d597a399917",
+  "status": "BLOCKED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T10:20:09Z",
+  "completed_at": "2026-08-11T10:22:34Z",
+  "source_git_commit": "7a06c9d24bd03432500b71a660edf8ce5e9e258b",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "MISSING_PROOF_MANAGER_REVIEW_REQUIRED. Preflight failed closed before editing because the committed task's TASK_MESSAGE and stop condition 1 require source commit 5a3818bcd8d9644772c00314c0c431750742139f, while the Manager instruction and independently verified clean HEAD/local origin both equal 7a06c9d24bd03432500b71a660edf8ce5e9e258b. The task explicitly requires zero changes on this mismatch. No implementation, test fixture, artifact or ignored output was created. Immediate PnL and drawdown effects are zero; forward prediction, causality and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_HASH",
+      "status": "PASS",
+      "evidence": "The committed task SHA-256 is exactly 7beee429473d7edf1a9ee72530384d5ac9508c83d780a5273c399d597a399917."
+    },
+    {
+      "name": "DISPATCH_HASH_AND_BINDING",
+      "status": "PASS",
+      "evidence": "The committed dispatch SHA-256 is exactly a3103015cc6def6a64de44ac0582a2fa9b3796a9f6239eee73b5b61d2649b355 and its task binding names the exact task id and task SHA. Manager's authoritative semantic validation receipt is preserved as Manager evidence."
+    },
+    {
+      "name": "PREDISPATCH_INTENT",
+      "status": "PASS",
+      "evidence": "The PRE_DISPATCH_INTENT SHA-256 is exactly 207d21e6ac208c42b9d2ec2965fe41079358ba13310116150bb12e58af1964f5 and binds the exact task and dispatch. Its issued_at is 2026-08-11T10:15:41Z, earlier than this result's actual started_at."
+    },
+    {
+      "name": "FROZEN_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "All 26 non-null repository inputs were unique, repository-contained regular files, non-reparse paths and matched their frozen SHA-256 values."
+    },
+    {
+      "name": "STOP_CONDITION_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly 24 stop conditions were parsed. Their compact ordered-array SHA-256 is b3bf12389ae4adcb53c8f8f0098465499d4f42bd56a42e533f1938389a359ed3."
+    },
+    {
+      "name": "SOURCE_IDENTITY",
+      "status": "FAIL",
+      "evidence": "Clean branch codex/autonomous-research-control-plane-v3 has HEAD and local origin 7a06c9d24bd03432500b71a660edf8ce5e9e258b. The immutable task instead requires 5a3818bcd8d9644772c00314c0c431750742139f in both its TASK_MESSAGE and stop condition 1. The task requires MISSING_PROOF_MANAGER_REVIEW_REQUIRED with zero changes for this mismatch."
+    },
+    {
+      "name": "TARGET_ABSENCE_AND_HEARTBEAT_BASELINE",
+      "status": "PASS",
+      "evidence": "All three add-targets were absent. research_pipeline/heartbeat.py matched frozen SHA-256 dc0dc3cdcea1dec1906ce032c56c76de4836a3f57d06b60553533bff1665bd6d."
+    },
+    {
+      "name": "LOCAL_EXECUTABLE_TASK_AND_DISPATCH_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "The Local sandbox did not expose a python executable, so the repository task and dispatch CLI validators could not be rerun locally. No dependency was installed and no permission was requested. Manager's supplied VALID receipts remain Manager evidence, not Local executable proof."
+    },
+    {
+      "name": "IMPLEMENTATION_AND_SCHEMA_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "No implementation was authorized after the source-identity failure. Consequently no new schema, evaluator, heartbeat modification, synthetic tests, Draft 2020-12 execution, compile, import or focused regression result exists for this task."
+    },
+    {
+      "name": "FINAL_ZERO_CHANGE_SCOPE",
+      "status": "PASS",
+      "evidence": "Final Git status remained clean on the required branch, HEAD and local origin remained 7a06c9d24bd03432500b71a660edf8ce5e9e258b, and git diff --check reported no defect."
+    },
+    {
+      "name": "PERFORMANCE_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "No forward observation, activation receipt, episode, prediction, causal result, strategy mapping, candidate, OOS result, fee-adjusted PnL, drawdown, slippage, capacity or Trading evidence was accessed or produced. Immediate PnL and drawdown effects are zero."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "The immutable task's required source commit conflicts with the Manager-supplied and Git-proven execution commit.",
+    "Local executable task, dispatch, result-schema and Draft 2020-12 validation remain MISSING_PROOF because Python is unavailable in the Local sandbox.",
+    "The four-file evaluator slice, its dormant activation behavior, schema closure, formulas, gates, idempotency and regressions were not implemented or tested.",
+    "Deployment, activation, forward evidence, predictive value, causality, economics, candidate readiness and OOS remain MISSING_PROOF."
+  ],
+  "recommended_next_action": "Manager should freeze and validate a corrected successor task whose immutable TASK_MESSAGE and stop condition 1 bind the intended clean execution commit. Only that separately validated task may authorize the same bounded four-file implementation; do not reuse or reinterpret this mismatched task.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-deribit-btc-options-forward-source-readiness-v1",
+  "task_sha256": "6f0b9dfc3528679f667af2585dcbda4380d41744f10c3c7b9c6ad3d0c6483c0c",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T05:51:00Z",
+  "completed_at": "2026-08-11T05:59:03Z",
+  "source_git_commit": "3da01ee98ac7a8cedb68ce6e5f369ee6a117f775",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DERIBIT_OPTIONS_SOURCE_DESIGN_READY_DEFER_ACTIVATION. The predecessor WAIT_FOR_NAMED_POINT_IN_TIME_PROOF is reconciled by frozen official-document facts: one prospective get_instruments request fixed to BTC/option/expired=false defines the active option universe, and one contemporaneous BTC/option book-summary request exposes the named availability fields. A disabled contract can seal each raw response with actual received_at and SHA-256, retain documented identity fields, and require unique exact instrument_name set equality; any missing, extra, duplicate, identity disagreement, gap, drift or schema change fails the observation closed without backfill. expiration_timestamp and numeric strike are authoritative; symbol form and 08:00 UTC expiry are consistency checks. This is PERSONAL_RESEARCH_ONLY design readiness, not source, factor or operational readiness. The charter permits only the isolated OKX external source, and the frozen snapshot shows R2 at 0/14. Endpoint access, live continuity, non-personal rights, storage or redistribution compatibility, capture, deployment and activation remain denied or MISSING_PROOF. Immediate fee-adjusted PnL and drawdown effects are zero; every predictive and economic claim remains MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Task and dispatch validators returned VALID for exact SHA-256 values 6f0b9dfc3528679f667af2585dcbda4380d41744f10c3c7b9c6ad3d0c6483c0c and 7ab3e333d827e1b551c56886e734781896b88d0466aedbf5868b0f869ad85c0d. The dispatch binds 18 stops with SHA-256 18970a39d6a83c098218515d21476ba3720515af080924a5478820db6f5e24bd."
+    },
+    {
+      "name": "SOURCE_AND_INPUT_IDENTITY",
+      "status": "PASS",
+      "evidence": "Branch was codex/autonomous-research-control-plane-v3; HEAD and origin both equaled 3da01ee98ac7a8cedb68ce6e5f369ee6a117f775; worktree was clean. All 13 non-null inputs matched and were contained regular non-reparse files."
+    },
+    {
+      "name": "PREDECESSOR_CLOSURE",
+      "status": "PASS",
+      "evidence": "The predecessor matrix task, dispatch and result validated as VALIDATED_RESULT_BOUND_TO_PERFORMANCE_DISPATCH with result SHA-256 ae2dee13807b3c835cc39f13859514857b34a414cd7931479d675bd897d03da1. The no-cost audit result matched SHA-256 4ac252b17da905fbaea792e7507b9dc012c68953635bd3d9ce0a81ab9c844f32."
+    },
+    {
+      "name": "PREDECESSOR_WAIT_RECONCILIATION",
+      "status": "PASS",
+      "evidence": "The predecessor wait named expiry and strike parsing, universe coverage, completeness, retention, revision, continuity and reuse terms. Frozen facts now supply expiration_timestamp, numeric strike, active-universe and all-instrument summary semantics. Prospective raw-byte sealing and fail-closed equality close technical completeness without claiming continuity or expanded rights."
+    },
+    {
+      "name": "INSTRUMENT_UNIVERSE_REQUEST",
+      "status": "PASS",
+      "evidence": "Design fixes one get_instruments request to currency=BTC, kind=option and expired=false, sealing raw bytes, actual received_at and SHA-256 and retaining instrument_name, is_active, creation_timestamp, expiration_timestamp and numeric strike for every row."
+    },
+    {
+      "name": "SUMMARY_REQUEST",
+      "status": "PASS",
+      "evidence": "Design fixes one immediately following get_book_summary_by_currency request to currency=BTC and kind=option in the same observation attempt, separately sealing raw bytes, actual received_at and SHA-256 and retaining instrument_name, creation_timestamp, bid_price, ask_price, open_interest, underlying_price and mark_iv availability."
+    },
+    {
+      "name": "EXACT_UNIVERSE_COMPLETENESS",
+      "status": "PASS",
+      "evidence": "Completeness is exact set equality between unique active BTC option instrument_name values and unique summary instrument_name values. Duplicate, missing or extra names, a partial surface or alternate-product aggregation closes the observation."
+    },
+    {
+      "name": "SEMANTIC_IDENTITY",
+      "status": "PASS",
+      "evidence": "expiration_timestamp and numeric strike are authoritative. BTC-DDMMMYY-STRIKE-C_OR_P and 08:00 UTC expiry are independent consistency checks; disagreement closes the observation rather than selecting a parser guess."
+    },
+    {
+      "name": "CONTINUITY_AND_DRIFT",
+      "status": "MISSING_PROOF",
+      "evidence": "Availability, accuracy and unchanged functionality are unguaranteed, and no response was accessed. A future gap, schema drift, set mismatch or identity disagreement must close that observation and cannot be backfilled, repaired from history or retried into accepted evidence."
+    },
+    {
+      "name": "PERSONAL_USE_RIGHTS_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "Public unauthenticated access is documented, but Terms limit Market Data and Derived Data to personal use absent explicit approval. Repository or server storage, redistribution, commercial use and organizational capture compatibility are not authorized or proven."
+    },
+    {
+      "name": "CHARTER_ACTIVATION_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The charter permits external capture only through the isolated fixed OKX source. This audit freezes only a disabled design and authorizes no endpoint call, source contract, capture, registration, deployment, timer, writer, charter change or server action."
+    },
+    {
+      "name": "READINESS_DISPOSITION",
+      "status": "PASS",
+      "evidence": "DERIBIT_OPTIONS_SOURCE_DESIGN_READY_DEFER_ACTIVATION is selected because documented fields and exact two-request equality suffice for one deterministic disabled contract. No official fact contradicts it and no additional technical fact is needed to describe it; live, rights and activation proof remain denied."
+    },
+    {
+      "name": "FACTOR_AND_STRATEGY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No factor, expiry bucket, delta proxy, strike band, formula, transform, sign, threshold, horizon, strategy mapping, hypothesis, candidate, manifest, experiment, trigger or OOS action was selected or created."
+    },
+    {
+      "name": "PERFORMANCE_AND_DRAWDOWN",
+      "status": "MISSING_PROOF",
+      "evidence": "Immediate fee-adjusted PnL and drawdown effects are exactly zero. No observations or outcomes were accessed. Predictive value, matched-capital economics, fees, slippage, capacity, utilization, turnover, holding age, stability and drawdown benefit remain MISSING_PROOF."
+    },
+    {
+      "name": "OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "This audit closes the documentation-only technical gap without spending server capacity or repeating the four-family audit. Deferral preserves the active R2 evidence lane and avoids speculative implementation under unresolved rights and charter boundaries."
+    },
+    {
+      "name": "ZERO_CHANGE_SAFETY",
+      "status": "PASS",
+      "evidence": "No network, browser, endpoint, server, Research MCP, canonical state, .research-state, OOS or Trading access occurred. Final HEAD and origin stayed exact and the worktree remained clean with zero changed files and artifacts."
+    },
+    {
+      "name": "RESULT_SCHEMA_VALIDATION",
+      "status": "PASS",
+      "evidence": "The in-memory object passed the repository dependency-neutral result validator against the exact task and task SHA-256; no result file was created."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: live response availability, paired-snapshot continuity, operational latency, rate-limit behavior and schema stability.",
+    "MISSING_PROOF: explicit approval for non-personal use, repository or server storage, redistribution, Derived Data use and organizational operation.",
+    "MISSING_PROOF: charter exception, source registration, capture transport, deployment, activation and live continuity evidence.",
+    "MISSING_PROOF: R2 terminal evidence; the frozen snapshot reports R2 WAITING_FOR_DAY at 0/14 and was not refreshed.",
+    "MISSING_PROOF: factor semantics, predictive value, fees, slippage, capacity, stability, matched-capital PnL, drawdown improvement, candidate readiness and OOS."
+  ],
+  "recommended_next_action": "Preserve this design as disabled and take no implementation or source-access action. Continue the active R2 evidence lane. Only after R2 reaches an observable terminal disposition, explicit Deribit approval covers the intended non-personal storage and use boundary, and separate charter and source authorization exists may Manager freeze one new bounded prospective source-contract task.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

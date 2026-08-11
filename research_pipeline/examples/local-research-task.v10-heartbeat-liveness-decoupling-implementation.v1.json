@@ -89,7 +89,7 @@
     "RECOMMENDED_NEXT_ACTION"
   ],
   "stop_conditions": [
-    "Before editing, validate exact task and dispatch bytes; re-hash every non-null input and require clean post-commit HEAD equal local origin c1294a86f1e02560bced0932125a291280c9d037. Reject links, duplicate locators, source drift or a pre-existing V10 target.",
+    "Before editing, validate exact task and dispatch bytes; re-hash every non-null input, require a clean HEAD equal to local origin, and require accepted result commit c1294a86f1e02560bced0932125a291280c9d037 to be an ancestor. Reject links, duplicate locators, source drift or a pre-existing V10 target.",
     "Create exactly research_pipeline/cloud-ops-schedule-contract.v10.json and modify only the seven named existing files. Do not change V9 bytes or create generated, ignored, cache, temporary or state output inside the repository.",
     "V10 must be a frozen successor of exact V9 hash 04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c and preserve schedule id, one recurrence, Asia/Taipei 09:05, canonical due 09:00, 300-second margin, one canonical writer and no additional timer.",
     "Preserve get_research_status as the first operation and preserve the rule that no cross-task send or MCP write occurs before canonical next_due. Missing delivery capability never authorizes an early heartbeat, catch-up call, retry timer or second schedule.",

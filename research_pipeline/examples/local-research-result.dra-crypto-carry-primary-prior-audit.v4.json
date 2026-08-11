@@ -1,0 +1,124 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-crypto-carry-primary-prior-audit-v4",
+  "task_sha256": "9c864fb80122c4f312290402d0cfb0d633f0b5e29753972b8278381540afbec7",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T11:44:35Z",
+  "completed_at": "2026-08-11T11:47:29Z",
+  "source_git_commit": "32538e7de1732f7c532f3b8c4bf4a7873e983b3c",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "PRIMARY_PRIOR_SUPPORTS_ONE_CARRY_FACTOR_DEFINITION_AUDIT. Both exact full primary papers were independently accessible and bound to their frozen identities. Together they support a narrow prior that crypto carry reflects leveraged demand, market segmentation and constrained arbitrage capital, while also showing that fixed-maturity basis, perpetual funding, liquidation risk and executable arbitrage returns are not interchangeable with BTC spot-return prediction. The permitted mechanism is therefore limited to CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO: one possible parameter-free pre-entry participation veto on the unchanged unlevered BTC spot DRA. This is causally distinct from derivative execution, carry harvesting, the archived funding-low component, short-build scoring, two-leg funding arbitrage, CFTC positioning, microstructure order flow, post-shock direction, volatility management and the closed rotation, route-substitution and range branches. The conclusion authorizes only one separately frozen pre-outcome factor-definition audit. No source, endpoint, instrument, maturity, formula, threshold, lookback, cadence, side, exit, stop, route or DRA parameter was selected. Existing source plumbing remains OFFLINE_DISABLED_NOT_REGISTERED and installation remains DEFER_CARRY_INSTALL_PRESERVE_R2. Immediate PnL and drawdown effects are ZERO; predictive and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_INTENT_AND_SOURCE_IDENTITY",
+      "status": "PASS",
+      "evidence": "Task SHA-256 9c864fb80122c4f312290402d0cfb0d633f0b5e29753972b8278381540afbec7, dispatch SHA-256 4b04017e63fec3ecb561e163f410ce974722d0618714e121cbb478fa5b3965be and PRE_DISPATCH_INTENT SHA-256 fafda09a660a7b1f795b1b7da15a4bb0c83968e4e9f8647794ed3962a6f8dd91 matched exactly. Repository validators returned VALID for the task and dispatch. Branch codex/autonomous-research-control-plane-v3 was clean, with HEAD and local origin both equal 32538e7de1732f7c532f3b8c4bf4a7873e983b3c."
+    },
+    {
+      "name": "STOP_CONDITION_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Exactly 12 stop conditions canonicalized to SHA-256 a8b981986e0ee97f2e4ba5a558ee04d770ad94c14de6fefe79fb8fab499ea1a2. All 16 non-null inputs were unique, present, exact-hash regular files without reparse points. The task, dispatch and intent matched committed HEAD bytes."
+    },
+    {
+      "name": "EXACT_LEGACY_GIT_BLOB",
+      "status": "PASS",
+      "evidence": "Git object c648154412018c06ae2c91d1244ba7eee46da119 exists as a blob of 49,158 bytes. It was inspected read-only and was neither executed nor restored."
+    },
+    {
+      "name": "V3_IMMUTABLE_SOURCE_BLOCKER_HISTORY",
+      "status": "PASS",
+      "evidence": "The accepted V3 result remains immutable at SHA-256 08316343dd7b4e54b43036efc27437aac101c73f507c1ce4f696b27b3c04df41. Its CARRY_PRIMARY_SOURCE_PRIOR_INSUFFICIENT disposition records only the former arXiv-access blocker; it was not treated as a carry mechanism verdict or relabeled."
+    },
+    {
+      "name": "PRIMARY_SOURCE_A_FULL_TEXT_IDENTITY",
+      "status": "PASS",
+      "evidence": "The exact [BIS full paper](https://www.bis.org/publ/work1087.pdf) was accessible as a complete 51-page document and matched Crypto carry, BIS Working Papers No 1087, Maik Schmeling, Andreas Schrimpf and Karamfil Todorov, April 2023 revised October 2025. The permitted [BIS identity page](https://www.bis.org/publ/work1087.htm) confirmed the same title, authors, number and revision."
+    },
+    {
+      "name": "PRIMARY_SOURCE_B_FULL_TEXT_IDENTITY",
+      "status": "PASS",
+      "evidence": "The exact [arXiv full paper](https://arxiv.org/pdf/2212.06888) was accessible as a complete 64-page document and matched Fundamentals of Perpetual Futures by Songrun He, Asaf Manela, Omri Ross and Victor von Wachter. The permitted [arXiv identity page](https://arxiv.org/abs/2212.06888) confirmed revision v6 dated 21 August 2024."
+    },
+    {
+      "name": "POSITIVE_PRIMARY_EVIDENCE",
+      "status": "PASS",
+      "evidence": "The BIS paper provides causal and descriptive support that fixed-maturity crypto carry is shaped by smaller trend-following investors seeking leveraged exposure and by constrained arbitrage capital arising from regulatory, balance-sheet and margin frictions. Its micro-futures and spot-ETF natural experiments support demand and segmentation mechanisms. The arXiv paper independently shows that perpetual futures-spot deviations reflect relative futures demand, funding mechanics, trading-cost bounds, past-return momentum and a market-wide common component. Together these support carry as a distinct derivative-market state worthy of one bounded definition audit."
+    },
+    {
+      "name": "FALSIFICATION_PRIMARY_EVIDENCE",
+      "status": "PASS",
+      "evidence": "The BIS paper shows severe futures-leg drawdowns, lack of cross-margining and forced short-futures liquidation risk; its cash-and-carry return requires separate spot and futures legs and fixed-date convergence. The arXiv paper states that perpetuals have no guaranteed spot convergence, frames profits as random-maturity arbitrage, requires trading-cost bounds, documents diminishing deviations as markets mature and leaves the causal relation between momentum and perpetual-market pressure open. High arbitrage Sharpe, comovement and historical momentum association therefore do not establish BTC spot-DRA prediction."
+    },
+    {
+      "name": "BASIS_FUNDING_PREDICTION_ARBITRAGE_BOUNDARY",
+      "status": "PASS",
+      "evidence": "Fixed-maturity basis is tied to an expiry and convergence; perpetual funding is a recurring transfer without guaranteed expiry convergence. Carry-trade return requires derivative and hedge execution, while the permitted DRA label allows neither. Liquidation prediction concerns short futures positions and cannot be presented as a forecast of spot-DRA returns. No arbitrage return, funding payment or futures-spread statistic was converted into spot alpha."
+    },
+    {
+      "name": "SINGLE_BTC_SPOT_DRA_TRANSFER_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The only retained transfer is a research question about whether a pre-decision derivative-market risk state could veto participation in an otherwise unchanged unlevered BTC spot DRA entry. The DRA source, long-only spot execution, arm, cooldown, one-lot limit, entry confirmation and profit-only exit remain unchanged. The papers do not establish that the veto improves spot returns, PnL or drawdown."
+    },
+    {
+      "name": "LEGACY_AND_CURRENT_DISTINCTNESS",
+      "status": "PASS",
+      "evidence": "Archived 508 required funding_low together with oi_stable, volume_confirmed, above_sma200, dex_flow and spread_ok for its own BUY chain; it is not evidence for this DRA mechanism. ShortBuildIndicator scores low or negative funding as short-building context, while BtFundingArb is a leveraged two-leg spot-long/perpetual-short funding-harvest state machine. The permitted label selects neither sign nor funding construction and cannot revive, execute or relabel these paths."
+    },
+    {
+      "name": "OTHER_MECHANISM_AND_CLOSED_BRANCH_DISTINCTNESS",
+      "status": "PASS",
+      "evidence": "CFTC TFF represents trader-position categories; microstructure represents order-flow and book dynamics; post-shock direction represents realized spot-shock response; volatility management represents volatility state. The one-slot rotation and flat route-substitution diagnostics both ended NO_CANDIDATE while preserving DRA V1, and the range sleeve remained historical research with FORWARD_PENDING and NO_CANDIDATE. The carry label changes none of those families, routes, slots or sleeves."
+    },
+    {
+      "name": "OFFLINE_SOURCE_PLUMBING_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The V2 carry source contract remains OFFLINE_DISABLED_NOT_REGISTERED, with source_registered, capture_authorized, canonical_integration, hypothesis, candidate, OOS and Trading readiness all false. The accepted cohabitation disposition remains DEFER_CARRY_INSTALL_PRESERVE_R2. Plumbing proves neither public-source availability nor factor validity, prediction, capture, economics or activation."
+    },
+    {
+      "name": "PARAMETER_FREE_PERMITTED_LABEL",
+      "status": "PASS",
+      "evidence": "Exactly one future label was retained: CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO. No data source, endpoint, venue, contract, maturity, funding or basis construction, formula, normalization, sign, threshold, lookback, cadence, side, exit, stop, regime, route, capacity or DRA parameter was selected or recommended."
+    },
+    {
+      "name": "FUTURE_FACTOR_DEFINITION_PROOF_REQUIREMENTS",
+      "status": "PASS",
+      "evidence": "A later audit must remain pre-outcome and freeze one point-in-time interpretation that distinguishes fixed-maturity basis from perpetual funding, proves availability strictly before the DRA entry decision, excludes future settlement, funding and liquidation information, preserves the spot-only DRA contract, fails closed on legacy duplication, and leaves source installation and performance evaluation outside its scope. These are proof requirements, not a factor selection."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_COST_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "Immediate fee-adjusted PnL and drawdown effects are ZERO. Fills, blocked entries, missed winners, turnover, fees, slippage, capacity, utilization, holding age, annual and regime breadth, concentration, statistical significance, causal spot-return prediction, matched-capital PnL, drawdown improvement and deployability were not evaluated and remain MISSING_PROOF."
+    },
+    {
+      "name": "OPPORTUNITY_COST_ASSESSMENT",
+      "status": "PASS",
+      "evidence": "One bounded factor-definition audit is lower-cost than installing dormant carry plumbing or mining outcomes: it can determine whether a causal, point-in-time and non-duplicate definition exists while R1 and R2 continue untouched. If that definition cannot be frozen without parameter choice, legacy duplication or derivative-to-spot equivalence, the branch must close before capture, implementation or performance work."
+    },
+    {
+      "name": "FINAL_ZERO_WRITE_SAFETY_CLOSURE",
+      "status": "PASS",
+      "evidence": "Final Git status remained clean and HEAD/local origin remained 32538e7de1732f7c532f3b8c4bf4a7873e983b3c. No repository, result, .research-state or ignored file was written. No canonical/server access, capture, source installation, deployment, hypothesis, candidate, experiment, OOS or Trading action occurred."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "The papers support derivative-demand, segmentation and arbitrage-friction mechanisms, but do not prove that any carry state forecasts the return path of an unlevered BTC spot DRA entry.",
+    "The archived funding_low gate creates a duplication hazard; a later definition must demonstrate a distinct carry/path-risk construct without merely renaming or reversing that legacy gate.",
+    "No source family, venue, contract, maturity, field set, formula, sign, threshold, lookback or cadence has been selected, and public point-in-time source availability remains MISSING_PROOF.",
+    "Existing offline source code and schemas are disabled plumbing only; installation, continuity, capture completeness and causal eligibility remain MISSING_PROOF.",
+    "Matched-capital performance, fees, slippage, missed-winner cost, drawdown, statistical significance, annual breadth and regime stability remain MISSING_PROOF.",
+    "Hypothesis, candidate, experiment, OOS, SHADOW, PAPER, LIVE and every Trading authorization remain absent."
+  ],
+  "recommended_next_action": "Freeze exactly one bounded READ_ONLY pre-outcome factor-definition audit for CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO. It must decide whether one point-in-time, parameter-free and legacy-distinct definition can exist without selecting or installing a source, accessing outcomes, interrupting R2, creating a hypothesis or candidate, opening OOS, or authorizing Trading; otherwise close the carry branch.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

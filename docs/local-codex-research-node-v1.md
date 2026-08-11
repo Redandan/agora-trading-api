@@ -117,6 +117,36 @@ Validate a returned result:
 python -m research_pipeline validate-local-research-result <result.json> --task <task.json>
 ```
 
+Manager/Coach may aggregate the mandatory mechanical pre-dispatch checks into
+one read-only receipt:
+
+```text
+python -m research_pipeline local-research-manager-preflight <dispatch.json> --task <task.json>
+```
+
+The command reuses the authoritative task and dispatch validator, then requires
+a clean branch whose `HEAD` equals the matching local `origin` ref, exact
+committed task and dispatch bytes, and regular non-link input files with all
+task-bound SHA-256 values intact. It prints one deterministic receipt to stdout;
+it does not write a receipt, fetch Git state, contact the server, inspect an
+outcome, or replace Manager/Coach semantic validation.
+
+For a bounded period of at most seven days, Manager/Coach may measure accepted
+Local output against the current throughput targets with an explicit acceptance
+allowlist:
+
+```text
+python -m research_pipeline local-research-throughput-kpi \
+  --period-start <UTC> --period-end <UTC> \
+  --acceptance <manager-acceptance.json> [--acceptance <another.json> ...]
+```
+
+This command reuses the two-stage classification verifier and reports unique
+mechanism families, spec/capability families, excluded work and operational
+overhead. It is a workflow KPI only. The classification V1 contract cannot
+prove a rolling forward terminal, alpha, PnL or drawdown improvement, so those
+claims remain explicit `MISSING_PROOF` instead of being inferred from filenames.
+
 ## Execution modes
 
 - `READ_ONLY`: inspect contracts, toolchain, hashes, and sealed summaries. No

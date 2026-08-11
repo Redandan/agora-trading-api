@@ -163,6 +163,15 @@ def parser() -> argparse.ArgumentParser:
     validate_local_dispatch.add_argument("dispatch", type=Path)
     validate_local_dispatch.add_argument("--task", type=Path, required=True)
     validate_local_dispatch.add_argument("--result", type=Path)
+    manager_preflight = commands.add_parser("local-research-manager-preflight")
+    manager_preflight.add_argument("dispatch", type=Path)
+    manager_preflight.add_argument("--task", type=Path, required=True)
+    manager_preflight.add_argument("--repository-root", type=Path, default=REPO_ROOT)
+    throughput_kpi = commands.add_parser("local-research-throughput-kpi")
+    throughput_kpi.add_argument("--acceptance", action="append", required=True)
+    throughput_kpi.add_argument("--period-start", required=True)
+    throughput_kpi.add_argument("--period-end", required=True)
+    throughput_kpi.add_argument("--repository-root", type=Path, default=REPO_ROOT)
     validate_semantic_closure = commands.add_parser(
         "validate-local-research-semantic-closure"
     )
@@ -1513,6 +1522,27 @@ def main(argv: list[str] | None = None) -> int:
                 args.dispatch,
                 args.task,
                 args.result,
+            )
+            print(canonical_json_bytes(validation).decode("utf-8"))
+            return 0
+        if args.command == "local-research-manager-preflight":
+            from .local_manager import build_local_manager_preflight
+
+            validation = build_local_manager_preflight(
+                args.repository_root,
+                args.dispatch,
+                args.task,
+            )
+            print(canonical_json_bytes(validation).decode("utf-8"))
+            return 0
+        if args.command == "local-research-throughput-kpi":
+            from .local_manager import build_local_research_kpi
+
+            validation = build_local_research_kpi(
+                args.repository_root,
+                args.acceptance,
+                args.period_start,
+                args.period_end,
             )
             print(canonical_json_bytes(validation).decode("utf-8"))
             return 0

@@ -1,0 +1,112 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-capital-release-rebalancing-terminal-closure-audit-v1",
+  "task_sha256": "4128be9155687b3c0c5cced838c6a811532fd91fcf7810a854ceecc54f9cfd25",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T02:56:00Z",
+  "completed_at": "2026-08-11T02:59:11Z",
+  "source_git_commit": "adb6bc9c29ee746a0a2271b2aab36baed491f513",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_CAPITAL_RELEASE_REBALANCING_BRANCH_CLOSE. Both exact sealed pre-2025 studies have qualified_count=0, selected_candidate=null and terminal NO_CANDIDATE status. Flat-veto cooldown V2B produced a real within-study 2022 route-substitution repair, but whole-Validation total PnL was lower and drawdown was higher than its router V2 parent, failing the frozen economic gates. One-slot rotation removed terminal inventory and increased marked Validation total PnL, but realized PnL was lower, drawdown and median holding were worse, and annual drawdown non-worse breadth was only 2 of 5, failing its frozen gates. Absolute PnL was neither ranked nor added across the 250-USDT router and 30-USDT one-slot studies. Close the DRA_CAPITAL_RELEASE_REBALANCING mechanism family without tuning a rescue variant. Immediate PnL and drawdown effects are zero.",
+  "checks": [
+    {
+      "name": "SOURCE_IDENTITY_AND_ZERO_WRITE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3; HEAD and local origin both adb6bc9c29ee746a0a2271b2aab36baed491f513; worktree clean before and after; git diff --check passed."
+    },
+    {
+      "name": "TASK_DISPATCH_INTENT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task SHA-256 4128be9155687b3c0c5cced838c6a811532fd91fcf7810a854ceecc54f9cfd25, dispatch SHA-256 c3baec16979659259929473e5eb6b55e5f10a763ac765e4b887fbb9bfa4f2dba and intent SHA-256 db713b3a0959ffd5fd15e7df923c916bb113661579d085d577ab9c93b2f4f035 matched. Dispatch and intent retained their exact one-LF byte contracts and exact task binding."
+    },
+    {
+      "name": "INPUT_HASH_TYPE_AND_CONTAINMENT",
+      "status": "PASS",
+      "evidence": "All five non-null repository and sealed-artifact inputs were unique, repository-contained regular files, non-link and non-reparse, with exact frozen SHA-256 values."
+    },
+    {
+      "name": "STOP_CONDITION_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly 10 frozen stop conditions canonicalized to SHA-256 3ae45c92a28d07c9f69a94e4ec83a75aa7cc92bd075416d243b9b69769424101."
+    },
+    {
+      "name": "SEALED_IDENTITY_AND_INTEGRITY_MATRIX",
+      "status": "PASS",
+      "evidence": "Both diagnostics matched their frozen hashes and research identities, used RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE authorization, reported data_quality=PASS, baseline parity PASS, contamination_status=POST_HOC_HISTORICAL_NO_CLEAN_OOS, oos_opened=false, qualified_count=0, selected_candidate=null and terminal NO_CANDIDATE status."
+    },
+    {
+      "name": "FLAT_VETO_2022_CAUSAL_REPAIR",
+      "status": "PASS",
+      "evidence": "Within the 250-USDT router study only, router V2B reduced 2022 non-flat entries from 9 to 7, blocked flat signals from 8 to 3, terminal open lots from 6 to 4 and ending open cost from 180 to 120 USDT. Total PnL improved from -44.78885760 to -36.40596067 USDT and drawdown declined from 21.647525% to 18.744914%. The sealed cooldown/admission audits reconciled and passed."
+    },
+    {
+      "name": "FLAT_VETO_VALIDATION_ECONOMICS",
+      "status": "PASS",
+      "evidence": "Within the same 250-USDT study, router V2 Validation total/realized/unrealized PnL was 98.37426985/99.94153541/-1.56726556 USDT with 10.770310% drawdown, while V2B was 96.36864233/97.93590789/-1.56726556 USDT with 10.818832% drawdown. Median holding improved from 245 to 197 hours, but p90 worsened from 2435.6 to 2457.8 hours. Frozen validation_total_at_least_parent_v2 and validation_drawdown_no_higher_than_parent_v2 gates were false, so the 2022 repair did not establish whole-Validation economic value."
+    },
+    {
+      "name": "ONE_SLOT_ROTATION_REALIZED_INVENTORY_MATRIX",
+      "status": "PASS",
+      "evidence": "Within the separate 30-USDT one-slot study only, parent Validation total/realized/unrealized PnL was 39.93354639/43.54302055/-3.60947416 USDT with one 30-USDT terminal lot. The candidate ended flat with total/realized/unrealized PnL 43.44143025/43.44143025/0 USDT. The higher marked total therefore coincided with terminal-inventory cleanup while realized PnL was lower; it was not accepted as realized alpha."
+    },
+    {
+      "name": "ONE_SLOT_ROTATION_PATH_RISK_AND_BREADTH",
+      "status": "PASS",
+      "evidence": "Candidate Validation drawdown worsened from 17.699055% to 18.626622% and median holding from 146 to 192 hours; p90 improved from 775.6 to 722.6 hours and blocked entries fell from 117 to 85. Annual total wins were 4 of 5, but annual drawdown non-worse breadth was only 2 of 5. Frozen realized, drawdown, median-holding and annual-drawdown-breadth gates failed despite total, terminal-inventory, p90 and accounting gates passing."
+    },
+    {
+      "name": "CROSS_STUDY_FAILURE_SHAPE",
+      "status": "PASS",
+      "evidence": "No absolute PnL, drawdown, turnover, utilization or holding metric was compared or added across the incompatible 250-USDT router and 30-USDT one-slot contracts. The shared failure shape is qualitative only: a causal/accounting repair shifted path or terminal-inventory outcomes without passing its own within-study Validation risk-adjusted gates."
+    },
+    {
+      "name": "TERMINAL_FAMILY_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Both exact studies have zero qualified candidates and no selected candidate, and both fail their own frozen Validation economic gates. The task's mandatory negative rule therefore resolves to DRA_CAPITAL_RELEASE_REBALANCING_BRANCH_CLOSE."
+    },
+    {
+      "name": "OOS_CANDIDATE_AND_FORWARD_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No OOS was opened, no candidate or hypothesis was created, no branch was relabelled, no forward evidence was accessed and no rescue parameters were tuned."
+    },
+    {
+      "name": "FORWARD_PREDICTIVE_VALUE_AND_CAUSAL_GENERALIZATION",
+      "status": "MISSING_PROOF",
+      "evidence": "The sealed post-hoc historical diagnostics do not establish clean OOS, forward predictive value, future causal persistence or deployment value."
+    },
+    {
+      "name": "UNLISTED_RISK_AND_ECONOMIC_METRICS",
+      "status": "MISSING_PROOF",
+      "evidence": "Future fee-adjusted PnL, drawdown, capacity, slippage, path risk and all unlisted metrics remain unproven. The sealed historical values are not future expectations."
+    },
+    {
+      "name": "OPPORTUNITY_COST_ASSESSMENT",
+      "status": "PASS",
+      "evidence": "Closing the family prevents further rescue tuning of the 168-hour/60-USDT veto and rotation thresholds after both sealed studies failed their own Validation gates, preserving research capacity for independent forward mechanisms."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_FINAL_CLEANLINESS",
+      "status": "PASS",
+      "evidence": "No repository or research-state write, network, canonical/server access, runner, recomputation, OOS, schedule, Research MCP write, paid API or Trading action occurred. Final worktree remained clean."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: clean OOS and untouched forward predictive value.",
+    "MISSING_PROOF: future causal persistence and deployment value.",
+    "MISSING_PROOF: future fee-adjusted PnL, drawdown, slippage, capacity and execution-path risk.",
+    "The two studies use incompatible 250-USDT router and 30-USDT one-slot parent/accounting contracts; no cross-study absolute economic ranking is valid."
+  ],
+  "recommended_next_action": "Preserve both sealed NO_CANDIDATE outcomes and close the DRA_CAPITAL_RELEASE_REBALANCING family; allocate any later research only to an independently frozen forward mechanism rather than a rescue variant of either closed study.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

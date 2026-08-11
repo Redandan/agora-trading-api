@@ -1,0 +1,91 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-historical-mechanism-deduplication-audit-v2",
+  "task_sha256": "0b618291788dd83b4a1afd56f2e19e85431d85938b182e897886a369e6514ad8",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T07:52:00Z",
+  "completed_at": "2026-08-11T07:59:29Z",
+  "source_git_commit": "b75eda51278d57bb4e33a7a656f0adc5ad84e831",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "HISTORICAL_BRANCH_DEDUPLICATION_MATRIX_READY. Exact V2 preflight and all 16 non-null input hashes passed. The sealed bytes support deterministic closure guards for four historical strategy mechanisms, two Java accounting-parity controls, and one deferred Phase-C capability decision. V12 failed-reclaim exits, flat-veto cooldown route substitution, one-slot profitable-incumbent rotation, and the immutable-core/DRA monthly sleeve are closed under their tested evidence boundaries and must not be presented again as fresh alpha through wait-only, threshold-adjacent, route-label, or reporting changes. Java Phase A and B are successful accounting-risk controls, not alpha; Phase C remains deferred until its six-part future candidate gate is fully satisfied. No cross-study absolute PnL ranking was made, no performance was recomputed, and no listed closed branch was reopened. Immediate PnL and drawdown effects are zero.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_SOURCE_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task and dispatch validators returned VALID at exact SHA-256 values 0b618291788dd83b4a1afd56f2e19e85431d85938b182e897886a369e6514ad8 and c36f3bb41ce0808e76a7c120c6d16df068b69d3065d6faa26d06bb63030f224f. The 9-stop canonical hash was 1547db843f89747ac31f5981ca35a2e75c1c77c1d52ad124ee1818f0e4890f33. Native read-only metadata showed branch codex/autonomous-research-control-plane-v3 with HEAD=origin=b75eda51278d57bb4e33a7a656f0adc5ad84e831. All 16 non-null locators were unique regular non-reparse files with exact hashes."
+    },
+    {
+      "name": "LEGACY_V12_FAILED_RECLAIM_EXIT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Fingerprint 917708b08b54445e62adf948ae994fd4f4acb600818487b53a64efbeb304e4ff: post-1R prior-24-low break followed by delayed failed-reclaim exit, tested at frozen 12h and 24h waits. Boundary: pre-2025 historical Design/Validation and annual folds; data quality/baseline parity passed; OOS remained unopened. Terminal disposition: NO_CANDIDATE_KEEP_V7_AND_DRA_V1 / CLOSED_REJECTED. Failed dimensions include validation holding-time gate, annual total/holding breadth, insufficient validation completed exits for 12h, and validation realized/total gates for 24h. Do not rerun this arm-break-reclaim mechanism or a wait-only variant."
+    },
+    {
+      "name": "FLAT_VETO_COOLDOWN_ROUTE_SUBSTITUTION_CLOSURE",
+      "status": "PASS",
+      "evidence": "Fingerprint a950e2949aa06b0b16d286fa89d64de2a5860427337edf056346325d6c26a777: a flat-regime stale-inventory admission veto reserves the same seven-day cooldown to prevent unintended non-flat route substitution. Boundary: post-hoc historical Design/Validation plus annual folds, with no clean OOS and OOS unopened. Terminal disposition: NO_CANDIDATE_KEEP_DRA_V1 / CLOSED_REJECTED. Cooldown/admission accounting passed, but validation total and drawdown versus parent failed; routed holding-age and drawdown breadth gates also failed. Do not rerun the same veto-plus-reservation mechanism through route renaming or threshold-adjacent tuning."
+    },
+    {
+      "name": "ONE_SLOT_PROFITABLE_INCUMBENT_ROTATION_CLOSURE",
+      "status": "PASS",
+      "evidence": "Fingerprint cb18be1fd7d279ac563b4e72f3a186f3483a896af0211eb915303d1328b99330: on a fresh confirmed DRA signal, sell a one-slot incumbent already above the frozen +1% estimated-net floor and replace only after successful next-open sale. Boundary: post-hoc historical Design/Validation and five annual folds; accounting audit passed; OOS unopened. Terminal disposition: NO_CANDIDATE_KEEP_ONE_SLOT_DRA_V1 / CLOSED_REJECTED. Validation realized, drawdown, and median holding gates failed; annual drawdown breadth passed only 2/5. Do not rerun this conditional rotation or scan nearby incumbent-profit floors."
+    },
+    {
+      "name": "JAVA_PHASE_A_ACCOUNTING_CONTROL",
+      "status": "PASS",
+      "evidence": "Fingerprint 8dac86b43d45ececd803045c0aee4021fca755703184a37b9a91712d58aae157: Java reproduces frozen Python DRA V1 terminal economic checkpoints. Boundary: historical Design/Validation baseline only; exact checkpoint parity and data quality passed; OOS unopened. Terminal disposition: JAVA_PARITY_PASS_RESEARCH_ONLY / CLOSED_LEARNED. Performance dimensions are non-applicable because this is accounting-risk control, not alpha. Do not submit parity as a strategy hypothesis, candidate, or performance improvement."
+    },
+    {
+      "name": "JAVA_PHASE_B_LEDGER_CONTROL",
+      "status": "PASS",
+      "evidence": "Fingerprint 647c8a160a99f20970810131ef45423315725cfa38cf25792ada3f60e6e1b13c: Java and Python produce identical ordered events, fills, hourly economic states, and terminal lot books. Boundary: the same frozen historical Design/Validation baseline; all four parity booleans passed, mismatches were empty, and OOS remained unopened. Terminal disposition: JAVA_LEDGER_PARITY_PASS_RESEARCH_ONLY / CLOSED_LEARNED. Performance dimensions are non-applicable. Do not treat exact ledger parity as independent alpha or repeat it under a strategy label."
+    },
+    {
+      "name": "JAVA_PHASE_C_DEFERRED_CAPABILITY_GUARD",
+      "status": "PASS",
+      "evidence": "Capability fingerprint JAVA_PHASE_C_ONLY_FOR_FUTURE_COMPLEX_CANDIDATE, bound by document SHA-256 8c60a1ec7a7b65d5d45bbc9c08fb2643d49f6e848dbe6de5f909668b0c99872a. Boundary: Phase A/B parity plus the rejected one-slot branch; no candidate and no OOS. Terminal disposition: DEFER_PHASE_C_RETURN_TO_PERFORMANCE_EVIDENCE. PnL, drawdown, holding and strategy quality are non-applicable. Do not implement Phase C unless typed READY_FOR_HYPOTHESIS evidence, one deduplicated manifest, passed Design/Validation to CANDIDATE_FROZEN, unopened OOS, materially new lot semantics, and a frozen four-ledger contract all coexist."
+    },
+    {
+      "name": "IMMUTABLE_CORE_DRA_SLEEVE_CLOSURE",
+      "status": "PASS",
+      "evidence": "Mechanism fingerprint IMMUTABLE_CORE_60_PLUS_DRA_YIELD_SLEEVE_40_MONTHLY_FAIR_RESET, contract SHA-256 0327ca49b21cc54e99c860c0affb7dc2b69e4ef74430796a560ede74042b18e9. Boundary: sealed historical monthly Validation, historical-OOS summary, Main episodes, and fixed bootstrap; forward evidence remains pending. Terminal disposition: HISTORICAL_RESEARCH / FORWARD_PENDING / NO_CANDIDATE and NO_BEATS_GRID_CLAIM. Failed gates were historical-OOS strict monthly majority and Validation drawdown allowance; grid superiority also remained below its frozen claim threshold. Do not rerun or relabel the same 60/40 fair-reset study as a candidate or grid-beating claim."
+    },
+    {
+      "name": "DUPLICATE_RESEARCH_GUARD",
+      "status": "PASS",
+      "evidence": "Future proposals must fail deduplication when their declared mechanism is identical or semantically equivalent to: delayed failed reclaim after post-1R prior-24-low break; flat stale-inventory veto with preserved cooldown; profitable-incumbent one-slot replacement; the same immutable-core/DRA 60/40 monthly fair-reset sleeve; or Java baseline parity presented as alpha. A new label, wait-only change, nearby gate, route rename, or reporting change does not create predictive independence. Phase C is not a strategy branch and remains gated capability work."
+    },
+    {
+      "name": "OPEN_EVIDENCE_QUESTIONS",
+      "status": "MISSING_PROOF",
+      "evidence": "The frozen canonical snapshot names only lawful prospective lanes: general R1 at 4/90 with one missed capture and microstructure R2 waiting at day 0/14. No listed artifact maps either lane to a closed historical mechanism or supplies its future outcome, so neither may rehabilitate a closed branch. The monthly sleeve says FORWARD_PENDING but the listed bytes do not bind that statement to R1 or R2. Phase C eligibility also remains absent until a distinct future evidence-bound candidate satisfies every frozen gate."
+    },
+    {
+      "name": "OPPORTUNITY_COST_DECISION",
+      "status": "PASS",
+      "evidence": "Accepting the matrix has zero immediate fee-adjusted PnL or drawdown effect. Its bounded value is research-throughput protection: reject known duplicate mechanisms and parity-as-alpha proposals before compute, forward evidence, or engineering capacity is assigned, while preserving current capacity for genuinely prospective R1/R2 evidence. No cross-study absolute PnL or drawdown ranking was used."
+    },
+    {
+      "name": "ZERO_WRITE_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The Manager supplied a clean checkout and this audit performed only read-only byte validation and listed-input inspection. No repository or .research-state file was written; no Git command, network, runner, adapter import, performance recomputation, OOS, Research MCP, canonical, schedule, timer, writer, Trading, database, order, fund, SHADOW, PAPER, or LIVE action occurred."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "No listed forward evidence resolves whether any fingerprint-distinct mechanism will improve matched-capital fee-adjusted total PnL, drawdown, holding risk, or stability.",
+    "The canonical R1 and R2 lane labels are not linked by the listed bytes to the closed historical branches; any such mapping remains MISSING_PROOF.",
+    "The monthly sleeve's forward generalization, Java Phase C eligibility, candidate/OOS behavior, deployment value, and all live economic effects remain MISSING_PROOF."
+  ],
+  "recommended_next_action": "Manager should use this accepted result as a pre-dispatch fingerprint guard: preserve all listed closures, let only the already-lawful prospective R1/R2 evidence lanes mature, and authorize another research task only for a mechanism with explicit predictive independence from every fingerprint above.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

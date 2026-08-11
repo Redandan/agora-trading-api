@@ -86,6 +86,26 @@ days, seals the normalized day, and extends a SHA-256 chain in trigger state.
 The V3 capture window is six hours after UTC day close. A missing day becomes
 `EVIDENCE_CAPTURE_MISSED`; later backfill cannot repair that trigger.
 
+An eligible missed `HYPOTHESIS_DISCOVERY` window may now recover only through
+the existing heartbeat and `run_tick` lock. The predecessor remains immutable
+evidence and closes with `MISSED_CAPTURE_WINDOW_NO_BACKFILL` only after one
+deterministic successor trigger and its cloned source contract have both been
+verified. The successor starts at the first UTC midnight strictly after that
+heartbeat, preserves the predecessor's whole-day duration and scientific
+constraints, and starts with zero observations, chain, dataset, diagnostic,
+manifest, review, hypothesis, candidate, or performance claim. Its source
+contract preserves the exact source, producer, transport, and artifact format
+while continuing to deny Worker network, Worker database, and backfill.
+
+Rollover is discovery-only. Candidate OOS, unbound sources, non-daily triggers,
+non-missed windows, completed or review-ready lifecycles, tampered partial
+successors, and incompatible predecessor links remain fail closed. A compatible
+partial successor converges under the same store lock; no second successor,
+command, queue, timer, service, writer, capture, or retry loop is introduced.
+The successful heartbeat emits one hash-backed integrity/recovery event and the
+fixed companion remains inactive until the successor's first complete UTC day
+has actually closed.
+
 Before the untouched start, one immutable source contract must bind the trigger
 to a named producer and one-way transport while explicitly denying Worker
 network access, Worker database access, and backfill. Without it, canonical
@@ -232,6 +252,11 @@ database query, or backfill.
   and review without a local writer or additional timer;
 - a review date cannot skip a still-due final capture, and an impossible
   complete-day minimum/window contract is rejected at registration;
+- a missed discovery window can create only one strictly future,
+  zero-observation successor with a pre-start DENY-backfill source contract;
+- rollover preserves and closes the predecessor without copying observations,
+  rejects candidate OOS and incompatible partial state, and emits one deduped
+  existing-heartbeat recovery event;
 - a malformed, late, duplicate-with-different-content, or out-of-order UTC day
   cannot enter the evidence chain;
 - canonical status exposes sealed count, lag, chain head, and next capture

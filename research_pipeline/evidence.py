@@ -11,7 +11,11 @@ from typing import Any
 from .forward_candidate import DIAGNOSTIC_CONTRACT_PATH, load_diagnostic_contract
 from .models import RESEARCH_AUTHORIZATION, parse_timestamp
 from .storage import ResearchStore, atomic_write_json, read_json, sha256_file
-from .waiting import DETERMINISTIC_COMPLETE_DAY_CHECKS, build_evidence_review
+from .waiting import (
+    DETERMINISTIC_COMPLETE_DAY_CHECKS,
+    build_evidence_review,
+    build_evidence_trigger,
+)
 
 
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -19,6 +23,9 @@ MANIFEST_TYPE = "FORWARD_EVIDENCE_MANIFEST"
 DAILY_BUNDLE_TYPE = "FORWARD_EVIDENCE_DAY"
 SOURCE_CONTRACT_TYPE = "FORWARD_EVIDENCE_SOURCE_CONTRACT"
 EMPTY_CHAIN_HEAD = "0" * 64
+MISSED_DISCOVERY_ROLLOVER_ACTION = "ROLLOVER_MISSED_DISCOVERY_EVIDENCE_WINDOW"
+MISSED_DISCOVERY_ROLLOVER_REASON = "MISSED_CAPTURE_WINDOW_NO_BACKFILL"
+MISSED_DISCOVERY_ROLLOVER_STATUS = "MISSED_DISCOVERY_WINDOW_ROLLED_OVER"
 
 
 def register_evidence_source_contract(
@@ -120,6 +127,625 @@ def validate_evidence_source_contract(
         "registered_at": _iso_utc(current),
         "authorization": RESEARCH_AUTHORIZATION,
     }
+
+
+def missed_discovery_rollover_plan(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+    *,
+    now: datetime,
+    capture_max_lag_seconds: int = 21600,
+) -> dict[str, Any] | None:
+    """Return one deterministic discovery rollover plan without mutating state."""
+    current = now.astimezone(timezone.utc)
+    _verify_registered_trigger(store, trigger, state)
+    successor_id = _rollover_successor_id(trigger)
+
+    if state.get("status") == "CLOSED":
+        if not _is_matching_closed_rollover(state, successor_id):
+            return None
+        successor = store.load_evidence_trigger(successor_id)
+        successor_state = store.load_evidence_trigger_state(successor_id)
+        return _verified_rollover_plan(
+            store,
+            trigger,
+            state,
+            successor,
+            successor_state,
+            current=current,
+            predecessor_source_contract=verify_evidence_source_contract(
+                store, trigger, state
+            ),
+            existing=True,
+        )
+
+    if (
+        state.get("status") != "WAITING"
+        or trigger.get("purpose", "HYPOTHESIS_DISCOVERY") != "HYPOTHESIS_DISCOVERY"
+        or trigger.get("candidate_binding") is not None
+        or trigger.get("observation_unit") != "COMPLETE_UTC_DAY"
+    ):
+        return None
+    source_contract = verify_evidence_source_contract(store, trigger, state)
+    if source_contract is None:
+        return None
+    progress = evidence_progress(
+        store,
+        trigger,
+        state,
+        now=current,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
+    if progress["status"] != "MISSED_CAPTURE_WINDOW":
+        return None
+
+    successor_dir = store.evidence_trigger_dir(successor_id)
+    if successor_dir.exists():
+        successor = store.load_evidence_trigger(successor_id)
+        successor_state = store.load_evidence_trigger_state(successor_id)
+        existing = True
+    else:
+        successor = _build_rollover_successor(trigger, successor_id, created_at=current)
+        successor_state = None
+        existing = False
+    return _verified_rollover_plan(
+        store,
+        trigger,
+        state,
+        successor,
+        successor_state,
+        current=current,
+        predecessor_source_contract=source_contract,
+        existing=existing,
+    )
+
+
+def rollover_missed_discovery_window(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+    *,
+    now: datetime,
+    capture_max_lag_seconds: int = 21600,
+) -> dict[str, Any]:
+    """Create or recover one zero-observation successor, then close its predecessor."""
+    current = now.astimezone(timezone.utc)
+    immutable_before = _immutable_predecessor_files(store, trigger)
+    plan = missed_discovery_rollover_plan(
+        store,
+        trigger,
+        state,
+        now=current,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
+    if plan is None:
+        raise ValueError("evidence trigger is not eligible for discovery rollover")
+
+    successor = plan["successor_trigger"]
+    successor_id = str(successor["trigger_id"])
+    successor_dir = store.evidence_trigger_dir(successor_id)
+    if not successor_dir.exists():
+        store.register_evidence_trigger(successor)
+    successor_state = store.load_evidence_trigger_state(successor_id)
+    _verify_registered_trigger(store, successor, successor_state)
+    _verify_zero_observation_successor(
+        store,
+        successor,
+        successor_state,
+        predecessor=trigger,
+        allow_missing_link=True,
+    )
+
+    link = {
+        "rollover_predecessor_trigger_id": trigger["trigger_id"],
+        "rollover_predecessor_fingerprint": trigger["fingerprint"],
+        "rollover_reason": MISSED_DISCOVERY_ROLLOVER_REASON,
+    }
+    changed = False
+    for field, expected in link.items():
+        actual = successor_state.get(field)
+        if actual is None:
+            successor_state[field] = expected
+            changed = True
+        elif actual != expected:
+            raise ValueError(f"rollover successor {field} mismatch")
+    if changed:
+        store.save_evidence_trigger_state(successor_state)
+        successor_state = store.load_evidence_trigger_state(successor_id)
+
+    successor_state, actual_contract = _ensure_successor_source_contract(
+        store,
+        successor,
+        successor_state,
+        plan["successor_source_contract"],
+        registered_at=current,
+    )
+    _verify_zero_observation_successor(
+        store,
+        successor,
+        successor_state,
+        predecessor=trigger,
+        allow_missing_link=False,
+    )
+
+    predecessor_state = store.load_evidence_trigger_state(str(trigger["trigger_id"]))
+    _verify_registered_trigger(store, trigger, predecessor_state)
+    if predecessor_state.get("status") == "CLOSED":
+        _verify_closed_rollover_identity(predecessor_state, successor)
+    elif predecessor_state.get("status") == "WAITING":
+        predecessor_state["status"] = "CLOSED"
+        predecessor_state["next_review_at"] = None
+        predecessor_state["rollover_reason"] = MISSED_DISCOVERY_ROLLOVER_REASON
+        predecessor_state["rollover_successor_trigger_id"] = successor_id
+        predecessor_state["rollover_successor_fingerprint"] = successor["fingerprint"]
+        predecessor_state["rollover_closed_at"] = successor["created_at"]
+        store.save_evidence_trigger_state(predecessor_state)
+        predecessor_state = store.load_evidence_trigger_state(
+            str(trigger["trigger_id"])
+        )
+        _verify_closed_rollover_identity(predecessor_state, successor)
+    else:
+        raise ValueError("predecessor lifecycle changed during rollover")
+
+    if _immutable_predecessor_files(store, trigger) != immutable_before:
+        raise ValueError("rollover changed immutable predecessor evidence")
+    successor_state = store.load_evidence_trigger_state(successor_id)
+    return {
+        "status": MISSED_DISCOVERY_ROLLOVER_STATUS,
+        "action": MISSED_DISCOVERY_ROLLOVER_ACTION,
+        "trigger_id": trigger["trigger_id"],
+        "predecessor_trigger_id": trigger["trigger_id"],
+        "successor_trigger_id": successor_id,
+        "successor_evidence_start": successor["evidence_start"],
+        "successor_review_not_before": successor["review_not_before"],
+        "successor_observation_count": int(
+            successor_state.get("evidence_observation_count", 0)
+        ),
+        "successor_source_contract_sha256": successor_state[
+            "evidence_source_contract"
+        ]["sha256"],
+        "rollover_reason": MISSED_DISCOVERY_ROLLOVER_REASON,
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+
+
+def _verified_rollover_plan(
+    store: ResearchStore,
+    predecessor: dict[str, Any],
+    predecessor_state: dict[str, Any],
+    successor: dict[str, Any],
+    successor_state: dict[str, Any] | None,
+    *,
+    current: datetime,
+    predecessor_source_contract: dict[str, Any] | None,
+    existing: bool,
+) -> dict[str, Any]:
+    if predecessor_source_contract is None:
+        raise ValueError("rollover predecessor source contract is unavailable")
+    created_at = parse_timestamp(
+        str(successor["created_at"]), "successor created_at"
+    ).astimezone(timezone.utc)
+    if created_at > current:
+        raise ValueError("rollover successor created_at is in the future")
+    expected = _build_rollover_successor(
+        predecessor,
+        _rollover_successor_id(predecessor),
+        created_at=created_at,
+    )
+    if successor != expected:
+        raise ValueError("rollover successor identity or timing mismatch")
+    if predecessor_state.get("status") == "CLOSED":
+        _verify_closed_rollover_identity(predecessor_state, successor)
+    if existing:
+        if successor_state is None:
+            raise ValueError("rollover successor state is unavailable")
+        _verify_registered_trigger(store, successor, successor_state)
+        _verify_zero_observation_successor(
+            store,
+            successor,
+            successor_state,
+            predecessor=predecessor,
+            allow_missing_link=True,
+        )
+    contract = _successor_source_contract(predecessor_source_contract, successor)
+    if existing:
+        _existing_successor_source_contract(
+            store,
+            successor,
+            successor_state,
+            contract,
+        )
+    return {
+        "action": MISSED_DISCOVERY_ROLLOVER_ACTION,
+        "predecessor_trigger_id": predecessor["trigger_id"],
+        "successor_trigger_id": successor["trigger_id"],
+        "successor_evidence_start": successor["evidence_start"],
+        "successor_review_not_before": successor["review_not_before"],
+        "successor_trigger": successor,
+        "successor_source_contract": contract,
+    }
+
+
+def _build_rollover_successor(
+    predecessor: dict[str, Any],
+    successor_id: str,
+    *,
+    created_at: datetime,
+) -> dict[str, Any]:
+    created = created_at.astimezone(timezone.utc)
+    evidence_start = datetime.combine(
+        created.date() + timedelta(days=1), time.min, timezone.utc
+    )
+    predecessor_start = parse_timestamp(
+        str(predecessor["evidence_start"]), "predecessor evidence_start"
+    ).astimezone(timezone.utc)
+    predecessor_review = parse_timestamp(
+        str(predecessor["review_not_before"]), "predecessor review_not_before"
+    ).astimezone(timezone.utc)
+    duration = predecessor_review - predecessor_start
+    if duration <= timedelta(0) or duration.total_seconds() % 86400 != 0:
+        raise ValueError("predecessor discovery window duration is invalid")
+    return build_evidence_trigger(
+        {
+            "schema_version": "1",
+            "trigger_id": successor_id,
+            "title": f"{predecessor['title']} rollover",
+            "rationale": (
+                "Start one untouched successor after predecessor "
+                f"{predecessor['trigger_id']} missed a capture window; no backfill or "
+                "observation reuse is permitted."
+            ),
+            "source": predecessor["source"],
+            "evidence_start": _iso_utc(evidence_start),
+            "review_not_before": _iso_utc(evidence_start + duration),
+            "minimum_observations": predecessor["minimum_observations"],
+            "observation_unit": predecessor["observation_unit"],
+            "required_integrity_checks": list(
+                predecessor["required_integrity_checks"]
+            ),
+            "prohibited_inferences": list(predecessor["prohibited_inferences"]),
+            "excluded_branches": list(predecessor["excluded_branches"]),
+            "purpose": "HYPOTHESIS_DISCOVERY",
+            "created_at": _iso_utc(created),
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+    )
+
+
+def _successor_source_contract(
+    predecessor_contract: dict[str, Any],
+    successor: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "schema_version": "1",
+        "contract_type": SOURCE_CONTRACT_TYPE,
+        "trigger_id": successor["trigger_id"],
+        "trigger_fingerprint": successor["fingerprint"],
+        "source": successor["source"],
+        "producer": predecessor_contract["producer"],
+        "transport": predecessor_contract["transport"],
+        "artifact_format": predecessor_contract["artifact_format"],
+        "worker_network_access": "DENY",
+        "worker_database_access": "DENY",
+        "backfill": "DENY",
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+
+
+def _verify_successor_source_contract(
+    actual: dict[str, Any] | None,
+    expected: dict[str, Any],
+    successor: dict[str, Any],
+) -> None:
+    if actual is None:
+        raise ValueError("rollover successor source contract is unavailable")
+    if {key: actual.get(key) for key in expected} != expected:
+        raise ValueError("rollover successor source contract mismatch")
+    registered_at = parse_timestamp(
+        str(actual.get("registered_at")), "successor source registered_at"
+    ).astimezone(timezone.utc)
+    created_at = parse_timestamp(
+        str(successor["created_at"]), "successor created_at"
+    ).astimezone(timezone.utc)
+    evidence_start = parse_timestamp(
+        str(successor["evidence_start"]), "successor evidence_start"
+    ).astimezone(timezone.utc)
+    if registered_at < created_at or registered_at >= evidence_start:
+        raise ValueError("rollover successor source contract timing mismatch")
+
+
+def _existing_successor_source_contract(
+    store: ResearchStore,
+    successor: dict[str, Any],
+    state: dict[str, Any],
+    expected: dict[str, Any],
+) -> dict[str, Any] | None:
+    path = store.evidence_trigger_dir(str(successor["trigger_id"])) / "source-contract.json"
+    reference = state.get("evidence_source_contract")
+    if reference is None:
+        if path.is_symlink():
+            raise ValueError("rollover successor source contract path is invalid")
+        if not path.exists():
+            return None
+        if not path.is_file():
+            raise ValueError("rollover successor source contract path is invalid")
+        actual = read_json(path)
+        registered_at = parse_timestamp(
+            str(actual.get("registered_at")), "successor source registered_at"
+        )
+        normalized = validate_evidence_source_contract(
+            {key: value for key, value in actual.items() if key != "registered_at"},
+            successor,
+            registered_at=registered_at,
+        )
+        if normalized != actual:
+            raise ValueError("rollover successor source contract is not canonical")
+    else:
+        if not isinstance(reference, dict):
+            raise ValueError("rollover successor source contract reference is invalid")
+        if reference.get("path") != _relative_path(store, path):
+            raise ValueError("rollover successor source contract path mismatch")
+        actual = verify_evidence_source_contract(store, successor, state)
+        if actual is None:
+            raise ValueError("rollover successor source contract is unavailable")
+        expected_reference = {
+            "path": _relative_path(store, path),
+            "sha256": sha256_file(path),
+            "producer": actual["producer"],
+            "registered_at": actual["registered_at"],
+        }
+        if reference != expected_reference:
+            raise ValueError("rollover successor source contract reference mismatch")
+    _verify_successor_source_contract(actual, expected, successor)
+    return actual
+
+
+def _ensure_successor_source_contract(
+    store: ResearchStore,
+    successor: dict[str, Any],
+    state: dict[str, Any],
+    expected: dict[str, Any],
+    *,
+    registered_at: datetime,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    actual = _existing_successor_source_contract(store, successor, state, expected)
+    path = store.evidence_trigger_dir(str(successor["trigger_id"])) / "source-contract.json"
+    if actual is None:
+        register_evidence_source_contract(
+            store,
+            successor,
+            state,
+            expected,
+            registered_at=registered_at,
+        )
+        state = store.load_evidence_trigger_state(str(successor["trigger_id"]))
+        actual = _existing_successor_source_contract(store, successor, state, expected)
+    elif state.get("evidence_source_contract") is None:
+        reference = {
+            "path": _relative_path(store, path),
+            "sha256": sha256_file(path),
+            "producer": actual["producer"],
+            "registered_at": actual["registered_at"],
+        }
+        state["evidence_source_contract"] = reference
+        store.save_evidence_trigger_state(state)
+        state = store.load_evidence_trigger_state(str(successor["trigger_id"]))
+        actual = _existing_successor_source_contract(store, successor, state, expected)
+    if actual is None:
+        raise ValueError("rollover successor source contract is unavailable")
+    reference = state.get("evidence_source_contract")
+    if not isinstance(reference, dict):
+        raise ValueError("rollover successor source contract reference is unavailable")
+    store.ensure_evidence_trigger_event(
+        str(successor["trigger_id"]),
+        "EVIDENCE_SOURCE_CONTRACT_REGISTERED",
+        reference,
+    )
+    return state, actual
+
+
+def _verify_registered_trigger(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+) -> None:
+    trigger_id = str(trigger.get("trigger_id"))
+    if state.get("trigger_id") != trigger_id:
+        raise ValueError("rollover trigger/state identity mismatch")
+    path = store.evidence_trigger_dir(trigger_id) / "trigger.json"
+    if path.is_symlink() or not path.is_file():
+        raise ValueError("rollover registered trigger is unavailable")
+    if state.get("trigger_sha256") != sha256_file(path) or read_json(path) != trigger:
+        raise ValueError("rollover registered trigger changed")
+    raw = {key: value for key, value in trigger.items() if key != "fingerprint"}
+    if build_evidence_trigger(raw) != trigger:
+        raise ValueError("rollover registered trigger is not canonical")
+
+
+def _verify_zero_observation_successor(
+    store: ResearchStore,
+    successor: dict[str, Any],
+    state: dict[str, Any],
+    *,
+    predecessor: dict[str, Any],
+    allow_missing_link: bool,
+) -> None:
+    if state.get("status") != "WAITING":
+        raise ValueError("rollover successor must remain WAITING")
+    if state.get("next_review_at") != successor["review_not_before"]:
+        raise ValueError("rollover successor review clock mismatch")
+    if int(state.get("review_count", 0)) != 0 or state.get("reviews") not in (None, []):
+        raise ValueError("rollover successor must not contain a review")
+    if state.get("detail") is not None:
+        raise ValueError("rollover successor must not contain diagnostic detail")
+    observations = state.get("evidence_observations", [])
+    if observations not in (None, []) or int(state.get("evidence_observation_count", 0)) != 0:
+        raise ValueError("rollover successor must start with zero observations")
+    if state.get("evidence_chain_head") not in (None, EMPTY_CHAIN_HEAD):
+        raise ValueError("rollover successor must start without an evidence chain")
+    forbidden_state = {
+        "evidence_ready_at",
+        "oos_ready_at",
+        "hypothesis_id",
+        "candidate_binding",
+        "candidate_frozen_at",
+        "candidate_bundle_sha256",
+    }
+    if any(state.get(field) is not None for field in forbidden_state):
+        raise ValueError("rollover successor contains forbidden derived state")
+    allowed_state = {
+        "schema_version",
+        "trigger_id",
+        "status",
+        "next_review_at",
+        "review_count",
+        "reviews",
+        "trigger_sha256",
+        "created_at",
+        "updated_at",
+        "detail",
+        "evidence_source_contract",
+        "evidence_observations",
+        "evidence_observation_count",
+        "evidence_chain_head",
+        "rollover_predecessor_trigger_id",
+        "rollover_predecessor_fingerprint",
+        "rollover_reason",
+    }
+    if set(state).difference(allowed_state):
+        raise ValueError("rollover successor contains unexpected derived state")
+    expected_link = {
+        "rollover_predecessor_trigger_id": predecessor["trigger_id"],
+        "rollover_predecessor_fingerprint": predecessor["fingerprint"],
+        "rollover_reason": MISSED_DISCOVERY_ROLLOVER_REASON,
+    }
+    for field, expected in expected_link.items():
+        actual = state.get(field)
+        if actual is None and allow_missing_link:
+            continue
+        if actual != expected:
+            raise ValueError(f"rollover successor {field} mismatch")
+    directory = store.evidence_trigger_dir(str(successor["trigger_id"]))
+    allowed = {
+        "events.jsonl",
+        "reviews",
+        "source-contract.json",
+        "state.json",
+        "trigger.json",
+    }
+    for path in directory.rglob("*"):
+        relative = path.relative_to(directory).as_posix()
+        if path.is_symlink() or relative not in allowed:
+            raise ValueError("rollover successor contains unexpected artifacts")
+        if relative == "reviews" and any(path.iterdir()):
+            raise ValueError("rollover successor review directory must be empty")
+    _verify_rollover_successor_events(store, successor, state)
+
+
+def _verify_rollover_successor_events(
+    store: ResearchStore,
+    successor: dict[str, Any],
+    state: dict[str, Any],
+) -> None:
+    path = store.evidence_trigger_dir(str(successor["trigger_id"])) / "events.jsonl"
+    if path.is_symlink() or not path.is_file():
+        raise ValueError("rollover successor event log is unavailable")
+    text = path.read_text(encoding="utf-8")
+    if not text or not text.endswith("\n"):
+        raise ValueError("rollover successor event log is incomplete")
+    counts = {
+        "EVIDENCE_TRIGGER_REGISTERED": 0,
+        "EVIDENCE_SOURCE_CONTRACT_REGISTERED": 0,
+    }
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise ValueError(
+                f"rollover successor event log record {line_number} is invalid"
+            ) from error
+        if not isinstance(event, dict) or set(event) != {
+            "timestamp",
+            "trigger_id",
+            "event_type",
+            "detail",
+        }:
+            raise ValueError("rollover successor event record is not canonical")
+        if event.get("trigger_id") != successor["trigger_id"]:
+            raise ValueError("rollover successor event identity mismatch")
+        parse_timestamp(str(event.get("timestamp")), "rollover successor event timestamp")
+        event_type = str(event.get("event_type"))
+        if event_type not in counts or not isinstance(event.get("detail"), dict):
+            raise ValueError("rollover successor contains an unexpected event")
+        counts[event_type] += 1
+        if counts[event_type] > 1:
+            raise ValueError("rollover successor event is duplicated")
+        if event_type == "EVIDENCE_TRIGGER_REGISTERED" and event["detail"] != {
+            "status": "WAITING",
+            "next_review_at": successor["review_not_before"],
+        }:
+            raise ValueError("rollover successor registration event mismatch")
+        if event_type == "EVIDENCE_SOURCE_CONTRACT_REGISTERED":
+            reference = state.get("evidence_source_contract")
+            if not isinstance(reference, dict) or event["detail"] != reference:
+                raise ValueError("rollover successor source event mismatch")
+    if counts["EVIDENCE_TRIGGER_REGISTERED"] != 1:
+        raise ValueError("rollover successor registration event is unavailable")
+
+
+def _immutable_predecessor_files(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+) -> dict[str, str]:
+    directory = store.evidence_trigger_dir(str(trigger["trigger_id"]))
+    result: dict[str, str] = {}
+    for path in sorted(directory.rglob("*")):
+        if path.name == "state.json" or path.is_dir():
+            continue
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("rollover predecessor contains a linked artifact")
+        result[path.relative_to(directory).as_posix()] = sha256_file(path)
+    return result
+
+
+def _rollover_successor_id(trigger: dict[str, Any]) -> str:
+    predecessor_id = str(trigger["trigger_id"])
+    prefix = predecessor_id[:48].rstrip("-") or "discovery-trigger"
+    digest = hashlib.sha256(
+        (
+            "MISSED_DISCOVERY_WINDOW_ROLLOVER_V1:"
+            + predecessor_id
+            + ":"
+            + str(trigger["fingerprint"])
+        ).encode("utf-8")
+    ).hexdigest()[:12]
+    return f"{prefix}-rollover-{digest}"
+
+
+def _is_matching_closed_rollover(
+    state: dict[str, Any],
+    successor_id: str,
+) -> bool:
+    return (
+        state.get("status") == "CLOSED"
+        and state.get("rollover_reason") == MISSED_DISCOVERY_ROLLOVER_REASON
+        and state.get("rollover_successor_trigger_id") == successor_id
+        and isinstance(state.get("rollover_successor_fingerprint"), str)
+        and isinstance(state.get("rollover_closed_at"), str)
+    )
+
+
+def _verify_closed_rollover_identity(
+    state: dict[str, Any],
+    successor: dict[str, Any],
+) -> None:
+    if (
+        not _is_matching_closed_rollover(state, str(successor["trigger_id"]))
+        or state.get("rollover_successor_fingerprint") != successor["fingerprint"]
+        or state.get("rollover_closed_at") != successor["created_at"]
+    ):
+        raise ValueError("closed predecessor rollover identity mismatch")
 
 
 def seal_daily_evidence(

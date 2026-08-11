@@ -24,7 +24,10 @@ from research_pipeline.cli import (
     verify_review_artifacts,
 )
 from research_pipeline.evidence import (
+    MISSED_DISCOVERY_ROLLOVER_ACTION,
+    MISSED_DISCOVERY_ROLLOVER_STATUS,
     evidence_progress,
+    rollover_missed_discovery_window,
     register_evidence_source_contract,
     seal_daily_evidence,
     validate_evidence_manifest,
@@ -39,6 +42,7 @@ from research_pipeline.models import RESEARCH_AUTHORIZATION
 from research_pipeline.heartbeat import (
     _advance_coach_delivery,
     _performance_evidence,
+    _research_fingerprint,
     record_heartbeat_failure,
     run_heartbeat_cycle,
 )
@@ -2627,6 +2631,579 @@ class EvidenceManifestContractTest(unittest.TestCase):
             )
         hypothesis_path = self.store.hypothesis_path("forward-candidate-test")
         self.assertFalse(hypothesis_path.exists())
+
+
+class MissedDiscoveryWindowRolloverTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        self.store = ResearchStore(self.root, lock_stale_seconds=60)
+        self.policy = {
+            "policy_id": "TEST_RESEARCH_ONLY",
+            "evidence": {"capture_max_lag_seconds": 21600},
+        }
+
+    def tearDown(self) -> None:
+        self.temporary.cleanup()
+
+    def _register_trigger(
+        self,
+        *,
+        store: ResearchStore | None = None,
+        trigger_id: str = "missed-discovery-rollover-test",
+        evidence_start: str = "2026-01-01T00:00:00Z",
+        review_not_before: str = "2026-01-03T00:00:00Z",
+        purpose: str = "HYPOTHESIS_DISCOVERY",
+        with_source: bool = True,
+    ) -> tuple[ResearchStore, dict[str, object]]:
+        target_store = self.store if store is None else store
+        value: dict[str, object] = {
+            "schema_version": "1",
+            "trigger_id": trigger_id,
+            "title": "Missed discovery rollover test",
+            "rationale": "Prove a missed discovery window restarts without backfill.",
+            "source": "sealed rollover test source",
+            "evidence_start": evidence_start,
+            "review_not_before": review_not_before,
+            "minimum_observations": 2,
+            "observation_unit": "COMPLETE_UTC_DAY",
+            "required_integrity_checks": [
+                "closed_bar_causality",
+                "no_gap_or_duplicate",
+            ],
+            "prohibited_inferences": ["no performance selection"],
+            "excluded_branches": ["closed branch"],
+            "purpose": purpose,
+            "created_at": "2025-12-30T00:00:00Z",
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+        if purpose == "CANDIDATE_OOS":
+            value["required_integrity_checks"] = [
+                "closed_bar_causality",
+                "candidate_manifest_frozen_before_oos_start",
+            ]
+            value["candidate_binding"] = {
+                "experiment_id": "candidate-oos-rollover-test",
+                "manifest_sha256": "a" * 64,
+                "adapter": "test-forward-adapter",
+                "mechanism_key": "TEST_MECHANISM",
+            }
+        trigger = build_evidence_trigger(value)
+        target_store.register_evidence_trigger(trigger)
+        if with_source:
+            state = target_store.load_evidence_trigger_state(trigger["trigger_id"])
+            source_registered_at = datetime.fromisoformat(
+                evidence_start.replace("Z", "+00:00")
+            ) - timedelta(hours=12)
+            register_evidence_source_contract(
+                target_store,
+                trigger,
+                state,
+                self._source_contract(trigger),
+                registered_at=source_registered_at,
+            )
+        return target_store, trigger
+
+    @staticmethod
+    def _source_contract(trigger: dict[str, object]) -> dict[str, object]:
+        return {
+            "schema_version": "1",
+            "contract_type": "FORWARD_EVIDENCE_SOURCE_CONTRACT",
+            "trigger_id": trigger["trigger_id"],
+            "trigger_fingerprint": trigger["fingerprint"],
+            "source": trigger["source"],
+            "producer": "rollover-producer",
+            "transport": "SEALED_ONE_WAY_DROP",
+            "artifact_format": "FORWARD_EVIDENCE_DAY_V1",
+            "worker_network_access": "DENY",
+            "worker_database_access": "DENY",
+            "backfill": "DENY",
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+
+    @staticmethod
+    def _daily_bundle(trigger: dict[str, object], day: str) -> dict[str, object]:
+        start = datetime.fromisoformat(day).replace(tzinfo=timezone.utc)
+        bars = []
+        for hour in range(24):
+            interval_start = start + timedelta(hours=hour)
+            bars.append(
+                {
+                    "interval_start": interval_start.isoformat().replace(
+                        "+00:00", "Z"
+                    ),
+                    "interval_end": (interval_start + timedelta(hours=1))
+                    .isoformat()
+                    .replace("+00:00", "Z"),
+                    "open": "100",
+                    "high": "102",
+                    "low": "99",
+                    "close": "101",
+                    "volume": "10",
+                }
+            )
+        return {
+            "schema_version": "1",
+            "bundle_type": "FORWARD_EVIDENCE_DAY",
+            "trigger_id": trigger["trigger_id"],
+            "trigger_fingerprint": trigger["fingerprint"],
+            "source": trigger["source"],
+            "day": day,
+            "bars": bars,
+            "source_provenance": {
+                "producer": "rollover-producer",
+                "artifact_id": f"rollover-source-{day}",
+                "sha256": "b" * 64,
+            },
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+
+    def _preview_and_execute(
+        self,
+        store: ResearchStore,
+        *,
+        now: datetime,
+    ) -> tuple[dict[str, object], dict[str, object]]:
+        preview = run_tick(
+            store,
+            self.policy,
+            dry_run=True,
+            current_policy_hash="c" * 64,
+            now=now,
+        )
+        result = run_tick(
+            store,
+            self.policy,
+            dry_run=False,
+            current_policy_hash="c" * 64,
+            now=now,
+        )
+        return preview, result
+
+    def test_missed_discovery_rollover_is_future_zero_copy_and_idempotent(self) -> None:
+        store, trigger = self._register_trigger()
+        predecessor_dir = store.evidence_trigger_dir(trigger["trigger_id"])
+        immutable_before = {
+            path.relative_to(predecessor_dir).as_posix(): path.read_bytes()
+            for path in predecessor_dir.rglob("*")
+            if path.is_file() and path.name != "state.json"
+        }
+        now = datetime(2026, 1, 2, 7, tzinfo=timezone.utc)
+        preview, result = self._preview_and_execute(store, now=now)
+
+        self.assertEqual(preview["status"], "DRY_RUN")
+        self.assertEqual(preview["action"], MISSED_DISCOVERY_ROLLOVER_ACTION)
+        self.assertEqual(result["status"], MISSED_DISCOVERY_ROLLOVER_STATUS)
+        successor_id = result["successor_trigger_id"]
+        successor = store.load_evidence_trigger(successor_id)
+        successor_state = store.load_evidence_trigger_state(successor_id)
+        predecessor_state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        self.assertEqual(successor["evidence_start"], "2026-01-03T00:00:00Z")
+        self.assertEqual(successor["review_not_before"], "2026-01-05T00:00:00Z")
+        self.assertEqual(successor_state.get("evidence_observation_count", 0), 0)
+        self.assertNotIn("evidence_observations", successor_state)
+        self.assertEqual(successor_state["rollover_predecessor_trigger_id"], trigger["trigger_id"])
+        self.assertEqual(predecessor_state["status"], "CLOSED")
+        self.assertEqual(
+            predecessor_state["rollover_reason"],
+            "MISSED_CAPTURE_WINDOW_NO_BACKFILL",
+        )
+        successor_contract = json.loads(
+            (store.evidence_trigger_dir(successor_id) / "source-contract.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        predecessor_contract = json.loads(
+            (predecessor_dir / "source-contract.json").read_text(encoding="utf-8")
+        )
+        for field in ("source", "producer", "transport", "artifact_format"):
+            self.assertEqual(successor_contract[field], predecessor_contract[field])
+        self.assertEqual(successor_contract["worker_network_access"], "DENY")
+        self.assertEqual(successor_contract["worker_database_access"], "DENY")
+        self.assertEqual(successor_contract["backfill"], "DENY")
+        immutable_after = {
+            path.relative_to(predecessor_dir).as_posix(): path.read_bytes()
+            for path in predecessor_dir.rglob("*")
+            if path.is_file() and path.name != "state.json"
+        }
+        self.assertEqual(immutable_after, immutable_before)
+
+        repeated = rollover_missed_discovery_window(
+            store,
+            trigger,
+            predecessor_state,
+            now=now + timedelta(days=1),
+        )
+        self.assertEqual(repeated["successor_trigger_id"], successor_id)
+        self.assertEqual(len(store.evidence_trigger_entries()), 2)
+
+    def test_closed_predecessor_requires_exact_successor_identity(self) -> None:
+        store, trigger = self._register_trigger()
+        now = datetime(2026, 1, 2, 7, tzinfo=timezone.utc)
+        _, result = self._preview_and_execute(store, now=now)
+        state_path = store.evidence_trigger_dir(trigger["trigger_id"]) / "state.json"
+        predecessor_state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        predecessor_state["rollover_successor_fingerprint"] = "f" * 64
+        atomic_write_json(state_path, predecessor_state)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "closed predecessor rollover identity mismatch",
+        ):
+            rollover_missed_discovery_window(
+                store,
+                trigger,
+                predecessor_state,
+                now=now + timedelta(days=1),
+            )
+        self.assertEqual(len(store.evidence_trigger_entries()), 2)
+        self.assertEqual(
+            result["successor_trigger_id"],
+            store.evidence_trigger_entries()[1][0]["trigger_id"],
+        )
+
+    def test_rollover_start_is_strictly_after_midnight_heartbeat(self) -> None:
+        store, _ = self._register_trigger(
+            evidence_start="2025-12-30T00:00:00Z",
+            review_not_before="2026-01-01T00:00:00Z",
+        )
+        preview, result = self._preview_and_execute(
+            store,
+            now=datetime(2026, 1, 2, tzinfo=timezone.utc),
+        )
+        self.assertEqual(preview["successor_evidence_start"], "2026-01-03T00:00:00Z")
+        self.assertEqual(result["successor_evidence_start"], "2026-01-03T00:00:00Z")
+
+    def test_rollover_preserves_existing_predecessor_observation(self) -> None:
+        store, trigger = self._register_trigger()
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        seal_daily_evidence(
+            store,
+            trigger,
+            state,
+            self._daily_bundle(trigger, "2026-01-01"),
+            received_at=datetime(2026, 1, 2, 1, tzinfo=timezone.utc),
+        )
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        observation_path = store.root / state["evidence_observations"][0]["path"]
+        observation_bytes = observation_path.read_bytes()
+        _, result = self._preview_and_execute(
+            store,
+            now=datetime(2026, 1, 3, 7, tzinfo=timezone.utc),
+        )
+        successor_state = store.load_evidence_trigger_state(
+            result["successor_trigger_id"]
+        )
+        self.assertEqual(observation_path.read_bytes(), observation_bytes)
+        self.assertEqual(successor_state.get("evidence_observation_count", 0), 0)
+        self.assertNotIn("evidence_observations", successor_state)
+
+    def test_partial_successor_recovers_without_duplicate(self) -> None:
+        store, trigger = self._register_trigger()
+        now = datetime(2026, 1, 2, 7, tzinfo=timezone.utc)
+        with patch(
+            "research_pipeline.evidence.register_evidence_source_contract",
+            side_effect=RuntimeError("simulated source seal interruption"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "source seal interruption"):
+                run_tick(
+                    store,
+                    self.policy,
+                    dry_run=False,
+                    current_policy_hash="c" * 64,
+                    now=now,
+                )
+        self.assertEqual(
+            store.load_evidence_trigger_state(trigger["trigger_id"])["status"],
+            "WAITING",
+        )
+        self.assertEqual(len(store.evidence_trigger_entries()), 2)
+        recovered = run_tick(
+            store,
+            self.policy,
+            dry_run=False,
+            current_policy_hash="c" * 64,
+            now=now + timedelta(hours=1),
+        )
+        self.assertEqual(recovered["status"], MISSED_DISCOVERY_ROLLOVER_STATUS)
+        self.assertEqual(len(store.evidence_trigger_entries()), 2)
+
+    def test_orphaned_exact_source_contract_is_attached_on_retry(self) -> None:
+        store, _ = self._register_trigger()
+        now = datetime(2026, 1, 2, 7, tzinfo=timezone.utc)
+        with patch(
+            "research_pipeline.evidence.register_evidence_source_contract",
+            side_effect=RuntimeError("simulated source seal interruption"),
+        ):
+            with self.assertRaises(RuntimeError):
+                run_tick(
+                    store,
+                    self.policy,
+                    dry_run=False,
+                    current_policy_hash="c" * 64,
+                    now=now,
+                )
+        successor, successor_state = store.evidence_trigger_entries()[1]
+        orphan = self._source_contract(successor)
+        orphan["registered_at"] = "2026-01-02T07:00:00Z"
+        atomic_write_json(
+            store.evidence_trigger_dir(successor["trigger_id"])
+            / "source-contract.json",
+            orphan,
+        )
+
+        recovered = run_tick(
+            store,
+            self.policy,
+            dry_run=False,
+            current_policy_hash="c" * 64,
+            now=now + timedelta(hours=1),
+        )
+
+        self.assertEqual(recovered["status"], MISSED_DISCOVERY_ROLLOVER_STATUS)
+        successor_state = store.load_evidence_trigger_state(successor["trigger_id"])
+        self.assertEqual(
+            successor_state["evidence_source_contract"]["registered_at"],
+            orphan["registered_at"],
+        )
+        source_events = [
+            json.loads(line)
+            for line in (
+                store.evidence_trigger_dir(successor["trigger_id"]) / "events.jsonl"
+            ).read_text(encoding="utf-8").splitlines()
+            if json.loads(line)["event_type"]
+            == "EVIDENCE_SOURCE_CONTRACT_REGISTERED"
+        ]
+        self.assertEqual(len(source_events), 1)
+
+    def test_tampered_partial_source_contract_fails_before_state_change(self) -> None:
+        store, trigger = self._register_trigger()
+        now = datetime(2026, 1, 2, 7, tzinfo=timezone.utc)
+        with patch(
+            "research_pipeline.evidence.register_evidence_source_contract",
+            side_effect=RuntimeError("simulated source seal interruption"),
+        ):
+            with self.assertRaises(RuntimeError):
+                run_tick(
+                    store,
+                    self.policy,
+                    dry_run=False,
+                    current_policy_hash="c" * 64,
+                    now=now,
+                )
+        successor, successor_state = store.evidence_trigger_entries()[1]
+        tampered = self._source_contract(successor)
+        tampered["producer"] = "different-producer"
+        tampered["registered_at"] = "2026-01-02T07:00:00Z"
+        atomic_write_json(
+            store.evidence_trigger_dir(successor["trigger_id"])
+            / "source-contract.json",
+            tampered,
+        )
+        state_before = store.load_evidence_trigger_state(successor["trigger_id"])
+
+        result = run_tick(
+            store,
+            self.policy,
+            dry_run=True,
+            current_policy_hash="c" * 64,
+            now=now + timedelta(hours=1),
+        )
+
+        self.assertEqual(result["status"], "EVIDENCE_CAPTURE_MISSED")
+        self.assertEqual(result["rollover_status"], "FAILED_CLOSED")
+        self.assertIn("source contract mismatch", result["rollover_failure"])
+        self.assertEqual(
+            store.load_evidence_trigger_state(successor["trigger_id"]),
+            state_before,
+        )
+        self.assertEqual(
+            store.load_evidence_trigger_state(trigger["trigger_id"])["status"],
+            "WAITING",
+        )
+        self.assertEqual(len(store.evidence_trigger_entries()), 2)
+
+    def test_tampered_partial_successor_fails_closed_without_duplicate(self) -> None:
+        store, _ = self._register_trigger()
+        now = datetime(2026, 1, 2, 7, tzinfo=timezone.utc)
+        with patch(
+            "research_pipeline.evidence.register_evidence_source_contract",
+            side_effect=RuntimeError("simulated source seal interruption"),
+        ):
+            with self.assertRaises(RuntimeError):
+                run_tick(
+                    store,
+                    self.policy,
+                    dry_run=False,
+                    current_policy_hash="c" * 64,
+                    now=now,
+                )
+        successor_trigger, _ = store.evidence_trigger_entries()[1]
+        path = store.evidence_trigger_dir(successor_trigger["trigger_id"]) / "trigger.json"
+        tampered = json.loads(path.read_text(encoding="utf-8"))
+        tampered["title"] = "tampered successor"
+        atomic_write_json(path, tampered)
+        with self.assertRaisesRegex(ValueError, "registered evidence trigger changed"):
+            run_tick(
+                store,
+                self.policy,
+                dry_run=False,
+                current_policy_hash="c" * 64,
+                now=now + timedelta(hours=1),
+            )
+        self.assertEqual(len(store.evidence_trigger_entries()), 2)
+
+    def test_partial_successor_with_unexpected_event_fails_closed(self) -> None:
+        store, _ = self._register_trigger()
+        now = datetime(2026, 1, 2, 7, tzinfo=timezone.utc)
+        with patch(
+            "research_pipeline.evidence.register_evidence_source_contract",
+            side_effect=RuntimeError("simulated source seal interruption"),
+        ):
+            with self.assertRaises(RuntimeError):
+                run_tick(
+                    store,
+                    self.policy,
+                    dry_run=False,
+                    current_policy_hash="c" * 64,
+                    now=now,
+                )
+        successor, _ = store.evidence_trigger_entries()[1]
+        store.append_evidence_trigger_event(
+            successor["trigger_id"],
+            "READY_FOR_HYPOTHESIS",
+            {"performance_claim": "tampered"},
+        )
+
+        result = run_tick(
+            store,
+            self.policy,
+            dry_run=True,
+            current_policy_hash="c" * 64,
+            now=now + timedelta(hours=1),
+        )
+
+        self.assertEqual(result["status"], "EVIDENCE_CAPTURE_MISSED")
+        self.assertEqual(result["rollover_status"], "FAILED_CLOSED")
+        self.assertIn("unexpected event", result["rollover_failure"])
+        self.assertEqual(len(store.evidence_trigger_entries()), 2)
+
+    def test_candidate_oos_missed_window_is_not_rolled_over(self) -> None:
+        store = ResearchStore(self.root / "candidate", lock_stale_seconds=60)
+        store, _ = self._register_trigger(
+            store=store,
+            trigger_id="candidate-oos-missed-window-test",
+            purpose="CANDIDATE_OOS",
+        )
+        result = run_tick(
+            store,
+            self.policy,
+            dry_run=True,
+            current_policy_hash="c" * 64,
+            now=datetime(2026, 1, 2, 7, tzinfo=timezone.utc),
+        )
+        self.assertEqual(result["status"], "EVIDENCE_CAPTURE_MISSED")
+        self.assertEqual(len(store.evidence_trigger_entries()), 1)
+
+    def test_source_unbound_and_not_missed_do_not_roll_over(self) -> None:
+        unbound = ResearchStore(self.root / "unbound", lock_stale_seconds=60)
+        unbound, _ = self._register_trigger(store=unbound, with_source=False)
+        unbound_result = run_tick(
+            unbound,
+            self.policy,
+            dry_run=True,
+            current_policy_hash="c" * 64,
+            now=datetime(2026, 1, 2, 7, tzinfo=timezone.utc),
+        )
+        self.assertEqual(unbound_result["status"], "EVIDENCE_SOURCE_UNBOUND")
+        self.assertEqual(len(unbound.evidence_trigger_entries()), 1)
+
+        waiting = ResearchStore(self.root / "waiting", lock_stale_seconds=60)
+        waiting, _ = self._register_trigger(store=waiting)
+        waiting_result = run_tick(
+            waiting,
+            self.policy,
+            dry_run=True,
+            current_policy_hash="c" * 64,
+            now=datetime(2026, 1, 1, 12, tzinfo=timezone.utc),
+        )
+        self.assertEqual(waiting_result["status"], "WAITING_FOR_EVIDENCE")
+        self.assertEqual(len(waiting.evidence_trigger_entries()), 1)
+
+    def test_heartbeat_emits_one_deduplicated_rollover_event(self) -> None:
+        store, _ = self._register_trigger()
+        now = datetime(2026, 1, 2, 7, tzinfo=timezone.utc)
+        preview, result = self._preview_and_execute(store, now=now)
+        with patch(
+            "research_pipeline.heartbeat.microstructure_diagnostic_status",
+            return_value={"status": "NOT_READY"},
+        ):
+            first = run_heartbeat_cycle(
+                store,
+                self.policy,
+                now=now,
+                tick_preview=preview,
+                tick_result=result,
+            )
+            successor_tick = run_tick(
+                store,
+                self.policy,
+                dry_run=True,
+                current_policy_hash="c" * 64,
+                now=now + timedelta(hours=1),
+            )
+            second = run_heartbeat_cycle(
+                store,
+                self.policy,
+                now=now + timedelta(hours=1),
+                tick_preview=successor_tick,
+                tick_result=successor_tick,
+            )
+        first_events = [
+            event
+            for event in first["events"]
+            if event["research_status"] == MISSED_DISCOVERY_ROLLOVER_STATUS
+            and event["event_type"] == "INTEGRITY_ALERT"
+            and event.get("evidence_diagnostic", {}).get("successor_trigger_id")
+            == result["successor_trigger_id"]
+        ]
+        second_events = [
+            event
+            for event in second["events"]
+            if event["research_status"] == MISSED_DISCOVERY_ROLLOVER_STATUS
+            and event["event_type"] == "INTEGRITY_ALERT"
+            and event.get("evidence_diagnostic", {}).get("successor_trigger_id")
+            == result["successor_trigger_id"]
+        ]
+        self.assertEqual(len(first_events), 1)
+        self.assertEqual(first_events[0]["event_type"], "INTEGRITY_ALERT")
+        self.assertEqual(second_events, [])
+
+    def test_existing_research_fingerprint_bytes_remain_unchanged(self) -> None:
+        result = {
+            "status": "EVIDENCE_CAPTURE_MISSED",
+            "trigger_id": "missed-discovery-rollover-test",
+            "next_review_at": "2026-01-03T00:00:00Z",
+            "evidence_progress": {
+                "status": "MISSED_CAPTURE_WINDOW",
+                "observation_count": 0,
+            },
+        }
+        expected = json.dumps(
+            {
+                "status": result["status"],
+                "trigger_id": result["trigger_id"],
+                "experiment_id": None,
+                "outcome": None,
+                "next_review_at": result["next_review_at"],
+                "evidence_progress_status": "MISSED_CAPTURE_WINDOW",
+                "evidence_observation_count": 0,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        self.assertEqual(_research_fingerprint(result), expected)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from .evidence import MISSED_DISCOVERY_ROLLOVER_STATUS
 from .microstructure_monitor import microstructure_diagnostic_status
 from .models import parse_timestamp
 from .post_shock_factor import seal_r1_post_shock_factor_snapshots
@@ -105,6 +106,12 @@ def run_heartbeat_cycle(
         events.append(_material_learning_event(store, tick_result))
     elif tick_executed and research_status == "OOS_READY":
         events.append(_candidate_frozen_event(store, tick_result))
+    elif (
+        tick_executed
+        and research_changed
+        and research_status == MISSED_DISCOVERY_ROLLOVER_STATUS
+    ):
+        events.append(_evidence_rollover_event(store, tick_result))
     elif research_changed and research_status == "EVIDENCE_SOURCE_UNBOUND":
         events.append(_evidence_source_unbound_event(store, tick_result))
     elif research_changed and research_status == "EVIDENCE_CAPTURE_MISSED":
@@ -986,6 +993,60 @@ def _evidence_capture_missed_event(
     }
 
 
+def _evidence_rollover_event(
+    store: ResearchStore, result: dict[str, Any]
+) -> dict[str, Any]:
+    predecessor_id = str(result["predecessor_trigger_id"])
+    successor_id = str(result["successor_trigger_id"])
+    path = store.evidence_trigger_dir(predecessor_id) / "state.json"
+    predecessor_state = read_json(path)
+    if (
+        predecessor_state.get("status") != "CLOSED"
+        or predecessor_state.get("rollover_reason")
+        != "MISSED_CAPTURE_WINDOW_NO_BACKFILL"
+        or predecessor_state.get("rollover_successor_trigger_id") != successor_id
+    ):
+        raise ValueError("rollover heartbeat event predecessor state mismatch")
+    successor = store.load_evidence_trigger(successor_id)
+    successor_state = store.load_evidence_trigger_state(successor_id)
+    if (
+        successor.get("evidence_start") != result.get("successor_evidence_start")
+        or successor_state.get("status") != "WAITING"
+        or int(successor_state.get("evidence_observation_count", 0)) != 0
+    ):
+        raise ValueError("rollover heartbeat event successor state mismatch")
+    return {
+        "event_type": "INTEGRITY_ALERT",
+        "artifact_path": _relative(store, path),
+        "sha256": sha256_file(path),
+        "research_status": MISSED_DISCOVERY_ROLLOVER_STATUS,
+        "material_conclusion": (
+            "The missed discovery window was preserved and closed without backfill; "
+            f"successor {successor_id} starts from a new untouched UTC boundary."
+        ),
+        "pnl_drawdown_evidence": None,
+        "evidence_diagnostic": {
+            "predecessor_trigger_id": predecessor_id,
+            "successor_trigger_id": successor_id,
+            "successor_evidence_start": successor["evidence_start"],
+            "successor_review_not_before": successor["review_not_before"],
+            "successor_observation_count": 0,
+            "successor_source_contract_sha256": result[
+                "successor_source_contract_sha256"
+            ],
+        },
+        "uncertainty": (
+            "Future capture continuity, predictive value, PnL, drawdown, candidate "
+            "readiness and OOS remain MISSING_PROOF."
+        ),
+        "next_action": "WAIT_FOR_SUCCESSOR_FIRST_COMPLETE_UTC_DAY_WITHOUT_BACKFILL",
+        "concept_to_teach": (
+            "Autonomous recovery starts a new prospective clock; it never repairs the "
+            "failed window or reuses its observations."
+        ),
+    }
+
+
 def _evidence_source_unbound_event(
     store: ResearchStore, result: dict[str, Any]
 ) -> dict[str, Any]:
@@ -1229,6 +1290,8 @@ def _next_action(result: dict[str, Any]) -> str:
         )
     if status == "EVIDENCE_CAPTURE_MISSED":
         return "FAIL_CLOSED_WITHOUT_BACKFILL_AND_REGISTER_A_NEW_UNTOUCHED_TRIGGER_IF_NEEDED"
+    if status == MISSED_DISCOVERY_ROLLOVER_STATUS:
+        return "WAIT_FOR_SUCCESSOR_FIRST_COMPLETE_UTC_DAY_WITHOUT_BACKFILL"
     if status == "EVIDENCE_SOURCE_UNBOUND":
         return "CONNECT_ONE_LAWFUL_ONE_WAY_SOURCE_BEFORE_EVIDENCE_START_OR_CLOSE_THE_TRIGGER"
     if status == "EVIDENCE_REVIEW_DUE":

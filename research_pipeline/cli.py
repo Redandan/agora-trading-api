@@ -24,8 +24,11 @@ from .adapters import (
 from .corpus import SELECTION_CORPUS_ID, selection_corpus_status
 from .evidence import (
     MANIFEST_TYPE,
+    MISSED_DISCOVERY_ROLLOVER_ACTION,
     evidence_progress,
+    missed_discovery_rollover_plan,
     register_evidence_source_contract,
+    rollover_missed_discovery_window,
     seal_daily_evidence,
     seal_deterministic_evidence_review,
     validate_evidence_manifest,
@@ -1265,6 +1268,58 @@ def run_tick(
                         policy.get("evidence", {}).get("capture_max_lag_seconds", 21600)
                     ),
                 )
+            if evidence_wait["status"] == "EVIDENCE_CAPTURE_MISSED":
+                trigger_id = str(evidence_wait["trigger_id"])
+                trigger = store.load_evidence_trigger(trigger_id)
+                trigger_state = store.load_evidence_trigger_state(trigger_id)
+                try:
+                    rollover_plan = missed_discovery_rollover_plan(
+                        store,
+                        trigger,
+                        trigger_state,
+                        now=current,
+                        capture_max_lag_seconds=int(
+                            policy.get("evidence", {}).get(
+                                "capture_max_lag_seconds", 21600
+                            )
+                        ),
+                    )
+                except ValueError as error:
+                    return {
+                        **evidence_wait,
+                        "rollover_status": "FAILED_CLOSED",
+                        "rollover_failure": str(error),
+                    }
+                if rollover_plan is not None:
+                    if dry_run:
+                        return {
+                            **evidence_wait,
+                            "status": "DRY_RUN",
+                            "action": MISSED_DISCOVERY_ROLLOVER_ACTION,
+                            "predecessor_trigger_id": rollover_plan[
+                                "predecessor_trigger_id"
+                            ],
+                            "successor_trigger_id": rollover_plan[
+                                "successor_trigger_id"
+                            ],
+                            "successor_evidence_start": rollover_plan[
+                                "successor_evidence_start"
+                            ],
+                            "successor_review_not_before": rollover_plan[
+                                "successor_review_not_before"
+                            ],
+                        }
+                    return rollover_missed_discovery_window(
+                        store,
+                        trigger,
+                        trigger_state,
+                        now=current,
+                        capture_max_lag_seconds=int(
+                            policy.get("evidence", {}).get(
+                                "capture_max_lag_seconds", 21600
+                            )
+                        ),
+                    )
             return evidence_wait
         return {
             "status": "IDLE_NO_ACTIONABLE_EXPERIMENT",

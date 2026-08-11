@@ -427,3 +427,36 @@ historical `BREACH`, weekly-event terminal `PASS` or `BREACH`, post-heartbeat
 delivery, and economic value remain `MISSING_PROOF` until observed. Retained
 pending events keep their original timestamps. Rollback must first pause V9 and
 prove zero active schedules; two clocks may never overlap.
+
+## Repository-prepared heartbeat liveness decoupling V10
+
+The repository-prepared `CLOUD_OPS_SCHEDULE_V10` contract is frozen at
+SHA-256
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
+V9 remains the active contract until a separately authorized Worker deployment
+and exact in-place schedule cutover prove V10 canonical attestation and exactly
+one active recurrence. Repository preparation is not deployment or activation.
+
+V10 changes only caller liveness coupling. After fresh canonical status proves
+the heartbeat is normally due, the sole cloud cycle attempts exact Coach task
+list/read/send when those operations are available. Every initial event with
+exact readback may contribute one verified receipt. An unavailable, failed, or
+unverifiable delivery contributes no receipt, remains canonical-pending with
+its original delivery id, queue timestamp, and deadline, and is reported as
+`CROSS_TASK_DELIVERY_PENDING` or truthful
+`BREACH_PENDING_DELIVERY_PROOF` debt. Delivery debt never blocks the otherwise
+valid normally due heartbeat and heartbeat success never claims Coach or user
+delivery.
+
+The heartbeat still requires clean Worker provenance, exact V10 attestation,
+canonical due time, an idle queue, valid outbox state, and every evidence,
+candidate, OOS, deduplication, receipt, and scientific gate. It carries zero to
+eight exact verified receipts and remains limited to one normal daily call.
+There is no early or catch-up heartbeat, second schedule, timer, messenger,
+user relay, false acknowledgement, deadline reset, canonical fallback, or
+additional writer. V9 bytes remain immutable.
+
+Server V10 deployment, platform in-place update, zero-active/exactly-one-active
+cutover readback, live empty-receipt acceptance, pending-event preservation,
+R1/R2 advancement, future cross-task capability, Coach receipt, and economic
+value remain `MISSING_PROOF`.

@@ -413,6 +413,65 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(first["payload"]["coach_delivery_receipts"], [receipt])
         self.assertRegex(first["payload_sha256"], r"^[a-f0-9]{64}$")
 
+    def test_due_heartbeat_accepts_empty_receipts_and_preserves_delivery_debt(self) -> None:
+        artifact = self.state / "events" / "pending-learning.json"
+        artifact.parent.mkdir(parents=True, exist_ok=True)
+        artifact.write_text('{"sealed":true}\n', encoding="utf-8")
+        delivery_id = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        event = {
+            "event_type": "MATERIAL_LEARNING",
+            "artifact_path": str(artifact.relative_to(self.state)),
+            "sha256": delivery_id,
+            "research_status": "CLOSED",
+            "material_conclusion": "A sealed learning remains pending.",
+            "pnl_drawdown_evidence": None,
+            "evidence_diagnostic": None,
+            "uncertainty": "Coach delivery remains unverified.",
+            "next_action": "KEEP_PENDING_UNTIL_EXACT_READBACK",
+            "concept_to_teach": "Heartbeat liveness is not delivery proof.",
+            "delivery_queued_at": "2025-12-31T01:00:00Z",
+            "delivery_deadline_at": "2026-01-01T04:00:00Z",
+        }
+        heartbeat = self.state / "heartbeat" / "state.json"
+        heartbeat.parent.mkdir(parents=True, exist_ok=True)
+        heartbeat.write_text(
+            json.dumps(
+                {
+                    "schema_version": "1",
+                    "next_due": "2026-01-01T00:00:00Z",
+                    "coach_delivery": {
+                        "schema_version": "1",
+                        "pending_events": [event],
+                        "delivered_receipts": [],
+                    },
+                },
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+        before = heartbeat.read_bytes()
+
+        result = self._request_heartbeat(
+            now=datetime(2026, 1, 1, 5, tzinfo=timezone.utc),
+            coach_delivery_receipts=[],
+        )
+
+        self.assertEqual("QUEUED", result["status"])
+        self.assertEqual([], result["payload"]["coach_delivery_receipts"])
+        self.assertEqual(before, heartbeat.read_bytes())
+        outbox = queue._coach_outbox(
+            json.loads(heartbeat.read_text(encoding="utf-8"))["coach_delivery"],
+            now=datetime(2026, 1, 1, 5, tzinfo=timezone.utc),
+        )
+        self.assertEqual("EVENTS_PENDING_EXTERNAL_DELIVERY", outbox["status"])
+        self.assertEqual(delivery_id, outbox["events"][0]["delivery_id"])
+        self.assertEqual(event["delivery_queued_at"], outbox["events"][0]["delivery_queued_at"])
+        self.assertEqual(event["delivery_deadline_at"], outbox["events"][0]["delivery_deadline_at"])
+        self.assertEqual(
+            "BREACH_PENDING_DELIVERY_PROOF",
+            outbox["events"][0]["delivery_proof_sla"]["status"],
+        )
+
     def test_invalid_canonical_coach_outbox_blocks_queue_mutation(self) -> None:
         heartbeat = self.state / "heartbeat" / "state.json"
         heartbeat.parent.mkdir(parents=True, exist_ok=True)
@@ -858,8 +917,8 @@ class DurableQueueContractTest(unittest.TestCase):
             "RECOVERY_BLOCKED",
         )
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["schema_version"], "9")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V9")
+        self.assertEqual(contract["schema_version"], "10")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V10")
         self.assertEqual(contract["document_status"], "FROZEN")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(
@@ -894,7 +953,7 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         self.assertEqual(
             contract["coach_delivery"]["contract_id"],
-            "SEALED_COACH_CROSS_TASK_DELIVERY_V5",
+            "SEALED_COACH_CROSS_TASK_DELIVERY_V6",
         )
         self.assertEqual(
             contract["coach_delivery"]["delivery_proof_sla"],
@@ -1256,7 +1315,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(outbox["event_count"], 1)
         self.assertEqual(
             outbox["delivery_contract"]["contract_id"],
-            "SEALED_COACH_CROSS_TASK_DELIVERY_V5",
+            "SEALED_COACH_CROSS_TASK_DELIVERY_V6",
         )
         self.assertEqual(
             outbox["delivery_contract"]["target_thread_id"],
@@ -1481,7 +1540,7 @@ class DurableQueueContractTest(unittest.TestCase):
         invalid = queue._ops_schedule_contract_summary()
         self.assertEqual(invalid["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
 
-    def test_same_value_raw_byte_mutations_fail_the_frozen_v9_hash(self) -> None:
+    def test_same_value_raw_byte_mutations_fail_the_frozen_v10_hash(self) -> None:
         contract = self.app / queue.OPS_SCHEDULE_CONTRACT_RELATIVE_PATH
         exact = contract.read_bytes()
 
@@ -1500,7 +1559,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(reordered["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
         self.assertIn("bytes", reordered["reason"])
 
-    def test_exact_v9_attestation_is_accepted_by_both_write_preflights(self) -> None:
+    def test_exact_v10_attestation_is_accepted_by_both_write_preflights(self) -> None:
         self._heartbeat_state("2026-01-02T00:00:00Z")
         heartbeat = self._request_heartbeat(
             now=datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -1514,7 +1573,7 @@ class DurableQueueContractTest(unittest.TestCase):
             queue.EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256,
         )
 
-    def test_both_v9_verified_receipt_statuses_are_accepted(self) -> None:
+    def test_both_v10_verified_receipt_statuses_are_accepted(self) -> None:
         delivery_id = "e" * 64
         for delivery_status in (
             "DELIVERED_TO_COACH_TASK_VERIFIED",

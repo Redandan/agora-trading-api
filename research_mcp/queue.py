@@ -38,16 +38,16 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v9.json"
+    "research_pipeline/cloud-ops-schedule-contract.v10.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256 = (
-    "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c"
+    "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     r"""
 {
-  "schema_version": "9",
-  "contract_id": "CLOUD_OPS_SCHEDULE_V9",
+  "schema_version": "10",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V10",
   "document_status": "FROZEN",
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
   "timer_authority": "CODEX_CLOUD_OPS_ONLY",
@@ -85,18 +85,18 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
   "write_attestation": {
     "parameter": "ops_schedule_contract_sha256",
     "required": true,
-    "activation_rule": "V9_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V9_READY",
-    "v8_status_behavior": "STOP_BEFORE_ANY_V9_WRITE_CALL"
+    "activation_rule": "V10_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V10_READY",
+    "v9_status_behavior": "STOP_BEFORE_ANY_V10_WRITE_CALL"
   },
   "predecessor": {
-    "contract_id": "CLOUD_OPS_SCHEDULE_V8",
-    "sha256": "7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V9",
+    "sha256": "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c",
     "bytes_modified": false,
     "server_attestation_active_until_cutover": true,
     "platform_activation_proven": true
   },
   "platform_schedule": {
-    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V8",
+    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V9",
     "existing_active_schedule_id": "6a71a1ed2f608191b0621c52bed3fd81",
     "execution_surface": "CHATGPT_WORK_CLOUD_SCHEDULE",
     "local_computer_may_be_off": true,
@@ -104,22 +104,23 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "create_second_schedule": "DENY"
   },
   "coach_delivery": {
-    "contract_id": "SEALED_COACH_CROSS_TASK_DELIVERY_V5",
+    "contract_id": "SEALED_COACH_CROSS_TASK_DELIVERY_V6",
     "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
     "destination": "EXACT_COACH_TASK_BY_THREAD_ID",
     "delivery_id_source": "SEALED_ARTIFACT_SHA256",
     "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
     "durability": "SERVER_HEARTBEAT_STATE_UNTIL_VERIFIED_ACK",
-    "cross_task_operations_required": true,
+    "cross_task_operations_required": false,
+    "cross_task_operations_mode": "ATTEMPT_WHEN_AVAILABLE_NOT_HEARTBEAT_LIVENESS_GATE",
     "cycle_order": [
       "READ_FRESH_CANONICAL_STATUS_FIRST",
       "REQUIRE_NORMALLY_DUE_HEARTBEAT_BEFORE_CROSS_TASK_WRITE",
-      "RESOLVE_AND_PREFLIGHT_READ_EXACT_COACH_TASK",
-      "DELIVER_INITIAL_PENDING_EVENTS_AND_REQUIRE_POST_SEND_READBACK",
-      "FORM_RECEIPTS_FOR_INITIAL_PENDING_EVENTS_ONLY_AFTER_EXACT_READBACK",
-      "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT_WITH_VERIFIED_RECEIPTS",
+      "SNAPSHOT_INITIAL_PENDING_EVENTS",
+      "ATTEMPT_INITIAL_PENDING_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
+      "FORM_RECEIPTS_ONLY_AFTER_EXACT_READBACK_OTHERWISE_ZERO_FOR_UNVERIFIED_EVENTS",
+      "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT_WITH_ZERO_TO_EIGHT_VERIFIED_RECEIPTS",
       "READ_FRESH_CANONICAL_STATUS_AFTER_HEARTBEAT",
-      "DELIVER_STILL_PENDING_OR_NEW_EVENTS_AND_REQUIRE_POST_SEND_READBACK",
+      "ATTEMPT_STILL_PENDING_OR_NEW_EVENT_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
       "DEFER_ONLY_POST_HEARTBEAT_NEW_EVENT_RECEIPTS_TO_NEXT_NORMALLY_DUE_HEARTBEAT"
     ],
     "target_resolution": "LIST_THREADS_AND_REQUIRE_EXACT_THREAD_ID",
@@ -128,6 +129,8 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "verification": "READ_TARGET_THREAD_AFTER_SEND_AND_REQUIRE_EXACT_FULL_DELIVERY_TOKEN",
     "retry": "RETRY_ONLY_ON_A_LATER_NORMAL_CLOUD_CYCLE_WHEN_TOKEN_IS_ABSENT",
     "target_unavailable": "KEEP_CANONICAL_EVENT_PENDING_AND_REPORT_CROSS_TASK_DELIVERY_PENDING",
+    "unverified_delivery_heartbeat_behavior": "ZERO_RECEIPT_FOR_EVENT_KEEP_PENDING_PROCEED_ONLY_IF_ALL_OTHER_HEARTBEAT_GATES_PASS",
+    "heartbeat_outcome_separation": "CANONICAL_RESEARCH_ADVANCEMENT_NEVER_IMPLIES_COACH_DELIVERY",
     "same_cycle_send_receipt_proof": "ALLOW_FOR_INITIAL_PENDING_ONLY_AFTER_POST_SEND_READBACK_BEFORE_DUE_HEARTBEAT",
     "canonical_ack": "INITIAL_PENDING_VERIFIED_RECEIPT_ON_CURRENT_DUE_HEARTBEAT_POST_HEARTBEAT_NEW_EVENT_ON_NEXT_DUE_HEARTBEAT",
     "receipt_parameter": "coach_delivery_receipts",
@@ -139,6 +142,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
         "target_thread_id",
         "delivery_status"
       ],
+      "minimum_receipts_per_heartbeat": 0,
       "maximum_receipts_per_heartbeat": 8,
       "verified_receipt_statuses": [
         "DELIVERED_TO_COACH_TASK_VERIFIED",
@@ -168,6 +172,14 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
         "MISSING_PROOF_LEGACY_RECEIPT"
       ],
       "queue_or_deadline_reset_on_cutover": "DENY"
+    },
+    "delivery_debt": {
+      "preserve_pending_without_verified_receipt": true,
+      "preserve_delivery_id": true,
+      "preserve_delivery_queued_at": true,
+      "preserve_delivery_deadline_at": true,
+      "false_acknowledgement": "DENY",
+      "heartbeat_success_clears_delivery_debt": false
     }
   },
   "required_guards": [
@@ -181,40 +193,45 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "DISTINCT_SEALED_CANDIDATE_OOS",
     "HASH_VERIFIED_COACH_OUTBOX",
     "DURABLE_COACH_OUTBOX_UNTIL_VERIFIED_ACK",
-    "EXACT_COACH_THREAD_ID_RESOLUTION",
+    "EXACT_COACH_THREAD_ID_RESOLUTION_WHEN_CAPABILITY_AVAILABLE",
     "COACH_THREAD_READ_BEFORE_SEND",
     "EXACT_FULL_DELIVERY_TOKEN_DEDUPLICATION",
-    "INITIAL_PENDING_DELIVERY_BEFORE_DUE_HEARTBEAT",
+    "ATTEMPT_INITIAL_PENDING_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
     "INITIAL_PENDING_POST_SEND_READBACK_BEFORE_RECEIPT",
     "RECEIPTS_LIMITED_TO_INITIAL_CANONICAL_SNAPSHOT",
     "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
     "COACH_DELIVERY_PROOF_SLA_CANONICAL",
+    "ZERO_RECEIPT_HEARTBEAT_WHEN_DELIVERY_UNAVAILABLE_OR_UNVERIFIABLE",
+    "PENDING_EVENT_AND_TIMING_DURABILITY_WITHOUT_VERIFIED_RECEIPT",
+    "DELIVERY_DEBT_SEPARATE_FROM_HEARTBEAT_OUTCOME",
     "POST_HEARTBEAT_NEW_EVENT_DELIVERY_WITHOUT_EARLY_ACK",
     "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE"
   ],
   "cutover": {
     "activation_authorized_by_repository_preparation": false,
     "required_order": [
-      "PAUSE_EXACT_ACTIVE_V8_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
-      "DEPLOY_AND_VERIFY_SERVER_V9_ATTESTATION",
-      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V9",
+      "PAUSE_EXACT_ACTIVE_V9_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
+      "DEPLOY_AND_VERIFY_SERVER_V10_ATTESTATION",
+      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V10",
       "PROVE_UPDATED_PLATFORM_SCHEDULE_REMAINS_PAUSED_AND_ZERO_ACTIVE",
       "ACTIVATE_UPDATED_PLATFORM_SCHEDULE_AND_PROVE_EXACTLY_ONE_ACTIVE"
     ],
     "overlapping_active_schedules": "DENY",
     "new_schedule_creation": "DENY",
     "successor_activation_before_old_clock_exclusion": "DENY",
-    "rollback": "PAUSE_V9_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V8_WORKER_AND_PROMPT"
+    "rollback": "PAUSE_V10_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V9_WORKER_AND_PROMPT"
   },
   "missing_proof": [
-    "SERVER_V9_ATTESTATION_IMPLEMENTATION",
-    "WORKER_V9_DEPLOYMENT",
+    "SERVER_V10_ATTESTATION_IMPLEMENTATION",
+    "WORKER_V10_DEPLOYMENT",
     "EXISTING_CLOUD_SCHEDULE_IN_PLACE_UPDATE",
     "ONE_ACTIVE_SCHEDULE_READBACK",
     "SCHEDULED_RESEARCH_MCP_AVAILABILITY",
-    "CLOUD_LIST_READ_SEND_TOOL_AVAILABILITY",
-    "LIVE_INITIAL_PENDING_PRE_HEARTBEAT_DELIVERY",
-    "LIVE_SAME_CYCLE_RECEIPT_ACCEPTANCE",
+    "FUTURE_CLOUD_LIST_READ_SEND_TOOL_AVAILABILITY",
+    "LIVE_ZERO_RECEIPT_HEARTBEAT_ACCEPTANCE",
+    "LIVE_PENDING_EVENT_AND_TIMING_PRESERVATION",
+    "LIVE_R1_R2_LAWFUL_ADVANCEMENT",
+    "LIVE_INITIAL_PENDING_DELIVERY_OR_DEBT_REPORTING",
     "LIVE_POST_HEARTBEAT_NEW_EVENT_DELIVERY",
     "LIVE_PASS_OR_BREACH_SLA_OUTCOME",
     "LEARNING_LATENCY_OR_ECONOMIC_VALUE"
@@ -325,7 +342,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if actual_sha256 != EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract bytes do not match the frozen V9 hash",
+            "reason": "cloud Ops schedule contract bytes do not match the frozen V10 hash",
         }
     try:
         value = json.loads(raw.decode("utf-8"))
@@ -337,7 +354,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V9 object",
+            "reason": "cloud Ops schedule contract does not match the frozen V10 object",
         }
     recurrence = value["recurrence"]
     return {

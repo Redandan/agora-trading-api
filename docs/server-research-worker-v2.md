@@ -621,3 +621,38 @@ send/readback, same-cycle receipt acceptance, post-heartbeat delivery, and
 terminal SLA outcome remain separate `MISSING_PROOF` gates.
 Existing pending events keep their original timestamps and may honestly remain
 `BREACH`.
+
+## Repository-prepared heartbeat liveness decoupling V10
+
+The repository contains frozen successor `CLOUD_OPS_SCHEDULE_V10`, SHA-256
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`,
+but V9 remains deployed and active until a separately bounded cutover. V10
+preserves the exact existing schedule id, one `09:05 Asia/Taipei` recurrence,
+the `09:00` canonical due boundary, 300-second margin, five Research MCP
+operations, Server Canonical sole writer, and every receipt and scientific
+gate. The server attestation must move to V10 before the platform prompt may
+attest or activate it.
+
+The existing request and Worker path already accepts a heartbeat payload with
+an empty `coach_delivery_receipts` array. V10 makes that existing behavior an
+explicit caller rule: when exact Coach list/read/send is unavailable or cannot
+produce exact readback, the event contributes no receipt and the otherwise
+valid normally due heartbeat may proceed. Canonical pending events, delivery
+ids, queue timestamps, deadlines, and `PENDING_WITHIN_SLA` or
+`BREACH_PENDING_DELIVERY_PROOF` debt remain unchanged. A successful heartbeat
+reports research advancement separately and never claims Coach or user
+delivery.
+
+Verified receipts still require the exact five fields, full token, target task,
+preflight or post-send readback, allowed status, canonical id, at-most-eight
+initial snapshot, and next-cycle deferral for post-heartbeat new events.
+Unknown, unverifiable, or changed receipts fail closed. Invalid outbox state,
+bad attestation, dirty Worker provenance, not-due time, non-idle queue, and
+evidence, candidate, OOS, deduplication, or scientific failures remain blocking.
+No new ACK operation, timer, schedule, writer, messenger, paid API, user step,
+or heartbeat/server semantic surface is added.
+
+V10 Worker deployment, exact in-place schedule cutover, zero-active and
+exactly-one-active readback, live empty-receipt acceptance, live pending-event
+preservation, lawful R1/R2 advancement, future task-tool availability, Coach
+delivery proof, and economic value remain `MISSING_PROOF`.

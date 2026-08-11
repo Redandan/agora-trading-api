@@ -1,0 +1,149 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-v10-heartbeat-liveness-decoupling-implementation-v1",
+  "task_sha256": "0a5eb95e46873ca227d84b3a149e7d23e4cb895a81af5138181549c3284a99f1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T08:45:00Z",
+  "completed_at": "2026-08-11T09:05:00Z",
+  "source_git_commit": "d806b4e5ddc90ffbb8e4600f165243329fccc993",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": true,
+  "summary": "V10_OFFLINE_CONTRACT_READY. The exact eight-file NON_COUNTING V10 repository slice is implemented without changing V9, heartbeat.py, server.py, the sole schedule, or Server Canonical writer authority. V10 preserves every receipt, integrity, due-time, queue, evidence, candidate, OOS, deduplication, and scientific gate while allowing an otherwise-valid normally due heartbeat to carry zero verified Coach receipts when cross-task delivery is unavailable or unverifiable. Pending events, delivery ids, queued/deadline timestamps, and truthful pending/breach debt remain durable; heartbeat success never implies Coach delivery. Local compile/import, scope, hash, diff, and 49-test gates passed. Manager independently ran all three frozen modules in its provisioned environment: 54 tests PASS, including test_server_contract. Immediate PnL and drawdown effects are zero.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task SHA-256 0a5eb95e46873ca227d84b3a149e7d23e4cb895a81af5138181549c3284a99f1 and dispatch SHA-256 b7acfdd81797d6f73cf5e8d346f4d42d69eb08c7b863d8e3fcd2f41bbfd7bbbc matched. Repository validators returned VALID; 20 unique non-null inputs were exact regular non-reparse files; 20 stop conditions canonicalized to 33f3496861dfd531ee5ecdf2d000c73c12d9add2cde1ec50f47e8776ff74c17f."
+    },
+    {
+      "name": "SOURCE_IDENTITY_AND_SCOPE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3; HEAD and local origin both d806b4e5ddc90ffbb8e4600f165243329fccc993; accepted audit commit c1294a86f1e02560bced0932125a291280c9d037 is an ancestor. Dirty-before was false. Final status contains exactly the eight authorized paths and no staged paths."
+    },
+    {
+      "name": "V10_SUCCESSOR_CONTRACT",
+      "status": "PASS",
+      "evidence": "New frozen CLOUD_OPS_SCHEDULE_V10 bytes hash to 90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa. queue.py embeds and hashes the exact same object and exposes V10/V6 contract identity only for those bytes."
+    },
+    {
+      "name": "V9_PREDECESSOR_IMMUTABILITY",
+      "status": "PASS",
+      "evidence": "research_pipeline/cloud-ops-schedule-contract.v9.json remains byte-identical at SHA-256 04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c and remains documented as active until a separate Manager deployment and same-schedule cutover."
+    },
+    {
+      "name": "ZERO_RECEIPT_HEARTBEAT_LIVENESS",
+      "status": "PASS",
+      "evidence": "Contract, prompt, queue attestation, and focused tests bind zero-to-eight exact receipts. Tests prove an otherwise-valid normally due request with coach_delivery_receipts=[] is accepted without relaxing independent due-time, Worker provenance, queue, evidence, candidate, OOS, deduplication, integrity, or scientific gates."
+    },
+    {
+      "name": "PENDING_EVENT_AND_TIMING_DURABILITY",
+      "status": "PASS",
+      "evidence": "Focused synthetic tests prove unavailable or unverifiable cross-task delivery yields no receipt and preserves each pending event, delivery_id, delivery_queued_at, and delivery_deadline_at. No fallback deletes events, resets deadlines, or fabricates acknowledgement."
+    },
+    {
+      "name": "TRUTHFUL_DELIVERY_DEBT",
+      "status": "PASS",
+      "evidence": "V10 reports CROSS_TASK_DELIVERY_PENDING or BREACH_PENDING_DELIVERY_PROOF independently from heartbeat outcome. A successful zero-receipt heartbeat claims only canonical research advancement and never Coach or user receipt."
+    },
+    {
+      "name": "RECEIPT_AND_SCIENTIFIC_GATES",
+      "status": "PASS",
+      "evidence": "Exact full-token, target-id, preflight/readback, verified-status, unknown-receipt rejection, idempotence, post-heartbeat deferral, dirty Worker, non-idle queue, invalid outbox, evidence, candidate, OOS, and scientific gates remain fail-closed in source and focused coverage."
+    },
+    {
+      "name": "SINGLE_CLOCK_AND_WRITER",
+      "status": "PASS",
+      "evidence": "V10 preserves the existing schedule id, one recurrence at Asia/Taipei 09:05, canonical due 09:00, 300-second margin, one canonical writer, get_research_status-first ordering, no early or catch-up heartbeat, and no additional timer or writer."
+    },
+    {
+      "name": "PYTHON_COMPILE_IMPORT",
+      "status": "PASS",
+      "evidence": "Offline compile() succeeded for queue.py and all three named test sources; research_mcp.queue imported successfully and its embedded V10 object exactly matched the frozen V10 file."
+    },
+    {
+      "name": "LOCAL_FOCUSED_TESTS",
+      "status": "PASS",
+      "evidence": "The Local authorized offline invocation of research_pipeline.tests.test_cloud_ops_cross_task_delivery_contract plus research_mcp.tests.test_queue ran 49 tests in 1.273 seconds with OK."
+    },
+    {
+      "name": "MANAGER_THREE_MODULE_ACCEPTANCE",
+      "status": "PASS",
+      "evidence": "Manager independently ran all three frozen test modules in its provisioned environment. Result: 54 tests PASS, including research_mcp.tests.test_server_contract."
+    },
+    {
+      "name": "EXACT_EIGHT_FILE_ARTIFACT_SCOPE",
+      "status": "PASS",
+      "evidence": "Exactly eight authorized regular non-reparse files are dirty or untracked, all artifact hashes were re-read after validation, no ninth path exists, no path is staged, and git diff --check passed."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No network, server, schedule or thread read, cross-task send, Research MCP write, heartbeat, candidate, runner, canonical or .research-state access, deployment, stage, commit, push, second timer or writer, OOS, paid API, or Trading/DB/orders/funds/SHADOW/PAPER/LIVE action occurred."
+    },
+    {
+      "name": "PERFORMANCE_CASE",
+      "status": "MISSING_PROOF",
+      "evidence": "The slice can only reduce prospective missed-evidence latency by contract. Deployment, platform acceptance, cross-task tool availability, live zero-receipt heartbeat behavior, R1/R2 advancement, prediction, fees, slippage, matched-capital PnL, drawdown improvement, candidate readiness, OOS, and economic value remain unobserved. Immediate PnL and drawdown deltas are zero."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "research_pipeline/cloud-ops-schedule-contract.v10.json",
+      "sha256": "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa"
+    },
+    {
+      "path": "research_pipeline/prompts/daily-research-tick.md",
+      "sha256": "93680e1990894703574d86be10a83d7f78b366ee0e5143d34ca68f80d8562299"
+    },
+    {
+      "path": "research_mcp/queue.py",
+      "sha256": "31fc98745f3181358db5d3ed0c41bfb6fb6d74606b62ae0a6fd14b781892dd37"
+    },
+    {
+      "path": "research_pipeline/tests/test_cloud_ops_cross_task_delivery_contract.py",
+      "sha256": "be71dee7fd82e028c7d266c54b08998e080e857d899ac01395af786dbcb6a89f"
+    },
+    {
+      "path": "research_mcp/tests/test_queue.py",
+      "sha256": "218b174ad85806acbff4e2d19c45cc9c0c3f9c4797d06a9126b0b66fd871df26"
+    },
+    {
+      "path": "research_mcp/tests/test_server_contract.py",
+      "sha256": "d02bdbc30ed4747b75c525e303ce7356a820bba651b699e2c6eb123e47c748cf"
+    },
+    {
+      "path": "docs/autonomous-research-charter.md",
+      "sha256": "05663da57a35a705ea2aec5c4349ffbe412ccb0acc1deb30fdeacd33cadc78cb"
+    },
+    {
+      "path": "docs/server-research-worker-v2.md",
+      "sha256": "89a9848e78f61e1912c41b94722a6a13347600f8ce8d50c640567eef19f6e6e0"
+    }
+  ],
+  "files_changed": [
+    "research_pipeline/cloud-ops-schedule-contract.v10.json",
+    "research_pipeline/prompts/daily-research-tick.md",
+    "research_mcp/queue.py",
+    "research_pipeline/tests/test_cloud_ops_cross_task_delivery_contract.py",
+    "research_mcp/tests/test_queue.py",
+    "research_mcp/tests/test_server_contract.py",
+    "docs/autonomous-research-charter.md",
+    "docs/server-research-worker-v2.md"
+  ],
+  "uncertainty": [
+    "LOCAL_EXECUTION_ENVIRONMENT_GAP: the Local offline runtime lacks the mcp package, so Local could not import test_server_contract. This is distinct from and superseded for acceptance by the Manager-side 54-test PASS on the exact slice.",
+    "MISSING_PROOF: V10 deployment, same-schedule cutover, platform acceptance, active attestation, and live empty-receipt server behavior.",
+    "MISSING_PROOF: future cross-task list/read/send availability, exact Coach readback, user receipt, and resolution of current delivery debt.",
+    "MISSING_PROOF: any actual heartbeat success, R1/R2 evidence advancement, prediction, causal benefit, fees, slippage, matched-capital PnL, drawdown improvement, candidate readiness, OOS, or Trading value."
+  ],
+  "recommended_next_action": "Manager should seal and commit only the exact validated eight-file repository slice. V10 deployment and the in-place same-schedule cutover must remain a separately bounded acceptance task with no additional timer, writer, canonical authority, or Trading authorization.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

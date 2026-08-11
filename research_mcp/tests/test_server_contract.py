@@ -57,7 +57,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertFalse(candidate.annotations.destructiveHint)
         self.assertTrue(candidate.annotations.idempotentHint)
 
-    def test_cloud_prompt_is_v9_hash_bound_and_never_writes_local_research_state(self) -> None:
+    def test_cloud_prompt_is_v10_hash_bound_and_never_writes_local_research_state(self) -> None:
         prompt = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
@@ -67,7 +67,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         contract = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
-            / "cloud-ops-schedule-contract.v9.json"
+            / "cloud-ops-schedule-contract.v10.json"
         ).read_bytes()
         contract_sha256 = hashlib.sha256(contract).hexdigest()
         contract_value = json.loads(contract.decode("utf-8"))
@@ -80,9 +80,18 @@ class ResearchMcpServerContractTest(unittest.TestCase):
             hashlib.sha256(frozen_v6).hexdigest(),
             "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85",
         )
+        frozen_v9 = (
+            Path(__file__).resolve().parents[2]
+            / "research_pipeline"
+            / "cloud-ops-schedule-contract.v9.json"
+        ).read_bytes()
+        self.assertEqual(
+            hashlib.sha256(frozen_v9).hexdigest(),
+            "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c",
+        )
         self.assertEqual(
             contract_sha256,
-            "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c",
+            "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa",
         )
         self.assertEqual(contract_value["document_status"], "FROZEN")
         scheduled = datetime.strptime(
@@ -106,7 +115,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("evidence_diagnostic", prompt)
         self.assertIn("worker_release.status=READY", prompt)
         self.assertIn("ops_schedule_contract.status=READY", prompt)
-        self.assertIn("CLOUD_OPS_SCHEDULE_V9", prompt)
+        self.assertIn("CLOUD_OPS_SCHEDULE_V10", prompt)
         self.assertIn(contract_sha256, prompt)
         self.assertIn("recurrence.timezone=Asia/Taipei", prompt)
         self.assertIn("recurrence.local_time=09:05", prompt)
@@ -121,7 +130,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         )
         self.assertIn("dispatch_margin.additional_timer=DENY", prompt)
         self.assertIn("document_status=FROZEN", prompt)
-        self.assertIn("PREPARED_NOT_ACTIVE_V9", prompt)
+        self.assertIn("PREPARED_NOT_ACTIVE_V10", prompt)
         self.assertIn("ops_schedule_contract_sha256", prompt)
         self.assertIn("evidence_capture_health", prompt)
         self.assertIn("CAPTURE_OBSERVATION_PENDING", prompt)
@@ -144,7 +153,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("CANDIDATE_OOS", prompt)
         self.assertIn("NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER", prompt)
         self.assertIn("closed historical", prompt)
-        self.assertIn("SEALED_COACH_CROSS_TASK_DELIVERY_V5", prompt)
+        self.assertIn("SEALED_COACH_CROSS_TASK_DELIVERY_V6", prompt)
         self.assertIn(
             "Use only `list_threads`, `read_thread`, and `send_message_to_thread`",
             prompt,
@@ -159,6 +168,9 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("MISSING_PROOF_LEGACY_EVENT", prompt)
         self.assertIn("coach_outbox", prompt)
         self.assertIn("019fca63-4f8f-71e3-9d88-297bca468eb9", prompt)
+        self.assertIn("zero to eight exact", prompt)
+        self.assertIn("Do not block the", prompt)
+        self.assertIn("delivery debt", prompt)
         self.assertNotIn("read_research_worker_inbox_ssh", prompt)
         self.assertNotIn("Seal the evidence under `.research-state`", prompt)
 

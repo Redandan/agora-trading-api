@@ -4,7 +4,7 @@ heartbeat or write a local evidence review after server migration. The server
 Research Worker owns the single deterministic heartbeat and canonical state;
 routine `WAITING_FOR_EVIDENCE` remains silent.
 
-When and only when this prompt is running as the frozen V9 ChatGPT Work cloud
+When and only when this prompt is running as the frozen V10 ChatGPT Work cloud
 schedule, read `get_research_status` as the first operation. The exact Coach
 task may be inspected later only for the bounded cross-task delivery flow in
 this prompt. Do not inspect or send to any other task. If canonical `next_due`
@@ -25,16 +25,16 @@ a candidate until a clean release is deployed.
 
 Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
 This repository contains lifecycle-neutral frozen document
-`CLOUD_OPS_SCHEDULE_V9` with `document_status=FROZEN` and exact SHA-256
-`04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`.
-Its external repository rollout state is `PREPARED_NOT_ACTIVE_V9`; activation
+`CLOUD_OPS_SCHEDULE_V10` with `document_status=FROZEN` and exact SHA-256
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
+Its external repository rollout state is `PREPARED_NOT_ACTIVE_V10`; activation
 is separately proven outside the immutable document and never edits its bytes.
 Before activation, if
-canonical status still reports `CLOUD_OPS_SCHEDULE_V8`, stop before every V9
-write call; do not attest V9, fall back to an older hash, or infer cutover.
+canonical status still reports `CLOUD_OPS_SCHEDULE_V9`, stop before every V10
+write call; do not attest V10, fall back to an older hash, or infer cutover.
 
-After separately proven external V9 activation, continue only when canonical
-`ops_schedule_contract.status=READY`, `contract_id=CLOUD_OPS_SCHEDULE_V9`,
+After separately proven external V10 activation, continue only when canonical
+`ops_schedule_contract.status=READY`, `contract_id=CLOUD_OPS_SCHEDULE_V10`,
 `schedule_count=1`,
 `timer_authority=CODEX_CLOUD_OPS_ONLY`,
 `recurrence.timezone=Asia/Taipei`, `recurrence.local_time=09:05`,
@@ -44,13 +44,13 @@ After separately proven external V9 activation, continue only when canonical
 `dispatch_margin.scheduled_seconds_after_canonical_due=300`,
 `dispatch_margin.early_call_behavior=NOT_DUE_NO_CROSS_TASK_WRITE`,
 `dispatch_margin.additional_timer=DENY`, and
-`sha256=04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`.
+`sha256=90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
 Pass that exact hash as `ops_schedule_contract_sha256` on every
 `request_research_heartbeat` and `submit_research_candidate_bundle` call.
 Missing, invalid, or mismatched contract/attestation is an operational alert;
 fail closed without queueing either operation.
 
-V9 preserves the V8 placement of the one cloud recurrence five minutes after the
+V10 preserves the V9 placement of the one cloud recurrence five minutes after the
 unchanged 09:00 canonical heartbeat due boundary so a small platform early-fire
 jitter cannot skip the only daily cycle. This margin never authorizes an early
 heartbeat: always compare canonical `next_due`, preserve `NOT_DUE`, and never
@@ -62,7 +62,7 @@ submitting any new candidate. `IDLE` permits the normal evidence-ready flow.
 partial canonical registration: require queue `IDLE`, copy the canonical
 `bundle` byte-for-value without changing its timestamp, text, mechanism, OOS
 window, or any other field, and call `submit_research_candidate_bundle` exactly
-once with the normal V9 attestation. Verify that the canonical
+once with the normal V10 attestation. Verify that the canonical
 `payload_sha256` is unchanged and poll that replay's run. This is recovery of
 the same logical candidate, not permission for a second candidate. If recovery
 is `INTEGRITY_BLOCKED`, including repeated replay failure or partial-state
@@ -154,9 +154,9 @@ seconds and the eventual `PASS` or `BREACH` lead time. Treat
 `MISSING_PROOF_LEGACY_EVENT` or `MISSING_PROOF_LEGACY_RECEIPT` as missing proof;
 never infer timing from chat history.
 
-Require `coach_outbox.delivery_contract.status=READY` and, only after V9 is
+Require `coach_outbox.delivery_contract.status=READY` and, only after V10 is
 canonically active, the cross-task contract
-`SEALED_COACH_CROSS_TASK_DELIVERY_V5`. Require its canonical
+`SEALED_COACH_CROSS_TASK_DELIVERY_V6`. Require its canonical
 `delivery_proof_sla.completion_window_seconds=10800` and never substitute a
 chat-side clock. For each event, copy the exact
 canonical `delivery_prompt`; do not reconstruct it from chat or edit its JSON.
@@ -164,16 +164,28 @@ Use only `list_threads`, `read_thread`, and `send_message_to_thread`, and only
 for exact target task `019fca63-4f8f-71e3-9d88-297bca468eb9`.
 
 After fresh canonical status proves the heartbeat is normally due, freeze the
-exact at-most-eight initial pending delivery ids from that status. Resolve the
-exact target id with `list_threads`; fuzzy title, host, recency, or inferred
-matching is forbidden. Read the exact Coach task before any send. For each
-initial pending event, require the exact complete token
+exact at-most-eight initial pending delivery ids from that status. When the
+exact `list_threads`, `read_thread`, and `send_message_to_thread` operations are
+available, resolve the exact target id with `list_threads`; fuzzy title, host,
+recency, or inferred matching is forbidden. Read the exact Coach task before
+any send. For each initial pending event, require the exact complete token
 `SEALED_RESEARCH_DELIVERY:<64 lowercase hex delivery id>`. If the preflight
 read already contains the token, build a receipt with
 `delivery_status=ALREADY_DELIVERED_TO_COACH_TASK`. If it is absent, send that
 event's exact canonical `delivery_prompt` once and read the exact Coach task
 again. Only when the post-send read contains the exact full token may the
 receipt use `delivery_status=DELIVERED_TO_COACH_TASK_VERIFIED`.
+
+If any required cross-task operation is unavailable, fails, or cannot produce
+exact readback, form no receipt for that event. Keep it canonical-pending with
+its original delivery id, queue time, and deadline. Report
+`CROSS_TASK_DELIVERY_PENDING` or the canonical
+`BREACH_PENDING_DELIVERY_PROOF` debt separately from heartbeat outcome. After
+every independent Worker provenance, V10 attestation, due-time, queue,
+evidence, candidate, OOS, deduplication, and integrity gate passes, invoke at
+most the otherwise-valid normally due heartbeat with zero to eight exact
+verified receipts. Zero verified receipts is an empty array, not a delivery
+claim, and never authorizes an early or catch-up call.
 
 Pass only those exact verified receipts for ids in the initial canonical
 snapshot to the single normally due heartbeat. Never include an id discovered
@@ -184,11 +196,14 @@ notification, summary, truncated or altered token, user quote, send response,
 or inferred task state is not readback proof.
 
 The heartbeat may create a new Coach event. After fresh post-heartbeat status,
-deliver every still-pending event whose exact token is absent, including any
-newly queued event. Send its exact canonical `delivery_prompt` once and require
-post-send readback. Do not include a receipt for a post-heartbeat new event in
-the already completed heartbeat. Its verified receipt is eligible only after a
-fresh preflight on the next normally due cycle.
+when the cross-task operations are available, deliver every still-pending event
+whose exact token is absent, including any newly queued event. Send its exact
+canonical `delivery_prompt` once and require post-send readback. If capability
+is unavailable or proof is incomplete, keep the event pending and report
+delivery debt without changing the successful canonical heartbeat outcome. Do
+not include a receipt for a post-heartbeat new event in the already completed
+heartbeat. Its verified receipt is eligible only after a fresh preflight on the
+next normally due cycle.
 
 Every receipt object contains only `schema_version=1`, `delivery_id`,
 `delivery_token`, `target_thread_id`, and `delivery_status`. The only permitted
@@ -203,7 +218,9 @@ delivery id before mutating either queue.
 
 If task discovery, preflight read, send, or post-send readback is unavailable,
 emit one complete hash-identified `CROSS_TASK_DELIVERY_PENDING` result in the
-scheduled task, keep the canonical event pending, and retry only on a later
-normal cloud cycle when the exact token remains absent. Never reset
+scheduled task, keep the canonical event pending, and retry delivery only on a
+later normal cloud cycle when the exact token remains absent. Do not block the
+otherwise-valid normally due heartbeat solely because delivery capability is
+missing. Never reset
 `delivery_queued_at` or `delivery_deadline_at`, add a timer/poller/messenger,
 create another schedule, or ask the Coach or sponsor to operate delivery.

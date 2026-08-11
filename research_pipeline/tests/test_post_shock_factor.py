@@ -20,11 +20,13 @@ from research_pipeline.post_shock_factor import (
     NO_FACTOR,
     REVERSAL,
     SCHEMA_PATH,
+    V2_SCHEMA_PATH,
     WAIT,
     _canonical_bytes,
     _create_only,
     build_post_shock_episode,
     build_post_shock_snapshot,
+    seal_r1_post_shock_factor_snapshots,
 )
 from research_pipeline.storage import ResearchStore, read_json, sha256_file
 from research_pipeline.tests import test_shock_attribution as shock_fixture
@@ -39,6 +41,9 @@ class PostShockFactorTest(unittest.TestCase):
         cls.schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
         Draft202012Validator.check_schema(cls.schema)
         cls.validator = Draft202012Validator(cls.schema)
+        cls.v2_schema = json.loads(V2_SCHEMA_PATH.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(cls.v2_schema)
+        cls.v2_validator = Draft202012Validator(cls.v2_schema)
 
     def test_schema_is_closed_and_conditionally_binds_wait(self) -> None:
         snapshot = build_post_shock_snapshot(
@@ -262,6 +267,88 @@ import research_pipeline.heartbeat
         )
         self.assertEqual(snapshots[0].read_bytes(), snapshot_before)
         self.assertEqual(r1_state.read_bytes(), state_before)
+
+    def test_rollover_v2_seals_one_fingerprint_isolated_wait_snapshot(self) -> None:
+        fixture = shock_fixture.ShockAttributionTest(
+            "test_below_threshold_creates_no_artifact"
+        )
+        fixture.setUp()
+        self.addCleanup(fixture.tearDown)
+        successor = fixture._rollover()
+        fixture._seal_leaf_day(
+            successor, "2026-08-09", "100", received_at="2026-08-10T01:00:00Z"
+        )
+        fixture._seal_leaf_day(
+            successor, "2026-08-10", "103", received_at="2026-08-11T01:00:00Z"
+        )
+        fixture._seal_shocks_v2(
+            now=datetime(2026, 8, 11, 2, tzinfo=UTC),
+            activation="2026-08-09T00:00:00Z",
+        )
+        fixture._seal_leaf_day(
+            successor, "2026-08-11", "104", received_at="2026-08-12T01:00:00Z"
+        )
+        first = seal_r1_post_shock_factor_snapshots(
+            fixture.store, now=datetime(2026, 8, 12, 2, tzinfo=UTC)
+        )
+        self.assertEqual(first, [])
+        namespace = (
+            fixture.root
+            / "post-shock-factor"
+            / "btc-utc-day-3pct-v2"
+            / str(successor["fingerprint"])
+            / "snapshots"
+        )
+        snapshots = sorted(namespace.glob("*.json"))
+        self.assertEqual(len(snapshots), 1)
+        snapshot = read_json(snapshots[0])
+        self.v2_validator.validate(snapshot)
+        self.assertEqual(snapshot["disposition"], WAIT)
+        self.assertEqual(snapshot["root_trigger_id"], shock_fixture.R1_TRIGGER_ID)
+        self.assertEqual(snapshot["leaf_trigger_id"], successor["trigger_id"])
+        self.assertEqual(len(snapshot["episodes"]), 1)
+        self.assertEqual(
+            snapshot["episodes"][0]["leaf_trigger_fingerprint"],
+            successor["fingerprint"],
+        )
+        before = snapshots[0].read_bytes()
+        repeated = seal_r1_post_shock_factor_snapshots(
+            fixture.store, now=datetime(2026, 8, 12, 3, tzinfo=UTC)
+        )
+        self.assertEqual(repeated, [])
+        self.assertEqual(snapshots[0].read_bytes(), before)
+
+    def test_rollover_v2_rejects_cross_lineage_diagnostic(self) -> None:
+        fixture = shock_fixture.ShockAttributionTest(
+            "test_below_threshold_creates_no_artifact"
+        )
+        fixture.setUp()
+        self.addCleanup(fixture.tearDown)
+        successor = fixture._rollover()
+        fixture._seal_leaf_day(
+            successor, "2026-08-09", "100", received_at="2026-08-10T01:00:00Z"
+        )
+        fixture._seal_leaf_day(
+            successor, "2026-08-10", "103", received_at="2026-08-11T01:00:00Z"
+        )
+        fixture._seal_shocks_v2(
+            now=datetime(2026, 8, 11, 2, tzinfo=UTC),
+            activation="2026-08-09T00:00:00Z",
+        )
+        fixture._seal_leaf_day(
+            successor, "2026-08-11", "104", received_at="2026-08-12T01:00:00Z"
+        )
+        artifact = fixture._v2_artifacts(successor)[0]
+        diagnostic = read_json(artifact)
+        diagnostic["leaf_trigger_fingerprint"] = "f" * 64
+        artifact.write_text(
+            json.dumps(diagnostic, sort_keys=True, separators=(",", ":")) + "\n",
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(ValueError, "leaf_trigger_fingerprint mismatch"):
+            seal_r1_post_shock_factor_snapshots(
+                fixture.store, now=datetime(2026, 8, 12, 2, tzinfo=UTC)
+            )
 
     def test_heartbeat_child_orders_event_and_reuses_single_outbox_entry(self) -> None:
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temporary:

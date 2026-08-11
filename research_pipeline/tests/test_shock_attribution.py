@@ -13,6 +13,7 @@ from jsonschema import Draft202012Validator
 
 from research_pipeline.evidence import (
     register_evidence_source_contract,
+    rollover_missed_discovery_window,
     seal_daily_evidence,
 )
 from research_pipeline.heartbeat import run_heartbeat_cycle
@@ -23,6 +24,8 @@ from research_pipeline.shock_attribution import (
     R1_TRIGGER_FINGERPRINT,
     R1_TRIGGER_ID,
     SCHEMA_PATH,
+    V2_DIAGNOSTIC_NAMESPACE,
+    V2_SCHEMA_PATH,
     build_shock_diagnostic,
     seal_r1_shock_diagnostics,
 )
@@ -39,6 +42,9 @@ class ShockAttributionTest(unittest.TestCase):
         cls.schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
         Draft202012Validator.check_schema(cls.schema)
         cls.validator = Draft202012Validator(cls.schema)
+        cls.v2_schema = json.loads(V2_SCHEMA_PATH.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(cls.v2_schema)
+        cls.v2_validator = Draft202012Validator(cls.v2_schema)
 
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
@@ -239,6 +245,147 @@ class ShockAttributionTest(unittest.TestCase):
         self.assertEqual(trigger_path.read_bytes(), trigger_before)
         self.assertEqual(state_path.read_bytes(), state_before)
 
+    def test_rollover_v2_requires_two_successor_days_and_is_idempotent(self) -> None:
+        self._seal_day(
+            "2026-08-06", "97", received_at="2026-08-07T01:00:00Z"
+        )
+        successor = self._rollover()
+        self._seal_leaf_day(
+            successor, "2026-08-09", "100", received_at="2026-08-10T01:00:00Z"
+        )
+        self.assertEqual(
+            seal_r1_shock_diagnostics(
+                self.store,
+                now=datetime(2026, 8, 10, 2, tzinfo=UTC),
+                contract_activated_at="2026-08-09T00:00:00Z",
+            ),
+            [],
+        )
+        self.assertEqual(self._v2_artifacts(successor), [])
+        self._seal_leaf_day(
+            successor, "2026-08-10", "103", received_at="2026-08-11T01:00:00Z"
+        )
+        first = seal_r1_shock_diagnostics(
+            self.store,
+            now=datetime(2026, 8, 11, 2, tzinfo=UTC),
+            contract_activated_at="2026-08-09T00:00:00Z",
+        )
+        self.assertEqual(len(first), 1)
+        artifact = self._v2_artifacts(successor)[0]
+        before = artifact.read_bytes()
+        diagnostic = read_json(artifact)
+        self.v2_validator.validate(diagnostic)
+        self.assertEqual(diagnostic["root_trigger_id"], R1_TRIGGER_ID)
+        self.assertEqual(diagnostic["leaf_trigger_id"], successor["trigger_id"])
+        self.assertEqual(diagnostic["prior_day"]["day"], "2026-08-09")
+        self.assertEqual(diagnostic["target_day"]["day"], "2026-08-10")
+        repeated = seal_r1_shock_diagnostics(
+            self.store,
+            now=datetime(2026, 8, 11, 3, tzinfo=UTC),
+            contract_activated_at="2026-08-09T00:00:00Z",
+        )
+        self.assertEqual(repeated, [])
+        self.assertEqual(artifact.read_bytes(), before)
+        self.assertEqual(self._artifacts(), [])
+
+    def test_rollover_partial_missing_successor_fails_closed(self) -> None:
+        state = self.store.load_evidence_trigger_state(R1_TRIGGER_ID)
+        state.update(
+            {
+                "status": "CLOSED",
+                "next_review_at": None,
+                "rollover_reason": "MISSED_CAPTURE_WINDOW_NO_BACKFILL",
+                "rollover_successor_trigger_id": "missing-rollover-successor",
+                "rollover_successor_fingerprint": "f" * 64,
+                "rollover_closed_at": "2026-08-08T07:00:00Z",
+            }
+        )
+        self.store.save_evidence_trigger_state(state)
+        with self.assertRaisesRegex(ValueError, "successor is missing"):
+            seal_r1_shock_diagnostics(
+                self.store,
+                now=datetime(2026, 8, 10, 2, tzinfo=UTC),
+                contract_activated_at="2026-08-09T00:00:00Z",
+            )
+
+    def test_rollover_lineage_tamper_and_ambiguous_leaf_fail_closed(self) -> None:
+        successor = self._rollover()
+        successor_state_path = (
+            self.store.evidence_trigger_dir(successor["trigger_id"]) / "state.json"
+        )
+        successor_state = read_json(successor_state_path)
+        successor_state["rollover_predecessor_fingerprint"] = "f" * 64
+        successor_state_path.write_text(
+            json.dumps(successor_state, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(ValueError, "predecessor_fingerprint mismatch"):
+            seal_r1_shock_diagnostics(
+                self.store,
+                now=datetime(2026, 8, 10, 2, tzinfo=UTC),
+                contract_activated_at="2026-08-09T00:00:00Z",
+            )
+
+        successor_state["rollover_predecessor_fingerprint"] = R1_TRIGGER_FINGERPRINT
+        successor_state_path.write_text(
+            json.dumps(successor_state, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        fork_value = {
+            **self._trigger_value(),
+            "trigger_id": "synthetic-rollover-fork",
+            "title": "Synthetic rollover fork",
+            "rationale": "Must be rejected as an ambiguous active leaf.",
+            "evidence_start": "2026-08-10T00:00:00Z",
+            "review_not_before": "2026-11-08T00:00:00Z",
+            "created_at": successor["created_at"],
+        }
+        fork = build_evidence_trigger(fork_value)
+        self.store.register_evidence_trigger(fork)
+        fork_state = self.store.load_evidence_trigger_state(fork["trigger_id"])
+        fork_state.update(
+            {
+                "rollover_predecessor_trigger_id": R1_TRIGGER_ID,
+                "rollover_predecessor_fingerprint": R1_TRIGGER_FINGERPRINT,
+                "rollover_reason": "MISSED_CAPTURE_WINDOW_NO_BACKFILL",
+            }
+        )
+        self.store.save_evidence_trigger_state(fork_state)
+        with self.assertRaisesRegex(ValueError, "ambiguous fork"):
+            seal_r1_shock_diagnostics(
+                self.store,
+                now=datetime(2026, 8, 10, 2, tzinfo=UTC),
+                contract_activated_at="2026-08-09T00:00:00Z",
+            )
+
+    def test_rollover_lineage_cycle_fails_closed(self) -> None:
+        successor = self._rollover()
+        successor_state = self.store.load_evidence_trigger_state(successor["trigger_id"])
+        successor_state.update(
+            {
+                "status": "CLOSED",
+                "next_review_at": None,
+                "rollover_successor_trigger_id": R1_TRIGGER_ID,
+                "rollover_successor_fingerprint": R1_TRIGGER_FINGERPRINT,
+                "rollover_closed_at": self.trigger["created_at"],
+            }
+        )
+        self.store.save_evidence_trigger_state(successor_state)
+        root_state = self.store.load_evidence_trigger_state(R1_TRIGGER_ID)
+        root_state.update(
+            {
+                "rollover_predecessor_trigger_id": successor["trigger_id"],
+                "rollover_predecessor_fingerprint": successor["fingerprint"],
+            }
+        )
+        self.store.save_evidence_trigger_state(root_state)
+        with self.assertRaisesRegex(ValueError, "cycle"):
+            seal_r1_shock_diagnostics(
+                self.store,
+                now=datetime(2026, 8, 10, 2, tzinfo=UTC),
+                contract_activated_at="2026-08-09T00:00:00Z",
+            )
+
     def _trigger_value(self) -> dict[str, object]:
         return {
             "schema_version": "1",
@@ -331,10 +478,48 @@ class ShockAttributionTest(unittest.TestCase):
         self._seal_day("2026-08-06", prior_close, received_at="2026-08-07T01:00:00Z")
         self._seal_day("2026-08-07", target_close, received_at="2026-08-08T01:00:00Z")
 
+    def _rollover(self) -> dict[str, object]:
+        result = rollover_missed_discovery_window(
+            self.store,
+            self.trigger,
+            self.store.load_evidence_trigger_state(R1_TRIGGER_ID),
+            now=datetime(2026, 8, 8, 7, tzinfo=UTC),
+        )
+        return self.store.load_evidence_trigger(str(result["successor_trigger_id"]))
+
+    def _seal_leaf_day(
+        self,
+        trigger: dict[str, object],
+        day: str,
+        close: str,
+        *,
+        received_at: str,
+    ) -> None:
+        bundle = self._daily_bundle(day, close)
+        bundle["trigger_id"] = trigger["trigger_id"]
+        bundle["trigger_fingerprint"] = trigger["fingerprint"]
+        state = self.store.load_evidence_trigger_state(str(trigger["trigger_id"]))
+        seal_daily_evidence(
+            self.store,
+            trigger,
+            state,
+            bundle,
+            received_at=datetime.fromisoformat(received_at.replace("Z", "+00:00")),
+        )
+
     def _seal_shocks(self, *, activation: str) -> list[dict[str, object]]:
         return seal_r1_shock_diagnostics(
             self.store,
             now=datetime(2026, 8, 8, 2, tzinfo=UTC),
+            contract_activated_at=activation,
+        )
+
+    def _seal_shocks_v2(
+        self, *, now: datetime, activation: str
+    ) -> list[dict[str, object]]:
+        return seal_r1_shock_diagnostics(
+            self.store,
+            now=now,
             contract_activated_at=activation,
         )
 
@@ -365,6 +550,10 @@ class ShockAttributionTest(unittest.TestCase):
 
     def _artifacts(self) -> list[Path]:
         namespace = self.root / DIAGNOSTIC_NAMESPACE
+        return sorted(namespace.glob("*.json")) if namespace.exists() else []
+
+    def _v2_artifacts(self, trigger: dict[str, object]) -> list[Path]:
+        namespace = self.root / V2_DIAGNOSTIC_NAMESPACE / str(trigger["fingerprint"])
         return sorted(namespace.glob("*.json")) if namespace.exists() else []
 
     def _direct_pair(

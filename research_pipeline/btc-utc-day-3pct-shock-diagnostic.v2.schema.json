@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BTC Complete UTC Day 3 Percent Shock Diagnostic V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "diagnostic_type", "trigger_id", "trigger_fingerprint",
+    "root_trigger_id", "root_trigger_fingerprint", "leaf_trigger_id",
+    "leaf_trigger_fingerprint", "source", "observation_unit", "threshold_return",
+    "prior_day", "target_day", "contract_activated_at", "sealed_at", "eligibility",
+    "path", "guardrails", "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "diagnostic_type": {"const": "BTC_UTC_DAY_3PCT_SHOCK_DIAGNOSTIC_V2"},
+    "trigger_id": {"type": "string", "minLength": 3, "maxLength": 80},
+    "trigger_fingerprint": {"$ref": "#/$defs/sha256"},
+    "root_trigger_id": {"const": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1"},
+    "root_trigger_fingerprint": {"const": "0e5a4675e937613202f0a4a243360a405e9ace1823c4b999edb5d479849d2589"},
+    "leaf_trigger_id": {"type": "string", "minLength": 3, "maxLength": 80},
+    "leaf_trigger_fingerprint": {"$ref": "#/$defs/sha256"},
+    "source": {"const": "server-local read-only OKX BTCUSDT complete 1h bars aggregated into complete UTC days"},
+    "observation_unit": {"const": "COMPLETE_UTC_DAY"},
+    "threshold_return": {"const": "0.0300"},
+    "prior_day": {"$ref": "#/$defs/dayReference"},
+    "target_day": {"$ref": "#/$defs/dayReference"},
+    "contract_activated_at": {"type": "string", "format": "date-time"},
+    "sealed_at": {"type": "string", "format": "date-time"},
+    "eligibility": {"enum": ["CONTEXT_ONLY", "FORWARD_FACTOR_ELIGIBLE"]},
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "qualifies", "direction", "prior_close", "target_open", "target_high",
+        "target_low", "target_close", "target_volume", "simple_return",
+        "absolute_simple_return", "open_gap_return", "high_excursion_return",
+        "low_excursion_return", "hourly_incremental_returns",
+        "hourly_cumulative_returns", "earliest_threshold_crossing_interval_end",
+        "peak_interval_start", "trough_interval_start",
+        "largest_absolute_hourly_return_interval_start", "largest_absolute_hourly_return",
+        "first_12h_return", "last_12h_return", "positive_hour_count",
+        "negative_hour_count", "flat_hour_count", "close_in_range",
+        "largest_hour_volume_interval_start", "largest_hour_volume_share"
+      ],
+      "properties": {
+        "qualifies": {"const": true},
+        "direction": {"enum": ["UP", "DOWN"]},
+        "prior_close": {"$ref": "#/$defs/decimalText"},
+        "target_open": {"$ref": "#/$defs/decimalText"},
+        "target_high": {"$ref": "#/$defs/decimalText"},
+        "target_low": {"$ref": "#/$defs/decimalText"},
+        "target_close": {"$ref": "#/$defs/decimalText"},
+        "target_volume": {"$ref": "#/$defs/decimalText"},
+        "simple_return": {"$ref": "#/$defs/decimalText"},
+        "absolute_simple_return": {"$ref": "#/$defs/decimalText"},
+        "open_gap_return": {"$ref": "#/$defs/decimalText"},
+        "high_excursion_return": {"$ref": "#/$defs/decimalText"},
+        "low_excursion_return": {"$ref": "#/$defs/decimalText"},
+        "hourly_incremental_returns": {"$ref": "#/$defs/hourReturns"},
+        "hourly_cumulative_returns": {"$ref": "#/$defs/hourReturns"},
+        "earliest_threshold_crossing_interval_end": {"type": "string", "format": "date-time"},
+        "peak_interval_start": {"type": "string", "format": "date-time"},
+        "trough_interval_start": {"type": "string", "format": "date-time"},
+        "largest_absolute_hourly_return_interval_start": {"type": "string", "format": "date-time"},
+        "largest_absolute_hourly_return": {"$ref": "#/$defs/decimalText"},
+        "first_12h_return": {"$ref": "#/$defs/decimalText"},
+        "last_12h_return": {"$ref": "#/$defs/decimalText"},
+        "positive_hour_count": {"type": "integer", "minimum": 0, "maximum": 24},
+        "negative_hour_count": {"type": "integer", "minimum": 0, "maximum": 24},
+        "flat_hour_count": {"type": "integer", "minimum": 0, "maximum": 24},
+        "close_in_range": {"oneOf": [{"$ref": "#/$defs/decimalText"}, {"type": "null"}]},
+        "largest_hour_volume_interval_start": {"oneOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+        "largest_hour_volume_share": {"oneOf": [{"$ref": "#/$defs/decimalText"}, {"type": "null"}]}
+      }
+    },
+    "guardrails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["causal_explanation", "prediction_evaluated", "strategy_mapping_evaluated", "pnl_evaluated", "drawdown_evaluated", "oos_opened", "news_or_llm_used"],
+      "properties": {
+        "causal_explanation": {"const": "UNKNOWN"},
+        "prediction_evaluated": {"const": false},
+        "strategy_mapping_evaluated": {"const": false},
+        "pnl_evaluated": {"const": false},
+        "drawdown_evaluated": {"const": false},
+        "oos_opened": {"const": false},
+        "news_or_llm_used": {"const": false}
+      }
+    },
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "decimalText": {"type": "string", "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+    "dayReference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["day", "artifact_path", "artifact_sha256", "chain_head", "received_at"],
+      "properties": {
+        "day": {"type": "string", "format": "date"},
+        "artifact_path": {"type": "string", "minLength": 1},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "chain_head": {"$ref": "#/$defs/sha256"},
+        "received_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "hourReturn": {
+      "type": "object", "additionalProperties": false,
+      "required": ["interval_start", "interval_end", "return"],
+      "properties": {
+        "interval_start": {"type": "string", "format": "date-time"},
+        "interval_end": {"type": "string", "format": "date-time"},
+        "return": {"$ref": "#/$defs/decimalText"}
+      }
+    },
+    "hourReturns": {"type": "array", "minItems": 24, "maxItems": 24, "items": {"$ref": "#/$defs/hourReturn"}}
+  }
+}

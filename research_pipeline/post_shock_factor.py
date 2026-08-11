@@ -12,6 +12,10 @@ from pathlib import Path
 from typing import Any
 
 from .evidence import evidence_progress
+from .forward_trigger_lineage import (
+    ActiveForwardTriggerLineage,
+    resolve_active_forward_trigger_lineage,
+)
 from .models import RESEARCH_AUTHORIZATION, parse_timestamp
 from .shock_attribution import (
     DIAGNOSTIC_NAMESPACE,
@@ -20,6 +24,9 @@ from .shock_attribution import (
     R1_TRIGGER_ID,
     SCHEMA_PATH as SHOCK_SCHEMA_PATH,
     SCHEMA_SHA256 as SHOCK_SCHEMA_SHA256,
+    V2_DIAGNOSTIC_NAMESPACE,
+    V2_SCHEMA_PATH as SHOCK_V2_SCHEMA_PATH,
+    V2_SCHEMA_SHA256 as SHOCK_V2_SCHEMA_SHA256,
 )
 from .storage import (
     ResearchStore,
@@ -38,6 +45,12 @@ SCHEMA_SHA256 = "8f41ecce6cf5820ee28404fef9bcefac4db1d42771ed01586752488142c6b31
 SNAPSHOT_NAMESPACE = (
     Path("post-shock-factor") / "btc-utc-day-3pct-v1" / "snapshots"
 )
+V2_DOCUMENT_TYPE = "BTC_UTC_DAY_3PCT_POST_SHOCK_FACTOR_RESULT_V2"
+V2_SCHEMA_PATH = Path(__file__).with_name(
+    "btc-utc-day-3pct-post-shock-factor-result.v2.schema.json"
+)
+V2_SCHEMA_SHA256 = "dc5ffb60b80cd3f190473373ff0956d52149e567579e2d9bbe9376cebfb05980"
+V2_SNAPSHOT_NAMESPACE = Path("post-shock-factor") / "btc-utc-day-3pct-v2"
 
 WAIT = "WAIT_FOR_MORE_UNTOUCHED_EVIDENCE"
 CONTINUATION = "CONTINUATION_FACTOR_READY_FOR_MANAGER_REVIEW"
@@ -47,6 +60,28 @@ TERMINAL_DISPOSITIONS = {CONTINUATION, REVERSAL, NO_FACTOR}
 
 
 def seal_r1_post_shock_factor_snapshots(
+    store: ResearchStore,
+    *,
+    now: datetime,
+) -> list[dict[str, Any]]:
+    root_matches = [
+        pair
+        for pair in store.evidence_trigger_entries()
+        if pair[0].get("trigger_id") == R1_TRIGGER_ID
+    ]
+    if not root_matches or (
+        len(root_matches) == 1 and root_matches[0][1].get("status") != "CLOSED"
+    ):
+        return _seal_v1_post_shock_factor_snapshots(store, now=now)
+    lineage = resolve_active_forward_trigger_lineage(store)
+    if lineage is None:
+        return []
+    if not lineage.rolled_over:
+        return _seal_v1_post_shock_factor_snapshots(store, now=now)
+    return _seal_v2_post_shock_factor_snapshots(store, lineage=lineage, now=now)
+
+
+def _seal_v1_post_shock_factor_snapshots(
     store: ResearchStore,
     *,
     now: datetime,
@@ -140,6 +175,88 @@ def seal_r1_post_shock_factor_snapshots(
             artifact_sha256=sha256_file(snapshot_path),
         )
     ]
+
+
+def _seal_v2_post_shock_factor_snapshots(
+    store: ResearchStore,
+    *,
+    lineage: ActiveForwardTriggerLineage,
+    now: datetime,
+) -> list[dict[str, Any]]:
+    current = now.astimezone(timezone.utc)
+    _validate_v2_schema_bindings()
+    trigger = lineage.leaf_trigger
+    trigger_state = lineage.leaf_state
+    evidence_progress(store, trigger, trigger_state, now=current)
+    observations = trigger_state.get("evidence_observations")
+    if not isinstance(observations, list):
+        raise ValueError("post-shock rollover observations must be a list")
+    references = [_validated_reference(store, item) for item in observations]
+    _require_unique_reference_days(references)
+
+    snapshots = _load_snapshots_v2(store, lineage)
+    terminals = [item for _, item in snapshots if item["terminal"]]
+    if len(terminals) > 1:
+        raise ValueError("post-shock V2 evaluator has conflicting terminal snapshots")
+    if terminals:
+        _revalidate_snapshot_sources_v2(store, terminals[0], references, lineage)
+        return []
+
+    prior_episode_by_id: dict[str, dict[str, Any]] = {}
+    if snapshots:
+        latest = max(
+            (item for _, item in snapshots),
+            key=lambda item: (len(item["episodes"]), item["latest_outcome_day"]),
+        )
+        prior_episode_by_id = {
+            str(item["episode_id"]): item for item in latest["episodes"]
+        }
+
+    episodes = _eligible_episodes_v2(
+        store,
+        references,
+        lineage=lineage,
+        current=current,
+        prior_episode_by_id=prior_episode_by_id,
+    )
+    if not episodes:
+        return []
+    selected = episodes
+    for end in range(1, len(episodes) + 1):
+        gates, _ = _gates_and_statistics(episodes[:end])
+        if gates["all_breadth_pass"]:
+            selected = episodes[:end]
+            break
+
+    latest_outcome = selected[-1]["outcome_day_reference"]
+    snapshot_path = _snapshot_path_v2(
+        store,
+        lineage,
+        str(latest_outcome["day"]),
+        str(latest_outcome["chain_head"]),
+    )
+    existing = _load_json_if_present(snapshot_path)
+    sealed_at = str(existing["sealed_at"]) if existing else _iso_utc(current)
+    snapshot = _build_post_shock_snapshot_v2(
+        selected, lineage=lineage, sealed_at=sealed_at
+    )
+    canonical = _canonical_bytes(snapshot)
+    if existing is not None:
+        if snapshot_path.read_bytes() != canonical:
+            raise ValueError("post-shock V2 snapshot changed or conflicts")
+        return []
+    created = _create_only(snapshot_path, canonical)
+    if not created and snapshot_path.read_bytes() != canonical:
+        raise ValueError("concurrent post-shock V2 snapshot conflicts")
+    if not created or not snapshot["terminal"]:
+        return []
+    event = _coach_event(
+        snapshot,
+        artifact_path=store_relative_reference(store.root, snapshot_path),
+        artifact_sha256=sha256_file(snapshot_path),
+    )
+    event["evidence_diagnostic"]["diagnostic_type"] = V2_DOCUMENT_TYPE
+    return [event]
 
 
 def build_post_shock_episode(
@@ -369,6 +486,167 @@ def _eligible_episodes(
     return episodes
 
 
+def _eligible_episodes_v2(
+    store: ResearchStore,
+    references: list[dict[str, Any]],
+    *,
+    lineage: ActiveForwardTriggerLineage,
+    current: datetime,
+    prior_episode_by_id: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    leaf = lineage.leaf_trigger
+    reference_index = {item["day"]: index for index, item in enumerate(references)}
+    namespace = store.root / V2_DIAGNOSTIC_NAMESPACE / str(leaf["fingerprint"])
+    if not namespace.exists():
+        return []
+    if namespace.is_symlink() or not namespace.is_dir():
+        raise ValueError("shock diagnostic V2 namespace is unsafe")
+    episodes: list[dict[str, Any]] = []
+    children = sorted(namespace.iterdir())
+    if any(
+        child.is_symlink() or not child.is_file() or child.suffix != ".json"
+        for child in children
+    ):
+        raise ValueError("shock diagnostic V2 inventory is unsafe")
+    for path in children:
+        diagnostic = read_json(path)
+        _validate_shock_diagnostic_v2(diagnostic, lineage)
+        if diagnostic["eligibility"] != "FORWARD_FACTOR_ELIGIBLE":
+            continue
+        target = diagnostic["target_day"]
+        target_day = str(target["day"])
+        if path.name != f"{target_day}.json":
+            raise ValueError("shock diagnostic V2 path and target day disagree")
+        index = reference_index.get(target_day)
+        if index is None or index + 1 >= len(references):
+            continue
+        target_reference = references[index]
+        outcome_reference = references[index + 1]
+        if _public_day_reference(target) != _public_day_reference(target_reference):
+            raise ValueError("shock V2 target reference drifted from accepted evidence")
+        if outcome_reference["chain_head"] == target_reference["chain_head"]:
+            raise ValueError("post-shock V2 outcome chain did not strictly advance")
+        diagnostic_sealed = parse_timestamp(
+            str(diagnostic["sealed_at"]), "shock diagnostic V2 sealed_at"
+        ).astimezone(timezone.utc)
+        target_received = parse_timestamp(
+            str(target_reference["received_at"]), "shock V2 target received_at"
+        ).astimezone(timezone.utc)
+        outcome_received = parse_timestamp(
+            str(outcome_reference["received_at"]), "post-shock V2 outcome received_at"
+        ).astimezone(timezone.utc)
+        if diagnostic_sealed < target_received:
+            raise ValueError("shock diagnostic V2 predates accepted target evidence")
+        if outcome_received <= diagnostic_sealed:
+            raise ValueError("post-shock V2 outcome was not received after diagnostic seal")
+        if current < outcome_received:
+            raise ValueError("post-shock V2 outcome is not yet accepted")
+        outcome_bundle = read_json(outcome_reference["path"])
+        _require_leaf_outcome_identity(
+            outcome_bundle, outcome_reference["day"], leaf
+        )
+        provisional = _build_post_shock_episode_v2(
+            diagnostic=diagnostic,
+            diagnostic_path=store_relative_reference(store.root, path),
+            diagnostic_sha256=sha256_file(path),
+            outcome_reference=_public_day_reference(outcome_reference),
+            outcome_bundle=outcome_bundle,
+            lineage=lineage,
+            sealed_at=_iso_utc(current),
+        )
+        prior = prior_episode_by_id.get(provisional["episode_id"])
+        if prior is not None:
+            expected = dict(provisional)
+            expected["sealed_at"] = prior.get("sealed_at")
+            if prior != expected:
+                raise ValueError("sealed post-shock V2 episode changed or conflicts")
+            provisional = prior
+        episodes.append(provisional)
+    episodes.sort(key=lambda item: (item["t0"], item["episode_id"]))
+    ids = [item["episode_id"] for item in episodes]
+    if len(ids) != len(set(ids)):
+        raise ValueError("duplicate post-shock V2 episode identity")
+    return episodes
+
+
+def _build_post_shock_episode_v2(
+    *,
+    diagnostic: dict[str, Any],
+    diagnostic_path: str,
+    diagnostic_sha256: str,
+    outcome_reference: dict[str, str],
+    outcome_bundle: dict[str, Any],
+    lineage: ActiveForwardTriggerLineage,
+    sealed_at: str,
+) -> dict[str, Any]:
+    projected_outcome = dict(outcome_bundle)
+    projected_outcome["trigger_id"] = R1_TRIGGER_ID
+    projected_outcome["trigger_fingerprint"] = R1_TRIGGER_FINGERPRINT
+    episode = build_post_shock_episode(
+        diagnostic=diagnostic,
+        diagnostic_path=diagnostic_path,
+        diagnostic_sha256=diagnostic_sha256,
+        outcome_reference=outcome_reference,
+        outcome_bundle=projected_outcome,
+        sealed_at=sealed_at,
+    )
+    leaf = lineage.leaf_trigger
+    episode["root_trigger_id"] = lineage.root_trigger["trigger_id"]
+    episode["root_trigger_fingerprint"] = lineage.root_trigger["fingerprint"]
+    episode["leaf_trigger_id"] = leaf["trigger_id"]
+    episode["leaf_trigger_fingerprint"] = leaf["fingerprint"]
+    identity = {
+        "diagnostic_sha256": diagnostic_sha256,
+        "target_artifact_sha256": episode["diagnostic_target_reference"][
+            "artifact_sha256"
+        ],
+        "outcome_artifact_sha256": episode["outcome_day_reference"][
+            "artifact_sha256"
+        ],
+        "outcome_chain_head": episode["outcome_day_reference"]["chain_head"],
+        "root_trigger_fingerprint": lineage.root_trigger["fingerprint"],
+        "leaf_trigger_fingerprint": leaf["fingerprint"],
+    }
+    episode["episode_id"] = hashlib.sha256(_canonical_bytes(identity)).hexdigest()
+    return episode
+
+
+def _build_post_shock_snapshot_v2(
+    episodes: list[dict[str, Any]],
+    *,
+    lineage: ActiveForwardTriggerLineage,
+    sealed_at: str,
+) -> dict[str, Any]:
+    projected = [
+        {
+            key: value
+            for key, value in episode.items()
+            if key
+            not in {
+                "root_trigger_id",
+                "root_trigger_fingerprint",
+                "leaf_trigger_id",
+                "leaf_trigger_fingerprint",
+            }
+        }
+        for episode in episodes
+    ]
+    snapshot = build_post_shock_snapshot(projected, sealed_at=sealed_at)
+    leaf = lineage.leaf_trigger
+    snapshot["document_type"] = V2_DOCUMENT_TYPE
+    snapshot["trigger_id"] = leaf["trigger_id"]
+    snapshot["trigger_fingerprint"] = leaf["fingerprint"]
+    snapshot["root_trigger_id"] = lineage.root_trigger["trigger_id"]
+    snapshot["root_trigger_fingerprint"] = lineage.root_trigger["fingerprint"]
+    snapshot["leaf_trigger_id"] = leaf["trigger_id"]
+    snapshot["leaf_trigger_fingerprint"] = leaf["fingerprint"]
+    snapshot["episodes"] = sorted(
+        episodes, key=lambda item: (item["t0"], item["episode_id"])
+    )
+    _validate_result_snapshot_v2(snapshot, lineage)
+    return snapshot
+
+
 def _gates_and_statistics(
     episodes: list[dict[str, Any]],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -494,6 +772,110 @@ def _validate_schema_bindings() -> None:
         raise ValueError("post-shock result schema must be an object")
     if not isinstance(read_json(SHOCK_SCHEMA_PATH), dict):
         raise ValueError("shock diagnostic schema must be an object")
+
+
+def _validate_v2_schema_bindings() -> None:
+    if sha256_file(V2_SCHEMA_PATH) != V2_SCHEMA_SHA256:
+        raise ValueError("post-shock result V2 schema hash mismatch")
+    if sha256_file(SHOCK_V2_SCHEMA_PATH) != SHOCK_V2_SCHEMA_SHA256:
+        raise ValueError("shock diagnostic V2 schema hash mismatch")
+    if not isinstance(read_json(V2_SCHEMA_PATH), dict):
+        raise ValueError("post-shock result V2 schema must be an object")
+    if not isinstance(read_json(SHOCK_V2_SCHEMA_PATH), dict):
+        raise ValueError("shock diagnostic V2 schema must be an object")
+
+
+_LINEAGE_KEYS = {
+    "root_trigger_id",
+    "root_trigger_fingerprint",
+    "leaf_trigger_id",
+    "leaf_trigger_fingerprint",
+}
+
+
+def _validate_result_snapshot_v2(
+    value: Any, lineage: ActiveForwardTriggerLineage
+) -> None:
+    if not isinstance(value, dict):
+        raise ValueError("post-shock V2 snapshot must be an object")
+    expected_keys = {
+        "schema_version", "document_type", "trigger_id", "trigger_fingerprint",
+        "snapshot_key", "latest_outcome_day", "cumulative_chain_binding",
+        "sealed_at", "disposition", "terminal", "episodes", "gate_evidence",
+        "statistics", "guardrails", "authorization",
+    } | _LINEAGE_KEYS
+    if set(value) != expected_keys:
+        raise ValueError("post-shock V2 snapshot fields are invalid")
+    _require_v2_lineage_binding(value, lineage, "post-shock V2 snapshot")
+    if value.get("document_type") != V2_DOCUMENT_TYPE:
+        raise ValueError("post-shock V2 document type mismatch")
+    episodes = value.get("episodes")
+    if not isinstance(episodes, list) or not episodes:
+        raise ValueError("post-shock V2 snapshot requires episodes")
+    for episode in episodes:
+        _require_v2_lineage_binding(
+            episode, lineage, "post-shock V2 episode", include_trigger=False
+        )
+    projected = {
+        key: item for key, item in value.items() if key not in _LINEAGE_KEYS
+    }
+    projected["document_type"] = DOCUMENT_TYPE
+    projected["trigger_id"] = R1_TRIGGER_ID
+    projected["trigger_fingerprint"] = R1_TRIGGER_FINGERPRINT
+    projected["episodes"] = [
+        {key: item for key, item in episode.items() if key not in _LINEAGE_KEYS}
+        for episode in episodes
+    ]
+    _validate_result_snapshot(projected)
+
+
+def _validate_shock_diagnostic_v2(
+    value: Any, lineage: ActiveForwardTriggerLineage
+) -> None:
+    if not isinstance(value, dict):
+        raise ValueError("shock diagnostic V2 must be an object")
+    v1_keys = {
+        "schema_version", "diagnostic_type", "trigger_id", "trigger_fingerprint",
+        "source", "observation_unit", "threshold_return", "prior_day",
+        "target_day", "contract_activated_at", "sealed_at", "eligibility",
+        "path", "guardrails", "authorization",
+    }
+    if set(value) != v1_keys | _LINEAGE_KEYS:
+        raise ValueError("shock diagnostic V2 fields are invalid")
+    _require_v2_lineage_binding(value, lineage, "shock diagnostic V2")
+    if value.get("diagnostic_type") != "BTC_UTC_DAY_3PCT_SHOCK_DIAGNOSTIC_V2":
+        raise ValueError("shock diagnostic V2 document type mismatch")
+    projected = {key: item for key, item in value.items() if key not in _LINEAGE_KEYS}
+    projected["diagnostic_type"] = "BTC_UTC_DAY_3PCT_SHOCK_DIAGNOSTIC_V1"
+    projected["trigger_id"] = R1_TRIGGER_ID
+    projected["trigger_fingerprint"] = R1_TRIGGER_FINGERPRINT
+    _validate_shock_diagnostic(projected)
+
+
+def _require_v2_lineage_binding(
+    value: dict[str, Any],
+    lineage: ActiveForwardTriggerLineage,
+    label: str,
+    *,
+    include_trigger: bool = True,
+) -> None:
+    leaf = lineage.leaf_trigger
+    expected = {
+        "root_trigger_id": lineage.root_trigger["trigger_id"],
+        "root_trigger_fingerprint": lineage.root_trigger["fingerprint"],
+        "leaf_trigger_id": leaf["trigger_id"],
+        "leaf_trigger_fingerprint": leaf["fingerprint"],
+    }
+    if include_trigger:
+        expected.update(
+            {
+                "trigger_id": leaf["trigger_id"],
+                "trigger_fingerprint": leaf["fingerprint"],
+            }
+        )
+    for key, item in expected.items():
+        if value.get(key) != item:
+            raise ValueError(f"{label} {key} mismatch")
 
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -950,6 +1332,23 @@ def _require_outcome_identity(bundle: dict[str, Any], day: str) -> None:
             raise ValueError(f"post-shock outcome {key} mismatch")
 
 
+def _require_leaf_outcome_identity(
+    bundle: dict[str, Any], day: str, trigger: dict[str, Any]
+) -> None:
+    expected = {
+        "schema_version": "1",
+        "bundle_type": "FORWARD_EVIDENCE_DAY",
+        "trigger_id": trigger["trigger_id"],
+        "trigger_fingerprint": trigger["fingerprint"],
+        "source": trigger["source"],
+        "day": day,
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+    for key, value in expected.items():
+        if bundle.get(key) != value:
+            raise ValueError(f"post-shock rollover outcome {key} mismatch")
+
+
 def _public_day_reference(value: dict[str, Any]) -> dict[str, str]:
     path = value.get("artifact_path", value.get("path"))
     sha = value.get("artifact_sha256", value.get("sha256"))
@@ -1013,6 +1412,35 @@ def _snapshot_path(store: ResearchStore, day: str, chain_head: str) -> Path:
     return _snapshot_root(store) / f"{day}--{chain_head}.json"
 
 
+def _snapshot_root_v2(
+    store: ResearchStore, lineage: ActiveForwardTriggerLineage
+) -> Path:
+    fingerprint = str(lineage.leaf_trigger["fingerprint"])
+    _require_hex64(fingerprint, "post-shock V2 leaf fingerprint")
+    root = store.root.resolve()
+    namespace = root / V2_SNAPSHOT_NAMESPACE / fingerprint / "snapshots"
+    namespace.mkdir(parents=True, exist_ok=True)
+    resolved = namespace.resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as error:
+        raise ValueError("post-shock V2 namespace escapes research state") from error
+    if resolved != namespace:
+        raise ValueError("post-shock V2 namespace traverses a link")
+    return namespace
+
+
+def _snapshot_path_v2(
+    store: ResearchStore,
+    lineage: ActiveForwardTriggerLineage,
+    day: str,
+    chain_head: str,
+) -> Path:
+    date.fromisoformat(day)
+    _require_hex64(chain_head, "post-shock V2 chain binding")
+    return _snapshot_root_v2(store, lineage) / f"{day}--{chain_head}.json"
+
+
 def _load_snapshots(store: ResearchStore) -> list[tuple[Path, dict[str, Any]]]:
     namespace = store.root / SNAPSHOT_NAMESPACE
     if not namespace.exists():
@@ -1059,6 +1487,57 @@ def _load_snapshots(store: ResearchStore) -> list[tuple[Path, dict[str, Any]]]:
     return ordered
 
 
+def _load_snapshots_v2(
+    store: ResearchStore, lineage: ActiveForwardTriggerLineage
+) -> list[tuple[Path, dict[str, Any]]]:
+    namespace = (
+        store.root
+        / V2_SNAPSHOT_NAMESPACE
+        / str(lineage.leaf_trigger["fingerprint"])
+        / "snapshots"
+    )
+    if not namespace.exists():
+        return []
+    if namespace.is_symlink() or not namespace.is_dir():
+        raise ValueError("post-shock V2 snapshot namespace is unsafe")
+    children = sorted(namespace.iterdir())
+    if any(
+        child.is_symlink() or not child.is_file() or child.suffix != ".json"
+        for child in children
+    ):
+        raise ValueError("post-shock V2 snapshot inventory is unsafe")
+    result: list[tuple[Path, dict[str, Any]]] = []
+    for path in children:
+        value = read_json(path)
+        _validate_result_snapshot_v2(value, lineage)
+        expected_name = (
+            f"{value['latest_outcome_day']}--"
+            f"{value['cumulative_chain_binding']}.json"
+        )
+        if path.name != expected_name:
+            raise ValueError("post-shock V2 snapshot path binding mismatch")
+        result.append((path, value))
+    ordered = sorted(
+        result,
+        key=lambda pair: (
+            len(pair[1]["episodes"]),
+            pair[1]["latest_outcome_day"],
+            pair[0].name,
+        ),
+    )
+    for index in range(1, len(ordered)):
+        previous = ordered[index - 1][1]
+        current = ordered[index][1]
+        previous_count = len(previous["episodes"])
+        if len(current["episodes"]) <= previous_count:
+            raise ValueError("post-shock V2 snapshot sequence did not advance")
+        if current["episodes"][:previous_count] != previous["episodes"]:
+            raise ValueError("post-shock V2 snapshot history is not append-only")
+        if previous["terminal"]:
+            raise ValueError("post-shock V2 snapshot exists after terminal disposition")
+    return ordered
+
+
 def _revalidate_snapshot_sources(
     store: ResearchStore,
     snapshot: dict[str, Any],
@@ -1092,6 +1571,51 @@ def _revalidate_snapshot_sources(
     )
     if _canonical_bytes(rebuilt_snapshot) != _canonical_bytes(snapshot):
         raise ValueError("sealed post-shock terminal snapshot is not reproducible")
+
+
+def _revalidate_snapshot_sources_v2(
+    store: ResearchStore,
+    snapshot: dict[str, Any],
+    references: list[dict[str, Any]],
+    lineage: ActiveForwardTriggerLineage,
+) -> None:
+    by_day = {item["day"]: item for item in references}
+    rebuilt: list[dict[str, Any]] = []
+    for episode in snapshot["episodes"]:
+        diagnostic_path = resolve_store_reference(
+            store.root, episode["shock_diagnostic_path"]
+        )
+        if diagnostic_path.is_symlink() or not diagnostic_path.is_file():
+            raise ValueError("sealed post-shock V2 diagnostic source is unsafe")
+        if sha256_file(diagnostic_path) != episode["shock_diagnostic_sha256"]:
+            raise ValueError("sealed post-shock V2 diagnostic source changed")
+        diagnostic = read_json(diagnostic_path)
+        _validate_shock_diagnostic_v2(diagnostic, lineage)
+        outcome = episode["outcome_day_reference"]
+        current = by_day.get(outcome["day"])
+        if current is None or _public_day_reference(current) != outcome:
+            raise ValueError("sealed post-shock V2 outcome source changed")
+        outcome_bundle = read_json(current["path"])
+        _require_leaf_outcome_identity(
+            outcome_bundle, current["day"], lineage.leaf_trigger
+        )
+        rebuilt_episode = _build_post_shock_episode_v2(
+            diagnostic=diagnostic,
+            diagnostic_path=episode["shock_diagnostic_path"],
+            diagnostic_sha256=episode["shock_diagnostic_sha256"],
+            outcome_reference=outcome,
+            outcome_bundle=outcome_bundle,
+            lineage=lineage,
+            sealed_at=episode["sealed_at"],
+        )
+        if rebuilt_episode != episode:
+            raise ValueError("sealed post-shock V2 episode bytes are not reproducible")
+        rebuilt.append(rebuilt_episode)
+    rebuilt_snapshot = _build_post_shock_snapshot_v2(
+        rebuilt, lineage=lineage, sealed_at=snapshot["sealed_at"]
+    )
+    if _canonical_bytes(rebuilt_snapshot) != _canonical_bytes(snapshot):
+        raise ValueError("sealed post-shock V2 terminal snapshot is not reproducible")
 
 
 def _load_json_if_present(path: Path) -> dict[str, Any] | None:

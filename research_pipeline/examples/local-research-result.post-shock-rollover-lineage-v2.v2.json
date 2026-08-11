@@ -1,0 +1,164 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-post-shock-rollover-lineage-v2-v2",
+  "task_sha256": "529114bcedb064adef8e058d2913d9301e50e07d1adf70abe200e59c3efb140f",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T06:17:00Z",
+  "completed_at": "2026-08-11T06:49:26Z",
+  "source_git_commit": "34780678df8939eee7763bd872dba6be9a9d3540",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": true,
+  "summary": "POST_SHOCK_ROLLOVER_V2_READY_FOR_MANAGER_VALIDATION. Implemented the exact eight-file offline vertical slice. The pure resolver follows only the frozen R1 root and exact missed-window rollover links, validates canonical trigger hashes and bidirectional lineage bindings, and rejects missing successors, partial links, forks, cycles, contract drift, candidate binding and unsafe paths. Unrolled R1 continues through the unchanged V1 builders, schemas and namespaces. Rolled successors use leaf-fingerprint-isolated V2 diagnostic and snapshot namespaces, bind root and leaf identities, require two successor days for the first shock, and prohibit predecessor observation, diagnostic, episode, snapshot or chain reuse. Scientific thresholds, breadth/concentration gates, dispositions and heartbeat call signatures remain unchanged. Immediate fee-adjusted PnL and drawdown effects are ZERO; predictive and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "SOURCE_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched 34780678df8939eee7763bd872dba6be9a9d3540; worktree was clean before editing."
+    },
+    {
+      "name": "TASK_DISPATCH_VALIDATION",
+      "status": "PASS",
+      "evidence": "Exact task SHA-256 529114bcedb064adef8e058d2913d9301e50e07d1adf70abe200e59c3efb140f and dispatch SHA-256 c8e4d222b80cd140d943f546a3d601bc5897083565bbd3d5f78879ffa8b8aa15 were validated before implementation."
+    },
+    {
+      "name": "INPUT_HASH_CLOSURE",
+      "status": "PASS",
+      "evidence": "All 19 non-null repository inputs matched their frozen hashes and safe contained regular non-reparse path requirements."
+    },
+    {
+      "name": "EXACT_EIGHT_FILE_SCOPE",
+      "status": "PASS",
+      "evidence": "Final Git status contains exactly the four authorized modified paths and four authorized new paths; no ninth tracked or untracked path exists."
+    },
+    {
+      "name": "ACTIVE_LINEAGE_RESOLUTION",
+      "status": "PASS",
+      "evidence": "Resolver starts at the exact R1 id/fingerprint, traverses only CLOSED MISSED_CAPTURE_WINDOW_NO_BACKFILL links, validates predecessor/successor ids and fingerprints, canonical trigger hashes, discovery purpose, authorization and inherited scientific contract, and fails closed on partial, tampered, cyclic or forked lineage."
+    },
+    {
+      "name": "IMMUTABLE_V1_COMPATIBILITY",
+      "status": "PASS",
+      "evidence": "V1 schemas retained exact hashes 4892456b848951237436538af429f083ca70c497d70cdef7ca5cf2bae1e01ef1 and 8f41ecce6cf5820ee28404fef9bcefac4db1d42771ed01586752488142c6b317. evidence.py, heartbeat.py and test_evidence.py also retained their frozen hashes."
+    },
+    {
+      "name": "V2_DIAGNOSTIC_LINEAGE",
+      "status": "PASS",
+      "evidence": "Synthetic tests proved the first successor diagnostic requires two successor observations, an R1 observation cannot pair with the first successor observation, V2 output binds root and leaf identities, and repeated calls preserve identical bytes under the leaf fingerprint namespace."
+    },
+    {
+      "name": "V2_POST_SHOCK_LINEAGE",
+      "status": "PASS",
+      "evidence": "Synthetic tests sealed one leaf-bound V2 WAIT snapshot from a V2 diagnostic and adjacent advancing successor outcome, proved fingerprint-isolated idempotency, and rejected a cross-lineage diagnostic fingerprint."
+    },
+    {
+      "name": "FAIL_CLOSED_LINEAGE_TESTS",
+      "status": "PASS",
+      "evidence": "Focused synthetic cases passed for missing successor, tampered predecessor fingerprint, ambiguous fork, cycle and cross-lineage artifact rejection."
+    },
+    {
+      "name": "SCIENTIFIC_CONTRACT_UNCHANGED",
+      "status": "PASS",
+      "evidence": "The inclusive 3% threshold, H1/H6 path diagnostics, H24 primary response, eight-episode minimum, UP/DOWN and chronological breadth, three-month breadth, concentration gates and all four dispositions remain delegated to the unchanged V1 scientific builders and gate function."
+    },
+    {
+      "name": "HEARTBEAT_CONTRACT_UNCHANGED",
+      "status": "PASS",
+      "evidence": "heartbeat.py retained frozen SHA-256 dc0dc3cdcea1dec1906ce032c56c76de4836a3f57d06b60553533bff1665bd6d; both existing child function signatures remain unchanged."
+    },
+    {
+      "name": "PYTHON_COMPILE",
+      "status": "PASS",
+      "evidence": "All five changed Python source/test files compiled successfully in memory. An earlier explicit py_compile also passed; its exact generated bytecode files were removed afterward."
+    },
+    {
+      "name": "SHOCK_POST_SHOCK_BEHAVIORAL_TESTS",
+      "status": "PASS",
+      "evidence": "All 38 shock-attribution and post-shock-factor behavioral tests passed using a dependency-neutral in-memory jsonschema placeholder solely because the Local sandbox could not import the installed jsonschema package. This receipt does not claim Draft 2020-12 validation."
+    },
+    {
+      "name": "EVIDENCE_REGRESSION_TESTS",
+      "status": "PASS",
+      "evidence": "research_pipeline.tests.test_evidence ran 49 tests in 59.441 seconds with OK. Its source remained byte-identical."
+    },
+    {
+      "name": "EXACT_THREE_MODULE_GATE",
+      "status": "MISSING_PROOF",
+      "evidence": "The exact three-module command was attempted, but the Local runtime could not import jsonschema for the two schema-aware modules. A combined dependency-neutral run executed 87 tests with 86 passing and one unrelated Windows TemporaryDirectory cleanup error; the evidence module subsequently passed 49/49 independently."
+    },
+    {
+      "name": "DRAFT_2020_12_EXECUTABLE_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "Both V2 schema documents parse as JSON and runtime bindings pin their exact SHA-256 values, but authoritative Draft202012Validator meta-validation is pending because jsonschema was unavailable to the executable Local runtime and installation or permission escalation was forbidden."
+    },
+    {
+      "name": "STATIC_SCOPE_HASH_DIFF_CHECK",
+      "status": "PASS",
+      "evidence": "All eight final paths are regular non-reparse files, every artifact was rehashed, both schema JSON documents parsed, forbidden-boundary scan found no runtime network/source/writer addition, and git diff --check passed."
+    },
+    {
+      "name": "PERFORMANCE_AND_DRAWDOWN_BOUNDARY",
+      "status": "PASS",
+      "evidence": "Immediate fee-adjusted PnL effect is ZERO and immediate drawdown effect is ZERO. Prediction, significance, fees, slippage, capacity, matched-capital performance and all economic value remain MISSING_PROOF."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "research_pipeline/forward_trigger_lineage.py",
+      "sha256": "8befdd4d503357ffc072af341d588bfed77b5b4cf90c83b39d12d5a563c42ae6"
+    },
+    {
+      "path": "research_pipeline/btc-utc-day-3pct-shock-diagnostic.v2.schema.json",
+      "sha256": "1b4026c9dc18daba8c189a206d586518e284d8462cd7d39644fa4a8b45a3ec76"
+    },
+    {
+      "path": "research_pipeline/btc-utc-day-3pct-post-shock-factor-result.v2.schema.json",
+      "sha256": "dc5ffb60b80cd3f190473373ff0956d52149e567579e2d9bbe9376cebfb05980"
+    },
+    {
+      "path": "docs/btc-utc-day-3pct-post-shock-rollover-v2.md",
+      "sha256": "81466a085758a2c7f28778017cf813b15ecf154ba4bdbee2f6b0bf18e062e405"
+    },
+    {
+      "path": "research_pipeline/shock_attribution.py",
+      "sha256": "b320eb759f8f0017e1528c1ab70acabe7f9e006a9ecb192b02e2c140104314dd"
+    },
+    {
+      "path": "research_pipeline/post_shock_factor.py",
+      "sha256": "e96bad8e1465423edaa8907d8038d0e70c72ce57d4b7903c001b33c3edab5de1"
+    },
+    {
+      "path": "research_pipeline/tests/test_shock_attribution.py",
+      "sha256": "470483fd628a9297d2e4a32ef02c6bbbe9625ead0f3a1bcab899d5495c215207"
+    },
+    {
+      "path": "research_pipeline/tests/test_post_shock_factor.py",
+      "sha256": "d824e0e1837b8767d6434ba19cd78a929a7363a5ba5c6eeddbb35cf1378a32f5"
+    }
+  ],
+  "files_changed": [
+    "research_pipeline/forward_trigger_lineage.py",
+    "research_pipeline/btc-utc-day-3pct-shock-diagnostic.v2.schema.json",
+    "research_pipeline/btc-utc-day-3pct-post-shock-factor-result.v2.schema.json",
+    "docs/btc-utc-day-3pct-post-shock-rollover-v2.md",
+    "research_pipeline/shock_attribution.py",
+    "research_pipeline/post_shock_factor.py",
+    "research_pipeline/tests/test_shock_attribution.py",
+    "research_pipeline/tests/test_post_shock_factor.py"
+  ],
+  "uncertainty": [
+    "Authoritative Draft 2020-12 schema meta-validation and validation of emitted V2 documents remain MISSING_PROOF_MANAGER_PENDING.",
+    "The exact unmodified three-module focused command remains MISSING_PROOF_MANAGER_PENDING because Local could not import jsonschema; no dependency was installed and no permission was requested.",
+    "All tests used synthetic TemporaryDirectory ResearchStore fixtures. Real canonical state, R1/R2 observations, server behavior, deployment and forward outcomes were not accessed.",
+    "Predictive significance, causality, fees, slippage, fill quality, capacity, matched-capital PnL, drawdown, OOS behavior and Trading value remain MISSING_PROOF."
+  ],
+  "recommended_next_action": "Manager should independently rehash the unchanged eight-file slice, run Draft202012Validator.check_schema and positive/negative emitted-document validation for both V2 schemas, then run the exact three-module focused unittest command in the provisioned environment. If all gates pass, seal and commit these exact bytes without activating a trigger, heartbeat request, deployment, source, candidate, OOS or Trading path.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

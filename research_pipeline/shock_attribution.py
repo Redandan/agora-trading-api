@@ -10,6 +10,10 @@ from pathlib import Path
 from typing import Any
 
 from .evidence import evidence_progress
+from .forward_trigger_lineage import (
+    ActiveForwardTriggerLineage,
+    resolve_active_forward_trigger_lineage,
+)
 from .models import RESEARCH_AUTHORIZATION, parse_timestamp
 from .storage import (
     ResearchStore,
@@ -38,9 +42,50 @@ SCHEMA_PATH = Path(__file__).with_name(
 )
 SCHEMA_SHA256 = "4892456b848951237436538af429f083ca70c497d70cdef7ca5cf2bae1e01ef1"
 DIAGNOSTIC_NAMESPACE = Path("shock-diagnostics") / "btc-utc-day-3pct-v1"
+V2_SCHEMA_PATH = Path(__file__).with_name(
+    "btc-utc-day-3pct-shock-diagnostic.v2.schema.json"
+)
+V2_SCHEMA_SHA256 = "1b4026c9dc18daba8c189a206d586518e284d8462cd7d39644fa4a8b45a3ec76"
+V2_DIAGNOSTIC_NAMESPACE = Path("shock-diagnostics") / "btc-utc-day-3pct-v2"
 
 
 def seal_r1_shock_diagnostics(
+    store: ResearchStore,
+    *,
+    now: datetime,
+    contract_activated_at: str,
+) -> list[dict[str, Any]]:
+    root_matches = [
+        pair
+        for pair in store.evidence_trigger_entries()
+        if pair[0].get("trigger_id") == R1_TRIGGER_ID
+    ]
+    if not root_matches or (
+        len(root_matches) == 1 and root_matches[0][1].get("status") != "CLOSED"
+    ):
+        return _seal_v1_shock_diagnostics(
+            store,
+            now=now,
+            contract_activated_at=contract_activated_at,
+        )
+    lineage = resolve_active_forward_trigger_lineage(store)
+    if lineage is None:
+        return []
+    if not lineage.rolled_over:
+        return _seal_v1_shock_diagnostics(
+            store,
+            now=now,
+            contract_activated_at=contract_activated_at,
+        )
+    return _seal_v2_shock_diagnostics(
+        store,
+        lineage=lineage,
+        now=now,
+        contract_activated_at=contract_activated_at,
+    )
+
+
+def _seal_v1_shock_diagnostics(
     store: ResearchStore,
     *,
     now: datetime,
@@ -144,6 +189,140 @@ def seal_r1_shock_diagnostics(
                 )
             )
     return new_events
+
+
+def _seal_v2_shock_diagnostics(
+    store: ResearchStore,
+    *,
+    lineage: ActiveForwardTriggerLineage,
+    now: datetime,
+    contract_activated_at: str,
+) -> list[dict[str, Any]]:
+    current = now.astimezone(timezone.utc)
+    activation = parse_timestamp(
+        contract_activated_at, "shock contract_activated_at"
+    ).astimezone(timezone.utc)
+    if activation > current:
+        raise ValueError("shock contract activation cannot be in the future")
+    if sha256_file(V2_SCHEMA_PATH) != V2_SCHEMA_SHA256:
+        raise ValueError("shock diagnostic V2 schema hash mismatch")
+    if not isinstance(read_json(V2_SCHEMA_PATH), dict):
+        raise ValueError("shock diagnostic V2 schema must be an object")
+
+    trigger = lineage.leaf_trigger
+    trigger_state = lineage.leaf_state
+    progress = evidence_progress(store, trigger, trigger_state, now=current)
+    observations = trigger_state.get("evidence_observations", [])
+    if not isinstance(observations, list):
+        raise ValueError("rollover evidence observations must be a list")
+    if observations and progress.get("source_contract") is None:
+        raise ValueError("rollover accepted evidence has no verified source contract")
+    if len(observations) < 2:
+        return []
+
+    new_events: list[dict[str, Any]] = []
+    for index in range(1, len(observations)):
+        prior_ref = _validated_reference(store, observations[index - 1])
+        target_ref = _validated_reference(store, observations[index])
+        prior_bundle = read_json(prior_ref["path"])
+        target_bundle = read_json(target_ref["path"])
+        _validate_reference_bundle_match(prior_ref, prior_bundle)
+        _validate_reference_bundle_match(target_ref, target_bundle)
+        _require_leaf_bundle_identity(prior_bundle, prior_ref["day"], trigger)
+        _require_leaf_bundle_identity(target_bundle, target_ref["day"], trigger)
+
+        target_received = parse_timestamp(
+            target_ref["received_at"], "target received_at"
+        ).astimezone(timezone.utc)
+        if current < target_received:
+            raise ValueError("shock diagnostic cannot precede accepted target evidence")
+        eligibility = (
+            "FORWARD_FACTOR_ELIGIBLE"
+            if target_received >= activation
+            else "CONTEXT_ONLY"
+        )
+        artifact_path = _artifact_path_v2(
+            store, str(trigger["fingerprint"]), target_ref["day"]
+        )
+        existing = _load_existing_artifact(artifact_path)
+        sealed_at = (
+            str(existing.get("sealed_at"))
+            if existing is not None
+            else _iso_utc(current)
+        )
+        diagnostic = _build_shock_diagnostic_v2(
+            lineage=lineage,
+            prior_ref=_public_reference(prior_ref),
+            prior_bundle=prior_bundle,
+            target_ref=_public_reference(target_ref),
+            target_bundle=target_bundle,
+            contract_activated_at=_iso_utc(activation),
+            sealed_at=sealed_at,
+            eligibility=eligibility,
+        )
+        if diagnostic is None:
+            if existing is not None:
+                raise ValueError("non-shock day has a sealed shock diagnostic")
+            continue
+        canonical = _canonical_bytes(diagnostic)
+        if existing is not None:
+            if artifact_path.read_bytes() != canonical:
+                raise ValueError("sealed shock diagnostic changed or conflicts")
+            continue
+        if eligibility == "FORWARD_FACTOR_ELIGIBLE" and new_events:
+            break
+        created = _create_only(artifact_path, canonical)
+        if not created and artifact_path.read_bytes() != canonical:
+            raise ValueError("concurrent shock diagnostic conflicts")
+        if not created:
+            continue
+        if eligibility == "FORWARD_FACTOR_ELIGIBLE":
+            new_events.append(
+                _coach_event(
+                    diagnostic,
+                    artifact_path=store_relative_reference(store.root, artifact_path),
+                    artifact_sha256=sha256_file(artifact_path),
+                )
+            )
+    return new_events
+
+
+def _build_shock_diagnostic_v2(
+    *,
+    lineage: ActiveForwardTriggerLineage,
+    prior_ref: dict[str, str],
+    prior_bundle: dict[str, Any],
+    target_ref: dict[str, str],
+    target_bundle: dict[str, Any],
+    contract_activated_at: str,
+    sealed_at: str,
+    eligibility: str,
+) -> dict[str, Any] | None:
+    projected_prior = dict(prior_bundle)
+    projected_target = dict(target_bundle)
+    for bundle in (projected_prior, projected_target):
+        bundle["trigger_id"] = R1_TRIGGER_ID
+        bundle["trigger_fingerprint"] = R1_TRIGGER_FINGERPRINT
+    result = build_shock_diagnostic(
+        prior_ref=prior_ref,
+        prior_bundle=projected_prior,
+        target_ref=target_ref,
+        target_bundle=projected_target,
+        contract_activated_at=contract_activated_at,
+        sealed_at=sealed_at,
+        eligibility=eligibility,
+    )
+    if result is None:
+        return None
+    leaf = lineage.leaf_trigger
+    result["diagnostic_type"] = "BTC_UTC_DAY_3PCT_SHOCK_DIAGNOSTIC_V2"
+    result["trigger_id"] = leaf["trigger_id"]
+    result["trigger_fingerprint"] = leaf["fingerprint"]
+    result["root_trigger_id"] = lineage.root_trigger["trigger_id"]
+    result["root_trigger_fingerprint"] = lineage.root_trigger["fingerprint"]
+    result["leaf_trigger_id"] = leaf["trigger_id"]
+    result["leaf_trigger_fingerprint"] = leaf["fingerprint"]
+    return result
 
 
 def build_shock_diagnostic(
@@ -374,6 +553,23 @@ def _require_bundle_identity(bundle: dict[str, Any], day: str) -> None:
             raise ValueError(f"R1 day bundle {key} mismatch")
 
 
+def _require_leaf_bundle_identity(
+    bundle: dict[str, Any], day: str, trigger: dict[str, Any]
+) -> None:
+    expected = {
+        "schema_version": "1",
+        "bundle_type": "FORWARD_EVIDENCE_DAY",
+        "trigger_id": trigger["trigger_id"],
+        "trigger_fingerprint": trigger["fingerprint"],
+        "source": trigger["source"],
+        "day": day,
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+    for key, value in expected.items():
+        if bundle.get(key) != value:
+            raise ValueError(f"rollover day bundle {key} mismatch")
+
+
 def _bars(bundle: dict[str, Any], label: str) -> list[dict[str, Any]]:
     value = bundle.get("bars")
     if not isinstance(value, list) or len(value) != 24:
@@ -427,6 +623,25 @@ def _artifact_path(store: ResearchStore, day: str) -> Path:
         raise ValueError("shock diagnostic namespace escapes research state") from error
     if resolved_namespace != namespace:
         raise ValueError("shock diagnostic namespace must not traverse a link")
+    return namespace / f"{day}.json"
+
+
+def _artifact_path_v2(store: ResearchStore, fingerprint: str, day: str) -> Path:
+    if len(fingerprint) != 64 or any(
+        character not in "0123456789abcdef" for character in fingerprint
+    ):
+        raise ValueError("shock diagnostic V2 fingerprint is invalid")
+    date.fromisoformat(day)
+    root = store.root.resolve()
+    namespace = root / V2_DIAGNOSTIC_NAMESPACE / fingerprint
+    namespace.mkdir(parents=True, exist_ok=True)
+    resolved_namespace = namespace.resolve()
+    try:
+        resolved_namespace.relative_to(root)
+    except ValueError as error:
+        raise ValueError("shock diagnostic V2 namespace escapes research state") from error
+    if resolved_namespace != namespace:
+        raise ValueError("shock diagnostic V2 namespace must not traverse a link")
     return namespace / f"{day}.json"
 
 

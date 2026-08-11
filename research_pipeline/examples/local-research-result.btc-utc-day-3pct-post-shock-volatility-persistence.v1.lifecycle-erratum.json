@@ -1,0 +1,139 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-post-shock-volatility-persistence-v1",
+  "task_sha256": "9ed0d40b48b3d4605cdec1105b8f30890706d61167d9e9a199d6c3407f59f3a3",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T09:36:10Z",
+  "completed_at": "2026-08-11T09:40:18Z",
+  "source_git_commit": "3046cb03c3f74eef64dbacdba63d22902ac78444",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "HISTORICAL_VOLATILITY_PERSISTENCE_PRIOR_RETAIN. The exact sealed pre-2025 H1 corpus passed all integrity gates: 52,608 continuous seven-field hourly rows formed 2,192 complete UTC days from 2019-01-01 through 2024-12-31. Under the frozen 3.00% close-to-close shock, hourly simple-return RV24, trailing 20-day median baseline, next-day OutcomeRatio and fixed windows, Design contained 416 episodes and Validation contained 139. Design and Validation overall medians were 1.2852077690580165170219888070188568139306203584967746769958317256662252465414144 and 1.5325639289243827225044305662030875104040266423732684234291057969530133311836928; UP and DOWN medians exceeded one in both windows. Shares above one were 0.59134615384615384615384615384615384615384615384615384615384615384615384615384615 and 0.65467625899280575539568345323741007194244604316546762589928057553956834532374101. All count, direction, month breadth, concentration, median, share and annual gates passed without tuning. This retains only a pre-2025 descriptive volatility-persistence prior for one later untouched forward diagnostic. It does not establish causality, prediction, DRA participation, risk sizing, strategy value, OOS, PnL or drawdown improvement. Immediate PnL and drawdown effects are zero.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_INTENT_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task SHA-256 9ed0d40b48b3d4605cdec1105b8f30890706d61167d9e9a199d6c3407f59f3a3, dispatch SHA-256 540c8454c80a377641f6e0897f5cff631bf46254b9406c6218e38a89a9c0b99b and pre-dispatch intent SHA-256 c8109acedb8cada935ba3290d64a1f84d0fb48e8dcd7885d73b7dfb3a4b6fde4 matched. Task and dispatch validators returned VALID. Nineteen stops canonicalized to a659e30016618706a52dbda2bc5896f4ad1a5675b971cfe0815f0df618928e62. All 10 non-null task inputs were unique, contained, regular, non-reparse and hash-exact."
+    },
+    {
+      "name": "SOURCE_IDENTITY_AND_ZERO_WRITE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched 3046cb03c3f74eef64dbacdba63d22902ac78444. Worktree was clean before analysis and remained clean after git diff --check. No repository or state file was changed."
+    },
+    {
+      "name": "H1_CORPUS_INTEGRITY",
+      "status": "PASS",
+      "evidence": "Sealed corpus SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd contained exactly 52,608 headerless seven-field rows, 2,192 complete UTC days, positive finite OHLC, nonnegative finite volume, exact one-hour intervals and uninterrupted coverage from 2019-01-01T00:00:00Z through 2025-01-01T00:00:00Z."
+    },
+    {
+      "name": "FIXED_EVENT_AND_FORMULA",
+      "status": "PASS",
+      "evidence": "Used only abs(close[D,23:00]/close[D-1,23:00]-1) >= Decimal 0.0300, hourly simple returns including each day's first hour against the preceding 23:00 close, RV24 as the sum of 24 squared returns, BaselineRV20 as the ordinary median for D-20 through D-1 and OutcomeRatio as RV24(D+1)/BaselineRV20(D), with Decimal precision 80. No alternate threshold, lookback, estimator, horizon, transform, annualization, clipping or normalization was inspected."
+    },
+    {
+      "name": "DESIGN_EPISODE_INVENTORY",
+      "status": "PASS",
+      "evidence": "Design 2019-2022 contained 416 unique qualifying target days: UP/DOWN 222/194, 48 distinct target UTC months, maximum single-month count 16 and share 0.038461538461538461538461538461538461538461538461538461538461538461538461538461538, with 135 adjacent-target pairs retained."
+    },
+    {
+      "name": "DESIGN_OUTCOME_RATIO_STATISTICS",
+      "status": "PASS",
+      "evidence": "Design median OutcomeRatio overall/UP/DOWN was 1.2852077690580165170219888070188568139306203584967746769958317256662252465414144 / 1.1467757024840412982921780034012901880454401588208908106526686186856369084089110 / 1.3429124544297013915107902062786577020116089280559793680625223259566901626849254. Exactly 246 of 416 ratios were strictly above one, share 0.59134615384615384615384615384615384615384615384615384615384615384615384615384615."
+    },
+    {
+      "name": "VALIDATION_EPISODE_INVENTORY",
+      "status": "PASS",
+      "evidence": "Historical Validation 2023-2024 contained 139 unique qualifying target days: UP/DOWN 79/60, 23 distinct target UTC months, maximum single-month count 11 and share 0.079136690647482014388489208633093525179856115107913669064748201438848920863309353, with 34 adjacent-target pairs retained."
+    },
+    {
+      "name": "VALIDATION_OUTCOME_RATIO_STATISTICS",
+      "status": "PASS",
+      "evidence": "Validation median OutcomeRatio overall/UP/DOWN was 1.5325639289243827225044305662030875104040266423732684234291057969530133311836928 / 1.2929263389645759318071764688299921589682055211767879660836514098160246667115915 / 1.6900724507503187713109679586884752337259933082612759964238410195801123740916262. Exactly 91 of 139 ratios were strictly above one, share 0.65467625899280575539568345323741007194244604316546762589928057553956834532374101."
+    },
+    {
+      "name": "ANNUAL_2019_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2019: 86 episodes, UP/DOWN 43/43, median OutcomeRatio 1.7248460742725315635530215575997057918491734236837867207380304075444315448076188; 54 strictly above one, share 0.62790697674418604651162790697674418604651162790697674418604651162790697674418605."
+    },
+    {
+      "name": "ANNUAL_2020_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2020: 98 episodes, UP/DOWN 62/36, median OutcomeRatio 1.5267894533306846781803272904898434859738363571126508689527405300067886780778570; 60 strictly above one, share 0.61224489795918367346938775510204081632653061224489795918367346938775510204081633."
+    },
+    {
+      "name": "ANNUAL_2021_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2021: 144 episodes, UP/DOWN 77/67, median OutcomeRatio 1.0466626404895760212777469345880534619776425975080111679916157558112824089798539; 75 strictly above one, share 0.52083333333333333333333333333333333333333333333333333333333333333333333333333333."
+    },
+    {
+      "name": "ANNUAL_2022_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2022: 88 episodes, UP/DOWN 40/48, median OutcomeRatio 1.3626370710532774181647573752110839176147247103462227203838179432142577173213753; 57 strictly above one, share 0.64772727272727272727272727272727272727272727272727272727272727272727272727272727."
+    },
+    {
+      "name": "ANNUAL_2023_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2023: 52 episodes, UP/DOWN 30/22, median OutcomeRatio 1.6900724507503187713109679586884752337259933082612759964238410195801123740916262; 35 strictly above one, share 0.67307692307692307692307692307692307692307692307692307692307692307692307692307692."
+    },
+    {
+      "name": "ANNUAL_2024_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2024: 87 episodes, UP/DOWN 49/38, median OutcomeRatio 1.5051021169322617303831286439932471696692860847715741713592179708819665371027208; 56 strictly above one, share 0.64367816091954022988505747126436781609195402298850574712643678160919540229885057."
+    },
+    {
+      "name": "FROZEN_POSITIVE_GATE_MATRIX",
+      "status": "PASS",
+      "evidence": "All frozen gates passed exactly: Design count 416 >=100 with UP/DOWN 222/194 >=40/40; Validation count 139 >=40 with UP/DOWN 79/60 >=15/15; months 48/23 >=36/18; max month shares 0.038461538461538461538461538461538461538461538461538461538461538461538461538461538 and 0.079136690647482014388489208633093525179856115107913669064748201438848920863309353 <=0.10; both overall medians >=1.10; all four directional medians >1; shares above one >=0.55; annual medians >1 in Design 4/4 and Validation 2/2."
+    },
+    {
+      "name": "HISTORICAL_PRIOR_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Every integrity and frozen positive gate passed, so the only permitted disposition is HISTORICAL_VOLATILITY_PERSISTENCE_PRIOR_RETAIN. No neighbor, rescue variant, direction split, regime split, threshold change or post-outcome criterion was used."
+    },
+    {
+      "name": "LITERATURE_AND_FORWARD_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The earlier PRIMARY_SOURCE_PRIOR_INSUFFICIENT literature result was not relabelled as support. This result stands only on the frozen pre-2025 historical event study. Historical Validation is not clean OOS, and no post-2024, R1, R2, current, server, canonical or forward outcome was accessed."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_CAUSAL_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "No strategy equity curve, realized or unrealized PnL, fee-adjusted PnL, drawdown, utilization, holdings, fills, fees, slippage, turnover, capacity, leverage, sizing, Sharpe, Sortino, matched-capital comparison, causality or forward prediction was computed. Immediate PnL and drawdown effects are zero."
+    },
+    {
+      "name": "OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "The fixed historical diagnostic avoided spending implementation or candidate budget on a mechanism that might have failed basic breadth and stability. Because every historical gate passed, at most one later untouched forward diagnostic contract using the existing complete-day source is justified; no new source, timer, strategy, candidate or OOS action is justified."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No file or state write, unlisted input access, network or server call, Research MCP write, heartbeat, schedule/timer/writer change, paid API, hypothesis/candidate/strategy authoring, deployment, OOS opening or Trading/DB/orders/funds/SHADOW/PAPER/LIVE action occurred."
+    },
+    {
+      "name": "LOCAL_RESULT_EXECUTABLE_SCHEMA_VALIDATION",
+      "status": "PASS",
+      "evidence": "Manager independently validated the exact original result payload against the repository Draft 2020-12 schema and authoritative task/result and dispatch/result closure before requesting this metadata-only erratum. The corrected started_at is bound to Codex thread turn 019ff02d-ef4e-7ba3-8336-2070dfa3d422 startedAt epoch 1786440970; no scientific value, gate, disposition, source commit or safety assertion changed."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: untouched post-2024 forward episodes have not tested whether this historical OutcomeRatio pattern persists prospectively.",
+    "MISSING_PROOF: causality among liquidity, positioning, uncertainty, forced flow and other mechanisms was not evaluated.",
+    "MISSING_PROOF: confidence intervals, statistical significance, dependence from overlapping episodes and sensitivity outside the frozen specification were intentionally not used as selection criteria.",
+    "MISSING_PROOF: fee-adjusted matched-capital PnL, realized and unrealized PnL, drawdown, slippage, capacity, utilization, holdings, sizing, missed positive convexity and any executable risk-control value.",
+    "Historical Validation 2023-2024 is not clean OOS and cannot authorize a hypothesis, candidate, manifest, adapter, deployment or Trading action.",
+    "Consecutive shocks were retained exactly as frozen: Design has 135 adjacent-target pairs and Validation has 34; no spacing or cluster selection was performed."
+  ],
+  "recommended_next_action": "Manager may freeze exactly one separately bounded forward diagnostic-contract task that reuses the existing COMPLETE_UTC_DAY source and the exact 3.00% shock, RV24, trailing-20-day median and next-day OutcomeRatio definitions, preregisters an untouched future start and review gate, and adds no source, timer, strategy, hypothesis, candidate, OOS or Trading action.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

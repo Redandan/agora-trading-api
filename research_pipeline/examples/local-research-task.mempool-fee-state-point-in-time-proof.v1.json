@@ -1,0 +1,139 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-mempool-fee-state-point-in-time-proof-v1",
+  "issued_at": "2026-08-11T08:10:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Resolve exactly one previously named evidence gap for the open-source mempool Bitcoin congestion or fee-state source family. Using only the official mempool repository and directly linked first-party project documentation or versioned source-contract files, determine whether a deterministic credential-free point-in-time snapshot can be frozen with exact field semantics, units, observation and receipt clocks, revision behavior, retention or replay boundary, continuity and gap handling, provenance and license. Return one design-ready, close, or specifically named wait disposition. This audit must not call a live endpoint, retrieve a market value, clone or implement the source, select a factor formula, sign, threshold or horizon, create a hypothesis or candidate, activate another feed, or displace the already prioritized disabled CFTC source contract.",
+  "canonical_research_status": "R1_MISSED_4_OF_90_R2_WAITING_FOR_DAY_0_OF_14_QUEUE_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.no-cost-public-forward-factor-source-audit.v1.json",
+      "sha256": "4ac252b17da905fbaea792e7507b9dc012c68953635bd3d9ce0a81ab9c844f32"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.public-forward-source-branch-closure-matrix.v1.json",
+      "sha256": "ae2dee13807b3c835cc39f13859514857b34a414cd7931479d675bd897d03da1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.cftc-cme-bitcoin-tff-v2-public-source-readiness-delta.v1.json",
+      "sha256": "b84da667be41c6d4295fa719a0654b5842dacad1f46bd0f00f3d24007c48d774"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.historical-mechanism-deduplication-audit.v2.json",
+      "sha256": "c5e7d35fc9fe18d98612680dadecafc504bf796e607e96220a05d9d31dab6b79"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Manager read-only snapshot at 2026-08-11T08:04:18Z: policy READY V3; worker READY release 20260811T070424Z; exactly one Codex Cloud Ops V9 schedule; queues IDLE; R1 4/90 with one missed day and no backfill; R2 0/14 WAITING_FOR_DAY; no candidate or outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Official source root: https://github.com/mempool/mempool . Use only this repository, its license, and documentation or versioned source-contract files directly linked or contained by the same official project. Search results may locate those official pages but are not evidence themselves. Do not rely on a third-party hosted API, blog, mirror, package page or summary.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Audit only the source contract needed for a future Bitcoin congestion or fee-state observation. Record exact endpoint or route identity if officially documented, complete response-field names and units, whether the payload carries a source observation timestamp, how a Manager receipt timestamp would differ, update cadence, revision or mutability, historical retention or replay, deterministic absence and schema-drift behavior, continuity and gap recovery, credential requirement, provenance and reuse license. Unknown means MISSING_PROOF.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Do not retrieve a live response or any present or historical Bitcoin value. Do not infer a source observation timestamp from HTTP receipt time, a block height from wall-clock time, or retention from self-hostability. Do not define which documented field should become a factor, and do not compare outcomes. A positive result is design proof only; CFTC remains the sole prioritized disabled public-source family and activation remains deferred.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_REPOSITORY_INPUT_HASHES",
+    "READ_OFFICIAL_MEMPOOL_REPOSITORY_DOCUMENTATION",
+    "READ_VERSIONED_OFFICIAL_SOURCE_CONTRACT_FILES",
+    "AUDIT_CREDENTIAL_FREE_ACCESS",
+    "AUDIT_FIELD_NAMES_UNITS_AND_TIMESTAMP_SEMANTICS",
+    "AUDIT_REVISION_RETENTION_AND_REPLAY_BOUNDARY",
+    "AUDIT_CONTINUITY_GAP_AND_SCHEMA_DRIFT_BOUNDARY",
+    "AUDIT_PROVENANCE_AND_LICENSE",
+    "ASSESS_SINGLE_CLOCK_ARCHITECTURE_FIT",
+    "ASSESS_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "LIVE_ENDPOINT_CALL_OR_WEBSOCKET_CONNECTION",
+    "LIVE_OR_HISTORICAL_VALUE_RETRIEVAL",
+    "REPOSITORY_CLONE_OR_SOURCE_IMPLEMENTATION",
+    "SOURCE_REGISTRATION_ACTIVATION_OR_DEPLOYMENT",
+    "FACTOR_FORMULA_SIGN_THRESHOLD_OR_HORIZON_SELECTION",
+    "HYPOTHESIS_CANDIDATE_MANIFEST_OR_EXPERIMENT_REGISTRATION",
+    "REPOSITORY_OR_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "THIRD_PARTY_SOURCE_AS_PRIMARY_EVIDENCE",
+    "CFTC_PRIORITY_OR_R1_R2_CONTRACT_CHANGE"
+  ],
+  "expected_outputs": [
+    "OFFICIAL_SOURCE_ARTIFACT_MATRIX",
+    "POINT_IN_TIME_FIELD_AND_CLOCK_CONTRACT_ASSESSMENT",
+    "REVISION_RETENTION_AND_REPLAY_ASSESSMENT",
+    "CONTINUITY_GAP_AND_SCHEMA_DRIFT_ASSESSMENT",
+    "PROVENANCE_LICENSE_AND_CREDENTIAL_ASSESSMENT",
+    "SINGLE_CLOCK_ARCHITECTURE_AND_OPERATING_COST_ASSESSMENT",
+    "PERFORMANCE_DRAWDOWN_AND_CLAIM_BOUNDARY",
+    "MEMPOOL_SOURCE_DISPOSITION",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository SHA-256 before analysis; any mismatch is BLOCKED and MISSING_PROOF.",
+    "Audit exactly one source family: the official mempool Bitcoin congestion or fee-state project. Do not add another provider, network, factor family or blended feed.",
+    "Use only the official mempool repository and its own versioned license, documentation or source-contract files. Search results, blogs, mirrors and hosted third-party services are not primary evidence.",
+    "Do not call a live REST or GraphQL endpoint, connect to a stream, retrieve any current or historical Bitcoin value, clone a repository, download a dataset or run the mempool software.",
+    "Record exact official evidence for field identity, unit and semantics, source observation time, receipt time, update cadence, revision behavior, retention or replay, absence, continuity, gap recovery, schema drift, credentials, provenance and license. Every undocumented item is MISSING_PROOF.",
+    "Do not substitute HTTP receipt time for a source observation timestamp, infer wall-clock time from block height, infer replay from source availability, or infer continuity and retention from self-hostability.",
+    "A design-ready disposition requires a deterministic snapshot identity and payload contract, explicit or safely frozen clocks, versionable field semantics, lawful credential-free provenance, and fail-closed continuity and gap behavior compatible with the one existing Cloud Ops clock.",
+    "If the official design is intrinsically unsuitable for reproducible point-in-time evidence or its operating burden dominates the incremental learning value, return MEMPOOL_SOURCE_CONTRACT_CLOSE. If a precisely named official proof could still resolve the gap without implementation, return MEMPOOL_POINT_IN_TIME_PROOF_INSUFFICIENT_WAIT.",
+    "A positive disposition is MEMPOOL_POINT_IN_TIME_SOURCE_DESIGN_READY and authorizes only a later Manager review. It must not activate, implement, register or prioritize this source over the already accepted disabled CFTC source contract.",
+    "Do not select a response field as a factor, formula, transform, sign, threshold, horizon, direction, regime, strategy rule, candidate, adapter, manifest, experiment, OOS trigger or promotion path.",
+    "Separate source-contract availability from prediction and economics. Immediate fee-adjusted PnL and drawdown effects are zero; predictive value, fees, slippage, capacity, utilization, stability and strategy value remain MISSING_PROOF.",
+    "Preserve the accepted historical branch deduplication guard and the existing R1 and R2 forward contracts. Do not reinterpret source documentation as evidence for a closed strategy branch or a new candidate.",
+    "Return exactly one of MEMPOOL_POINT_IN_TIME_SOURCE_DESIGN_READY, MEMPOOL_SOURCE_CONTRACT_CLOSE, or MEMPOOL_POINT_IN_TIME_PROOF_INSUFFICIENT_WAIT, with the exact evidence or missing proof supporting it.",
+    "Make no file changes. Return exactly one local-research-result JSON tied to this task SHA-256, with empty artifacts and files_changed and all safety assertions false. Stop after this single disposition and one bounded next action."
+  ],
+  "limits": {
+    "timeout_seconds": 2400,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-volatility-management-primary-prior-audit-v3",
+  "task_sha256": "0fc2debce86444785807d944343e781e2f0e1e1c4636b781bccc6baf94a1b007",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T01:43:00Z",
+  "completed_at": "2026-08-11T01:52:00Z",
+  "source_git_commit": "dc186d74d174bc67f20772920b39f70def5d2e1c",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "PRIMARY_SOURCE_PRIOR_INSUFFICIENT. Exact task, dispatch, intent, source identity, stop seal, and all 10 non-null local inputs passed preflight. The exact full Moreira-Muir NBER paper URL returned HTTP 403 and remained inaccessible; stop condition 4 therefore forces the insufficient disposition, forbids abstract or alternate-source substitution, and prevents a complete co-equal positive/falsification synthesis. The exact Cederburg et al. and Liu-Tsyvinski-Wu full primary PDFs were accessible, but no single-BTC DRA transfer conclusion was inferred from this incomplete three-paper matrix. The sole future label LAGGED_REALIZED_VOLATILITY_CONDITIONED_DRA_PARTICIPATION remains parameter-free and unused. Immediate PnL and drawdown effect are zero; predictive value, fee-adjusted PnL, drawdown, fills, turnover, slippage, capacity, breadth, significance, causal transfer, and deployability are MISSING_PROOF. Opportunity cost favors waiting for exact primary-source completeness over spending a future design slice on an evidence-incomplete transfer claim.",
+  "checks": [
+    {
+      "name": "SOURCE_IDENTITY_AND_ZERO_WRITE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched dc186d74d174bc67f20772920b39f70def5d2e1c; worktree was clean before analysis and remained clean after analysis."
+    },
+    {
+      "name": "TASK_DISPATCH_INTENT_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task SHA-256 0fc2debce86444785807d944343e781e2f0e1e1c4636b781bccc6baf94a1b007, dispatch SHA-256 90d75f6a6df0eeefd2637fb2230921f4b34fc5389aa988649d9cc17c22e2d987, and intent SHA-256 6fc43b949f2424eddec1e9bed1387f07666ae694fb0df494bdf3252d5c5ba493 matched. The 11-stop canonical hash f9d451222717c26ef036b07c439ca5a30b9fbdd509689a1c6554932f0ff39ba5 matched; all 10 non-null inputs were unique safe regular non-link non-reparse files with exact hashes."
+    },
+    {
+      "name": "PRIMARY_SOURCE_A_FULL_TEXT_ACCESS",
+      "status": "MISSING_PROOF",
+      "evidence": "The exact authorized [Moreira-Muir full primary paper](https://www.nber.org/system/files/working_papers/w22208/w22208.pdf) returned HTTP 403. No alternate full-text URL, abstract, snippet, or secondary source was substituted."
+    },
+    {
+      "name": "PRIMARY_SOURCE_B_FULL_TEXT_ACCESS",
+      "status": "PASS",
+      "evidence": "The exact authorized [Cederburg-O'Doherty-Wang-Yan full primary paper](https://www.lehigh.edu/~xuy219/research/COWY.pdf) was accessible and matched the frozen paper identity."
+    },
+    {
+      "name": "PRIMARY_SOURCE_C_FULL_TEXT_ACCESS",
+      "status": "PASS",
+      "evidence": "The exact authorized [Liu-Tsyvinski-Wu full primary paper](https://economics.yale.edu/sites/default/files/2022-10/LiuTsyvinskiWu2019%20COMMON%20RISK%20FACTORS.pdf) was accessible and matched the frozen paper identity."
+    },
+    {
+      "name": "POSITIVE_AND_FALSIFICATION_EVIDENCE_MATRIX",
+      "status": "MISSING_PROOF",
+      "evidence": "A complete co-equal matrix cannot be produced because the required Moreira-Muir full paper was inaccessible. Accessible falsification and cross-sectional papers were not used to infer the missing positive primary evidence."
+    },
+    {
+      "name": "SINGLE_BTC_DRA_TRANSFER_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No multi-factor or cross-sectional result was relabeled as evidence for one unlevered BTC spot DRA time series, and no favorable or adverse transfer verdict was inferred from incomplete primary evidence."
+    },
+    {
+      "name": "EXISTING_AND_CLOSED_FAMILY_DISTINCTNESS_MATRIX",
+      "status": "MISSING_PROOF",
+      "evidence": "Causal distinctness from post-shock reversal, microstructure order flow, carry, the closed range sleeve, route substitution, and one-slot rotation was not claimed because the terminal source-access stop occurred before a complete transfer audit."
+    },
+    {
+      "name": "REAL_TIME_IMPLEMENTABILITY_GAPS",
+      "status": "MISSING_PROOF",
+      "evidence": "Real-time estimator stability, costs, timing, and DRA compatibility were not assessed after the mandatory full-paper access stop; none was converted into a tunable gap."
+    },
+    {
+      "name": "PARAMETER_FREE_PERMITTED_LABEL",
+      "status": "PASS",
+      "evidence": "Only LAGGED_REALIZED_VOLATILITY_CONDITIONED_DRA_PARTICIPATION was retained as a future mechanism label. No estimator, lookback, target, threshold, scaling formula, leverage, side, exit, stop, regime, route, capacity, or DRA parameter was chosen or recommended."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "Immediate PnL and drawdown effect are zero. All predictive and economic quantities remain MISSING_PROOF; waiting for exact source completeness avoids consuming a later design audit on an incomplete prior while leaving existing R1 and R2 lanes unchanged."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No repository or research-state write, canonical/server access, Local inbox/outbox access, future outcome access, OOS opening, hypothesis/candidate/manifest authoring, parameter choice, paid API, Trading action, timer, deployment, or state mutation occurred."
+    },
+    {
+      "name": "LOCAL_RESULT_EXECUTABLE_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "The final in-memory result was manually matched to the closed local-research-result contract, but the sandbox denied execution of the installed Python interpreter needed for executable schema/result validation. No permission or installation was requested."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: the exact Moreira-Muir full primary paper was inaccessible, so its complete positive evidence cannot be audited.",
+    "MISSING_PROOF: the co-equal three-paper positive/falsification evidence matrix and a single-BTC DRA transfer verdict are not established.",
+    "MISSING_PROOF: causal distinctness, real-time implementability, fee-adjusted PnL, drawdown, fills, turnover, slippage, capacity, breadth, significance, and deployability remain untested.",
+    "MISSING_PROOF: executable final-result validation was unavailable in the Local sandbox.",
+    "The accessible cryptocurrency paper remains cross-sectional evidence only and cannot establish single-BTC time-series volatility-management efficacy."
+  ],
+  "recommended_next_action": "Manager may freeze one separately versioned READ_ONLY retry only after the exact NBER full-paper URL is directly accessible; preserve V1, V2, and V3 bytes and do not substitute another source.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

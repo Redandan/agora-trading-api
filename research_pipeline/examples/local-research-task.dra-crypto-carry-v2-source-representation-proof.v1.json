@@ -1,0 +1,245 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-crypto-carry-v2-source-representation-proof-v1",
+  "issued_at": "2026-08-11T12:53:03Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform exactly one bounded pre-outcome source-readiness and representation-proof audit for the accepted CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO definition. Audit only whether the existing disabled OKX V2 expiry-futures basis-atoms contract has explicit source identity, clock, revision and immutable payload semantics plus raw fixed-maturity futures/index atoms sufficient to preserve the two frozen causal axes for one later factor-representation audit. Return one terminal disposition and the smallest next task. Do not access any source value or outcome, derive basis/carry, choose formula, tenor, sign, threshold, lookback or horizon, install/capture/register the source, interrupt R2, create a hypothesis/candidate/OOS path, or change repository/server/canonical/Trading state.",
+  "canonical_research_status": "2026-08-11T12:29:09Z_V10_READY_ONE_0905_CLOCK_R1_MISSED_4_OF_90_R2_WAITING_0_OF_14_QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "05663da57a35a705ea2aec5c4349ffbe412ccb0acc1deb30fdeacd33cadc78cb"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/strategy-driven-minimal-runtime.md",
+      "sha256": "70fb3767d14cefa0a5093f24fc001be2697a760e729a60a6c860ba7f52a4cd64"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-dra-runtime-v1.md",
+      "sha256": "eddff4af35c9f46b6487297feb64cfd7ceedf6a829aa7981c407f5479b889b60"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-task.schema.json",
+      "sha256": "bcb72265dfffcea0ba52a7c200d1c499b2cab112251049f4f5e7f8acc4ab79cf"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-dispatch.schema.json",
+      "sha256": "05e83891222afba5c526afc1de668c0f24e6e3872a224627dd773d665bf1e435"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
+      "sha256": "1120dbcc30bbf6e268daf55e1fb0869e56effb5d1114a7bbfb3827d4b6aae334"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-crypto-carry-factor-definition-boundary.v1.json",
+      "sha256": "36e5bf700a42bade5a32ad056e95eb31d06c5dd376efe388b0bb6740d5cd6d12"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.dra-crypto-carry-factor-definition-boundary.v1.json",
+      "sha256": "be9e62ebddeeb1b45ea2914b27b0c86afdaa5fa64f391a864ea69f38c553c521"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json",
+      "sha256": "9656429e3e51c64207c667ee85657d3505ea3c1a4dbff424b2901c45e53a3b18"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-weekly-output-classification.intent.dra-crypto-carry-factor-definition-boundary.v1.json",
+      "sha256": "72c827eaa81d3b02ac30f8a82b3cd3d757f431c4c9acdef7d5918c333136c566"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-crypto-carry-factor-definition-boundary.v1.json",
+      "sha256": "8b4939f1b367c97e0f685825c7115a0f53543f35356197143b517e36426b5434"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-crypto-carry-r2-cohabitation-audit.v1.json",
+      "sha256": "5e0e8fff15fbd6ea9b6acadcfbbf79297b8c741a576310a3e807807db0b430ac"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.dra-crypto-carry-r2-cohabitation-audit.v1.json",
+      "sha256": "f6844fe891b13dc8037b76c83251a3aaf04beb12fe9a8a42fe812c84345d2f38"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.dra-crypto-carry-r2-cohabitation-audit.v1.json",
+      "sha256": "6a047f421bf92632e63384a13beb4afefea8d01880aac7f0a3124889616cf2b9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v2.json",
+      "sha256": "183eeb35dc4729ff91970e4b892f141f58452abfa350591888587ce01035e4ad"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v1.json",
+      "sha256": "0944ab401717360f6eccc31ab967461af7ebc8122f7b77ee7b1f46eaa8fac48e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-dra-crypto-carry-expiry-futures-inventory.v1.schema.json",
+      "sha256": "8dd38f2ea2e73f236f56416aa1db86f6f82818ed7d8a9f69738b194c1965b340"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-dra-crypto-carry-basis-atoms-day.v1.schema.json",
+      "sha256": "1028d4b6f53cae6ad096038142173b650726fe744d358c2c16c7c57bc32dd8d8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-dra-crypto-carry-producer-envelope.v2.schema.json",
+      "sha256": "814fbef9722dcdd2a6dac8c56e159c1a34e7c2db559c306709c0c393e05230ee"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-dra-crypto-carry-inventory-drop-envelope.v2.schema.json",
+      "sha256": "59e85d80aa4d2188af57872b7a2731881c85fd949fd7378c8a75cbff4dcdb196"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-dra-crypto-carry-drop-envelope.v2.schema.json",
+      "sha256": "a438ba041e0ac80e3757f842659f2afa14b701c9a94034b1f59dffa5e2aa0563"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-dra-crypto-carry-intake-state.v2.schema.json",
+      "sha256": "2c8af00a076616ffc25b95a2709bde1d4b6b7efb5899240e50d7c9f9322060d8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/dra_crypto_carry_source_contract.py",
+      "sha256": "e27d7f94e7e563fb46d034810eab2e7b2152302b473feb6f8dc20e4d00a676da"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_dra_crypto_carry_source_contract.py",
+      "sha256": "af4dd2e6e33350f2bfd04cbfb0e6ae7a4ab0df70387667c07745c5d9c426c602"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Manager OAuth read at 2026-08-11T12:29:09Z: policy, Worker and V10 READY; exactly one 09:05 Asia/Taipei schedule; all queues IDLE; R1 4/90 MISSED_CAPTURE_WINDOW; R2 WAITING_FOR_DAY 0/14; no active experiment or candidate. This offline task authorizes no canonical refresh or write.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The accepted factor-definition disposition is ONE_CARRY_PRE_OUTCOME_FACTOR_DEFINITION_READY with classification EXCLUDE/NON_COUNTING. It freezes two semantic axes—derivative demand and constrained arbitrage capital—strict pre-decision provenance, fixed-maturity/perpetual type separation and legacy funding non-duplication. It proves no source representation or prediction.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Audit exactly one existing representation candidate: disabled source contract OKX_DRA_CRYPTO_CARRY_EXPIRY_FUTURES_SOURCE_V2 / LAGGED_OKX_BTC_USDT_EXPIRY_FUTURES_BASIS_ATOMS_V1. It may be treated only as immutable metadata and raw-atom coverage, never as accepted source availability, captured values, a derived basis formula or executable authority.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Positive proof requires that the frozen inventory, expiry-specific futures rows, BTC-USDT index rows, clocks, immutable payload lineage and type semantics are sufficient inputs for one later fixed-maturity representation audit without choosing formula, tenor, sign, threshold or outcome. If both causal axes collapse into a single funding/basis label or require hidden parameters, reject or report missing proof.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The cohabitation disposition remains DEFER_CARRY_INSTALL_PRESERVE_R2. Every outcome is downstream governance in duplicate family dra-crypto-carry and must remain NON_COUNTING. No source capture, registration, installation, activation or R2 interruption is permitted.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_EXACT_FROZEN_INPUTS",
+    "VERIFY_ALL_REPOSITORY_INPUT_HASHES",
+    "VALIDATE_PRIMARY_PRIOR_AND_FACTOR_DEFINITION_ACCEPTED_LIFECYCLES",
+    "VALIDATE_R2_COHABITATION_HISTORICAL_CLOSURE",
+    "META_VALIDATE_LISTED_SOURCE_SCHEMAS",
+    "RUN_EXISTING_23_SOURCE_CONTRACT_TESTS",
+    "AUDIT_SOURCE_IDENTITY_CLOCK_REVISION_AND_PAYLOAD_SEALING_METADATA",
+    "MAP_FIXED_MATURITY_RAW_ATOMS_TO_FROZEN_SEMANTIC_AXES",
+    "AUDIT_FIXED_MATURITY_PERPETUAL_AND_LEGACY_FUNDING_NON_DUPLICATION",
+    "ASSIGN_ONE_SOURCE_REPRESENTATION_DISPOSITION",
+    "ASSESS_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "NETWORK_BROWSER_PUBLIC_SOURCE_OR_ENDPOINT_ACCESS",
+    "REPORT_VALUE_PRICE_RETURN_FUNDING_BASIS_OPEN_INTEREST_OR_OUTCOME_ACCESS",
+    "DERIVED_BASIS_CARRY_ANNUALIZATION_TENOR_OR_MATURITY_PREFERENCE",
+    "FORMULA_NORMALIZATION_SIGN_THRESHOLD_LOOKBACK_CADENCE_OR_HORIZON_SELECTION",
+    "FACTOR_SCORE_DIRECTION_STRATEGY_PARENT_OR_ADAPTER_SELECTION",
+    "SOURCE_CAPTURE_REGISTRATION_INSTALLATION_ACTIVATION_OR_DEPLOYMENT",
+    "HYPOTHESIS_CANDIDATE_MANIFEST_EXPERIMENT_TRIGGER_OR_OOS_CREATION",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "RUNNER_PRODUCER_INTAKE_SCHEMA_CONTRACT_OR_JAVA_IMPLEMENTATION_CHANGE",
+    "REPOSITORY_RESEARCH_STATE_SERVER_OR_SCHEDULE_WRITE",
+    "CLOSED_BRANCH_REOPEN_RESTORE_EXECUTE_OR_RELABEL",
+    "R2_INTERRUPTION_OR_COLOCATION_CHANGE"
+  ],
+  "expected_outputs": [
+    "PRIMARY_PRIOR_AND_FACTOR_DEFINITION_ACCEPTED_LIFECYCLE_VALIDATION",
+    "V2_SOURCE_IDENTITY_CLOCK_AND_PAYLOAD_SEALING_MATRIX",
+    "FIXED_MATURITY_RAW_ATOM_COVERAGE_MATRIX",
+    "DERIVATIVE_DEMAND_AND_CONSTRAINED_ARBITRAGE_AXIS_VERDICT",
+    "FIXED_MATURITY_PERPETUAL_AND_LEGACY_FUNDING_NON_DUPLICATION_VERDICT",
+    "TERMINAL_SOURCE_REPRESENTATION_DISPOSITION",
+    "EXACT_MISSING_PROOF_IF_ANY",
+    "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+    "SMALLEST_NEXT_EVIDENCE_TASK"
+  ],
+  "stop_conditions": [
+    "Before analysis, validate this exact task, its future Manager dispatch and intent, all 27 non-null repository inputs, the current clean branch and exact HEAD equal local origin. Any mismatch selects CARRY_V2_SOURCE_REPRESENTATION_MISSING_PROOF with zero changes.",
+    "Use only listed repository bytes and the fixed canonical-status summary. Do not inspect conversation history, an unlisted file, network, endpoint, source payload, current or historical value, outcome, research state or server runtime.",
+    "Validate the complete accepted carry factor-definition task, dispatch, result, intent and acceptance closure. Require ONE_CARRY_PRE_OUTCOME_FACTOR_DEFINITION_READY and EXCLUDE/NON_COUNTING; use the listed immutable V4 result only as its already-audited primary semantic input.",
+    "Treat the R2 cohabitation task, dispatch and result as immutable historical evidence only. Require disposition DEFER_CARRY_INSTALL_PRESERVE_R2; absence of a Manager classification is not source activation authority.",
+    "Require the V2 contract to remain OFFLINE_DISABLED_NOT_REGISTERED with every readiness flag false, one 09:05 clock, retry/backfill denied, distinct source/intake identities, create-only two-phase transport and immutable V1 child-lineage hashes.",
+    "Meta-validate the four listed V2 Draft 2020-12 schemas and run exactly research_pipeline.tests.test_dra_crypto_carry_source_contract with 23 passes, no skip and no edit. Tests prove contract mechanics only, never public availability or factor validity.",
+    "Audit metadata only: source identity, expiry-inventory identity, fixed-maturity contract typing, index/futures raw-row identity, D-1/D+1/D+2 clocks, receipt/seal order, create-only payload hashes, predecessor linkage, late/retry/backfill denial and missingness states.",
+    "A positive representation may say only that raw expiry-specific futures and index atoms are a sufficient typed input family for one later separately frozen fixed-maturity representation audit. It may not derive basis, carry, annualization, tenor choice, roll rule, sign, threshold or prediction.",
+    "Preserve both frozen causal axes. If the candidate can represent only a composite price gap without independently justified derivative-demand and constrained-arbitrage interpretation, select CARRY_V2_SOURCE_REPRESENTATION_MISSING_PROOF and name the exact missing semantic evidence.",
+    "Reject any mapping that substitutes perpetual funding for fixed-maturity basis, treats liquidation or executable carry return as spot prediction, or reduces to archived funding_low, its sign reversal or renamed funding logic.",
+    "Preserve the unchanged unlevered long-only BTC spot DRA. No parent, adapter, direction, action rule, fee, slippage, capital, exit, route, capacity or economic ledger may be selected.",
+    "Select CARRY_V2_SOURCE_REPRESENTATION_READY only if source metadata, point-in-time eligibility, immutable raw atoms, two-axis interpretation and non-duplication are complete without hidden parameters. Select CARRY_V2_SOURCE_REPRESENTATION_REJECTED for a contradiction or legacy/type collapse. Otherwise select CARRY_V2_SOURCE_REPRESENTATION_MISSING_PROOF.",
+    "Every disposition is NON_COUNTING in duplicate family dra-crypto-carry. A positive result permits only one later bounded factor-representation contract audit after R2's terminal revisit gate; it does not authorize capture, installation, hypothesis, candidate or OOS.",
+    "Keep immediate fee-adjusted PnL and drawdown effects exactly zero. Public continuity, captured evidence, factor direction, prediction, significance, matched-capital PnL, path risk, fees, slippage, utilization, holding age, breadth, concentration, capacity and candidate readiness remain MISSING_PROOF.",
+    "Make no repository, research-state, server, schedule, source or Trading change. Return one task-hash-bound schema-valid result JSON with empty artifacts/files_changed and all safety assertions false; recommend one smallest lawful next task and stop."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

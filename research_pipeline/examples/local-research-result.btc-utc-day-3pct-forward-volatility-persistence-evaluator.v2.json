@@ -1,0 +1,135 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-forward-volatility-persistence-evaluator-v2",
+  "task_sha256": "357277d7bdf8c14fded335cf5ae83dd092aa9b72781c205b2c51c54b68884747",
+  "status": "BLOCKED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T10:31:30Z",
+  "completed_at": "2026-08-11T10:52:08Z",
+  "source_git_commit": "77eff7fd685c0bdc2794f4ef8e6b1e7368fe1bae",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": true,
+  "summary": "MISSING_PROOF_MANAGER_REVIEW_REQUIRED. The exact four-path forward-volatility-persistence evaluator slice is implemented and remains unstaged for Manager review. The new focused suite passed 15/15, compile and dependency-neutral imports passed, task/dispatch validation passed, all 26 frozen inputs were revalidated, and exact source, ancestry, scope, hashes, safety boundaries and diff checks passed. Mandatory affected regression suites and executable Draft 2020-12 validation remain unavailable locally because the bundled Python lacks jsonschema and the separately named system Python was denied by the Local sandbox. No dependency was installed and no permission was requested. Immediate PnL and drawdown effects are ZERO; prediction, causality, significance, economic value, activation, deployment, forward evidence, candidate readiness, OOS and Trading value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "SOURCE_IDENTITY_AND_ANCESTRY",
+      "status": "PASS",
+      "evidence": "Branch is codex/autonomous-research-control-plane-v3; HEAD and local origin both equal 77eff7fd685c0bdc2794f4ef8e6b1e7368fe1bae. Frozen baseline 971d4f8fd082f645383054de7c517125ca04d715 is an ancestor. The worktree was clean before implementation."
+    },
+    {
+      "name": "TASK_DISPATCH_BINDING",
+      "status": "PASS",
+      "evidence": "The repository validators returned VALID for task SHA-256 357277d7bdf8c14fded335cf5ae83dd092aa9b72781c205b2c51c54b68884747 and dispatch SHA-256 c2435b1afd00ec129cc9fa81c7551f999866d9697d2d6497717b1393441de92a with exact task binding."
+    },
+    {
+      "name": "INTENT_AND_STOP_SEAL",
+      "status": "PASS",
+      "evidence": "The pre-dispatch intent hash is 4451df518883f7ebdf8022b3b01c84c7037d1e4330fb8dca5f42f879f4289da8. The frozen task contains exactly 24 stop conditions with canonical SHA-256 7b925fc8306329a5c209cb77a68a06c847678e58ac67719e7a07a1fa1cd3691b."
+    },
+    {
+      "name": "FROZEN_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "All 26 non-null repository inputs were revalidated as contained regular non-reparse files with exact hashes. The original heartbeat input was rehashed from the unchanged source Git object while the authorized worktree modification remained separate."
+    },
+    {
+      "name": "EXACT_FOUR_PATH_SCOPE",
+      "status": "PASS",
+      "evidence": "Git status contains exactly the four authorized unstaged paths, no staged change and no fifth path. No new evaluator pyc/cache output exists. git diff --check passed."
+    },
+    {
+      "name": "CLOSED_SCHEMA_STATIC_CLOSURE",
+      "status": "PASS",
+      "evidence": "The new schema parses as JSON, declares Draft 2020-12, recursively closes its object surfaces, binds exact constants and encodes conditional WAIT, RETAIN and CLOSE terminal semantics. Focused tests reject extra and contradictory fields."
+    },
+    {
+      "name": "ACTIVATION_DORMANCY_AND_VALIDATION",
+      "status": "PASS",
+      "evidence": "The public entrypoint accepts only store, now and optional activation_receipt. None returns an empty event list before lineage or namespace inspection. Exact receipt fields, clocks, identities, hashes, authorization and current schema/module bytes are manually validated. A stale-leaf receipt remains dormant without writing."
+    },
+    {
+      "name": "LINEAGE_AND_POINT_IN_TIME_CLOSURE",
+      "status": "PASS",
+      "evidence": "The implementation resolves only the active root or rollover leaf, isolates snapshots by leaf fingerprint, binds the applicable V1 or V2 diagnostic namespace, requires strict post-activation target/diagnostic/outcome clocks and uses only accepted ordered leaf evidence."
+    },
+    {
+      "name": "FORMULA_IDENTITY_AND_GATES",
+      "status": "PASS",
+      "evidence": "Synthetic tests cover exact contiguous D-21 through D+1 source binding, Decimal precision 60, simple-return RV24, D-20 through D-1 median baseline, D+1 outcome ratio, inclusive 0.0300 shock threshold, immutable episode identity and the frozen breadth, concentration, RETAIN, CLOSE and 24-episode hard-cap table."
+    },
+    {
+      "name": "CREATE_ONLY_AND_HEARTBEAT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Snapshots use a leaf-fingerprint namespace, atomic create-only publication, identical-byte idempotency, conflict rejection, append-only terminal preservation and source revalidation. Heartbeat invokes the child immediately after the directional post-shock child and before scheduling without changing signatures or creating an activation receipt."
+    },
+    {
+      "name": "PYTHON_COMPILE_AND_DEPENDENCY_NEUTRAL_IMPORT",
+      "status": "PASS",
+      "evidence": "The evaluator, heartbeat and focused test compiled using temporary output. The evaluator and heartbeat imported successfully with jsonschema deliberately unavailable."
+    },
+    {
+      "name": "FOCUSED_SYNTHETIC_TESTS",
+      "status": "PASS",
+      "evidence": "research_pipeline.tests.test_forward_volatility_persistence completed 15 tests with zero failures or errors using only synthetic temporary ResearchStore fixtures."
+    },
+    {
+      "name": "AFFECTED_EXISTING_REGRESSION_SUITES",
+      "status": "MISSING_PROOF",
+      "evidence": "research_pipeline.tests.test_post_shock_factor and research_pipeline.tests.test_shock_attribution could not be collected in the bundled Local Python because jsonschema is not installed. Their tests were not substituted, skipped or weakened. Manager executable validation is required."
+    },
+    {
+      "name": "DRAFT_2020_12_EXECUTABLE_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "Draft202012Validator.check_schema and representative WAIT, RETAIN and CLOSE instance validation could not run locally because jsonschema is unavailable. Static schema checks and manual focused validation passed, but they do not replace the frozen executable gate."
+    },
+    {
+      "name": "FINAL_HASH_AND_DIFF_CLOSURE",
+      "status": "PASS",
+      "evidence": "All four final artifacts are regular non-reparse files with final LF and no trailing whitespace. Their SHA-256 values match the artifact inventory. Source HEAD/origin, baseline ancestry, task, dispatch, intent and frozen inputs remained exact after testing."
+    },
+    {
+      "name": "PERFORMANCE_AND_SAFETY_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "Immediate PnL and drawdown effects are ZERO because this is dormant research-only source. No real forward observation, activation, prediction, causal inference, significance, fees, slippage, capacity, strategy mapping, candidate, OOS, deployment or Trading performance was evaluated."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "research_pipeline/btc-utc-day-3pct-forward-volatility-persistence.v1.schema.json",
+      "sha256": "0562230e380f81082c3f4e57f2ce3b6fbee7e0af89d3f01019e1c5aa7e320352"
+    },
+    {
+      "path": "research_pipeline/forward_volatility_persistence.py",
+      "sha256": "070b8354599d570c1ddfacdfcbf07c82d1108f4c4c0570d20b9c0fdffd38fdc3"
+    },
+    {
+      "path": "research_pipeline/heartbeat.py",
+      "sha256": "6909034347720915b893d05d8b5259ca208656b92504ebd3fe1b105130c20fd7"
+    },
+    {
+      "path": "research_pipeline/tests/test_forward_volatility_persistence.py",
+      "sha256": "f8ced79355e7be6b17103c525ce4e8d2dbba9982321318a094aaf3ac5d3739ce"
+    }
+  ],
+  "files_changed": [
+    "research_pipeline/btc-utc-day-3pct-forward-volatility-persistence.v1.schema.json",
+    "research_pipeline/forward_volatility_persistence.py",
+    "research_pipeline/heartbeat.py",
+    "research_pipeline/tests/test_forward_volatility_persistence.py"
+  ],
+  "uncertainty": [
+    "Manager-side execution of the exact affected post-shock-factor and shock-attribution regression suites remains required because Local could not import their jsonschema dependency.",
+    "Manager-side Draft 2020-12 schema meta-validation and representative WAIT, RETAIN and CLOSE instance validation remain required.",
+    "No accepted activation receipt exists in this task, so dormant behavior is implemented but canonical activation remains MISSING_PROOF.",
+    "Real forward evidence availability, source continuity, statistical significance, causal validity, predictive value and economic value remain MISSING_PROOF.",
+    "Deployment, Worker packaging, canonical integration, candidate readiness, OOS, strategy mapping and Trading authorization remain MISSING_PROOF and unauthorized."
+  ],
+  "recommended_next_action": "Manager should validate these unchanged four artifact bytes in the provisioned offline Python environment by running Draft202012Validator.check_schema plus representative WAIT/RETAIN/CLOSE and contradiction cases, then run research_pipeline.tests.test_forward_volatility_persistence, research_pipeline.tests.test_post_shock_factor and research_pipeline.tests.test_shock_attribution with no skips. Rehash and review the exact four-path diff afterward; if every frozen gate passes, seal and commit only this dormant source slice without activation, deployment, candidate creation, OOS or Trading action.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

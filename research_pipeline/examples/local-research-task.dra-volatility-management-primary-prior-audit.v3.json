@@ -1,0 +1,152 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-volatility-management-primary-prior-audit-v3",
+  "issued_at": "2026-08-11T01:40:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Independently audit the exact three primary papers and three sealed branch summaries listed below to decide whether lagged-realized-volatility-conditioned participation has enough transferable prior support for exactly one later pre-outcome design audit on the existing unlevered BTC spot DRA entry stream. Resolve the stale V2 input identity without reconstructing or claiming a missing historical result. Keep the mechanism causal, parameter-free, and distinct from post-shock reversal, microstructure order flow, carry, the closed range sleeve, route substitution, and one-slot rotation. Produce only a terminal primary-prior disposition and proof boundary; do not choose a volatility estimator, lookback, target, threshold, scaling formula, leverage, side, exit, stop, regime, route, capacity, DRA parameter, hypothesis, candidate, manifest, runner, or experiment.",
+  "canonical_research_status": "WAITING;V9_READY_ONE_CLOCK;R1_4_OF_90_LAG_1;R2_WAITING_0_OF_14;QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/btc-dra-runtime-v1.md",
+      "sha256": "eddff4af35c9f46b6487297feb64cfd7ceedf6a829aa7981c407f5479b889b60"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/dra-forward-entry-admission-v1.md",
+      "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-volatility-management-primary-prior-audit.v1.json",
+      "sha256": "5a7304f1a9188287dd836aee278dad49f9b8087de0e52f8fd8c8e73f6cd48e51"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.dra-volatility-management-primary-prior-audit.v2.json",
+      "sha256": "1b10d9a3e371267a5b946e2b7e86956ab93f90a27b838114c8edf6984df175e0"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/one-slot-profitable-incumbent-signal-rotation-v1/artifacts/diagnostic.json",
+      "sha256": "44245c9b393f3c3fd08c58c455f80f52a8024832a52639185b33b678e13ee609"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
+      "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": "C:/Users/Redan/.codex/visualizations/2026/07/28/019fa77a-6bcb-71c3-9194-53c63407c2d4/btc-range-factor-research/immutable-core-dra-sleeve-monthly-validation-v1/FINAL_DECISION.md",
+      "sha256": "3308acd4176b18bc2967d6e3a140231cc243d7b6dbd2e56558c4b72239263255"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-11T01:37:29Z; policy and Worker READY; CLOUD_OPS_SCHEDULE_V9 READY with exactly one daily 09:05 Asia/Taipei recurrence; queues IDLE; R1 4/90 expected 5 lag 1; microstructure R2 WAITING_FOR_DAY 0/14 for 2026-08-11; no active experiment or evidence-ready candidate; no outcome accessed",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source A: Moreira and Muir, Volatility-Managed Portfolios, NBER Working Paper 22208 and The Journal of Finance 72 (2017) 1611-1644. Read the full primary NBER paper only at https://www.nber.org/system/files/working_papers/w22208/w22208.pdf and bind it to https://doi.org/10.3386/w22208 and publication DOI https://doi.org/10.1111/jofi.12513. Audit its positive multi-factor evidence without assuming transfer to BTC or DRA.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source B: Cederburg, O'Doherty, Wang and Yan, On the performance of volatility-managed portfolios, Journal of Financial Economics 138 (2020) 95-117. Read only the full author-hosted primary paper at https://www.lehigh.edu/~xuy219/research/COWY.pdf and bind it to https://doi.org/10.1016/j.jfineco.2020.04.015. Treat its real-time and out-of-sample implementation critique as a co-equal falsification prior.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source C: Liu, Tsyvinski and Wu, Common Risk Factors in Cryptocurrency, The Journal of Finance 77 (2022) 1133-1177. Read only the full author-hosted primary paper at https://economics.yale.edu/sites/default/files/2022-10/LiuTsyvinskiWu2019%20COMMON%20RISK%20FACTORS.pdf and bind it to https://doi.org/10.1111/jofi.13119. Audit its cross-sectional scope and do not relabel it as single-BTC time-series or volatility-management evidence.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The only permitted future-mechanism label is LAGGED_REALIZED_VOLATILITY_CONDITIONED_DRA_PARTICIPATION. It must remain parameter-free and must not imply leverage, shorting, a stop-loss, a post-shock reversal rule, a range regime, an exit-manager change, a route substitution, a one-slot rotation, carry, microstructure order flow, or a DRA performance claim.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_LOCAL_INPUT_HASHES",
+    "READ_EXACT_LISTED_PRIMARY_PUBLIC_SOURCES",
+    "AUDIT_POSITIVE_AND_FALSIFICATION_PRIORS",
+    "AUDIT_SINGLE_BTC_DRA_TRANSFER_LIMIT",
+    "AUDIT_CAUSAL_DISTINCTNESS_FROM_EXISTING_AND_CLOSED_FAMILIES",
+    "ASSESS_REAL_TIME_IMPLEMENTABILITY_GAP",
+    "DEFINE_PARAMETER_FREE_PRIOR_BOUNDARY",
+    "ASSESS_PERFORMANCE_AND_OPPORTUNITY_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_CANDIDATE_OR_MANIFEST_AUTHORING",
+    "PARAMETER_LOOKBACK_TARGET_VOL_OR_THRESHOLD_SELECTION",
+    "LEVERAGE_SHORTING_OR_STOP_LOSS_PROPOSAL",
+    "ADAPTER_RUNNER_OR_CONTRACT_IMPLEMENTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "SEARCH_SNIPPET_OR_SECONDARY_SOURCE_AS_EVIDENCE",
+    "CLOSED_BRANCH_REOPEN_OR_RELABEL"
+  ],
+  "expected_outputs": [
+    "TERMINAL_PRIMARY_SOURCE_PRIOR_VERDICT",
+    "POSITIVE_AND_FALSIFICATION_EVIDENCE_MATRIX",
+    "SINGLE_BTC_DRA_TRANSFER_BOUNDARY",
+    "EXISTING_AND_CLOSED_FAMILY_DISTINCTNESS_MATRIX",
+    "REAL_TIME_IMPLEMENTABILITY_GAPS",
+    "PARAMETER_FREE_PERMITTED_LABEL",
+    "PERFORMANCE_DRAWDOWN_AND_COST_GAPS",
+    "OPPORTUNITY_COST_ASSESSMENT",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null local SHA-256 before analysis; any mismatch, missing input, link, reparse point, duplicate locator, or wrong type is BLOCKED and MISSING_PROOF.",
+    "Preserve the immutable V1 and V2 task bytes as historical attempts. No committed V1 or V2 result is an input to V3; do not reconstruct, infer, overwrite, relabel, or claim a missing historical result.",
+    "Use only the three exact full primary-paper URLs and their DOI, journal, author, publisher, or NBER identity pages. Search may only resolve those exact identities; search snippets and secondary sources are never evidence.",
+    "If any of the three exact full primary papers remains inaccessible, return PRIMARY_SOURCE_PRIOR_INSUFFICIENT without substituting another source or inferring from an abstract.",
+    "Do not access canonical or server state, Local inbox or outbox, future evidence, diagnostic outcomes, sealed OOS, unlisted historical artifacts, Trading data, or any outcome-bearing file beyond the three listed sealed summaries.",
+    "Give Moreira-Muir positive evidence and Cederburg et al. real-time and OOS falsification evidence co-equal weight. A favorable spanning alpha or in-sample Sharpe result cannot by itself justify a future DRA design audit.",
+    "Separate multi-factor and cross-sectional cryptocurrency findings from one unlevered BTC spot time series. Unsupported transfer, leverage dependence, cost omission, or unstable real-time estimation rejects transfer rather than becoming a tunable research gap.",
+    "Prove causal distinctness from post-shock reversal, microstructure order flow, carry, the listed closed range sleeve, route substitution, and one-slot rotation. Any overlap that cannot be separated without outcomes returns PRIOR_REJECTS_SINGLE_BTC_DRA_TRANSFER.",
+    "Keep the only permitted mechanism label parameter-free. Do not select or recommend a volatility estimator, lookback, target, threshold, scaling formula, leverage, side, exit, stop, regime, route, capacity, or DRA parameter.",
+    "Return exactly one of PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT, PRIOR_REJECTS_SINGLE_BTC_DRA_TRANSFER, or PRIMARY_SOURCE_PRIOR_INSUFFICIENT. A positive disposition authorizes only one separately frozen future pre-outcome design audit and nothing else.",
+    "Keep fee-adjusted PnL, drawdown, fills, turnover, slippage, capacity, annual breadth, regime breadth, statistical significance, and deployability MISSING_PROOF; make no file changes and return exactly one task-hash-bound local-research-result JSON with empty artifacts and files_changed and all safety assertions false."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

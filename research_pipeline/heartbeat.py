@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from .evidence import MISSED_DISCOVERY_ROLLOVER_STATUS
+from .forward_volatility_persistence import (
+    seal_forward_volatility_persistence_snapshots,
+)
 from .microstructure_monitor import microstructure_diagnostic_status
 from .models import parse_timestamp
 from .post_shock_factor import seal_r1_post_shock_factor_snapshots
@@ -154,6 +157,15 @@ def run_heartbeat_cycle(
         seal_r1_post_shock_factor_snapshots(
             store,
             now=now,
+        )
+    )
+    events.extend(
+        seal_forward_volatility_persistence_snapshots(
+            store,
+            now=now,
+            activation_receipt=state.get(
+                "btc_utc_day_3pct_forward_volatility_persistence_activation"
+            ),
         )
     )
 

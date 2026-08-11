@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BTC Complete UTC Day 3 Percent Forward Volatility Persistence Snapshot V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "document_type", "root_trigger_id",
+    "root_trigger_fingerprint", "leaf_trigger_id", "leaf_trigger_fingerprint",
+    "activation_receipt_sha256", "evaluator_schema_sha256",
+    "evaluator_module_sha256", "snapshot_key", "latest_outcome_day",
+    "latest_outcome_chain_head", "sealed_at", "disposition", "terminal",
+    "episodes", "gate_evidence", "statistics", "close_reason", "guardrails",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_UTC_DAY_3PCT_FORWARD_VOLATILITY_PERSISTENCE_SNAPSHOT_V1"},
+    "root_trigger_id": {"const": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1"},
+    "root_trigger_fingerprint": {"const": "0e5a4675e937613202f0a4a243360a405e9ace1823c4b999edb5d479849d2589"},
+    "leaf_trigger_id": {"type": "string", "minLength": 3, "maxLength": 80},
+    "leaf_trigger_fingerprint": {"$ref": "#/$defs/sha256"},
+    "activation_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "evaluator_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "evaluator_module_sha256": {"$ref": "#/$defs/sha256"},
+    "snapshot_key": {"type": "string", "minLength": 66, "maxLength": 96},
+    "latest_outcome_day": {"type": "string", "format": "date"},
+    "latest_outcome_chain_head": {"$ref": "#/$defs/sha256"},
+    "sealed_at": {"type": "string", "format": "date-time"},
+    "disposition": {
+      "enum": [
+        "WAIT_FOR_FORWARD_VOLATILITY_PERSISTENCE_EVIDENCE",
+        "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_RETAIN",
+        "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_CLOSE"
+      ]
+    },
+    "terminal": {"type": "boolean"},
+    "episodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "items": {"$ref": "#/$defs/episode"}
+    },
+    "gate_evidence": {"$ref": "#/$defs/gateEvidence"},
+    "statistics": {"$ref": "#/$defs/statistics"},
+    "close_reason": {
+      "enum": [null, "FAILED_RETAIN_GATES", "HARD_CAP_INCOMPLETE_BREADTH"]
+    },
+    "guardrails": {"$ref": "#/$defs/guardrails"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"disposition": {"const": "WAIT_FOR_FORWARD_VOLATILITY_PERSISTENCE_EVIDENCE"}}, "required": ["disposition"]},
+      "then": {
+        "properties": {
+          "terminal": {"const": false},
+          "close_reason": {"type": "null"},
+          "gate_evidence": {"properties": {"all_breadth_pass": {"const": false}, "hard_cap_reached": {"const": false}}},
+          "statistics": {"properties": {"retain_conditions_met": {"const": false}}},
+          "episodes": {"maxItems": 23}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"disposition": {"const": "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_RETAIN"}}, "required": ["disposition"]},
+      "then": {
+        "properties": {
+          "terminal": {"const": true},
+          "close_reason": {"type": "null"},
+          "gate_evidence": {"properties": {"all_breadth_pass": {"const": true}}},
+          "statistics": {"properties": {"retain_conditions_met": {"const": true}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"disposition": {"const": "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_CLOSE"}}, "required": ["disposition"]},
+      "then": {
+        "properties": {"terminal": {"const": true}},
+        "oneOf": [
+          {
+            "properties": {
+              "close_reason": {"const": "FAILED_RETAIN_GATES"},
+              "gate_evidence": {"properties": {"all_breadth_pass": {"const": true}}},
+              "statistics": {"properties": {"retain_conditions_met": {"const": false}}}
+            }
+          },
+          {
+            "properties": {
+              "close_reason": {"const": "HARD_CAP_INCOMPLETE_BREADTH"},
+              "gate_evidence": {"properties": {"all_breadth_pass": {"const": false}, "hard_cap_reached": {"const": true}, "episode_count": {"const": 24}}},
+              "statistics": {"properties": {"retain_conditions_met": {"const": false}}},
+              "episodes": {"minItems": 24, "maxItems": 24}
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "decimalText": {"type": "string", "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+    "dayReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["day", "artifact_path", "artifact_sha256", "chain_head", "received_at"],
+      "properties": {
+        "day": {"type": "string", "format": "date"},
+        "artifact_path": {"type": "string", "minLength": 1},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "chain_head": {"$ref": "#/$defs/sha256"},
+        "received_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "episode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "episode_id", "formula_version", "activation_receipt_sha256",
+        "evaluator_schema_sha256", "evaluator_module_sha256", "root_trigger_id",
+        "root_trigger_fingerprint", "leaf_trigger_id", "leaf_trigger_fingerprint",
+        "target_day", "source_days", "target_day_reference",
+        "outcome_day_reference", "shock_diagnostic_path",
+        "shock_diagnostic_sha256", "shock_direction", "absolute_simple_return",
+        "baseline_rv20", "outcome_rv24", "outcome_ratio", "label", "sealed_at"
+      ],
+      "properties": {
+        "episode_id": {"$ref": "#/$defs/sha256"},
+        "formula_version": {"const": "BTC_UTC_DAY_3PCT_RV24_BASELINE20_OUTCOME_RATIO_V1"},
+        "activation_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "evaluator_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "evaluator_module_sha256": {"$ref": "#/$defs/sha256"},
+        "root_trigger_id": {"const": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1"},
+        "root_trigger_fingerprint": {"const": "0e5a4675e937613202f0a4a243360a405e9ace1823c4b999edb5d479849d2589"},
+        "leaf_trigger_id": {"type": "string", "minLength": 3, "maxLength": 80},
+        "leaf_trigger_fingerprint": {"$ref": "#/$defs/sha256"},
+        "target_day": {"type": "string", "format": "date"},
+        "source_days": {"type": "array", "minItems": 23, "maxItems": 23, "items": {"$ref": "#/$defs/dayReference"}},
+        "target_day_reference": {"$ref": "#/$defs/dayReference"},
+        "outcome_day_reference": {"$ref": "#/$defs/dayReference"},
+        "shock_diagnostic_path": {"type": "string", "minLength": 1},
+        "shock_diagnostic_sha256": {"$ref": "#/$defs/sha256"},
+        "shock_direction": {"enum": ["UP", "DOWN"]},
+        "absolute_simple_return": {"$ref": "#/$defs/decimalText"},
+        "baseline_rv20": {"$ref": "#/$defs/decimalText"},
+        "outcome_rv24": {"$ref": "#/$defs/decimalText"},
+        "outcome_ratio": {"$ref": "#/$defs/decimalText"},
+        "label": {"enum": ["PERSISTENT_VOLATILITY", "NON_PERSISTENT_VOLATILITY"]},
+        "sealed_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "gateEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "episode_count", "minimum_episode_count_pass", "up_count", "up_count_pass",
+        "down_count", "down_count_pass", "first_half_count", "first_half_pass",
+        "second_half_count", "second_half_pass", "distinct_target_month_count",
+        "target_month_count_pass", "maximum_target_month_share",
+        "target_month_concentration_pass", "maximum_episode_contribution_share",
+        "episode_concentration_pass", "all_breadth_pass", "hard_cap_reached"
+      ],
+      "properties": {
+        "episode_count": {"type": "integer", "minimum": 1, "maximum": 24},
+        "minimum_episode_count_pass": {"type": "boolean"},
+        "up_count": {"type": "integer", "minimum": 0, "maximum": 24},
+        "up_count_pass": {"type": "boolean"},
+        "down_count": {"type": "integer", "minimum": 0, "maximum": 24},
+        "down_count_pass": {"type": "boolean"},
+        "first_half_count": {"type": "integer", "minimum": 0, "maximum": 12},
+        "first_half_pass": {"type": "boolean"},
+        "second_half_count": {"type": "integer", "minimum": 1, "maximum": 12},
+        "second_half_pass": {"type": "boolean"},
+        "distinct_target_month_count": {"type": "integer", "minimum": 1, "maximum": 24},
+        "target_month_count_pass": {"type": "boolean"},
+        "maximum_target_month_share": {"$ref": "#/$defs/decimalText"},
+        "target_month_concentration_pass": {"type": "boolean"},
+        "maximum_episode_contribution_share": {"$ref": "#/$defs/decimalText"},
+        "episode_concentration_pass": {"type": "boolean"},
+        "all_breadth_pass": {"type": "boolean"},
+        "hard_cap_reached": {"type": "boolean"}
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall_median_outcome_ratio", "up_median_outcome_ratio",
+        "down_median_outcome_ratio", "strictly_above_one_count",
+        "strictly_above_one_share", "overall_median_pass", "up_median_pass",
+        "down_median_pass", "strictly_above_one_share_pass",
+        "retain_conditions_met"
+      ],
+      "properties": {
+        "overall_median_outcome_ratio": {"$ref": "#/$defs/decimalText"},
+        "up_median_outcome_ratio": {"oneOf": [{"$ref": "#/$defs/decimalText"}, {"type": "null"}]},
+        "down_median_outcome_ratio": {"oneOf": [{"$ref": "#/$defs/decimalText"}, {"type": "null"}]},
+        "strictly_above_one_count": {"type": "integer", "minimum": 0, "maximum": 24},
+        "strictly_above_one_share": {"$ref": "#/$defs/decimalText"},
+        "overall_median_pass": {"type": "boolean"},
+        "up_median_pass": {"type": "boolean"},
+        "down_median_pass": {"type": "boolean"},
+        "strictly_above_one_share_pass": {"type": "boolean"},
+        "retain_conditions_met": {"type": "boolean"}
+      }
+    },
+    "guardrails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "immediate_pnl_effect", "immediate_drawdown_effect", "predictive_value",
+        "causal_value", "strategy_mapping_evaluated", "hypothesis_created",
+        "candidate_created", "oos_opened", "trading_action_attempted"
+      ],
+      "properties": {
+        "immediate_pnl_effect": {"const": "ZERO"},
+        "immediate_drawdown_effect": {"const": "ZERO"},
+        "predictive_value": {"const": "MISSING_PROOF"},
+        "causal_value": {"const": "MISSING_PROOF"},
+        "strategy_mapping_evaluated": {"const": false},
+        "hypothesis_created": {"const": false},
+        "candidate_created": {"const": false},
+        "oos_opened": {"const": false},
+        "trading_action_attempted": {"const": false}
+      }
+    }
+  }
+}

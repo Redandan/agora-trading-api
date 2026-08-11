@@ -1,0 +1,128 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-crypto-carry-primary-prior-audit-v3",
+  "task_sha256": "499bfbc557a894f91d4e896e765bf10f5a39ffd417cb3fb187b7d4c9807d26eb",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T02:29:00Z",
+  "completed_at": "2026-08-11T02:33:36Z",
+  "source_git_commit": "c11a805b41230d08b644c19aebab635d83039a9e",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "CARRY_PRIMARY_SOURCE_PRIOR_INSUFFICIENT. Runtime-neutral preflight passed for the exact task, canonical dispatch, classification intent, clean source identity, 11-stop seal, all 15 non-null inputs and the required Git blob. The exact BIS full primary paper was accessible and matched the frozen title, authors, working-paper identity and revised version. The exact arXiv full-paper URL was unavailable, although its identity page was reachable. Stop condition 4 therefore forces the insufficient disposition and forbids retry, alternate-source substitution or inference from the abstract. No positive/falsification synthesis, single-BTC spot-DRA transfer verdict or causal non-duplication conclusion was inferred. V1 and V2 remain immutable unclosed historical attempts. Existing carry plumbing remains OFFLINE_DISABLED_NOT_REGISTERED and installation remains deferred to preserve R2. The sole label CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO remains parameter-free and unused. Immediate PnL and drawdown effects are zero; predictive and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "SOURCE_IDENTITY_AND_ZERO_WRITE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3 was clean before analysis; HEAD and local origin both equaled c11a805b41230d08b644c19aebab635d83039a9e. No repository, result, state or ignored file was created or changed."
+    },
+    {
+      "name": "TASK_DISPATCH_INTENT_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task SHA-256 499bfbc557a894f91d4e896e765bf10f5a39ffd417cb3fb187b7d4c9807d26eb, dispatch SHA-256 0ca4f3c19bd7de04d973c188373f46c8d769b7213149f774deba27e9f80eb3e1 and intent SHA-256 6464603c34fd614f24db3775491cf28701427195734f23f84528bd626b8766cb matched. Dispatch and intent canonical bytes and bindings passed. All 15 non-null inputs were unique safe regular non-link non-reparse files with exact hashes."
+    },
+    {
+      "name": "STOP_CONDITION_SEAL",
+      "status": "PASS",
+      "evidence": "The task contained exactly 11 stop conditions. Their canonical SHA-256 was b868213777ef3dbb890877cdaba86fc8a16c77f051818456cfe861565ffbae0c, matching the frozen dispatch."
+    },
+    {
+      "name": "EXACT_LEGACY_GIT_BLOB",
+      "status": "PASS",
+      "evidence": "Git object c648154412018c06ae2c91d1244ba7eee46da119 exists as the exact frozen blob. No legacy code was executed or restored."
+    },
+    {
+      "name": "V1_V2_IMMUTABLE_HISTORY",
+      "status": "PASS",
+      "evidence": "The exact V1 and V2 task bytes matched their frozen hashes. No missing V1/V2 result was reconstructed, inferred, relabeled, overwritten or cited as primary-prior evidence."
+    },
+    {
+      "name": "PRIMARY_SOURCE_A_FULL_TEXT_AND_IDENTITY",
+      "status": "PASS",
+      "evidence": "The exact [BIS full primary paper](https://www.bis.org/publ/work1087.pdf) was accessible as a 51-page document and identified Crypto carry, BIS Working Papers No 1087, Maik Schmeling, Andreas Schrimpf and Karamfil Todorov, April 2023 revised October 2025. The permitted [BIS identity page](https://www.bis.org/publ/work1087.htm) was also opened."
+    },
+    {
+      "name": "PRIMARY_SOURCE_B_FULL_TEXT_ACCESS",
+      "status": "MISSING_PROOF",
+      "evidence": "The exact authorized [arXiv full primary paper](https://arxiv.org/pdf/2212.06888) was unavailable to the reader. The permitted [arXiv identity page](https://arxiv.org/abs/2212.06888) was reachable, but its abstract was not used as evidence and no alternate source or retry was attempted."
+    },
+    {
+      "name": "TERMINAL_PRIMARY_PRIOR_AND_NON_DUPLICATION_VERDICT",
+      "status": "PASS",
+      "evidence": "Stop condition 4 deterministically requires CARRY_PRIMARY_SOURCE_PRIOR_INSUFFICIENT when either exact full primary paper is inaccessible. No transfer or non-duplication inference was made from partial evidence."
+    },
+    {
+      "name": "POSITIVE_AND_FALSIFICATION_EVIDENCE_MATRIX",
+      "status": "MISSING_PROOF",
+      "evidence": "A co-equal two-paper evidence matrix cannot be completed because the exact He-Manela-Ross-von Wachter full paper was inaccessible. BIS evidence was not used to infer the missing perpetual-futures falsification constraints."
+    },
+    {
+      "name": "BASIS_FUNDING_PREDICTION_AND_ARBITRAGE_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No fixed-maturity basis was equated with perpetual funding; no liquidation-risk association was converted into carry-trade return or spot prediction; and no implied derivative arbitrage return was treated as BTC spot-DRA alpha."
+    },
+    {
+      "name": "SINGLE_BTC_SPOT_DRA_TRANSFER_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No paper result was transferred to an unlevered single-BTC spot DRA entry veto. No direction, source, instrument, maturity, formula, threshold, lookback, cadence, side, exit, stop, route, capacity or DRA parameter was chosen."
+    },
+    {
+      "name": "LEGACY_AND_CLOSED_BRANCH_DISTINCTNESS_MATRIX",
+      "status": "MISSING_PROOF",
+      "evidence": "A complete causal distinctness matrix against archived 508 funding-low BUY gates, legacy short-build scoring, two-leg funding arbitrage, CFTC TFF, microstructure, post-shock direction, volatility management and closed range/route/rotation branches was not claimed after the mandatory primary-source access stop."
+    },
+    {
+      "name": "OFFLINE_SOURCE_PLUMBING_PROOF_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The frozen V2 source contract remains OFFLINE_DISABLED_NOT_REGISTERED, and the frozen cohabitation disposition remains DEFER_CARRY_INSTALL_PRESERVE_R2. Neither was treated as source availability, capture, prior support, prediction, economics or activation."
+    },
+    {
+      "name": "PARAMETER_FREE_PERMITTED_LABEL",
+      "status": "PASS",
+      "evidence": "Only CRYPTO_CARRY_CONDITIONED_DRA_ENTRY_RISK_VETO was retained as a possible future parameter-free label. It was not instantiated, selected, registered, installed, captured, evaluated or activated."
+    },
+    {
+      "name": "FUTURE_FACTOR_DEFINITION_PROOF_REQUIREMENTS",
+      "status": "MISSING_PROOF",
+      "evidence": "A later factor-definition audit is not authorized because complete primary evidence and causal non-duplication remain unproven. No source, endpoint, instrument or construction was proposed."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_COST_BOUNDARY",
+      "status": "PASS",
+      "evidence": "Immediate fee-adjusted PnL and drawdown effects are zero. Fills, turnover, slippage, capacity, annual and regime breadth, statistical significance, predictive value, deployability and Trading value remain MISSING_PROOF."
+    },
+    {
+      "name": "OPPORTUNITY_COST_ASSESSMENT",
+      "status": "PASS",
+      "evidence": "Failing closed avoids spending a factor-definition or installation slice on an incomplete primary prior, prevents legacy funding or derivative-arbitrage logic from being repackaged as spot alpha and preserves the existing R2 evidence lane without interruption."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No canonical/server access, Local inbox/outbox access, official API documentation, source value, real outcome, OOS, Trading data, network source beyond the four exact paper/identity URLs, write, installation, activation, hypothesis, candidate, experiment, schedule, timer or paid API action occurred."
+    },
+    {
+      "name": "FINAL_CLEAN_WORKTREE",
+      "status": "PASS",
+      "evidence": "Final git diff --check passed. Branch remained codex/autonomous-research-control-plane-v3, HEAD and origin remained c11a805b41230d08b644c19aebab635d83039a9e, and the worktree remained clean."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: the exact full Fundamentals of Perpetual Futures paper was inaccessible during this bounded audit.",
+    "MISSING_PROOF: the complete fixed-maturity versus perpetual positive/falsification matrix is unavailable.",
+    "MISSING_PROOF: causal non-duplication and transfer to a single unlevered BTC spot-DRA entry veto are not established.",
+    "MISSING_PROOF: source availability, capture, prediction, statistical significance, fee-adjusted PnL, drawdown, costs, capacity, deployability, candidate readiness and OOS value remain untested.",
+    "The BIS paper alone cannot authorize a factor-definition audit or repair the missing perpetual-futures primary evidence."
+  ],
+  "recommended_next_action": "Manager may freeze one separately versioned READ_ONLY retry only after the exact arXiv full-paper URL is directly accessible; preserve V1, V2 and V3 bytes, do not substitute another source, and do not install or activate carry plumbing.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-utc-day-3pct-post-shock-evaluator-acceptance-recovery-v1",
+  "task_sha256": "3af931dd148ba9faa18be70ff8542390359a3ce01f106636a76e24eb8dd3ef3f",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T02:08:30Z",
+  "completed_at": "2026-08-11T02:15:03Z",
+  "source_git_commit": "d1793c50cf606fc29a12fa88e671bc48963f8fb1",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "POST_SHOCK_EVALUATOR_ACCEPTANCE_MISSING_PROOF. NON_COUNTING acceptance-recovery audit completed with zero repository changes. Native preflight, exact Git lineage, four-path byte equivalence, closed-schema structure, frozen h1/h6/h24 formulas, breadth/concentration gates, one-shot snapshot semantics, heartbeat child placement and forbidden-boundary scans passed. Implementation commit 60cb48c6592b9a87f655c9efc51dc67454849ba6 is the sole-parent child of frozen task commit 17855889a632f9726c82b3568bbe8a8d5479e11e and changes exactly the four frozen implementation paths; current bytes remain identical. The frozen canonical-status input supplies Worker deployment-source provenance for commit 60cb48c6, but it does not prove a successful post-deployment heartbeat or canonical post-shock activation. Local executable acceptance remains MISSING_PROOF because the sandbox could not resolve or execute the permitted python command, so compile, the 32 focused test methods and executable task/result validation were not completed locally. Positive recovery requires those gates. Immediate PnL and drawdown effect are zero; prediction, significance, economics, breadth, costs, OOS, deployment activation and Trading value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "SOURCE_IDENTITY_AND_CLEAN_START",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3 was clean at start; HEAD and local origin both equaled d1793c50cf606fc29a12fa88e671bc48963f8fb1."
+    },
+    {
+      "name": "RECOVERY_TASK_DISPATCH_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task SHA-256 3af931dd148ba9faa18be70ff8542390359a3ce01f106636a76e24eb8dd3ef3f and dispatch SHA-256 21d3004393e55d4d4bd685072eaf12947e9ed5cd9735e999dddc1f3907f39d26 matched. Dispatch bytes were canonical compact sorted-key JSON, task binding matched, all 13 non-null inputs were unique contained regular non-link non-reparse files with exact hashes, and the 11-stop hash was a2a328530eafcbd06810c290417b622d094c3d949b755048e5c8aec6b0721df4."
+    },
+    {
+      "name": "EXACT_GIT_PARENT_AND_FOUR_PATH_PROOF",
+      "status": "PASS",
+      "evidence": "Commit 17855889a632f9726c82b3568bbe8a8d5479e11e changed only the original vertical-slice task and dispatch. Commit 60cb48c6592b9a87f655c9efc51dc67454849ba6 has 17855889a632f9726c82b3568bbe8a8d5479e11e as its sole parent and changed exactly the result schema, post_shock_factor.py, heartbeat.py and test_post_shock_factor.py."
+    },
+    {
+      "name": "CURRENT_FOUR_PATH_BYTE_EQUIVALENCE",
+      "status": "PASS",
+      "evidence": "Git object comparison against commit 60cb48c6592b9a87f655c9efc51dc67454849ba6 found no byte drift. Current SHA-256 values are schema 8f41ecce6cf5820ee28404fef9bcefac4db1d42771ed01586752488142c6b317, evaluator 61535e047a16ba2e20b25c9198a73ded6b3ee4c44596a9f08fd50347f442e4a4, heartbeat 85f1fe11fb6460e405b48a399adbafa4830bac394058c26171b1f999ad5d7e8a and focused test 63064aad62ab8deae947b9bfa971e06c8b6ba2d871b3f9987c1e7b052e21d501."
+    },
+    {
+      "name": "ORIGINAL_TASK_AND_DISPATCH_NATIVE_CLOSURE",
+      "status": "PASS",
+      "evidence": "Original task SHA-256 32437994e0b9ccc2c1e8475b871bf491ac979f82dc0960f4485702febafb5b9a and dispatch SHA-256 5adc26c558abe8e522b3770f45b7b1afaab3693ce553b3b5b08445cb4dc03c76 matched. Dispatch canonical bytes, task identity/binding, 18-stop count and stop hash 9f616533f3141d506332df0eb2eb55320ec43848358d3eeb69e2eb60556bdc1f matched."
+    },
+    {
+      "name": "AUTHORITATIVE_PYTHON_VALIDATORS",
+      "status": "MISSING_PROOF",
+      "evidence": "The Local sandbox could not resolve the python command and denied execution of the installed Python interpreter paths. The authoritative executable task, dispatch and result validators therefore could not be rerun locally. No permission or installation was requested."
+    },
+    {
+      "name": "CLOSED_RESULT_SCHEMA_STATIC_AUDIT",
+      "status": "PASS",
+      "evidence": "The result schema declares Draft 2020-12, contains six object schemas and closes all six with additionalProperties=false. Conditional branches bind WAIT to nonterminal incomplete breadth and each terminal disposition to matching breadth and mutually exclusive statistics."
+    },
+    {
+      "name": "FORMULA_TIMING_HASH_AND_CHAIN_STATIC_AUDIT",
+      "status": "PASS",
+      "evidence": "Static code binds FORWARD_FACTOR_ELIGIBLE diagnostics, adjacent outcome day, receipt strictly after diagnostic seal, exactly 24 contiguous hourly bars, strictly advanced chain, source/hash references and episode sealing after accepted evidence. It computes shock-sign multiplied by close_h divided by shock_close minus one at h1, h6 and h24, with only h24 determining CONTINUATION, REVERSAL or TIE."
+    },
+    {
+      "name": "BREADTH_CONCENTRATION_AND_TERMINAL_STATIC_AUDIT",
+      "status": "PASS",
+      "evidence": "Static gates require at least 8 episodes, 2 UP, 2 DOWN, 2 in each chronological half, 3 UTC months, maximum month share 0.5, unique complete labels and maximum single absolute h24 contribution share 0.5. Continuation and reversal require matching overall/UP/DOWN median signs and at least two matching labels per direction; other gate-complete samples close NO_FACTOR. First gate-complete prefix becomes terminal and later snapshots are rejected."
+    },
+    {
+      "name": "HEARTBEAT_CHILD_PLACEMENT_STATIC_AUDIT",
+      "status": "PASS",
+      "evidence": "heartbeat.py imports the evaluator and invokes seal_r1_post_shock_factor_snapshots immediately after seal_r1_shock_diagnostics, before schedule/report processing, events.sort and _advance_coach_delivery. It passes the existing ResearchStore and now only, reuses the existing event/outbox flow and introduces no second writer or timer."
+    },
+    {
+      "name": "IMMUTABLE_CREATE_ONLY_AND_IDEMPOTENCY_STATIC_AUDIT",
+      "status": "PASS",
+      "evidence": "Snapshots use a distinct ResearchStore namespace, deterministic day-and-chain keys, canonical bytes, create-only hard-link publication, byte-conflict rejection, append-only history, terminal-source revalidation and rejection of any snapshot after a terminal disposition. Waiting snapshots emit no event and terminal snapshots emit at most one MATERIAL_LEARNING event."
+    },
+    {
+      "name": "FOCUSED_TEST_INVENTORY",
+      "status": "PASS",
+      "evidence": "Static inventory contains 19 test methods in test_post_shock_factor.py and 13 in test_shock_attribution.py, 32 total. Names cover closed schema, runtime import without jsonschema, formulas, timing, adjacency, gaps, breadth, concentration, continuation, reversal, tie/no-factor, conflicts, idempotency, heartbeat ordering/outbox and R1 preservation."
+    },
+    {
+      "name": "PYTHON_COMPILE_AND_FOCUSED_TEST_EXECUTION",
+      "status": "MISSING_PROOF",
+      "evidence": "The exact permitted commands could not start because python was not available to the Local shell. No test was skipped, substituted or edited, but no Local PASS count exists. This missing mandatory gate prevents POST_SHOCK_EVALUATOR_ACCEPTANCE_RECOVERED."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_STATIC_SCAN",
+      "status": "PASS",
+      "evidence": "Production implementation paths contain no requests, urllib, socket, HTTP client, subprocess, database client, Spring, Maven or Trading runtime entrypoint. The only subprocess occurrence is the focused test that launches the same Python interpreter to prove heartbeat import does not require jsonschema. Existing heartbeat scheduling code predates and is outside the exact child insertion."
+    },
+    {
+      "name": "WORKER_SOURCE_PROVENANCE_VS_CANONICAL_ACTIVATION",
+      "status": "PASS",
+      "evidence": "The frozen canonical-status input identifies Worker release source commit 60cb48c6592b9a87f655c9efc51dc67454849ba6 as clean and source verified, matching the exact implementation bytes. This is deployment-source provenance only. No successful post-deployment heartbeat or canonical activation record was supplied or refreshed, so canonical post-shock activation remains MISSING_PROOF."
+    },
+    {
+      "name": "NON_COUNTING_AND_PERFORMANCE_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The audit remains NON_COUNTING within duplicate family btc-utc-day-3pct-post-shock. It establishes no new mechanism, capability family, alpha, candidate, OOS result or activation. Immediate fee-adjusted PnL and drawdown effects are zero."
+    },
+    {
+      "name": "FINAL_CLEAN_WORKTREE",
+      "status": "PASS",
+      "evidence": "Final git diff --check passed; branch remained codex/autonomous-research-control-plane-v3, HEAD and origin remained d1793c50cf606fc29a12fa88e671bc48963f8fb1, and status contained no changed, staged, untracked or ignored repository output."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: Local Python compile and the exact two-module 32-test execution were unavailable in this sandbox.",
+    "MISSING_PROOF: executable task, dispatch and final-result validation could not be rerun locally.",
+    "MISSING_PROOF: a successful post-deployment heartbeat and canonical post-shock evaluator activation are not supplied by Worker source provenance.",
+    "MISSING_PROOF: the first eligible episode, predictive value, statistical significance, fee-adjusted PnL, drawdown, annual or regime breadth, fees, slippage, capacity, candidate readiness, OOS readiness and Trading value remain unobserved.",
+    "The frozen canonical-status summary was used only as an input; canonical/server state was not refreshed or accessed."
+  ],
+  "recommended_next_action": "Manager should run the exact permitted compile command, the two-module focused unittest command and authoritative result/dispatch closure validators against these unchanged bytes; only if all pass may Manager seal POST_SHOCK_EVALUATOR_ACCEPTANCE_RECOVERED, while canonical activation remains separately MISSING_PROOF until a successful post-deployment heartbeat is supplied.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

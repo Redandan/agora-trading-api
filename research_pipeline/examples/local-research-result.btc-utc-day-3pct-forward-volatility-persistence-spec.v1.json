@@ -1,0 +1,113 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-forward-volatility-persistence-spec-v1",
+  "task_sha256": "dbfd0f5541dcce05384df64ace3a6b4d0cf638ed06861ab4995cc2c3b18b6aeb",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T10:02:14Z",
+  "completed_at": "2026-08-11T10:06:18Z",
+  "source_git_commit": "11feaedf354b289e4612e5afe90b82f708ff82ba",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "ONE_FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_SPEC_READY. The frozen repository contracts support one causally isolated forward volatility-persistence sibling using accepted COMPLETE_UTC_DAY evidence, active rollover lineage, Server Canonical as sole writer, the sole V10 Cloud Ops heartbeat and the existing ResearchStore/outbox. The diagnostic must require one active leaf and exactly 23 contiguous accepted UTC days D-21 through D+1; bind every source artifact, chain head, lineage identity, shock diagnostic, evaluator contract and later activation receipt; calculate only the frozen RV24/BaselineRV20/OutcomeRatio formula; and apply the frozen breadth and terminal decision gates without tuning. It can be integrated after the existing post-shock child and before event sorting and Coach delivery without changing the directional evaluator, source, schedule or writer. Immediate PnL and drawdown effects are zero. Forward predictive, causal and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_INTENT_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task SHA-256 dbfd0f5541dcce05384df64ace3a6b4d0cf638ed06861ab4995cc2c3b18b6aeb and dispatch SHA-256 3ecff1fee7b6d88850ae44478fa41b1503f35d99bf7025782f050810b1293bae passed repository validation. The canonical PRE_DISPATCH_INTENT hash is db3cacfb41e18280a5809cca862eadd7d1188f2f4b036b410015b67fb7997ea6 and its issued_at is 2026-08-11T09:56:43Z. All 19 unique non-null inputs matched their frozen hashes and were contained regular non-link, non-reparse files. The 18 stop conditions canonically hash to 218f9b22a83ff855d647dd8d69a9f9fa3b318d5b4339a2f34e1d184d89fac70e."
+    },
+    {
+      "name": "SOURCE_IDENTITY_AND_SINGLE_CLOCK_REUSE",
+      "status": "PASS",
+      "evidence": "The listed contracts provide accepted COMPLETE_UTC_DAY observations through ResearchStore, Server Canonical sole-writer authority and the frozen V10 heartbeat: CLOUD_OPS_SCHEDULE_V10, one daily 09:05 Asia/Taipei recurrence, CODEX_CLOUD_OPS_ONLY timer authority and SERVER_CANONICAL state authority. No additional source, timer, schedule or writer is required."
+    },
+    {
+      "name": "ACTIVE_ROLLOVER_LINEAGE",
+      "status": "PASS",
+      "evidence": "The active-lineage resolver validates root and leaf identifiers/fingerprints, exact trigger bytes and hashes, authorization, purpose, observation bindings and bidirectional predecessor/successor closure. It rejects missing links, forks, cycles, extra leaves, candidates and drift. The new diagnostic can require all 23 days to belong to one active leaf and reject rollover mixing, gaps and backfill."
+    },
+    {
+      "name": "DIRECTIONAL_EVALUATOR_ISOLATION",
+      "status": "PASS",
+      "evidence": "Existing post-shock V1 and V2 namespaces, schemas, artifacts and terminal dispositions are independently fingerprinted and closed. The volatility-persistence diagnostic can use a sibling namespace such as volatility-persistence/btc-utc-day-3pct-v1/<leaf_fingerprint>/snapshots without modifying shock_attribution, post_shock_factor or their accepted semantics."
+    },
+    {
+      "name": "POINT_IN_TIME_ACTIVATION_ELIGIBILITY",
+      "status": "PASS",
+      "evidence": "Freeze a later Manager-accepted deployment activation receipt containing the accepted implementation commit, task/result hashes, evaluator contract/schema hashes, deployed-source provenance and active-leaf identity. A target is eligible only when both target evidence received_at and shock diagnostic sealed_at are strictly later than activated_at. Earlier same-leaf D-21 through D-1 days may serve only as baseline context. No activation date or forward episode is selected now."
+    },
+    {
+      "name": "SAME_LEAF_23_DAY_CLOSURE",
+      "status": "PASS",
+      "evidence": "Each episode requires exactly 23 contiguous complete accepted UTC days D-21 through D+1 from one active leaf. D is a shock only when abs(close[D,23]/close[D-1,23]-1) is at least 0.0300 inclusive. Missing days, incomplete evidence, leaf changes, lineage drift, copied observations and backfill fail closed."
+    },
+    {
+      "name": "FORMULA_FREEZE",
+      "status": "PASS",
+      "evidence": "Freeze formula version BTC_UTC_DAY_3PCT_RV24_BASELINE20_OUTCOME_RATIO_V1: hourly simple return equals close divided by the prior hourly close minus one; RV24 is the sum of the 24 squared hourly returns; BaselineRV20(D) is the ordinary median of RV24 for D-20 through D-1; OutcomeRatio is RV24(D+1) divided by BaselineRV20(D). No alternative estimator, window, transform or threshold is permitted."
+    },
+    {
+      "name": "EPISODE_AND_SNAPSHOT_IDENTITY",
+      "status": "PASS",
+      "evidence": "The episode identity must canonically bind evaluator contract hash, formula version, activation-receipt hash, root and leaf ids/fingerprints, target and outcome accepted references, all ordered 23 artifact paths/hashes/chain heads/received_at values, and shock-diagnostic path/hash. Create-only snapshot identity must additionally bind the ordered episode identities. Exact source revalidation, immutable bytes, deterministic keys and one terminal prefix are required."
+    },
+    {
+      "name": "BREADTH_AND_TERMINAL_GATE_TABLE",
+      "status": "PASS",
+      "evidence": "WAIT until at least 12 unique eligible episodes, at least three UP and three DOWN shocks, at least three episodes in each chronological half, at least four distinct target UTC months, maximum month share at most 0.40 and maximum single-episode share of total absolute OutcomeRatio-minus-one at most 0.40. At the first qualifying prefix RETAIN only if overall median OutcomeRatio is at least 1.10, both direction medians exceed 1.00 and the share above 1.00 is at least 0.55; otherwise CLOSE. If breadth remains incomplete at 24 episodes, CLOSE. No tuning or rescanning is allowed."
+    },
+    {
+      "name": "LIFECYCLE_AND_EVENT_BOUNDARY",
+      "status": "PASS",
+      "evidence": "Use create-only snapshots with WAIT_FOR_FORWARD_VOLATILITY_PERSISTENCE_EVIDENCE, FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_RETAIN or FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_CLOSE. WAIT emits no Coach event. A terminal snapshot emits at most one deduplicated generic event containing only disposition, counts, gates, artifact path/hash, zero immediate PnL/drawdown and MISSING_PROOF boundaries."
+    },
+    {
+      "name": "HEARTBEAT_CHILD_AND_OUTBOX_INTEGRATION",
+      "status": "PASS",
+      "evidence": "The listed heartbeat orders accepted evidence and shock diagnostics before the existing post-shock child, then sorts events and advances Coach delivery. One sibling volatility-persistence call can be inserted after the post-shock child and before sorting/delivery, using only ResearchStore and the existing outbox while preserving heartbeat signatures, receipt gates and V10 liveness behavior."
+    },
+    {
+      "name": "EXACT_LATER_FILE_CAP",
+      "status": "PASS",
+      "evidence": "The smallest bounded implementation is exactly four paths: add research_pipeline/btc-utc-day-3pct-forward-volatility-persistence.v1.schema.json; add research_pipeline/forward_volatility_persistence.py; modify research_pipeline/heartbeat.py; add research_pipeline/tests/test_forward_volatility_persistence.py. Synthetic TemporaryDirectory fixtures can cover activation, lineage, formula, identities, gates, idempotency and event behavior. No policy, source, writer, schedule, CLI or existing diagnostic schema change is required."
+    },
+    {
+      "name": "HISTORICAL_PRIOR_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The accepted historical result is used only as a frozen prior with disposition HISTORICAL_VOLATILITY_PERSISTENCE_PRIOR_RETAIN. Its reported Design and Validation statistics were not recomputed, and it does not constitute forward evidence, deployment proof or permission to relax the preregistered gates."
+    },
+    {
+      "name": "PERFORMANCE_AND_CAUSAL_VALUE",
+      "status": "MISSING_PROOF",
+      "evidence": "No eligible post-activation forward episode, significance estimate, causal attribution, strategy mapping, fee/slippage model, capacity estimate, capital utilization result, candidate, OOS result or Trading outcome was accessed or produced. Immediate PnL and drawdown effects are zero."
+    },
+    {
+      "name": "OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "The design deliberately waits for at least 23 same-leaf complete days to form one episode and at least 12 eligible shock episodes before retain review, potentially closing at 24 if breadth is insufficient. This delay is the cost of point-in-time evidence and prevents outcome-aware tuning while reusing the current source, heartbeat and canonical writer."
+    },
+    {
+      "name": "READ_ONLY_SOURCE_CLOSURE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3 ended clean with HEAD and local origin both 11feaedf354b289e4612e5afe90b82f708ff82ba. No repository or state file changed, and the final diff check was clean."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "No forward observation, eligible shock episode, terminal snapshot or Coach event exists within this audit; all forward behavior remains MISSING_PROOF.",
+    "The later activation receipt, deployed evaluator provenance, live continuity and active-leaf operational behavior remain MISSING_PROOF and require separately bounded Manager validation.",
+    "Predictive stability, statistical significance, causality, realized PnL, drawdown, fees, slippage, capacity, utilization and strategy compatibility remain MISSING_PROOF.",
+    "The specified four-file implementation and synthetic tests have not been authored or executed by this READ_ONLY task.",
+    "No candidate, OOS evaluation, SHADOW, PAPER or LIVE authorization follows from specification readiness."
+  ],
+  "recommended_next_action": "Manager may freeze exactly one four-file WORKTREE_WRITE task for the closed schema, pure evaluator, heartbeat child and synthetic tests specified here. Keep deployment and the activation receipt in a later separately bounded task; do not add a source, timer, writer, strategy, candidate or OOS action.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

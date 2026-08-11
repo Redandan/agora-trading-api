@@ -1,0 +1,105 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-v9-heartbeat-liveness-decoupling-audit-v1",
+  "task_sha256": "58eb2b01b95ba771691bd93faac2596ee2dd41486f50bbafe1bc1fb808d3b185",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T08:33:00Z",
+  "completed_at": "2026-08-11T08:40:20Z",
+  "source_git_commit": "f6f301e88bce9e3e0d91e8aed1e86c3b5a11f6ab",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "V10_HEARTBEAT_LIVENESS_DECOUPLING_READY. The frozen V9 caller requires initial cross-task Coach delivery and verified readback before the sole normally due heartbeat. The supplied 2026-08-11 trace proves those platform capabilities were unavailable and the empty-receipt heartbeat attempt was rejected before reaching the server, leaving canonical progress due despite otherwise ready Worker, policy, V9 attestation and queues. Static code proves the server and Worker already accept an empty receipt list: no receipt removes no pending event, existing delivery ids and immutable queued/deadline timestamps remain unchanged, and canonical status continues to expose truthful PENDING_WITHIN_SLA or BREACH_PENDING_DELIVERY_PROOF state. Delivery verification can therefore be decoupled from heartbeat liveness without weakening attestation, due-time, queue, evidence, candidate, OOS, deduplication, receipt or Trading gates. The minimum successor is a versioned V10 caller/attestation slice: when delivery capability is unavailable, send zero receipts, report delivery debt, and invoke at most the otherwise-valid normally due heartbeat. Immediate PnL and drawdown effects are zero. The benefit is limited to prospective evidence continuity and reduced learning latency; predictive and economic value remain MISSING_PROOF. This result is NON_COUNTING.",
+  "checks": [
+    {
+      "name": "SOURCE_TASK_DISPATCH_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched f6f301e88bce9e3e0d91e8aed1e86c3b5a11f6ab with a clean worktree. Task and dispatch hashes matched exactly. All 12 non-null repository inputs were unique regular non-reparse files with exact hashes. The 12-stop canonical array matched SHA-256 5b662e6841c4980985e8bbb949f134f535223aeead46ac498df6078d05dd8356."
+    },
+    {
+      "name": "EXECUTABLE_TASK_DISPATCH_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "The Local environment had no callable Python executable, so repository semantic validators were not executed. Native read-only JSON parsing, exact hashes, dispatch task binding, decision-contract values and stop-condition closure passed. Manager retains authoritative post-return validation."
+    },
+    {
+      "name": "V9_LIVENESS_FAILURE_TRACE",
+      "status": "PASS",
+      "evidence": "V9 cycle order requires exact Coach task resolution, preflight read, delivery and post-send readback before the normally due heartbeat. The supplied occurrence had no list/read/send capability, zero verified receipts and a platform-side rejection before any server request id or mutation. Canonical heartbeat remained due, demonstrating delivery-capability coupling can halt the sole progress clock."
+    },
+    {
+      "name": "EMPTY_RECEIPT_AND_PENDING_DURABILITY_PROOF",
+      "status": "PASS",
+      "evidence": "research_mcp.server makes coach_delivery_receipts optional. research_mcp.queue normalizes None to [], validates the canonical outbox and creates a valid hashed payload containing an empty list. research_pipeline.heartbeat also normalizes absent receipts to []; _advance_coach_delivery removes pending entries only for exact verified receipts. With zero receipts it retains every pending event, delivery id, delivery_queued_at and delivery_deadline_at."
+    },
+    {
+      "name": "TRUTHFUL_SLA_STATE_PROOF",
+      "status": "PASS",
+      "evidence": "Canonical outbox status derives PENDING_WITHIN_SLA through the deadline and BREACH_PENDING_DELIVERY_PROOF afterward from retained timestamps. Receipt acceptance alone freezes acknowledgement time, integer lead time and PASS or BREACH. No-receipt execution cannot claim delivery or reset timing."
+    },
+    {
+      "name": "DELIVERY_AND_HEARTBEAT_CAUSAL_COUPLING_ASSESSMENT",
+      "status": "PASS",
+      "evidence": "The coupling is caller-side rather than a scientific or canonical-state dependency. Server and Worker heartbeat semantics support empty receipts while preserving delivery debt. Invalid outbox integrity, incorrect V9 attestation, not-due time, active queue conflicts, evidence integrity and candidate gates remain independently fail-closed."
+    },
+    {
+      "name": "SINGLE_CLOCK_REMEDIATION_MATRIX",
+      "status": "PASS",
+      "evidence": "KEEP_V9_STRICT fails research-progress liveness when cross-task tools are absent. SAME_CHAT_MIGRATION is unavailable under the supplied destination evidence and would not preserve the requested separate Ops/Coach roles. SERVER_OR_EXTERNAL_DELIVERY would add a delivery path, messenger, authority or operating surface forbidden by the task. A VERSIONED_LIVENESS_DECOUPLED_SUCCESSOR preserves one schedule, one canonical writer, durable events and false-ack prevention while allowing one due heartbeat with zero receipts."
+    },
+    {
+      "name": "MINIMUM_VERSIONED_SUCCESSOR_RECOMMENDATION",
+      "status": "PASS",
+      "evidence": "One bounded V10 slice should add research_pipeline/cloud-ops-schedule-contract.v10.json and update research_pipeline/prompts/daily-research-tick.md, research_mcp/queue.py, research_pipeline/tests/test_cloud_ops_cross_task_delivery_contract.py, research_mcp/tests/test_queue.py, research_mcp/tests/test_server_contract.py, docs/autonomous-research-charter.md and docs/server-research-worker-v2.md. V9 remains immutable. heartbeat.py and server.py require no semantic change because empty-list and durability behavior already exist."
+    },
+    {
+      "name": "NO_FALSE_ACK_AND_EVENT_RETENTION_GATES",
+      "status": "PASS",
+      "evidence": "The successor must permit fallback only when the heartbeat is normally due and delivery capability yields no verified receipt. It must send [], retain all canonical pending events and original timestamps, expose delivery debt, reject unknown or unverified receipts, preserve exact token and target matching, and never claim user or Coach receipt without exact readback."
+    },
+    {
+      "name": "LIVE_ACCEPTANCE_PLAN",
+      "status": "PASS",
+      "evidence": "Manager must first validate V10 bytes, tests, embedded server attestation and immutable V9 history. Cutover must pause the exact V9 schedule, prove zero active schedules, deploy and verify V10 attestation, update the same schedule in place, then prove exactly one active recurrence. One future normal occurrence must prove at most one heartbeat request, empty-receipt acceptance when delivery tools are unavailable, no added timer, unchanged pending ids/timestamps, truthful SLA debt, lawful R1/R2 advancement and no Trading or candidate action unless separately evidence-ready."
+    },
+    {
+      "name": "RESEARCH_LATENCY_AND_OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "Strict V9 coupling can repeatedly miss prospective evidence days and delay R1/R2 falsification even when scientific and server integrity gates pass. The bounded successor has zero immediate fee-adjusted PnL or drawdown effect and consumes no candidate budget. Quantified learning-latency reduction and economic value remain MISSING_PROOF."
+    },
+    {
+      "name": "MISSING_PROOF_REGISTER",
+      "status": "PASS",
+      "evidence": "Future unattended cross-task capability, platform acceptance of the V10 fallback, deployed V10 attestation, exact one-active-schedule cutover, live empty-receipt heartbeat success, lawful R1/R2 advancement, event delivery/readback, terminal SLA result and economic value remain unproven."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No network, server, schedule, thread, message, heartbeat, candidate, runner, file, Git or state mutation occurred. No timer, writer, V10 bytes, hypothesis, OOS action, paid API or Trading/DB/orders/funds/SHADOW/PAPER/LIVE action was created or invoked."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "V10_HEARTBEAT_LIVENESS_DECOUPLING_READY is supported because missing delivery capability can map deterministically to zero receipts, retained canonical delivery debt and one otherwise-valid due heartbeat without weakening independent integrity or scientific gates."
+    }
+  ],
+  "uncertainty": [
+    "MISSING_PROOF: repository semantic task, dispatch and result validation in the Local environment because Python was unavailable.",
+    "MISSING_PROOF: future unattended availability of exact Coach task list/read/send capabilities.",
+    "MISSING_PROOF: whether the platform safety layer will accept a separately frozen V10 empty-receipt path.",
+    "MISSING_PROOF: deployed V10 Worker attestation and exact in-place one-active-schedule cutover.",
+    "MISSING_PROOF: one live normal occurrence preserving pending delivery debt while lawfully advancing R1/R2.",
+    "MISSING_PROOF: future verified Coach delivery, readback receipt acceptance and terminal PASS or BREACH.",
+    "MISSING_PROOF: predictive value, economic value, fee-adjusted PnL and drawdown improvement."
+  ],
+  "recommended_next_action": "Manager should freeze one bounded V10 WORKTREE_WRITE contract slice with the eight named likely files. Its sole responsibility is to preserve all V9 scientific, attestation, queue, receipt and single-authority gates while allowing an otherwise-valid normally due heartbeat to proceed with coach_delivery_receipts=[] when exact Coach delivery capability is unavailable, leaving every event durably pending and truthfully reported as delivery debt. Stop after offline contract, queue and prompt tests; deployment and in-place schedule cutover require a separately validated acceptance step.",
+  "artifacts": [],
+  "files_changed": [],
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-mempool-fee-state-point-in-time-proof-v1",
+  "task_sha256": "f5aa271f043a740db95f1ac6ca6f374a04dfaceae6e9faba56a903d0123c3c6d",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-11T08:10:00Z",
+  "completed_at": "2026-08-11T08:24:42Z",
+  "source_git_commit": "e94f3d35bee128685065bfd2612e691e00b88f84",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "MEMPOOL_POINT_IN_TIME_PROOF_INSUFFICIENT_WAIT. Official versioned mempool source proves an open-source, credential-free current fee-state surface with identifiable routes, payload fields, units, configurable polling and an unsynchronized-service failure state. It does not prove a source observation timestamp, immutable snapshot identity, hosted refresh or revision guarantees, retention or replay semantics, continuity guarantees, payload-data reuse rights, or a versioned schema-drift protocol. A Manager receipt timestamp cannot be substituted for the absent source observation clock. The evidence therefore cannot yet support a causally sealed point-in-time source contract. CFTC priority, historical deduplication, R1/R2 isolation, the sole Cloud Ops clock and Server Canonical sole-writer authority remain unchanged. Immediate PnL and drawdown effects are zero; predictive and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_AND_DISPATCH_VALIDATION",
+      "status": "PASS",
+      "evidence": "Exact task SHA-256 f5aa271f043a740db95f1ac6ca6f374a04dfaceae6e9faba56a903d0123c3c6d and dispatch SHA-256 247c836c8b2eae90f3c055e5836e992f58ae92034553661f5fb971f085ed16dc were rehashed; repository task and transitive dispatch validators returned VALID."
+    },
+    {
+      "name": "SOURCE_IDENTITY_AND_CLEANLINESS",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all resolved to e94f3d35bee128685065bfd2612e691e00b88f84; worktree was clean before and after analysis."
+    },
+    {
+      "name": "INPUT_AND_STOP_CONDITION_CLOSURE",
+      "status": "PASS",
+      "evidence": "All seven non-null repository inputs were unique, contained regular non-reparse files with exact frozen hashes. The 14 canonical stop conditions hashed to 3df48af78982e209229410771d07d64159cf641ac385f640e793539e50e5090c."
+    },
+    {
+      "name": "OFFICIAL_SOURCE_ARTIFACT_MATRIX",
+      "status": "PASS",
+      "evidence": "Only first-party versioned artifacts were used: the [official mempool repository](https://github.com/mempool/mempool), [software license](https://github.com/mempool/mempool/blob/master/LICENSE), [fee implementation](https://github.com/mempool/mempool/blob/master/backend/src/api/fee-api.ts), [route definitions](https://github.com/mempool/mempool/blob/master/backend/src/api/bitcoin/bitcoin.routes.ts), [payload interfaces](https://github.com/mempool/mempool/blob/master/backend/src/mempool.interfaces.ts), [configuration](https://github.com/mempool/mempool/blob/master/backend/src/config.ts) and [mempool state implementation](https://github.com/mempool/mempool/blob/master/backend/src/api/mempool.ts). No endpoint or dataset was called."
+    },
+    {
+      "name": "POINT_IN_TIME_FIELD_AND_CLOCK_CONTRACT_ASSESSMENT",
+      "status": "MISSING_PROOF",
+      "evidence": "The official fee source defines the recommended-fee field family and projected-block structural fields and derives fee-rate outputs from current cached state. The returned fee payload has no source observation timestamp, sequence, immutable snapshot identifier or explicit as-of clock. A downstream received_at value would prove receipt only, not when the source state was observed."
+    },
+    {
+      "name": "REVISION_RETENTION_AND_REPLAY_ASSESSMENT",
+      "status": "MISSING_PROOF",
+      "evidence": "First-party source establishes mutable current-state computation and configurable polling, but no versioned contract was found for hosted refresh cadence, retrospective revision, historical retention, replay, or reconstruction of an earlier response."
+    },
+    {
+      "name": "CONTINUITY_GAP_AND_SCHEMA_DRIFT_ASSESSMENT",
+      "status": "MISSING_PROOF",
+      "evidence": "The route fails closed when the mempool is not synchronized, which is useful absence evidence. The listed official artifacts do not establish end-to-end continuity, missed-snapshot recovery, hosted availability, immutable response schemas, or a versioned schema-drift notification contract."
+    },
+    {
+      "name": "PROVENANCE_LICENSE_AND_CREDENTIAL_ASSESSMENT",
+      "status": "MISSING_PROOF",
+      "evidence": "Repository provenance and AGPL-3.0-or-later software licensing are explicit, and the inspected GET route has no source-level credential middleware. The software license does not itself establish reuse rights for hosted response data, and no frozen hosted access or continuity commitment was proven."
+    },
+    {
+      "name": "SINGLE_CLOCK_ARCHITECTURE_AND_OPERATING_COST_ASSESSMENT",
+      "status": "MISSING_PROOF",
+      "evidence": "A future bounded fetch could be invoked by the existing sole Cloud Ops cycle and sealed with request and receipt clocks, but that would not repair the missing source observation clock. Self-hosting is technically documented but would add node, database and operational burden that has not been justified by predictive or economic evidence."
+    },
+    {
+      "name": "PRIORITY_AND_DEDUPLICATION_GUARDS",
+      "status": "PASS",
+      "evidence": "The sealed repository inputs preserve CFTC as the public-source priority and retain the historical mechanism-deduplication guard. No R1, R2, CFTC, carry or post-shock contract was replaced, ranked by outcome, or recomputed."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_CLAIM_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No market value, historical observation, factor, return, PnL or drawdown was retrieved or calculated. Immediate PnL and drawdown effects are zero; causality, predictive value and economic value remain MISSING_PROOF."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No live endpoint, repository clone, dataset download, mempool execution, third-party evidence, file or state write, source activation, hypothesis, candidate, OOS action, Research MCP write, clock change, canonical mutation or Trading action occurred."
+    },
+    {
+      "name": "MEMPOOL_SOURCE_DISPOSITION",
+      "status": "PASS",
+      "evidence": "MEMPOOL_POINT_IN_TIME_PROOF_INSUFFICIENT_WAIT follows because the source is not proven intrinsically unsuitable, but the exact point-in-time and continuity contract required for safe integration is absent from the permitted official evidence."
+    }
+  ],
+  "uncertainty": [
+    "MISSING_PROOF: source-produced observation timestamp or immutable snapshot identity.",
+    "MISSING_PROOF: hosted refresh cadence, revision policy, retention and replay behavior.",
+    "MISSING_PROOF: continuity guarantees, missed-snapshot recovery and versioned schema-drift handling.",
+    "MISSING_PROOF: hosted response-data reuse rights and long-term credential-free access.",
+    "MISSING_PROOF: predictive usefulness, causality, incremental value, PnL and drawdown effects.",
+    "MISSING_PROOF: operating-cost justification for any self-hosted alternative."
+  ],
+  "recommended_next_action": "Freeze one later READ_ONLY proof task limited to an official versioned mempool API or source-contract artifact that explicitly binds response observation-time semantics, immutable snapshot or sequence identity, schema version, refresh and revision behavior, retention or explicit non-retention, continuity and gap states, and hosted payload reuse and credential terms. Preserve CFTC priority and do not implement or activate a source unless that proof closes.",
+  "artifacts": [],
+  "files_changed": [],
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

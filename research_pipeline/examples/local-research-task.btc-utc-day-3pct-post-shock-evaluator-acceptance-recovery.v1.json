@@ -1,0 +1,162 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-utc-day-3pct-post-shock-evaluator-acceptance-recovery-v1",
+  "issued_at": "2026-08-11T02:05:07Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "CAPABILITY_READINESS",
+  "execution_mode": "READ_ONLY",
+  "objective": "Recover the missing Manager acceptance evidence for the already frozen and implemented BTC complete-UTC-day absolute 3% post-shock continuation/reversal evaluator. Independently prove or reject that implementation commit 60cb48c6592b9a87f655c9efc51dc67454849ba6 is the exact four-path child of frozen task commit 17855889a632f9726c82b3568bbe8a8d5479e11e, that the current four implementation paths remain byte-equivalent to that commit, and that the original task, dispatch, schemas, deterministic tests, heartbeat child placement, fail-closed integrity checks, breadth/concentration gates and immutable one-shot terminal semantics still satisfy the frozen contract. This is acceptance recovery only: do not edit code, recompute performance, access real outcomes, claim canonical activation, create a new capability family, or reinterpret any strategy evidence.",
+  "canonical_research_status": "WAITING;V9_ONE_CLOCK;WORKER_60CB48C6;R1_LAG_1;R2_0_OF_14;IDLE;ACTIVATION_MISSING_PROOF",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "902e6950c5312a8ee8a87739e6bfaa69e67e84b9a8710055d8605a016c52d3b8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "60c43c13fe3d10ba0bd1beb01c7076f518fde0452373d47ac0ef85bf3722990c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-task.schema.json",
+      "sha256": "bcb72265dfffcea0ba52a7c200d1c499b2cab112251049f4f5e7f8acc4ab79cf"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-dispatch.schema.json",
+      "sha256": "05e83891222afba5c526afc1de668c0f24e6e3872a224627dd773d665bf1e435"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.btc-utc-day-3pct-post-shock-evaluator-vertical-slice.v1.json",
+      "sha256": "32437994e0b9ccc2c1e8475b871bf491ac979f82dc0960f4485702febafb5b9a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-dispatch.btc-utc-day-3pct-post-shock-evaluator-vertical-slice.v1.json",
+      "sha256": "5adc26c558abe8e522b3770f45b7b1afaab3693ce553b3b5b08445cb4dc03c76"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/btc-utc-day-3pct-post-shock-factor-result.v1.schema.json",
+      "sha256": "8f41ecce6cf5820ee28404fef9bcefac4db1d42771ed01586752488142c6b317"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/post_shock_factor.py",
+      "sha256": "61535e047a16ba2e20b25c9198a73ded6b3ee4c44596a9f08fd50347f442e4a4"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/heartbeat.py",
+      "sha256": "85f1fe11fb6460e405b48a399adbafa4830bac394058c26171b1f999ad5d7e8a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_post_shock_factor.py",
+      "sha256": "63064aad62ab8deae947b9bfa971e06c8b6ba2d871b3f9987c1e7b052e21d501"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_shock_attribution.py",
+      "sha256": "8932d884f9d63336cef14e35148d64f609bc802fc168ef0a901bc2601fdacfff"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-11T02:00:03Z; policy READY V3; Worker READY release 20260810T102444Z with source commit 60cb48c6592b9a87f655c9efc51dc67454849ba6 clean and source verified; CLOUD_OPS_SCHEDULE_V9 READY with exactly one 09:05 Asia/Taipei recurrence; R1 4/90 expected 5 lag 1; R2 WAITING_FOR_DAY 0/14 for 2026-08-11; queues IDLE; no active experiment or candidate; post-shock canonical activation remains MISSING_PROOF because no successful post-deployment heartbeat is supplied",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Exact Git proof target: frozen commit 17855889a632f9726c82b3568bbe8a8d5479e11e adds only the original task and dispatch. Implementation commit 60cb48c6592b9a87f655c9efc51dc67454849ba6 has that frozen commit as its sole parent and changes only research_pipeline/btc-utc-day-3pct-post-shock-factor-result.v1.schema.json, research_pipeline/post_shock_factor.py, research_pipeline/heartbeat.py, and research_pipeline/tests/test_post_shock_factor.py. Verify exact objects directly; do not trust this message alone.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "This recovery audit is nested within duplicate family btc-utc-day-3pct-post-shock and is preclassified NON_COUNTING. A positive result closes missing acceptance traceability for the named evaluator but is not a new mechanism conclusion, capability family, alpha result, candidate, OOS result, deployment activation, or performance improvement.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_LOCAL_INPUT_HASHES",
+    "INSPECT_EXACT_GIT_OBJECTS_AND_PARENTS",
+    "COMPARE_CURRENT_IMPLEMENTATION_BYTES_TO_ACCEPTED_COMMIT",
+    "VALIDATE_ORIGINAL_TASK_AND_DISPATCH",
+    "AUDIT_CLOSED_RESULT_SCHEMA",
+    "AUDIT_HEARTBEAT_CHILD_ORDERING_AND_IDEMPOTENCY",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_PYTHON_COMPILE_CHECK",
+    "RUN_FORBIDDEN_ACTION_SCAN",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS",
+    "ASSESS_ACCEPTANCE_TRACEABILITY_AND_PROOF_BOUNDARY"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_REAL_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_CANDIDATE_OR_MANIFEST_AUTHORING",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "NETWORK_SERVER_SSH_OR_RESEARCH_MCP_ACCESS",
+    "HEARTBEAT_OR_SCHEDULE_EXECUTION",
+    "DEPLOYMENT_OR_SERVICE_RESTART",
+    "CODE_SCHEMA_TEST_OR_DOCUMENT_EDIT",
+    "CLOSED_BRANCH_REOPEN_OR_PARAMETER_TUNING",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET"
+  ],
+  "expected_outputs": [
+    "TERMINAL_ACCEPTANCE_RECOVERY_DISPOSITION",
+    "ORIGINAL_TASK_AND_DISPATCH_VALIDATION",
+    "EXACT_GIT_PARENT_AND_FOUR_PATH_PROOF",
+    "CURRENT_BYTE_EQUIVALENCE_PROOF",
+    "CLOSED_SCHEMA_AND_FORMULA_PROOF",
+    "BREADTH_CONCENTRATION_AND_TERMINAL_GATE_PROOF",
+    "HEARTBEAT_ORDERING_IDEMPOTENCY_AND_STATE_PRESERVATION_PROOF",
+    "FOCUSED_OFFLINE_TEST_EVIDENCE",
+    "DEPLOYMENT_SOURCE_VERSUS_CANONICAL_ACTIVATION_BOUNDARY",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and re-hash every non-null local input before analysis. Any mismatch, missing input, link, reparse point, duplicate locator, wrong type, dirty worktree, or HEAD/origin drift is BLOCKED and MISSING_PROOF.",
+    "Inspect exact Git objects. Require commit 17855889a632f9726c82b3568bbe8a8d5479e11e to add only the named original task and dispatch; require commit 60cb48c6592b9a87f655c9efc51dc67454849ba6 to have that commit as sole parent and to change exactly the four named implementation paths. Any mismatch rejects acceptance.",
+    "Validate the original task and dispatch with the authoritative local validators and require task SHA-256 32437994e0b9ccc2c1e8475b871bf491ac979f82dc0960f4485702febafb5b9a and dispatch SHA-256 5adc26c558abe8e522b3770f45b7b1afaab3693ce553b3b5b08445cb4dc03c76.",
+    "Require the current versions of all four implementation paths to be byte-equivalent to implementation commit 60cb48c6592b9a87f655c9efc51dc67454849ba6. Do not repair drift or infer equivalence from filenames, line counts, commit messages, deployment metadata, or passing tests alone.",
+    "Audit the current closed Draft 2020-12 result schema and pure evaluator against the frozen signed-response formulas, h24 primary and h1/h6 diagnostic horizon roles, hash/chain/timing/gap checks, breadth and concentration gates, mutually exclusive WAIT/CONTINUATION/REVERSAL/NO_FACTOR dispositions, create-only snapshots and one-shot terminal semantics. Do not alter or relax any gate.",
+    "Audit the seven-line heartbeat integration only for frozen placement after seal_r1_shock_diagnostics and before event sorting and Coach advancement, shared Server Canonical writer reuse, idempotent waiting behavior, and preservation of R1/R2 state. Do not run a heartbeat or inspect canonical files.",
+    "Run Python compile checks on the schema consumer and three Python implementation/test paths, then run exactly the focused unittest modules research_pipeline.tests.test_post_shock_factor and research_pipeline.tests.test_shock_attribution. Any failure rejects acceptance; do not substitute, skip, xfail, or edit a test.",
+    "Scan the four implementation paths and exact implementation diff for any Trading, DB, order, fund, SHADOW, PAPER, LIVE, external network, paid API, second timer/writer, Spring, Maven, deployment, canonical mutation outside the existing ResearchStore child, or runtime strategy activation path. Any such action rejects acceptance.",
+    "Treat the supplied Worker source commit as deployment-source provenance only. A successful post-deployment heartbeat, canonical post-shock activation, first eligible episode, predictive value, statistical significance, fee-adjusted PnL, drawdown, annual/regime breadth, costs, capacity, candidate/OOS readiness and Trading value all remain MISSING_PROOF.",
+    "Return exactly one of POST_SHOCK_EVALUATOR_ACCEPTANCE_RECOVERED, POST_SHOCK_EVALUATOR_ACCEPTANCE_REJECTED, or POST_SHOCK_EVALUATOR_ACCEPTANCE_MISSING_PROOF. Positive recovery requires every offline acceptance check above; missing deployment activation alone does not reject offline acceptance.",
+    "Make no file changes. Return exactly one schema-valid local-research-result JSON bound to this exact task SHA with empty files_changed and artifacts, source_git_dirty_before=false, source_git_dirty_after=false, all safety assertions false, zero immediate PnL/drawdown effect, concrete test counts and the complete MISSING_PROOF boundary."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

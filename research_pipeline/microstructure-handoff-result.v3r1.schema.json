@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agora-research:microstructure-handoff-result:v1",
+  "title": "Microstructure V3 Create-Only Handoff Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "result_type",
+    "authorization",
+    "task_id",
+    "task_sha256",
+    "input_manifest",
+    "canonical_state",
+    "diagnostic_contract",
+    "diagnostic_payload_hashes",
+    "diagnostic_result",
+    "inference_boundaries",
+    "seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "result_type": {"const": "MICROSTRUCTURE_V3_CREATE_ONLY_HANDOFF_RESULT"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "task_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "task_sha256": {"$ref": "#/$defs/sha256"},
+    "input_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relative_name", "sha256", "payload_sha256"],
+      "properties": {
+        "relative_name": {"const": "handoff-manifest.json"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "canonical_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relative_name", "sha256", "diagnostic_id", "chain_head_sha256"],
+      "properties": {
+        "relative_name": {"type": "string", "pattern": "^canonical/[a-z0-9][a-z0-9._-]{0,127}\\.json$"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "diagnostic_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"},
+        "chain_head_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "diagnostic_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "sha256"],
+      "properties": {
+        "contract_id": {"const": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "diagnostic_payload_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["payload_sha256", "canonical_document_sha256"],
+      "properties": {
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonical_document_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "diagnostic_result": {"$ref": "#/$defs/diagnostic_result"},
+    "inference_boundaries": {"$ref": "#/$defs/inference_boundaries"},
+    "seal": {"$ref": "#/$defs/seal"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "day": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"},
+    "decimal": {"type": "string", "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+    "nullable_decimal": {"oneOf": [{"$ref": "#/$defs/decimal"}, {"type": "null"}]},
+    "inference_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_state_write_authorized",
+        "candidate_authorized",
+        "discovery_only",
+        "oos_authorized",
+        "pnl_inference_authorized",
+        "trading_action_authorized"
+      ],
+      "properties": {
+        "canonical_state_write_authorized": {"const": false},
+        "candidate_authorized": {"const": false},
+        "discovery_only": {"const": true},
+        "oos_authorized": {"const": false},
+        "pnl_inference_authorized": {"const": false},
+        "trading_action_authorized": {"const": false}
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically"}
+      }
+    },
+    "response_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["return_bps", "mfe_bps", "mae_bps"],
+      "properties": {
+        "return_bps": {"$ref": "#/$defs/decimal"},
+        "mfe_bps": {"$ref": "#/$defs/decimal"},
+        "mae_bps": {"$ref": "#/$defs/decimal"}
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["5", "15", "60", "240", "1440"],
+      "properties": {
+        "5": {"$ref": "#/$defs/response_metrics"},
+        "15": {"$ref": "#/$defs/response_metrics"},
+        "60": {"$ref": "#/$defs/response_metrics"},
+        "240": {"$ref": "#/$defs/response_metrics"},
+        "1440": {"$ref": "#/$defs/response_metrics"}
+      }
+    },
+    "matched_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signal_at", "entry_at", "midline_buy_sell_ratio", "response"],
+      "properties": {
+        "signal_at": {"$ref": "#/$defs/timestamp"},
+        "entry_at": {"$ref": "#/$defs/timestamp"},
+        "midline_buy_sell_ratio": {"$ref": "#/$defs/decimal"},
+        "response": {"$ref": "#/$defs/response"}
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signal_at", "entry_at", "entry_open_price", "midline_buy_sell_ratio", "response", "matched_control"],
+      "properties": {
+        "signal_at": {"$ref": "#/$defs/timestamp"},
+        "entry_at": {"$ref": "#/$defs/timestamp"},
+        "entry_open_price": {"$ref": "#/$defs/decimal"},
+        "midline_buy_sell_ratio": {"$ref": "#/$defs/decimal"},
+        "response": {"$ref": "#/$defs/response"},
+        "matched_control": {"oneOf": [{"$ref": "#/$defs/matched_control"}, {"type": "null"}]}
+      }
+    },
+    "aggregate_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["median_return_bps", "median_mfe_bps", "median_mae_bps", "positive_return_share_pct", "matched_median_return_delta_bps"],
+      "properties": {
+        "median_return_bps": {"$ref": "#/$defs/nullable_decimal"},
+        "median_mfe_bps": {"$ref": "#/$defs/nullable_decimal"},
+        "median_mae_bps": {"$ref": "#/$defs/nullable_decimal"},
+        "positive_return_share_pct": {"$ref": "#/$defs/nullable_decimal"},
+        "matched_median_return_delta_bps": {"$ref": "#/$defs/nullable_decimal"}
+      }
+    },
+    "horizon_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["5", "15", "60", "240", "1440"],
+      "properties": {
+        "5": {"$ref": "#/$defs/aggregate_metrics"},
+        "15": {"$ref": "#/$defs/aggregate_metrics"},
+        "60": {"$ref": "#/$defs/aggregate_metrics"},
+        "240": {"$ref": "#/$defs/aggregate_metrics"},
+        "1440": {"$ref": "#/$defs/aggregate_metrics"}
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_30_events", "minimum_10_events_first_seven_days", "minimum_10_events_second_seven_days", "minimum_80_pct_matched_controls"],
+      "properties": {
+        "minimum_30_events": {"type": "boolean"},
+        "minimum_10_events_first_seven_days": {"type": "boolean"},
+        "minimum_10_events_second_seven_days": {"type": "boolean"},
+        "minimum_80_pct_matched_controls": {"type": "boolean"}
+      }
+    },
+    "tier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_count", "first_seven_day_event_count", "second_seven_day_event_count", "matched_control_count", "matched_control_coverage_pct", "overlapping_1440m_event_pair_count", "gates", "gate_status", "metrics_by_horizon_minutes", "events"],
+      "properties": {
+        "event_count": {"type": "integer", "minimum": 0},
+        "first_seven_day_event_count": {"type": "integer", "minimum": 0},
+        "second_seven_day_event_count": {"type": "integer", "minimum": 0},
+        "matched_control_count": {"type": "integer", "minimum": 0},
+        "matched_control_coverage_pct": {"$ref": "#/$defs/decimal"},
+        "overlapping_1440m_event_pair_count": {"type": "integer", "minimum": 0},
+        "gates": {"$ref": "#/$defs/gates"},
+        "gate_status": {"enum": ["PASS", "INSUFFICIENT_FORWARD_EVIDENCE"]},
+        "metrics_by_horizon_minutes": {"$ref": "#/$defs/horizon_metrics"},
+        "events": {"type": "array", "items": {"$ref": "#/$defs/event"}}
+      }
+    },
+    "diagnostic_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "day", "payload_sha256", "file_sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^days/[0-9]{4}-[0-9]{2}-[0-9]{2}/okx-btc-usdt-microstructure-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.json$"},
+        "day": {"$ref": "#/$defs/day"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "file_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "diagnostic_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "contract_id", "contract_file_sha256", "authorization", "status", "input", "entry_reference", "fees_and_slippage", "tiers", "inference_boundary", "seal"],
+      "properties": {
+        "schema_version": {"const": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_RESULT_V3"},
+        "contract_id": {"const": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3"},
+        "contract_file_sha256": {"$ref": "#/$defs/sha256"},
+        "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+        "status": {"enum": ["FORWARD_DIAGNOSTIC_READY_FOR_INTERPRETATION", "INSUFFICIENT_FORWARD_EVIDENCE"]},
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["first_day", "last_day", "complete_utc_days", "complete_minutes", "files"],
+          "properties": {
+            "first_day": {"$ref": "#/$defs/day"},
+            "last_day": {"$ref": "#/$defs/day"},
+            "complete_utc_days": {"const": 14},
+            "complete_minutes": {"const": 20160},
+            "files": {"type": "array", "minItems": 14, "maxItems": 14, "items": {"$ref": "#/$defs/diagnostic_file"}}
+          }
+        },
+        "entry_reference": {"const": "NEXT_COMPLETE_MINUTE_OPEN"},
+        "fees_and_slippage": {"const": "NOT_APPLIED_DIAGNOSTIC_NOT_PNL"},
+        "tiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["MIDLINE_RATIO_1_5_ONLY", "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY", "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT"],
+          "properties": {
+            "MIDLINE_RATIO_1_5_ONLY": {"$ref": "#/$defs/tier"},
+            "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY": {"$ref": "#/$defs/tier"},
+            "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT": {"$ref": "#/$defs/tier"}
+          }
+        },
+        "inference_boundary": {
+          "const": [
+            "result_is_hypothesis_discovery_only",
+            "result_is_not_candidate_or_oos_evidence",
+            "result_is_not_a_trading_strategy_or_order_instruction",
+            "no_tier_selection_or_threshold_change_after_outcome_access",
+            "insufficient_evidence_is_a_valid_result"
+          ]
+        },
+        "seal": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "payload_sha256", "canonicalization"],
+          "properties": {
+            "algorithm": {"const": "SHA-256"},
+            "payload_sha256": {"$ref": "#/$defs/sha256"},
+            "canonicalization": {"const": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically"}
+          }
+        }
+      }
+    }
+  }
+}

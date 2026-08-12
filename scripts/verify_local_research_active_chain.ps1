@@ -9,47 +9,48 @@ $python = Get-Command python -ErrorAction Stop
 
 $activeTasks = @(
     [ordered]@{
-        path = "research_pipeline/examples/local-research-task.microstructure-v3-evidence-diagnostic.v1.json"
-        task_id = "local-node-microstructure-v3-evidence-diagnostic-v1"
-        sha256 = "d50e41e5fe98e76c1ff9930baeb89ba357040dd70b2cfdd51656edbc8c03ad86"
+        path = "research_pipeline/examples/local-research-task.microstructure-v3r1-evidence-diagnostic.v1.json"
+        task_id = "local-node-microstructure-v3r1-evidence-diagnostic-v1"
+        sha256 = "7c18f791996ddd1b55ba43ee0a2e194284574155d4b4e536e857e56a83a8596b"
     },
     [ordered]@{
-        path = "research_pipeline/examples/local-research-task.microstructure-v3-handoff-transfer.v3.json"
-        task_id = "local-node-microstructure-v3-handoff-transfer-v3"
-        sha256 = "1147fa58e09eb74e4ed58a2c88c9a3c5bc58a76e30083635f2fdd94a9b30a2a2"
+        path = "research_pipeline/examples/local-research-task.microstructure-v3r1-handoff-transfer.v1.json"
+        task_id = "local-node-microstructure-v3r1-handoff-transfer-v1"
+        sha256 = "81affa9f98b436820209d15eed334663c441efd64de73a65abd5caa2975ed2b0"
     },
     [ordered]@{
-        path = "research_pipeline/examples/local-research-task.microstructure-v3-interpretation-runner.v2.json"
-        task_id = "local-node-microstructure-v3-interpretation-runner-v2"
-        sha256 = "0607f48c3542dbbb2f662f401998904c483f6d60e453c7ba6fea9a9eebf9155f"
-    },
-    [ordered]@{
-        path = "research_pipeline/examples/local-research-task.microstructure-v3-hypothesis-design-runner.v3.json"
-        task_id = "local-node-microstructure-v3-hypothesis-design-runner-v3"
-        sha256 = "0dee2f121f549b2cecddc0342c07ff7ed368791362af9db665e0811cf3fe2725"
-    },
-    [ordered]@{
-        path = "research_pipeline/examples/local-research-task.microstructure-positive-route-design-runner.v4.json"
-        task_id = "local-node-microstructure-positive-route-design-runner-v4"
-        sha256 = "b9ec0f752b412473942b4f1dae06cae61770087d4d5f131c6ccded5291c9779b"
+        path = "research_pipeline/examples/local-research-task.microstructure-v3r1-interpretation-runner.v1.json"
+        task_id = "local-node-microstructure-v3r1-interpretation-runner-v1"
+        sha256 = "bf022e30e429c3859c80aead880fc71f6e84a3c3598421ddf3aa289127334a77"
     }
 )
 
 $diagnosticDispatch = [ordered]@{
-    path = "research_pipeline/examples/local-research-dispatch.microstructure-v3-evidence-diagnostic.v1.json"
-    dispatch_id = "manager-microstructure-v3-evidence-diagnostic-v1"
-    sha256 = "faf705ca7ca4c61b183d2b5533c80c344ae551bed4197de7fd7a6327a8e32a5f"
+    path = "research_pipeline/examples/local-research-dispatch.microstructure-v3r1-evidence-diagnostic.v1.json"
+    dispatch_id = "manager-microstructure-v3r1-evidence-diagnostic-v1"
+    sha256 = "d7ae36ffdce69f169cc88a12340ed9fbbcc62e663a5cb0a0f81070fbec0a58f0"
     task_path = $activeTasks[0].path
+}
+
+$expectedAuthority = [ordered]@{
+    exporter_task_path = "/etc/agora-research/local-tasks/microstructure-v3r1-evidence-diagnostic.v1.json"
+    exporter_final_root = "/var/lib/agora-research/microstructure-v3r1-handoff-export"
+    manifest_type = "MICROSTRUCTURE_DISCOVERY_V3R1_CREATE_ONLY_HANDOFF_MANIFEST"
+    manifest_schema_sha256 = "eef8749db62179482404dee510d6dfefd4b386c5960d98da1bc8b096e85c4617"
+    diagnostic_task_id = $activeTasks[0].task_id
+    diagnostic_task_sha256 = $activeTasks[0].sha256
+    transfer_task_id = $activeTasks[1].task_id
+    transfer_task_sha256 = $activeTasks[1].sha256
+    interpretation_task_id = $activeTasks[2].task_id
+    interpretation_task_sha256 = $activeTasks[2].sha256
+    pull_script_sha256 = "42e0e60a7510c39186d675757662e75290919bdb86066e3b510062f2b8a22f63"
 }
 
 function Invoke-JsonValidation {
     param(
-        [Parameter(Mandatory = $true)]
-        [string[]]$Arguments,
-        [Parameter(Mandatory = $true)]
-        [string]$Description
+        [Parameter(Mandatory = $true)][string[]]$Arguments,
+        [Parameter(Mandatory = $true)][string]$Description
     )
-
     $output = & $python.Source @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "$Description failed: $($output -join [Environment]::NewLine)"
@@ -67,10 +68,7 @@ try {
     $validatedTasks = @()
     foreach ($expected in $activeTasks) {
         $validated = Invoke-JsonValidation -Description $expected.task_id -Arguments @(
-            "-m",
-            "research_pipeline",
-            "validate-local-research-task",
-            $expected.path
+            "-m", "research_pipeline", "validate-local-research-task", $expected.path
         )
         if (
             $validated.status -ne "VALID" -or
@@ -87,12 +85,8 @@ try {
     }
 
     $validatedDispatch = Invoke-JsonValidation -Description $diagnosticDispatch.dispatch_id -Arguments @(
-        "-m",
-        "research_pipeline",
-        "validate-local-research-dispatch",
-        $diagnosticDispatch.path,
-        "--task",
-        $diagnosticDispatch.task_path
+        "-m", "research_pipeline", "validate-local-research-dispatch",
+        $diagnosticDispatch.path, "--task", $diagnosticDispatch.task_path
     )
     if (
         $validatedDispatch.status -ne "VALID" -or
@@ -105,47 +99,86 @@ try {
     }
 
     $bindingCode = @'
+import hashlib
 import json
-from research_pipeline.microstructure_handoff_runner import DIAGNOSTIC_TASK_ID, DIAGNOSTIC_TASK_SHA256
-from research_pipeline.microstructure_handoff_receive import TRANSFER_TASK_ID, TRANSFER_TASK_SHA256
-from research_pipeline.microstructure_interpretation_runner import RUNNER_TASK_ID as INTERPRETATION_TASK_ID, RUNNER_TASK_SHA256 as INTERPRETATION_TASK_SHA256
-from research_pipeline.microstructure_hypothesis_design_runner import RUNNER_TASK_ID as HYPOTHESIS_TASK_ID, RUNNER_TASK_SHA256 as HYPOTHESIS_TASK_SHA256
-from research_pipeline.microstructure_positive_route_hypothesis_design_runner import RUNNER_TASK_ID as POSITIVE_TASK_ID, RUNNER_TASK_SHA256 as POSITIVE_TASK_SHA256
-print(json.dumps({"bindings": [
-    {"task_id": DIAGNOSTIC_TASK_ID, "task_sha256": DIAGNOSTIC_TASK_SHA256},
-    {"task_id": TRANSFER_TASK_ID, "task_sha256": TRANSFER_TASK_SHA256},
-    {"task_id": INTERPRETATION_TASK_ID, "task_sha256": INTERPRETATION_TASK_SHA256},
-    {"task_id": HYPOTHESIS_TASK_ID, "task_sha256": HYPOTHESIS_TASK_SHA256},
-    {"task_id": POSITIVE_TASK_ID, "task_sha256": POSITIVE_TASK_SHA256},
-]}, separators=(",", ":"), sort_keys=True))
+from pathlib import Path
+from research_pipeline.microstructure_handoff_export import (
+    EXPORT_FINAL_ROOT,
+    HANDOFF_SCHEMA_SHA256 as EXPORT_SCHEMA_SHA256,
+    LOCAL_DIAGNOSTIC_TASK,
+    MANIFEST_TYPE as EXPORT_MANIFEST_TYPE,
+)
+from research_pipeline.microstructure_handoff_v3r1 import (
+    MANIFEST_SCHEMA_SHA256 as LOCAL_SCHEMA_SHA256,
+    MANIFEST_TYPE as LOCAL_MANIFEST_TYPE,
+)
+from research_pipeline.microstructure_handoff_runner_v3r1 import (
+    DIAGNOSTIC_TASK_ID,
+    DIAGNOSTIC_TASK_SHA256,
+    PRODUCTION_PATHS as DIAGNOSTIC_PATHS,
+    _validate_fixed_task,
+)
+from research_pipeline.microstructure_handoff_receive_v3r1 import (
+    DIAGNOSTIC_TASK_ID as RECEIVE_DIAGNOSTIC_TASK_ID,
+    PRODUCTION_PATHS as RECEIVE_PATHS,
+    TRANSFER_TASK_ID,
+    TRANSFER_TASK_SHA256,
+    _validate_transfer_task,
+)
+from research_pipeline.microstructure_interpretation_runner_v3r1 import (
+    DIAGNOSTIC_TASK_ID as INTERPRETATION_DIAGNOSTIC_TASK_ID,
+    PRODUCTION_PATHS as INTERPRETATION_PATHS,
+    RUNNER_TASK_ID as INTERPRETATION_TASK_ID,
+    RUNNER_TASK_SHA256 as INTERPRETATION_TASK_SHA256,
+    _validate_runner_task,
+)
+
+_validate_fixed_task(DIAGNOSTIC_PATHS)
+_validate_transfer_task(RECEIVE_PATHS)
+_validate_runner_task(INTERPRETATION_PATHS)
+if EXPORT_MANIFEST_TYPE != LOCAL_MANIFEST_TYPE or EXPORT_SCHEMA_SHA256 != LOCAL_SCHEMA_SHA256:
+    raise ValueError("exporter authority drift")
+if not (DIAGNOSTIC_TASK_ID == RECEIVE_DIAGNOSTIC_TASK_ID == INTERPRETATION_DIAGNOSTIC_TASK_ID):
+    raise ValueError("Local execution authority drift")
+pull = Path("scripts/pull_microstructure_v3r1_handoff_ssh.ps1")
+value = {
+    "exporter_task_path": LOCAL_DIAGNOSTIC_TASK.as_posix(),
+    "exporter_final_root": EXPORT_FINAL_ROOT.as_posix(),
+    "manifest_type": EXPORT_MANIFEST_TYPE,
+    "manifest_schema_sha256": EXPORT_SCHEMA_SHA256,
+    "diagnostic_task_id": DIAGNOSTIC_TASK_ID,
+    "diagnostic_task_sha256": DIAGNOSTIC_TASK_SHA256,
+    "transfer_task_id": TRANSFER_TASK_ID,
+    "transfer_task_sha256": TRANSFER_TASK_SHA256,
+    "interpretation_task_id": INTERPRETATION_TASK_ID,
+    "interpretation_task_sha256": INTERPRETATION_TASK_SHA256,
+    "pull_script_sha256": hashlib.sha256(pull.read_bytes()).hexdigest(),
+}
+print(json.dumps(value, separators=(",", ":"), sort_keys=True))
 '@
     $bindingOutput = $bindingCode | & $python.Source - 2>&1
     if ($LASTEXITCODE -ne 0) {
-        throw "Active runner binding import failed: $($bindingOutput -join [Environment]::NewLine)"
+        throw "Active Local execution authority validation failed: $($bindingOutput -join [Environment]::NewLine)"
     }
     try {
-        $bindingDocument = (($bindingOutput -join [Environment]::NewLine) | ConvertFrom-Json)
-        $runnerBindings = @($bindingDocument.bindings)
+        $actualAuthority = (($bindingOutput -join [Environment]::NewLine) | ConvertFrom-Json)
     }
     catch {
-        throw "Active runner binding import returned non-JSON output: $($bindingOutput -join [Environment]::NewLine)"
+        throw "Active Local execution authority returned non-JSON output"
     }
-    if ($runnerBindings.Count -ne $activeTasks.Count) {
-        throw "Active runner binding count drift"
-    }
-    for ($index = 0; $index -lt $activeTasks.Count; $index++) {
-        if (
-            $runnerBindings[$index].task_id -ne $activeTasks[$index].task_id -or
-            $runnerBindings[$index].task_sha256 -ne $activeTasks[$index].sha256
-        ) {
-            throw "Active runner binding drift: $($activeTasks[$index].task_id)"
+    foreach ($name in $expectedAuthority.Keys) {
+        if ($actualAuthority.$name -ne $expectedAuthority[$name]) {
+            if ($name.StartsWith("exporter_") -or $name.StartsWith("manifest_")) {
+                throw "exporter authority drift: $name"
+            }
+            throw "Local execution authority drift: $name"
         }
     }
 
     [ordered]@{
-        schema_version = "1"
+        schema_version = "2"
         status = "VALID"
-        classification = "ACTIVE_EXECUTION_CHAIN_ONLY"
+        classification = "V3R1_ACTIVE_TERMINAL_EXECUTION_CHAIN_ONLY"
         historical_task_snapshots_scanned = $false
         state_authority = "SERVER_CANONICAL"
         timer_authority = "CODEX_CLOUD_OPS_ONLY"
@@ -158,8 +191,12 @@ print(json.dumps({"bindings": [
             task_sha256 = $validatedDispatch.task_sha256
             status = $validatedDispatch.status
         }
-        active_runner_binding_count = $runnerBindings.Count
-        active_runner_bindings = "VALID"
+        exporter_to_local_authority = "VALID"
+        manifest_type = $actualAuthority.manifest_type
+        manifest_schema_sha256 = $actualAuthority.manifest_schema_sha256
+        exporter_final_root = $actualAuthority.exporter_final_root
+        terminal_stage = $actualAuthority.interpretation_task_id
+        positive_only_downstream_active = $false
         focused_tests = "SEPARATE_RELEASE_GATE_NOT_RUN"
         server_or_canonical_write = $false
         schedule_change = $false

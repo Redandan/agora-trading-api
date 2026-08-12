@@ -13,8 +13,15 @@ from unittest.mock import patch
 
 from research_mcp import queue
 from research_pipeline.evidence import register_evidence_source_contract
+from research_pipeline.microstructure_discovery_recovery_v3r1 import (
+    build_source_binding,
+    initial_intake_state,
+)
 from research_pipeline.microstructure_intake import canonical_v3_state_bytes
-from research_pipeline.microstructure_source_contract import initial_v3_intake_state
+from research_pipeline.microstructure_source_contract import (
+    canonical_json_bytes,
+    initial_v3_intake_state,
+)
 from research_pipeline.models import RESEARCH_AUTHORIZATION
 from research_pipeline.storage import ResearchStore
 from research_pipeline.waiting import build_evidence_trigger
@@ -1003,6 +1010,91 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         self.assertEqual(summary["sha256"], hashlib.sha256(artifact.read_bytes()).hexdigest())
         self.assertEqual(result["registry"]["research_status"], "WAITING_FOR_EVIDENCE")
+
+    def test_status_prefers_active_v3r1_namespace_over_historical_v3(self) -> None:
+        historical_namespace = self.state / "microstructure-v3"
+        historical_namespace.mkdir(parents=True)
+        historical_state = initial_v3_intake_state(
+            "historical-v3-status",
+            date(2099, 1, 1),
+            as_of_day=date(2098, 12, 31),
+        )
+        (historical_namespace / "historical-v3-status.json").write_bytes(
+            canonical_v3_state_bytes(historical_state)
+        )
+
+        start_day = date(2099, 2, 1)
+        binding = build_source_binding(
+            generation_id="okx-btcusdt-microstructure-discovery-v3r1-20990201-r3",
+            diagnostic_id="okx-btcusdt-microstructure-forward-v3r1-20990201-r3",
+            producer_release_id="20990101T000000Z",
+            producer_manifest_sha256="a" * 64,
+            start_day=start_day,
+            as_of_day=date(2099, 1, 1),
+        )
+        v3r1_namespace = self.state / "microstructure-v3r1"
+        v3r1_namespace.mkdir()
+        v3r1_state_path = (
+            v3r1_namespace / f"{binding['generation_id']}.json"
+        )
+        v3r1_state_path.write_bytes(canonical_json_bytes(initial_intake_state(binding)))
+        binding_path = self.root / "microstructure-v3r1-binding.json"
+        binding_path.write_bytes(canonical_json_bytes(binding))
+        pipeline_result = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"research_status":"WAITING_FOR_EVIDENCE"}',
+            stderr="",
+        )
+
+        with (
+            patch.object(queue, "_pipeline", return_value=pipeline_result),
+            patch.object(
+                queue,
+                "MICROSTRUCTURE_V3R1_BINDING_PATH",
+                binding_path,
+            ),
+        ):
+            result = queue.research_status()
+
+        summary = result["microstructure_diagnostic"]
+        self.assertEqual(summary["status"], "WAITING_FOR_DAY")
+        self.assertEqual(summary["lag_classification"], "PRE_START")
+        self.assertEqual(summary["generation_id"], binding["generation_id"])
+        self.assertEqual(summary["diagnostic_id"], binding["diagnostic_id"])
+        self.assertEqual(
+            summary["artifact_path"],
+            f"microstructure-v3r1/{binding['generation_id']}.json",
+        )
+        self.assertEqual(
+            summary["sha256"],
+            hashlib.sha256(v3r1_state_path.read_bytes()).hexdigest(),
+        )
+
+    def test_status_fails_closed_when_v3r1_namespace_has_no_binding(self) -> None:
+        (self.state / "microstructure-v3r1").mkdir(parents=True)
+        missing_binding = self.root / "missing-v3r1-binding.json"
+        pipeline_result = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"research_status":"WAITING_FOR_EVIDENCE"}',
+            stderr="",
+        )
+
+        with (
+            patch.object(queue, "_pipeline", return_value=pipeline_result),
+            patch.object(
+                queue,
+                "MICROSTRUCTURE_V3R1_BINDING_PATH",
+                missing_binding,
+            ),
+        ):
+            result = queue.research_status()
+
+        self.assertEqual(
+            result["microstructure_diagnostic"]["status"],
+            "RECOVERY_BLOCKED",
+        )
 
     def test_status_exposes_correlated_sealed_capture_health(self) -> None:
         request_id = "b" * 32

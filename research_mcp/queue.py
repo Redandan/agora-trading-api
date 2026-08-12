@@ -13,8 +13,14 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from research_pipeline.evidence import evidence_progress
-from research_pipeline.heartbeat import COACH_DELIVERY_PROOF_CYCLE_WINDOW
-from research_pipeline.microstructure_monitor import microstructure_diagnostic_status
+from research_pipeline.heartbeat import (
+    COACH_DELIVERY_PROOF_CYCLE_WINDOW,
+    MICROSTRUCTURE_V3R1_BINDING_PATH,
+)
+from research_pipeline.microstructure_monitor import (
+    microstructure_diagnostic_status,
+    microstructure_discovery_recovery_status,
+)
 from research_pipeline.storage import ResearchStore, sha256_file
 from research_source.contract import (
     PRODUCER as FORWARD_SOURCE_PRODUCER,
@@ -2122,10 +2128,17 @@ def research_status() -> dict[str, Any]:
         source_pending_invalid=source_pending_invalid,
         ingest_pending_invalid=ingest_pending_invalid,
     )
-    microstructure_diagnostic = microstructure_diagnostic_status(
-        STATE_DIR,
-        now=current,
-    )
+    if os.path.lexists(STATE_DIR / "microstructure-v3r1"):
+        microstructure_diagnostic = microstructure_discovery_recovery_status(
+            STATE_DIR,
+            binding_path=MICROSTRUCTURE_V3R1_BINDING_PATH,
+            now=current,
+        )
+    else:
+        microstructure_diagnostic = microstructure_diagnostic_status(
+            STATE_DIR,
+            now=current,
+        )
     return {
         "server_time": _now(current),
         "timer_authority": "CODEX_CLOUD_OPS_ONLY",

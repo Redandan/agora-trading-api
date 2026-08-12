@@ -229,10 +229,11 @@ later tier after a simpler tier passes.
 ### Active-chain health
 
 `scripts/verify_local_research_active_chain.ps1` is the Manager-side read-only
-resume gate. It validates only the current five-task microstructure execution
-chain, their five fixed runner bindings, and the exact Manager diagnostic
-dispatch. It deliberately leaves the slower focused offline test suites to the
-separate implementation or release gate. It never treats historical task
+resume gate. It validates only the current three-stage V3R1 terminal execution
+chain, its fixed runner bindings, the exact Manager diagnostic dispatch, and
+the countable mechanism-conclusion intent required by the Manager research
+value gate. It deliberately leaves the slower focused offline test suites to
+the separate implementation or release gate. It never treats historical task
 snapshots as current execution authority and never writes Local roots,
 canonical state, a server, a schedule, OOS, or Trading state.
 Its JSON validation path must execute identically under the bundled Windows

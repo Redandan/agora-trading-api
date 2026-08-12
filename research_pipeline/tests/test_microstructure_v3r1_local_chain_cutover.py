@@ -236,6 +236,8 @@ class MicrostructureV3R1LocalChainCutoverTest(unittest.TestCase):
         self.assertIn("local-node-microstructure-v3r1-interpretation-runner-v1", script)
         self.assertIn("MICROSTRUCTURE_DISCOVERY_V3R1_CREATE_ONLY_HANDOFF_MANIFEST", script)
         self.assertIn("/var/lib/agora-research/microstructure-v3r1-handoff-export", script)
+        self.assertIn("intent-microstructure-v3r1-evidence-diagnostic-v1", script)
+        self.assertIn("Active diagnostic research value gate drift", script)
         self.assertIn("exporter authority drift", script)
         self.assertIn("Local execution authority drift", script)
         self.assertNotIn("local-node-microstructure-v3-hypothesis-design-runner-v3", script)

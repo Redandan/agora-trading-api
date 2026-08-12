@@ -70,8 +70,10 @@ class LocalResearchNodeContractTest(unittest.TestCase):
         script = ACTIVE_CHAIN_SCRIPT.read_text(encoding="utf-8")
         self.assertNotIn("ConvertFrom-Json -Depth", script)
         self.assertIn("$bindingCode | & $python.Source - 2>&1", script)
-        self.assertIn('print(json.dumps({"bindings": [', script)
-        self.assertIn("$runnerBindings = @($bindingDocument.bindings)", script)
+        self.assertIn("print(json.dumps(value", script)
+        self.assertIn("$actualAuthority =", script)
+        self.assertIn("local-research-manager-preflight", script)
+        self.assertIn("COUNTABLE_OUTPUT_REQUIRED", script)
 
     def test_capability_task_and_result_validate(self) -> None:
         task = validate_local_research_task(load_task())

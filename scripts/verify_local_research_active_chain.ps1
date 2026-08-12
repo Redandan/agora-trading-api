@@ -32,6 +32,12 @@ $diagnosticDispatch = [ordered]@{
     task_path = $activeTasks[0].path
 }
 
+$diagnosticIntent = [ordered]@{
+    path = "research_pipeline/examples/local-weekly-output-classification.intent.microstructure-v3r1-evidence-diagnostic.v1.json"
+    intent_id = "intent-microstructure-v3r1-evidence-diagnostic-v1"
+    sha256 = "6f897f0b44e5af6d8dfbe9ecfe5347279276abee0b850fb501735447039db5c7"
+}
+
 $expectedAuthority = [ordered]@{
     exporter_task_path = "/etc/agora-research/local-tasks/microstructure-v3r1-evidence-diagnostic.v1.json"
     exporter_final_root = "/var/lib/agora-research/microstructure-v3r1-handoff-export"
@@ -96,6 +102,25 @@ try {
         $validatedDispatch.task_sha256 -ne $activeTasks[0].sha256
     ) {
         throw "Active diagnostic dispatch identity drift"
+    }
+
+    $managerPreflight = Invoke-JsonValidation -Description "V3R1 diagnostic Manager preflight" -Arguments @(
+        "-m", "research_pipeline", "local-research-manager-preflight",
+        $diagnosticDispatch.path,
+        "--task", $diagnosticDispatch.task_path,
+        "--intent", $diagnosticIntent.path,
+        "--repository-root", $repoRoot
+    )
+    if (
+        $managerPreflight.status -ne "VALID" -or
+        $managerPreflight.classification_intent_id -ne $diagnosticIntent.intent_id -or
+        $managerPreflight.classification_intent_sha256 -ne $diagnosticIntent.sha256 -or
+        $managerPreflight.research_value_gate.output_class -ne "MECHANISM_CONCLUSION" -or
+        $managerPreflight.research_value_gate.countable_disposition_count -ne 2 -or
+        $managerPreflight.research_value_gate.non_counting_integrity_exception -ne $false -or
+        $managerPreflight.research_value_gate.status -ne "COUNTABLE_OUTPUT_REQUIRED"
+    ) {
+        throw "Active diagnostic research value gate drift"
     }
 
     $bindingCode = @'
@@ -176,7 +201,7 @@ print(json.dumps(value, separators=(",", ":"), sort_keys=True))
     }
 
     [ordered]@{
-        schema_version = "2"
+        schema_version = "3"
         status = "VALID"
         classification = "V3R1_ACTIVE_TERMINAL_EXECUTION_CHAIN_ONLY"
         historical_task_snapshots_scanned = $false
@@ -191,6 +216,12 @@ print(json.dumps(value, separators=(",", ":"), sort_keys=True))
             task_sha256 = $validatedDispatch.task_sha256
             status = $validatedDispatch.status
         }
+        diagnostic_intent = [ordered]@{
+            intent_id = $managerPreflight.classification_intent_id
+            intent_path = $managerPreflight.classification_intent_path
+            intent_sha256 = $managerPreflight.classification_intent_sha256
+        }
+        research_value_gate = $managerPreflight.research_value_gate
         exporter_to_local_authority = "VALID"
         manifest_type = $actualAuthority.manifest_type
         manifest_schema_sha256 = $actualAuthority.manifest_schema_sha256

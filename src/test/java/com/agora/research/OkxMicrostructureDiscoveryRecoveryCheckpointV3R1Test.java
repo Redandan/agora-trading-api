@@ -135,10 +135,13 @@ class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1Test {
         assertEquals(active, store.loadAndRecover(binding()));
         assertFalse(Files.exists(temp.resolve("checkpoint.next.json")));
         assertFalse(Files.exists(temp.resolve("checkpoint.intent.json")));
-        assertThrows(IllegalStateException.class, () -> store.save(initial,
-                OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.afterDisposition(
-                        active, "boot-a", START, "SOURCE_LIVENESS_REJECTED",
-                        "b".repeat(64), Instant.parse("2026-09-01T13:00:01Z"))));
+        Instant at = Instant.parse("2026-09-01T13:00:01Z");
+        var publishing = pendingPublication(
+                active, START, "SOURCE_LIVENESS_REJECTED", "b".repeat(64), at);
+        var after = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.afterDisposition(
+                publishing, "boot-a", START, "SOURCE_LIVENESS_REJECTED",
+                "b".repeat(64), at);
+        assertThrows(IllegalStateException.class, () -> store.save(initial, after));
     }
 
     @Test
@@ -146,9 +149,12 @@ class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1Test {
         var initial = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.initial(
                 binding(), "boot-a", Instant.parse("2026-08-31T23:50:00Z"));
         var active = active(initial, "boot-a", START);
+        Instant at = Instant.parse("2026-09-01T13:00:01Z");
+        var publishing = pendingPublication(
+                active, START, "SOURCE_LIVENESS_REJECTED", "b".repeat(64), at);
         var after = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.afterDisposition(
-                active, "boot-a", START, "SOURCE_LIVENESS_REJECTED",
-                "b".repeat(64), Instant.parse("2026-09-01T13:00:01Z"));
+                publishing, "boot-a", START, "SOURCE_LIVENESS_REJECTED",
+                "b".repeat(64), at);
         assertEquals(OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.Phase.BETWEEN_DAYS,
                 after.phase());
         assertThrows(IllegalArgumentException.class, () ->
@@ -167,9 +173,13 @@ class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1Test {
         for (int index = 0; index < 14; index++) {
             LocalDate day = START.plusDays(index);
             snapshot = active(snapshot, "boot-a", day);
+            Instant at = day.plusDays(1).atStartOfDay().toInstant(
+                    java.time.ZoneOffset.UTC);
+            snapshot = pendingPublication(
+                    snapshot, day, "COMPLETE", "b".repeat(64), at);
             snapshot = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.afterDisposition(
                     snapshot, "boot-a", day, "COMPLETE", "b".repeat(64),
-                    day.plusDays(1).atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+                    at);
         }
         assertEquals(14, snapshot.currentCompleteStreakCount());
         assertEquals(OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.Phase.TERMINAL,
@@ -202,6 +212,26 @@ class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1Test {
                 "1".repeat(64),
                 "2".repeat(64),
                 start.plusSeconds(43_201));
+    }
+
+    private OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.Snapshot pendingPublication(
+            OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.Snapshot previous,
+            LocalDate day,
+            String kind,
+            String envelopeHash,
+            Instant at) {
+        String prefix = "okx-btc-usdt-microstructure-" + day;
+        var pending = new OkxMicrostructureDiscoveryRecoveryDropV3R1.PendingPublication(
+                day,
+                kind,
+                prefix + ("COMPLETE".equals(kind)
+                        ? ".complete.envelope.json" : ".rejection.envelope.json"),
+                envelopeHash,
+                "COMPLETE".equals(kind) ? prefix + ".json" : null,
+                "COMPLETE".equals(kind) ? "c".repeat(64) : null,
+                at);
+        return OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.pendingPublication(
+                previous, pending, at);
     }
 
     private OkxMicrostructureDiscoveryRecoveryDropV3R1.Binding binding() {

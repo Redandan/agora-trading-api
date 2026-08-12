@@ -256,6 +256,9 @@ public final class OkxMicrostructureDiscoveryRecoverySourceCli {
                         binding, host.bootId(), processStartedAt);
                 checkpointStore.save(null, checkpoint);
             }
+            if (checkpoint.pendingPublication() != null) {
+                completePendingPublication();
+            }
             for (var planned : OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.restartPlan(
                     checkpoint, processStartedAt, host.hostStartedAt(), host.bootId())) {
                 publishRejection(
@@ -452,12 +455,7 @@ public final class OkxMicrostructureDiscoveryRecoverySourceCli {
         private void publishActiveCompleteDay(Instant publishedAt) throws Exception {
             var documents = OkxMicrostructureDiscoveryRecoveryDropV3R1.complete(
                     collector.buildV3Payload(activeDay), binding, activeDay, publishedAt);
-            dropSink.publish(documents);
-            var previous = checkpoint;
-            checkpoint = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.afterDisposition(
-                    checkpoint, host.bootId(), activeDay, documents.kind(),
-                    documents.envelopeSha256(), publishedAt);
-            checkpointStore.save(previous, checkpoint);
+            prepareAndCommit(documents, publishedAt);
             continuity = collector.continuity();
             clearActive();
             state = isTerminal()
@@ -494,15 +492,34 @@ public final class OkxMicrostructureDiscoveryRecoverySourceCli {
                 Instant at) throws Exception {
             var documents = OkxMicrostructureDiscoveryRecoveryDropV3R1.rejection(
                     binding, day, reason, observation, sanitized, at);
-            dropSink.publish(documents);
-            var previous = checkpoint;
-            checkpoint = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.afterDisposition(
-                    checkpoint, host.bootId(), day, documents.kind(),
-                    documents.envelopeSha256(), at);
-            checkpointStore.save(previous, checkpoint);
+            prepareAndCommit(documents, at);
             clearActive();
             state = isTerminal()
                     ? ProducerState.TERMINAL : ProducerState.ARMED_OR_BETWEEN_DAYS;
+        }
+
+        private void prepareAndCommit(
+                OkxMicrostructureDiscoveryRecoveryDropV3R1.DispositionDocuments documents,
+                Instant at) throws Exception {
+            dropSink.prepare(documents);
+            var previous = checkpoint;
+            checkpoint = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.pendingPublication(
+                    checkpoint, documents.pending(at), at);
+            checkpointStore.save(previous, checkpoint);
+            completePendingPublication();
+        }
+
+        private void completePendingPublication() throws Exception {
+            var pending = checkpoint.pendingPublication();
+            if (pending == null) {
+                throw new IllegalStateException("PENDING_PUBLICATION_MISSING");
+            }
+            dropSink.commit(pending);
+            var previous = checkpoint;
+            checkpoint = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.afterDisposition(
+                    checkpoint, host.bootId(), pending.day(), pending.kind(),
+                    pending.envelopeSha256(), pending.dispositionAt());
+            checkpointStore.save(previous, checkpoint);
         }
 
         private void observeRaw(byte[] bytes, boolean control, Instant at) {

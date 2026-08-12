@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -109,6 +110,42 @@ class OkxMicrostructureDiscoveryRecoverySourceCliTest {
     }
 
     @Test
+    void preparedPublicationIsCommittedExactlyOnceAfterProcessRestart() throws Exception {
+        Instant preparedAt = Instant.parse("2026-09-01T12:00:01Z");
+        MutableClock clock = new MutableClock(Instant.parse("2026-09-01T12:01:00Z"));
+        InMemoryCheckpoint access = new InMemoryCheckpoint();
+        var initial = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.initial(
+                binding(), "boot-a", Instant.parse("2026-08-31T23:50:00Z"));
+        var active = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.active(
+                initial, "boot-a", START,
+                Instant.parse("2026-09-01T00:00:00Z"),
+                Instant.parse("2026-09-01T12:00:00Z"),
+                List.of("books5", "trades"), 17, 123, 2,
+                "1".repeat(64), "2".repeat(64),
+                Instant.parse("2026-09-01T12:00:00Z"));
+        var documents = OkxMicrostructureDiscoveryRecoveryDropV3R1.rejection(
+                binding(), START, "PROCESS_RESTART_BEFORE_DAY_COMPLETE",
+                new OkxMicrostructureDiscoveryRecoveryDropV3R1.RejectionObservation(
+                        active.startedAt(), active.lastObservedAt(),
+                        active.acknowledgedChannels(), active.completedMinuteCount(),
+                        active.dataMessageCount(), active.controlEventCount(),
+                        active.rawArrivalChainSha256(), active.controlEventChainSha256()),
+                null, preparedAt);
+        access.state = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.pendingPublication(
+                active, documents.pending(preparedAt), preparedAt);
+        RecordingSink sink = new RecordingSink();
+        sink.prepare(documents);
+
+        var producer = producer(clock, access, sink);
+        producer.initialize();
+
+        assertEquals(1, sink.documents.size());
+        assertTrue(sink.prepared.isEmpty());
+        assertEquals(START, producer.checkpoint().lastDispositionDay());
+        assertNull(producer.checkpoint().pendingPublication());
+    }
+
+    @Test
     void fullCollectorDayPublishesCompleteV3R1WithoutPredecessor() throws Exception {
         MutableClock clock = new MutableClock(Instant.parse("2026-08-31T23:50:00Z"));
         InMemoryCheckpoint checkpoint = new InMemoryCheckpoint();
@@ -137,7 +174,7 @@ class OkxMicrostructureDiscoveryRecoverySourceCliTest {
         assertEquals(1_440, ((List<?>) bundle.get("minutes")).size());
         assertEquals(1, producer.checkpoint().currentCompleteStreakCount());
         assertEquals(START.plusDays(1), producer.checkpoint().activeDay());
-        assertEquals(1_443, checkpoint.writeCount);
+        assertEquals(1_444, checkpoint.writeCount);
     }
 
     @Test
@@ -277,11 +314,28 @@ class OkxMicrostructureDiscoveryRecoverySourceCliTest {
             implements OkxMicrostructureDiscoveryRecoveryDropV3R1.DropSink {
         private final List<OkxMicrostructureDiscoveryRecoveryDropV3R1.DispositionDocuments>
                 documents = new ArrayList<>();
+        private final Map<String,
+                OkxMicrostructureDiscoveryRecoveryDropV3R1.DispositionDocuments> prepared =
+                new HashMap<>();
 
         @Override
-        public void publish(
+        public void prepare(
                 OkxMicrostructureDiscoveryRecoveryDropV3R1.DispositionDocuments value) {
-            documents.add(value);
+            prepared.put(value.envelopeSha256(), value);
+        }
+
+        @Override
+        public void commit(
+                OkxMicrostructureDiscoveryRecoveryDropV3R1.PendingPublication value) {
+            var document = prepared.remove(value.envelopeSha256());
+            if (document == null) {
+                throw new IllegalStateException("prepared document missing");
+            }
+            if (!document.day().equals(value.day())
+                    || !document.kind().equals(value.kind())) {
+                throw new IllegalStateException("prepared document mismatch");
+            }
+            documents.add(document);
         }
     }
 

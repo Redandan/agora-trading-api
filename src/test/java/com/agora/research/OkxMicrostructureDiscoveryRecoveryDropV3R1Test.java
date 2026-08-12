@@ -175,6 +175,32 @@ class OkxMicrostructureDiscoveryRecoveryDropV3R1Test {
     }
 
     @Test
+    void preparedPublicationResumesAcrossReservationAndPostRenameCrashes(
+            @TempDir Path temp) throws Exception {
+        Path staging = temp.resolve("microstructure-v3r1-private-staging");
+        Path drop = temp.resolve("microstructure-v3r1-drop");
+        var sink = new OkxMicrostructureDiscoveryRecoveryDropV3R1.FileDropSink(
+                staging, drop);
+        Instant at = Instant.parse("2026-09-01T09:00:01Z");
+        var documents = OkxMicrostructureDiscoveryRecoveryDropV3R1.rejection(
+                binding(), START, "PROCESS_RESTART_BEFORE_DAY_COMPLETE",
+                observation(), null, at);
+        var pending = documents.pending(at);
+
+        sink.prepare(documents);
+        Path prepared = staging.resolve(".source-publication-prepared")
+                .resolve(documents.envelopeSha256());
+        assertTrue(Files.isDirectory(prepared));
+        Files.createDirectories(drop);
+        Files.createFile(drop.resolve(".2026-09-01.publish-reserved"));
+
+        sink.commit(pending);
+        assertTrue(Files.isDirectory(drop.resolve("2026-09-01")));
+        assertFalse(Files.exists(prepared));
+        sink.commit(pending);
+    }
+
+    @Test
     void invalidCompleteIdentityAndObservationFailBeforeBytesExist() {
         Map<String, Object> changed = dayPayload(START);
         changed.put("day", "2026-09-02");

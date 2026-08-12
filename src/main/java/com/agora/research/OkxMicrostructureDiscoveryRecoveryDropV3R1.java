@@ -155,6 +155,37 @@ final class OkxMicrostructureDiscoveryRecoveryDropV3R1 {
         public byte[] bundleBytes() {
             return bundleBytes == null ? null : bundleBytes.clone();
         }
+
+        PendingPublication pending(Instant dispositionAt) {
+            return new PendingPublication(
+                    day, kind, envelopeName, envelopeSha256,
+                    bundleName, bundleSha256, dispositionAt);
+        }
+    }
+
+    record PendingPublication(
+            LocalDate day,
+            String kind,
+            String envelopeName,
+            String envelopeSha256,
+            String bundleName,
+            String bundleSha256,
+            Instant dispositionAt) {
+
+        PendingPublication {
+            if (day == null || dispositionAt == null
+                    || !Set.of("COMPLETE", "SOURCE_LIVENESS_REJECTED").contains(kind)
+                    || envelopeName == null || envelopeName.contains("/")
+                    || envelopeName.contains("\\")
+                    || envelopeSha256 == null || !SHA256.matcher(envelopeSha256).matches()
+                    || (bundleName == null) != (bundleSha256 == null)
+                    || (bundleName != null && (bundleName.contains("/")
+                    || bundleName.contains("\\")
+                    || !SHA256.matcher(bundleSha256).matches()))
+                    || ("COMPLETE".equals(kind) != (bundleName != null))) {
+                throw new IllegalArgumentException("PENDING_PUBLICATION_INVALID");
+            }
+        }
     }
 
     static DispositionDocuments complete(
@@ -315,7 +346,27 @@ final class OkxMicrostructureDiscoveryRecoveryDropV3R1 {
     }
 
     interface DropSink {
-        void publish(DispositionDocuments documents) throws Exception;
+        void prepare(DispositionDocuments documents) throws Exception;
+
+        void commit(PendingPublication publication) throws Exception;
+
+        default void publish(DispositionDocuments documents) throws Exception {
+            prepare(documents);
+            commit(documents.pending(envelopeSealedAt(documents.envelopeBytes())));
+        }
+
+        private static Instant envelopeSealedAt(byte[] bytes) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> document = new com.fasterxml.jackson.databind.ObjectMapper()
+                        .readValue(bytes, Map.class);
+                @SuppressWarnings("unchecked")
+                Map<String, Object> seal = (Map<String, Object>) document.get("envelope_seal");
+                return Instant.parse((String) seal.get("sealed_at"));
+            } catch (Exception error) {
+                throw new IllegalArgumentException("ENVELOPE_SEAL_TIME_INVALID", error);
+            }
+        }
     }
 
     static final class FileDropSink implements DropSink {
@@ -332,7 +383,7 @@ final class OkxMicrostructureDiscoveryRecoveryDropV3R1 {
         }
 
         @Override
-        public void publish(DispositionDocuments documents) throws Exception {
+        public void prepare(DispositionDocuments documents) throws Exception {
             byte[] envelopeBytes = documents.envelopeBytes();
             byte[] bundleBytes = documents.bundleBytes();
             if (!OkxMicrostructureCanonicalDrop.sha256(envelopeBytes)
@@ -349,31 +400,117 @@ final class OkxMicrostructureDiscoveryRecoveryDropV3R1 {
             rejectSymlinks(privateStagingRoot);
             rejectSymlinks(dropRoot);
 
-            Path stagedDay = privateStagingRoot.resolve(documents.day().toString());
+            Path preparedRoot = privateStagingRoot.resolve(".source-publication-prepared");
+            Files.createDirectories(preparedRoot);
+            rejectSymlinks(preparedRoot);
+            Path stagedDay = preparedRoot.resolve(documents.envelopeSha256());
+            Path temporary = preparedRoot.resolve(
+                    "." + documents.envelopeSha256() + ".tmp-"
+                            + ProcessHandle.current().pid());
             Path targetDay = dropRoot.resolve(documents.day().toString());
             Path reservation = dropRoot.resolve(
                     "." + documents.day() + ".publish-reserved");
-            if (Files.exists(stagedDay, LinkOption.NOFOLLOW_LINKS)
-                    || Files.exists(targetDay, LinkOption.NOFOLLOW_LINKS)
+            if (Files.exists(targetDay, LinkOption.NOFOLLOW_LINKS)
                     || Files.exists(reservation, LinkOption.NOFOLLOW_LINKS)) {
                 throw new IllegalStateException("OVERWRITE_REJECT");
             }
-            Files.createDirectory(stagedDay);
-            rejectSymlinks(stagedDay);
-            if (bundleBytes != null) {
-                writeAndForce(stagedDay.resolve(documents.bundleName()), bundleBytes);
+            PendingPublication pending = documents.pending(
+                    DropSink.envelopeSealedAt(envelopeBytes));
+            if (Files.exists(stagedDay, LinkOption.NOFOLLOW_LINKS)) {
+                verifyPrepared(stagedDay, pending);
+                return;
             }
-            writeAndForce(stagedDay.resolve(documents.envelopeName()), envelopeBytes);
-            forceDirectory(stagedDay);
-            writeAndForce(reservation, new byte[0]);
-            forceDirectory(dropRoot);
+            if (Files.exists(temporary, LinkOption.NOFOLLOW_LINKS)) {
+                throw new IllegalStateException("UNSAFE_PREPARE_TEMP");
+            }
+            Files.createDirectory(temporary);
+            rejectSymlinks(temporary);
+            if (bundleBytes != null) {
+                writeAndForce(temporary.resolve(documents.bundleName()), bundleBytes);
+            }
+            writeAndForce(temporary.resolve(documents.envelopeName()), envelopeBytes);
+            forceDirectory(temporary);
             try {
-                Files.move(stagedDay, targetDay, StandardCopyOption.ATOMIC_MOVE);
+                Files.move(temporary, stagedDay, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException error) {
+                throw new IllegalStateException("NON_ATOMIC_PREPARATION", error);
+            }
+            forceDirectory(preparedRoot);
+        }
+
+        @Override
+        public void commit(PendingPublication publication) throws Exception {
+            rejectSymlinks(privateStagingRoot);
+            rejectSymlinks(dropRoot);
+            Path prepared = privateStagingRoot.resolve(".source-publication-prepared")
+                    .resolve(publication.envelopeSha256());
+            Path target = dropRoot.resolve(publication.day().toString());
+            Path reservation = dropRoot.resolve(
+                    "." + publication.day() + ".publish-reserved");
+            boolean targetExists = Files.exists(target, LinkOption.NOFOLLOW_LINKS);
+            boolean reservationExists = Files.exists(reservation, LinkOption.NOFOLLOW_LINKS);
+            boolean preparedExists = Files.exists(prepared, LinkOption.NOFOLLOW_LINKS);
+            if (targetExists && reservationExists && !preparedExists
+                    && Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS)
+                    && Files.isRegularFile(reservation, LinkOption.NOFOLLOW_LINKS)
+                    && !Files.isSymbolicLink(target) && !Files.isSymbolicLink(reservation)) {
+                return;
+            }
+            if ((targetExists || reservationExists)
+                    && !(reservationExists && !targetExists && preparedExists)) {
+                throw new IllegalStateException("PUBLICATION_RECOVERY_CONFLICT");
+            }
+            if (!preparedExists) {
+                throw new IllegalStateException("PREPARED_PUBLICATION_MISSING");
+            }
+            verifyPrepared(prepared, publication);
+            if (!reservationExists) {
+                writeAndForce(reservation, new byte[0]);
+                forceDirectory(dropRoot);
+            }
+            try {
+                Files.move(prepared, target, StandardCopyOption.ATOMIC_MOVE);
             } catch (AtomicMoveNotSupportedException error) {
                 throw new IllegalStateException("NON_ATOMIC_DELIVERY", error);
             }
             forceDirectory(dropRoot);
             // Deliberately no source read after publication.
+        }
+
+        private static void verifyPrepared(
+                Path directory, PendingPublication publication) throws Exception {
+            if (!Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)
+                    || Files.isSymbolicLink(directory)) {
+                throw new IllegalStateException("UNSAFE_PREPARED_PUBLICATION");
+            }
+            Set<String> expected = publication.bundleName() == null
+                    ? Set.of(publication.envelopeName())
+                    : Set.of(publication.envelopeName(), publication.bundleName());
+            final Set<String> actual;
+            try (var children = Files.list(directory)) {
+                actual = children.map(path -> path.getFileName().toString())
+                        .collect(java.util.stream.Collectors.toSet());
+            }
+            if (!actual.equals(expected)) {
+                throw new IllegalStateException("PREPARED_PUBLICATION_SHAPE_MISMATCH");
+            }
+            verifyPreparedFile(
+                    directory.resolve(publication.envelopeName()),
+                    publication.envelopeSha256());
+            if (publication.bundleName() != null) {
+                verifyPreparedFile(
+                        directory.resolve(publication.bundleName()),
+                        publication.bundleSha256());
+            }
+        }
+
+        private static void verifyPreparedFile(Path path, String expectedHash) throws Exception {
+            if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
+                    || Files.isSymbolicLink(path)
+                    || !OkxMicrostructureCanonicalDrop.sha256(Files.readAllBytes(path))
+                    .equals(expectedHash)) {
+                throw new IllegalStateException("PREPARED_PUBLICATION_HASH_MISMATCH");
+            }
         }
 
         private static void writeAndForce(Path path, byte[] bytes) throws Exception {

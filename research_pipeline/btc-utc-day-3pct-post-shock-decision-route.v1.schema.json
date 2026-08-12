@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/btc-utc-day-3pct-post-shock-decision-route.v1.schema.json",
+  "title": "BTC UTC-day 3% post-shock decision route V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "document_type", "decision_scope", "selection_policy",
+    "root_trigger_id", "root_trigger_fingerprint", "leaf_trigger_id",
+    "leaf_trigger_fingerprint", "directional_diagnostic", "volatility_diagnostic",
+    "decision_available_at", "route_disposition", "permitted_next_action",
+    "terminal", "sealed_at", "guardrails", "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_UTC_DAY_3PCT_POST_SHOCK_DECISION_ROUTE_V1"},
+    "decision_scope": {"const": "PREOUTCOME_RESEARCH_QUESTION_ROUTING_ONLY"},
+    "selection_policy": {"const": "SHOCK_SIGNED_H24_DIRECTION_FIRST_THEN_VOLATILITY_ONLY_V1"},
+    "root_trigger_id": {"const": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1"},
+    "root_trigger_fingerprint": {"const": "0e5a4675e937613202f0a4a243360a405e9ace1823c4b999edb5d479849d2589"},
+    "leaf_trigger_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,79}$"
+    },
+    "leaf_trigger_fingerprint": {"$ref": "#/$defs/sha256"},
+    "directional_diagnostic": {"$ref": "#/$defs/directionalDiagnostic"},
+    "volatility_diagnostic": {"$ref": "#/$defs/volatilityDiagnostic"},
+    "decision_available_at": {"$ref": "#/$defs/timestamp"},
+    "route_disposition": {
+      "enum": [
+        "ONE_DIRECTIONAL_POST_SHOCK_RESEARCH_QUESTION_READY",
+        "ONE_VOLATILITY_RISK_RESEARCH_QUESTION_READY",
+        "POST_SHOCK_RESEARCH_FAMILY_CLOSE"
+      ]
+    },
+    "permitted_next_action": {
+      "enum": [
+        "MANAGER_REVIEW_ONE_PARENT_NEUTRAL_DIRECTIONAL_QUESTION_ONLY",
+        "MANAGER_REVIEW_ONE_PARENT_NEUTRAL_VOLATILITY_RISK_QUESTION_ONLY",
+        "CLOSE_WITHOUT_RESCUE_TUNING_OR_INVERSE_RULE"
+      ]
+    },
+    "terminal": {"const": true},
+    "sealed_at": {"$ref": "#/$defs/timestamp"},
+    "guardrails": {"$ref": "#/$defs/guardrails"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "directional_diagnostic": {
+            "properties": {
+              "document_type": {"const": "BTC_UTC_DAY_3PCT_POST_SHOCK_FACTOR_RESULT_V1"}
+            },
+            "required": ["document_type"]
+          }
+        },
+        "required": ["directional_diagnostic"]
+      },
+      "then": {
+        "properties": {
+          "leaf_trigger_id": {"const": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1"},
+          "leaf_trigger_fingerprint": {"const": "0e5a4675e937613202f0a4a243360a405e9ace1823c4b999edb5d479849d2589"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "directional_diagnostic": {
+            "properties": {
+              "document_type": {"const": "BTC_UTC_DAY_3PCT_POST_SHOCK_FACTOR_RESULT_V2"}
+            },
+            "required": ["document_type"]
+          }
+        },
+        "required": ["directional_diagnostic"]
+      },
+      "then": {
+        "not": {
+          "properties": {
+            "leaf_trigger_id": {"const": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1"}
+          },
+          "required": ["leaf_trigger_id"]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "directional_diagnostic": {
+            "properties": {
+              "disposition": {
+                "enum": [
+                  "CONTINUATION_FACTOR_READY_FOR_MANAGER_REVIEW",
+                  "REVERSAL_FACTOR_READY_FOR_MANAGER_REVIEW"
+                ]
+              }
+            },
+            "required": ["disposition"]
+          }
+        },
+        "required": ["directional_diagnostic"]
+      },
+      "then": {
+        "properties": {
+          "route_disposition": {"const": "ONE_DIRECTIONAL_POST_SHOCK_RESEARCH_QUESTION_READY"},
+          "permitted_next_action": {"const": "MANAGER_REVIEW_ONE_PARENT_NEUTRAL_DIRECTIONAL_QUESTION_ONLY"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "directional_diagnostic": {
+            "properties": {"disposition": {"const": "NO_DIRECTIONAL_POST_SHOCK_FACTOR_CLOSE"}},
+            "required": ["disposition"]
+          },
+          "volatility_diagnostic": {
+            "properties": {"disposition": {"const": "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_RETAIN"}},
+            "required": ["disposition"]
+          }
+        },
+        "required": ["directional_diagnostic", "volatility_diagnostic"]
+      },
+      "then": {
+        "properties": {
+          "route_disposition": {"const": "ONE_VOLATILITY_RISK_RESEARCH_QUESTION_READY"},
+          "permitted_next_action": {"const": "MANAGER_REVIEW_ONE_PARENT_NEUTRAL_VOLATILITY_RISK_QUESTION_ONLY"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "directional_diagnostic": {
+            "properties": {"disposition": {"const": "NO_DIRECTIONAL_POST_SHOCK_FACTOR_CLOSE"}},
+            "required": ["disposition"]
+          },
+          "volatility_diagnostic": {
+            "properties": {"disposition": {"const": "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_CLOSE"}},
+            "required": ["disposition"]
+          }
+        },
+        "required": ["directional_diagnostic", "volatility_diagnostic"]
+      },
+      "then": {
+        "properties": {
+          "route_disposition": {"const": "POST_SHOCK_RESEARCH_FAMILY_CLOSE"},
+          "permitted_next_action": {"const": "CLOSE_WITHOUT_RESCUE_TUNING_OR_INVERSE_RULE"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "artifactPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*:).+$"
+    },
+    "directionalDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_path", "artifact_sha256", "document_type", "disposition",
+        "sealed_at", "latest_outcome_day", "latest_outcome_chain_head"
+      ],
+      "properties": {
+        "artifact_path": {"$ref": "#/$defs/artifactPath"},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "document_type": {
+          "enum": [
+            "BTC_UTC_DAY_3PCT_POST_SHOCK_FACTOR_RESULT_V1",
+            "BTC_UTC_DAY_3PCT_POST_SHOCK_FACTOR_RESULT_V2"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "CONTINUATION_FACTOR_READY_FOR_MANAGER_REVIEW",
+            "REVERSAL_FACTOR_READY_FOR_MANAGER_REVIEW",
+            "NO_DIRECTIONAL_POST_SHOCK_FACTOR_CLOSE"
+          ]
+        },
+        "sealed_at": {"$ref": "#/$defs/timestamp"},
+        "latest_outcome_day": {"type": "string", "format": "date"},
+        "latest_outcome_chain_head": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "volatilityDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_path", "artifact_sha256", "document_type", "disposition",
+        "sealed_at", "latest_outcome_day", "latest_outcome_chain_head",
+        "activation_receipt_sha256"
+      ],
+      "properties": {
+        "artifact_path": {"$ref": "#/$defs/artifactPath"},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "document_type": {"const": "BTC_UTC_DAY_3PCT_FORWARD_VOLATILITY_PERSISTENCE_SNAPSHOT_V1"},
+        "disposition": {
+          "enum": [
+            "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_RETAIN",
+            "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_CLOSE"
+          ]
+        },
+        "sealed_at": {"$ref": "#/$defs/timestamp"},
+        "latest_outcome_day": {"type": "string", "format": "date"},
+        "latest_outcome_chain_head": {"$ref": "#/$defs/sha256"},
+        "activation_receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "guardrails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "immediate_pnl_effect", "immediate_drawdown_effect",
+        "joint_predictive_value", "shared_discovery_evidence_is_oos",
+        "joint_interaction_evaluated", "strategy_mapping_evaluated",
+        "hypothesis_created", "candidate_created", "oos_opened",
+        "trading_action_attempted"
+      ],
+      "properties": {
+        "immediate_pnl_effect": {"const": "ZERO"},
+        "immediate_drawdown_effect": {"const": "ZERO"},
+        "joint_predictive_value": {"const": "MISSING_PROOF"},
+        "shared_discovery_evidence_is_oos": {"const": false},
+        "joint_interaction_evaluated": {"const": false},
+        "strategy_mapping_evaluated": {"const": false},
+        "hypothesis_created": {"const": false},
+        "candidate_created": {"const": false},
+        "oos_opened": {"const": false},
+        "trading_action_attempted": {"const": false}
+      }
+    }
+  }
+}

@@ -18,6 +18,7 @@ PRESERVE_BOUND_DATA_PLANE="${PRESERVE_BOUND_DATA_PLANE:-0}"
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
+MICROSTRUCTURE_HOST_CONTEXT_DROPIN=/etc/systemd/system/agora-research-microstructure-source.service.d/10-host-context.conf
 MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
 MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-v3r1-drop
 MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-v3r1-private-staging
@@ -1074,6 +1075,10 @@ for unit in "${units_to_install[@]}"; do
   sudo install -o root -g root -m 0644 \
     "$RELEASE_DIR/scripts/research-worker/$unit" "/etc/systemd/system/$unit"
 done
+sudo install -d -o root -g root -m 0755 "$(dirname "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN")"
+sudo install -o root -g root -m 0644 \
+  "$RELEASE_DIR/scripts/research-worker/agora-research-microstructure-host-context.conf" \
+  "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN"
 sudo systemctl daemon-reload
 sudo systemd-analyze verify \
   /etc/systemd/system/agora-research-heartbeat.service \

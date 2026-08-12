@@ -18,6 +18,7 @@ MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
 MICROSTRUCTURE_EXPORT_UNIT=agora-research-microstructure-handoff-export.service
+MICROSTRUCTURE_HOST_CONTEXT_DROPIN=/etc/systemd/system/agora-research-microstructure-source.service.d/10-host-context.conf
 MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
 MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-v3r1-drop
 MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-v3r1-private-staging
@@ -1243,6 +1244,22 @@ echo "$source_unit_text" \
   || fail "microstructure source does not execute the fixed V3R1 wrapper"
 echo "$source_unit_text" | grep -Fxq 'RuntimeMaxSec=45d' \
   || fail "microstructure source does not retain the bounded 42-day recovery lifetime"
+[ -f "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN" ] \
+  && [ ! -L "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN" ] \
+  && [ "$(stat -c '%U:%G:%a' "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN")" = "root:root:644" ] \
+  || fail "microstructure host-context drop-in metadata is invalid"
+cmp -s \
+  "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN" \
+  "$control_current/scripts/research-worker/agora-research-microstructure-host-context.conf" \
+  || fail "microstructure host-context drop-in differs from the control release"
+[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=DropInPaths --value)" = "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN" ] \
+  || fail "microstructure source drop-in inventory is not exact"
+echo "$source_unit_text" | grep -Fxq 'ProcSubset=pid' \
+  || fail "microstructure source base unit no longer defaults to PID-only proc"
+[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ProcSubset --value)" = "all" ] \
+  || fail "microstructure source cannot read the frozen host boot context"
+[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ProtectProc --value)" = "invisible" ] \
+  || fail "microstructure source no longer hides unrelated processes"
 if systemctl show "$MICROSTRUCTURE_UNIT" --property=EnvironmentFiles --value | grep -q .; then
   fail "microstructure source must not load an environment file"
 fi

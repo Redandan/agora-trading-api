@@ -15,6 +15,10 @@ CONTROL_UNITS = (
     "agora-research-microstructure-handoff-export.service",
 )
 EXPORT_UNIT = "agora-research-microstructure-handoff-export.service"
+HOST_CONTEXT_CONFIG = "agora-research-microstructure-host-context.conf"
+HOST_CONTEXT_CONFIG_SHA256 = (
+    "3d24f851feca9e7dc510eaa649b2be76ba5b4cc82aab0c91fa8c5b82672bbcdf"
+)
 DATA_UNITS = {
     "agora-research-source.service":
         "e03c4ce3c33d21a8e4b787384880355f8286e481f22bd3eff9ec0bcf8fb72f0f",
@@ -136,6 +140,19 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
                 else:
                     self.assertIn("microstructure-v3r1-drop", value)
                 self.assertNotIn("/opt/agora-research-worker/control-current", value)
+
+    def test_source_host_context_exception_is_hash_frozen_and_bounded(self) -> None:
+        raw = (WORKER / HOST_CONTEXT_CONFIG).read_bytes()
+        self.assertEqual(
+            HOST_CONTEXT_CONFIG_SHA256, hashlib.sha256(raw).hexdigest()
+        )
+        value = raw.decode("utf-8")
+        self.assertEqual(1, value.count("ProcSubset=all"))
+        self.assertNotIn("CapabilityBoundingSet", value)
+        self.assertNotIn("Environment", value)
+        self.assertNotIn("ReadWritePaths", value)
+        self.assertIn(HOST_CONTEXT_CONFIG, self.installer)
+        self.assertIn(HOST_CONTEXT_CONFIG, self.verifier)
 
     def test_preserve_mode_is_explicit_only_and_rejects_binding_parameters(self) -> None:
         self.assertIn("[switch]$PreserveBoundDataPlane", self.wrapper)

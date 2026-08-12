@@ -770,6 +770,21 @@ class MicrostructureV3IntakeCliTest(unittest.TestCase):
             )
         self.assertIn("Restart=on-failure", source)
         self.assertIn("RestartPreventExitStatus=2", source)
+        self.assertIn("ProtectProc=invisible", source)
+        self.assertIn("ProcSubset=pid", source)
+        self.assertNotIn("ProcSubset=all", source)
+        host_context = (
+            repository
+            / "scripts/research-worker/"
+            "agora-research-microstructure-host-context.conf"
+        ).read_text(encoding="utf-8")
+        self.assertIn("ProcSubset=all", host_context)
+        self.assertIn("--property=ProtectProc --value", verifier)
+        self.assertIn(")\" = \"invisible\" ]", verifier)
+        self.assertIn("DropInPaths", verifier)
+        self.assertIn(
+            "agora-research-microstructure-host-context.conf", installer
+        )
         source_write_lines = [
             line for line in source.splitlines() if line.startswith("ReadWritePaths=")
         ]

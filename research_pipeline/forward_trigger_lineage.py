@@ -170,16 +170,23 @@ def _verify_registered_trigger(
     if read_json(state_path) != state or read_json(trigger_path) != trigger:
         raise ValueError("forward trigger lineage bytes changed during resolution")
     raw = {key: value for key, value in trigger.items() if key != "fingerprint"}
-    if build_evidence_trigger(raw) != trigger:
+    canonical = build_evidence_trigger(raw)
+    if _is_exact_legacy_discovery_root(trigger):
+        canonical.pop("purpose")
+        canonical.pop("candidate_binding")
+    if canonical != trigger:
         raise ValueError("forward trigger lineage trigger is not canonical")
 
 
 def _verify_discovery_contract(
     trigger: dict[str, Any], root: dict[str, Any]
 ) -> None:
-    if trigger.get("purpose") != "HYPOTHESIS_DISCOVERY":
+    legacy_root = _is_exact_legacy_discovery_root(trigger)
+    purpose = "HYPOTHESIS_DISCOVERY" if legacy_root else trigger.get("purpose")
+    candidate_binding = None if legacy_root else trigger.get("candidate_binding")
+    if purpose != "HYPOTHESIS_DISCOVERY":
         raise ValueError("forward trigger lineage purpose is not discovery")
-    if trigger.get("candidate_binding") is not None:
+    if candidate_binding is not None:
         raise ValueError("forward trigger lineage contains candidate binding")
     if trigger.get("authorization") != RESEARCH_AUTHORIZATION:
         raise ValueError("forward trigger lineage authorization drift")
@@ -195,6 +202,15 @@ def _verify_discovery_contract(
     for field in frozen_fields:
         if trigger.get(field) != root.get(field):
             raise ValueError(f"forward trigger lineage {field} drift")
+
+
+def _is_exact_legacy_discovery_root(trigger: dict[str, Any]) -> bool:
+    return (
+        trigger.get("trigger_id") == ROOT_TRIGGER_ID
+        and trigger.get("fingerprint") == ROOT_TRIGGER_FINGERPRINT
+        and "purpose" not in trigger
+        and "candidate_binding" not in trigger
+    )
 
 
 def _verify_successor_back_reference(

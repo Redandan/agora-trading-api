@@ -26,6 +26,12 @@ EMPTY_CHAIN_HEAD = "0" * 64
 MISSED_DISCOVERY_ROLLOVER_ACTION = "ROLLOVER_MISSED_DISCOVERY_EVIDENCE_WINDOW"
 MISSED_DISCOVERY_ROLLOVER_REASON = "MISSED_CAPTURE_WINDOW_NO_BACKFILL"
 MISSED_DISCOVERY_ROLLOVER_STATUS = "MISSED_DISCOVERY_WINDOW_ROLLED_OVER"
+LEGACY_DISCOVERY_ROOT_ID = (
+    "prospective-mechanism-neutral-evidence-refresh-2026q4-r1"
+)
+LEGACY_DISCOVERY_ROOT_FINGERPRINT = (
+    "0e5a4675e937613202f0a4a243360a405e9ace1823c4b999edb5d479849d2589"
+)
 
 
 def register_evidence_source_contract(
@@ -559,8 +565,21 @@ def _verify_registered_trigger(
     if state.get("trigger_sha256") != sha256_file(path) or read_json(path) != trigger:
         raise ValueError("rollover registered trigger changed")
     raw = {key: value for key, value in trigger.items() if key != "fingerprint"}
-    if build_evidence_trigger(raw) != trigger:
+    canonical = build_evidence_trigger(raw)
+    if _is_exact_legacy_discovery_root(trigger):
+        canonical.pop("purpose")
+        canonical.pop("candidate_binding")
+    if canonical != trigger:
         raise ValueError("rollover registered trigger is not canonical")
+
+
+def _is_exact_legacy_discovery_root(trigger: dict[str, Any]) -> bool:
+    return (
+        trigger.get("trigger_id") == LEGACY_DISCOVERY_ROOT_ID
+        and trigger.get("fingerprint") == LEGACY_DISCOVERY_ROOT_FINGERPRINT
+        and "purpose" not in trigger
+        and "candidate_binding" not in trigger
+    )
 
 
 def _verify_zero_observation_successor(

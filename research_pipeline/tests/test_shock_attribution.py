@@ -53,6 +53,10 @@ class ShockAttributionTest(unittest.TestCase):
         self.store.bootstrap()
         self.trigger = build_evidence_trigger(self._trigger_value())
         self.assertEqual(self.trigger["fingerprint"], R1_TRIGGER_FINGERPRINT)
+        # Canonical Production R1 predates the explicit discovery-purpose and
+        # candidate-binding fields. Preserve those sealed bytes in the fixture.
+        self.trigger.pop("purpose")
+        self.trigger.pop("candidate_binding")
         self.store.register_evidence_trigger(self.trigger)
         state = self.store.load_evidence_trigger_state(R1_TRIGGER_ID)
         register_evidence_source_contract(
@@ -104,6 +108,18 @@ class ShockAttributionTest(unittest.TestCase):
         self.assertEqual(diagnostic["path"]["simple_return"], "-0.03")
         self.assertEqual(diagnostic["path"]["absolute_simple_return"], "0.03")
         self.assertEqual(diagnostic["path"]["direction"], "DOWN")
+
+    def test_exact_legacy_r1_without_explicit_purpose_remains_immutable(self) -> None:
+        self._seal_pair("100", "103")
+        trigger_path = self.store.evidence_trigger_dir(R1_TRIGGER_ID) / "trigger.json"
+        trigger_before = trigger_path.read_bytes()
+        self.assertNotIn("purpose", read_json(trigger_path))
+        self.assertNotIn("candidate_binding", read_json(trigger_path))
+
+        events = self._seal_shocks(activation="2026-08-07T00:00:00Z")
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(trigger_path.read_bytes(), trigger_before)
 
     def test_builder_rejects_nonadjacent_days(self) -> None:
         prior_ref, prior, target_ref, target = self._direct_pair("100", "103")

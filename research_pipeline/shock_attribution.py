@@ -482,13 +482,15 @@ def _validate_r1_identity(
         "review_not_before": R1_REVIEW_NOT_BEFORE,
         "observation_unit": R1_OBSERVATION_UNIT,
         "minimum_observations": R1_MINIMUM_OBSERVATIONS,
-        "purpose": "HYPOTHESIS_DISCOVERY",
-        "candidate_binding": None,
         "authorization": RESEARCH_AUTHORIZATION,
     }
     for key, value in expected.items():
         if trigger.get(key) != value:
             raise ValueError(f"R1 shock trigger {key} mismatch")
+    if trigger.get("purpose", "HYPOTHESIS_DISCOVERY") != "HYPOTHESIS_DISCOVERY":
+        raise ValueError("R1 shock trigger purpose mismatch")
+    if trigger.get("candidate_binding") is not None:
+        raise ValueError("R1 shock trigger candidate_binding mismatch")
     if state.get("trigger_id") != R1_TRIGGER_ID:
         raise ValueError("R1 shock trigger state identity mismatch")
     trigger_path = store.evidence_trigger_dir(R1_TRIGGER_ID) / "trigger.json"

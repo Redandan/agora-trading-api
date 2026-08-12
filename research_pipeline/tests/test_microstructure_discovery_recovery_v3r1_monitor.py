@@ -14,10 +14,12 @@ from research_pipeline.microstructure_discovery_recovery_v3r1 import (
     build_source_binding,
     initial_intake_state,
 )
+from research_pipeline.heartbeat import run_heartbeat_cycle
 from research_pipeline.microstructure_monitor import (
     microstructure_discovery_recovery_status,
 )
 from research_pipeline.microstructure_source_contract import canonical_json_bytes
+from research_pipeline.storage import ResearchStore
 
 
 START = date(2026, 9, 1)
@@ -142,6 +144,33 @@ class MicrostructureDiscoveryRecoveryV3R1MonitorTest(unittest.TestCase):
             self.assertEqual("NO_COMPLETE_STREAK_CLOSE", status["status"])
             self.assertEqual("COMPLETE_NO_EVIDENCE", status["lag_classification"])
             self.assertEqual(42, status["rejected_day_count"])
+
+    def test_heartbeat_prefers_active_v3r1_over_retired_v3_namespace(self) -> None:
+        initial = initial_intake_state(self.binding)
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = ResearchStore(root, lock_stale_seconds=60)
+            store.bootstrap()
+            binding_path = self._write(root, initial)
+            retired = root / "microstructure-v3"
+            retired.mkdir()
+
+            tick = {"status": "IDLE_NO_ACTIONABLE_EXPERIMENT"}
+            heartbeat = run_heartbeat_cycle(
+                store,
+                {"policy_id": "TEST_RESEARCH_ONLY"},
+                now=datetime(2026, 8, 31, tzinfo=timezone.utc),
+                tick_preview=tick,
+                tick_result=tick,
+                microstructure_binding_path=binding_path,
+            )
+
+            diagnostic = heartbeat["microstructure_diagnostic"]
+            self.assertEqual("HEARTBEAT_OK", heartbeat["status"])
+            self.assertEqual("WAITING_FOR_DAY", diagnostic["status"])
+            self.assertEqual("PRE_START", diagnostic["lag_classification"])
+            self.assertEqual(self.binding["generation_id"], diagnostic["generation_id"])
+            self.assertEqual(self.binding["diagnostic_id"], diagnostic["diagnostic_id"])
 
     def test_overdue_blocked_and_ambiguous_state_fail_closed(self) -> None:
         initial = initial_intake_state(self.binding)

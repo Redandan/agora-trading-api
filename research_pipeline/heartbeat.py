@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
@@ -11,7 +12,10 @@ from .evidence import MISSED_DISCOVERY_ROLLOVER_STATUS
 from .forward_volatility_persistence import (
     seal_forward_volatility_persistence_snapshots,
 )
-from .microstructure_monitor import microstructure_diagnostic_status
+from .microstructure_monitor import (
+    microstructure_diagnostic_status,
+    microstructure_discovery_recovery_status,
+)
 from .models import parse_timestamp
 from .post_shock_factor import seal_r1_post_shock_factor_snapshots
 from .report import load_result, monthly_report, performance_lines, weekly_report
@@ -41,6 +45,9 @@ COACH_DELIVERY_STATUSES = {
 MAX_COACH_PENDING_EVENTS = 32
 MAX_COACH_DELIVERED_RECEIPTS = 256
 MAX_COACH_RECEIPTS_PER_HEARTBEAT = 8
+MICROSTRUCTURE_V3R1_BINDING_PATH = Path(
+    "/etc/agora-research/okx-microstructure-continuous-source-v3r1.json"
+)
 COACH_DELIVERY_PROOF_CYCLE_WINDOW = timedelta(hours=3)
 COACH_DELIVERY_EVENT_TIMING_FIELDS = {
     "delivery_queued_at",
@@ -78,6 +85,7 @@ def run_heartbeat_cycle(
     tick_preview: dict[str, Any],
     tick_result: dict[str, Any],
     coach_delivery_receipts: list[dict[str, Any]] | None = None,
+    microstructure_binding_path: Path | None = None,
 ) -> dict[str, Any]:
     state = _load_state(store)
     _verify_report_record(store, state.get("last_weekly"))
@@ -86,7 +94,24 @@ def run_heartbeat_cycle(
     _verify_report_record(store, state.get("last_weekly"))
     _verify_report_record(store, state.get("last_monthly"))
 
-    microstructure_diagnostic = microstructure_diagnostic_status(store.root, now=now)
+    binding_path = (
+        MICROSTRUCTURE_V3R1_BINDING_PATH
+        if microstructure_binding_path is None
+        else Path(microstructure_binding_path)
+    )
+    if os.path.lexists(store.root / "microstructure-v3r1") or os.path.lexists(
+        binding_path
+    ):
+        microstructure_diagnostic = microstructure_discovery_recovery_status(
+            store.root,
+            binding_path=binding_path,
+            now=now,
+        )
+    else:
+        microstructure_diagnostic = microstructure_diagnostic_status(
+            store.root,
+            now=now,
+        )
     previous_research_fingerprint = state.get("last_research_fingerprint")
     research_fingerprint = _research_fingerprint(tick_result)
     research_changed = research_fingerprint != previous_research_fingerprint

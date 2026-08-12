@@ -188,7 +188,7 @@ def _seal_v2_post_shock_factor_snapshots(
     trigger = lineage.leaf_trigger
     trigger_state = lineage.leaf_state
     evidence_progress(store, trigger, trigger_state, now=current)
-    observations = trigger_state.get("evidence_observations")
+    observations = trigger_state.get("evidence_observations", [])
     if not isinstance(observations, list):
         raise ValueError("post-shock rollover observations must be a list")
     references = [_validated_reference(store, item) for item in observations]

@@ -318,6 +318,36 @@ import research_pipeline.heartbeat
         self.assertEqual(repeated, [])
         self.assertEqual(snapshots[0].read_bytes(), before)
 
+    def test_rollover_v2_zero_observation_successor_keeps_heartbeat_live(self) -> None:
+        fixture = shock_fixture.ShockAttributionTest(
+            "test_below_threshold_creates_no_artifact"
+        )
+        fixture.setUp()
+        self.addCleanup(fixture.tearDown)
+        successor = fixture._rollover()
+        successor_state = fixture.store.load_evidence_trigger_state(
+            str(successor["trigger_id"])
+        )
+        self.assertNotIn("evidence_observations", successor_state)
+
+        heartbeat = fixture._heartbeat(datetime(2026, 8, 8, 8, tzinfo=UTC))
+
+        self.assertEqual("HEARTBEAT_OK", heartbeat["status"])
+        self.assertEqual(
+            [],
+            seal_r1_post_shock_factor_snapshots(
+                fixture.store, now=datetime(2026, 8, 8, 9, tzinfo=UTC)
+            ),
+        )
+        namespace = (
+            fixture.root
+            / "post-shock-factor"
+            / "btc-utc-day-3pct-v2"
+            / str(successor["fingerprint"])
+            / "snapshots"
+        )
+        self.assertEqual([], sorted(namespace.glob("*.json")))
+
     def test_rollover_v2_rejects_cross_lineage_diagnostic(self) -> None:
         fixture = shock_fixture.ShockAttributionTest(
             "test_below_threshold_creates_no_artifact"

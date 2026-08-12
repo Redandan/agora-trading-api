@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from contextlib import redirect_stderr, redirect_stdout
 from copy import deepcopy
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 import hashlib
 import io
 import json
@@ -26,31 +26,31 @@ from research_pipeline.microstructure_handoff_export import (
     export_handoff,
     main,
 )
-from research_pipeline.microstructure_intake import (
-    RecoveryBlocked,
-    canonical_v3_state_bytes,
+from research_pipeline.microstructure_discovery_recovery_intake_cli import (
+    _REQUIRED_RELEASE_FILES,
+)
+from research_pipeline.microstructure_discovery_recovery_v3r1 import (
+    AUTHORIZATION,
+    DiscoveryRecoveryBlocked,
+    advance_complete_envelope,
+    build_complete_envelope,
+    build_source_binding,
+    canonical_intake_state_bytes,
+    initial_intake_state,
 )
 from research_pipeline.microstructure_source_contract import (
-    AUTHORIZATION,
-    V3_DAY_SCHEMA_SHA256,
-    V3_DIAGNOSTIC_CONTRACT_SHA256,
-    V3_SOURCE_CONTRACT_SHA256,
-    accept_v3_intake_day,
     canonical_json_bytes,
-    canonical_sha256,
-    initial_v3_intake_state,
 )
 from research_pipeline.tests.test_microstructure_v3_intake_isolation import (
-    _accepted_at,
     _v3_day_bundle,
-    _v3_envelope,
 )
 
 
-DIAGNOSTIC_ID = "microstructure-v3-export"
+DIAGNOSTIC_ID = "okx-btcusdt-microstructure-forward-v3r1-20260901-r3"
+GENERATION_ID = "okx-btcusdt-microstructure-discovery-v3r1-20260901-r3"
 START_DAY = date(2026, 9, 1)
-RELEASE_ID = "deterministic-v3-export-fixture"
-TASK_ID = "local-node-v3-offline-evidence-diagnostic-v1"
+RELEASE_ID = "deterministic-v3r1-export-fixture"
+TASK_ID = "local-node-v3r1-offline-evidence-diagnostic-v1"
 
 
 def _task() -> dict[str, object]:
@@ -82,73 +82,69 @@ def _task() -> dict[str, object]:
 
 class _Fixture:
     def __init__(self) -> None:
-        self.release_manifest = b"deterministic source manifest\n"
+        repository = Path(__file__).resolve().parents[2]
+        self.release_files = {
+            relative: (repository / relative).read_bytes()
+            for relative in sorted(_REQUIRED_RELEASE_FILES)
+        }
+        self.release_manifest = "".join(
+            f"{hashlib.sha256(raw).hexdigest()}  {relative}\n"
+            for relative, raw in self.release_files.items()
+        ).encode("utf-8")
         self.release_manifest_sha256 = hashlib.sha256(
             self.release_manifest
         ).hexdigest()
         self.task = _task()
         self.task_raw = canonical_json_bytes(self.task)
         self.task_sha256 = hashlib.sha256(self.task_raw).hexdigest()
-        self.binding = {
-            "schema_version": "1",
-            "authorization": AUTHORIZATION,
-            "forward_start_day": START_DAY.isoformat(),
-            "required_complete_utc_days": 14,
-            "diagnostic_id": DIAGNOSTIC_ID,
-            "source_contract_sha256": V3_SOURCE_CONTRACT_SHA256,
-            "day_schema_sha256": V3_DAY_SCHEMA_SHA256,
-            "diagnostic_contract_sha256": V3_DIAGNOSTIC_CONTRACT_SHA256,
-            "producer_release_id": RELEASE_ID,
-            "producer_manifest_sha256": self.release_manifest_sha256,
-        }
-        self.source: dict[str, bytes] = {}
-        state = initial_v3_intake_state(
-            DIAGNOSTIC_ID,
-            START_DAY,
+        self.binding = build_source_binding(
+            generation_id=GENERATION_ID,
+            diagnostic_id=DIAGNOSTIC_ID,
+            producer_release_id=RELEASE_ID,
+            producer_manifest_sha256=self.release_manifest_sha256,
+            start_day=START_DAY,
             as_of_day=START_DAY - timedelta(days=1),
         )
-        self.initial_state_raw = canonical_v3_state_bytes(state)
-        predecessor_day: date | None = None
-        predecessor_hash: str | None = None
+        self.source: dict[str, bytes] = {}
+        state = initial_intake_state(self.binding)
+        self.initial_state_raw = canonical_intake_state_bytes(
+            state, self.binding
+        )
         for index in range(14):
             bundle_day = START_DAY + timedelta(days=index)
             bundle = _v3_day_bundle(bundle_day)
-            envelope = _v3_envelope(
-                bundle,
-                predecessor_day=predecessor_day,
-                predecessor_bundle_sha256=predecessor_hash,
-            )
-            envelope["diagnostic_id"] = DIAGNOSTIC_ID
-            envelope["producer_release_id"] = RELEASE_ID
-            envelope["producer_manifest_sha256"] = self.release_manifest_sha256
-            envelope["idempotency_key"] = (
-                f"{DIAGNOSTIC_ID}:{bundle_day.isoformat()}:"
-                f"{hashlib.sha256(canonical_json_bytes(bundle)).hexdigest()}"
-            )
-            envelope["envelope_seal"]["payload_sha256"] = canonical_sha256(
-                envelope, exclude_key="envelope_seal"
-            )
             bundle_raw = canonical_json_bytes(bundle)
+            published_at = datetime.combine(
+                bundle_day + timedelta(days=1),
+                datetime.min.time(),
+                tzinfo=timezone.utc,
+            ) + timedelta(seconds=1)
+            envelope = build_complete_envelope(
+                binding_value=self.binding,
+                bundle_value=bundle,
+                raw_bundle_bytes=bundle_raw,
+                day=bundle_day,
+                published_at=published_at,
+            )
             envelope_raw = canonical_json_bytes(envelope)
-            state = accept_v3_intake_day(
+            state = advance_complete_envelope(
                 state,
                 envelope,
                 bundle,
-                raw_envelope_bytes=envelope_raw,
+                raw_complete_bytes=envelope_raw,
                 raw_bundle_bytes=bundle_raw,
-                accepted_at=_accepted_at(bundle_day),
-                observed_producer_identity="agora-evidence-source",
-                delivered_via_atomic_rename=True,
-                source_path_is_symlink=False,
-                overwrite_attempted=False,
+                binding_value=self.binding,
+                accepted_at=published_at + timedelta(seconds=1),
             )
             day_text = bundle_day.isoformat()
             base = f"okx-btc-usdt-microstructure-{day_text}"
             self.source[f"{day_text}/{base}.json"] = bundle_raw
-            self.source[f"{day_text}/{base}.envelope.json"] = envelope_raw
-            predecessor_day = bundle_day
-            predecessor_hash = hashlib.sha256(bundle_raw).hexdigest()
-        self.ready_state_raw = canonical_v3_state_bytes(state)
+            self.source[
+                f"{day_text}/{base}.complete.envelope.json"
+            ] = envelope_raw
+        self.ready_state_raw = canonical_intake_state_bytes(
+            state, self.binding
+        )
 
     @staticmethod
     def _write(path: Path, raw: bytes, *, readonly: bool = False) -> None:
@@ -170,9 +166,11 @@ class _Fixture:
         self._write(binding, canonical_json_bytes(self.binding))
         self._write(task_path, self.task_raw, readonly=True)
         self._write(
-            state_root / f"{DIAGNOSTIC_ID}.json",
+            state_root / f"{GENERATION_ID}.json",
             self.ready_state_raw if ready else self.initial_state_raw,
         )
+        for relative, raw in self.release_files.items():
+            self._write(release / Path(relative), raw)
         self._write(release / ".release" / "source.sha256", self.release_manifest)
         self._write(
             release / ".release" / "provenance.json",
@@ -221,7 +219,7 @@ class _Fixture:
         return (
             paths.retained_day_root
             / day_text
-            / f"okx-btc-usdt-microstructure-{day_text}.envelope.json"
+            / f"okx-btc-usdt-microstructure-{day_text}.complete.envelope.json"
         )
 
 
@@ -232,27 +230,27 @@ class MicrostructureHandoffExportTest(unittest.TestCase):
 
     def test_fixed_production_paths_are_exact(self) -> None:
         self.assertEqual(
-            Path("/etc/agora-research/okx-microstructure-continuous-source-v3.json"),
+            Path("/etc/agora-research/okx-microstructure-continuous-source-v3r1.json"),
             BINDING_PATH,
         )
         self.assertEqual(
-            Path("/var/lib/agora-research/state/microstructure-v3"),
+            Path("/var/lib/agora-research/state/microstructure-v3r1"),
             CANONICAL_STATE_ROOT,
         )
         self.assertEqual(
-            Path("/var/lib/agora-evidence-source/microstructure-drop"),
+            Path("/var/lib/agora-evidence-source/microstructure-v3r1-drop"),
             RETAINED_DAY_ROOT,
         )
         self.assertEqual(
-            Path("/etc/agora-research/local-tasks/microstructure-v3-evidence-diagnostic.v1.json"),
+            Path("/etc/agora-research/local-tasks/microstructure-v3r1-evidence-diagnostic.v1.json"),
             LOCAL_DIAGNOSTIC_TASK,
         )
         self.assertEqual(
-            Path("/var/lib/agora-research/microstructure-v3-handoff-staging"),
+            Path("/var/lib/agora-research/microstructure-v3r1-handoff-staging"),
             EXPORT_STAGING_ROOT,
         )
         self.assertEqual(
-            Path("/var/lib/agora-research/microstructure-v3-handoff-export"),
+            Path("/var/lib/agora-research/microstructure-v3r1-handoff-export"),
             EXPORT_FINAL_ROOT,
         )
 
@@ -341,18 +339,15 @@ class MicrostructureHandoffExportTest(unittest.TestCase):
             with self.subTest(mode=mode), TemporaryDirectory() as directory:
                 paths = self.fixture.install(Path(directory))
                 if mode == "chain":
-                    state_path = paths.canonical_state_root / f"{DIAGNOSTIC_ID}.json"
+                    state_path = paths.canonical_state_root / f"{GENERATION_ID}.json"
                     state = json.loads(state_path.read_bytes())
-                    state["accepted_days"][2]["cumulative_chain_sha256"] = "0" * 64
+                    state["calendar_chain_head_sha256"] = "0" * 64
                     state_path.write_bytes(canonical_json_bytes(state))
                 elif mode == "release":
                     envelope_path = self.fixture.first_envelope(paths)
                     os.chmod(envelope_path, 0o644)
                     envelope = json.loads(envelope_path.read_bytes())
                     envelope["producer_release_id"] = "wrong-release"
-                    envelope["envelope_seal"]["payload_sha256"] = canonical_sha256(
-                        envelope, exclude_key="envelope_seal"
-                    )
                     envelope_path.write_bytes(canonical_json_bytes(envelope))
                     os.chmod(envelope_path, 0o444)
                 else:
@@ -360,7 +355,7 @@ class MicrostructureHandoffExportTest(unittest.TestCase):
                     os.chmod(bundle, 0o644)
                     bundle.write_bytes(bundle.read_bytes()[:-1])
                     os.chmod(bundle, 0o444)
-                with self.assertRaises((ExportBlocked, RecoveryBlocked)):
+                with self.assertRaises((ExportBlocked, DiscoveryRecoveryBlocked)):
                     export_handoff(paths=paths)
                 self.assertFalse((paths.staging_root / TASK_ID).exists())
 

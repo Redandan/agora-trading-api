@@ -18,13 +18,16 @@ MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
 MICROSTRUCTURE_EXPORT_UNIT=agora-research-microstructure-handoff-export.service
-MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3.json
-MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-drop
-MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-private-staging
-MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3"
-MICROSTRUCTURE_LOCAL_TASK=/etc/agora-research/local-tasks/microstructure-v3-evidence-diagnostic.v1.json
-MICROSTRUCTURE_HANDOFF_STAGING="$DATA_ROOT/microstructure-v3-handoff-staging"
-MICROSTRUCTURE_HANDOFF_FINAL="$DATA_ROOT/microstructure-v3-handoff-export"
+MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
+MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-v3r1-drop
+MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-v3r1-private-staging
+MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3r1"
+R2_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3.json
+R2_MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3"
+R2_MICROSTRUCTURE_ARCHIVE="$DATA_ROOT/state/microstructure-archive/okx-btcusdt-microstructure-forward-v3-20260811-r2"
+MICROSTRUCTURE_LOCAL_TASK=/etc/agora-research/local-tasks/microstructure-v3r1-evidence-diagnostic.v1.json
+MICROSTRUCTURE_HANDOFF_STAGING="$DATA_ROOT/microstructure-v3r1-handoff-staging"
+MICROSTRUCTURE_HANDOFF_FINAL="$DATA_ROOT/microstructure-v3r1-handoff-export"
 LEGACY_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
 LEGACY_MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
 LEGACY_MICROSTRUCTURE_PRESERVATION="$DATA_ROOT/microstructure-v3-cutover/legacy-v2.sha256"
@@ -57,9 +60,9 @@ require_sha256() {
   local path="$1"
   local expected="$2"
   [ -f "$path" ] && [ ! -L "$path" ] \
-    || fail "frozen V3 contract missing or symlinked: $path"
+    || fail "frozen research contract missing or symlinked: $path"
   [ "$(sha256sum "$path" | awk '{print $1}')" = "$expected" ] \
-    || fail "frozen V3 contract hash mismatch: $path"
+    || fail "frozen research contract hash mismatch: $path"
 }
 
 snapshot_legacy_microstructure() {
@@ -563,7 +566,21 @@ require_sha256 "$data_current/research_pipeline/okx-microstructure-forward-day.v
   205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709
 require_sha256 "$data_current/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
   7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a
-ok "frozen V3 source, envelope, state, day, and diagnostic hashes verified"
+require_sha256 "$data_current/research_pipeline/okx-microstructure-discovery-recovery-contract.v3r1.json" \
+  6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd
+require_sha256 "$data_current/research_pipeline/okx-microstructure-discovery-source-binding.v3r1.schema.json" \
+  1d07c67e6668ba8f7f01ebcb4a71d702e855cc6d40bb2e6260dbb30f97c2e60b
+require_sha256 "$data_current/research_pipeline/okx-microstructure-discovery-complete-envelope.v3r1.schema.json" \
+  a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2
+require_sha256 "$data_current/research_pipeline/okx-microstructure-discovery-rejection-envelope.v3r1.schema.json" \
+  833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497
+require_sha256 "$data_current/research_pipeline/okx-microstructure-discovery-intake-state.v3r1.schema.json" \
+  12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d
+require_sha256 "$data_current/research_pipeline/okx-microstructure-discovery-r2-archive-manifest.v1.schema.json" \
+  050542e9c0668738cb25e60dc00343274e28d4514cd33ad8cc30daf249ce5f7e
+require_sha256 "$data_current/research_pipeline/microstructure-discovery-handoff-manifest.v3r1.schema.json" \
+  eef8749db62179482404dee510d6dfefd4b386c5960d98da1bc8b096e85c4617
+ok "frozen historical V3 and recovery V3R1 contract hashes verified"
 
 [ -f "$data_current/$MICROSTRUCTURE_JAR" ] && [ ! -L "$data_current/$MICROSTRUCTURE_JAR" ] \
   || fail "narrow microstructure producer jar missing or symlinked"
@@ -596,9 +613,9 @@ if grep -Evq '^(META-INF(/.*)?|com/|com/agora/|com/agora/research/|com/agora/res
     "$microstructure_inventory"; then
   fail "microstructure jar contains a class outside the frozen package prefix"
 fi
-grep -Fxq 'com/agora/research/OkxMicrostructureContinuousSourceCli.class' \
+grep -Fxq 'com/agora/research/OkxMicrostructureDiscoveryRecoverySourceCli.class' \
   "$microstructure_inventory" \
-  || fail "continuous source main class missing"
+  || fail "V3R1 recovery source main class missing"
 cleanup_microstructure_inventory
 trap - EXIT
 
@@ -650,71 +667,46 @@ if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
     || fail "microstructure binding ownership is incorrect"
   [ "$(stat -c '%a' "$MICROSTRUCTURE_BINDING")" = "640" ] \
     || fail "microstructure binding mode is incorrect"
-  sudo python3 - \
-    "$MICROSTRUCTURE_BINDING" \
-    "$data_current" \
-    "$EXPECT_MICROSTRUCTURE_SOURCE" <<'PY'
-from datetime import date, datetime, timezone
-import hashlib
-import json
+  (
+    cd "$data_current"
+    sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - \
+      "$MICROSTRUCTURE_BINDING" \
+      "$data_current" \
+      "$EXPECT_MICROSTRUCTURE_SOURCE" <<'PY'
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
 binding_path = Path(sys.argv[1])
 current = Path(sys.argv[2])
 expected_source = sys.argv[3]
+from research_pipeline.microstructure_discovery_recovery_intake_cli import (
+    RuntimePaths,
+    _load_binding,
+)
 
-def reject_duplicates(pairs):
-    value = {}
-    for key, item in pairs:
-        if key in value:
-            raise SystemExit(f"duplicate binding key: {key}")
-        value[key] = item
-    return value
-
-raw_binding = binding_path.read_bytes()
-binding = json.loads(raw_binding, object_pairs_hook=reject_duplicates)
-canonical = json.dumps(binding, separators=(",", ":"), sort_keys=True).encode("utf-8")
-if raw_binding != canonical:
-    raise SystemExit("binding bytes are not canonical")
-expected = {
-    "schema_version": "1",
-    "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
-    "required_complete_utc_days": 14,
-    "source_contract_sha256": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422",
-    "day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
-    "diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
-}
-expected_keys = set(expected) | {
-    "forward_start_day",
-    "diagnostic_id",
-    "producer_release_id",
-    "producer_manifest_sha256",
-}
-if set(binding) != expected_keys or any(binding.get(key) != value for key, value in expected.items()):
-    raise SystemExit("binding keys or frozen V3 values changed")
-with (current / ".release" / "provenance.json").open(encoding="utf-8") as stream:
-    provenance = json.load(stream)
-manifest_hash = hashlib.sha256(
-    (current / ".release" / "source.sha256").read_bytes()
-).hexdigest()
-if binding.get("producer_release_id") != current.name:
-    raise SystemExit("binding release id does not match installed release")
-if binding.get("producer_manifest_sha256") != manifest_hash:
-    raise SystemExit("binding manifest hash does not match installed manifest")
-if provenance.get("release_id") != current.name:
-    raise SystemExit("provenance release id does not match installed release")
-if provenance.get("source_manifest_sha256") != manifest_hash:
-    raise SystemExit("provenance manifest hash does not match installed manifest")
-try:
-    start_day = date.fromisoformat(binding["forward_start_day"])
-except (KeyError, TypeError, ValueError) as error:
-    raise SystemExit("binding forward start day is invalid") from error
-if expected_source != "active" and start_day <= datetime.now(timezone.utc).date():
+paths = RuntimePaths(
+    binding=binding_path,
+    drop_root=Path("/var/lib/agora-evidence-source/microstructure-v3r1-drop"),
+    staging_root=Path("/var/lib/agora-evidence-source/microstructure-v3r1-private-staging"),
+    state_root=Path("/var/lib/agora-research/state/microstructure-v3r1"),
+    release=current,
+)
+binding = _load_binding(
+    paths, require_future=False, today=datetime.now(timezone.utc).date()
+)
+if expected_source != "active" and binding["start_day"] <= datetime.now(timezone.utc).date().isoformat():
     raise SystemExit("binding forward start day is not strictly future for an inactive source")
 PY
-  ok "optional microstructure binding matches installed release"
+  )
+  ok "V3R1 microstructure binding matches installed release"
 fi
+(
+  cd "$data_current"
+  sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" \
+    -m research_pipeline.microstructure_discovery_r2_archive verify >/dev/null
+) || fail "R2 create-only archive or original bytes failed hash verification"
+ok "R2 binding, state, drop metadata, release provenance, journal, and failure evidence remain hash verified"
 [ -d "$DATA_ROOT" ] && [ ! -L "$DATA_ROOT" ] \
   || fail "canonical data root is missing, non-directory, or symlinked"
 [ "$(sudo stat -c '%U:%G:%a' "$DATA_ROOT")" = "$WORKER_USER:$EVIDENCE_GROUP:710" ] \
@@ -1079,6 +1071,18 @@ expected = set(sys.argv[2:])
 if actual != expected:
     raise SystemExit(f"exporter writable paths are not exact: {sorted(actual)}")
 PY
+[ "$(sudo stat -c '%U:%G:%a' "$MICROSTRUCTURE_LOCAL_TASK")" = "root:root:444" ] \
+  || fail "V3R1 local diagnostic task metadata is not frozen"
+sudo cmp -s \
+  "$MICROSTRUCTURE_LOCAL_TASK" \
+  "$data_current/research_pipeline/examples/local-research-task.microstructure-v3r1-evidence-diagnostic.v1.json" \
+  || fail "V3R1 local diagnostic task differs from the installed release"
+for handoff_root in "$MICROSTRUCTURE_HANDOFF_STAGING" "$MICROSTRUCTURE_HANDOFF_FINAL"; do
+  [ "$(sudo stat -c '%U:%G:%a' "$handoff_root")" = "$WORKER_USER:$WORKER_USER:700" ] \
+    || fail "V3R1 handoff root metadata is incorrect: $handoff_root"
+done
+[ "$(sudo stat -c '%d' "$MICROSTRUCTURE_HANDOFF_STAGING")" = "$(sudo stat -c '%d' "$MICROSTRUCTURE_HANDOFF_FINAL")" ] \
+  || fail "V3R1 handoff staging and final roots are not on one filesystem"
 export_active="$(systemctl is-active "$MICROSTRUCTURE_EXPORT_UNIT" 2>/dev/null || true)"
 [ "$export_active" = inactive ] \
   || fail "microstructure handoff exporter is not cleanly inactive outside an explicit handoff request"
@@ -1229,20 +1233,36 @@ fi
   || fail "microstructure source identity is incorrect"
 [ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=Group --value)" = "$EVIDENCE_GROUP" ] \
   || fail "microstructure source group is incorrect"
-[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=Restart --value)" = "no" ] \
-  || fail "microstructure source restart policy is not fail-closed"
+[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=Restart --value)" = "on-failure" ] \
+  || fail "microstructure source restart policy does not preserve V3R1 recovery"
+[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=RestartPreventExitStatus --value)" = "2" ] \
+  || fail "microstructure source does not prevent restart after a fail-closed exit"
+source_unit_text="$(systemctl cat "$MICROSTRUCTURE_UNIT")"
+echo "$source_unit_text" \
+  | grep -Fxq 'ExecStart=/opt/agora-research-worker/current/scripts/research-worker/run-microstructure-continuous-source.sh' \
+  || fail "microstructure source does not execute the fixed V3R1 wrapper"
+echo "$source_unit_text" | grep -Fxq 'RuntimeMaxSec=45d' \
+  || fail "microstructure source does not retain the bounded 42-day recovery lifetime"
 if systemctl show "$MICROSTRUCTURE_UNIT" --property=EnvironmentFiles --value | grep -q .; then
   fail "microstructure source must not load an environment file"
 fi
 source_read_only="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ReadOnlyPaths --value)"
 echo "$source_read_only" | grep -Fq "$MICROSTRUCTURE_BINDING" \
-  || fail "microstructure source does not read only the fixed V3 binding"
-if echo "$source_read_only" | grep -Fq "$LEGACY_MICROSTRUCTURE_BINDING"; then
-  fail "microstructure source can select the legacy V1 binding"
+  || fail "microstructure source does not read only the fixed V3R1 binding"
+if echo "$source_read_only" | grep -Fq "$R2_MICROSTRUCTURE_BINDING" \
+    || echo "$source_read_only" | grep -Fq "$LEGACY_MICROSTRUCTURE_BINDING"; then
+  fail "microstructure source can select a historical binding"
 fi
 if systemctl list-unit-files 'agora-research-microstructure*.timer' --no-legend | grep -q .; then
   fail "a microstructure timer exists"
 fi
+mapfile -t microstructure_paths < <(
+  systemctl list-unit-files 'agora-research-microstructure*.path' --no-legend \
+    | awk '{print $1}'
+)
+[ "${#microstructure_paths[@]}" = 1 ] \
+  && [ "${microstructure_paths[0]}" = "$MICROSTRUCTURE_INTAKE_PATH" ] \
+  || fail "microstructure lifecycle has more than the one existing intake path"
 microstructure_writes="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ReadWritePaths --value)"
 if echo "$microstructure_writes" | grep -Fq '/var/lib/agora-research/source-drop'; then
   fail "microstructure source can write the candle drop"
@@ -1283,12 +1303,13 @@ done
 intake_read_only="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=ReadOnlyPaths --value)"
 echo "$intake_read_only" | grep -Fq "$MICROSTRUCTURE_BINDING" \
   || fail "microstructure binding is not read-only to intake"
-if echo "$intake_read_only" | grep -Fq "$LEGACY_MICROSTRUCTURE_BINDING"; then
-  fail "microstructure intake can select the legacy V1 binding"
+if echo "$intake_read_only" | grep -Fq "$R2_MICROSTRUCTURE_BINDING" \
+    || echo "$intake_read_only" | grep -Fq "$LEGACY_MICROSTRUCTURE_BINDING"; then
+  fail "microstructure intake can select a historical binding"
 fi
 systemctl cat "$MICROSTRUCTURE_INTAKE_UNIT" \
-  | grep -Fxq 'ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_intake_cli ingest-v3' \
-  || fail "microstructure intake does not execute the fixed ingest-v3 command"
+  | grep -Fxq 'ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_discovery_recovery_intake_cli ingest' \
+  || fail "microstructure intake does not execute the fixed V3R1 ingest command"
 intake_writes="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=ReadWritePaths --value)"
 python3 - "$intake_writes" "$MICROSTRUCTURE_DROP" "$MICROSTRUCTURE_STATE" <<'PY'
 import sys
@@ -1301,6 +1322,8 @@ PY
 intake_inaccessible="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=InaccessiblePaths --value)"
 echo "$intake_inaccessible" | grep -Fq "$LEGACY_MICROSTRUCTURE_STATE" \
   || fail "microstructure intake can access the legacy V2 state namespace"
+echo "$intake_inaccessible" | grep -Fq "$R2_MICROSTRUCTURE_STATE" \
+  || fail "microstructure intake can access the historical R2 state namespace"
 systemctl cat "$MICROSTRUCTURE_INTAKE_PATH" \
   | grep -Fxq "PathChanged=$MICROSTRUCTURE_DROP" \
   || fail "microstructure path does not watch the fixed drop root"
@@ -1323,6 +1346,32 @@ microstructure_free_bytes="$(df -B1 --output=avail "$MICROSTRUCTURE_DROP" | tail
 [[ "$microstructure_free_bytes" =~ ^[0-9]+$ ]] \
   && [ "$microstructure_free_bytes" -ge 2147483648 ] \
   || fail "microstructure drop has less than 2 GiB free"
+
+sudo python3 - "$MICROSTRUCTURE_STAGING" "$SOURCE_USER" "$EVIDENCE_GROUP" <<'PY'
+import grp
+from pathlib import Path
+import pwd
+import stat
+import sys
+
+root = Path(sys.argv[1])
+source_uid = pwd.getpwnam(sys.argv[2]).pw_uid
+evidence_gid = grp.getgrnam(sys.argv[3]).gr_gid
+allowed_top = {".source-state", ".source-publication-prepared"}
+for path in root.rglob("*"):
+    details = path.lstat()
+    relative = path.relative_to(root)
+    if relative.parts[0] not in allowed_top:
+        raise SystemExit(f"unexpected V3R1 private staging entry: {relative}")
+    if stat.S_ISLNK(details.st_mode) or not (
+        stat.S_ISREG(details.st_mode) or stat.S_ISDIR(details.st_mode)
+    ):
+        raise SystemExit(f"unsafe V3R1 private staging entry: {relative}")
+    if details.st_uid != source_uid or details.st_gid != evidence_gid:
+        raise SystemExit(f"V3R1 private staging ownership changed: {relative}")
+    if stat.S_IMODE(details.st_mode) & 0o007:
+        raise SystemExit(f"V3R1 private staging is world accessible: {relative}")
+PY
 
 sudo python3 - "$MICROSTRUCTURE_DROP" "$WORKER_USER" <<'PY'
 from datetime import date
@@ -1357,18 +1406,21 @@ for entry in os.scandir(root):
         reservations[day] = Path(entry.path)
         continue
     raise SystemExit(f"unexpected microstructure drop entry: {entry.name}")
-if len(days) > 14 or len(reservations) > 14 or set(days) != set(reservations):
+if len(days) > 42 or len(reservations) > 42 or set(days) != set(reservations):
     raise SystemExit("microstructure drop retention/reservation bound failed")
 for day, directory in days.items():
     details = directory.lstat()
     if details.st_uid != 0 or details.st_gid != research_gid or stat.S_IMODE(details.st_mode) != 0o550:
         raise SystemExit(f"published day metadata is not frozen: {day}")
-    expected = {
-        f"okx-btc-usdt-microstructure-{day}.json",
-        f"okx-btc-usdt-microstructure-{day}.envelope.json",
-    }
     children = list(os.scandir(directory))
-    if {child.name for child in children} != expected:
+    complete = {
+        f"okx-btc-usdt-microstructure-{day}.json",
+        f"okx-btc-usdt-microstructure-{day}.complete.envelope.json",
+    }
+    rejected = {
+        f"okx-btc-usdt-microstructure-{day}.rejection.envelope.json",
+    }
+    if {child.name for child in children} not in (complete, rejected):
         raise SystemExit(f"published day shape changed: {day}")
     for child in children:
         child_details = child.stat(follow_symlinks=False)
@@ -1426,12 +1478,21 @@ if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
   (
     cd "$data_current"
     sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
-from research_pipeline.microstructure_intake_cli import (
-    fixed_v3_runtime_paths,
-    validate_existing_v3_installation,
+from datetime import datetime, timezone
+from research_pipeline.microstructure_discovery_recovery_intake_cli import (
+    _load_binding,
+    _load_state,
+    _scan_drop,
+    _state_path,
+    fixed_runtime_paths,
 )
 
-validate_existing_v3_installation(paths=fixed_v3_runtime_paths())
+paths = fixed_runtime_paths()
+binding = _load_binding(
+    paths, require_future=False, today=datetime.now(timezone.utc).date()
+)
+_load_state(_state_path(paths.state_root, binding["generation_id"]), binding)
+_scan_drop(paths.drop_root, binding)
 PY
   )
   microstructure_state_file="$(sudo find "$MICROSTRUCTURE_STATE" -mindepth 1 -maxdepth 1 -type f -name '*.json' -print)"

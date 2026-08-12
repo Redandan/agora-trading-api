@@ -1,15 +1,15 @@
 [Unit]
 Description=Agora research microstructure canonical intake
 After=local-fs.target
-ConditionPathIsDirectory=/var/lib/agora-evidence-source/microstructure-drop
-ConditionPathIsDirectory=/var/lib/agora-research/state/microstructure-v3
+ConditionPathIsDirectory=/var/lib/agora-evidence-source/microstructure-v3r1-drop
+ConditionPathIsDirectory=/var/lib/agora-research/state/microstructure-v3r1
 
 [Service]
 Type=oneshot
 User=agora-research
 Group=agora-research
 WorkingDirectory=/opt/agora-research-worker/current
-ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_intake_cli ingest-v3
+ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_discovery_recovery_intake_cli ingest
 Restart=no
 UMask=0077
 NoNewPrivileges=yes
@@ -27,11 +27,12 @@ ProtectControlGroups=yes
 LockPersonality=yes
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
-ReadOnlyPaths=/etc/agora-research/okx-microstructure-continuous-source-v3.json
+ReadOnlyPaths=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
 ReadOnlyPaths=/opt/agora-research-worker/current
-ReadWritePaths=/var/lib/agora-evidence-source/microstructure-drop
-ReadWritePaths=/var/lib/agora-research/state/microstructure-v3
+ReadWritePaths=/var/lib/agora-evidence-source/microstructure-v3r1-drop
+ReadWritePaths=/var/lib/agora-research/state/microstructure-v3r1
 InaccessiblePaths=/var/lib/agora-research/state/microstructure
+InaccessiblePaths=/var/lib/agora-research/state/microstructure-v3
 InaccessiblePaths=/var/lib/agora-research/state/authority.json
 InaccessiblePaths=/var/lib/agora-research/source-drop
 InaccessiblePaths=/home/ubuntu/.env.trading.secrets

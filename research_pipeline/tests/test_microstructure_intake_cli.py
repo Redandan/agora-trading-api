@@ -466,11 +466,11 @@ class MicrostructureIntakeCliTest(unittest.TestCase):
         self.assertIn("IPAddressDeny=any", service)
         self.assertIn("Restart=no", service)
         self.assertIn(
-            "ReadWritePaths=/var/lib/agora-evidence-source/microstructure-drop",
+            "ReadWritePaths=/var/lib/agora-evidence-source/microstructure-v3r1-drop",
             service,
         )
         self.assertIn(
-            "PathChanged=/var/lib/agora-evidence-source/microstructure-drop",
+            "PathChanged=/var/lib/agora-evidence-source/microstructure-v3r1-drop",
             path_unit,
         )
         self.assertNotIn("OnCalendar=", path_unit)
@@ -751,9 +751,9 @@ class MicrostructureV3IntakeCliTest(unittest.TestCase):
         verifier = (
             repository / "scripts/research-worker/verify-worker.sh"
         ).read_text(encoding="utf-8")
-        self.assertIn("ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_intake_cli ingest-v3", intake)
+        self.assertIn("ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_discovery_recovery_intake_cli ingest", intake)
         self.assertIn(
-            "ReadWritePaths=/var/lib/agora-research/state/microstructure-v3",
+            "ReadWritePaths=/var/lib/agora-research/state/microstructure-v3r1",
             intake,
         )
         self.assertIn(
@@ -765,9 +765,11 @@ class MicrostructureV3IntakeCliTest(unittest.TestCase):
         )
         for content in (source, wrapper, installer, verifier):
             self.assertIn(
-                "/etc/agora-research/okx-microstructure-continuous-source-v3.json",
+                "/etc/agora-research/okx-microstructure-continuous-source-v3r1.json",
                 content,
             )
+        self.assertIn("Restart=on-failure", source)
+        self.assertIn("RestartPreventExitStatus=2", source)
         source_write_lines = [
             line for line in source.splitlines() if line.startswith("ReadWritePaths=")
         ]
@@ -803,12 +805,21 @@ class MicrostructureV3IntakeCliTest(unittest.TestCase):
             V3_SOURCE_CONTRACT_SHA256,
             V3_DROP_ENVELOPE_SCHEMA_SHA256,
             V3_INTAKE_STATE_SCHEMA_SHA256,
-            V3_DAY_SCHEMA_SHA256,
-            V3_DIAGNOSTIC_CONTRACT_SHA256,
+        ):
+            self.assertIn(digest, verifier)
+        for digest in (V3_DAY_SCHEMA_SHA256, V3_DIAGNOSTIC_CONTRACT_SHA256):
+            self.assertIn(digest, wrapper)
+            self.assertIn(digest, verifier)
+        for digest in (
+            "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd",
+            "a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2",
+            "833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497",
+            "12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d",
+            "050542e9c0668738cb25e60dc00343274e28d4514cd33ad8cc30daf249ce5f7e",
         ):
             self.assertIn(digest, wrapper)
             self.assertIn(digest, verifier)
-        self.assertIn("microstructure_intake_cli initialize-v3", installer)
+        self.assertIn("microstructure_discovery_recovery_intake_cli initialize", installer)
         self.assertIn(
             'LEGACY_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json',
             installer,

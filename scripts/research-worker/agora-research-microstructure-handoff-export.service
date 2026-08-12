@@ -1,5 +1,5 @@
 [Unit]
-Description=Agora research microstructure V3 handoff exporter
+Description=Agora research microstructure discovery V3R1 handoff exporter
 Documentation=file:/opt/agora-research-worker/control-current/docs/server-research-worker-v2.md
 After=local-fs.target
 
@@ -33,14 +33,14 @@ LockPersonality=yes
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
 RestrictNamespaces=yes
-ReadOnlyPaths=/etc/agora-research/okx-microstructure-continuous-source-v3.json
-ReadOnlyPaths=/var/lib/agora-research/state/microstructure-v3
-ReadOnlyPaths=/var/lib/agora-evidence-source/microstructure-drop
-ReadOnlyPaths=/etc/agora-research/local-tasks/microstructure-v3-evidence-diagnostic.v1.json
+ReadOnlyPaths=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
+ReadOnlyPaths=/var/lib/agora-research/state/microstructure-v3r1
+ReadOnlyPaths=/var/lib/agora-evidence-source/microstructure-v3r1-drop
+ReadOnlyPaths=/etc/agora-research/local-tasks/microstructure-v3r1-evidence-diagnostic.v1.json
 ReadOnlyPaths=/opt/agora-research-worker/current
 ReadOnlyPaths=/opt/agora-research-worker/control-current
-ReadWritePaths=/var/lib/agora-research/microstructure-v3-handoff-staging
-ReadWritePaths=/var/lib/agora-research/microstructure-v3-handoff-export
+ReadWritePaths=/var/lib/agora-research/microstructure-v3r1-handoff-staging
+ReadWritePaths=/var/lib/agora-research/microstructure-v3r1-handoff-export
 InaccessiblePaths=/home/ubuntu/.env.trading.secrets
 SystemCallArchitectures=native
 TimeoutStartSec=5min

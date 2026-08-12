@@ -3,9 +3,9 @@ set -euo pipefail
 
 WORKER_ROOT=/opt/agora-research-worker
 CURRENT_LINK="$WORKER_ROOT/current"
-BINDING_PATH=/etc/agora-research/okx-microstructure-continuous-source-v3.json
+BINDING_PATH=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
 JAVA_BIN=/usr/bin/java
-MAIN_CLASS=com.agora.research.OkxMicrostructureContinuousSourceCli
+MAIN_CLASS=com.agora.research.OkxMicrostructureDiscoveryRecoverySourceCli
 DIST_JAR=target/microstructure-dist/agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar
 
 fail() {
@@ -16,9 +16,9 @@ fail() {
 require_sha256() {
   local path="$1"
   local expected="$2"
-  [ -f "$path" ] && [ ! -L "$path" ] || fail "frozen V3 contract missing or symlinked: $path"
+  [ -f "$path" ] && [ ! -L "$path" ] || fail "frozen V3R1 contract missing or symlinked: $path"
   [ "$(/usr/bin/sha256sum "$path" | awk '{print $1}')" = "$expected" ] \
-    || fail "frozen V3 contract hash mismatch: $path"
+    || fail "frozen V3R1 contract hash mismatch: $path"
 }
 
 [ "$#" -eq 0 ] || fail "caller arguments are forbidden"
@@ -39,12 +39,18 @@ for path in "$BINDING_PATH" "$manifest" "$provenance" "$jar_path"; do
 done
 [ -d "$lib_dir" ] && [ ! -L "$lib_dir" ] || fail "runtime dependency directory missing or symlinked"
 
-require_sha256 "$current/research_pipeline/okx-microstructure-continuous-source-contract.v3.json" \
-  8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422
-require_sha256 "$current/research_pipeline/okx-microstructure-drop-envelope.v3.schema.json" \
-  ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418
-require_sha256 "$current/research_pipeline/okx-microstructure-intake-state.v3.schema.json" \
-  935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc
+require_sha256 "$current/research_pipeline/okx-microstructure-discovery-recovery-contract.v3r1.json" \
+  6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd
+require_sha256 "$current/research_pipeline/okx-microstructure-discovery-source-binding.v3r1.schema.json" \
+  1d07c67e6668ba8f7f01ebcb4a71d702e855cc6d40bb2e6260dbb30f97c2e60b
+require_sha256 "$current/research_pipeline/okx-microstructure-discovery-complete-envelope.v3r1.schema.json" \
+  a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2
+require_sha256 "$current/research_pipeline/okx-microstructure-discovery-rejection-envelope.v3r1.schema.json" \
+  833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497
+require_sha256 "$current/research_pipeline/okx-microstructure-discovery-intake-state.v3r1.schema.json" \
+  12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d
+require_sha256 "$current/research_pipeline/okx-microstructure-discovery-r2-archive-manifest.v1.schema.json" \
+  050542e9c0668738cb25e60dc00343274e28d4514cd33ad8cc30daf249ce5f7e
 require_sha256 "$current/research_pipeline/okx-microstructure-forward-day.v3.schema.json" \
   205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709
 require_sha256 "$current/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
@@ -60,7 +66,7 @@ java_version="$($JAVA_BIN -XshowSettings:properties -version 2>&1 \
 [ "$java_version" = "21" ] || fail "Java 21 is required"
 
 /usr/bin/python3 - "$BINDING_PATH" "$provenance" "$manifest" "$current" <<'PY'
-from datetime import date, datetime, timezone
+from datetime import date, timedelta
 import hashlib
 import json
 from pathlib import Path
@@ -86,38 +92,73 @@ provenance = load(provenance_path)
 expected_keys = {
     "schema_version",
     "authorization",
-    "forward_start_day",
-    "required_complete_utc_days",
+    "generation_id",
     "diagnostic_id",
-    "source_contract_sha256",
-    "day_schema_sha256",
-    "diagnostic_contract_sha256",
+    "recovery_contract_sha256",
+    "v3_day_schema_sha256",
+    "v3_diagnostic_contract_sha256",
+    "complete_envelope_schema_sha256",
+    "rejection_envelope_schema_sha256",
+    "intake_state_schema_sha256",
     "producer_release_id",
     "producer_manifest_sha256",
+    "start_day",
+    "end_day",
+    "calendar_day_budget",
+    "required_consecutive_complete_days",
+    "selection_rule",
 }
 if set(binding) != expected_keys:
     raise SystemExit("binding keys mismatch")
-if binding["schema_version"] != "1":
+canonical_binding = json.dumps(
+    binding, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+).encode("utf-8")
+if binding_path.read_bytes() != canonical_binding:
+    raise SystemExit("binding bytes are not canonical")
+if binding["schema_version"] != "OKX_MICROSTRUCTURE_DISCOVERY_SOURCE_BINDING_V3R1":
     raise SystemExit("binding schema mismatch")
 if binding["authorization"] != "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE":
     raise SystemExit("binding authorization mismatch")
-if binding["required_complete_utc_days"] != 14:
+if binding["calendar_day_budget"] != 42 or binding["required_consecutive_complete_days"] != 14:
     raise SystemExit("binding day count mismatch")
-if binding["source_contract_sha256"] != "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422":
-    raise SystemExit("source contract hash mismatch")
-if binding["day_schema_sha256"] != "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709":
-    raise SystemExit("day schema hash mismatch")
-if binding["diagnostic_contract_sha256"] != "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a":
-    raise SystemExit("diagnostic contract hash mismatch")
-if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,79}", str(binding["diagnostic_id"])):
+if binding["selection_rule"] != "FIRST_SOURCE_LIVENESS_DEFINED_FOURTEEN_DAY_STREAK":
+    raise SystemExit("selection rule mismatch")
+expected_hashes = {
+    "recovery_contract_sha256": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd",
+    "v3_day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
+    "v3_diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+    "complete_envelope_schema_sha256": "a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2",
+    "rejection_envelope_schema_sha256": "833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497",
+    "intake_state_schema_sha256": "12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d",
+}
+if any(binding.get(key) != value for key, value in expected_hashes.items()):
+    raise SystemExit("V3R1 contract hash mismatch")
+if not re.fullmatch(
+    r"okx-btcusdt-microstructure-discovery-v3r1-[0-9]{8}-r[0-9]+",
+    str(binding["generation_id"]),
+):
+    raise SystemExit("generation id is invalid")
+if not re.fullmatch(
+    r"okx-btcusdt-microstructure-forward-v3r1-[0-9]{8}-r[0-9]+",
+    str(binding["diagnostic_id"]),
+):
     raise SystemExit("diagnostic id is invalid")
 try:
-    start_day = date.fromisoformat(binding["forward_start_day"])
+    start_day = date.fromisoformat(binding["start_day"])
+    end_day = date.fromisoformat(binding["end_day"])
 except (TypeError, ValueError) as error:
-    raise SystemExit("forward start day is invalid") from error
-if start_day <= datetime.now(timezone.utc).date():
-    raise SystemExit("forward start day is not strictly future")
-
+    raise SystemExit("calendar day is invalid") from error
+if end_day != start_day + timedelta(days=41):
+    raise SystemExit("frozen calendar is invalid")
+start_token = start_day.strftime("%Y%m%d")
+generation_suffix = binding["generation_id"].removeprefix(
+    "okx-btcusdt-microstructure-discovery-v3r1-"
+)
+diagnostic_suffix = binding["diagnostic_id"].removeprefix(
+    "okx-btcusdt-microstructure-forward-v3r1-"
+)
+if generation_suffix != diagnostic_suffix or not generation_suffix.startswith(start_token + "-"):
+    raise SystemExit("binding identity is inconsistent")
 manifest_bytes = manifest_path.read_bytes()
 manifest_hash = hashlib.sha256(manifest_bytes).hexdigest()
 release_id = current_path.name

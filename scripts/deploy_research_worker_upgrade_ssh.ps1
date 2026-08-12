@@ -43,8 +43,12 @@ if ($bindingRequested) {
     if (-not $parsed -or $parsedStartDay.Date -le [DateTime]::UtcNow.Date) {
         throw "MicrostructureForwardStartDay must be a strictly future UTC day."
     }
-    if ($MicrostructureDiagnosticId -notmatch "^[a-z0-9][a-z0-9-]{2,79}$") {
-        throw "MicrostructureDiagnosticId is invalid."
+    if ($MicrostructureDiagnosticId -notmatch "^okx-btcusdt-microstructure-forward-v3r1-[0-9]{8}-r[0-9]+$") {
+        throw "MicrostructureDiagnosticId is not an exact V3R1 diagnostic identity."
+    }
+    $expectedPrefix = "okx-btcusdt-microstructure-forward-v3r1-" + $parsedStartDay.ToString("yyyyMMdd") + "-"
+    if (-not $MicrostructureDiagnosticId.StartsWith($expectedPrefix, [System.StringComparison]::Ordinal)) {
+        throw "MicrostructureDiagnosticId does not match MicrostructureForwardStartDay."
     }
 }
 if ($PreserveBoundDataPlane -and $bindingRequested) {

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/schemas/okx-microstructure-discovery-r2-archive-manifest.v1.schema.json",
+  "title": "OKX Microstructure Discovery R2 Archive Manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authorization",
+    "diagnostic_id",
+    "disposition",
+    "source_unit",
+    "original_bytes_policy",
+    "created_at",
+    "entries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "OKX_MICROSTRUCTURE_DISCOVERY_R2_ARCHIVE_MANIFEST_V1"
+    },
+    "authorization": {
+      "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+    },
+    "diagnostic_id": {
+      "const": "okx-btcusdt-microstructure-forward-v3-20260811-r2"
+    },
+    "disposition": {
+      "const": "NO_EVIDENCE_CLOSE_INTERRUPTED_GENERATION"
+    },
+    "source_unit": {
+      "const": "agora-research-microstructure-source.service"
+    },
+    "original_bytes_policy": {
+      "const": "PRESERVE_AT_ORIGINAL_PATH_AND_VERIFY_SHA256"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "archive_path",
+          "source_locator",
+          "kind",
+          "size_bytes",
+          "sha256"
+        ],
+        "properties": {
+          "archive_path": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._/-]{0,255}$"
+          },
+          "source_locator": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "kind": {
+            "enum": [
+              "ORIGINAL_FILE_COPY",
+              "ORIGINAL_DIRECTORY_INVENTORY",
+              "SYSTEMD_PROPERTIES_CAPTURE",
+              "SYSTEMD_JOURNAL_CAPTURE",
+              "FAILURE_EVIDENCE_CAPTURE"
+            ]
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1073741824
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

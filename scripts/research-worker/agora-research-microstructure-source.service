@@ -1,5 +1,5 @@
 [Unit]
-Description=Continuous forward-only OKX microstructure research source
+Description=Restart-tolerant V3R1 OKX microstructure discovery source
 Documentation=file:/opt/agora-research-worker/current/docs/server-research-worker-v2.md
 After=network-online.target
 Wants=network-online.target
@@ -10,7 +10,9 @@ User=agora-evidence-source
 Group=agora-evidence
 WorkingDirectory=/opt/agora-research-worker/current
 ExecStart=/opt/agora-research-worker/current/scripts/research-worker/run-microstructure-continuous-source.sh
-Restart=no
+Restart=on-failure
+RestartPreventExitStatus=2
+RestartSec=30s
 RuntimeMaxSec=45d
 TimeoutStopSec=30s
 UMask=0027
@@ -33,7 +35,7 @@ RestrictNamespaces=true
 LockPersonality=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 InaccessiblePaths=-/var/lib/agora-research -/home/ubuntu/.env.trading.secrets
-ReadOnlyPaths=/etc/agora-research/okx-microstructure-continuous-source-v3.json
+ReadOnlyPaths=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
 ReadWritePaths=/var/lib/agora-evidence-source
 CapabilityBoundingSet=
 SystemCallArchitectures=native

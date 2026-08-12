@@ -56,7 +56,12 @@ _COMMIT_INTENT_VERSION = "V3R1_CANONICAL_STATE_COMMIT_INTENT_V1"
 _REQUIRED_RELEASE_FILES = {
     "research_pipeline/microstructure_discovery_recovery_v3r1.py",
     "research_pipeline/microstructure_discovery_recovery_intake_cli.py",
+    "research_pipeline/microstructure_discovery_r2_archive.py",
+    "research_pipeline/microstructure_handoff_export.py",
+    "research_pipeline/microstructure-discovery-handoff-manifest.v3r1.schema.json",
+    "research_pipeline/examples/local-research-task.microstructure-v3r1-evidence-diagnostic.v1.json",
     "research_pipeline/okx-microstructure-discovery-recovery-contract.v3r1.json",
+    "research_pipeline/okx-microstructure-discovery-r2-archive-manifest.v1.schema.json",
     "research_pipeline/okx-microstructure-discovery-source-binding.v3r1.schema.json",
     "research_pipeline/okx-microstructure-discovery-complete-envelope.v3r1.schema.json",
     "research_pipeline/okx-microstructure-discovery-rejection-envelope.v3r1.schema.json",

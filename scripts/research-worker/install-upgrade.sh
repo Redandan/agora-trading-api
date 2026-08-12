@@ -18,10 +18,18 @@ PRESERVE_BOUND_DATA_PLANE="${PRESERVE_BOUND_DATA_PLANE:-0}"
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
-MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3.json
-MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-drop
-MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-private-staging
-MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3"
+MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
+MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-v3r1-drop
+MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-v3r1-private-staging
+MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3r1"
+MICROSTRUCTURE_LOCAL_TASK=/etc/agora-research/local-tasks/microstructure-v3r1-evidence-diagnostic.v1.json
+MICROSTRUCTURE_HANDOFF_STAGING="$DATA_ROOT/microstructure-v3r1-handoff-staging"
+MICROSTRUCTURE_HANDOFF_FINAL="$DATA_ROOT/microstructure-v3r1-handoff-export"
+R2_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3.json
+R2_MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-drop
+R2_MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-private-staging
+R2_MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3"
+R2_MICROSTRUCTURE_ARCHIVE="$DATA_ROOT/state/microstructure-archive/okx-btcusdt-microstructure-forward-v3-20260811-r2"
 LEGACY_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
 LEGACY_MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
 LEGACY_MICROSTRUCTURE_PRESERVATION="$DATA_ROOT/microstructure-v3-cutover/legacy-v2.sha256"
@@ -43,9 +51,9 @@ require_sha256() {
   local path="$1"
   local expected="$2"
   [ -f "$path" ] && [ ! -L "$path" ] \
-    || fail "frozen V3 contract missing or symlinked: $path"
+    || fail "frozen V3R1 contract missing or symlinked: $path"
   [ "$(sha256sum "$path" | awk '{print $1}')" = "$expected" ] \
-    || fail "frozen V3 contract hash mismatch: $path"
+    || fail "frozen V3R1 contract hash mismatch: $path"
 }
 
 case "$STAGING_DIR" in /home/ubuntu/.cache/agora-research-upgrade/*) ;; *) fail "unsupported staging path" ;; esac
@@ -70,8 +78,11 @@ if [ -n "$MICROSTRUCTURE_FORWARD_START_DAY" ] || [ -n "$MICROSTRUCTURE_DIAGNOSTI
   date -u -d "$MICROSTRUCTURE_FORWARD_START_DAY" +%F 2>/dev/null \
     | grep -Fxq "$MICROSTRUCTURE_FORWARD_START_DAY" \
     || fail "microstructure forward start day is not a valid UTC date"
-  [[ "$MICROSTRUCTURE_DIAGNOSTIC_ID" =~ ^[a-z0-9][a-z0-9-]{2,79}$ ]] \
-    || fail "invalid microstructure diagnostic id"
+  [[ "$MICROSTRUCTURE_DIAGNOSTIC_ID" =~ ^okx-btcusdt-microstructure-forward-v3r1-[0-9]{8}-r[0-9]+$ ]] \
+    || fail "invalid V3R1 microstructure diagnostic id"
+  diagnostic_suffix="${MICROSTRUCTURE_DIAGNOSTIC_ID#okx-btcusdt-microstructure-forward-v3r1-}"
+  [ "$diagnostic_suffix" = "${MICROSTRUCTURE_FORWARD_START_DAY//-/}"-"${diagnostic_suffix##*-}" ] \
+    || fail "V3R1 diagnostic id does not match the frozen start day"
   binding_requested=true
 fi
 [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] || [ "$binding_requested" = false ] \
@@ -134,7 +145,7 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
     || fail "canonical data root metadata does not permit source traversal"
   sudo -u "$SOURCE_USER" test -x "$DATA_ROOT" \
     || fail "public source identity cannot traverse the canonical data root"
-  [ "$binding_present" = true ] || fail "preserve mode requires the existing V3 binding"
+  [ "$binding_present" = true ] || fail "preserve mode requires the existing V3R1 binding"
   [ -L "$WORKER_ROOT/current" ] || fail "preserve mode requires the data-current symlink"
   preserve_data_current_link="$(readlink "$WORKER_ROOT/current")" \
     || fail "data-current link cannot be read"
@@ -146,11 +157,12 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
   esac
   [ -d "$preserve_data_current" ] && [ ! -L "$preserve_data_current" ] \
     || fail "resolved data-current is not an immutable release directory"
-  IFS=$'\t' read -r preserve_diagnostic_id preserve_bound_release preserve_bound_manifest < <(
+  IFS=$'\t' read -r preserve_generation_id preserve_bound_release preserve_bound_manifest < <(
     sudo python3 - \
       "$MICROSTRUCTURE_BINDING" \
       "$preserve_data_current" \
       "$EVIDENCE_GROUP" <<'PY'
+from datetime import date, timedelta
 import grp
 import hashlib
 import json
@@ -193,23 +205,37 @@ canonical = json.dumps(binding, separators=(",", ":"), sort_keys=True).encode("u
 if raw_binding != canonical:
     fail("preserve binding bytes are not canonical")
 fixed = {
-    "schema_version": "1",
+    "schema_version": "OKX_MICROSTRUCTURE_DISCOVERY_SOURCE_BINDING_V3R1",
     "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
-    "required_complete_utc_days": 14,
-    "source_contract_sha256": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422",
-    "day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
-    "diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+    "recovery_contract_sha256": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd",
+    "v3_day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
+    "v3_diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+    "complete_envelope_schema_sha256": "a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2",
+    "rejection_envelope_schema_sha256": "833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497",
+    "intake_state_schema_sha256": "12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d",
+    "calendar_day_budget": 42,
+    "required_consecutive_complete_days": 14,
+    "selection_rule": "FIRST_SOURCE_LIVENESS_DEFINED_FOURTEEN_DAY_STREAK",
 }
 expected_keys = set(fixed) | {
-    "forward_start_day",
+    "generation_id",
     "diagnostic_id",
     "producer_release_id",
     "producer_manifest_sha256",
+    "start_day",
+    "end_day",
 }
 if set(binding) != expected_keys or any(binding.get(key) != value for key, value in fixed.items()):
     fail("preserve binding keys or fixed values changed")
+generation_id = binding.get("generation_id")
 diagnostic_id = binding.get("diagnostic_id")
-if not isinstance(diagnostic_id, str) or re.fullmatch(r"[a-z0-9][a-z0-9-]{2,79}", diagnostic_id) is None:
+if not isinstance(generation_id, str) or re.fullmatch(
+    r"okx-btcusdt-microstructure-discovery-v3r1-[0-9]{8}-r[0-9]+", generation_id
+) is None:
+    fail("preserve binding generation id is invalid")
+if not isinstance(diagnostic_id, str) or re.fullmatch(
+    r"okx-btcusdt-microstructure-forward-v3r1-[0-9]{8}-r[0-9]+", diagnostic_id
+) is None:
     fail("preserve binding diagnostic id is invalid")
 manifest = release / ".release" / "source.sha256"
 provenance_path = release / ".release" / "provenance.json"
@@ -239,13 +265,13 @@ if binding.get("producer_release_id") != release.name:
     fail("binding release id does not match data-current")
 if binding.get("producer_manifest_sha256") != manifest_hash:
     fail("binding manifest hash does not match data-current")
-print(f"{diagnostic_id}\t{release.name}\t{manifest_hash}")
+print(f"{generation_id}\t{release.name}\t{manifest_hash}")
 PY
   ) || fail "preserve binding, manifest, and provenance preflight failed"
-  [ -n "$preserve_diagnostic_id" ] \
+  [ -n "$preserve_generation_id" ] \
     && [ "$preserve_bound_release" = "$(basename "$preserve_data_current")" ] \
     || fail "preserve binding release identity could not be sealed"
-  preserve_state_file="$MICROSTRUCTURE_STATE/$preserve_diagnostic_id.json"
+  preserve_state_file="$MICROSTRUCTURE_STATE/$preserve_generation_id.json"
   sudo python3 - "$MICROSTRUCTURE_STATE" "$preserve_state_file" <<'PY'
 import os
 from pathlib import Path
@@ -255,34 +281,32 @@ import sys
 root, state = map(Path, sys.argv[1:])
 root_details = root.lstat()
 if stat.S_ISLNK(root_details.st_mode) or not stat.S_ISDIR(root_details.st_mode):
-    raise SystemExit("microstructure V3 state root is invalid")
+    raise SystemExit("microstructure V3R1 state root is invalid")
 entries = list(os.scandir(root))
 if len(entries) != 1 or Path(entries[0].path) != state:
-    raise SystemExit("microstructure V3 state inventory is not exact")
+    raise SystemExit("microstructure V3R1 state inventory is not exact")
 details = state.lstat()
 if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
-    raise SystemExit("microstructure V3 state is missing or symlinked")
+    raise SystemExit("microstructure V3R1 state is missing or symlinked")
 PY
   (
     cd "$preserve_data_current"
     sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
 from datetime import datetime, timezone
-from research_pipeline.microstructure_intake_cli import (
-    _load_matching_v3_state,
-    _load_v3_binding,
+from research_pipeline.microstructure_discovery_recovery_intake_cli import (
+    _load_binding,
+    _load_state,
     _state_path,
-    fixed_v3_runtime_paths,
+    fixed_runtime_paths,
 )
 
-paths = fixed_v3_runtime_paths()
-binding = _load_v3_binding(
-    paths,
-    require_future=False,
-    today=datetime.now(timezone.utc).date(),
+paths = fixed_runtime_paths()
+binding = _load_binding(
+    paths, require_future=False, today=datetime.now(timezone.utc).date()
 )
-_load_matching_v3_state(_state_path(paths.state_root, binding.diagnostic_id), binding)
+_load_state(_state_path(paths.state_root, binding["generation_id"]), binding)
 PY
-  ) || fail "bound microstructure V3 state does not match its binding"
+  ) || fail "bound microstructure V3R1 state does not match its binding"
   preserve_binding_sha256="$(sudo sha256sum "$MICROSTRUCTURE_BINDING" | awk '{print $1}')"
   preserve_binding_size="$(sudo stat -c '%s' "$MICROSTRUCTURE_BINDING")"
   preserve_binding_bytes="$(sudo base64 -w0 "$MICROSTRUCTURE_BINDING")"
@@ -633,12 +657,16 @@ fi
 (cd "$SOURCE_DIR" && sha256sum -c "$SOURCE_MANIFEST" >/dev/null) || fail "source manifest verification failed"
 sudo test -f "$DATA_ROOT/state/authority.json" || fail "canonical state missing"
 
-require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-continuous-source-contract.v3.json" \
-  8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422
-require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-drop-envelope.v3.schema.json" \
-  ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418
-require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-intake-state.v3.schema.json" \
-  935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-discovery-recovery-contract.v3r1.json" \
+  6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-discovery-source-binding.v3r1.schema.json" \
+  1d07c67e6668ba8f7f01ebcb4a71d702e855cc6d40bb2e6260dbb30f97c2e60b
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-discovery-complete-envelope.v3r1.schema.json" \
+  a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-discovery-rejection-envelope.v3r1.schema.json" \
+  833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-discovery-intake-state.v3r1.schema.json" \
+  12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d
 require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-forward-day.v3.schema.json" \
   205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709
 require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
@@ -752,6 +780,18 @@ sudo find "$WORKER_ROOT/venv" -type d -exec chmod go-w {} +
 sudo find "$WORKER_ROOT/venv" -type f -exec chmod go-w {} +
 
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
+  (
+    cd "$RELEASE_DIR"
+    sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" \
+      -m research_pipeline.microstructure_discovery_r2_archive create
+  )
+  sudo test -f "$R2_MICROSTRUCTURE_ARCHIVE/archive-manifest.json" \
+    && ! sudo test -L "$R2_MICROSTRUCTURE_ARCHIVE/archive-manifest.json" \
+    || fail "R2 create-only archive manifest is missing or symlinked"
+  ok "R2 binding, state, drop metadata, release provenance, journal, and failure evidence archived and hash verified"
+fi
+
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
   sudo install -d -o "$WORKER_USER" -g "$EVIDENCE_GROUP" -m 0710 "$DATA_ROOT"
   sudo install -d -o "$WORKER_USER" -g "$WORKER_GROUP" -m 0700 \
     "$DATA_ROOT/auth" "$DATA_ROOT/requests" "$DATA_ROOT/requests/runs"
@@ -763,7 +803,8 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
     "$MICROSTRUCTURE_STAGING"
   sudo install -d -o root -g "$EVIDENCE_GROUP" -m 1770 "$MICROSTRUCTURE_DROP"
   sudo install -d -o "$WORKER_USER" -g "$WORKER_GROUP" -m 0700 \
-    "$MICROSTRUCTURE_STATE"
+    "$MICROSTRUCTURE_STATE" "$MICROSTRUCTURE_HANDOFF_STAGING" \
+    "$MICROSTRUCTURE_HANDOFF_FINAL"
   if [ "$carry_package" = true ]; then
     sudo install -d -o root -g "$CARRY_GROUP" -m 0710 "$CARRY_ROOT"
     sudo install -d -o "$CARRY_USER" -g "$CARRY_GROUP" -m 0700 \
@@ -811,6 +852,55 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
   sudo mv -Tf "$next_data_link" "$WORKER_ROOT/current"
 fi
 
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
+  sudo install -d -o root -g root -m 0755 /etc/agora-research/local-tasks
+  (
+    cd "$RELEASE_DIR"
+    sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - \
+      "$RELEASE_DIR/research_pipeline/examples/local-research-task.microstructure-v3r1-evidence-diagnostic.v1.json" \
+      "$MICROSTRUCTURE_LOCAL_TASK" <<'PY'
+import os
+from pathlib import Path
+import stat
+import sys
+
+from research_pipeline.local_node import validate_local_research_task
+from research_pipeline.microstructure_source_contract import load_json_bytes_strict
+
+source, destination = map(Path, sys.argv[1:])
+payload = source.read_bytes()
+validate_local_research_task(load_json_bytes_strict(payload, "V3R1 local task"))
+if os.path.lexists(destination):
+    details = destination.lstat()
+    if (
+        stat.S_ISLNK(details.st_mode)
+        or not stat.S_ISREG(details.st_mode)
+        or details.st_uid != 0
+        or details.st_gid != 0
+        or stat.S_IMODE(details.st_mode) != 0o444
+        or destination.read_bytes() != payload
+    ):
+        raise SystemExit("existing V3R1 local task conflicts with frozen bytes")
+    raise SystemExit(0)
+temporary = destination.with_name(f".{destination.name}.tmp-{os.getpid()}")
+descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o444)
+try:
+    with os.fdopen(descriptor, "wb") as stream:
+        stream.write(payload)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.chown(temporary, 0, 0)
+    os.chmod(temporary, 0o444)
+    os.link(temporary, destination, follow_symlinks=False)
+    temporary.unlink()
+finally:
+    if temporary.exists():
+        temporary.unlink()
+PY
+  )
+  ok "V3R1 local diagnostic task installed create-only"
+fi
+
 if [ "$binding_requested" = true ]; then
   sudo install -d -o root -g root -m 0755 /etc/agora-research
   installed_manifest_sha256="$(sha256sum "$RELEASE_DIR/.release/source.sha256" | awk '{print $1}')"
@@ -821,6 +911,7 @@ if [ "$binding_requested" = true ]; then
     "$RELEASE_ID" \
     "$installed_manifest_sha256" \
     "$EVIDENCE_GROUP" <<'PY'
+from datetime import date, timedelta
 import grp
 import json
 import os
@@ -830,17 +921,29 @@ import sys
 path = Path(sys.argv[1])
 start_day, diagnostic_id, release_id, manifest_hash, group_name = sys.argv[2:]
 temporary = path.with_name(f".{path.name}.tmp-{os.getpid()}")
+parsed_start = date.fromisoformat(start_day)
+suffix = diagnostic_id.removeprefix(
+    "okx-btcusdt-microstructure-forward-v3r1-"
+)
+generation_id = "okx-btcusdt-microstructure-discovery-v3r1-" + suffix
 payload = {
-    "schema_version": "1",
+    "schema_version": "OKX_MICROSTRUCTURE_DISCOVERY_SOURCE_BINDING_V3R1",
     "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
-    "forward_start_day": start_day,
-    "required_complete_utc_days": 14,
+    "generation_id": generation_id,
     "diagnostic_id": diagnostic_id,
-    "source_contract_sha256": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422",
-    "day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
-    "diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+    "recovery_contract_sha256": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd",
+    "v3_day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
+    "v3_diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+    "complete_envelope_schema_sha256": "a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2",
+    "rejection_envelope_schema_sha256": "833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497",
+    "intake_state_schema_sha256": "12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d",
     "producer_release_id": release_id,
     "producer_manifest_sha256": manifest_hash,
+    "start_day": start_day,
+    "end_day": (parsed_start + timedelta(days=41)).isoformat(),
+    "calendar_day_budget": 42,
+    "required_consecutive_complete_days": 14,
+    "selection_rule": "FIRST_SOURCE_LIVENESS_DEFINED_FOURTEEN_DAY_STREAK",
 }
 data = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
 if os.path.lexists(path):
@@ -854,7 +957,7 @@ if os.path.lexists(path):
         or details.st_gid != expected_gid
         or (details.st_mode & 0o7777) != 0o640
     ):
-        raise SystemExit("existing V3 binding conflicts with requested canonical binding")
+        raise SystemExit("existing V3R1 binding conflicts with requested canonical binding")
     raise SystemExit(0)
 descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
 try:
@@ -876,7 +979,7 @@ try:
             or details.st_gid != grp.getgrnam(group_name).gr_gid
             or (details.st_mode & 0o7777) != 0o640
         ):
-            raise SystemExit("concurrent V3 binding conflicts with requested bytes")
+            raise SystemExit("concurrent V3R1 binding conflicts with requested bytes")
     temporary.unlink()
     directory = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
     try:
@@ -893,7 +996,7 @@ if [ "$binding_requested" = true ]; then
   (
     cd "$RELEASE_DIR"
     sudo bash -c \
-      'umask 077; cd "$1"; exec env PYTHONDONTWRITEBYTECODE=1 "$2" -m research_pipeline.microstructure_intake_cli initialize-v3' \
+      'umask 077; cd "$1"; exec env PYTHONDONTWRITEBYTECODE=1 "$2" -m research_pipeline.microstructure_discovery_recovery_intake_cli initialize' \
       -- "$RELEASE_DIR" "$WORKER_ROOT/venv/bin/python"
   )
   ok "microstructure intake state initialized or exactly validated"
@@ -905,21 +1008,21 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \
     cd "$RELEASE_DIR"
     sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
 from datetime import datetime, timezone
-from research_pipeline.microstructure_intake_cli import (
-    _load_matching_v3_state,
-    _load_v3_binding,
+from research_pipeline.microstructure_discovery_recovery_intake_cli import (
+    _load_binding,
+    _load_state,
     _state_path,
-    fixed_v3_runtime_paths,
+    fixed_runtime_paths,
 )
 
-paths = fixed_v3_runtime_paths()
-binding = _load_v3_binding(
+paths = fixed_runtime_paths()
+binding = _load_binding(
     paths,
     require_future=False,
     today=datetime.now(timezone.utc).date(),
 )
-state_path = _state_path(paths.state_root, binding.diagnostic_id)
-_load_matching_v3_state(state_path, binding)
+state_path = _state_path(paths.state_root, binding["generation_id"])
+_load_state(state_path, binding)
 print(state_path)
 PY
   )"

@@ -21,9 +21,11 @@ DATA_UNITS = {
     "agora-research-evidence-ingest.service":
         "909525bea874ec348573012cf3c0d755fb467528199636b9f9f53857ad7de03d",
     "agora-research-microstructure-source.service":
-        "067257baf9905787b491f1566ba86fca4676624e76aedd57c1f9ec653fb83a6f",
+        "bda13efe1b63c8d78af887ea80761e6ac086c28d65695642149ade1b21d84489",
     "agora-research-microstructure-intake.service":
-        "a8adf884a0c7b086e5fc9a486e16ec7b85b8b9f70a04108df68dc63cad887dba",
+        "5e3c727c5f27880103c80958ee4428c0c1a27a7cf418ea7f1a5d1768541d9c5d",
+    "agora-research-microstructure-intake.path":
+        "ad6a110339c43e86316b9f88679f03f425468b7403a95d63b6f3b75e5a453537",
 }
 
 
@@ -101,11 +103,11 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertEqual(
             read_only,
             {
-                "/etc/agora-research/okx-microstructure-continuous-source-v3.json",
-                "/var/lib/agora-research/state/microstructure-v3",
-                "/var/lib/agora-evidence-source/microstructure-drop",
+                "/etc/agora-research/okx-microstructure-continuous-source-v3r1.json",
+                "/var/lib/agora-research/state/microstructure-v3r1",
+                "/var/lib/agora-evidence-source/microstructure-v3r1-drop",
                 "/etc/agora-research/local-tasks/"
-                "microstructure-v3-evidence-diagnostic.v1.json",
+                "microstructure-v3r1-evidence-diagnostic.v1.json",
                 "/opt/agora-research-worker/current",
                 "/opt/agora-research-worker/control-current",
             },
@@ -118,18 +120,21 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertEqual(
             writes,
             {
-                "/var/lib/agora-research/microstructure-v3-handoff-staging",
-                "/var/lib/agora-research/microstructure-v3-handoff-export",
+                "/var/lib/agora-research/microstructure-v3r1-handoff-staging",
+                "/var/lib/agora-research/microstructure-v3r1-handoff-export",
             },
         )
 
-    def test_data_plane_units_are_byte_preserved_on_fixed_data_lane(self) -> None:
+    def test_data_plane_units_are_hash_frozen_on_fixed_data_lane(self) -> None:
         for name, expected_hash in DATA_UNITS.items():
             with self.subTest(unit=name):
                 raw = (WORKER / name).read_bytes()
                 self.assertEqual(expected_hash, hashlib.sha256(raw).hexdigest())
                 value = raw.decode("utf-8")
-                self.assertIn("/opt/agora-research-worker/current", value)
+                if name.endswith(".service"):
+                    self.assertIn("/opt/agora-research-worker/current", value)
+                else:
+                    self.assertIn("microstructure-v3r1-drop", value)
                 self.assertNotIn("/opt/agora-research-worker/control-current", value)
 
     def test_preserve_mode_is_explicit_only_and_rejects_binding_parameters(self) -> None:
@@ -174,7 +179,7 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             'binding release id does not match data-current',
             'binding manifest hash does not match data-current',
             'bound release provenance does not match manifest bytes',
-            'microstructure V3 state inventory is not exact',
+            'microstructure V3R1 state inventory is not exact',
             'preserve_binding_sha256=',
             'preserve_binding_bytes=',
             'preserve_state_sha256=',
@@ -360,7 +365,7 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             '"$EXPECT_MICROSTRUCTURE_SOURCE" <<\'PY\'', self.verifier
         )
         self.assertIn(
-            'if expected_source != "active" and start_day <=', self.verifier
+            'if expected_source != "active" and binding["start_day"] <=', self.verifier
         )
         self.assertIn(
             'binding forward start day is not strictly future for an inactive source',

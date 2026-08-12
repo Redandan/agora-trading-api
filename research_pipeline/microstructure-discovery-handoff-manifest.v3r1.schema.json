@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/microstructure-discovery-handoff-manifest.v3r1.schema.json",
+  "title": "Microstructure Discovery V3R1 Create-Only Handoff Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_type",
+    "authorization",
+    "task_id",
+    "task_sha256",
+    "canonical_state",
+    "source_release",
+    "days",
+    "missingness",
+    "inference_boundaries",
+    "seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "3R1"},
+    "manifest_type": {"const": "MICROSTRUCTURE_DISCOVERY_V3R1_CREATE_ONLY_HANDOFF_MANIFEST"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "task_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "task_sha256": {"$ref": "#/$defs/sha256"},
+    "canonical_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relative_name",
+        "sha256",
+        "intake_state_schema_sha256",
+        "state_type",
+        "state_authority",
+        "generation_id",
+        "diagnostic_id",
+        "status",
+        "calendar_start_day",
+        "calendar_end_day",
+        "selected_start_day",
+        "selected_last_day",
+        "required_day_count",
+        "selected_day_count",
+        "calendar_disposition_count",
+        "calendar_chain_head_sha256",
+        "selected_streak_chain_head_sha256",
+        "recovery_contract_sha256",
+        "day_schema_sha256",
+        "diagnostic_contract_sha256"
+      ],
+      "properties": {
+        "relative_name": {"type": "string", "pattern": "^canonical/okx-btcusdt-microstructure-discovery-v3r1-[0-9]{8}-r[0-9]+\\.json$"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "intake_state_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "state_type": {"const": "SERVER_CANONICAL_MICROSTRUCTURE_DISCOVERY_V3R1_INTAKE"},
+        "state_authority": {"const": "SERVER_CANONICAL"},
+        "generation_id": {"type": "string", "pattern": "^okx-btcusdt-microstructure-discovery-v3r1-[0-9]{8}-r[0-9]+$"},
+        "diagnostic_id": {"type": "string", "pattern": "^okx-btcusdt-microstructure-forward-v3r1-[0-9]{8}-r[0-9]+$"},
+        "status": {"const": "DIAGNOSTIC_READY"},
+        "calendar_start_day": {"$ref": "#/$defs/day"},
+        "calendar_end_day": {"$ref": "#/$defs/day"},
+        "selected_start_day": {"$ref": "#/$defs/day"},
+        "selected_last_day": {"$ref": "#/$defs/day"},
+        "required_day_count": {"const": 14},
+        "selected_day_count": {"const": 14},
+        "calendar_disposition_count": {"type": "integer", "minimum": 14, "maximum": 42},
+        "calendar_chain_head_sha256": {"$ref": "#/$defs/sha256"},
+        "selected_streak_chain_head_sha256": {"$ref": "#/$defs/sha256"},
+        "recovery_contract_sha256": {"const": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd"},
+        "day_schema_sha256": {"const": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"},
+        "diagnostic_contract_sha256": {"const": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"}
+      }
+    },
+    "source_release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer_identity", "producer_release_id", "producer_manifest_sha256"],
+      "properties": {
+        "producer_identity": {"const": "agora-evidence-source"},
+        "producer_release_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "producer_manifest_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "days": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "day",
+          "bundle_relative_name",
+          "bundle_sha256",
+          "envelope_relative_name",
+          "envelope_sha256",
+          "accepted_at"
+        ],
+        "properties": {
+          "day": {"$ref": "#/$defs/day"},
+          "bundle_relative_name": {"type": "string", "pattern": "^days/[0-9]{4}-[0-9]{2}-[0-9]{2}/okx-btc-usdt-microstructure-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.json$"},
+          "bundle_sha256": {"$ref": "#/$defs/sha256"},
+          "envelope_relative_name": {"type": "string", "pattern": "^days/[0-9]{4}-[0-9]{2}-[0-9]{2}/okx-btc-usdt-microstructure-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.complete\\.envelope\\.json$"},
+          "envelope_sha256": {"$ref": "#/$defs/sha256"},
+          "accepted_at": {"$ref": "#/$defs/timestamp"}
+        }
+      }
+    },
+    "missingness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection_rule",
+        "calendar_disposition_count",
+        "rejected_day_count",
+        "rejected_reason_counts",
+        "nonselected_complete_day_count",
+        "rejected_days_as_market_input",
+        "nonselected_prefixes_as_market_input"
+      ],
+      "properties": {
+        "selection_rule": {"const": "FIRST_SOURCE_LIVENESS_DEFINED_FOURTEEN_DAY_STREAK"},
+        "calendar_disposition_count": {"type": "integer", "minimum": 14, "maximum": 42},
+        "rejected_day_count": {"type": "integer", "minimum": 0, "maximum": 28},
+        "rejected_reason_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "SERVICE_UPGRADE_NOTICE_64008": {"type": "integer", "minimum": 0, "maximum": 28},
+            "TRANSPORT_DISCONNECT_UNPROVED_GAP": {"type": "integer", "minimum": 0, "maximum": 28},
+            "PROCESS_RESTART_BEFORE_DAY_COMPLETE": {"type": "integer", "minimum": 0, "maximum": 28},
+            "HOST_REBOOT_BEFORE_DAY_COMPLETE": {"type": "integer", "minimum": 0, "maximum": 28},
+            "DUAL_CHANNEL_NOT_READY_AT_DAY_START": {"type": "integer", "minimum": 0, "maximum": 28}
+          }
+        },
+        "nonselected_complete_day_count": {"type": "integer", "minimum": 0, "maximum": 28},
+        "rejected_days_as_market_input": {"const": false},
+        "nonselected_prefixes_as_market_input": {"const": false}
+      }
+    },
+    "inference_boundaries": {"$ref": "#/$defs/inferenceBoundaries"},
+    "seal": {"$ref": "#/$defs/seal"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "day": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"},
+    "inferenceBoundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_state_write_authorized",
+        "candidate_authorized",
+        "discovery_only",
+        "oos_authorized",
+        "pnl_inference_authorized",
+        "trading_action_authorized"
+      ],
+      "properties": {
+        "canonical_state_write_authorized": {"const": false},
+        "candidate_authorized": {"const": false},
+        "discovery_only": {"const": true},
+        "oos_authorized": {"const": false},
+        "pnl_inference_authorized": {"const": false},
+        "trading_action_authorized": {"const": false}
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically"}
+      }
+    }
+  }
+}

@@ -13,25 +13,32 @@ from research_pipeline.microstructure_discovery_recovery_v3r1 import (
     ALLOWED_REJECTION_REASONS,
     BINDING_SCHEMA_PATH,
     CALENDAR_DAY_BUDGET,
+    COMPLETE_SCHEMA_PATH,
     CONTRACT_SHA256,
     DiscoveryRecoveryBlocked,
     REJECTION_SCHEMA_PATH,
     REQUIRED_STREAK_DAYS,
     STATE_SCHEMA_PATH,
     advance_complete_day,
+    advance_complete_envelope,
     advance_rejected_day,
     block_intake_state,
     build_rejection_envelope,
+    build_complete_envelope,
     build_source_binding,
     classify_control_event,
     initial_intake_state,
     next_control_event_chain,
     validate_frozen_files,
+    validate_complete_envelope,
     validate_intake_state,
     validate_rejection_envelope,
     validate_source_binding,
 )
 from research_pipeline.microstructure_source_contract import canonical_json_bytes
+from research_pipeline.tests.test_microstructure_v3_intake_isolation import (
+    _v3_day_bundle,
+)
 
 
 START = date(2026, 9, 1)
@@ -111,8 +118,13 @@ class MicrostructureDiscoveryRecoveryV3R1Test(unittest.TestCase):
 
     def test_frozen_files_and_schemas_are_valid(self) -> None:
         hashes = validate_frozen_files()
-        self.assertEqual(len(hashes), 6)
-        for path in (BINDING_SCHEMA_PATH, REJECTION_SCHEMA_PATH, STATE_SCHEMA_PATH):
+        self.assertEqual(len(hashes), 7)
+        for path in (
+            BINDING_SCHEMA_PATH,
+            COMPLETE_SCHEMA_PATH,
+            REJECTION_SCHEMA_PATH,
+            STATE_SCHEMA_PATH,
+        ):
             Draft202012Validator.check_schema(
                 json.loads(path.read_text(encoding="utf-8"))
             )
@@ -340,6 +352,64 @@ class MicrostructureDiscoveryRecoveryV3R1Test(unittest.TestCase):
                 observed_producer_identity="agora-evidence-source",
             )
 
+    def test_complete_envelope_reuses_exact_v3_day_without_predecessor_stitch(self) -> None:
+        bundle = _v3_day_bundle(START)
+        bundle_bytes = canonical_json_bytes(bundle)
+        published_at = datetime(
+            2026, 9, 2, 0, 0, 2, tzinfo=timezone.utc
+        )
+        envelope = build_complete_envelope(
+            binding_value=self.binding,
+            bundle_value=bundle,
+            raw_bundle_bytes=bundle_bytes,
+            day=START,
+            published_at=published_at,
+        )
+        self.assertNotIn("predecessor_day", envelope)
+        self.assertNotIn("predecessor_bundle_sha256", envelope)
+        raw_envelope = canonical_json_bytes(envelope)
+        validated = validate_complete_envelope(
+            envelope,
+            bundle_value=bundle,
+            raw_envelope_bytes=raw_envelope,
+            raw_bundle_bytes=bundle_bytes,
+            binding_value=self.binding,
+            expected_day=START,
+            delivered_via_atomic_rename=True,
+            source_path_is_symlink=False,
+            overwrite_attempted=False,
+            observed_producer_identity="agora-evidence-source",
+        )
+        self.assertEqual(validated["day"], START)
+        state = advance_complete_envelope(
+            self.state,
+            envelope,
+            bundle,
+            raw_complete_bytes=raw_envelope,
+            raw_bundle_bytes=bundle_bytes,
+            binding_value=self.binding,
+            accepted_at=published_at + timedelta(seconds=1),
+        )
+        self.assertEqual(state["current_streak"][0]["day"], "2026-09-01")
+        self.assertEqual(
+            state["current_streak"][0]["bundle_sha256"],
+            envelope["bundle_sha256"],
+        )
+        changed = deepcopy(envelope)
+        changed["bundle_sha256"] = "f" * 64
+        with self.assertRaisesRegex(DiscoveryRecoveryBlocked, "bundle hash"):
+            validate_complete_envelope(
+                changed,
+                bundle_value=bundle,
+                raw_envelope_bytes=canonical_json_bytes(changed),
+                raw_bundle_bytes=bundle_bytes,
+                binding_value=self.binding,
+                expected_day=START,
+                delivered_via_atomic_rename=True,
+                source_path_is_symlink=False,
+                overwrite_attempted=False,
+                observed_producer_identity="agora-evidence-source",
+            )
     def test_non_notice_rejection_cannot_claim_notice_and_partial_day_is_bounded(self) -> None:
         with self.assertRaisesRegex(DiscoveryRecoveryBlocked, "UNKNOWN_EVENT"):
             build_rejection_envelope(

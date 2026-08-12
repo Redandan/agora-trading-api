@@ -12,6 +12,9 @@
     "recovery_contract_sha256",
     "v3_day_schema_sha256",
     "v3_diagnostic_contract_sha256",
+    "complete_envelope_schema_sha256",
+    "rejection_envelope_schema_sha256",
+    "intake_state_schema_sha256",
     "producer_release_id",
     "producer_manifest_sha256",
     "start_day",
@@ -43,6 +46,15 @@
     },
     "v3_diagnostic_contract_sha256": {
       "const": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    "complete_envelope_schema_sha256": {
+      "const": "a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2"
+    },
+    "rejection_envelope_schema_sha256": {
+      "const": "833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497"
+    },
+    "intake_state_schema_sha256": {
+      "const": "12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d"
     },
     "producer_release_id": {
       "type": "string",

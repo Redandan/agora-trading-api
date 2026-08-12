@@ -8,9 +8,12 @@ from pathlib import Path
 from typing import Any
 
 from .microstructure_source_contract import (
+    ContractViolation,
     canonical_json_bytes,
     file_sha256,
+    load_json_bytes_strict,
     load_json_strict,
+    validate_v3_day_bundle,
 )
 
 
@@ -21,11 +24,13 @@ V3_DAY_SCHEMA_SHA256 = "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3d
 V3_DIAGNOSTIC_CONTRACT_SHA256 = (
     "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
 )
-BINDING_SCHEMA_SHA256 = "d0e227798d5d53cdfc8fedae49d0cb9e20207422bc098ac825d3f20f48492dc8"
+BINDING_SCHEMA_SHA256 = "1d07c67e6668ba8f7f01ebcb4a71d702e855cc6d40bb2e6260dbb30f97c2e60b"
+COMPLETE_SCHEMA_SHA256 = "a75aea4e247cdc134c441e5de33c2773a984c076eda8f1cdd85a0c3440260fb2"
 REJECTION_SCHEMA_SHA256 = "833e1cd3a0239987a8bc80caacb0abcecb5f00803816af09334c0674b5a04497"
 STATE_SCHEMA_SHA256 = "12046ee0b3c814522bff6497f7028ae68da70884066e00c16a71d22e9ca5905d"
 
 BINDING_SCHEMA_VERSION = "OKX_MICROSTRUCTURE_DISCOVERY_SOURCE_BINDING_V3R1"
+COMPLETE_SCHEMA_VERSION = "OKX_MICROSTRUCTURE_DISCOVERY_COMPLETE_ENVELOPE_V3R1"
 REJECTION_SCHEMA_VERSION = (
     "OKX_MICROSTRUCTURE_DISCOVERY_REJECTION_ENVELOPE_V3R1"
 )
@@ -37,6 +42,13 @@ ZERO_SHA256 = "0" * 64
 SELECTION_RULE = "FIRST_SOURCE_LIVENESS_DEFINED_FOURTEEN_DAY_STREAK"
 REJECTION_CANONICALIZATION = (
     "UTF-8 compact JSON excluding envelope_seal; object keys sorted lexicographically"
+)
+COMPLETE_ENVELOPE_CANONICALIZATION = REJECTION_CANONICALIZATION
+BUNDLE_DOCUMENT_CANONICALIZATION = (
+    "UTF-8 compact JSON including seal; object keys sorted lexicographically"
+)
+ENVELOPE_DOCUMENT_CANONICALIZATION = (
+    "UTF-8 compact JSON including envelope_seal; object keys sorted lexicographically"
 )
 CALENDAR_CHAIN_ALGORITHM = (
     "SHA-256(UTF-8(previous_chain_sha256 + LF + day + LF + disposition + LF + "
@@ -53,6 +65,9 @@ CONTRACT_PATH = (
 )
 BINDING_SCHEMA_PATH = (
     PACKAGE_DIR / "okx-microstructure-discovery-source-binding.v3r1.schema.json"
+)
+COMPLETE_SCHEMA_PATH = (
+    PACKAGE_DIR / "okx-microstructure-discovery-complete-envelope.v3r1.schema.json"
 )
 REJECTION_SCHEMA_PATH = (
     PACKAGE_DIR / "okx-microstructure-discovery-rejection-envelope.v3r1.schema.json"
@@ -110,6 +125,9 @@ BINDING_KEYS = {
     "recovery_contract_sha256",
     "v3_day_schema_sha256",
     "v3_diagnostic_contract_sha256",
+    "complete_envelope_schema_sha256",
+    "rejection_envelope_schema_sha256",
+    "intake_state_schema_sha256",
     "producer_release_id",
     "producer_manifest_sha256",
     "start_day",
@@ -117,6 +135,26 @@ BINDING_KEYS = {
     "calendar_day_budget",
     "required_consecutive_complete_days",
     "selection_rule",
+}
+COMPLETE_KEYS = {
+    "schema_version",
+    "envelope_type",
+    "authorization",
+    "generation_id",
+    "diagnostic_id",
+    "recovery_contract_sha256",
+    "producer_release_id",
+    "producer_manifest_sha256",
+    "producer_identity",
+    "day",
+    "calendar_index",
+    "bundle_name",
+    "bundle_size_bytes",
+    "bundle_sha256",
+    "published_at",
+    "idempotency_key",
+    "delivery_semantics",
+    "envelope_seal",
 }
 STATE_KEYS = {
     "schema_version",
@@ -298,6 +336,7 @@ def validate_frozen_files() -> dict[str, str]:
     expected = {
         CONTRACT_PATH: CONTRACT_SHA256,
         BINDING_SCHEMA_PATH: BINDING_SCHEMA_SHA256,
+        COMPLETE_SCHEMA_PATH: COMPLETE_SCHEMA_SHA256,
         REJECTION_SCHEMA_PATH: REJECTION_SCHEMA_SHA256,
         STATE_SCHEMA_PATH: STATE_SCHEMA_SHA256,
         V3_DAY_SCHEMA_PATH: V3_DAY_SCHEMA_SHA256,
@@ -313,7 +352,12 @@ def validate_frozen_files() -> dict[str, str]:
         or contract.get("authorization") != AUTHORIZATION
     ):
         _block("CONTRACT_HASH_MISMATCH", "recovery contract identity changed")
-    for path in (BINDING_SCHEMA_PATH, REJECTION_SCHEMA_PATH, STATE_SCHEMA_PATH):
+    for path in (
+        BINDING_SCHEMA_PATH,
+        COMPLETE_SCHEMA_PATH,
+        REJECTION_SCHEMA_PATH,
+        STATE_SCHEMA_PATH,
+    ):
         schema = load_json_strict(path)
         if schema.get("additionalProperties") is not False:
             _block("CONTRACT_HASH_MISMATCH", f"{path.name} is not closed")
@@ -339,6 +383,9 @@ def build_source_binding(
         "recovery_contract_sha256": CONTRACT_SHA256,
         "v3_day_schema_sha256": V3_DAY_SCHEMA_SHA256,
         "v3_diagnostic_contract_sha256": V3_DIAGNOSTIC_CONTRACT_SHA256,
+        "complete_envelope_schema_sha256": COMPLETE_SCHEMA_SHA256,
+        "rejection_envelope_schema_sha256": REJECTION_SCHEMA_SHA256,
+        "intake_state_schema_sha256": STATE_SCHEMA_SHA256,
         "producer_release_id": producer_release_id,
         "producer_manifest_sha256": producer_manifest_sha256,
         "start_day": start_day.isoformat(),
@@ -359,6 +406,9 @@ def validate_source_binding(value: Any) -> dict[str, Any]:
         "recovery_contract_sha256": CONTRACT_SHA256,
         "v3_day_schema_sha256": V3_DAY_SCHEMA_SHA256,
         "v3_diagnostic_contract_sha256": V3_DIAGNOSTIC_CONTRACT_SHA256,
+        "complete_envelope_schema_sha256": COMPLETE_SCHEMA_SHA256,
+        "rejection_envelope_schema_sha256": REJECTION_SCHEMA_SHA256,
+        "intake_state_schema_sha256": STATE_SCHEMA_SHA256,
         "calendar_day_budget": CALENDAR_DAY_BUDGET,
         "required_consecutive_complete_days": REQUIRED_STREAK_DAYS,
         "selection_rule": SELECTION_RULE,
@@ -438,6 +488,22 @@ def initial_intake_state(binding_value: Any) -> dict[str, Any]:
         "readiness": _readiness(),
     }
     return validate_intake_state(state, binding)
+
+
+def canonical_intake_state_bytes(value: Any, binding_value: Any) -> bytes:
+    return canonical_json_bytes(validate_intake_state(value, binding_value))
+
+
+def load_canonical_intake_state_bytes(
+    raw_bytes: bytes, binding_value: Any
+) -> dict[str, Any]:
+    try:
+        state = load_json_bytes_strict(raw_bytes, "V3R1 intake state")
+    except ContractViolation as error:
+        _block(error.code, str(error))
+    if raw_bytes != canonical_json_bytes(state):
+        _block("CONTRACT_HASH_MISMATCH", "V3R1 intake state bytes are not canonical")
+    return validate_intake_state(state, binding_value)
 
 
 def _validate_complete_record(value: Any, label: str) -> dict[str, Any]:
@@ -570,13 +636,20 @@ def validate_intake_state(value: Any, binding_value: Any) -> dict[str, Any]:
         by_day[record["day"]] = record
     if set(by_day) != set(complete_dispositions):
         _block("CONTRACT_HASH_MISMATCH", "complete-day inventory is incomplete")
+    last_complete_acceptance: datetime | None = None
     for day_text, disposition in complete_dispositions.items():
         if by_day[day_text]["envelope_sha256"] != disposition["artifact_sha256"]:
             _block("CONTRACT_HASH_MISMATCH", "complete disposition hash changed")
-        if by_day[day_text]["accepted_at"] != disposition["recorded_at"]:
-            _block("CONTRACT_HASH_MISMATCH", "complete acceptance time changed")
         complete_day = _day(day_text, "complete day")
         accepted_at = _timestamp(by_day[day_text]["accepted_at"], "accepted_at")
+        source_recorded_at = _timestamp(
+            disposition["recorded_at"], "complete source recorded_at"
+        )
+        if accepted_at < source_recorded_at:
+            _block("CONTRACT_HASH_MISMATCH", "acceptance precedes source publication")
+        if last_complete_acceptance is not None and accepted_at < last_complete_acceptance:
+            _block("CONTRACT_HASH_MISMATCH", "complete acceptance time regressed")
+        last_complete_acceptance = accepted_at
         earliest_acceptance = datetime.combine(
             complete_day + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
         )
@@ -727,6 +800,194 @@ def next_control_event_chain(previous: str, raw_event_bytes: bytes) -> str:
     if not isinstance(raw_event_bytes, bytes) or not raw_event_bytes:
         _block("UNKNOWN_EVENT", "raw control event bytes are unavailable")
     return hashlib.sha256(previous.encode("ascii") + b"\n" + raw_event_bytes).hexdigest()
+
+
+def build_complete_envelope(
+    *,
+    binding_value: Any,
+    bundle_value: Any,
+    raw_bundle_bytes: bytes,
+    day: date,
+    published_at: datetime,
+) -> dict[str, Any]:
+    binding = validate_source_binding(binding_value)
+    if not isinstance(raw_bundle_bytes, bytes) or not raw_bundle_bytes:
+        _block("CONTRACT_HASH_MISMATCH", "complete bundle bytes are unavailable")
+    try:
+        validated_bundle = validate_v3_day_bundle(
+            bundle_value, raw_bytes=raw_bundle_bytes
+        )
+    except ContractViolation as error:
+        _block(error.code, str(error))
+    if validated_bundle["day"] != day:
+        _block("WRONG_DAY", "complete bundle day changed")
+    start = _day(binding["start_day"], "binding.start_day")
+    calendar_index = (day - start).days + 1
+    if not 1 <= calendar_index <= CALENDAR_DAY_BUDGET:
+        _block("WRONG_DAY", "complete day is outside the frozen calendar")
+    published_text = _utc_text(published_at)
+    value = {
+        "schema_version": COMPLETE_SCHEMA_VERSION,
+        "envelope_type": "IMMUTABLE_COMPLETE_MICROSTRUCTURE_DAY",
+        "authorization": AUTHORIZATION,
+        "generation_id": binding["generation_id"],
+        "diagnostic_id": binding["diagnostic_id"],
+        "recovery_contract_sha256": CONTRACT_SHA256,
+        "producer_release_id": binding["producer_release_id"],
+        "producer_manifest_sha256": binding["producer_manifest_sha256"],
+        "producer_identity": "agora-evidence-source",
+        "day": day.isoformat(),
+        "calendar_index": calendar_index,
+        "bundle_name": f"okx-btc-usdt-microstructure-{day.isoformat()}.json",
+        "bundle_size_bytes": len(raw_bundle_bytes),
+        "bundle_sha256": validated_bundle["bundle_sha256"],
+        "published_at": published_text,
+        "idempotency_key": (
+            f"{binding['generation_id']}:{day.isoformat()}:"
+            f"{validated_bundle['bundle_sha256']}"
+        ),
+        "delivery_semantics": {
+            "transport": "MICROSTRUCTURE_V3R1_ONE_WAY_DROP",
+            "bundle_document_canonicalization": BUNDLE_DOCUMENT_CANONICALIZATION,
+            "envelope_document_canonicalization": ENVELOPE_DOCUMENT_CANONICALIZATION,
+            "atomic_rename": True,
+            "overwrite": False,
+            "source_read_after_publish": False,
+            "symlinks": False,
+            "canonical_state_access": False,
+            "partial_market_aggregates": False,
+            "repair_retry_stitch_backfill": False,
+        },
+        "envelope_seal": None,
+    }
+    value["envelope_seal"] = {
+        "algorithm": "SHA-256",
+        "payload_sha256": _canonical_sha256(value, exclude_key="envelope_seal"),
+        "canonicalization": COMPLETE_ENVELOPE_CANONICALIZATION,
+        "sealed_at": published_text,
+    }
+    validate_complete_envelope(
+        value,
+        bundle_value=bundle_value,
+        raw_envelope_bytes=canonical_json_bytes(value),
+        raw_bundle_bytes=raw_bundle_bytes,
+        binding_value=binding,
+        expected_day=day,
+        delivered_via_atomic_rename=True,
+        source_path_is_symlink=False,
+        overwrite_attempted=False,
+        observed_producer_identity="agora-evidence-source",
+    )
+    return value
+
+
+def validate_complete_envelope(
+    value: Any,
+    *,
+    bundle_value: Any,
+    raw_envelope_bytes: bytes,
+    raw_bundle_bytes: bytes,
+    binding_value: Any,
+    expected_day: date,
+    delivered_via_atomic_rename: bool,
+    source_path_is_symlink: bool,
+    overwrite_attempted: bool,
+    observed_producer_identity: str,
+) -> dict[str, Any]:
+    binding = validate_source_binding(binding_value)
+    envelope = _object(value, "complete envelope")
+    _exact_keys(envelope, COMPLETE_KEYS, "complete envelope")
+    if raw_envelope_bytes != canonical_json_bytes(envelope):
+        _block("CONTRACT_HASH_MISMATCH", "complete envelope bytes are not canonical")
+    if observed_producer_identity != "agora-evidence-source":
+        _block("WRONG_IDENTITY", "observed producer identity changed")
+    if source_path_is_symlink:
+        _block("UNSAFE_FILESYSTEM_STATE", "symlink delivery is forbidden")
+    if overwrite_attempted:
+        _block("CONFLICTING_DUPLICATE", "overwrite is forbidden")
+    if not delivered_via_atomic_rename:
+        _block("NON_ATOMIC_DELIVERY", "atomic rename is required")
+    constants = {
+        "schema_version": COMPLETE_SCHEMA_VERSION,
+        "envelope_type": "IMMUTABLE_COMPLETE_MICROSTRUCTURE_DAY",
+        "authorization": AUTHORIZATION,
+        "generation_id": binding["generation_id"],
+        "diagnostic_id": binding["diagnostic_id"],
+        "recovery_contract_sha256": CONTRACT_SHA256,
+        "producer_release_id": binding["producer_release_id"],
+        "producer_manifest_sha256": binding["producer_manifest_sha256"],
+        "producer_identity": "agora-evidence-source",
+    }
+    for key, expected in constants.items():
+        if envelope[key] != expected:
+            _block("WRONG_IDENTITY", f"complete envelope {key} changed")
+    if _day(envelope["day"], "complete envelope day") != expected_day:
+        _block("WRONG_DAY", "complete envelope day changed")
+    start = _day(binding["start_day"], "binding.start_day")
+    if envelope["calendar_index"] != (expected_day - start).days + 1:
+        _block("WRONG_DAY", "complete envelope calendar index changed")
+    if not isinstance(raw_bundle_bytes, bytes) or not raw_bundle_bytes:
+        _block("CONTRACT_HASH_MISMATCH", "complete bundle bytes are unavailable")
+    try:
+        validated_bundle = validate_v3_day_bundle(
+            bundle_value, raw_bytes=raw_bundle_bytes
+        )
+    except ContractViolation as error:
+        _block(error.code, str(error))
+    if validated_bundle["day"] != expected_day:
+        _block("WRONG_DAY", "complete bundle day changed")
+    bundle_hash = validated_bundle["bundle_sha256"]
+    if envelope["bundle_name"] != (
+        f"okx-btc-usdt-microstructure-{expected_day.isoformat()}.json"
+    ):
+        _block("WRONG_DAY", "complete bundle name changed")
+    if envelope["bundle_size_bytes"] != len(raw_bundle_bytes):
+        _block("CONTRACT_HASH_MISMATCH", "complete bundle size changed")
+    if envelope["bundle_sha256"] != bundle_hash:
+        _block("CONTRACT_HASH_MISMATCH", "complete bundle hash changed")
+    if envelope["idempotency_key"] != (
+        f"{binding['generation_id']}:{expected_day.isoformat()}:{bundle_hash}"
+    ):
+        _block("CONTRACT_HASH_MISMATCH", "complete idempotency key changed")
+    expected_delivery = {
+        "transport": "MICROSTRUCTURE_V3R1_ONE_WAY_DROP",
+        "bundle_document_canonicalization": BUNDLE_DOCUMENT_CANONICALIZATION,
+        "envelope_document_canonicalization": ENVELOPE_DOCUMENT_CANONICALIZATION,
+        "atomic_rename": True,
+        "overwrite": False,
+        "source_read_after_publish": False,
+        "symlinks": False,
+        "canonical_state_access": False,
+        "partial_market_aggregates": False,
+        "repair_retry_stitch_backfill": False,
+    }
+    if envelope["delivery_semantics"] != expected_delivery:
+        _block("CONTRACT_HASH_MISMATCH", "complete delivery semantics changed")
+    published_at = _timestamp(envelope["published_at"], "complete published_at")
+    sealed_at = _timestamp(
+        _object(bundle_value, "complete bundle")["seal"]["sealed_at"],
+        "complete bundle seal time",
+    )
+    if published_at < sealed_at:
+        _block("NON_ATOMIC_DELIVERY", "complete publication precedes bundle seal")
+    seal = _object(envelope["envelope_seal"], "complete envelope seal")
+    if set(seal) != {"algorithm", "payload_sha256", "canonicalization", "sealed_at"}:
+        _block("CONTRACT_HASH_MISMATCH", "complete envelope seal keys changed")
+    if (
+        seal["algorithm"] != "SHA-256"
+        or seal["canonicalization"] != COMPLETE_ENVELOPE_CANONICALIZATION
+        or _timestamp(seal["sealed_at"], "complete envelope seal time")
+        != published_at
+        or seal["payload_sha256"]
+        != _canonical_sha256(envelope, exclude_key="envelope_seal")
+    ):
+        _block("CONTRACT_HASH_MISMATCH", "complete envelope seal changed")
+    return {
+        "day": expected_day,
+        "bundle_sha256": bundle_hash,
+        "envelope_sha256": hashlib.sha256(raw_envelope_bytes).hexdigest(),
+        "published_at": published_at,
+    }
 
 
 def build_rejection_envelope(
@@ -998,6 +1259,7 @@ def advance_complete_day(
     bundle_sha256: str,
     envelope_sha256: str,
     accepted_at: datetime,
+    source_recorded_at: datetime | None = None,
 ) -> dict[str, Any]:
     binding = validate_source_binding(binding_value)
     state = validate_intake_state(state_value, binding)
@@ -1010,7 +1272,9 @@ def advance_complete_day(
         disposition="COMPLETE",
         artifact_sha256=envelope_hash,
         reason=None,
-        recorded_at=accepted_at,
+        recorded_at=(
+            accepted_at if source_recorded_at is None else source_recorded_at
+        ),
     )
     state["current_streak"].append(
         {
@@ -1039,6 +1303,49 @@ def advance_complete_day(
         state["status"] = "BUILDING_CONSECUTIVE_STREAK"
         state["next_calendar_day"] = (day + timedelta(days=1)).isoformat()
     return validate_intake_state(state, binding)
+
+
+def advance_complete_envelope(
+    state_value: Any,
+    complete_value: Any,
+    bundle_value: Any,
+    *,
+    raw_complete_bytes: bytes,
+    raw_bundle_bytes: bytes,
+    binding_value: Any,
+    accepted_at: datetime,
+    delivered_via_atomic_rename: bool = True,
+    source_path_is_symlink: bool = False,
+    overwrite_attempted: bool = False,
+    observed_producer_identity: str = "agora-evidence-source",
+) -> dict[str, Any]:
+    binding = validate_source_binding(binding_value)
+    state = validate_intake_state(state_value, binding)
+    _require_advancing_state(state)
+    expected_day = _day(state["next_calendar_day"], "next_calendar_day")
+    validated = validate_complete_envelope(
+        complete_value,
+        bundle_value=bundle_value,
+        raw_envelope_bytes=raw_complete_bytes,
+        raw_bundle_bytes=raw_bundle_bytes,
+        binding_value=binding,
+        expected_day=expected_day,
+        delivered_via_atomic_rename=delivered_via_atomic_rename,
+        source_path_is_symlink=source_path_is_symlink,
+        overwrite_attempted=overwrite_attempted,
+        observed_producer_identity=observed_producer_identity,
+    )
+    if accepted_at < validated["published_at"]:
+        _block("CONTRACT_HASH_MISMATCH", "acceptance precedes complete publication")
+    return advance_complete_day(
+        state,
+        binding_value=binding,
+        day=expected_day,
+        bundle_sha256=validated["bundle_sha256"],
+        envelope_sha256=validated["envelope_sha256"],
+        accepted_at=accepted_at,
+        source_recorded_at=validated["published_at"],
+    )
 
 
 def advance_rejected_day(

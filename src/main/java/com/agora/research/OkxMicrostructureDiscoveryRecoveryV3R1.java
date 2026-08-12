@@ -74,7 +74,7 @@ final class OkxMicrostructureDiscoveryRecoveryV3R1 {
         }
         final JsonNode root;
         try {
-            root = STRICT_MAPPER.readTree(rawEventBytes);
+            root = STRICT_MAPPER.readValue(rawEventBytes, JsonNode.class);
         } catch (Exception error) {
             throw new BlockedException(
                     "UNKNOWN_EVENT", "control event is not strict JSON", error);
@@ -143,6 +143,10 @@ final class OkxMicrostructureDiscoveryRecoveryV3R1 {
         } catch (NoSuchAlgorithmException error) {
             throw new IllegalStateException("SHA-256 is unavailable", error);
         }
+    }
+
+    static String nextRawArrivalChain(String previousSha256, byte[] rawMessageBytes) {
+        return nextControlEventChain(previousSha256, rawMessageBytes);
     }
 
     private static String exactText(JsonNode object, String field, String code) {

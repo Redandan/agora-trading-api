@@ -50,7 +50,7 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
             "producer_manifest_sha256", "producer_identity", "state_authority",
             "canonical_state_access", "host_boot_id", "phase", "active_day",
             "current_complete_streak_count", "observation", "last_disposition",
-            "updated_at", "checkpoint_seal");
+            "pending_rejection", "updated_at", "checkpoint_seal");
     private static final ObjectMapper STRICT_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
@@ -79,6 +79,9 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
             long controlEventCount,
             String rawArrivalChainSha256,
             String controlEventChainSha256,
+            String pendingRejectionReason,
+            OkxMicrostructureDiscoveryRecoveryDropV3R1.SanitizedControlEvent
+                    pendingSanitizedControlEvent,
             LocalDate lastDispositionDay,
             String lastDispositionKind,
             String lastDispositionArtifactSha256,
@@ -134,6 +137,23 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                     throw new IllegalArgumentException("CHECKPOINT_DAY_REGRESSION");
                 }
             }
+            if (pendingRejectionReason != null) {
+                if (phase != Phase.ACTIVE_DAY
+                        || !Set.of(
+                        "SERVICE_UPGRADE_NOTICE_64008",
+                        "TRANSPORT_DISCONNECT_UNPROVED_GAP")
+                        .contains(pendingRejectionReason)
+                        || ("SERVICE_UPGRADE_NOTICE_64008".equals(pendingRejectionReason)
+                        && (pendingSanitizedControlEvent == null
+                        || !"notice".equals(pendingSanitizedControlEvent.event())
+                        || !"64008".equals(pendingSanitizedControlEvent.code())))
+                        || ("TRANSPORT_DISCONNECT_UNPROVED_GAP".equals(pendingRejectionReason)
+                        && pendingSanitizedControlEvent != null)) {
+                    throw new IllegalArgumentException("CHECKPOINT_PENDING_REJECTION_INVALID");
+                }
+            } else if (pendingSanitizedControlEvent != null) {
+                throw new IllegalArgumentException("CHECKPOINT_PENDING_REJECTION_INVALID");
+            }
             if ((lastDispositionDay == null && currentCompleteStreakCount != 0)
                     || ("SOURCE_LIVENESS_REJECTED".equals(lastDispositionKind)
                     && currentCompleteStreakCount != 0)
@@ -155,9 +175,9 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                     acknowledgedChannels,
                     completedMinuteCount,
                     dataMessageCount,
-                    controlEventCount,
-                    rawArrivalChainSha256,
-                    controlEventChainSha256);
+                controlEventCount,
+                rawArrivalChainSha256,
+                controlEventChainSha256);
         }
     }
 
@@ -165,6 +185,8 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
             LocalDate day,
             String reason,
             OkxMicrostructureDiscoveryRecoveryDropV3R1.RejectionObservation observation,
+            OkxMicrostructureDiscoveryRecoveryDropV3R1.SanitizedControlEvent
+                    sanitizedControlEvent,
             Instant rejectedAt) {
     }
 
@@ -175,6 +197,7 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
         return new Snapshot(
                 binding, hostBootId, Phase.PRE_START, null, 0, null, null, List.of(),
                 0, 0, 0, ZERO_SHA256, ZERO_SHA256,
+                null, null,
                 null, null, null, at);
     }
 
@@ -196,8 +219,29 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                 previous.currentCompleteStreakCount(),
                 startedAt, lastObservedAt, acknowledgedChannels, completedMinuteCount,
                 dataMessageCount, controlEventCount, rawArrivalChainSha256,
-                controlEventChainSha256, previous.lastDispositionDay(),
+                controlEventChainSha256,
+                previous.pendingRejectionReason(), previous.pendingSanitizedControlEvent(),
+                previous.lastDispositionDay(),
                 previous.lastDispositionKind(), previous.lastDispositionArtifactSha256(), updatedAt);
+        requireTransition(previous, next);
+        return next;
+    }
+
+    static Snapshot pendingRejection(
+            Snapshot previous,
+            String reason,
+            OkxMicrostructureDiscoveryRecoveryDropV3R1.SanitizedControlEvent sanitizedControlEvent,
+            Instant at) {
+        Snapshot next = new Snapshot(
+                previous.binding(), previous.hostBootId(), Phase.ACTIVE_DAY,
+                previous.activeDay(), previous.currentCompleteStreakCount(),
+                previous.startedAt(), previous.lastObservedAt(),
+                previous.acknowledgedChannels(), previous.completedMinuteCount(),
+                previous.dataMessageCount(), previous.controlEventCount(),
+                previous.rawArrivalChainSha256(), previous.controlEventChainSha256(),
+                reason, sanitizedControlEvent,
+                previous.lastDispositionDay(), previous.lastDispositionKind(),
+                previous.lastDispositionArtifactSha256(), at);
         requireTransition(previous, next);
         return next;
     }
@@ -216,6 +260,7 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                 day.equals(previous.binding().endDay()) || nextStreak == 14
                         ? Phase.TERMINAL : Phase.BETWEEN_DAYS,
                 null, nextStreak, null, null, List.of(), 0, 0, 0, ZERO_SHA256, ZERO_SHA256,
+                null, null,
                 day, kind, artifactSha256, at);
         requireTransition(previous, next);
         return next;
@@ -258,7 +303,9 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
             String reason;
             OkxMicrostructureDiscoveryRecoveryDropV3R1.RejectionObservation observation;
             if (interruptedActiveDay) {
-                reason = bootChanged && hostStartedAt.isAfter(checkpoint.updatedAt())
+                reason = checkpoint.pendingRejectionReason() != null
+                        ? checkpoint.pendingRejectionReason()
+                        : bootChanged && hostStartedAt.isAfter(checkpoint.updatedAt())
                         ? "HOST_REBOOT_BEFORE_DAY_COMPLETE"
                         : "PROCESS_RESTART_BEFORE_DAY_COMPLETE";
                 observation = checkpoint.observation();
@@ -268,7 +315,12 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                         : "DUAL_CHANNEL_NOT_READY_AT_DAY_START";
                 observation = emptyObservation();
             }
-            result.add(new PlannedRejection(day, reason, observation, processStartedAt));
+            result.add(new PlannedRejection(
+                    day,
+                    reason,
+                    observation,
+                    interruptedActiveDay ? checkpoint.pendingSanitizedControlEvent() : null,
+                    processStartedAt));
         }
         return List.copyOf(result);
     }
@@ -480,6 +532,16 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
             lastDisposition.put("kind", snapshot.lastDispositionKind());
             lastDisposition.put("artifact_sha256", snapshot.lastDispositionArtifactSha256());
         }
+        Map<String, Object> pendingRejection = null;
+        if (snapshot.pendingRejectionReason() != null) {
+            pendingRejection = new LinkedHashMap<>();
+            pendingRejection.put("reason", snapshot.pendingRejectionReason());
+            pendingRejection.put(
+                    "sanitized_control_event",
+                    snapshot.pendingSanitizedControlEvent() == null ? null : Map.of(
+                            "event", snapshot.pendingSanitizedControlEvent().event(),
+                            "code", snapshot.pendingSanitizedControlEvent().code()));
+        }
 
         var binding = snapshot.binding();
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -502,6 +564,7 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
         payload.put("current_complete_streak_count", snapshot.currentCompleteStreakCount());
         payload.put("observation", observation);
         payload.put("last_disposition", lastDisposition);
+        payload.put("pending_rejection", pendingRejection);
         payload.put("updated_at", snapshot.updatedAt().toString());
         return payload;
     }
@@ -548,6 +611,16 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                 Set.of("day", "kind", "artifact_sha256"))) {
             throw new IllegalArgumentException("CHECKPOINT_DISPOSITION_KEYS_MISMATCH");
         }
+        Map<String, Object> pendingRejection = nullableMap(document.get("pending_rejection"));
+        if (pendingRejection != null && !pendingRejection.keySet().equals(
+                Set.of("reason", "sanitized_control_event"))) {
+            throw new IllegalArgumentException("CHECKPOINT_PENDING_REJECTION_KEYS_MISMATCH");
+        }
+        Map<String, Object> sanitized = pendingRejection == null
+                ? null : nullableMap(pendingRejection.get("sanitized_control_event"));
+        if (sanitized != null && !sanitized.keySet().equals(Set.of("event", "code"))) {
+            throw new IllegalArgumentException("CHECKPOINT_PENDING_CONTROL_KEYS_MISMATCH");
+        }
         return new Snapshot(
                 binding,
                 requiredString(document, "host_boot_id"),
@@ -562,6 +635,10 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                 requiredLong(observation, "control_event_count"),
                 requiredString(observation, "raw_arrival_chain_sha256"),
                 requiredString(observation, "control_event_chain_sha256"),
+                pendingRejection == null ? null : requiredString(pendingRejection, "reason"),
+                sanitized == null ? null
+                        : new OkxMicrostructureDiscoveryRecoveryDropV3R1.SanitizedControlEvent(
+                        requiredString(sanitized, "event"), requiredString(sanitized, "code")),
                 lastDisposition == null ? null : LocalDate.parse(requiredString(lastDisposition, "day")),
                 lastDisposition == null ? null : requiredString(lastDisposition, "kind"),
                 lastDisposition == null ? null : requiredString(lastDisposition, "artifact_sha256"),
@@ -596,6 +673,10 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                     || !previous.activeDay().equals(next.lastDispositionDay()))) {
                 throw new IllegalArgumentException("CHECKPOINT_COMPLETE_WITHOUT_ACTIVE_DAY");
             }
+            if (previous.pendingRejectionReason() != null
+                    && !"SOURCE_LIVENESS_REJECTED".equals(next.lastDispositionKind())) {
+                throw new IllegalArgumentException("CHECKPOINT_PENDING_REJECTION_NOT_PUBLISHED");
+            }
         }
         if (next.phase() == Phase.ACTIVE_DAY) {
             LocalDate expected = previous.lastDispositionDay() == null
@@ -615,6 +696,18 @@ final class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1 {
                 || next.dataMessageCount() < previous.dataMessageCount()
                 || next.controlEventCount() < previous.controlEventCount())) {
             throw new IllegalArgumentException("CHECKPOINT_OBSERVATION_REGRESSION");
+        }
+        if (previous.pendingRejectionReason() != null
+                && next.phase() == Phase.ACTIVE_DAY
+                && (!previous.pendingRejectionReason().equals(next.pendingRejectionReason())
+                || !java.util.Objects.equals(
+                previous.pendingSanitizedControlEvent(), next.pendingSanitizedControlEvent())
+                || next.completedMinuteCount() != previous.completedMinuteCount()
+                || next.dataMessageCount() != previous.dataMessageCount()
+                || next.controlEventCount() != previous.controlEventCount()
+                || !next.rawArrivalChainSha256().equals(previous.rawArrivalChainSha256())
+                || !next.controlEventChainSha256().equals(previous.controlEventChainSha256()))) {
+            throw new IllegalArgumentException("CHECKPOINT_PENDING_REJECTION_IMMUTABLE");
         }
         boolean dispositionAdvanced = !java.util.Objects.equals(
                 previous.lastDispositionDay(), next.lastDispositionDay());

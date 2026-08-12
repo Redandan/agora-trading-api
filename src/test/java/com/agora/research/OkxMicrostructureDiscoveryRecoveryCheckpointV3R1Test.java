@@ -93,6 +93,36 @@ class OkxMicrostructureDiscoveryRecoveryCheckpointV3R1Test {
     }
 
     @Test
+    void pendingUpgradeNoticeSurvivesCrashWithExactReasonAndSanitizedEvent() {
+        var initial = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.initial(
+                binding(), "boot-a", Instant.parse("2026-08-31T23:50:00Z"));
+        var active = active(initial, "boot-a", START);
+        var pending = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.pendingRejection(
+                active,
+                "SERVICE_UPGRADE_NOTICE_64008",
+                new OkxMicrostructureDiscoveryRecoveryDropV3R1.SanitizedControlEvent(
+                        "notice", "64008"),
+                Instant.parse("2026-09-01T12:00:02Z"));
+        var restored = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.parse(
+                OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.canonicalBytes(pending));
+        var plan = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.restartPlan(
+                restored,
+                Instant.parse("2026-09-01T12:01:00Z"),
+                Instant.parse("2026-08-30T00:00:00Z"),
+                "boot-a");
+
+        assertEquals("SERVICE_UPGRADE_NOTICE_64008", plan.getFirst().reason());
+        assertEquals(
+                new OkxMicrostructureDiscoveryRecoveryDropV3R1.SanitizedControlEvent(
+                        "notice", "64008"),
+                plan.getFirst().sanitizedControlEvent());
+        assertThrows(IllegalArgumentException.class, () ->
+                OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.afterDisposition(
+                        pending, "boot-a", START, "COMPLETE", "b".repeat(64),
+                        Instant.parse("2026-09-02T00:00:00Z")));
+    }
+
+    @Test
     void preparedAtomicTransactionCompletesAfterRestart(@TempDir Path temp) throws Exception {
         var store = new OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.Store(temp);
         var initial = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.initial(

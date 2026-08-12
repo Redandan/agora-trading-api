@@ -161,6 +161,13 @@ final class OkxMicrostructureCollector {
         return minutes.size();
     }
 
+    synchronized int completedMinuteCountBefore(Instant instant) {
+        if (instant == null) {
+            throw new IllegalArgumentException("cutoff instant is required");
+        }
+        return minutes.headMap(instant.truncatedTo(ChronoUnit.MINUTES), false).size();
+    }
+
     synchronized int unresolvedV3TradeCount() {
         return unresolvedV3TradeCount;
     }
@@ -955,6 +962,17 @@ final class OkxMicrostructureCollector {
             List<BookRecord> books,
             int malformedRecords,
             int crossedBooks) {
+
+        Instant latestDataInstant() {
+            long latest = Long.MIN_VALUE;
+            for (TradeRecord trade : trades) {
+                latest = Math.max(latest, trade.timestamp());
+            }
+            for (BookRecord book : books) {
+                latest = Math.max(latest, book.timestamp());
+            }
+            return latest == Long.MIN_VALUE ? null : Instant.ofEpochMilli(latest);
+        }
 
         static ParsedMessage acknowledgement(String channel) {
             return new ParsedMessage(

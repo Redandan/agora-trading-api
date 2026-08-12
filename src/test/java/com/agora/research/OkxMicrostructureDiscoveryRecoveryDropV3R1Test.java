@@ -74,6 +74,36 @@ class OkxMicrostructureDiscoveryRecoveryDropV3R1Test {
     }
 
     @Test
+    void completeEnvelopeAcceptsExactFullCollectorDay() throws Exception {
+        OkxMicrostructureCollector collector = new OkxMicrostructureCollector(mapper);
+        collector.acceptRaw(acknowledgement("trades"));
+        collector.acceptRaw(acknowledgement("books5"));
+        long dayStart = START.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        for (int minute = 0; minute < 1_440; minute++) {
+            long start = dayStart + minute * 60_000L;
+            long bookSequence = minute * 2L + 1L;
+            long tradeSequence = minute + 1L;
+            collector.acceptRaw(bookMessage(start + 500L, bookSequence));
+            collector.acceptRaw(tradeMessage(start + 1_000L, tradeSequence));
+            collector.acceptRaw(bookMessage(start + 2_000L, bookSequence + 1L));
+        }
+
+        Map<String, Object> payload = collector.buildV3Payload(START);
+        var documents = OkxMicrostructureDiscoveryRecoveryDropV3R1.complete(
+                payload, binding(), START, Instant.parse("2026-09-02T00:00:02Z"));
+        Map<String, Object> bundle = mapper.readValue(
+                documents.bundleBytes(), new TypeReference<>() { });
+        Map<String, Object> envelope = mapper.readValue(
+                documents.envelopeBytes(), new TypeReference<>() { });
+
+        assertEquals(1_440, ((List<?>) bundle.get("minutes")).size());
+        assertEquals("CLEAN", castMap(bundle.get("integrity")).get("status"));
+        assertFalse(envelope.containsKey("predecessor_day"));
+        assertEquals(documents.bundleSha256(), envelope.get("bundle_sha256"));
+        assertEnvelopeSeal(envelope);
+    }
+
+    @Test
     void rejectionContainsOnlyLivenessObservationAndExactNotice() throws Exception {
         Instant rejectedAt = Instant.parse("2026-09-01T09:00:01Z");
         var observation = observation();
@@ -161,6 +191,26 @@ class OkxMicrostructureDiscoveryRecoveryDropV3R1Test {
 
     private OkxMicrostructureDiscoveryRecoveryDropV3R1.Binding binding() {
         return newBinding("okx-btcusdt-microstructure-forward-v3r1-20260901-r3");
+    }
+
+    private static String acknowledgement(String channel) {
+        return "{\"event\":\"subscribe\",\"arg\":{\"channel\":\"" + channel
+                + "\",\"instId\":\"BTC-USDT\"}}";
+    }
+
+    private static String bookMessage(long timestamp, long sequence) {
+        return "{\"arg\":{\"channel\":\"books5\",\"instId\":\"BTC-USDT\"},\"data\":[{"
+                + "\"asks\":[[\"101\",\"1\",\"0\",\"1\"]],"
+                + "\"bids\":[[\"99\",\"1\",\"0\",\"1\"]],"
+                + "\"ts\":\"" + timestamp + "\",\"seqId\":" + sequence + "}]}";
+    }
+
+    private static String tradeMessage(long timestamp, long sequence) {
+        return "{\"arg\":{\"channel\":\"trades\",\"instId\":\"BTC-USDT\"},\"data\":[{"
+                + "\"tradeId\":\"" + sequence + "\",\"px\":\"100\",\"sz\":\"1\","
+                + "\"side\":\"buy\",\"ts\":\"" + timestamp
+                + "\",\"count\":\"1\",\"source\":\"0\",\"seqId\":\""
+                + sequence + "\"}]}";
     }
 
     private OkxMicrostructureDiscoveryRecoveryDropV3R1.Binding newBinding(

@@ -474,6 +474,29 @@ state artifact raises into the existing heartbeat failure record. No monitor
 artifact, timer, schedule change, retry, repair, backfill, source restart,
 candidate action, OOS access, or second writer is introduced.
 
+### Frozen V3R1 discovery recovery direction
+
+The R2 generation
+`okx-btcusdt-microstructure-forward-v3-20260811-r2` accepted zero days and is
+closed after the source failed during its first UTC day. It must remain
+inactive and byte-preserved; it cannot be restarted, backfilled, extended, or
+used as a diagnostic input.
+
+The pre-implementation successor is frozen in
+`docs/okx-microstructure-discovery-recovery-v3r1.md`. V3R1 preserves the exact
+V3 accepted-day payload and diagnostic semantics but permits one
+source-liveness-defined search for the first fourteen-day contiguous streak
+inside a fixed 42-day calendar budget. Allowlisted transport interruptions
+produce immutable rejection evidence and reset the streak; they never stitch,
+repair, or select on market outcomes. Unknown events and market-integrity
+defects still block the generation.
+
+V3R1 is not the previously reserved future V4 42-day economic route. It adds
+no deployment authority, timer, schedule, writer, candidate, OOS, or Trading
+action. Until its schemas, producer, intake, archive, monitor, handoff,
+packaging, and server gates are implemented and independently accepted, the
+V3R1 source remains inactive and its live evidence value is `MISSING_PROOF`.
+
 The fixed handoff exporter is
 `agora-research-microstructure-handoff-export.service`, a disabled and inactive
 network-denied oneshot with no timer, path unit, restart loop, environment

@@ -1,0 +1,151 @@
+{
+  "schema_version": "3R1",
+  "contract_id": "OKX_MICROSTRUCTURE_DISCOVERY_RECOVERY_V3R1",
+  "supersedes_lifecycle_only": "OKX_MICROSTRUCTURE_CONTINUOUS_SOURCE_V3",
+  "preserves_accepted_day_schema": "OKX_MICROSTRUCTURE_FORWARD_DAY_V3",
+  "preserves_diagnostic_contract": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "purpose": "HYPOTHESIS_DISCOVERY_ONLY",
+  "deployment_status": "FROZEN_PRE_IMPLEMENTATION_NOT_DEPLOYED",
+  "r2_disposition": {
+    "diagnostic_id": "okx-btcusdt-microstructure-forward-v3-20260811-r2",
+    "status": "NO_EVIDENCE_CLOSE_INTERRUPTED_GENERATION",
+    "accepted_day_count": 0,
+    "source_failure": "UNEXPECTED_EXCHANGE_EVENT",
+    "exact_control_event": "MISSING_PROOF",
+    "restart": "DENY",
+    "backfill": "DENY",
+    "reuse": "DENY",
+    "preservation": "REQUIRE_CREATE_ONLY_HASH_INVENTORY_AND_ORIGINAL_BYTES"
+  },
+  "source": {
+    "producer_identity": "agora-evidence-source",
+    "endpoint": "wss://ws.okx.com:8443/ws/v5/public",
+    "venue": "OKX",
+    "instrument": "BTC-USDT",
+    "channels": [
+      "trades",
+      "books5"
+    ],
+    "credentials": "NONE",
+    "mode": "FORWARD_ONLY",
+    "historical_backfill": false,
+    "raw_market_messages_persisted": false,
+    "network_scope": "FIXED_PUBLIC_ENDPOINT_ONLY"
+  },
+  "calendar": {
+    "start_day_rule": "STRICTLY_FUTURE_COMPLETE_UTC_DAY",
+    "calendar_day_budget": 42,
+    "end_day_rule": "START_DAY_PLUS_41_CALENDAR_DAYS",
+    "required_consecutive_complete_days": 14,
+    "selection_rule": "FIRST_SOURCE_LIVENESS_DEFINED_FOURTEEN_DAY_STREAK",
+    "market_outcome_selection": "DENY",
+    "deadline_extension": "DENY",
+    "cross_gap_stitching": "DENY",
+    "broken_streak_prefix_reuse": "DENY",
+    "terminal_success": "DIAGNOSTIC_READY",
+    "terminal_deadline_failure": "NO_COMPLETE_STREAK_CLOSE"
+  },
+  "accepted_day": {
+    "schema_path": "research_pipeline/okx-microstructure-forward-day.v3.schema.json",
+    "schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
+    "required_minutes": 1440,
+    "required_channels": [
+      "trades",
+      "books5"
+    ],
+    "required_integrity_status": "CLEAN",
+    "zero_unreferenced_trades": true,
+    "zero_crossed_books": true,
+    "continuous_utc_day": true,
+    "atomic_create_only_publication": true,
+    "historical_v3_bundle_relabel": "DENY"
+  },
+  "rejected_day": {
+    "allowed_reasons": [
+      "SERVICE_UPGRADE_NOTICE_64008",
+      "TRANSPORT_DISCONNECT_UNPROVED_GAP",
+      "PROCESS_RESTART_BEFORE_DAY_COMPLETE",
+      "HOST_REBOOT_BEFORE_DAY_COMPLETE",
+      "DUAL_CHANNEL_NOT_READY_AT_DAY_START"
+    ],
+    "streak_effect": "RESET_TO_ZERO_BEFORE_NEXT_UTC_DAY",
+    "partial_market_aggregates": "DENY",
+    "feature_or_response_values": "DENY",
+    "repair_retry_stitch_backfill": "DENY",
+    "immutable_rejection_envelope_required": true
+  },
+  "websocket_events": {
+    "subscribe": "ACKNOWLEDGE_ONLY_EXACT_FIXED_CHANNEL",
+    "channel-conn-count": "SEAL_CONTROL_EVENT_CHAIN_AND_IGNORE_FOR_MARKET_DATA",
+    "notice_64008": "REJECT_ACTIVE_DAY_AND_PREPARE_NEXT_NOT_STARTED_DAY",
+    "error": "BLOCK_GENERATION",
+    "channel-conn-count-error": "BLOCK_GENERATION",
+    "unsubscribe": "BLOCK_GENERATION",
+    "unknown_notice": "BLOCK_GENERATION",
+    "unknown_event": "BLOCK_GENERATION",
+    "changed_channel_or_instrument": "BLOCK_GENERATION",
+    "active_day_disconnect": "REJECT_ACTIVE_DAY_NO_SESSION_STITCH",
+    "lossless_cross_session_continuity_claim": false
+  },
+  "diagnostic": {
+    "contract_path": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+    "contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+    "selected_input": "FIRST_COMPLETE_FOURTEEN_DAY_STREAK_ONLY",
+    "required_complete_days": 14,
+    "required_contiguous_minutes": 20160,
+    "feature_threshold_tiers_horizons_controls_and_gates": "BYTE_SEMANTICALLY_UNCHANGED_FROM_V3",
+    "rejected_day_market_input": "DENY",
+    "nonselected_complete_prefix_market_input": "DENY",
+    "missingness_disclosure": "REQUIRE_COUNTS_REASONS_AND_CALENDAR_POSITIONS",
+    "discovery_window_as_later_oos": "DENY"
+  },
+  "namespaces": {
+    "binding": "/etc/agora-research/okx-microstructure-continuous-source-v3r1.json",
+    "private_staging": "/var/lib/agora-evidence-source/microstructure-v3r1-private-staging",
+    "one_way_drop": "/var/lib/agora-evidence-source/microstructure-v3r1-drop",
+    "canonical_state": "/var/lib/agora-research/state/microstructure-v3r1",
+    "historical_archive": "/var/lib/agora-research/state/microstructure-archive"
+  },
+  "authority": {
+    "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+    "cloud_schedule_count": 1,
+    "state_authority": "SERVER_CANONICAL",
+    "intake_identity": "agora-research",
+    "intake_network_access": "DENY",
+    "source_canonical_state_access": "DENY",
+    "second_timer": "DENY",
+    "second_path_unit": "DENY",
+    "second_writer": "DENY",
+    "user_operated_restart_loop": "DENY",
+    "trading_database_order_fund_shadow_paper_live": "DENY"
+  },
+  "implementation_gates": [
+    "FREEZE_AND_VALIDATE_VERSIONED_SCHEMAS",
+    "PRESERVE_V1_V2_V3_BYTES_AND_TESTS",
+    "PASS_JAVA_PRODUCER_AND_PYTHON_INTAKE_TESTS",
+    "BIND_EXACT_PACKAGE_INSTALL_VERIFY_MONITOR_AND_HANDOFF_IDENTITIES",
+    "CREATE_ONLY_HASH_VERIFY_R2_ARCHIVE",
+    "PASS_CLEAN_COMMIT_PACKAGE_ONLY",
+    "PROVE_SERVER_ZERO_SOURCE_SINGLE_CLOCK_AND_IDLE_QUEUES",
+    "DEPLOY_WITHOUT_CANONICAL_OR_CONTROL_PLANE_DRIFT",
+    "CREATE_ONE_STRICTLY_FUTURE_BINDING_AND_START_ONCE",
+    "READ_BACK_RELEASE_BINDING_STATE_ARCHIVE_AND_AUTHORITY"
+  ],
+  "terminal_dispositions": [
+    "V3R1_SOURCE_OR_INTAKE_INTEGRITY_CLOSE",
+    "V3R1_NO_COMPLETE_STREAK_CLOSE",
+    "V3R1_DIAGNOSTIC_NO_MECHANISM_CLOSE",
+    "V3R1_DIAGNOSTIC_WAIT_MISSING_PROOF",
+    "V3R1_ONE_HYPOTHESIS_DESIGN_READY"
+  ],
+  "claim_boundary": {
+    "immediate_fee_adjusted_pnl_effect": "ZERO",
+    "immediate_drawdown_effect": "ZERO",
+    "predictive_value": "MISSING_PROOF",
+    "economic_value": "MISSING_PROOF",
+    "candidate_authorized": false,
+    "oos_authorized": false,
+    "promotion_authorized": false
+  }
+}

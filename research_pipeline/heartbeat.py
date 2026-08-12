@@ -99,9 +99,7 @@ def run_heartbeat_cycle(
         if microstructure_binding_path is None
         else Path(microstructure_binding_path)
     )
-    if os.path.lexists(store.root / "microstructure-v3r1") or os.path.lexists(
-        binding_path
-    ):
+    if os.path.lexists(store.root / "microstructure-v3r1"):
         microstructure_diagnostic = microstructure_discovery_recovery_status(
             store.root,
             binding_path=binding_path,

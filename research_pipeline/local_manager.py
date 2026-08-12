@@ -8,8 +8,11 @@ import stat
 import subprocess
 from typing import Any, Iterable
 
-from .local_dispatch import load_and_validate_dispatch
-from .local_weekly_output_classification import validate_weekly_output_classification
+from .local_dispatch import canonical_json_bytes, load_and_validate_dispatch
+from .local_weekly_output_classification import (
+    load_and_validate_weekly_output_classification_document,
+    validate_weekly_output_classification,
+)
 
 
 PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_PREFLIGHT_RECEIPT_V1"
@@ -110,6 +113,9 @@ def build_local_manager_preflight(
     repository_root: Path | str,
     dispatch_path: Path | str,
     task_path: Path | str,
+    classification_intent_path: Path | str,
+    *,
+    allow_non_counting_integrity_repair: bool = False,
 ) -> dict[str, Any]:
     root = _exact_repository_root(repository_root)
     if _git(root, "status", "--porcelain=v1", "--untracked-files=all"):
@@ -131,14 +137,77 @@ def build_local_manager_preflight(
         Path(task_path),
         "task path",
     )
+    intent_file, intent_relative = _contained_regular_file(
+        root,
+        Path(classification_intent_path),
+        "classification intent path",
+    )
     validation = load_and_validate_dispatch(dispatch_file, task_file)
     dispatch_raw = dispatch_file.read_bytes()
     task_raw = task_file.read_bytes()
+    intent_raw = intent_file.read_bytes()
     _require_head_bytes(root, head, dispatch_relative, dispatch_raw, "dispatch")
     _require_head_bytes(root, head, task_relative, task_raw, "task")
+    _require_head_bytes(
+        root,
+        head,
+        intent_relative,
+        intent_raw,
+        "classification intent",
+    )
 
     task = json.loads(task_raw.decode("utf-8"))
     dispatch = json.loads(dispatch_raw.decode("utf-8"))
+    intent = load_and_validate_weekly_output_classification_document(
+        intent_raw,
+        "classification intent",
+    )
+    if intent["record_stage"] != "PRE_DISPATCH_INTENT":
+        raise ValueError("Manager preflight requires a pre-dispatch classification intent")
+    expected_intent_bindings = {
+        "authorization": dispatch["authorization"],
+        "dispatch_id": validation["dispatch_id"],
+        "dispatch_path": dispatch_relative,
+        "dispatch_sha256": validation["dispatch_sha256"],
+        "intent_path": intent_relative,
+        "manager_thread_id": dispatch["manager_thread_id"],
+        "max_candidate_variants": dispatch["decision_contract"][
+            "max_candidate_variants"
+        ],
+        "task_id": validation["task_id"],
+        "task_path": task_relative,
+        "task_sha256": validation["task_sha256"],
+    }
+    for field, expected in expected_intent_bindings.items():
+        if intent.get(field) != expected:
+            raise ValueError(f"classification intent {field} does not bind the dispatch")
+    claim_boundary_sha256 = hashlib.sha256(
+        canonical_json_bytes(dispatch["performance_case"]["claim_boundary"])
+    ).hexdigest()
+    if intent["claim_boundary_sha256"] != claim_boundary_sha256:
+        raise ValueError("classification intent claim boundary does not bind the dispatch")
+    countable_disposition_count = sum(
+        mapping["action"] == "COUNT" for mapping in intent["disposition_actions"]
+    )
+    output_class = intent["output_class"]
+    countable = (
+        output_class in {"MECHANISM_CONCLUSION", "SPEC_OR_CAPABILITY_SLICE"}
+        and countable_disposition_count > 0
+    )
+    if allow_non_counting_integrity_repair:
+        if output_class != "NON_COUNTING":
+            raise ValueError(
+                "non-counting integrity exception is only valid for NON_COUNTING work"
+            )
+        value_gate_status = "NON_COUNTING_ACTIVE_INTEGRITY_EXCEPTION"
+    elif not countable:
+        raise ValueError(
+            "Manager value gate rejects work with no countable disposition; "
+            "use the explicit integrity-repair exception only for an active evidence risk"
+        )
+    else:
+        value_gate_status = "COUNTABLE_OUTPUT_REQUIRED"
+
     locators = [item["locator"] for item in task["inputs"]]
     if len(locators) != len(set(locators)):
         raise ValueError("task input locators must be unique for Manager preflight")
@@ -194,6 +263,9 @@ def build_local_manager_preflight(
     return {
         "authorization": dispatch["authorization"],
         "branch": branch,
+        "classification_intent_id": intent["intent_id"],
+        "classification_intent_path": intent_relative,
+        "classification_intent_sha256": hashlib.sha256(intent_raw).hexdigest(),
         "dispatch_id": validation["dispatch_id"],
         "dispatch_path": dispatch_relative,
         "dispatch_sha256": validation["dispatch_sha256"],
@@ -205,6 +277,12 @@ def build_local_manager_preflight(
         "manager_thread_id": dispatch["manager_thread_id"],
         "origin_commit": origin_commit,
         "repository_input_count": repository_input_count,
+        "research_value_gate": {
+            "countable_disposition_count": countable_disposition_count,
+            "non_counting_integrity_exception": allow_non_counting_integrity_repair,
+            "output_class": output_class,
+            "status": value_gate_status,
+        },
         "schema_version": "1",
         "sealed_artifact_count": sealed_artifact_count,
         "state_authority": dispatch["state_authority"],

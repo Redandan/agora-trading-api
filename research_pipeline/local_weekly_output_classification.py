@@ -285,6 +285,18 @@ def validate_weekly_output_classification_record(value: Any) -> dict[str, Any]:
     return value
 
 
+def load_and_validate_weekly_output_classification_document(
+    raw: bytes,
+    label: str = "classification record",
+) -> dict[str, Any]:
+    value = _load_json(raw, label)
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must be a JSON object")
+    if raw != canonical_json_document_bytes(value):
+        raise ValueError(f"{label} must use canonical JSON document bytes")
+    return validate_weekly_output_classification_record(value)
+
+
 def _load_schema(root: Path) -> dict[str, Any]:
     path = _contained_regular_file(root, SCHEMA_RELATIVE_PATH, "classification schema")
     schema = _load_json(path.read_bytes(), "classification schema")
@@ -304,12 +316,7 @@ def _load_canonical_record(
 ) -> tuple[dict[str, Any], bytes]:
     path = _contained_regular_file(root, relative, label)
     raw = path.read_bytes()
-    value = _load_json(raw, label)
-    if not isinstance(value, dict):
-        raise ValueError(f"{label} must be a JSON object")
-    if raw != canonical_json_document_bytes(value):
-        raise ValueError(f"{label} must use canonical JSON document bytes")
-    validate_weekly_output_classification_record(value)
+    value = load_and_validate_weekly_output_classification_document(raw, label)
     return value, raw
 
 

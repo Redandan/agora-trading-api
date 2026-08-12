@@ -138,8 +138,53 @@ class PreflightRepository:
         }
         self.dispatch_path = self.root / "records" / "dispatch.json"
         self.dispatch_path.write_bytes(canonical_json_document_bytes(self.dispatch))
+        self.intent = {
+            "authorization": AUTHORIZATION,
+            "claim_boundary_sha256": _sha256(
+                canonical_json_bytes(
+                    self.dispatch["performance_case"]["claim_boundary"]
+                )
+            ),
+            "dispatch_id": self.dispatch["dispatch_id"],
+            "dispatch_path": "records/dispatch.json",
+            "dispatch_sha256": _sha256(self.dispatch_path.read_bytes()),
+            "disposition_actions": [
+                {"action": "COUNT", "disposition": "POSITIVE_READY"},
+                {"action": "COUNT", "disposition": "NEGATIVE_CLOSE"},
+                {"action": "EXCLUDE", "disposition": "INSUFFICIENT_PROOF"},
+            ],
+            "document_type": "LOCAL_WEEKLY_OUTPUT_CLASSIFICATION_V1",
+            "duplicate_family_key": "synthetic-manager-preflight-capability",
+            "independence_semantics": "UNIQUE_FAMILY",
+            "intent_id": "intent-manager-preflight-fixture-v1",
+            "intent_path": "records/intent.json",
+            "issued_at": "2026-08-11T00:00:30Z",
+            "manager_thread_id": "manager-synthetic-thread",
+            "max_candidate_variants": 0,
+            "output_class": "SPEC_OR_CAPABILITY_SLICE",
+            "output_id": "output-manager-preflight-fixture-v1",
+            "record_stage": "PRE_DISPATCH_INTENT",
+            "schema_version": "1",
+            "task_id": self.task["task_id"],
+            "task_path": "records/task.json",
+            "task_sha256": self.dispatch["task_sha256"],
+        }
+        self.intent_path = self.root / "records" / "intent.json"
+        self.intent_path.write_bytes(canonical_json_document_bytes(self.intent))
         _run(self.root, "add", ".")
         _run(self.root, "commit", "-m", "frozen preflight fixture")
+        _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
+
+    def commit_intent(self) -> None:
+        self.intent_path.write_bytes(canonical_json_document_bytes(self.intent))
+        _run(self.root, "add", "records/intent.json")
+        _run(self.root, "commit", "-m", "update preflight intent")
+        _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
+
+    def commit_intent_bytes(self, raw: bytes) -> None:
+        self.intent_path.write_bytes(raw)
+        _run(self.root, "add", "records/intent.json")
+        _run(self.root, "commit", "-m", "update preflight intent bytes")
         _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
 
 
@@ -150,6 +195,7 @@ class LocalManagerPreflightTest(unittest.TestCase):
             repository.root,
             repository.dispatch_path,
             repository.task_path,
+            repository.intent_path,
         )
         self.assertEqual(result["status"], "VALID")
         self.assertEqual(result["head_commit"], result["origin_commit"])
@@ -157,19 +203,38 @@ class LocalManagerPreflightTest(unittest.TestCase):
         self.assertEqual(result["file_input_count"], 1)
         self.assertEqual(result["task_bound_file_input_count"], 1)
         self.assertEqual(result["input_proofs"][0]["verification"], "CURRENT_HEAD_REGULAR_NON_LINK_FILE")
+        self.assertEqual(
+            result["research_value_gate"],
+            {
+                "countable_disposition_count": 2,
+                "non_counting_integrity_exception": False,
+                "output_class": "SPEC_OR_CAPABILITY_SLICE",
+                "status": "COUNTABLE_OUTPUT_REQUIRED",
+            },
+        )
 
     def test_preflight_rejects_dirty_worktree_and_origin_drift(self) -> None:
         repository = PreflightRepository(self)
         (repository.root / "untracked.txt").write_text("dirty", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "clean worktree"):
-            build_local_manager_preflight(repository.root, repository.dispatch_path, repository.task_path)
+            build_local_manager_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+            )
 
         (repository.root / "untracked.txt").unlink()
         (repository.root / "later.txt").write_text("later", encoding="utf-8")
         _run(repository.root, "add", "later.txt")
         _run(repository.root, "commit", "-m", "local commit beyond origin")
         with self.assertRaisesRegex(ValueError, "local origin"):
-            build_local_manager_preflight(repository.root, repository.dispatch_path, repository.task_path)
+            build_local_manager_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+            )
 
     def test_preflight_rejects_task_bound_input_drift(self) -> None:
         repository = PreflightRepository(self)
@@ -178,7 +243,54 @@ class LocalManagerPreflightTest(unittest.TestCase):
         _run(repository.root, "commit", "-m", "drift input")
         _run(repository.root, "update-ref", "refs/remotes/origin/main", "HEAD")
         with self.assertRaisesRegex(ValueError, "SHA-256"):
-            build_local_manager_preflight(repository.root, repository.dispatch_path, repository.task_path)
+            build_local_manager_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+            )
+
+    def test_preflight_rejects_non_counting_work_without_integrity_exception(self) -> None:
+        repository = PreflightRepository(self)
+        repository.intent["output_class"] = "NON_COUNTING"
+        repository.intent["independence_semantics"] = "NON_COUNTING_NOT_APPLICABLE"
+        for mapping in repository.intent["disposition_actions"]:
+            mapping["action"] = "EXCLUDE"
+        repository.commit_intent()
+
+        with self.assertRaisesRegex(ValueError, "no countable disposition"):
+            build_local_manager_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+            )
+
+        result = build_local_manager_preflight(
+            repository.root,
+            repository.dispatch_path,
+            repository.task_path,
+            repository.intent_path,
+            allow_non_counting_integrity_repair=True,
+        )
+        self.assertEqual(
+            result["research_value_gate"]["status"],
+            "NON_COUNTING_ACTIVE_INTEGRITY_EXCEPTION",
+        )
+
+    def test_preflight_rejects_noncanonical_classification_intent(self) -> None:
+        repository = PreflightRepository(self)
+        repository.commit_intent_bytes(
+            json.dumps(repository.intent, indent=2, sort_keys=True).encode("utf-8")
+        )
+
+        with self.assertRaisesRegex(ValueError, "canonical JSON document bytes"):
+            build_local_manager_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+            )
 
     def test_top_level_preflight_runs_before_policy_or_state(self) -> None:
         repository = PreflightRepository(self)
@@ -196,6 +308,8 @@ class LocalManagerPreflightTest(unittest.TestCase):
                     str(repository.dispatch_path),
                     "--task",
                     str(repository.task_path),
+                    "--intent",
+                    str(repository.intent_path),
                     "--repository-root",
                     str(repository.root),
                 ]

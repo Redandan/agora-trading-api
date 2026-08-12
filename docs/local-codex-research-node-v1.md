@@ -121,15 +121,22 @@ Manager/Coach may aggregate the mandatory mechanical pre-dispatch checks into
 one read-only receipt:
 
 ```text
-python -m research_pipeline local-research-manager-preflight <dispatch.json> --task <task.json>
+python -m research_pipeline local-research-manager-preflight <dispatch.json> \
+  --task <task.json> --intent <pre-dispatch-intent.json>
 ```
 
 The command reuses the authoritative task and dispatch validator, then requires
 a clean branch whose `HEAD` equals the matching local `origin` ref, exact
-committed task and dispatch bytes, and regular non-link input files with all
-task-bound SHA-256 values intact. It prints one deterministic receipt to stdout;
-it does not write a receipt, fetch Git state, contact the server, inspect an
-outcome, or replace Manager/Coach semantic validation.
+committed task, dispatch, and prospective classification-intent bytes, regular
+non-link input files with all task-bound SHA-256 values intact, and at least one
+pre-frozen `COUNT` disposition for a mechanism conclusion or spec/capability
+slice. A `NON_COUNTING` task fails before dispatch by default. Manager/Coach may
+use `--allow-non-counting-integrity-repair` only for a bounded repair of an
+active forward-evidence integrity risk; the exception is explicit in the
+receipt and is not a countable research output. The command prints one
+deterministic receipt to stdout; it does not write a receipt, fetch Git state,
+contact the server, inspect an outcome, or replace Manager/Coach semantic
+validation.
 
 For a bounded period of at most seven days, Manager/Coach may measure accepted
 Local output against the current throughput targets with an explicit acceptance

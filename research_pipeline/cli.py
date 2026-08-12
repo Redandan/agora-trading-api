@@ -166,6 +166,11 @@ def parser() -> argparse.ArgumentParser:
     manager_preflight = commands.add_parser("local-research-manager-preflight")
     manager_preflight.add_argument("dispatch", type=Path)
     manager_preflight.add_argument("--task", type=Path, required=True)
+    manager_preflight.add_argument("--intent", type=Path, required=True)
+    manager_preflight.add_argument(
+        "--allow-non-counting-integrity-repair",
+        action="store_true",
+    )
     manager_preflight.add_argument("--repository-root", type=Path, default=REPO_ROOT)
     throughput_kpi = commands.add_parser("local-research-throughput-kpi")
     throughput_kpi.add_argument("--acceptance", action="append", required=True)
@@ -1532,6 +1537,10 @@ def main(argv: list[str] | None = None) -> int:
                 args.repository_root,
                 args.dispatch,
                 args.task,
+                args.intent,
+                allow_non_counting_integrity_repair=(
+                    args.allow_non_counting_integrity_repair
+                ),
             )
             print(canonical_json_bytes(validation).decode("utf-8"))
             return 0

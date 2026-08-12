@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-microstructure-discovery-intake-state.v3r1.schema.json",
+  "title": "Server Canonical OKX Microstructure Discovery Intake State V3R1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "state_type",
+    "authorization",
+    "generation_id",
+    "diagnostic_id",
+    "recovery_contract_sha256",
+    "binding_sha256",
+    "producer_release_id",
+    "producer_manifest_sha256",
+    "state_authority",
+    "intake_identity",
+    "network_access",
+    "research_lifecycle_clock",
+    "cloud_schedule_count",
+    "start_day",
+    "end_day",
+    "calendar_day_budget",
+    "required_consecutive_complete_days",
+    "calendar_dispositions",
+    "current_streak",
+    "nonselected_complete_prefixes",
+    "selected_streak",
+    "status",
+    "next_calendar_day",
+    "calendar_chain_head_sha256",
+    "selected_streak_chain_head_sha256",
+    "failure",
+    "readiness"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "OKX_MICROSTRUCTURE_DISCOVERY_INTAKE_STATE_V3R1"
+    },
+    "state_type": {
+      "const": "SERVER_CANONICAL_MICROSTRUCTURE_DISCOVERY_V3R1_INTAKE"
+    },
+    "authorization": {
+      "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+    },
+    "generation_id": {
+      "type": "string",
+      "pattern": "^okx-btcusdt-microstructure-discovery-v3r1-[0-9]{8}-r[0-9]+$"
+    },
+    "diagnostic_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"
+    },
+    "recovery_contract_sha256": {
+      "const": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd"
+    },
+    "binding_sha256": {"$ref": "#/$defs/sha256"},
+    "producer_release_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "producer_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "state_authority": {"const": "SERVER_CANONICAL"},
+    "intake_identity": {"const": "agora-research"},
+    "network_access": {"const": "DENY"},
+    "research_lifecycle_clock": {"const": "CODEX_CLOUD_OPS_ONLY"},
+    "cloud_schedule_count": {"const": 1},
+    "start_day": {"type": "string", "format": "date"},
+    "end_day": {"type": "string", "format": "date"},
+    "calendar_day_budget": {"const": 42},
+    "required_consecutive_complete_days": {"const": 14},
+    "calendar_dispositions": {
+      "type": "array",
+      "maxItems": 42,
+      "items": {"$ref": "#/$defs/calendarDisposition"}
+    },
+    "current_streak": {
+      "type": "array",
+      "maxItems": 14,
+      "items": {"$ref": "#/$defs/completeDay"}
+    },
+    "nonselected_complete_prefixes": {
+      "type": "array",
+      "maxItems": 21,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 13,
+        "items": {"$ref": "#/$defs/completeDay"}
+      }
+    },
+    "selected_streak": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": {"$ref": "#/$defs/completeDay"}
+        }
+      ]
+    },
+    "status": {
+      "enum": [
+        "WAITING_FOR_CALENDAR_DAY",
+        "BUILDING_CONSECUTIVE_STREAK",
+        "DIAGNOSTIC_READY",
+        "NO_COMPLETE_STREAK_CLOSE",
+        "INTEGRITY_BLOCKED"
+      ]
+    },
+    "next_calendar_day": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "format": "date"}
+      ]
+    },
+    "calendar_chain_head_sha256": {"$ref": "#/$defs/sha256"},
+    "selected_streak_chain_head_sha256": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/sha256"}
+      ]
+    },
+    "failure": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "day", "detail"],
+          "properties": {
+            "code": {
+              "enum": [
+                "CONTRACT_HASH_MISMATCH",
+                "WRONG_IDENTITY",
+                "WRONG_DAY",
+                "NON_ATOMIC_DELIVERY",
+                "CONFLICTING_DUPLICATE",
+                "UNKNOWN_EVENT",
+                "MARKET_INTEGRITY_FAILURE",
+                "UNSAFE_FILESYSTEM_STATE",
+                "BACKFILL_FORBIDDEN",
+                "SECOND_CLOCK_OR_WRITER_FORBIDDEN"
+              ]
+            },
+            "day": {"type": "string", "format": "date"},
+            "detail": {"type": "string", "minLength": 1, "maxLength": 500}
+          }
+        }
+      ]
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "disposition",
+        "candidate_authorized",
+        "oos_authorized",
+        "pnl_claim_authorized",
+        "promotion_authorized",
+        "performance_value"
+      ],
+      "properties": {
+        "disposition": {
+          "enum": [
+            "NOT_READY",
+            "FROZEN_V3R1_DISCOVERY_ANALYSIS_ONLY",
+            "NO_COMPLETE_STREAK_CLOSE",
+            "INTEGRITY_BLOCKED"
+          ]
+        },
+        "candidate_authorized": {"const": false},
+        "oos_authorized": {"const": false},
+        "pnl_claim_authorized": {"const": false},
+        "promotion_authorized": {"const": false},
+        "performance_value": {"const": "MISSING_PROOF"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "completeDay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "day",
+        "bundle_sha256",
+        "envelope_sha256",
+        "accepted_at"
+      ],
+      "properties": {
+        "day": {"type": "string", "format": "date"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "envelope_sha256": {"$ref": "#/$defs/sha256"},
+        "accepted_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "calendarDisposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "day",
+        "calendar_index",
+        "disposition",
+        "artifact_sha256",
+        "reason",
+        "recorded_at",
+        "cumulative_chain_sha256"
+      ],
+      "properties": {
+        "day": {"type": "string", "format": "date"},
+        "calendar_index": {"type": "integer", "minimum": 1, "maximum": 42},
+        "disposition": {"enum": ["COMPLETE", "SOURCE_LIVENESS_REJECTED"]},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "reason": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "enum": [
+                "SERVICE_UPGRADE_NOTICE_64008",
+                "TRANSPORT_DISCONNECT_UNPROVED_GAP",
+                "PROCESS_RESTART_BEFORE_DAY_COMPLETE",
+                "HOST_REBOOT_BEFORE_DAY_COMPLETE",
+                "DUAL_CHANNEL_NOT_READY_AT_DAY_START"
+              ]
+            }
+          ]
+        },
+        "recorded_at": {"type": "string", "format": "date-time"},
+        "cumulative_chain_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-microstructure-discovery-rejection-envelope.v3r1.schema.json",
+  "title": "OKX Microstructure Discovery Rejection Envelope V3R1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "envelope_type",
+    "authorization",
+    "generation_id",
+    "recovery_contract_sha256",
+    "producer_release_id",
+    "producer_manifest_sha256",
+    "producer_identity",
+    "day",
+    "calendar_index",
+    "reason",
+    "observation",
+    "sanitized_control_event",
+    "rejected_at",
+    "idempotency_key",
+    "delivery_semantics",
+    "envelope_seal"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "OKX_MICROSTRUCTURE_DISCOVERY_REJECTION_ENVELOPE_V3R1"
+    },
+    "envelope_type": {
+      "const": "IMMUTABLE_SOURCE_LIVENESS_DAY_REJECTION"
+    },
+    "authorization": {
+      "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+    },
+    "generation_id": {
+      "type": "string",
+      "pattern": "^okx-btcusdt-microstructure-discovery-v3r1-[0-9]{8}-r[0-9]+$"
+    },
+    "recovery_contract_sha256": {
+      "const": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd"
+    },
+    "producer_release_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "producer_manifest_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "producer_identity": {
+      "const": "agora-evidence-source"
+    },
+    "day": {
+      "type": "string",
+      "format": "date"
+    },
+    "calendar_index": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 42
+    },
+    "reason": {
+      "enum": [
+        "SERVICE_UPGRADE_NOTICE_64008",
+        "TRANSPORT_DISCONNECT_UNPROVED_GAP",
+        "PROCESS_RESTART_BEFORE_DAY_COMPLETE",
+        "HOST_REBOOT_BEFORE_DAY_COMPLETE",
+        "DUAL_CHANNEL_NOT_READY_AT_DAY_START"
+      ]
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "started_at",
+        "last_observed_at",
+        "acknowledged_channels",
+        "completed_minute_count",
+        "data_message_count",
+        "control_event_count",
+        "raw_arrival_chain_sha256",
+        "control_event_chain_sha256"
+      ],
+      "properties": {
+        "started_at": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "format": "date-time"}
+          ]
+        },
+        "last_observed_at": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "format": "date-time"}
+          ]
+        },
+        "acknowledged_channels": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 2,
+          "items": {"enum": ["books5", "trades"]}
+        },
+        "completed_minute_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1439
+        },
+        "data_message_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "control_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "raw_arrival_chain_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "control_event_chain_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "sanitized_control_event": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["event", "code"],
+          "properties": {
+            "event": {"const": "notice"},
+            "code": {"const": "64008"}
+          }
+        }
+      ]
+    },
+    "rejected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^okx-btcusdt-microstructure-discovery-v3r1-[0-9]{8}-r[0-9]+:[0-9]{4}-[0-9]{2}-[0-9]{2}:SOURCE_LIVENESS_REJECTED$"
+    },
+    "delivery_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "atomic_rename",
+        "overwrite",
+        "source_read_after_publish",
+        "symlinks",
+        "canonical_state_access",
+        "partial_market_aggregates",
+        "repair_retry_stitch_backfill"
+      ],
+      "properties": {
+        "transport": {"const": "MICROSTRUCTURE_V3R1_ONE_WAY_DROP"},
+        "atomic_rename": {"const": true},
+        "overwrite": {"const": false},
+        "source_read_after_publish": {"const": false},
+        "symlinks": {"const": false},
+        "canonical_state_access": {"const": false},
+        "partial_market_aggregates": {"const": false},
+        "repair_retry_stitch_backfill": {"const": false}
+      }
+    },
+    "envelope_seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization", "sealed_at"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {
+          "const": "UTF-8 compact JSON excluding envelope_seal; object keys sorted lexicographically"
+        },
+        "sealed_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

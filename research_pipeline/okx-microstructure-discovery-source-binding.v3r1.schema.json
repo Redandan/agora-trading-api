@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-microstructure-discovery-source-binding.v3r1.schema.json",
+  "title": "OKX Microstructure Discovery Source Binding V3R1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authorization",
+    "generation_id",
+    "diagnostic_id",
+    "recovery_contract_sha256",
+    "v3_day_schema_sha256",
+    "v3_diagnostic_contract_sha256",
+    "producer_release_id",
+    "producer_manifest_sha256",
+    "start_day",
+    "end_day",
+    "calendar_day_budget",
+    "required_consecutive_complete_days",
+    "selection_rule"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "OKX_MICROSTRUCTURE_DISCOVERY_SOURCE_BINDING_V3R1"
+    },
+    "authorization": {
+      "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+    },
+    "generation_id": {
+      "type": "string",
+      "pattern": "^okx-btcusdt-microstructure-discovery-v3r1-[0-9]{8}-r[0-9]+$"
+    },
+    "diagnostic_id": {
+      "type": "string",
+      "pattern": "^okx-btcusdt-microstructure-forward-v3r1-[0-9]{8}-r[0-9]+$"
+    },
+    "recovery_contract_sha256": {
+      "const": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd"
+    },
+    "v3_day_schema_sha256": {
+      "const": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"
+    },
+    "v3_diagnostic_contract_sha256": {
+      "const": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    "producer_release_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "producer_manifest_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "start_day": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_day": {
+      "type": "string",
+      "format": "date"
+    },
+    "calendar_day_budget": {
+      "const": 42
+    },
+    "required_consecutive_complete_days": {
+      "const": 14
+    },
+    "selection_rule": {
+      "const": "FIRST_SOURCE_LIVENESS_DEFINED_FOURTEEN_DAY_STREAK"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

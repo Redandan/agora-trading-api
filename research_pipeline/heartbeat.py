@@ -70,9 +70,7 @@ def _read_microstructure_diagnostic(
     binding_path: Path,
     now: datetime,
 ) -> dict[str, Any]:
-    v3r1_active = os.path.lexists(
-        store.root / "microstructure-v3r1"
-    ) or os.path.lexists(binding_path)
+    v3r1_active = os.path.lexists(store.root / "microstructure-v3r1")
     reader = (
         microstructure_discovery_recovery_status
         if v3r1_active

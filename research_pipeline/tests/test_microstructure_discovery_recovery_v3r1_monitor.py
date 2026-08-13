@@ -15,7 +15,7 @@ from research_pipeline.microstructure_discovery_recovery_v3r1 import (
     build_source_binding,
     initial_intake_state,
 )
-from research_pipeline.heartbeat import run_heartbeat_cycle
+from research_pipeline.heartbeat import _read_microstructure_diagnostic, run_heartbeat_cycle
 from research_pipeline.microstructure_monitor import (
     microstructure_discovery_recovery_status,
 )
@@ -213,6 +213,35 @@ class MicrostructureDiscoveryRecoveryV3R1MonitorTest(unittest.TestCase):
             self.assertEqual("WAITING_FOR_DAY", heartbeat["microstructure_diagnostic"]["status"])
             self.assertEqual(2, monitor.call_count)
             sleep.assert_called_once_with(0.25)
+
+    def test_external_binding_does_not_select_v3r1_for_an_unbound_store(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = ResearchStore(root / "store", lock_stale_seconds=60)
+            store.bootstrap()
+            external_binding = root / "binding.json"
+            external_binding.write_text("{}", encoding="utf-8")
+            now = datetime(2026, 8, 31, tzinfo=timezone.utc)
+            legacy = {"status": "LEGACY_STORE"}
+
+            with (
+                patch(
+                    "research_pipeline.heartbeat.microstructure_diagnostic_status",
+                    return_value=legacy,
+                ) as legacy_monitor,
+                patch(
+                    "research_pipeline.heartbeat.microstructure_discovery_recovery_status"
+                ) as recovery_monitor,
+            ):
+                diagnostic = _read_microstructure_diagnostic(
+                    store,
+                    binding_path=external_binding,
+                    now=now,
+                )
+
+            self.assertEqual(legacy, diagnostic)
+            legacy_monitor.assert_called_once_with(store.root, now=now)
+            recovery_monitor.assert_not_called()
 
     def test_heartbeat_persistent_artifactless_recovery_still_fails_closed(self) -> None:
         initial = initial_intake_state(self.binding)

@@ -7,6 +7,7 @@ After=local-fs.target
 Type=oneshot
 User=agora-research
 Group=agora-research
+SupplementaryGroups=agora-evidence
 WorkingDirectory=/opt/agora-research-worker/control-current
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
@@ -37,7 +38,9 @@ RestrictNamespaces=true
 LockPersonality=true
 IPAddressDeny=any
 RestrictAddressFamilies=AF_UNIX
+ReadOnlyPaths=/etc/agora-research/okx-microstructure-continuous-source-v3r1.json
 ReadWritePaths=/var/lib/agora-research /run/agora-research
+InaccessiblePaths=-/var/lib/agora-evidence-source -/home/ubuntu/.env.trading.secrets
 CapabilityBoundingSet=
 SystemCallArchitectures=native
 TimeoutStartSec=2h15min

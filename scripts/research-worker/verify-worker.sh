@@ -14,6 +14,7 @@ EXPECT_CARRY_SOURCE="${EXPECT_CARRY_SOURCE:-auto}"
 MICROSTRUCTURE_INTAKE_PREFLIGHT="${MICROSTRUCTURE_INTAKE_PREFLIGHT:-0}"
 EXPECTED_CONTROL_RELEASE_ID="${EXPECTED_CONTROL_RELEASE_ID:?EXPECTED_CONTROL_RELEASE_ID is required}"
 EXPECTED_DATA_RELEASE_ID="${EXPECTED_DATA_RELEASE_ID:?EXPECTED_DATA_RELEASE_ID is required}"
+HEARTBEAT_UNIT=agora-research-heartbeat.service
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
@@ -997,6 +998,31 @@ for data_unit in "${data_units[@]}"; do
   fi
 done
 ok "control and data-plane systemd release lanes are byte-separated"
+
+[ "$(systemctl show "$HEARTBEAT_UNIT" --property=User --value)" = "$WORKER_USER" ] \
+  || fail "heartbeat identity is incorrect"
+[ "$(systemctl show "$HEARTBEAT_UNIT" --property=Group --value)" = "$WORKER_USER" ] \
+  || fail "heartbeat primary group is incorrect"
+[ "$(systemctl show "$HEARTBEAT_UNIT" --property=SupplementaryGroups --value)" = "$EVIDENCE_GROUP" ] \
+  || fail "heartbeat binding-reader supplementary group is not exact"
+case "$(systemctl show "$HEARTBEAT_UNIT" --property=IPAddressDeny --value)" in
+  any|'::/0 0.0.0.0/0'|'0.0.0.0/0 ::/0') ;;
+  *) fail "heartbeat is not network denied" ;;
+esac
+heartbeat_read_only="$(systemctl show "$HEARTBEAT_UNIT" --property=ReadOnlyPaths --value)"
+[ "$heartbeat_read_only" = "$MICROSTRUCTURE_BINDING" ] \
+  || fail "heartbeat read-only binding path is not exact"
+heartbeat_inaccessible="$(systemctl show "$HEARTBEAT_UNIT" --property=InaccessiblePaths --value)"
+python3 - "$heartbeat_inaccessible" \
+  -/var/lib/agora-evidence-source \
+  -/home/ubuntu/.env.trading.secrets <<'PY'
+import sys
+
+if set(sys.argv[1].split()) != set(sys.argv[2:]):
+    raise SystemExit("heartbeat inaccessible paths are not exact")
+PY
+ok "heartbeat can read only the V3R1 binding through its evidence group"
+
 systemd-analyze verify \
   /etc/systemd/system/agora-research-heartbeat.service \
   /etc/systemd/system/agora-research-heartbeat.timer \

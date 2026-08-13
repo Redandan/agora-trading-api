@@ -255,6 +255,13 @@ Research Worker upgrades use exactly two fixed symlinks beneath
   ingest plus the continuous microstructure source and intake. Those units
   never reference `control-current`.
 
+The network-denied heartbeat oneshot has the `agora-evidence` supplementary
+group only so it can read the root-owned V3R1 binding under `/etc/agora-research`.
+Its mount namespace exposes that exact binding read-only and makes the complete
+`/var/lib/agora-evidence-source` tree plus the Trading secrets file
+inaccessible. The group therefore does not grant the heartbeat a producer,
+drop, network, credential, timer, or second-writer path.
+
 An ordinary inactive-source installation atomically points both symlinks at the
 new immutable release. It retains the default fail-closed rejection of an
 active or failed microstructure source. The deployment wrapper exposes one

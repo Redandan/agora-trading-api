@@ -4,6 +4,7 @@ import json
 import math
 import os
 import re
+import time as time_module
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -45,6 +46,8 @@ COACH_DELIVERY_STATUSES = {
 MAX_COACH_PENDING_EVENTS = 32
 MAX_COACH_DELIVERED_RECEIPTS = 256
 MAX_COACH_RECEIPTS_PER_HEARTBEAT = 8
+MICROSTRUCTURE_MONITOR_READ_ATTEMPTS = 3
+MICROSTRUCTURE_MONITOR_RETRY_SECONDS = 0.25
 MICROSTRUCTURE_V3R1_BINDING_PATH = Path(
     "/etc/agora-research/okx-microstructure-continuous-source-v3r1.json"
 )
@@ -59,6 +62,43 @@ def parse_heartbeat_now(value: str | None) -> datetime:
     if value is None:
         return datetime.now(timezone.utc)
     return parse_timestamp(value, "--now").astimezone(timezone.utc)
+
+
+def _read_microstructure_diagnostic(
+    store: ResearchStore,
+    *,
+    binding_path: Path,
+    now: datetime,
+) -> dict[str, Any]:
+    v3r1_active = os.path.lexists(
+        store.root / "microstructure-v3r1"
+    ) or os.path.lexists(binding_path)
+    reader = (
+        microstructure_discovery_recovery_status
+        if v3r1_active
+        else microstructure_diagnostic_status
+    )
+
+    summary: dict[str, Any] | None = None
+    for attempt in range(MICROSTRUCTURE_MONITOR_READ_ATTEMPTS):
+        if v3r1_active:
+            summary = reader(store.root, binding_path=binding_path, now=now)
+        else:
+            summary = reader(store.root, now=now)
+        artifactless_recovery = (
+            summary.get("status") == "RECOVERY_BLOCKED"
+            and (
+                not isinstance(summary.get("artifact_path"), str)
+                or not isinstance(summary.get("sha256"), str)
+            )
+        )
+        if not artifactless_recovery:
+            return summary
+        if attempt + 1 < MICROSTRUCTURE_MONITOR_READ_ATTEMPTS:
+            time_module.sleep(MICROSTRUCTURE_MONITOR_RETRY_SECONDS)
+    if summary is None:  # pragma: no cover - the bounded loop always executes
+        raise RuntimeError("microstructure monitor retry budget is invalid")
+    return summary
 
 
 def load_heartbeat_request_payload(path: Path | None) -> list[dict[str, Any]]:
@@ -99,17 +139,11 @@ def run_heartbeat_cycle(
         if microstructure_binding_path is None
         else Path(microstructure_binding_path)
     )
-    if os.path.lexists(store.root / "microstructure-v3r1"):
-        microstructure_diagnostic = microstructure_discovery_recovery_status(
-            store.root,
-            binding_path=binding_path,
-            now=now,
-        )
-    else:
-        microstructure_diagnostic = microstructure_diagnostic_status(
-            store.root,
-            now=now,
-        )
+    microstructure_diagnostic = _read_microstructure_diagnostic(
+        store,
+        binding_path=binding_path,
+        now=now,
+    )
     previous_research_fingerprint = state.get("last_research_fingerprint")
     research_fingerprint = _research_fingerprint(tick_result)
     research_changed = research_fingerprint != previous_research_fingerprint

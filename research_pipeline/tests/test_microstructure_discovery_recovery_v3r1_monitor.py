@@ -5,6 +5,7 @@ import hashlib
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from research_pipeline.microstructure_discovery_recovery_v3r1 import (
     advance_complete_day,
@@ -171,6 +172,82 @@ class MicrostructureDiscoveryRecoveryV3R1MonitorTest(unittest.TestCase):
             self.assertEqual("PRE_START", diagnostic["lag_classification"])
             self.assertEqual(self.binding["generation_id"], diagnostic["generation_id"])
             self.assertEqual(self.binding["diagnostic_id"], diagnostic["diagnostic_id"])
+
+    def test_heartbeat_recovers_one_artifactless_transient_read(self) -> None:
+        initial = initial_intake_state(self.binding)
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = ResearchStore(root, lock_stale_seconds=60)
+            store.bootstrap()
+            binding_path = self._write(root, initial)
+            valid = self._status(
+                root,
+                binding_path,
+                datetime(2026, 8, 31, tzinfo=timezone.utc),
+            )
+            artifactless = {
+                key: None for key in valid
+            }
+            artifactless.update(
+                {"status": "RECOVERY_BLOCKED", "lag_classification": "RECOVERY_BLOCKED"}
+            )
+            tick = {"status": "IDLE_NO_ACTIONABLE_EXPERIMENT"}
+
+            with (
+                patch(
+                    "research_pipeline.heartbeat.microstructure_discovery_recovery_status",
+                    side_effect=[artifactless, valid],
+                ) as monitor,
+                patch("research_pipeline.heartbeat.time_module.sleep") as sleep,
+            ):
+                heartbeat = run_heartbeat_cycle(
+                    store,
+                    {"policy_id": "TEST_RESEARCH_ONLY"},
+                    now=datetime(2026, 8, 31, tzinfo=timezone.utc),
+                    tick_preview=tick,
+                    tick_result=tick,
+                    microstructure_binding_path=binding_path,
+                )
+
+            self.assertEqual("HEARTBEAT_OK", heartbeat["status"])
+            self.assertEqual("WAITING_FOR_DAY", heartbeat["microstructure_diagnostic"]["status"])
+            self.assertEqual(2, monitor.call_count)
+            sleep.assert_called_once_with(0.25)
+
+    def test_heartbeat_persistent_artifactless_recovery_still_fails_closed(self) -> None:
+        initial = initial_intake_state(self.binding)
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = ResearchStore(root, lock_stale_seconds=60)
+            store.bootstrap()
+            binding_path = self._write(root, initial)
+            artifactless = {
+                "status": "RECOVERY_BLOCKED",
+                "artifact_path": None,
+                "sha256": None,
+                "lag_classification": "RECOVERY_BLOCKED",
+            }
+            tick = {"status": "IDLE_NO_ACTIONABLE_EXPERIMENT"}
+
+            with (
+                patch(
+                    "research_pipeline.heartbeat.microstructure_discovery_recovery_status",
+                    return_value=artifactless,
+                ) as monitor,
+                patch("research_pipeline.heartbeat.time_module.sleep") as sleep,
+            ):
+                with self.assertRaisesRegex(ValueError, "safely hashable"):
+                    run_heartbeat_cycle(
+                        store,
+                        {"policy_id": "TEST_RESEARCH_ONLY"},
+                        now=datetime(2026, 8, 31, tzinfo=timezone.utc),
+                        tick_preview=tick,
+                        tick_result=tick,
+                        microstructure_binding_path=binding_path,
+                    )
+
+            self.assertEqual(3, monitor.call_count)
+            self.assertEqual(2, sleep.call_count)
 
     def test_overdue_blocked_and_ambiguous_state_fail_closed(self) -> None:
         initial = initial_intake_state(self.binding)

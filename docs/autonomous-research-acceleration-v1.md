@@ -306,20 +306,22 @@ database query, or backfill.
 
 ## Active cross-task delivery contract
 
-Fresh server-canonical status at `2026-08-10T04:36:55Z` reports deployed
-Worker release `20260810T042111Z` and `CLOUD_OPS_SCHEDULE_V9` `READY`.
-Platform cutover readback proved zero active recurrences while the existing
-ChatGPT Work task `6a71a1ed2f608191b0621c52bed3fd81` was paused, then exactly one active
-recurrence after its in-place update; the desktop automation remains paused.
+Fresh server-canonical status at `2026-08-14T11:35:33Z` reports deployed
+Worker release `20260814T112229Z`, source commit
+`ab2528c35e337fbfa47e528ff83d9b829d4806de`, and
+`CLOUD_OPS_SCHEDULE_V10` `READY` with one daily recurrence. The existing
+ChatGPT Work task remains the sole cloud clock; the desktop automation remains
+paused.
 
-The active lifecycle-neutral contract is `CLOUD_OPS_SCHEDULE_V9`, frozen at exact
+The active lifecycle-neutral contract is `CLOUD_OPS_SCHEDULE_V10`, frozen at exact
 SHA-256
-`04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`.
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
 It keeps the scientific gates, one 09:05 cloud clock, 09:00 canonical due
 boundary, 300-second margin, Server Canonical single writer, durable outbox,
 five-field receipts, and the 10,800-second delivery SLA.
 
-V9 corrects the V8 receipt-ordering defect before the first normal V8 run.
+V10 preserves V9's receipt ordering while decoupling heartbeat liveness from
+cross-task delivery capability.
 After proving the heartbeat is due, the cycle delivers and readback-verifies
 the initial pending snapshot before the heartbeat, so those receipts can be
 accepted in that same due cycle. Events newly created by the heartbeat are
@@ -329,9 +331,9 @@ Tool or host unavailability remains a hash-identified
 user step, paid API, or inferred ACK.
 
 Cutover reused the exact existing ChatGPT Work task and created no second
-schedule. Repository V9 implementation, focused tests, Worker deployment,
-in-place task update, and zero-active/exactly-one-active readbacks are proven.
-The first normally due V9 task execution, live delivery/readback, receipt
-acceptance, SLA result, and any quantified learning-latency or economic benefit
-remain separate `MISSING_PROOF` gates. Immediate PnL and drawdown effect are
+schedule. V10 implementation, focused tests, Worker deployment and canonical
+attestation are proven. The first normal post-release heartbeat, live
+delivery/readback, receipt acceptance, SLA result, and any quantified
+learning-latency or economic benefit remain separate `MISSING_PROOF` gates.
+Immediate PnL and drawdown effect are
 zero.

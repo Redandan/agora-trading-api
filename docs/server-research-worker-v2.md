@@ -42,11 +42,11 @@ both server write operations return
 a new MCP operation or exposes a server filesystem path.
 
 The same status exposes the installed server-canonical frozen
-`CLOUD_OPS_SCHEDULE_V9` contract, its unchanged `09:00 Asia/Taipei` canonical
+`CLOUD_OPS_SCHEDULE_V10` contract, its unchanged `09:00 Asia/Taipei` canonical
 heartbeat due boundary, the intended sole `09:05 Asia/Taipei` cloud recurrence,
 the 300-second nominal dispatch margin, and its byte-level SHA-256. V1 through
-V8 remain immutable predecessor evidence. The two write operations require the
-V9 hash in the `ops_schedule_contract_sha256` argument. A missing or
+V9 remain immutable predecessor evidence. The two write operations require the
+V10 hash in the `ops_schedule_contract_sha256` argument. A missing or
 changed contract returns
 `OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED`; a missing or mismatched caller
 attestation returns `OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED`. Both outcomes
@@ -610,7 +610,7 @@ The systemd path unit is an event consumer, not an additional schedule.
 - no source timer exists; source and intake are event-driven path units;
 - the single web Ops schedule runs with the local computer off.
 
-## Active cross-task Coach delivery V9
+## Historical cross-task Coach delivery V9
 
 Fresh server-canonical status at `2026-08-10T04:36:55Z` reports Worker release
 `20260810T042111Z`, source commit
@@ -654,16 +654,18 @@ terminal SLA outcome remain separate `MISSING_PROOF` gates.
 Existing pending events keep their original timestamps and may honestly remain
 `BREACH`.
 
-## Repository-prepared heartbeat liveness decoupling V10
+## Active heartbeat liveness decoupling V10
 
-The repository contains frozen successor `CLOUD_OPS_SCHEDULE_V10`, SHA-256
+The active repository contract is `CLOUD_OPS_SCHEDULE_V10`, SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`,
-but V9 remains deployed and active until a separately bounded cutover. V10
-preserves the exact existing schedule id, one `09:05 Asia/Taipei` recurrence,
+and V9 remains immutable deployed-history evidence. V10 preserves the exact
+existing schedule id, one `09:05 Asia/Taipei` recurrence,
 the `09:00` canonical due boundary, 300-second margin, five Research MCP
 operations, Server Canonical sole writer, and every receipt and scientific
-gate. The server attestation must move to V10 before the platform prompt may
-attest or activate it.
+gate. Fresh canonical status at `2026-08-14T11:35:33Z` proves Worker release
+`20260814T112229Z`, source commit
+`ab2528c35e337fbfa47e528ff83d9b829d4806de`, exact V10 attestation, and one
+daily recurrence.
 
 The existing request and Worker path already accepts a heartbeat payload with
 an empty `coach_delivery_receipts` array. V10 makes that existing behavior an
@@ -684,7 +686,7 @@ evidence, candidate, OOS, deduplication, or scientific failures remain blocking.
 No new ACK operation, timer, schedule, writer, messenger, paid API, user step,
 or heartbeat/server semantic surface is added.
 
-V10 Worker deployment, exact in-place schedule cutover, zero-active and
-exactly-one-active readback, live empty-receipt acceptance, live pending-event
-preservation, lawful R1/R2 advancement, future task-tool availability, Coach
-delivery proof, and economic value remain `MISSING_PROOF`.
+V10 Worker deployment and canonical attestation are proven. The first normal
+post-release heartbeat, live empty-receipt acceptance, live pending-event
+preservation, lawful rollover/microstructure advancement, future task-tool
+availability, Coach delivery proof, and economic value remain `MISSING_PROOF`.

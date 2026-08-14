@@ -309,7 +309,26 @@ A successful verification establishes the requested release identities and
 source-state contract at that instant. It does not prove uninterrupted day completion,
 predictive value, PnL, or drawdown.
 
-### Active Cloud Ops V9 receipt-SLA contract
+### Active Cloud Ops V10 liveness-decoupled contract
+
+Fresh canonical status at `2026-08-14T11:35:33Z` proves Worker release
+`20260814T112229Z`, source commit
+`ab2528c35e337fbfa47e528ff83d9b829d4806de`, and active
+`CLOUD_OPS_SCHEDULE_V10` at exact SHA-256
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
+The exact existing ChatGPT Work task remains the sole daily `09:05
+Asia/Taipei` recurrence; Server Canonical remains the sole writer and the
+desktop automation remains paused. V10 keeps every V9 receipt and scientific
+gate but permits the one normally due heartbeat to proceed with zero verified
+Coach receipts when cross-task delivery is unavailable. Do not create a second
+schedule, run an early or catch-up heartbeat, or attest V9 against the active
+Worker.
+
+The first normal post-release heartbeat, empty-receipt acceptance, preserved
+pending-event identities, lawful rollover/microstructure advancement and live
+Coach delivery remain `MISSING_PROOF` until observed.
+
+### Historical Cloud Ops V9 receipt-SLA contract
 
 Repository preparation alone did not activate `CLOUD_OPS_SCHEDULE_V9`.
 The frozen V9 bytes have exact SHA-256

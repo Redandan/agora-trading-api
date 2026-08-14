@@ -127,9 +127,11 @@ returns a task-hash-bound result to the Manager/Coach. It has no routine wake-up
 cannot become a second writer, and cannot call Research MCP writes or mutate
 canonical server state. The V1 node is manually message-dispatched and leaves
 the sole cloud clock and its server-canonical contract unchanged. Post-cutover
-readback on 2026-08-10 proved the active canonical contract is V9 and the exact
-existing ChatGPT Work task is the sole active recurrence; Local work cannot
-activate, replace, pause, or acknowledge that schedule contract.
+readback originally proved V9 on 2026-08-10. Fresh canonical status on
+2026-08-14 proves the active contract is now V10, with exactly one daily
+`09:05 Asia/Taipei` recurrence and the same Server Canonical sole-writer
+boundary; Local work cannot activate, replace, pause, or acknowledge that
+schedule contract.
 
 The generic Spring strategy runtime must not depend on `research_pipeline`.
 
@@ -149,10 +151,10 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The active `CLOUD_OPS_SCHEDULE_V9` cloud Ops semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v9.json`, exact SHA-256
-`04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c`;
-V1 through V8 remain immutable historical contract evidence. V9 keeps the
+The active `CLOUD_OPS_SCHEDULE_V10` cloud Ops semantics are frozen in
+`research_pipeline/cloud-ops-schedule-contract.v10.json`, exact SHA-256
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`;
+V1 through V9 remain immutable historical contract evidence. V10 keeps the
 canonical heartbeat due boundary at `09:00 Asia/Taipei` but declares the sole
 cloud recurrence at
 `09:05 Asia/Taipei`. The frozen 300-second nominal delay tolerates small
@@ -389,7 +391,7 @@ experiment passes its preregistered Design and Validation gates to
 `CANDIDATE_FROZEN`, while sealed OOS remains unopened, and only when the overlay
 exercises material lot-management semantics absent from Phase B.
 
-## Active cross-task Coach delivery V9
+## Historical cross-task Coach delivery V9
 
 Fresh OAuth Research MCP status at `2026-08-10T04:36:55Z` reports deployed
 Worker release `20260810T042111Z`, source commit
@@ -428,14 +430,16 @@ delivery, and economic value remain `MISSING_PROOF` until observed. Retained
 pending events keep their original timestamps. Rollback must first pause V9 and
 prove zero active schedules; two clocks may never overlap.
 
-## Repository-prepared heartbeat liveness decoupling V10
+## Active heartbeat liveness decoupling V10
 
-The repository-prepared `CLOUD_OPS_SCHEDULE_V10` contract is frozen at
+The active `CLOUD_OPS_SCHEDULE_V10` contract is frozen at
 SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
-V9 remains the active contract until a separately authorized Worker deployment
-and exact in-place schedule cutover prove V10 canonical attestation and exactly
-one active recurrence. Repository preparation is not deployment or activation.
+Fresh canonical status at `2026-08-14T11:35:33Z` proves Worker release
+`20260814T112229Z`, source commit
+`ab2528c35e337fbfa47e528ff83d9b829d4806de`, exact V10 attestation, and one
+daily `09:05 Asia/Taipei` schedule. V9 remains immutable predecessor evidence
+and cannot attest an active write.
 
 V10 changes only caller liveness coupling. After fresh canonical status proves
 the heartbeat is normally due, the sole cloud cycle attempts exact Coach task
@@ -456,7 +460,7 @@ There is no early or catch-up heartbeat, second schedule, timer, messenger,
 user relay, false acknowledgement, deadline reset, canonical fallback, or
 additional writer. V9 bytes remain immutable.
 
-Server V10 deployment, platform in-place update, zero-active/exactly-one-active
-cutover readback, live empty-receipt acceptance, pending-event preservation,
-R1/R2 advancement, future cross-task capability, Coach receipt, and economic
-value remain `MISSING_PROOF`.
+V10 deployment and canonical attestation are proven. The first normal
+post-release heartbeat, live empty-receipt acceptance, preserved pending-event
+identities, lawful rollover/microstructure advancement, Coach receipt, and
+economic value remain `MISSING_PROOF` until observed.

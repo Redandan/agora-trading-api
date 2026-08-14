@@ -236,6 +236,31 @@ class OkxMicrostructureDiscoveryRecoverySourceCliTest {
         assertTrue(producer.accepting());
     }
 
+    @Test
+    void activeDisconnectKeepsRejectionTimeMonotonicAfterCheckpoint() throws Exception {
+        MutableClock clock = new MutableClock(Instant.parse("2026-08-31T23:50:00Z"));
+        InMemoryCheckpoint checkpoint = new InMemoryCheckpoint();
+        RecordingSink sink = new RecordingSink();
+        var producer = producer(clock, checkpoint, sink);
+        producer.initialize();
+        producer.onRaw(acknowledgement("trades"));
+        producer.onRaw(acknowledgement("books5"));
+        clock.set(Instant.parse("2026-09-01T00:00:01Z"));
+        producer.onRaw(bookMessage(START, 0, 1));
+        Instant disconnectAt = Instant.parse("2026-09-01T00:10:00Z");
+        Instant checkpointAt = disconnectAt.plusNanos(1);
+        clock.set(checkpointAt);
+
+        producer.onDisconnect(disconnectAt);
+
+        Map<String, Object> envelope = mapper.readValue(
+                sink.documents.getFirst().envelopeBytes(), new TypeReference<>() { });
+        assertEquals(checkpointAt.toString(), envelope.get("rejected_at"));
+        assertEquals("TRANSPORT_DISCONNECT_UNPROVED_GAP", envelope.get("reason"));
+        assertEquals(START, producer.checkpoint().lastDispositionDay());
+        assertTrue(producer.accepting());
+    }
+
     private OkxMicrostructureDiscoveryRecoverySourceCli.Producer producer(
             MutableClock clock,
             InMemoryCheckpoint checkpoint,

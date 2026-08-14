@@ -586,12 +586,15 @@ public final class OkxMicrostructureDiscoveryRecoverySourceCli {
                 disconnectedAt = at;
                 if (state == ProducerState.ACTIVE_DAY) {
                     checkpointActive(true);
+                    Instant rejectionAt = at.isBefore(checkpoint.updatedAt())
+                            ? checkpoint.updatedAt() : at;
                     var previous = checkpoint;
                     checkpoint = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1
                             .pendingRejection(
-                            checkpoint, "TRANSPORT_DISCONNECT_UNPROVED_GAP", null, at);
+                            checkpoint, "TRANSPORT_DISCONNECT_UNPROVED_GAP", null,
+                            rejectionAt);
                     checkpointStore.save(previous, checkpoint);
-                    publishPendingRejection(at);
+                    publishPendingRejection(rejectionAt);
                 }
                 acknowledgements.clear();
                 readySince = null;

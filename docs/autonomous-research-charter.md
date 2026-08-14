@@ -351,10 +351,10 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
 
-The V9 Ops contract and `SEALED_COACH_CROSS_TASK_DELIVERY_V5` bind that basis,
+The active V10 Ops contract and `SEALED_COACH_CROSS_TASK_DELIVERY_V6` bind that basis,
 10,800-second completion window, pending/breach labels, terminal labels, and
 legacy missing-proof labels into the same caller attestation required by both
-write operations. V3 through V8 remain sealed history and cannot attest the
+write operations. V1 through V9 remain sealed history and cannot attest the
 active schedule.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by

@@ -77,6 +77,48 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             text(WORKER / "agora-research-mcp.service"),
         )
 
+    def test_dispatch_and_heartbeat_are_exactly_confined_binding_readers(self) -> None:
+        for name in (
+            "agora-research-dispatch.service",
+            "agora-research-heartbeat.service",
+        ):
+            with self.subTest(unit=name):
+                value = text(WORKER / name)
+                self.assertIn("User=agora-research", value)
+                self.assertIn("Group=agora-research", value)
+                self.assertIn("SupplementaryGroups=agora-evidence", value)
+                self.assertIn("IPAddressDeny=any", value)
+                self.assertIn("RestrictAddressFamilies=AF_UNIX", value)
+                read_only = {
+                    line.removeprefix("ReadOnlyPaths=")
+                    for line in value.splitlines()
+                    if line.startswith("ReadOnlyPaths=")
+                }
+                self.assertEqual(
+                    read_only,
+                    {
+                        "/etc/agora-research/"
+                        "okx-microstructure-continuous-source-v3r1.json"
+                    },
+                )
+                inaccessible = {
+                    item
+                    for line in value.splitlines()
+                    if line.startswith("InaccessiblePaths=")
+                    for item in line.removeprefix("InaccessiblePaths=").split()
+                }
+                self.assertEqual(
+                    inaccessible,
+                    {
+                        "-/etc/agora-research/"
+                        "okx-microstructure-continuous-source-v1.json",
+                        "-/etc/agora-research/"
+                        "okx-microstructure-continuous-source-v3.json",
+                        "-/var/lib/agora-evidence-source",
+                        "-/home/ubuntu/.env.trading.secrets",
+                    },
+                )
+
     def test_exporter_is_fixed_control_lane_and_exactly_confined(self) -> None:
         value = text(WORKER / EXPORT_UNIT)
         self.assertIn("Type=oneshot", value)

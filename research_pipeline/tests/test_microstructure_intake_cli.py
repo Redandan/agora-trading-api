@@ -485,35 +485,43 @@ class MicrostructureIntakeCliTest(unittest.TestCase):
         for unit_name in (
             "agora-research-mcp.service",
             "agora-research-evidence-ingest.service",
+            "agora-research-dispatch.service",
             "agora-research-heartbeat.service",
         ):
             unit = (repository / "scripts/research-worker" / unit_name).read_text(
                 encoding="utf-8"
             )
             self.assertIn("SupplementaryGroups=agora-evidence", unit)
-        heartbeat = (
-            repository
-            / "scripts/research-worker/agora-research-heartbeat.service"
-        ).read_text(encoding="utf-8")
-        self.assertIn(
-            "ReadOnlyPaths=/etc/agora-research/"
-            "okx-microstructure-continuous-source-v3r1.json",
-            heartbeat,
-        )
-        self.assertIn(
-            "InaccessiblePaths=-/var/lib/agora-evidence-source "
-            "-/home/ubuntu/.env.trading.secrets",
-            heartbeat,
-        )
+        for unit_name in (
+            "agora-research-dispatch.service",
+            "agora-research-heartbeat.service",
+        ):
+            unit = (repository / "scripts/research-worker" / unit_name).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(
+                "ReadOnlyPaths=/etc/agora-research/"
+                "okx-microstructure-continuous-source-v3r1.json",
+                unit,
+            )
+            self.assertIn(
+                "InaccessiblePaths=-/etc/agora-research/"
+                "okx-microstructure-continuous-source-v1.json "
+                "-/etc/agora-research/"
+                "okx-microstructure-continuous-source-v3.json "
+                "-/var/lib/agora-evidence-source "
+                "-/home/ubuntu/.env.trading.secrets",
+                unit,
+            )
         verifier = (
             repository / "scripts/research-worker/verify-worker.sh"
         ).read_text(encoding="utf-8")
         self.assertIn(
-            'heartbeat binding-reader supplementary group is not exact',
+            'binding-reader supplementary group is not exact',
             verifier,
         )
         self.assertIn(
-            'heartbeat inaccessible paths are not exact',
+            'inaccessible paths are not exact',
             verifier,
         )
 

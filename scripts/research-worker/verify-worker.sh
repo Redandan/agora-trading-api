@@ -14,6 +14,7 @@ EXPECT_CARRY_SOURCE="${EXPECT_CARRY_SOURCE:-auto}"
 MICROSTRUCTURE_INTAKE_PREFLIGHT="${MICROSTRUCTURE_INTAKE_PREFLIGHT:-0}"
 EXPECTED_CONTROL_RELEASE_ID="${EXPECTED_CONTROL_RELEASE_ID:?EXPECTED_CONTROL_RELEASE_ID is required}"
 EXPECTED_DATA_RELEASE_ID="${EXPECTED_DATA_RELEASE_ID:?EXPECTED_DATA_RELEASE_ID is required}"
+DISPATCH_UNIT=agora-research-dispatch.service
 HEARTBEAT_UNIT=agora-research-heartbeat.service
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
@@ -999,29 +1000,33 @@ for data_unit in "${data_units[@]}"; do
 done
 ok "control and data-plane systemd release lanes are byte-separated"
 
-[ "$(systemctl show "$HEARTBEAT_UNIT" --property=User --value)" = "$WORKER_USER" ] \
-  || fail "heartbeat identity is incorrect"
-[ "$(systemctl show "$HEARTBEAT_UNIT" --property=Group --value)" = "$WORKER_USER" ] \
-  || fail "heartbeat primary group is incorrect"
-[ "$(systemctl show "$HEARTBEAT_UNIT" --property=SupplementaryGroups --value)" = "$EVIDENCE_GROUP" ] \
-  || fail "heartbeat binding-reader supplementary group is not exact"
-case "$(systemctl show "$HEARTBEAT_UNIT" --property=IPAddressDeny --value)" in
-  any|'::/0 0.0.0.0/0'|'0.0.0.0/0 ::/0') ;;
-  *) fail "heartbeat is not network denied" ;;
-esac
-heartbeat_read_only="$(systemctl show "$HEARTBEAT_UNIT" --property=ReadOnlyPaths --value)"
-[ "$heartbeat_read_only" = "$MICROSTRUCTURE_BINDING" ] \
-  || fail "heartbeat read-only binding path is not exact"
-heartbeat_inaccessible="$(systemctl show "$HEARTBEAT_UNIT" --property=InaccessiblePaths --value)"
-python3 - "$heartbeat_inaccessible" \
-  -/var/lib/agora-evidence-source \
-  -/home/ubuntu/.env.trading.secrets <<'PY'
+for binding_reader_unit in "$DISPATCH_UNIT" "$HEARTBEAT_UNIT"; do
+  [ "$(systemctl show "$binding_reader_unit" --property=User --value)" = "$WORKER_USER" ] \
+    || fail "$binding_reader_unit identity is incorrect"
+  [ "$(systemctl show "$binding_reader_unit" --property=Group --value)" = "$WORKER_USER" ] \
+    || fail "$binding_reader_unit primary group is incorrect"
+  [ "$(systemctl show "$binding_reader_unit" --property=SupplementaryGroups --value)" = "$EVIDENCE_GROUP" ] \
+    || fail "$binding_reader_unit binding-reader supplementary group is not exact"
+  case "$(systemctl show "$binding_reader_unit" --property=IPAddressDeny --value)" in
+    any|'::/0 0.0.0.0/0'|'0.0.0.0/0 ::/0') ;;
+    *) fail "$binding_reader_unit is not network denied" ;;
+  esac
+  binding_reader_read_only="$(systemctl show "$binding_reader_unit" --property=ReadOnlyPaths --value)"
+  [ "$binding_reader_read_only" = "$MICROSTRUCTURE_BINDING" ] \
+    || fail "$binding_reader_unit read-only binding path is not exact"
+  binding_reader_inaccessible="$(systemctl show "$binding_reader_unit" --property=InaccessiblePaths --value)"
+  python3 - "$binding_reader_unit" "$binding_reader_inaccessible" \
+    "-$LEGACY_MICROSTRUCTURE_BINDING" \
+    "-$R2_MICROSTRUCTURE_BINDING" \
+    -/var/lib/agora-evidence-source \
+    -/home/ubuntu/.env.trading.secrets <<'PY'
 import sys
 
-if set(sys.argv[1].split()) != set(sys.argv[2:]):
-    raise SystemExit("heartbeat inaccessible paths are not exact")
+if set(sys.argv[2].split()) != set(sys.argv[3:]):
+    raise SystemExit(f"{sys.argv[1]} inaccessible paths are not exact")
 PY
-ok "heartbeat can read only the V3R1 binding through its evidence group"
+done
+ok "durable dispatch and heartbeat can read only the V3R1 binding through their evidence group"
 
 systemd-analyze verify \
   /etc/systemd/system/agora-research-heartbeat.service \

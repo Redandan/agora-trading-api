@@ -1,0 +1,171 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-joint-reversal-elevated-volatility-risk-v1",
+  "issued_at": "2026-08-15T02:02:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Test one frozen pre-2025 joint BTC risk mechanism on the exact sealed 2019-2024 H1 corpus: after a complete UTC day with an absolute close-to-close return of at least 3 percent, does the already retained 24-hour shock-signed reversal prior remain negative specifically among episodes whose next-day realized variance exceeds the fixed trailing 20-complete-day pre-shock baseline? Evaluate fixed Design 2019-2022 and Validation 2023-2024 windows, both shock directions, annual and calendar breadth, sign support and concentration. Retain or close only the joint historical reversal-under-elevated-volatility risk prior. This is a contemporaneous outcome audit, not an actionable factor: do not select a side, entry, exit, size, strategy, hypothesis, candidate, OOS path or Trading action, and do not access post-2024 or forward evidence.",
+  "canonical_research_status": "2026-08-15T01:57Z_SERVER_CANONICAL_V10_ONE_ACTIVE_V3R1_WAITING_0_OF_2_DISCOVERY_CAPTURE_DUE_LAG_1_IDLE_NO_CANDIDATE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "dd85b335a06b42976f4c60d2c32e20fb3cd19310434b45fb6f6350f2735f37f7"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "5c6df04ab8aad34815660c21b8dce2c4aa13223ce8ea3f07c5e84976d96033f1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-historical-reversal-terminal-prior-audit.v1.json",
+      "sha256": "0878a7abc60ba8336a561a187ae8209108e612a43a0f62602e06c58a651e447b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-volatility-persistence.v1.json",
+      "sha256": "573b5aecd3403b6e9b83b44033297a6dae378926e02c85d5390a3a81bedc0d57"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Manager read canonical OAuth Research MCP status at 2026-08-15T01:57:00Z: timer CODEX_CLOUD_OPS_ONLY; state SERVER_CANONICAL; policy READY V3; Worker READY release 20260815T015255Z at clean source commit 6b50e4edfd4dd06195a2c5f856cb4ec6aca4ce09; exact V10 contract READY with one daily 09:05 Asia/Taipei schedule; all queues IDLE; microstructure V3R1 WAITING_FOR_DAY with 0/2 complete; active discovery trigger CAPTURE_DUE at 0/90 lag 1; no experiment or candidate. This Local task authorizes no server or canonical refresh or write.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Freeze the event and windows before joint-outcome access. Shock day D qualifies only when abs(close[D,23:00] / close[D-1,23:00] - 1) is at least Decimal 0.0300. Design is [2019-01-01T00:00:00Z, 2023-01-01T00:00:00Z); Validation is [2023-01-01T00:00:00Z, 2025-01-01T00:00:00Z). The 20 baseline days, D and D+1 must all be complete and wholly inside the same window. Validation is historical validation, never clean OOS.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Freeze the joint formulas before outcome access. Shock sign is +1 for UP and -1 for DOWN. SignedResponseH24(D) equals shock sign times (close[D+1,23:00] / close[D,23:00] - 1). Hourly simple return includes each UTC day's first hour against the preceding day's 23:00 close. RV24(day) is the Decimal sum of the 24 squared hourly simple returns. BaselineRV20(D) is the ordinary median of RV24 for exactly D-20 through D-1. OutcomeRatio(D) equals RV24(D+1) / BaselineRV20(D). An elevated-volatility episode has OutcomeRatio strictly greater than 1. Use Decimal precision at least 50 and no alternate return, variance, horizon, lookback or threshold.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Frozen positive rule: retain only when the elevated-volatility subset has at least 100 Design and 40 Validation episodes, with at least 40 UP and 40 DOWN in Design and 15 UP and 15 DOWN in Validation; at least 36 Design and 18 Validation target UTC months; maximum single-month share at most 0.10 and maximum single absolute SignedResponseH24 contribution share at most 0.50 in each window; overall, UP-conditioned and DOWN-conditioned median SignedResponseH24 all strictly below zero in both windows; reversal share strictly above 0.50 overall and for UP and DOWN in both windows; and annual overall median SignedResponseH24 below zero in at least three of four Design years and both Validation years. Any valid gate failure closes the joint prior; no neighboring or rescue variant is allowed.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "OutcomeRatio and SignedResponseH24 both use D+1 information and are unavailable at D+1 00:00. Therefore a retained result is only a historical joint risk prior and cannot be treated as a tradable condition or predictor. It may constrain later sizing and path-risk design only after the separately frozen directional and volatility forward diagnostics both terminate positively and one later equal-capital strategy specification is authorized.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "READ_EXACT_SEALED_PRE2025_H1_CORPUS",
+    "VALIDATE_H1_ROW_AND_CLOCK_INTEGRITY",
+    "AGGREGATE_COMPLETE_UTC_DAYS_IN_MEMORY",
+    "COMPUTE_FIXED_3PCT_SHOCK_EVENTS",
+    "COMPUTE_FIXED_SIGNED_H24_AND_OUTCOME_RATIO",
+    "FILTER_STRICTLY_ELEVATED_VOLATILITY_EPISODES",
+    "EVALUATE_FIXED_DESIGN_AND_VALIDATION_WINDOWS",
+    "COMPUTE_DIRECTION_ANNUAL_MONTHLY_BREADTH",
+    "COMPUTE_SIGN_SUPPORT_AND_CONCENTRATION",
+    "CLASSIFY_JOINT_HISTORICAL_RISK_PRIOR",
+    "ASSESS_PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+    "VALIDATE_LOCAL_TASK",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "UNLISTED_ARTIFACT_OR_DATA_ACCESS",
+    "POST2024_OR_FORWARD_EVIDENCE_ACCESS",
+    "CURRENT_SERVER_STATUS_REFRESH_OR_NETWORK_ACCESS",
+    "HYPOTHESIS_MANIFEST_CANDIDATE_OR_ADAPTER_REGISTRATION",
+    "RISK_BUDGET_POSITION_SIZE_ENTRY_EXIT_OR_STRATEGY_AUTHORING",
+    "STRATEGY_EQUITY_CURVE_PNL_OR_DRAWDOWN_COMPUTATION",
+    "THRESHOLD_LOOKBACK_FORMULA_WINDOW_OR_GATE_TUNING",
+    "NEIGHBORING_PARAMETER_DIRECTION_EVENT_OR_VOLATILITY_ESTIMATOR_SEARCH",
+    "OUTCOMERATIO_AS_ACTIONABLE_FACTOR_OR_DECISION_INPUT",
+    "EXISTING_FORWARD_CONTRACT_EVALUATOR_SOURCE_OR_ACTIVATION_CHANGE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "JAVA_MAVEN_SPRING_OR_TRADING_RUNNER_EXECUTION",
+    "SECOND_LOCAL_TIMER"
+  ],
+  "expected_outputs": [
+    "EXACT_TASK_DISPATCH_AND_INPUT_VALIDATION",
+    "H1_CORPUS_INTEGRITY",
+    "FIXED_EVENT_WINDOW_AND_JOINT_FORMULA_CONFIRMATION",
+    "DESIGN_AND_VALIDATION_ELEVATED_VOLATILITY_EPISODE_INVENTORY",
+    "SIGNED_H24_MEDIANS_OVERALL_AND_BY_DIRECTION",
+    "REVERSAL_COUNTS_AND_SHARES_OVERALL_AND_BY_DIRECTION",
+    "ANNUAL_SIGNED_H24_MEDIAN_BREADTH_2019_2024",
+    "UTC_MONTH_BREADTH_AND_MAX_MONTH_SHARE",
+    "MAXIMUM_SINGLE_ABSOLUTE_RESPONSE_CONTRIBUTION_SHARE",
+    "JOINT_HISTORICAL_RISK_PRIOR_DISPOSITION",
+    "PERFORMANCE_DRAWDOWN_AND_FORWARD_CLAIM_BOUNDARY",
+    "MISSING_PROOF_REGISTER",
+    "OPPORTUNITY_COST",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and its Manager performance dispatch before analysis. Re-hash every non-null input, require the Manager-provided branch and clean HEAD to equal local origin, and require every path to be contained, regular, non-link and non-reparse. Any mismatch is HISTORICAL_JOINT_SAMPLE_OR_INTEGRITY_INSUFFICIENT with zero partial conclusion.",
+    "Read only the listed repository paths and the one exact sealed TSV. Do not inspect Local inbox or outbox history, adjacent .research-state files, canonical artifacts, current server state, network data, post-2024 bars, forward outcomes or OOS.",
+    "Require the sealed corpus SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd, exactly 52,608 headerless seven-field rows, finite positive OHLC, finite nonnegative volume, exact one-hour bars and complete continuity from 2019-01-01T00:00:00Z through 2025-01-01T00:00:00Z. Any failure is insufficient evidence.",
+    "Aggregate only complete groups of 24 contiguous hourly bars aligned to UTC midnight. Require every day to have exactly 24 bars and preserve Decimal source values. Do not fill, interpolate, backfill, drop or repair a day.",
+    "Use only the frozen close-to-close shock formula and inclusive absolute threshold 0.0300. Do not inspect another threshold, intraday event, high-low event, open-close event, rolling window, normalization or news condition.",
+    "Use only the frozen SignedResponseH24, hourly simple-return RV24, trailing 20-day median baseline and next-day OutcomeRatio formulas. Do not inspect another horizon, lookback, estimator, transform, annualization, clipping, ranking or normalization.",
+    "Keep Design 2019-2022 and Validation 2023-2024 fixed. Require all 20 baseline days, D and D+1 wholly inside one window. Do not cross a boundary, pool windows for selection or call Validation clean OOS.",
+    "Create one in-memory episode per unique qualifying shock day. Consecutive shocks remain visible. Retain in the joint subset only episodes with OutcomeRatio strictly greater than one; do not change the cutoff after observing results.",
+    "Require every RV24 and baseline to be finite and strictly positive and every SignedResponseH24 and OutcomeRatio to be finite and reproducible. Any missing, zero-baseline, non-finite or contradictory value is integrity insufficiency; do not silently exclude it.",
+    "For Design and Validation separately report joint-subset event count, UP/DOWN counts, target-month count, maximum month share, SignedResponseH24 median overall/UP/DOWN, reversal/continuation/tie counts and shares overall/UP/DOWN, adjacent-target count and maximum single absolute response contribution share.",
+    "Report each target year 2019 through 2024 with joint-subset event count, UP/DOWN counts, median SignedResponseH24 and reversal/continuation/tie counts and shares. A missing or empty year is explicit and fails the annual breadth rule; do not pool or repair it.",
+    "Return HISTORICAL_JOINT_REVERSAL_ELEVATED_VOLATILITY_RISK_PRIOR_RETAIN only if every count, calendar, concentration, median, sign-share and annual gate in the frozen positive-rule task message passes exactly. Do not add significance, confidence, causal or economic criteria after observing results.",
+    "Return HISTORICAL_JOINT_REVERSAL_ELEVATED_VOLATILITY_RISK_PRIOR_CLOSE for any valid sample that fails one or more frozen positive gates. Do not tune, invert, split regimes, change a boundary, select one shock direction or create a rescue variant.",
+    "Return HISTORICAL_JOINT_SAMPLE_OR_INTEGRITY_INSUFFICIENT when any input, corpus, clock, arithmetic or exact-formula check is missing, invalid or contradictory. Do not partially classify one window, year or direction.",
+    "Return exactly one of HISTORICAL_JOINT_REVERSAL_ELEVATED_VOLATILITY_RISK_PRIOR_RETAIN, HISTORICAL_JOINT_REVERSAL_ELEVATED_VOLATILITY_RISK_PRIOR_CLOSE or HISTORICAL_JOINT_SAMPLE_OR_INTEGRITY_INSUFFICIENT. Do not invent another disposition.",
+    "A retained prior proves only that historical reversal and elevated next-day variance co-occurred with frozen breadth. Because both labels are known only after D+1 completes, it is not an actionable predictor and cannot authorize a side, entry, exit, size, strategy, factor, hypothesis, candidate, manifest, adapter, OOS, deployment or Trading.",
+    "Do not compute or infer fees, slippage, total/realized/unrealized PnL, drawdown, utilization, holdings, fills, turnover, capacity, Sharpe, Sortino, leverage, sizing, equity curves or matched-capital value. Immediate PnL and drawdown effect are zero; every economic claim remains MISSING_PROOF.",
+    "For a retained prior, recommend only continuing the two unchanged forward diagnostics and waiting for both independent terminal results before one separately frozen equal-capital strategy-specification task. For close, close the joint reversal-under-elevated-risk strategy idea while leaving the two marginal forward diagnostics unchanged. Do not implement either path here.",
+    "Return exactly one schema-valid local-research-result JSON bound to this task SHA-256, with empty artifacts and files_changed, source_git_dirty_before and after false, all safety assertions false, concrete PASS/FAIL/MISSING_PROOF checks, uncertainty, opportunity cost and one bounded next action.",
+    "Stop without requesting permission if any action would require an unlisted file, write, dependency installation, network, server call, post-2024 data, gate change, adjacent analysis, candidate action, OOS or Trading action. Preserve the exact missing proof instead."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

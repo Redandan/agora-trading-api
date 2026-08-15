@@ -1,0 +1,112 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-long-trend-entry-admission-v1",
+  "task_sha256": "89ea609bd6e146811b83c54ccb51b6472600d6f53e50c2f07be3dffb19bc0609",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-15T08:23:20Z",
+  "completed_at": "2026-08-15T08:24:00Z",
+  "source_git_commit": "9d843b732e3f60ace6b865a1d69b18fa5e3ed326",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_LONG_TREND_ENTRY_ADMISSION_BRANCH_CLOSE. The exact 52,608-row pre-2025 sealed corpus, frozen DRA V1 parent checkpoints, decision-time feature accounting and hard-inception rules passed. The prior-200-complete-day long-trend admission veto completely avoided 2022 losses, but this isolated benefit did not generalize: Design total PnL fell from 90.77797326 to 89.65425059 USDT, historical Validation total PnL fell from 86.20298186 to 80.57877745 USDT, Validation drawdown rose slightly from 7.121498% to 7.130542%, and completed holding distributions worsened in both windows. Annual total-PnL breadth was 1/5, realized-PnL breadth was 0/5, drawdown breadth was 3/5, and the only positive annual delta contributed 100% of positive uplift. This post-hoc long-trend admission family is closed with no neighboring trend horizon, rescue variant, alpha claim, strategy candidate or OOS access.",
+  "checks": [
+    {
+      "name": "FROZEN_CONTRACT_AND_STRATEGY_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Manager and strategy preflights were VALID at clean HEAD/origin 9d843b732e3f60ace6b865a1d69b18fa5e3ed326. Task 89ea609bd6e146811b83c54ccb51b6472600d6f53e50c2f07be3dffb19bc0609, dispatch 80e40d8d2863a3b36fac1c5897b2c8eaaf304702a6ebd9bf30f5a42a94a9e628, intent 13a6d7452e6638600b3eb817eb589dc294c857517cf92be232a96bb6ec0b8cf9 and strategy path ab21375251a5f6e6ab529b4177350b40de7010fcbdced00b94343ce384338cb2 were frozen before candidate access."
+    },
+    {
+      "name": "SEALED_DATA_INTEGRITY",
+      "status": "PASS",
+      "evidence": "The read-only input contained exactly 52,608 contiguous hourly rows and both file-byte and canonical-row SHA-256 were e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd. No post-2024 row or separate OOS artifact was opened."
+    },
+    {
+      "name": "FROZEN_PARENT_PARITY",
+      "status": "PASS",
+      "evidence": "Design reproduced realized 169.89846767, unrealized -79.12049441, total 90.77797326 USDT, 100 buys, 95 sells, five open lots, three blocked entries, median 126.0h and P90 1818.6h. Validation reproduced realized 89.41118307, unrealized -3.20820121, total 86.20298186 USDT, 51 buys, 50 sells, one open lot, zero blocked entries, median 182.5h and P90 1418.3h."
+    },
+    {
+      "name": "DECISION_TIME_FEATURE_ACCOUNTING",
+      "status": "PASS",
+      "evidence": "Design reconciled 162 parent signals into 78 admissions and 84 vetoes, including 19 explicitly counted hard-inception fallback admissions. Validation reconciled 69 parent signals into 48 admissions and 21 vetoes with zero fallback. Annual folds also reconciled and had zero fallback: 2020 54=28+26, 2021 35=24+11, 2022 48=0+48, 2023 37=23+14 and 2024 32=25+7."
+    },
+    {
+      "name": "DESIGN_ECONOMIC_AND_PATH_LEDGER",
+      "status": "FAIL",
+      "evidence": "Parent -> candidate: realized 169.89846767 -> 132.35372200; unrealized -79.12049441 -> -42.69947141; total 90.77797326 -> 89.65425059 USDT; drawdown 29.530448% -> 24.195037%; median/P90 hold 126.0/1818.6h -> 149.0/2250.6h; average/peak equity utilization 34.364819/96.000000% -> 27.870294/96.000000%; underwater hours/episodes/max duration 31221/233/9878h -> 31266/210/9878h; minimum equity 207.90068187 -> 219.20885346 USDT. Drawdown and maximum-underwater gates passed, but total, realized and both holding gates failed."
+    },
+    {
+      "name": "DESIGN_INVENTORY_VISIBILITY",
+      "status": "PASS",
+      "evidence": "Parent ended with five 30-USDT lots aged 9888h, 8880h, 6528h, 3360h and 2664h and unrealized PnL -22.44489016, -20.25458125, -19.33721838, -9.75321811 and -7.33058651 USDT. Candidate ended with the first two lots only, aged 9888h and 8880h with -22.44489016 and -20.25458125 USDT. Candidate inventory-hour counts by 0..8 open lots were 4152, 5922, 14458, 3187, 2986, 2686, 421, 878 and 374."
+    },
+    {
+      "name": "VALIDATION_ECONOMIC_AND_PATH_LEDGER",
+      "status": "FAIL",
+      "evidence": "Parent -> candidate: realized 89.41118307 -> 83.78697866; unrealized -3.20820121 -> -3.20820121; total 86.20298186 -> 80.57877745 USDT; drawdown 7.121498% -> 7.130542%; median/P90 hold 182.5/1418.3h -> 191.0/1809.2h; average/peak equity utilization 21.632695/60.000000% -> 21.287278/60.000000%; underwater hours/episodes/max duration 16283/194/2397h -> 16040/182/2444h; minimum equity 245.91324602 -> 245.56626913 USDT. Every economic and path gate except admission presence and accounting failed."
+    },
+    {
+      "name": "VALIDATION_INVENTORY_VISIBILITY",
+      "status": "PASS",
+      "evidence": "Both ledgers ended with one 30-USDT lot aged 384h and -3.20820121 USDT unrealized. Parent inventory hours by 0..5 lots were 1769, 5950, 5138, 3393, 1248 and 46; candidate hours were 1973, 5491, 5392, 3919, 755 and 14."
+    },
+    {
+      "name": "ANNUAL_TOTAL_PNL_BREADTH",
+      "status": "FAIL",
+      "evidence": "Candidate-minus-parent total-PnL deltas were 2020 -10.84695523, 2021 -4.11820114, 2022 +15.77563722, 2023 -3.68340854 and 2024 -1.94079587 USDT. Strict annual wins were 1/5 versus the required 4/5."
+    },
+    {
+      "name": "ANNUAL_REALIZED_PNL_BREADTH",
+      "status": "FAIL",
+      "evidence": "Candidate realized PnL was non-lower than the parent in 0/5 annual folds versus the required 4/5. The filter reduced realized participation in every calendar year, including the loss-avoidance year where it took no trades."
+    },
+    {
+      "name": "ANNUAL_DRAWDOWN_BREADTH",
+      "status": "FAIL",
+      "evidence": "Candidate drawdown was strictly lower in only 3/5 folds versus the required 4/5. Parent -> candidate drawdown was 2020 14.136868% -> 7.144393%, 2021 14.319565% -> 11.196280%, 2022 11.554593% -> 0%, 2023 7.121498% -> 7.130542%, and 2024 7.291285% -> 7.291285%."
+    },
+    {
+      "name": "ANNUAL_POSITIVE_DELTA_CONCENTRATION",
+      "status": "FAIL",
+      "evidence": "The only positive annual total-PnL delta was 2022 +15.77563722 USDT, so it contributed 100.000000% of the positive-delta sum versus the frozen maximum of 50%."
+    },
+    {
+      "name": "BEAR_YEAR_MECHANISM_ATTRIBUTION",
+      "status": "PASS",
+      "evidence": "In 2022 the feature vetoed all 48 parent signals, took zero trades, produced 0 USDT total PnL and 0% drawdown versus parent -15.77563722 USDT and 11.554593% drawdown. This proves a concentrated bear-year participation effect, not a broad risk-adjusted alpha mechanism."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Valid evidence failed frozen Design, Validation, annual total, annual realized, annual drawdown and concentration gates. The exact disposition is DRA_LONG_TREND_ENTRY_ADMISSION_BRANCH_CLOSE. No SMA length, EMA, relation, fallback, tolerance, selected year or inverted neighbor was evaluated."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "The feature correctly identified one severe bear year but paid for that protection through lower realized and total PnL elsewhere, worse Validation holding tails and no broad drawdown improvement. Closing now avoids adapter, OOS, deployment and runtime work on a one-year-concentrated participation veto."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The execution read only the exact sealed pre-2025 TSV and committed runner inputs. It made no repository or .research-state write, no canonical/server MCP write, no heartbeat request, no schedule change, no paid API call, no deployment and no Trading, DB, order, fund, SHADOW, PAPER or LIVE action."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "Historical Validation is post-hoc and not clean OOS; the study cannot establish independent alpha or a strategy candidate.",
+    "The 2022 benefit is a zero-participation result and accounts for all positive annual uplift; it cannot be generalized to future bear regimes from this evidence.",
+    "No post-2024, prospective, SHADOW, PAPER or LIVE evidence was opened or created.",
+    "This result closes the exact prior-200-complete-day strict-above admission family under frozen DRA V1 semantics; it does not rank unrelated mechanisms."
+  ],
+  "recommended_next_action": "Close and deduplicate the exact DRA long-trend entry-admission family with no SMA, EMA, threshold, relation or regime rescue variant. Continue only with a causally distinct bounded mechanism that has a decision-time feature, equal-capital comparator and direct runner before outcome access; do not spend OOS, adapter, deployment or runtime work on this branch.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

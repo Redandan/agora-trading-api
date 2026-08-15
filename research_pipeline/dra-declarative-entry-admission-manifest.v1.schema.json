@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/dra-declarative-entry-admission-manifest.v1.schema.json",
+  "title": "Declarative DRA entry-admission manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["authorization", "dataset", "document_type", "economics", "experiment_id", "feature", "gate_set", "oos_access", "parent_strategy", "prior_evidence", "schema_version", "selection_cutoff", "variants"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "DRA_DECLARATIVE_ENTRY_ADMISSION_MANIFEST_V1"},
+    "experiment_id": {"$ref": "#/$defs/identifier"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "parent_strategy": {"const": "BTC_DRA_V1"},
+    "selection_cutoff": {"const": "2025-01-01T00:00:00"},
+    "oos_access": {"const": "DENY"},
+    "gate_set": {"const": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V1"},
+    "prior_evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["disposition", "path", "sha256"],
+      "properties": {
+        "disposition": {"const": "PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT"},
+        "path": {"$ref": "#/$defs/repositoryPath"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "dataset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["canonical_sha256", "rows"],
+      "properties": {
+        "canonical_sha256": {"$ref": "#/$defs/sha256"},
+        "rows": {"type": "integer", "minimum": 1}
+      }
+    },
+    "economics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fee_rate", "initial_equity_usdt", "slippage_rate", "slot_capacity_usdt"],
+      "properties": {
+        "fee_rate": {"const": "0.0010"},
+        "initial_equity_usdt": {"const": "250"},
+        "slippage_rate": {"const": "0.0005"},
+        "slot_capacity_usdt": {"const": "240"}
+      }
+    },
+    "feature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["decision_time", "key", "lookback_complete_days", "relation"],
+      "properties": {
+        "decision_time": {"const": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL"},
+        "lookback_complete_days": {"const": 20},
+        "key": {
+          "enum": [
+            "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN",
+            "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN",
+            "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN"
+          ]
+        },
+        "relation": {"enum": ["AT_OR_BELOW", "AT_OR_ABOVE"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"key": {"const": "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN"}}},
+          "then": {"properties": {"relation": {"const": "AT_OR_BELOW"}}},
+          "else": {"properties": {"relation": {"const": "AT_OR_ABOVE"}}}
+        }
+      ]
+    },
+    "variants": {
+      "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true,
+      "contains": {"type": "object", "properties": {"role": {"const": "primary"}}, "required": ["role"]},
+      "minContains": 1, "maxContains": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["role", "threshold", "variant_id"],
+        "properties": {
+          "role": {"enum": ["lower_neighbor", "primary", "upper_neighbor"]},
+          "threshold": {"type": "string", "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+          "variant_id": {"$ref": "#/$defs/identifier"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"},
+    "repositoryPath": {"type": "string", "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

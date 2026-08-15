@@ -73,12 +73,18 @@ matched-capital risk-adjusted performance, not run count or candidate count.
 - Before dispatching the next Local task, inspect the latest validated throughput
   KPI `next_dispatch_policy`. When support work is
   `DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY`, select a verified direct strategy-
-  path task or wait for new evidence. Use the support exception only for a
-  separately proven active evidence-integrity risk, keep it `NON_COUNTING`, and
-  never invent a mechanism merely to improve the ratio.
+  path task or wait for new evidence. Two fail-closed `NON_COUNTING` exceptions
+  exist: a separately proven active evidence-integrity repair, or one candidate-
+  enabling capability unit per rolling seven days. The latter must validate
+  against `local-candidate-enabling-capability.v1.schema.json`, unlock at least
+  three distinct direct mechanism families that are each only one step from a
+  frozen hypothesis, and create no strategy result, candidate, OOS access,
+  timer, canonical write, paid-API use, or Trading action. Never invent a
+  mechanism merely to improve the ratio.
 - Enforce that decision with `local-research-allocation-preflight`, passing the
   exact rolling acceptance allowlist and the strategy-path sidecar for direct
-  work. Do not dispatch when the allocation preflight fails.
+  work, or the candidate-enabling sidecar for that bounded exception. Do not
+  dispatch when the allocation preflight fails.
 - Assess the optimized workflow target with `local-research-goal-audit`. Require
   two seven-day rolling windows exactly one day apart; each must contain at least
   five accepted outputs, at least three verified direct mechanisms from at least

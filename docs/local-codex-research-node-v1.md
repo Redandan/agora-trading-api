@@ -171,6 +171,17 @@ preflight when genuinely necessary, but it is support work and must not be
 presented as direct candidate delivery. Already sealed historical tasks and the
 current active chain retain their original byte contracts and validator command.
 
+One narrowly bounded candidate-enabling capability unit may bypass missing
+strict-majority headroom per rolling seven-day window. It remains
+`NON_COUNTING`, must be a `WORKTREE_WRITE` tooling or adapter task, and must bind
+a canonical sidecar conforming to
+`research_pipeline/local-candidate-enabling-capability.v1.schema.json`. The
+sidecar must prove that one declarative DRA runner unlocks at least three
+distinct decision-time feature families, each with an existing parent and
+matched comparator and at most one additional step to a frozen hypothesis. The
+unit cannot create a strategy result or candidate, open OOS, add a timer, write
+canonical state, use a paid API, or take a Trading action.
+
 For a bounded period of at most seven days, Manager/Coach may measure accepted
 Local output against the current throughput targets with an explicit acceptance
 allowlist:
@@ -205,8 +216,10 @@ with verified strategy-path admission remains eligible because it improves or
 preserves the ratio. Support work is deferred whenever adding one accepted row
 would fail the strict-majority target. Support becomes eligible only within the
 reported integer headroom, except for a separately proven active evidence-
-integrity repair that remains `NON_COUNTING`. The exception preserves evidence;
-it does not make the workflow KPI green.
+integrity repair or the schema-proven candidate-enabling capability unit. Both
+remain `NON_COUNTING`; neither makes the workflow KPI green. The capability
+unit additionally has a fixed one-use rolling seven-day budget and must unlock
+at least three direct families.
 
 New Local dispatches use the binding allocation preflight rather than reading
 that policy by convention:
@@ -216,15 +229,18 @@ python -m research_pipeline local-research-allocation-preflight <dispatch.json> 
   --task <task.json> --intent <pre-dispatch-intent.json> \
   --period-start <UTC> --period-end <UTC> \
   --acceptance <manager-acceptance.json> [--acceptance <another.json> ...] \
-  [--strategy-path <strategy-path.json>]
+  [--strategy-path <strategy-path.json> | \
+   --candidate-enabling-capability <capability.json>]
 ```
 
 The command first performs the ordinary or strategy-path Manager preflight,
 then revalidates the explicit rolling acceptance allowlist and binds the
 proposed output to the resulting allocation policy. Direct strategy-path work
 passes; support work without strict-majority headroom fails closed. The active
-evidence-integrity exception remains explicit and cannot be combined with a
-direct strategy path.
+evidence-integrity and candidate-enabling exceptions remain explicit and cannot
+be combined with each other or with a direct strategy path. The candidate-
+enabling path also fails if the rolling acceptance allowlist already contains
+an accepted use of its fixed duplicate-family key.
 
 The optimized workflow target cannot pass on ratio alone. Each rolling
 seven-day audit must contain at least five accepted outputs, at least three

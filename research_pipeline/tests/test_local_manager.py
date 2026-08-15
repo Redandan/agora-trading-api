@@ -10,8 +10,14 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
+from jsonschema import Draft202012Validator, FormatChecker
+
 from research_pipeline.cli import main as pipeline_main
 from research_pipeline.local_dispatch import canonical_json_bytes, canonical_json_document_bytes
+from research_pipeline.local_candidate_enabling_capability import (
+    DUPLICATE_FAMILY_KEY as CANDIDATE_ENABLING_FAMILY_KEY,
+    load_and_validate_candidate_enabling_capability,
+)
 from research_pipeline.local_manager import (
     build_local_research_allocation_preflight,
     build_local_research_goal_audit,
@@ -286,6 +292,93 @@ class PreflightRepository:
         _run(self.root, "commit", "-m", "frozen preflight fixture")
         _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
 
+    def configure_candidate_enabling_capability(self, *, family_count: int = 3) -> None:
+        self.task["task_type"] = "TOOLING_VERTICAL_SLICE"
+        self.task["execution_mode"] = "WORKTREE_WRITE"
+        self.task["limits"]["max_files_changed"] = 6
+        task_raw = canonical_json_document_bytes(self.task)
+        self.task_path.write_bytes(task_raw)
+
+        self.dispatch["task_type"] = self.task["task_type"]
+        self.dispatch["execution_mode"] = self.task["execution_mode"]
+        self.dispatch["task_sha256"] = _sha256(task_raw)
+        self.dispatch["performance_case"]["research_phase"] = "CAPABILITY"
+        dispatch_raw = canonical_json_document_bytes(self.dispatch)
+        self.dispatch_path.write_bytes(dispatch_raw)
+
+        self.intent["task_sha256"] = _sha256(task_raw)
+        self.intent["dispatch_sha256"] = _sha256(dispatch_raw)
+        self.intent["output_class"] = "NON_COUNTING"
+        self.intent["independence_semantics"] = "NON_COUNTING_NOT_APPLICABLE"
+        self.intent["duplicate_family_key"] = CANDIDATE_ENABLING_FAMILY_KEY
+        for mapping in self.intent["disposition_actions"]:
+            mapping["action"] = "EXCLUDE"
+        intent_raw = canonical_json_document_bytes(self.intent)
+        self.intent_path.write_bytes(intent_raw)
+
+        families = [
+            {
+                "decision_time_availability": "REQUIRED",
+                "family_key": f"synthetic-direct-family-{index}",
+                "feature_family": f"synthetic-feature-family-{index}",
+                "matched_comparator_id": "synthetic-equal-capital-parent-ledger",
+                "maximum_additional_research_steps": 1,
+                "parent_strategy_id": "synthetic-parent-strategy-v1",
+                "positive_next_step": "FROZEN_HYPOTHESIS_MANIFEST",
+                "runner_missing_only": True,
+            }
+            for index in range(family_count)
+        ]
+        capability = {
+            "authorization": AUTHORIZATION,
+            "capability": {
+                "capability_id": "synthetic-declarative-dra-runner-capability-v1",
+                "capability_kind": "DECLARATIVE_DRA_EXPERIMENT_RUNNER",
+                "maximum_candidate_variants_per_experiment": 3,
+                "required_economic_outputs": [
+                    "adverse_slippage",
+                    "drawdown",
+                    "fees",
+                    "holding_age",
+                    "inventory_path",
+                    "realized_pnl",
+                    "total_pnl",
+                    "unrealized_pnl",
+                ],
+                "runner_id": "synthetic-declarative-dra-runner-v1",
+                "unlocked_direct_families": families,
+            },
+            "dispatch_id": self.dispatch["dispatch_id"],
+            "dispatch_sha256": _sha256(dispatch_raw),
+            "document_type": "LOCAL_CANDIDATE_ENABLING_CAPABILITY_V1",
+            "duplicate_family_key": CANDIDATE_ENABLING_FAMILY_KEY,
+            "exception_id": "candidate-enabling-capability-fixture-v1",
+            "intent_id": self.intent["intent_id"],
+            "intent_sha256": _sha256(intent_raw),
+            "issued_at": "2026-08-11T00:02:00Z",
+            "output_class": "NON_COUNTING",
+            "rolling_budget": {"days": 7, "maximum_accepted_uses": 1},
+            "safety_boundaries": {
+                "adds_timer": False,
+                "creates_candidate": False,
+                "creates_strategy_result": False,
+                "opens_oos": False,
+                "trading_action": False,
+                "uses_paid_api": False,
+                "writes_canonical_state": False,
+            },
+            "schema_version": "1",
+            "state_authority": "SERVER_CANONICAL",
+            "task_id": self.task["task_id"],
+            "task_sha256": _sha256(task_raw),
+            "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+        }
+        self.capability_path = self.root / "records" / "candidate-capability.json"
+        self.capability_path.write_bytes(canonical_json_document_bytes(capability))
+        _run(self.root, "add", ".")
+        _run(self.root, "commit", "-m", "freeze candidate enabling capability")
+        _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
+
     def commit_intent(self) -> None:
         self.intent_path.write_bytes(canonical_json_document_bytes(self.intent))
         _run(self.root, "add", "records/intent.json")
@@ -317,6 +410,7 @@ class LocalManagerPreflightTest(unittest.TestCase):
         self.assertEqual(
             result["research_value_gate"],
             {
+                "candidate_enabling_capability_exception": False,
                 "countable_disposition_count": 2,
                 "non_counting_integrity_exception": False,
                 "output_class": "SPEC_OR_CAPABILITY_SLICE",
@@ -914,8 +1008,16 @@ class LocalResearchKpiTest(unittest.TestCase):
 
 
 class LocalResearchAllocationPreflightTest(unittest.TestCase):
-    def _kpi(self, *, support_status: str) -> dict:
+    def _kpi(
+        self,
+        *,
+        support_status: str,
+        candidate_enabling_outputs: list[str] | None = None,
+    ) -> dict:
         return {
+            "candidate_enabling_capability_accepted_output_ids": (
+                candidate_enabling_outputs or []
+            ),
             "goal_assessment": {
                 "candidate_delivery_efficiency": {
                     "accepted_output_count": 28,
@@ -1027,6 +1129,139 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                 "allow_non_counting_integrity_repair"
             ]
         )
+
+    def test_allocation_preflight_allows_candidate_enabling_capability(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_candidate_enabling_capability()
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
+            ),
+        ):
+            result = build_local_research_allocation_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+                ["acceptance.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+                candidate_enabling_capability_path=repository.capability_path,
+            )
+        self.assertEqual(
+            result["allocation_gate"]["status"],
+            "CANDIDATE_ENABLING_CAPABILITY_EXCEPTION_ALLOWED",
+        )
+        self.assertEqual(
+            result["candidate_enabling_capability"]["unlocked_direct_family_count"],
+            3,
+        )
+        self.assertEqual(
+            result["manager_preflight"]["research_value_gate"]["status"],
+            "NON_COUNTING_CANDIDATE_ENABLING_CAPABILITY_EXCEPTION",
+        )
+
+    def test_candidate_enabling_capability_rejects_fewer_than_three_families(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_candidate_enabling_capability(family_count=2)
+        with self.assertRaisesRegex(ValueError, "unlock three to eight"):
+            load_and_validate_candidate_enabling_capability(repository.capability_path)
+
+    def test_candidate_enabling_capability_schema_accepts_frozen_fixture(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_candidate_enabling_capability()
+        schema = json.loads(
+            (
+                Path(__file__).parents[1]
+                / "local-candidate-enabling-capability.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        document = json.loads(repository.capability_path.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(schema)
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).validate(document)
+
+    def test_allocation_preflight_rejects_used_candidate_enabling_budget(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_candidate_enabling_capability()
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY",
+                candidate_enabling_outputs=["prior-capability-output"],
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "budget is already used"):
+                build_local_research_allocation_preflight(
+                    repository.root,
+                    repository.dispatch_path,
+                    repository.task_path,
+                    repository.intent_path,
+                    ["acceptance.json"],
+                    "2026-08-08T00:00:00Z",
+                    "2026-08-15T00:00:00Z",
+                    candidate_enabling_capability_path=repository.capability_path,
+                )
+
+    def test_allocation_preflight_cli_routes_candidate_enabling_capability(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_candidate_enabling_capability()
+        stdout = StringIO()
+        stderr = StringIO()
+        with (
+            patch(
+                "research_pipeline.local_manager.build_local_research_kpi",
+                return_value=self._kpi(
+                    support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
+                ),
+            ),
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+        ):
+            exit_code = pipeline_main(
+                [
+                    "local-research-allocation-preflight",
+                    str(repository.dispatch_path),
+                    "--task",
+                    str(repository.task_path),
+                    "--intent",
+                    str(repository.intent_path),
+                    "--candidate-enabling-capability",
+                    str(repository.capability_path),
+                    "--acceptance",
+                    "acceptance.json",
+                    "--period-start",
+                    "2026-08-08T00:00:00Z",
+                    "--period-end",
+                    "2026-08-15T00:00:00Z",
+                    "--repository-root",
+                    str(repository.root),
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(stderr.getvalue(), "")
+        self.assertEqual(
+            json.loads(stdout.getvalue())["allocation_gate"]["status"],
+            "CANDIDATE_ENABLING_CAPABILITY_EXCEPTION_ALLOWED",
+        )
+
+    def test_allocation_preflight_rejects_combined_direct_and_capability_exception(self) -> None:
+        repository = PreflightRepository(self, strategy_ready=True)
+        with self.assertRaisesRegex(ValueError, "cannot be combined"):
+            build_local_research_allocation_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+                ["acceptance.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+                strategy_path_path=repository.strategy_path,
+                candidate_enabling_capability_path="candidate.json",
+            )
 
 
 if __name__ == "__main__":

@@ -9,6 +9,11 @@ import subprocess
 from typing import Any, Iterable
 
 from .local_dispatch import canonical_json_bytes, load_and_validate_dispatch
+from .local_candidate_enabling_capability import (
+    DUPLICATE_FAMILY_KEY as CANDIDATE_ENABLING_FAMILY_KEY,
+    load_and_validate_candidate_enabling_capability,
+    validate_candidate_enabling_capability_context,
+)
 from .local_weekly_output_classification import (
     load_and_validate_weekly_output_classification_document,
     validate_weekly_output_classification,
@@ -127,7 +132,10 @@ def build_local_manager_preflight(
     classification_intent_path: Path | str,
     *,
     allow_non_counting_integrity_repair: bool = False,
+    allow_candidate_enabling_capability: bool = False,
 ) -> dict[str, Any]:
+    if allow_non_counting_integrity_repair and allow_candidate_enabling_capability:
+        raise ValueError("non-counting exceptions cannot be combined")
     root = _exact_repository_root(repository_root)
     if _git(root, "status", "--porcelain=v1", "--untracked-files=all"):
         raise ValueError("Manager preflight requires a clean worktree")
@@ -205,12 +213,16 @@ def build_local_manager_preflight(
         output_class in {"MECHANISM_CONCLUSION", "SPEC_OR_CAPABILITY_SLICE"}
         and countable_disposition_count > 0
     )
-    if allow_non_counting_integrity_repair:
+    if allow_non_counting_integrity_repair or allow_candidate_enabling_capability:
         if output_class != "NON_COUNTING":
             raise ValueError(
-                "non-counting integrity exception is only valid for NON_COUNTING work"
+                "non-counting exceptions are only valid for NON_COUNTING work"
             )
-        value_gate_status = "NON_COUNTING_ACTIVE_INTEGRITY_EXCEPTION"
+        value_gate_status = (
+            "NON_COUNTING_CANDIDATE_ENABLING_CAPABILITY_EXCEPTION"
+            if allow_candidate_enabling_capability
+            else "NON_COUNTING_ACTIVE_INTEGRITY_EXCEPTION"
+        )
     elif not countable:
         raise ValueError(
             "Manager value gate rejects work with no countable disposition; "
@@ -289,6 +301,7 @@ def build_local_manager_preflight(
         "origin_commit": origin_commit,
         "repository_input_count": repository_input_count,
         "research_value_gate": {
+            "candidate_enabling_capability_exception": allow_candidate_enabling_capability,
             "countable_disposition_count": countable_disposition_count,
             "non_counting_integrity_exception": allow_non_counting_integrity_repair,
             "output_class": output_class,
@@ -516,6 +529,11 @@ def _candidate_delivery_next_dispatch_policy(
         "active_evidence_integrity_exception": (
             "ALLOW_ONLY_WHEN_SEPARATELY_PROVEN_AND_CLASSIFIED_NON_COUNTING"
         ),
+        "candidate_enabling_capability_exception": {
+            "minimum_unlocked_direct_families": 3,
+            "rolling_budget_days": 7,
+            "status": "ALLOW_ONCE_PER_WINDOW_WHEN_SCHEMA_PROVEN_AND_NON_COUNTING",
+        },
         "direct_strategy_path": {
             "projected_direct_mechanism_count": direct_projection,
             "projected_ratio_basis_points": (
@@ -541,6 +559,11 @@ def _candidate_delivery_next_dispatch_policy(
 
 def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, Any]:
     rows = classification["rows"]
+    candidate_enabling_capability_outputs = [
+        row
+        for row in rows
+        if row.get("duplicate_family_key") == CANDIDATE_ENABLING_FAMILY_KEY
+    ]
     counted = [row for row in rows if row["classification_outcome"] == "COUNT"]
     excluded = [row for row in rows if row["classification_outcome"] == "EXCLUDE"]
     labelled_mechanisms = [
@@ -582,6 +605,9 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
 
     return {
         "classification_status": classification["status"],
+        "candidate_enabling_capability_accepted_output_ids": sorted(
+            row["output_id"] for row in candidate_enabling_capability_outputs
+        ),
         "counted_output_count": len(counted),
         "counted_output_ids": sorted(row["output_id"] for row in counted),
         "direct_mechanism_output_count": len(direct_mechanisms),
@@ -746,11 +772,17 @@ def build_local_research_allocation_preflight(
     *,
     strategy_path_path: Path | str | None = None,
     allow_non_counting_integrity_repair: bool = False,
+    candidate_enabling_capability_path: Path | str | None = None,
 ) -> dict[str, Any]:
-    if strategy_path_path is not None and allow_non_counting_integrity_repair:
-        raise ValueError(
-            "direct strategy-path work cannot use the non-counting integrity exception"
+    exception_count = sum(
+        (
+            strategy_path_path is not None,
+            allow_non_counting_integrity_repair,
+            candidate_enabling_capability_path is not None,
         )
+    )
+    if exception_count > 1:
+        raise ValueError("direct work and non-counting exceptions cannot be combined")
     if strategy_path_path is None:
         manager = build_local_manager_preflight(
             repository_root,
@@ -759,6 +791,9 @@ def build_local_research_allocation_preflight(
             classification_intent_path,
             allow_non_counting_integrity_repair=(
                 allow_non_counting_integrity_repair
+            ),
+            allow_candidate_enabling_capability=(
+                candidate_enabling_capability_path is not None
             ),
         )
     else:
@@ -779,11 +814,75 @@ def build_local_research_allocation_preflight(
     efficiency = kpi["goal_assessment"]["candidate_delivery_efficiency"]
     policy = efficiency["next_dispatch_policy"]
     direct = strategy_path_path is not None
+    capability_exception = None
+    if candidate_enabling_capability_path is not None:
+        root = _exact_repository_root(repository_root)
+        capability_file, capability_relative = _contained_regular_file(
+            root,
+            Path(candidate_enabling_capability_path),
+            "candidate-enabling capability path",
+        )
+        capability, capability_raw = load_and_validate_candidate_enabling_capability(
+            capability_file
+        )
+        head = manager["head_commit"]
+        _require_head_bytes(
+            root,
+            head,
+            capability_relative,
+            capability_raw,
+            "candidate-enabling capability",
+        )
+        task_file, _ = _contained_regular_file(root, Path(task_path), "task path")
+        dispatch_file, _ = _contained_regular_file(root, Path(dispatch_path), "dispatch path")
+        intent_file, _ = _contained_regular_file(
+            root,
+            Path(classification_intent_path),
+            "classification intent path",
+        )
+        task_raw = task_file.read_bytes()
+        dispatch_raw = dispatch_file.read_bytes()
+        intent_raw = intent_file.read_bytes()
+        task = json.loads(task_raw.decode("utf-8"))
+        dispatch = json.loads(dispatch_raw.decode("utf-8"))
+        intent = load_and_validate_weekly_output_classification_document(
+            intent_raw,
+            "classification intent",
+        )
+        validate_candidate_enabling_capability_context(
+            capability,
+            task=task,
+            task_sha256=hashlib.sha256(task_raw).hexdigest(),
+            dispatch=dispatch,
+            dispatch_sha256=hashlib.sha256(dispatch_raw).hexdigest(),
+            intent=intent,
+            intent_sha256=hashlib.sha256(intent_raw).hexdigest(),
+        )
+        prior_uses = kpi.get(
+            "candidate_enabling_capability_accepted_output_ids",
+            [],
+        )
+        if prior_uses:
+            raise ValueError(
+                "candidate-enabling capability rolling seven-day budget is already used"
+            )
+        capability_exception = {
+            "path": capability_relative,
+            "sha256": hashlib.sha256(capability_raw).hexdigest(),
+            "unlocked_direct_family_count": len(
+                capability["capability"]["unlocked_direct_families"]
+            ),
+            "rolling_window_prior_accepted_use_count": 0,
+            "status": "VALID",
+        }
     if direct:
         gate_status = "DIRECT_STRATEGY_PATH_ALLOWED"
         projection = policy["direct_strategy_path"]
     elif allow_non_counting_integrity_repair:
         gate_status = "ACTIVE_EVIDENCE_INTEGRITY_EXCEPTION_ALLOWED"
+        projection = policy["support_work"]
+    elif candidate_enabling_capability_path is not None:
+        gate_status = "CANDIDATE_ENABLING_CAPABILITY_EXCEPTION_ALLOWED"
         projection = policy["support_work"]
     else:
         projection = policy["support_work"]
@@ -811,6 +910,7 @@ def build_local_research_allocation_preflight(
             ],
         },
         "authorization": manager["authorization"],
+        "candidate_enabling_capability": capability_exception,
         "document_type": ALLOCATION_PREFLIGHT_DOCUMENT_TYPE,
         "manager_preflight": manager,
         "period": kpi["period"],

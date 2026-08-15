@@ -185,6 +185,10 @@ def parser() -> argparse.ArgumentParser:
     allocation_preflight.add_argument("--task", type=Path, required=True)
     allocation_preflight.add_argument("--intent", type=Path, required=True)
     allocation_preflight.add_argument("--strategy-path", type=Path)
+    allocation_preflight.add_argument(
+        "--candidate-enabling-capability",
+        type=Path,
+    )
     allocation_preflight.add_argument("--acceptance", action="append", required=True)
     allocation_preflight.add_argument("--period-start", required=True)
     allocation_preflight.add_argument("--period-end", required=True)
@@ -1601,6 +1605,9 @@ def main(argv: list[str] | None = None) -> int:
                 strategy_path_path=args.strategy_path,
                 allow_non_counting_integrity_repair=(
                     args.allow_non_counting_integrity_repair
+                ),
+                candidate_enabling_capability_path=(
+                    args.candidate_enabling_capability
                 ),
             )
             print(canonical_json_bytes(validation).decode("utf-8"))

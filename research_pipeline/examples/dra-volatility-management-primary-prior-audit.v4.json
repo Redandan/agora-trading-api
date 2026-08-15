@@ -1,0 +1,51 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "This primary-source retry supports exactly one separately frozen, unlevered, equal-capital pre-outcome DRA participation design audit. It does not establish transfer to BTC, prediction, alpha, a candidate, OOS value, deployability, or Trading authority.",
+  "disposition": "PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT",
+  "document_type": "DRA_VOLATILITY_MANAGEMENT_PRIMARY_PRIOR_AUDIT_V4",
+  "mechanism_label": "LAGGED_REALIZED_VOLATILITY_CONDITIONED_DRA_PARTICIPATION",
+  "prior_matrix": [
+    {
+      "identity": "Moreira and Muir, Volatility-Managed Portfolios, NBER Working Paper 22208 and Journal of Finance 72 (2017) 1611-1644",
+      "primary_source": "https://www.nber.org/system/files/working_papers/w22208/w22208.pdf",
+      "role": "POSITIVE_MECHANISM_PRIOR",
+      "finding": "Across multiple equity factors and currency carry, reducing exposure following high lagged volatility produced positive spanning alphas and higher Sharpe ratios because expected returns did not rise proportionally with volatility.",
+      "transfer_boundary": "The evidence is multi-factor and commonly uses volatility scaling; it does not prove a single unlevered BTC spot DRA entry-admission rule."
+    },
+    {
+      "identity": "Cederburg, O'Doherty, Wang and Yan, On the performance of volatility-managed portfolios, Journal of Financial Economics 138 (2020) 95-117",
+      "primary_source": "https://www.lehigh.edu/~xuy219/research/COWY.pdf",
+      "role": "CO_EQUAL_FALSIFICATION_PRIOR",
+      "finding": "Across 103 equity strategies, volatility-managed portfolios did not systematically beat unmanaged portfolios in direct comparisons; implementable out-of-sample versions generally had lower certainty-equivalent returns and Sharpe ratios, with structural instability in spanning regressions.",
+      "transfer_boundary": "A positive in-sample or spanning result is insufficient. Any BTC audit must be causal, fixed before outcomes, cost-aware, equal-capital, and fail closed on Validation or breadth."
+    },
+    {
+      "identity": "Liu, Tsyvinski and Wu, Common Risk Factors in Cryptocurrency, Journal of Finance 77 (2022) 1133-1177",
+      "primary_source": "https://economics.yale.edu/sites/default/files/2022-10/LiuTsyvinskiWu2019%20COMMON%20RISK%20FACTORS.pdf",
+      "role": "CRYPTO_TRANSFER_BOUNDARY",
+      "finding": "The paper studies cross-sectional cryptocurrency market, size, and momentum factors and shows that a three-factor model accounts for the reported long-short factor strategies.",
+      "transfer_boundary": "Cross-sectional cryptocurrency factor evidence is not single-BTC time-series volatility-management evidence."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only lagged information available before the next-bar fill.",
+    "Keep the DRA parent, exits, side, lot cost, capacity, fee, and adverse slippage unchanged.",
+    "Compare under equal initial capital and report realized, unrealized, total PnL, drawdown, holding, utilization, underwater duration, and terminal inventory.",
+    "Freeze no more than three variants before execution and prohibit outcome-aware tuning.",
+    "Require Design and Validation improvement, annual breadth, path-risk non-inferiority, and neighbor stability; otherwise close the family.",
+    "Do not open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-15T00:00:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "cederburg_full_text": "PASS",
+    "liu_tsyvinski_wu_full_text": "PASS",
+    "moreira_muir_full_text": "PASS_PREVIOUS_403_BLOCKER_RESOLVED"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "Single-BTC DRA transfer remains unproven until the separately frozen economic screen runs.",
+    "The positive and falsification priors conflict, so a negative or unstable screen must close the family without tuning.",
+    "No post-2024 evidence, OOS, candidate, or Trading path was accessed or authorized."
+  ]
+}

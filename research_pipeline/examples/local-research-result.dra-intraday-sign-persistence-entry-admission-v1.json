@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-intraday-sign-persistence-entry-admission-v1",
+  "task_sha256": "8aebcfacbd89509e6c258be051149f8d2415e474701c46e7cc41df687a0806b5",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-15T13:43:25Z",
+  "completed_at": "2026-08-15T13:43:41Z",
+  "source_git_commit": "edabccc9b7a8766a2f1b72c6829f89e3a49e263d",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_INTRADAY_SIGN_PERSISTENCE_BRANCH_CLOSE. The exact 52,608-row pre-2025 sealed H1 corpus, primary prior, frozen declarative runner, unchanged DRA V1 parent parity, within-day sign accounting and equal-capital assumptions passed. The primary 1.0 admission reduced Design drawdown from 29.530448% to 21.762553%, but Design total PnL fell from 90.77797326 to 48.18129282 USDT and terminal unrealized loss worsened. It failed every annual total-PnL fold and failed historical Validation: total PnL fell from 86.20298186 to 77.06168266 USDT, realized PnL fell from 89.41118307 to 77.06168266, drawdown rose from 7.121498% to 11.279654%, median/P90 holding rose from 182.5/1418.3h to 245.0/2783.0h, and annual total-PnL breadth was 0/5. The 0.8 neighbor improved Validation total by 1.85571819 USDT but failed its drawdown gate, holding path and annual breadth; the 1.2 neighbor lost heavily. The exact family is closed without choosing the observed neighbor, tuning, candidate creation or OOS access.",
+  "checks": [
+    {
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Manager, strategy-path and allocation preflights returned VALID and DIRECT_STRATEGY_PATH_ALLOWED at clean HEAD/origin edabccc9b7a8766a2f1b72c6829f89e3a49e263d. Frozen task 8aebcfacbd89509e6c258be051149f8d2415e474701c46e7cc41df687a0806b5, dispatch e3b17e8a85f656666d855b501dbd457c88e90a5363efdd7c57bdac891f29cef8, intent e22c7cd99f0a06a540b50c62cc0608a9eb359769ff4f59d05fc5b5951f1a0064 and strategy path 72c4a8241ad4ff0667d30528f73d0a6937923188a07c753ee853b93fb88c99d3 were validated before outcome access."
+    },
+    {
+      "name": "PRIMARY_PRIOR_AND_RUNNER_IDENTITY",
+      "status": "PASS",
+      "evidence": "The feature-specific prior SHA-256 was c583415cabbf632ca76aca7c9ec47638d2e8ccf3adf71382c75100d3d8f1bbf5 and authorized exactly one coarse sign-persistence admission audit. Executed runner SHA-256 1f6191a08d9cfe4cd60508059f4646587baacc2c48351d97564783bf4962fe03 and manifest SHA-256 14590a0a0244d4a31412ac721cfbf35174f212d02b29e20cc63e263813c807d5 matched the frozen task."
+    },
+    {
+      "name": "SEALED_DATA_AND_PARENT_PARITY",
+      "status": "PASS",
+      "evidence": "The input contained exactly 52,608 contiguous pre-2025 H1 rows with canonical SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd. Parent Design reproduced realized 169.89846767, unrealized -79.12049441, total 90.77797326 USDT, drawdown 29.530448% and median/P90 126.0/1818.6h. Parent Validation reproduced realized 89.41118307, unrealized -3.20820121, total 86.20298186, drawdown 7.121498% and median/P90 182.5/1418.3h."
+    },
+    {
+      "name": "DECISION_TIME_FEATURE_ACCOUNTING",
+      "status": "PASS",
+      "evidence": "Each feature used exactly 24 closes wholly inside a complete UTC day, 23 within-day close-to-close returns and a fixed 22 adjacent-pair denominator. Strictly same-sign pairs counted as persistence; zero returns remained in the denominator. The current share was divided by the prior 20-complete-day median before the unchanged next-open fill. Primary Design reconciled 84 admissions, 54 vetoes and two unavailable signals; Validation reconciled 43 admissions, 32 vetoes and zero unavailable signals."
+    },
+    {
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent -> primary Design: realized 169.89846767 -> 136.11727973, unrealized -79.12049441 -> -87.93598691, total 90.77797326 -> 48.18129282 USDT, drawdown 29.530448% -> 21.762553%, median/P90 hold 126.0/1818.6h -> 131.0/1297.8h, open lots 5 -> 6 and average/peak utilization 34.364819/96.000000% -> 28.771389/84.000000%. Lower drawdown did not offset -42.59668044 total PnL, lower realized PnL and worse terminal inventory."
+    },
+    {
+      "name": "VALIDATION_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent -> primary Validation: realized 89.41118307 -> 77.06168266, unrealized -3.20820121 -> 0, total 86.20298186 -> 77.06168266 USDT, drawdown 7.121498% -> 11.279654%, median/P90 hold 182.5/1418.3h -> 245.0/2783.0h, average/peak utilization 21.632695/60.000000% -> 24.492476/72.000000%, and maximum underwater duration 2397 -> 3181h. Total, realized, drawdown, both holding and path gates failed."
+    },
+    {
+      "name": "ANNUAL_BREADTH_AND_CONCENTRATION",
+      "status": "FAIL",
+      "evidence": "Primary candidate-minus-parent total-PnL deltas were 2020 -9.53740549, 2021 -9.96293988, 2022 -12.69804312, 2023 -12.75924155 and 2024 -1.71370924 USDT. Strict total-PnL wins were 0/5 versus the required 3/5, and drawdown was non-worse in only 3/5 years versus the required 4/5."
+    },
+    {
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL",
+      "evidence": "The frozen 0.8 neighbor produced Validation total 88.05870005 versus parent 86.20298186 USDT, but drawdown rose from 7.121498% to 8.586980%, median/P90 holding worsened to 191.0/2639.0h, annual total wins were only 2/5 and 98.381402% of positive annual uplift came from the top year. The 1.2 neighbor produced Validation total 42.98786729 and drawdown 9.826699%. Neither neighbor passed all frozen gates; the observed 0.8 result cannot replace the preregistered primary."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Valid paired evidence failed primary Design and Validation total PnL, Validation realized PnL, Validation drawdown, both holding gates, annual total breadth, annual drawdown breadth and both-neighbor stability. The frozen disposition is DRA_INTRADAY_SIGN_PERSISTENCE_BRANCH_CLOSE. No relation, sign rule, lag, threshold, lookback, estimator, year exclusion or interaction rescue was evaluated."
+    },
+    {
+      "name": "ARTIFACT_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly one create-only artifact was written at .research-state/experiments/dra-intraday-sign-persistence-entry-admission-v1/artifacts/screen.json with SHA-256 cc999bf1358e6746e8f3c7ea8d1ddab96d55d3f3ddb529dc635ddd1529cbc576 and terminal status NO_MECHANISM_CLOSE_FEATURE_FAMILY."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The execution made no canonical-state or server Research MCP write, heartbeat or schedule change, paid-API call, deployment, database mutation, and no Trading, order, fund, SHADOW, PAPER or LIVE action. The permitted create-only screen artifact was the sole research-state output."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/dra-intraday-sign-persistence-entry-admission-v1/artifacts/screen.json",
+      "sha256": "cc999bf1358e6746e8f3c7ea8d1ddab96d55d3f3ddb529dc635ddd1529cbc576"
+    }
+  ],
+  "files_changed": [],
+  "uncertainty": [
+    "Historical Validation is post-hoc development evidence and not clean OOS; the study cannot establish independent alpha or a strategy candidate.",
+    "The 22-pair sign share is a magnitude-neutral serial-dependence proxy, not a formal autocorrelation, variance-ratio or market-efficiency test.",
+    "The 0.8 neighbor's small Validation total-PnL uplift was accompanied by materially worse drawdown, holding tails and weak annual breadth; selecting it after seeing the result would be outcome-dependent tuning.",
+    "No post-2024, prospective, SHADOW, PAPER or LIVE evidence was opened or created."
+  ],
+  "recommended_next_action": "Close and deduplicate the exact DAILY_INTRADAY_SIGN_PERSISTENCE_SHARE_TO_PRIOR_20D_MEDIAN DRA entry-admission family without relation, sign, lag, threshold, lookback, estimator or interaction rescue. Preserve the observed 0.8 neighbor only as falsification evidence that aggregate Validation PnL can coexist with worse drawdown and holding breadth. Continue only with a causally distinct pre-outcome mechanism or wait for lawful forward evidence.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

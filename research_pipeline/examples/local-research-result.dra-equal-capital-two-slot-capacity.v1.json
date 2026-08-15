@@ -1,0 +1,102 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-equal-capital-two-slot-v1",
+  "task_sha256": "525ccbbf24fd401b5397fca4a6d8702ebe0f22c82580a3e8499da6e3df395d9a",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-15T08:07:00Z",
+  "completed_at": "2026-08-15T08:09:00Z",
+  "source_git_commit": "f056f7fe9e395e9198cb60a2430a5ef1617f4681",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_EQUAL_CAPITAL_TWO_SLOT_CAPACITY_BRANCH_CLOSE. The exact 52,608-row pre-2025 sealed corpus and both frozen one-slot parent checkpoints passed. Under the same 60 USDT initial equity, the two-slot candidate raised Design total PnL from 29.51253580 to 38.47075995 USDT and historical Validation total PnL from 39.93354639 to 63.67486483 USDT while lowering blocked entries. The apparent uplift failed the frozen risk-adjusted mechanism rule: Design drawdown rose from 25.405140% to 42.180561%, Validation drawdown rose from 9.794701% to 17.393381%, completed holding distributions worsened in both windows, and annual drawdown breadth was 0/5. This post-hoc capacity-scaling family is closed with no rescue variant, no alpha or strategy-candidate claim, and no OOS access.",
+  "checks": [
+    {
+      "name": "FROZEN_CONTRACT_AND_STRATEGY_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Manager and strategy preflights were VALID at clean HEAD/origin f056f7fe9e395e9198cb60a2430a5ef1617f4681. Task 525ccbbf24fd401b5397fca4a6d8702ebe0f22c82580a3e8499da6e3df395d9a, dispatch ac6a6cfb8dfab60e9013a13a58cb6da231417765c2f8a153633b5a982a2e1bf8, intent a2acf8418ca12b39385a3b572510cbc2b47eee7d4be13eff84f614e23e4eb27a and strategy path f3515df8b0d0a6217f36e0a08f959349e150df892821fcbf02847eeace59e80b were frozen before candidate access."
+    },
+    {
+      "name": "SEALED_DATA_INTEGRITY",
+      "status": "PASS",
+      "evidence": "The read-only input contained exactly 52,608 contiguous hourly rows and both file-byte and canonical-row SHA-256 were e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd. No post-2024 row or separate OOS artifact was opened."
+    },
+    {
+      "name": "FROZEN_PARENT_PARITY",
+      "status": "PASS",
+      "evidence": "Design reproduced realized 51.82581283, unrealized -22.31327703, total 29.51253580 USDT, 29 buys, 28 sells, one open lot, 273 blocked entries, median 112.0h and P90 1704.8h. Validation reproduced realized 43.54302055, unrealized -3.60947416, total 39.93354639 USDT, 26 buys, 25 sells, one open lot, 117 blocked entries, median 146.0h and P90 775.6h."
+    },
+    {
+      "name": "DESIGN_ECONOMIC_AND_PATH_LEDGER",
+      "status": "FAIL",
+      "evidence": "Parent -> candidate: realized 51.82581283 -> 81.03861823; unrealized -22.31327703 -> -42.56785828; total 29.51253580 -> 38.47075995 USDT; drawdown 25.405140% -> 42.180561%; blocked 273 -> 200; median/P90 hold 112.0/1704.8h -> 129.0/1899.2h; average/peak equity utilization 45.044775/50.000000% -> 79.384839/100.000000%; underwater hours/episodes/max duration 32316/118/9878h -> 31230/175/9878h; minimum equity 55.23290328 -> 54.73100833 USDT. Total, realized, blocking and maximum-underwater gates passed, but drawdown and both holding gates failed."
+    },
+    {
+      "name": "DESIGN_INVENTORY_VISIBILITY",
+      "status": "PASS",
+      "evidence": "Parent inventory hours were 0 lots=3475 and 1 lot=31589; terminal inventory was one 30-USDT lot aged 9912h with -22.31327703 USDT unrealized. Candidate inventory hours were 0 lots=4336, 1 lot=5785 and 2 lots=24943; terminal inventory was two 30-USDT lots aged 9912h and 8880h with -22.31327703 and -20.25458125 USDT unrealized."
+    },
+    {
+      "name": "VALIDATION_ECONOMIC_AND_PATH_LEDGER",
+      "status": "FAIL",
+      "evidence": "Parent -> candidate: realized 43.54302055 -> 63.67486483; unrealized -3.60947416 -> 0E-8; total 39.93354639 -> 63.67486483 USDT; drawdown 9.794701% -> 17.393381%; blocked 117 -> 71; median/P90 hold 146.0/775.6h -> 182.0/2271.4h; average/peak equity utilization 44.188896/50.000000% -> 72.563269/100.000000%; underwater hours/episodes/max duration 15867/142/4900h -> 15460/157/4899h; minimum equity 59.85311044 -> 55.91324602 USDT. Total, realized, blocking and maximum-underwater gates passed, but drawdown and both holding gates failed."
+    },
+    {
+      "name": "VALIDATION_INVENTORY_VISIBILITY",
+      "status": "PASS",
+      "evidence": "Parent inventory hours were 0 lots=2039 and 1 lot=15505; terminal inventory was one 30-USDT lot aged 360h with -3.60947416 USDT unrealized. Candidate inventory hours were 0 lots=2638, 1 lot=4351 and 2 lots=10555; terminal inventory was empty. The candidate total uplift is not treated as independent alpha even though realized PnL also improved."
+    },
+    {
+      "name": "ANNUAL_TOTAL_PNL_BREADTH",
+      "status": "PASS",
+      "evidence": "Candidate-minus-parent total-PnL deltas were 2020 +7.78604786, 2021 +7.80240893, 2022 -3.40720101, 2023 +12.87944253 and 2024 +8.84630930 USDT. Strict annual wins were 4/5, meeting the frozen threshold."
+    },
+    {
+      "name": "ANNUAL_REALIZED_PNL_BREADTH",
+      "status": "PASS",
+      "evidence": "Candidate realized PnL was non-lower than the parent in 5/5 annual folds, meeting the frozen threshold."
+    },
+    {
+      "name": "ANNUAL_DRAWDOWN_BREADTH",
+      "status": "FAIL",
+      "evidence": "No annual fold remained within parent plus 2.00 percentage points: 2020 27.951116% -> 53.444895%, 2021 22.138385% -> 38.357072%, 2022 30.218583% -> 38.429622%, 2023 9.794701% -> 17.393381%, and 2024 12.735985% -> 25.125517%. Breadth was 0/5 versus the required 4/5."
+    },
+    {
+      "name": "ANNUAL_POSITIVE_DELTA_CONCENTRATION",
+      "status": "PASS",
+      "evidence": "The largest positive annual total-PnL delta contributed 34.516188% of the sum of positive annual deltas, below the frozen 50% ceiling."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "At least one conjunctive frozen gate failed in both Design and Validation and annual drawdown breadth failed. The exact required disposition is DRA_EQUAL_CAPITAL_TWO_SLOT_CAPACITY_BRANCH_CLOSE. No slot-count, capacity, holding, exit, risk or gate rescue variant was evaluated or retained."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "The two-slot mechanism buys more participation and fee-adjusted PnL at the cost of materially worse drawdown and stale-inventory holding paths. Closing now prevents adapter, OOS, deployment and runtime scaling effort on a mechanism that failed risk-adjusted breadth despite attractive aggregate PnL."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The execution read only the exact sealed pre-2025 TSV and committed runner inputs. It made no repository or .research-state write, no canonical/server MCP write, no heartbeat request, no schedule change, no paid API call, no deployment and no Trading, DB, order, fund, SHADOW, PAPER or LIVE action."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "Historical Validation is post-hoc and not clean OOS; the study cannot establish independent alpha or a strategy candidate.",
+    "The family was selected after prior full-cap and one-slot DRA observations, so the apparent total-PnL uplift is not selection-independent.",
+    "No post-2024, prospective, SHADOW, PAPER or LIVE evidence was opened or created.",
+    "This result closes the exact two-slot 2x30 capacity mechanism under frozen DRA V1 semantics; it does not rank unrelated mechanisms or different-capital strategies."
+  ],
+  "recommended_next_action": "Close and deduplicate the DRA two-slot capacity-scaling family with no rescue variant. Select a causally distinct bounded mechanism that already has a parent, equal-capital comparator and runner and can reach a frozen hypothesis or closure within one additional research step; do not spend OOS, adapter, deployment or runtime work on this branch.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

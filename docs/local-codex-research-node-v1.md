@@ -226,6 +226,26 @@ passes; support work without strict-majority headroom fails closed. The active
 evidence-integrity exception remains explicit and cannot be combined with a
 direct strategy path.
 
+The optimized workflow target cannot pass on ratio alone. Each rolling
+seven-day audit must contain at least five accepted outputs, at least three
+source-commit-verifiable direct mechanism outputs, at least three distinct
+direct mechanism families, and a direct-output ratio strictly above 50%.
+Workflow completion requires two daily audits whose rolling windows are exactly
+one day apart:
+
+```text
+python -m research_pipeline local-research-goal-audit \
+  --previous-period-start <UTC> --previous-period-end <UTC> \
+  --previous-acceptance <acceptance.json> [...] \
+  --current-period-start <UTC> --current-period-end <UTC> \
+  --current-acceptance <acceptance.json> [...]
+```
+
+This audit proves workflow allocation stability only. It keeps strategy success
+`MISSING_PROOF` until a candidate separately passes fees, adverse slippage,
+matched-capital total PnL, drawdown, holding-path, breadth, Validation, and OOS
+gates.
+
 ## Execution modes
 
 - `READ_ONLY`: inspect contracts, toolchain, hashes, and sealed summaries. No

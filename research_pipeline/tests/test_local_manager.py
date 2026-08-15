@@ -14,6 +14,7 @@ from research_pipeline.cli import main as pipeline_main
 from research_pipeline.local_dispatch import canonical_json_bytes, canonical_json_document_bytes
 from research_pipeline.local_manager import (
     build_local_research_allocation_preflight,
+    build_local_research_goal_audit,
     build_local_manager_preflight,
     build_local_strategy_manager_preflight,
     summarize_local_research_kpi,
@@ -430,6 +431,50 @@ class LocalManagerPreflightTest(unittest.TestCase):
         load_policy.assert_not_called()
         research_store.assert_not_called()
 
+    def test_top_level_goal_audit_recomputes_both_windows(self) -> None:
+        stdout = StringIO()
+        stderr = StringIO()
+        expected = {"status": "VALID"}
+        with (
+            patch(
+                "research_pipeline.local_manager.build_local_research_goal_audit",
+                return_value=expected,
+            ) as goal_audit,
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+        ):
+            exit_code = pipeline_main(
+                [
+                    "local-research-goal-audit",
+                    "--repository-root",
+                    "C:/synthetic/repository",
+                    "--previous-period-start",
+                    "2026-08-07T00:00:00Z",
+                    "--previous-period-end",
+                    "2026-08-14T00:00:00Z",
+                    "--previous-acceptance",
+                    "records/previous.json",
+                    "--current-period-start",
+                    "2026-08-08T00:00:00Z",
+                    "--current-period-end",
+                    "2026-08-15T00:00:00Z",
+                    "--current-acceptance",
+                    "records/current.json",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(stderr.getvalue(), "")
+        self.assertEqual(json.loads(stdout.getvalue()), expected)
+        goal_audit.assert_called_once_with(
+            Path("C:/synthetic/repository"),
+            ["records/previous.json"],
+            "2026-08-07T00:00:00Z",
+            "2026-08-14T00:00:00Z",
+            ["records/current.json"],
+            "2026-08-08T00:00:00Z",
+            "2026-08-15T00:00:00Z",
+        )
+
     def test_strategy_preflight_accepts_direct_candidate_path(self) -> None:
         repository = PreflightRepository(self, strategy_ready=True)
 
@@ -519,6 +564,7 @@ class LocalResearchKpiTest(unittest.TestCase):
             rows.append(
                 {
                     "classification_outcome": "COUNT",
+                    "duplicate_family_key": f"mechanism-family-{index}",
                     "output_class": "MECHANISM_CONCLUSION",
                     "output_id": f"mechanism-{index}",
                     "strategy_path_admitted": True,
@@ -640,6 +686,7 @@ class LocalResearchKpiTest(unittest.TestCase):
             {
                 "classification_outcome": "COUNT",
                 "completed_at": "2026-08-15T08:00:00Z",
+                "duplicate_family_key": "direct-family-1",
                 "output_class": "MECHANISM_CONCLUSION",
                 "output_id": "direct-mechanism-1",
                 "strategy_path_admitted": True,
@@ -647,9 +694,24 @@ class LocalResearchKpiTest(unittest.TestCase):
             {
                 "classification_outcome": "COUNT",
                 "completed_at": "2026-08-15T08:15:00Z",
+                "duplicate_family_key": "direct-family-2",
                 "output_class": "MECHANISM_CONCLUSION",
                 "output_id": "direct-mechanism-2",
                 "strategy_path_admitted": True,
+            },
+            {
+                "classification_outcome": "COUNT",
+                "completed_at": "2026-08-15T08:20:00Z",
+                "duplicate_family_key": "direct-family-3",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": "direct-mechanism-3",
+                "strategy_path_admitted": True,
+            },
+            {
+                "classification_outcome": "COUNT",
+                "completed_at": "2026-08-15T08:30:00Z",
+                "output_class": "SPEC_OR_CAPABILITY_SLICE",
+                "output_id": "support-current",
             },
         ]
         classification = {
@@ -660,9 +722,9 @@ class LocalResearchKpiTest(unittest.TestCase):
             "rows": rows,
             "status": "VALID",
             "unique_family_totals": {
-                "MECHANISM_CONCLUSION": 3,
+                "MECHANISM_CONCLUSION": 4,
                 "NON_COUNTING": 0,
-                "SPEC_OR_CAPABILITY_SLICE": 1,
+                "SPEC_OR_CAPABILITY_SLICE": 2,
             },
         }
 
@@ -672,11 +734,15 @@ class LocalResearchKpiTest(unittest.TestCase):
         ]
         self.assertEqual(forecast["status"], "PROJECTED")
         self.assertEqual(forecast["strictly_after"], "2026-08-17T12:00:00Z")
-        self.assertEqual(forecast["remaining_output_count_after_boundary"], 3)
-        self.assertEqual(forecast["direct_mechanism_count_after_boundary"], 2)
+        self.assertEqual(forecast["remaining_output_count_after_boundary"], 5)
+        self.assertEqual(forecast["direct_mechanism_count_after_boundary"], 3)
+        self.assertEqual(
+            forecast["direct_mechanism_family_count_after_boundary"],
+            3,
+        )
         self.assertEqual(
             forecast["direct_mechanism_ratio_basis_points_after_boundary"],
-            6666,
+            6000,
         )
         self.assertEqual(forecast["window_seconds"], 604800)
         allocation = result["goal_assessment"]["candidate_delivery_efficiency"][
@@ -684,7 +750,7 @@ class LocalResearchKpiTest(unittest.TestCase):
         ]
         self.assertEqual(
             allocation["direct_strategy_path"]["projected_ratio_basis_points"],
-            6000,
+            5714,
         )
         self.assertEqual(
             allocation["support_work"]["status"],
@@ -695,6 +761,7 @@ class LocalResearchKpiTest(unittest.TestCase):
         rows = [
             {
                 "classification_outcome": "COUNT",
+                "duplicate_family_key": f"direct-family-{index}",
                 "output_class": "MECHANISM_CONCLUSION",
                 "output_id": f"direct-{index}",
                 "strategy_path_admitted": True,
@@ -735,6 +802,70 @@ class LocalResearchKpiTest(unittest.TestCase):
             allocation["support_work"]["projected_ratio_basis_points"],
             6000,
         )
+
+    def test_kpi_rejects_small_sample_even_when_ratio_is_above_half(self) -> None:
+        rows = [
+            {
+                "classification_outcome": "COUNT",
+                "duplicate_family_key": f"direct-family-{index}",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": f"direct-{index}",
+                "strategy_path_admitted": True,
+            }
+            for index in range(2)
+        ]
+        rows.append(
+            {
+                "classification_outcome": "COUNT",
+                "output_class": "SPEC_OR_CAPABILITY_SLICE",
+                "output_id": "support",
+            }
+        )
+        classification = {
+            "period": {
+                "start_inclusive": "2026-08-10T00:00:00Z",
+                "end_exclusive": "2026-08-17T00:00:00Z",
+            },
+            "rows": rows,
+            "status": "VALID",
+            "unique_family_totals": {
+                "MECHANISM_CONCLUSION": 2,
+                "NON_COUNTING": 0,
+                "SPEC_OR_CAPABILITY_SLICE": 1,
+            },
+        }
+
+        efficiency = summarize_local_research_kpi(classification)[
+            "goal_assessment"
+        ]["candidate_delivery_efficiency"]
+        self.assertEqual(efficiency["direct_mechanism_ratio_basis_points"], 6666)
+        self.assertEqual(efficiency["status"], "BELOW_TARGET")
+        self.assertEqual(efficiency["required_accepted_output_count"], 5)
+        self.assertEqual(efficiency["required_direct_mechanism_count"], 3)
+        self.assertEqual(efficiency["required_direct_mechanism_family_count"], 3)
+
+    def test_goal_audit_requires_two_consecutive_daily_windows(self) -> None:
+        met = {
+            "goal_assessment": {
+                "candidate_delivery_efficiency": {"status": "MET"}
+            },
+            "period": {},
+        }
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            side_effect=[met, met],
+        ):
+            result = build_local_research_goal_audit(
+                "C:/synthetic/repository",
+                ["previous.json"],
+                "2026-08-07T00:00:00Z",
+                "2026-08-14T00:00:00Z",
+                ["current.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+            )
+        self.assertEqual(result["workflow_efficiency_goal"]["status"], "MET")
+        self.assertEqual(result["strategy_success"]["status"], "MISSING_PROOF")
 
     def test_top_level_kpi_uses_explicit_allowlist_without_policy_or_state(self) -> None:
         classification = {

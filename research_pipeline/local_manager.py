@@ -23,11 +23,16 @@ PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_PREFLIGHT_RECEIPT_V1"
 STRATEGY_PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_STRATEGY_PREFLIGHT_RECEIPT_V1"
 ALLOCATION_PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_ALLOCATION_PREFLIGHT_RECEIPT_V1"
 KPI_DOCUMENT_TYPE = "LOCAL_RESEARCH_THROUGHPUT_KPI_V1"
+GOAL_AUDIT_DOCUMENT_TYPE = "LOCAL_RESEARCH_GOAL_AUDIT_V1"
 WEEKLY_FLOOR_MECHANISMS = 3
 WEEKLY_FLOOR_SLICES = 1
 WEEKLY_STRETCH_MECHANISMS = 4
 WEEKLY_STRETCH_SLICES = 2
 MAX_KPI_PERIOD = timedelta(days=7)
+CANDIDATE_DELIVERY_MIN_ACCEPTED_OUTPUTS = 5
+CANDIDATE_DELIVERY_MIN_DIRECT_MECHANISMS = 3
+CANDIDATE_DELIVERY_MIN_DIRECT_FAMILIES = 3
+CANDIDATE_DELIVERY_REQUIRED_CONSECUTIVE_DAILY_AUDITS = 2
 
 
 def _git(root: Path, *arguments: str) -> bytes:
@@ -392,18 +397,44 @@ def _utc_timestamp(value: str, label: str) -> datetime:
     return parsed
 
 
+def _candidate_delivery_stats(rows: list[dict[str, Any]]) -> dict[str, int]:
+    direct_rows = [
+        row
+        for row in rows
+        if row["classification_outcome"] == "COUNT"
+        and row["output_class"] == "MECHANISM_CONCLUSION"
+        and row.get("strategy_path_admitted") is True
+    ]
+    direct_families = {
+        row.get("duplicate_family_key")
+        for row in direct_rows
+        if isinstance(row.get("duplicate_family_key"), str)
+    }
+    return {
+        "accepted_output_count": len(rows),
+        "direct_mechanism_count": len(direct_rows),
+        "direct_mechanism_family_count": len(direct_families),
+    }
+
+
+def _candidate_delivery_goal_met(stats: dict[str, int]) -> bool:
+    return (
+        stats["accepted_output_count"] >= CANDIDATE_DELIVERY_MIN_ACCEPTED_OUTPUTS
+        and stats["direct_mechanism_count"]
+        >= CANDIDATE_DELIVERY_MIN_DIRECT_MECHANISMS
+        and stats["direct_mechanism_family_count"]
+        >= CANDIDATE_DELIVERY_MIN_DIRECT_FAMILIES
+        and stats["direct_mechanism_count"] * 2
+        > stats["accepted_output_count"]
+    )
+
+
 def _candidate_delivery_recovery_forecast(
     rows: list[dict[str, Any]],
     period: dict[str, str],
 ) -> dict[str, Any]:
-    denominator = len(rows)
-    direct_count = sum(
-        row["classification_outcome"] == "COUNT"
-        and row["output_class"] == "MECHANISM_CONCLUSION"
-        and row.get("strategy_path_admitted") is True
-        for row in rows
-    )
-    if denominator > 0 and direct_count * 2 > denominator:
+    current = _candidate_delivery_stats(rows)
+    if _candidate_delivery_goal_met(current):
         return {
             "assumption": "NO_NEW_ACCEPTED_OUTPUTS",
             "status": "ALREADY_MET",
@@ -441,21 +472,26 @@ def _candidate_delivery_recovery_forecast(
         remaining_indexes = [
             index for index, expiration in enumerate(expirations) if expiration > boundary
         ]
-        remaining_count = len(remaining_indexes)
-        remaining_direct = sum(
-            rows[index]["classification_outcome"] == "COUNT"
-            and rows[index]["output_class"] == "MECHANISM_CONCLUSION"
-            and rows[index].get("strategy_path_admitted") is True
-            for index in remaining_indexes
+        remaining = _candidate_delivery_stats(
+            [rows[index] for index in remaining_indexes]
         )
-        if remaining_count > 0 and remaining_direct * 2 > remaining_count:
+        if _candidate_delivery_goal_met(remaining):
             return {
                 "assumption": "NO_NEW_ACCEPTED_OUTPUTS",
-                "direct_mechanism_count_after_boundary": remaining_direct,
+                "direct_mechanism_count_after_boundary": remaining[
+                    "direct_mechanism_count"
+                ],
+                "direct_mechanism_family_count_after_boundary": remaining[
+                    "direct_mechanism_family_count"
+                ],
                 "direct_mechanism_ratio_basis_points_after_boundary": (
-                    remaining_direct * 10_000 // remaining_count
+                    remaining["direct_mechanism_count"]
+                    * 10_000
+                    // remaining["accepted_output_count"]
                 ),
-                "remaining_output_count_after_boundary": remaining_count,
+                "remaining_output_count_after_boundary": remaining[
+                    "accepted_output_count"
+                ],
                 "status": "PROJECTED",
                 "strictly_after": boundary.isoformat().replace("+00:00", "Z"),
                 "window_seconds": int(window.total_seconds()),
@@ -528,6 +564,8 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
     direct_ratio_bps = (
         0 if denominator == 0 else len(direct_mechanisms) * 10_000 // denominator
     )
+    delivery_stats = _candidate_delivery_stats(rows)
+    delivery_goal_met = _candidate_delivery_goal_met(delivery_stats)
 
     def target(required_mechanisms: int, required_slices: int) -> dict[str, Any]:
         return {
@@ -557,6 +595,9 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
             "candidate_delivery_efficiency": {
                 "accepted_output_count": denominator,
                 "direct_mechanism_count": len(direct_mechanisms),
+                "direct_mechanism_family_count": delivery_stats[
+                    "direct_mechanism_family_count"
+                ],
                 "direct_mechanism_ratio_basis_points": direct_ratio_bps,
                 "labelled_mechanism_proxy_count": len(labelled_mechanisms),
                 "natural_recovery_forecast": _candidate_delivery_recovery_forecast(
@@ -568,13 +609,17 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
                     len(direct_mechanisms),
                 ),
                 "proof_standard": "COUNTED_MECHANISM_WITH_VERIFIED_STRATEGY_PATH_ADMISSION",
-                "status": (
-                    "MET"
-                    if denominator > 0 and len(direct_mechanisms) * 2 > denominator
-                    else "BELOW_TARGET"
-                ),
+                "required_accepted_output_count": CANDIDATE_DELIVERY_MIN_ACCEPTED_OUTPUTS,
+                "required_direct_mechanism_count": CANDIDATE_DELIVERY_MIN_DIRECT_MECHANISMS,
+                "required_direct_mechanism_family_count": CANDIDATE_DELIVERY_MIN_DIRECT_FAMILIES,
+                "status": "MET" if delivery_goal_met else "BELOW_TARGET",
                 "support_or_excluded_count": denominator - len(direct_mechanisms),
-                "target": "DIRECT_MECHANISM_CONCLUSIONS_STRICTLY_MORE_THAN_50_PERCENT_OF_ALL_ACCEPTED_OUTPUTS",
+                "target": "AT_LEAST_5_ACCEPTED_AT_LEAST_3_DIRECT_AT_LEAST_3_DIRECT_FAMILIES_AND_STRICTLY_MORE_THAN_50_PERCENT",
+                "two_daily_audit_stability": {
+                    "current_audit_met": delivery_goal_met,
+                    "required_consecutive_daily_audits": CANDIDATE_DELIVERY_REQUIRED_CONSECUTIVE_DAILY_AUDITS,
+                    "status": "REQUIRES_LOCAL_RESEARCH_GOAL_AUDIT",
+                },
             },
             "operational_overhead": {
                 "denominator": denominator,
@@ -619,6 +664,75 @@ def build_local_research_kpi(
         period_end,
     )
     return summarize_local_research_kpi(classification)
+
+
+def build_local_research_goal_audit(
+    repository_root: Path | str,
+    previous_acceptance_paths: Iterable[str],
+    previous_period_start: str,
+    previous_period_end: str,
+    current_acceptance_paths: Iterable[str],
+    current_period_start: str,
+    current_period_end: str,
+) -> dict[str, Any]:
+    previous_start = _utc_timestamp(previous_period_start, "previous_period_start")
+    previous_end = _utc_timestamp(previous_period_end, "previous_period_end")
+    current_start = _utc_timestamp(current_period_start, "current_period_start")
+    current_end = _utc_timestamp(current_period_end, "current_period_end")
+    if current_start - previous_start != timedelta(days=1):
+        raise ValueError("goal audit rolling-window starts must be exactly one day apart")
+    if current_end - previous_end != timedelta(days=1):
+        raise ValueError("goal audit rolling-window ends must be exactly one day apart")
+    if previous_end - previous_start != current_end - current_start:
+        raise ValueError("goal audit rolling windows must have identical duration")
+
+    previous = build_local_research_kpi(
+        repository_root,
+        previous_acceptance_paths,
+        previous_period_start,
+        previous_period_end,
+    )
+    current = build_local_research_kpi(
+        repository_root,
+        current_acceptance_paths,
+        current_period_start,
+        current_period_end,
+    )
+    previous_efficiency = previous["goal_assessment"][
+        "candidate_delivery_efficiency"
+    ]
+    current_efficiency = current["goal_assessment"][
+        "candidate_delivery_efficiency"
+    ]
+    previous_met = previous_efficiency["status"] == "MET"
+    current_met = current_efficiency["status"] == "MET"
+    consecutive_met = 2 if previous_met and current_met else (1 if current_met else 0)
+    workflow_met = consecutive_met == CANDIDATE_DELIVERY_REQUIRED_CONSECUTIVE_DAILY_AUDITS
+    return {
+        "audits": [
+            {
+                "candidate_delivery_efficiency": previous_efficiency,
+                "period": previous["period"],
+            },
+            {
+                "candidate_delivery_efficiency": current_efficiency,
+                "period": current["period"],
+            },
+        ],
+        "document_type": GOAL_AUDIT_DOCUMENT_TYPE,
+        "schema_version": "1",
+        "scientific_claim": "NO_ALPHA_OR_PERFORMANCE_CLAIM",
+        "status": "VALID",
+        "strategy_success": {
+            "reason": "Throughput classification does not prove fee-adjusted PnL, drawdown, holding-path, breadth, Validation, or OOS gates.",
+            "status": "MISSING_PROOF",
+        },
+        "workflow_efficiency_goal": {
+            "consecutive_daily_audits_met": consecutive_met,
+            "required_consecutive_daily_audits": CANDIDATE_DELIVERY_REQUIRED_CONSECUTIVE_DAILY_AUDITS,
+            "status": "MET" if workflow_met else "NOT_YET_MET",
+        },
+    }
 
 
 def build_local_research_allocation_preflight(

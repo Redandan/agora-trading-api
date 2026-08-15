@@ -79,6 +79,11 @@ matched-capital risk-adjusted performance, not run count or candidate count.
 - Enforce that decision with `local-research-allocation-preflight`, passing the
   exact rolling acceptance allowlist and the strategy-path sidecar for direct
   work. Do not dispatch when the allocation preflight fails.
+- Assess the optimized workflow target with `local-research-goal-audit`. Require
+  two seven-day rolling windows exactly one day apart; each must contain at least
+  five accepted outputs, at least three verified direct mechanisms from at least
+  three distinct families, and a strict direct-output majority. Keep workflow
+  success separate from strategy success; throughput never proves alpha.
 
 ## Register a hypothesis and experiment
 

@@ -200,6 +200,14 @@ def parser() -> argparse.ArgumentParser:
     throughput_kpi.add_argument("--period-start", required=True)
     throughput_kpi.add_argument("--period-end", required=True)
     throughput_kpi.add_argument("--repository-root", type=Path, default=REPO_ROOT)
+    goal_audit = commands.add_parser("local-research-goal-audit")
+    goal_audit.add_argument("--previous-acceptance", action="append", required=True)
+    goal_audit.add_argument("--previous-period-start", required=True)
+    goal_audit.add_argument("--previous-period-end", required=True)
+    goal_audit.add_argument("--current-acceptance", action="append", required=True)
+    goal_audit.add_argument("--current-period-start", required=True)
+    goal_audit.add_argument("--current-period-end", required=True)
+    goal_audit.add_argument("--repository-root", type=Path, default=REPO_ROOT)
     validate_semantic_closure = commands.add_parser(
         "validate-local-research-semantic-closure"
     )
@@ -1605,6 +1613,20 @@ def main(argv: list[str] | None = None) -> int:
                 args.acceptance,
                 args.period_start,
                 args.period_end,
+            )
+            print(canonical_json_bytes(validation).decode("utf-8"))
+            return 0
+        if args.command == "local-research-goal-audit":
+            from .local_manager import build_local_research_goal_audit
+
+            validation = build_local_research_goal_audit(
+                args.repository_root,
+                args.previous_acceptance,
+                args.previous_period_start,
+                args.previous_period_end,
+                args.current_acceptance,
+                args.current_period_start,
+                args.current_period_end,
             )
             print(canonical_json_bytes(validation).decode("utf-8"))
             return 0

@@ -192,6 +192,14 @@ the KPI green. It is a workflow KPI only. The classification V1 contract cannot 
 forward terminal, alpha, PnL or drawdown improvement, so those claims remain
 explicit `MISSING_PROOF` instead of being inferred from filenames.
 
+When the direct candidate-delivery ratio is below target, the same deterministic
+receipt reports a `natural_recovery_forecast`. It projects the first rolling
+boundary strictly after which the target would recover if no new accepted
+outputs arrive. The forecast is an allocation aid, not permission to manufacture
+mechanism tasks or suppress an active evidence-integrity repair. Missing row
+completion time remains `MISSING_PROOF`; an empty future window is never treated
+as target attainment.
+
 ## Execution modes
 
 - `READ_ONLY`: inspect contracts, toolchain, hashes, and sealed summaries. No

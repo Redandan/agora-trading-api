@@ -604,6 +604,68 @@ class LocalResearchKpiTest(unittest.TestCase):
         self.assertEqual(efficiency["direct_mechanism_count"], 0)
         self.assertEqual(efficiency["direct_mechanism_ratio_basis_points"], 0)
         self.assertEqual(efficiency["status"], "BELOW_TARGET")
+        self.assertEqual(
+            efficiency["natural_recovery_forecast"]["status"],
+            "MISSING_PROOF",
+        )
+
+    def test_kpi_forecasts_natural_recovery_without_fabricating_work(self) -> None:
+        rows = [
+            {
+                "classification_outcome": "COUNT",
+                "completed_at": "2026-08-10T12:00:00Z",
+                "output_class": "SPEC_OR_CAPABILITY_SLICE",
+                "output_id": "support-old",
+            },
+            {
+                "classification_outcome": "COUNT",
+                "completed_at": "2026-08-15T02:00:00Z",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": "legacy-mechanism",
+                "strategy_path_admitted": False,
+            },
+            {
+                "classification_outcome": "COUNT",
+                "completed_at": "2026-08-15T08:00:00Z",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": "direct-mechanism-1",
+                "strategy_path_admitted": True,
+            },
+            {
+                "classification_outcome": "COUNT",
+                "completed_at": "2026-08-15T08:15:00Z",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": "direct-mechanism-2",
+                "strategy_path_admitted": True,
+            },
+        ]
+        classification = {
+            "period": {
+                "start_inclusive": "2026-08-08T09:00:00Z",
+                "end_exclusive": "2026-08-15T09:00:00Z",
+            },
+            "rows": rows,
+            "status": "VALID",
+            "unique_family_totals": {
+                "MECHANISM_CONCLUSION": 3,
+                "NON_COUNTING": 0,
+                "SPEC_OR_CAPABILITY_SLICE": 1,
+            },
+        }
+
+        result = summarize_local_research_kpi(classification)
+        forecast = result["goal_assessment"]["candidate_delivery_efficiency"][
+            "natural_recovery_forecast"
+        ]
+        self.assertEqual(forecast["status"], "PROJECTED")
+        self.assertEqual(forecast["strictly_after"], "2026-08-17T12:00:00Z")
+        self.assertEqual(forecast["remaining_output_count_after_boundary"], 3)
+        self.assertEqual(forecast["direct_mechanism_count_after_boundary"], 2)
+        self.assertEqual(
+            forecast["direct_mechanism_ratio_basis_points_after_boundary"],
+            6666,
+        )
+        self.assertEqual(forecast["window_seconds"], 604800)
 
     def test_top_level_kpi_uses_explicit_allowlist_without_policy_or_state(self) -> None:
         classification = {

@@ -391,6 +391,82 @@ def _utc_timestamp(value: str, label: str) -> datetime:
     return parsed
 
 
+def _candidate_delivery_recovery_forecast(
+    rows: list[dict[str, Any]],
+    period: dict[str, str],
+) -> dict[str, Any]:
+    denominator = len(rows)
+    direct_count = sum(
+        row["classification_outcome"] == "COUNT"
+        and row["output_class"] == "MECHANISM_CONCLUSION"
+        and row.get("strategy_path_admitted") is True
+        for row in rows
+    )
+    if denominator > 0 and direct_count * 2 > denominator:
+        return {
+            "assumption": "NO_NEW_ACCEPTED_OUTPUTS",
+            "status": "ALREADY_MET",
+        }
+    if not rows:
+        return {
+            "assumption": "NO_NEW_ACCEPTED_OUTPUTS",
+            "reason": "No accepted outputs are present in the current window.",
+            "status": "NOT_PROJECTED_BEFORE_CURRENT_ROWS_EXPIRE",
+        }
+
+    try:
+        start = _utc_timestamp(period["start_inclusive"], "period start")
+        end = _utc_timestamp(period["end_exclusive"], "period end")
+        completed = [
+            _utc_timestamp(row["completed_at"], f"rows[{index}] completed_at")
+            for index, row in enumerate(rows)
+        ]
+    except (KeyError, TypeError, ValueError) as error:
+        return {
+            "assumption": "NO_NEW_ACCEPTED_OUTPUTS",
+            "reason": f"Recovery forecast requires every validated row completion time: {error}",
+            "status": "MISSING_PROOF",
+        }
+
+    window = end - start
+    if window <= timedelta(0):
+        return {
+            "assumption": "NO_NEW_ACCEPTED_OUTPUTS",
+            "reason": "Recovery forecast requires a nonempty rolling window.",
+            "status": "MISSING_PROOF",
+        }
+    expirations = [timestamp + window for timestamp in completed]
+    for boundary in sorted(set(expirations)):
+        remaining_indexes = [
+            index for index, expiration in enumerate(expirations) if expiration > boundary
+        ]
+        remaining_count = len(remaining_indexes)
+        remaining_direct = sum(
+            rows[index]["classification_outcome"] == "COUNT"
+            and rows[index]["output_class"] == "MECHANISM_CONCLUSION"
+            and rows[index].get("strategy_path_admitted") is True
+            for index in remaining_indexes
+        )
+        if remaining_count > 0 and remaining_direct * 2 > remaining_count:
+            return {
+                "assumption": "NO_NEW_ACCEPTED_OUTPUTS",
+                "direct_mechanism_count_after_boundary": remaining_direct,
+                "direct_mechanism_ratio_basis_points_after_boundary": (
+                    remaining_direct * 10_000 // remaining_count
+                ),
+                "remaining_output_count_after_boundary": remaining_count,
+                "status": "PROJECTED",
+                "strictly_after": boundary.isoformat().replace("+00:00", "Z"),
+                "window_seconds": int(window.total_seconds()),
+            }
+    return {
+        "assumption": "NO_NEW_ACCEPTED_OUTPUTS",
+        "reason": "The target is not reached before every current row leaves the rolling window.",
+        "status": "NOT_PROJECTED_BEFORE_CURRENT_ROWS_EXPIRE",
+        "window_seconds": int(window.total_seconds()),
+    }
+
+
 def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, Any]:
     rows = classification["rows"]
     counted = [row for row in rows if row["classification_outcome"] == "COUNT"]
@@ -447,6 +523,10 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
                 "direct_mechanism_count": len(direct_mechanisms),
                 "direct_mechanism_ratio_basis_points": direct_ratio_bps,
                 "labelled_mechanism_proxy_count": len(labelled_mechanisms),
+                "natural_recovery_forecast": _candidate_delivery_recovery_forecast(
+                    rows,
+                    classification["period"],
+                ),
                 "proof_standard": "COUNTED_MECHANISM_WITH_VERIFIED_STRATEGY_PATH_ADMISSION",
                 "status": (
                     "MET"

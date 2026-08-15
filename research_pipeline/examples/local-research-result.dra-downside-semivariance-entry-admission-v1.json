@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-downside-semivariance-entry-admission-v1",
+  "task_sha256": "5548cb4d902a11f4c3ba839bf22e9c6e74f7a11cf525c6e712584a0747706e51",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-15T12:18:10Z",
+  "completed_at": "2026-08-15T12:18:20Z",
+  "source_git_commit": "5d4ea241b5c4acec4803880acf3bd11dc53ed3ee",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_DOWNSIDE_SEMIVARIANCE_BRANCH_CLOSE. The exact 52,608-row pre-2025 sealed H1 corpus, feature-specific primary prior, frozen declarative runner, unchanged DRA V1 parent parity, decision-time accounting and equal-capital assumptions passed. The primary 1.0 admission improved Design total PnL from 90.77797326 to 117.62466925 USDT, but realized PnL fell and the apparent uplift was carried by less-negative terminal inventory while drawdown and median holding worsened. It failed to generalize: historical Validation total PnL fell from 86.20298186 to 83.05896960 USDT, realized PnL fell by the same 3.14401226 USDT, drawdown rose from 7.121498% to 8.608374%, median/P90 holding worsened from 182.5/1418.3h to 212.5/2366.3h, annual total-PnL breadth was 1/5, and the sole positive annual delta contributed 100% of positive uplift. Both frozen neighbors failed. This historical development feature family is closed without tuning, candidate creation or OOS access.",
+  "checks": [
+    {
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "The allocation preflight returned VALID and DIRECT_STRATEGY_PATH_ALLOWED at clean HEAD/origin 5d4ea241b5c4acec4803880acf3bd11dc53ed3ee. Frozen task 5548cb4d902a11f4c3ba839bf22e9c6e74f7a11cf525c6e712584a0747706e51, dispatch b86e84727d3e1cbfdc9f6f010b208e765f518923607887f2343a03b12fece47c, intent ff3207f83e8bd6dc0d8a66ce7f655e10434351220b6a656d6f68ebc501e4ee36 and strategy path 3b990a8a6d40098fb4899487fcf725aff2d11b412d7133f1f59bf53bf90885cb were validated before outcome access."
+    },
+    {
+      "name": "PRIMARY_PRIOR_AND_RUNNER_IDENTITY",
+      "status": "PASS",
+      "evidence": "The feature-specific prior hash was 2371a45ffbe0ebc4d8d9d31ee91e9b575dc1826aa29ab19aaaa1f7496f61f441 with disposition PRIOR_SUPPORTS_ONE_DOWNSIDE_SEMIVARIANCE_ADMISSION_AUDIT. The executed declarative runner SHA-256 was 8fb81a591b09ea08660815cef5950800211994a2c8bc7f92a2436b8b78938206 and matched the frozen task input."
+    },
+    {
+      "name": "SEALED_DATA_AND_PARENT_PARITY",
+      "status": "PASS",
+      "evidence": "The input contained exactly 52,608 contiguous pre-2025 H1 rows with canonical SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd. Parent Design reproduced realized 169.89846767, unrealized -79.12049441, total 90.77797326 USDT, drawdown 29.530448%, median/P90 126.0/1818.6h, 100 buys, 95 sells, five open lots and three blocked entries. Parent Validation reproduced total 86.20298186 USDT, drawdown 7.121498%, median/P90 182.5/1418.3h, 51 buys and 50 sells."
+    },
+    {
+      "name": "DECISION_TIME_FEATURE_ACCOUNTING",
+      "status": "PASS",
+      "evidence": "The primary Design ledger reconciled 97 admissions, 15 vetoes and two explicitly fail-closed unavailable signals; Validation reconciled 49 admissions, 15 vetoes and zero unavailable signals. The feature used only complete-day negative and total squared hourly returns and the prior 20-complete-day median before the unchanged next-open fill."
+    },
+    {
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent -> primary Design: realized 169.89846767 -> 156.21346999, unrealized -79.12049441 -> -38.58880074, total 90.77797326 -> 117.62466925 USDT, drawdown 29.530448% -> 29.973217%, median/P90 hold 126.0/1818.6h -> 158.5/1473.1h, and open lots 5 -> 4. The +26.84669599 total uplift coexisted with -13.68499768 realized deterioration and came from +40.53169367 less-negative terminal inventory; it is not realized alpha or broad path improvement."
+    },
+    {
+      "name": "VALIDATION_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent -> primary Validation: realized 89.41118307 -> 86.26717081, unrealized -3.20820121 -> -3.20820121, total 86.20298186 -> 83.05896960 USDT, drawdown 7.121498% -> 8.608374%, median/P90 hold 182.5/1418.3h -> 212.5/2366.3h, and average/peak equity utilization 21.632695/60.000000% -> 23.142271/72.000000%. Total, realized, drawdown and both holding gates failed."
+    },
+    {
+      "name": "ANNUAL_BREADTH_AND_CONCENTRATION",
+      "status": "FAIL",
+      "evidence": "Primary candidate-minus-parent total-PnL deltas were 2020 -2.36238934, 2021 +9.65547795, 2022 -3.83255644, 2023 -3.57189091 and 2024 -1.51045089 USDT. Strict total-PnL wins were 1/5 versus the required 3/5. Drawdown stayed within the frozen annual tolerance in 4/5 folds, but the only positive total-PnL year contributed 100.000000% of positive uplift versus the 60% maximum."
+    },
+    {
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL",
+      "evidence": "The 0.8 neighbor produced Validation total 81.17081581 USDT and drawdown 13.986040%, both worse than parent. The 1.2 neighbor produced Validation total 86.08769762 USDT, 0.11528424 below parent, and vetoed only one signal, below minimum intervention support. Neither frozen neighbor passed all stability gates."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Valid paired evidence failed Validation total, realized, drawdown, median holding, P90 holding, annual total breadth, positive-delta concentration and both-neighbor gates. The frozen terminal disposition is DRA_DOWNSIDE_SEMIVARIANCE_BRANCH_CLOSE. No threshold, lookback, sign convention, total-volatility interaction, selected year or rescue variant was evaluated."
+    },
+    {
+      "name": "ARTIFACT_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly one create-only artifact was written at .research-state/experiments/dra-downside-semivariance-entry-admission-v1/artifacts/screen.json with SHA-256 3eb9c7cf2638087dd11ebf4e28f4b40d0b75e1190226a8881b96225227918871 and terminal status NO_MECHANISM_CLOSE_FEATURE_FAMILY."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The execution made no repository source write, canonical-state or server Research MCP write, heartbeat or schedule change, network or paid-API call, deployment, database mutation, and no Trading, order, fund, SHADOW, PAPER or LIVE action. The permitted create-only screen artifact was the sole research-state output."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/dra-downside-semivariance-entry-admission-v1/artifacts/screen.json",
+      "sha256": "3eb9c7cf2638087dd11ebf4e28f4b40d0b75e1190226a8881b96225227918871"
+    }
+  ],
+  "files_changed": [],
+  "uncertainty": [
+    "Historical Validation is post-hoc development evidence and not clean OOS; the study cannot establish independent alpha or a strategy candidate.",
+    "Hourly returns are coarser than tick or five-minute realized-semivariance estimators, but changing sampling after the result is forbidden.",
+    "The Design total-PnL uplift was dominated by terminal inventory valuation while realized PnL fell, so it cannot be interpreted as independent economic support.",
+    "No post-2024, prospective, SHADOW, PAPER or LIVE evidence was opened or created."
+  ],
+  "recommended_next_action": "Close and deduplicate the exact downside-semivariance-share DRA entry-admission family without threshold, lookback, sampling, sign or interaction rescue. Reuse the new direct-screen package builder for the next causally distinct mechanism only after it has a pre-outcome primary prior, decision-time feature, equal-capital comparator and direct runner; keep volume and range reserved for their existing prospective discovery contract.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

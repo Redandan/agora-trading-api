@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-bipower-jumpiness-entry-admission-v1",
+  "task_sha256": "86fc63f282c06da2067d8e92353b3b21b6a82447a9261e7eafba5eec9afa4edb",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-15T13:14:50Z",
+  "completed_at": "2026-08-15T13:15:05Z",
+  "source_git_commit": "5d84ad45c689ecbf34a695bda6ae80ddd004b4ee",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_BIPOWER_JUMPINESS_BRANCH_CLOSE. The exact 52,608-row pre-2025 sealed H1 corpus, feature-specific primary prior, frozen declarative runner, unchanged DRA V1 parent parity, decision-time accounting and equal-capital assumptions passed. The primary realized-to-bipower-variation admission reduced Design drawdown from 29.530448% to 12.646094% and shortened median/P90 holding from 126.0/1818.6h to 119.0/1187.8h, but Design total PnL fell from 90.77797326 to 76.55009457 USDT. It failed more decisively in historical Validation: total and realized PnL fell from 86.20298186/89.41118307 to 74.76199737/74.76199737 USDT, drawdown rose from 7.121498% to 14.443056%, P90 holding rose from 1418.3h to 3499.8h, annual total-PnL breadth was 1/5 and the sole positive annual delta contributed 100% of positive uplift. Both frozen neighbors also lost Validation total PnL. This historical development feature family is closed without tuning, candidate creation or OOS access.",
+  "checks": [
+    {
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Manager, strategy-path and allocation preflights returned VALID and DIRECT_STRATEGY_PATH_ALLOWED at clean HEAD/origin 5d84ad45c689ecbf34a695bda6ae80ddd004b4ee. Frozen task 86fc63f282c06da2067d8e92353b3b21b6a82447a9261e7eafba5eec9afa4edb, dispatch 5266b7965d68a6aae6919c06a4f81b37cb3fae1c8aa6ee43933db61b7ed6c2f2, intent d1ea83327bf73a17d098c73e174d3368fa69fd32b37995a86c4b5ff4da99fe01 and strategy path f36a77dfb863c4d9e5d200cdcc2f14541d49666923f832a493af0d889da3f61b were validated before outcome access. The projected governance-output ratio after a counted direct closure was 20%, so allocation explicitly allowed this economic run."
+    },
+    {
+      "name": "PRIMARY_PRIOR_AND_RUNNER_IDENTITY",
+      "status": "PASS",
+      "evidence": "The feature-specific prior SHA-256 was f39e5aaebb27e088e4fdbee1e48e21c89c55553b264f8025a23b1e0cff7d00cd and supported exactly one coarse realized-to-bipower-variation admission audit. The executed declarative runner SHA-256 was ad2998274e3ca8728e1e5d371c1516f2ef7135e8f2c830f213816ea3b668f7e5 and matched the frozen task input; manifest SHA-256 e9f9b08870f98a22f1645de6ce63dd1cf2e6583b02381091103368cfab5d47d2 also matched."
+    },
+    {
+      "name": "SEALED_DATA_AND_PARENT_PARITY",
+      "status": "PASS",
+      "evidence": "The input contained exactly 52,608 contiguous pre-2025 H1 rows with canonical SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd. Parent Design reproduced realized 169.89846767, unrealized -79.12049441, total 90.77797326 USDT, drawdown 29.530448%, median/P90 126.0/1818.6h, 100 buys, 95 sells, five open lots and three blocked entries. Parent Validation reproduced realized 89.41118307, unrealized -3.20820121, total 86.20298186 USDT, drawdown 7.121498%, median/P90 182.5/1418.3h, 51 buys and 50 sells."
+    },
+    {
+      "name": "DECISION_TIME_FEATURE_ACCOUNTING",
+      "status": "PASS",
+      "evidence": "The primary Design ledger reconciled 72 admissions, 95 vetoes and two explicitly fail-closed unavailable signals; Validation reconciled 43 admissions, 46 vetoes and zero unavailable signals. Each daily feature used exactly 24 close-to-close simple hourly returns ending at the latest complete UTC day, calculated realized variation divided by pi-over-two bipower variation, and normalized it to the prior 20-complete-day median before the unchanged next-open fill. Non-positive realized or bipower variation failed closed."
+    },
+    {
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent -> primary Design: realized 169.89846767 -> 120.10652452, unrealized -79.12049441 -> -43.55642995, total 90.77797326 -> 76.55009457 USDT, drawdown 29.530448% -> 12.646094%, median/P90 hold 126.0/1818.6h -> 119.0/1187.8h, open lots 5 -> 4 and average/peak utilization 34.364819/96.000000% -> 17.552019/72.000000%. Better drawdown and holding did not compensate for -14.22787869 total and -49.79194315 realized deterioration."
+    },
+    {
+      "name": "VALIDATION_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent -> primary Validation: realized 89.41118307 -> 74.76199737, unrealized -3.20820121 -> 0, total 86.20298186 -> 74.76199737 USDT, drawdown 7.121498% -> 14.443056%, median/P90 hold 182.5/1418.3h -> 160.0/3499.8h, open lots 1 -> 0 and average/peak utilization 21.632695/60.000000% -> 26.329685/84.000000%. Total, realized, drawdown, P90 holding and utilization path worsened. The removal of terminal unrealized loss did not produce a net economic improvement."
+    },
+    {
+      "name": "ANNUAL_BREADTH_AND_CONCENTRATION",
+      "status": "FAIL",
+      "evidence": "Primary candidate-minus-parent total-PnL deltas were 2020 -13.35429019, 2021 -0.90324272, 2022 +3.59430865, 2023 -11.05959111 and 2024 -2.32957927 USDT. Strict total-PnL wins were 1/5 versus the required 3/5. Drawdown stayed within the frozen annual tolerance in 4/5 folds, but the only positive total-PnL year contributed 100.000000% of positive uplift versus the 60% maximum."
+    },
+    {
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL",
+      "evidence": "The frozen 0.8 neighbor produced Validation total 40.55190510 USDT versus parent 86.20298186, with drawdown 7.307600%; the 1.2 neighbor produced Validation total 83.21410459 with drawdown 7.110389%. Both had enough interventions and stayed within the neighbor drawdown tolerance, but neither kept Validation total PnL non-worse. No threshold neighborhood supported the mechanism."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Valid paired evidence failed Design and Validation total PnL, Validation realized PnL, Validation drawdown, Validation P90 holding, annual total breadth, positive-delta concentration and both-neighbor economic gates. The frozen terminal disposition is DRA_BIPOWER_JUMPINESS_BRANCH_CLOSE. No threshold, lookback, sampling frequency, return convention, jump-sign split or interaction rescue was evaluated."
+    },
+    {
+      "name": "ARTIFACT_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly one create-only artifact was written at .research-state/experiments/dra-bipower-jumpiness-entry-admission-v1/artifacts/screen.json with SHA-256 44a8dfc7d3be6f028cb4916ac4c4e80caa40144be510f4739018037628e7efa3 and terminal status NO_MECHANISM_CLOSE_FEATURE_FAMILY."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The execution made no canonical-state or server Research MCP write, heartbeat or schedule change, network or paid-API call, deployment, database mutation, and no Trading, order, fund, SHADOW, PAPER or LIVE action. The permitted create-only screen artifact was the sole research-state output."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/dra-bipower-jumpiness-entry-admission-v1/artifacts/screen.json",
+      "sha256": "44a8dfc7d3be6f028cb4916ac4c4e80caa40144be510f4739018037628e7efa3"
+    }
+  ],
+  "files_changed": [],
+  "uncertainty": [
+    "Historical Validation is post-hoc development evidence and not clean OOS; the study cannot establish independent alpha or a strategy candidate.",
+    "Hourly realized-to-bipower variation is a coarse jumpiness proxy, not a formal finite-sample jump test; changing sampling or estimator after this result is forbidden.",
+    "The primary reduced Design drawdown but materially worsened Validation total PnL and drawdown, so the Design path improvement cannot be interpreted as generalizable risk-adjusted value.",
+    "No post-2024, prospective, SHADOW, PAPER or LIVE evidence was opened or created."
+  ],
+  "recommended_next_action": "Close and deduplicate the exact DAILY_REALIZED_TO_BIPOWER_VARIATION_RATIO_TO_PRIOR_20D_MEDIAN DRA entry-admission family without threshold, lookback, sampling, return-convention, sign or interaction rescue. Continue only with a causally distinct pre-outcome decision-time mechanism and the existing direct equal-capital runner; do not reopen this branch or OOS.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

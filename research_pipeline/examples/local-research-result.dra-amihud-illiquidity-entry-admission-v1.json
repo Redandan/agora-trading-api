@@ -1,0 +1,67 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-amihud-illiquidity-entry-admission-v1",
+  "task_sha256": "f250c39796343a5a1cb89c48f23a35ecba1c654e2c3578273fe324cced93ac41",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-15T13:05:39Z",
+  "completed_at": "2026-08-15T13:05:48Z",
+  "source_git_commit": "ebf05dac5e5d6afa277c842f3a84344a8ab7569b",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_AMIHUD_ILLIQUIDITY_EVIDENCE_INSUFFICIENT. The exact clean-HEAD task, dispatch, intent, strategy path, primary prior, runner and 52,608-row pre-2025 corpus passed their frozen hash and contract preflights. During the first fixed feature-accounting pass, the runner encountered at least one hourly bar whose dollar-volume denominator was non-positive because base volume was not positive. The preregistered contract requires exactly 24 positive-volume subintervals per complete UTC day, so execution stopped at DATA_REJECT before a candidate screen artifact or any Design, Validation, annual-fold, PnL, drawdown, holding, utilization or neighbor conclusion was created. The exact Amihud-style close-times-base-volume family is excluded for insufficient evidence; no zero substitution, row deletion, alternate liquidity estimator, threshold change, OOS access or strategy claim is permitted.",
+  "checks": [
+    {
+      "name": "FROZEN_CONTRACT_AND_STRATEGY_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Manager, strategy-path and allocation preflights were VALID at clean HEAD/origin ebf05dac5e5d6afa277c842f3a84344a8ab7569b. Task f250c39796343a5a1cb89c48f23a35ecba1c654e2c3578273fe324cced93ac41, dispatch aca3df03db4d0cdf2b31cd0f21d779b9d7d52b93afcafa3cf27a378ee75761e0, intent f79f78d99164cd4793a7b69e3cca6284899aa4536435f68c98616e82de81ebe0 and strategy path f90a71bf27225b7871dcd82951cd5cec4cb6fd4ec44c0788f6025b7a7cdaccc3 were frozen before candidate outcome access."
+    },
+    {
+      "name": "SEALED_DATA_AND_PRIOR_INTEGRITY",
+      "status": "PASS",
+      "evidence": "The runner accepted the exact manifest, prior hash e0657b47a75064e3d8c01c928ffe23652a32507fa6d423e075e3c37cf40ebffe and sealed corpus identity e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd with 52,608 pre-2025 H1 rows before feature evaluation. No post-2024 or OOS source was opened."
+    },
+    {
+      "name": "AMIHUD_FEATURE_ACCOUNTING",
+      "status": "FAIL",
+      "evidence": "The fixed runner returned DATA_REJECT with exact detail: Amihud-style illiquidity requires 24 positive-volume hourly bars. The frozen formula divides absolute hourly open-to-close return by close times base volume and forbids a non-positive denominator. No invalid hour was substituted, skipped, imputed or repaired."
+    },
+    {
+      "name": "ECONOMIC_AND_PATH_EVIDENCE",
+      "status": "MISSING_PROOF",
+      "evidence": "Execution stopped before a create-only screen artifact. Candidate Design, Validation, annual-fold, realized, unrealized, total-PnL, drawdown, holding, underwater, utilization, intervention, concentration and neighbor-stability evidence therefore does not exist and cannot be inferred from the data failure."
+    },
+    {
+      "name": "CREATE_ONLY_ARTIFACT_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The intended path .research-state/experiments/dra-amihud-illiquidity-entry-admission-v1/artifacts/screen.json remains absent. The runner did not leave a partial or overwriteable result."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "The exact disposition is DRA_AMIHUD_ILLIQUIDITY_EVIDENCE_INSUFFICIENT. It is EXCLUDE rather than a counted economic closure, does not retain the prior, and forbids reopening this family through zero-volume substitution, row deletion, volume offsets, a nearby threshold, alternate lookback or alternate low-frequency liquidity proxy."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The execution used only the committed offline runner and exact sealed pre-2025 TSV. It made no repository or canonical-state write, no Research MCP write, no heartbeat request, no schedule change, no paid API call, no deployment and no Trading, DB, order, fund, SHADOW, PAPER or LIVE action."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "The task proves only that the exact positive-volume Amihud-style feature cannot be evaluated on the frozen corpus without violating its preregistered denominator rule.",
+    "No strategy performance inference is available because the runner stopped before candidate economic results were constructed.",
+    "The result does not show whether a different order-book or spread-based liquidity measure would work; evaluating one would require a causally distinct future prior and task, not a rescue variant.",
+    "No post-2024, prospective, OOS, candidate, runtime filter, SHADOW, PAPER or LIVE evidence was opened or created."
+  ],
+  "recommended_next_action": "Exclude and deduplicate the exact DAILY_AMIHUD_ILLIQUIDITY_TO_PRIOR_20D_MEDIAN family. Do not impute zero volume, remove rows or substitute another liquidity proxy. Continue with a causally distinct decision-time price-path mechanism that uses the existing sealed corpus and direct equal-capital runner without depending on volume, forward evidence or OOS.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

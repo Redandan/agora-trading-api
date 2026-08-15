@@ -22,7 +22,9 @@ The runner supports only:
 - complete-day Amihud-style illiquidity versus its prior 20-complete-day
   median, admitted at or below the threshold; and
 - complete-day realized-variance to bipower-variation ratio versus its prior
-  20-complete-day median, admitted at or below the threshold.
+  20-complete-day median, admitted at or below the threshold; and
+- complete-day intraday return-sign persistence share versus its prior
+  20-complete-day median, admitted at or above the threshold.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
@@ -60,6 +62,16 @@ robust to rare jumps, while the ratio exposes how much realized variation is
 unsupported by adjacent moves. Non-positive realized or bipower variation
 fails closed. Hourly sampling is explicitly too coarse to claim a true jump
 classification.
+
+The intraday sign-persistence feature is a magnitude-neutral serial-dependence
+proxy, not another long-trend or volatility filter and not a formal
+autocorrelation test. From the 24 hourly closes wholly contained in the latest
+complete UTC day, it forms 23 consecutive close-to-close returns and the 22
+adjacent return pairs. It divides the number of strictly same-sign pairs by 22,
+then compares that share with the prior 20-complete-day median. Zero returns do
+not count as persistence and the denominator remains 22, so the result cannot
+be improved by silently deleting flat hours. The feature deliberately excludes
+the preceding day's close and binds a co-equal primary-literature prior.
 
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,

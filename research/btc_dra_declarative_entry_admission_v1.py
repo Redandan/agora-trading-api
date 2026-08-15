@@ -73,6 +73,12 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_BIPOWER_JUMPINESS_PRIMARY_PRIOR_V1",
     },
+    "DAILY_INTRADAY_SIGN_PERSISTENCE_SHARE_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_ABOVE",
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_INTRADAY_SIGN_PERSISTENCE_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_INTRADAY_SIGN_PERSISTENCE_PRIMARY_PRIOR_V1",
+    },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -279,6 +285,10 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.daily_amihud_invalid = False
         self.daily_bipower_product_sum = base.ZERO
         self.daily_previous_hour_return: D | None = None
+        self.daily_sign_previous_close: D | None = None
+        self.daily_sign_previous_return: D | None = None
+        self.daily_sign_pair_count = 0
+        self.daily_sign_persistence_pair_count = 0
         self.daily_bar_count = 0
         self.previous_hour_close: D | None = None
         self.current_feature_ratio: D | None = None
@@ -320,6 +330,18 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                     "realized-to-bipower jumpiness requires positive daily variation",
                 )
             return self.daily_squared_return_sum / bipower_variation
+        if (
+            self.feature_key
+            == "DAILY_INTRADAY_SIGN_PERSISTENCE_SHARE_TO_PRIOR_20D_MEDIAN"
+        ):
+            if self.daily_bar_count != 24 or self.daily_sign_pair_count != 22:
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "intraday sign persistence requires 24 hourly closes and 22 adjacent return pairs",
+                )
+            return D(self.daily_sign_persistence_pair_count) / D(
+                self.daily_sign_pair_count
+            )
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -335,6 +357,10 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.daily_amihud_invalid = False
             self.daily_bipower_product_sum = base.ZERO
             self.daily_previous_hour_return = None
+            self.daily_sign_previous_close = None
+            self.daily_sign_previous_return = None
+            self.daily_sign_pair_count = 0
+            self.daily_sign_persistence_pair_count = 0
             self.daily_bar_count = 0
         assert self.feature_high is not None and self.feature_low is not None
         self.feature_high = max(self.feature_high, bar.high)
@@ -355,6 +381,14 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                     self.daily_previous_hour_return
                 )
             self.daily_previous_hour_return = hourly_return
+        if self.daily_sign_previous_close is not None:
+            intraday_return = (bar.close / self.daily_sign_previous_close) - D("1")
+            if self.daily_sign_previous_return is not None:
+                self.daily_sign_pair_count += 1
+                if intraday_return * self.daily_sign_previous_return > 0:
+                    self.daily_sign_persistence_pair_count += 1
+            self.daily_sign_previous_return = intraday_return
+        self.daily_sign_previous_close = bar.close
         self.previous_hour_close = bar.close
         self.daily_bar_count += 1
         if bar.open_time.hour != 23 or self.daily_bar_count != 24:

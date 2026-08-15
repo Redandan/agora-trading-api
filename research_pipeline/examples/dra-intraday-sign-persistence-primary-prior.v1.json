@@ -1,0 +1,67 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary research supports serial dependence as a measurable departure from a random walk and reports statistically significant lower-order autocorrelation in historical 1H Bitcoin returns, but the Bitcoin evidence also finds negative first-order dependence, unstable higher-horizon behavior and no direct profit claim. Other cryptocurrency research reports both intraday momentum and reversal, while a separate Bitcoin forecasting study finds hourly returns generally weak-form efficient and regime dependent. Exactly one separately frozen equal-capital historical screen may therefore test whether unusually persistent within-day return signs distinguish robust DRA positive-momentum entries; failure closes the family without tuning.",
+  "disposition": "PRIOR_SUPPORTS_ONE_INTRADAY_SIGN_PERSISTENCE_ADMISSION_AUDIT",
+  "document_type": "DRA_INTRADAY_SIGN_PERSISTENCE_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_INTRADAY_SIGN_PERSISTENCE_SHARE_TO_PRIOR_20D_MEDIAN",
+    "formula": "count of strictly same-sign adjacent pairs among the 22 pairs formed from the 23 close-to-close returns wholly inside the latest complete UTC day, divided by 22, then divided by the median of the prior 20 complete UTC-day shares",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.8", "1.0", "1.2"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "The variance-ratio framework links serial return dependence to departures from random-walk variance scaling, while rejection of a random walk does not by itself establish a profitable trading rule.",
+      "identity": "Lo and MacKinlay, Stock Market Prices Do Not Follow Random Walks: Evidence from a Simple Specification Test (1988)",
+      "primary_source": "https://www.nber.org/papers/w2168",
+      "role": "MEASUREMENT_PRIOR",
+      "transfer_boundary": "Weekly US equity variance ratios do not prescribe a Bitcoin H1 sign statistic, direction, normalization, admission threshold or DRA strategy effect."
+    },
+    {
+      "finding": "Historical BTC/USD and XBT/USD samples showed statistically significant lower-order 1H autocorrelation and rolling first-order autocorrelation that stayed negative; the authors explicitly state that this evidence alone is insufficient to extract profits.",
+      "identity": "Tartakovsky et al., Autocorrelation of returns in major cryptocurrency markets (2020)",
+      "primary_source": "https://arxiv.org/abs/2003.13517",
+      "role": "BITCOIN_SERIAL_DEPENDENCE_PRIOR",
+      "transfer_boundary": "Bitfinex spot and BitMEX perpetual evidence through 2019 does not establish modern OKX DRA alpha, and negative correlation is a co-equal challenge to the proposed persistence direction."
+    },
+    {
+      "finding": "A cryptocurrency study reports both intraday momentum and reversal predictability rather than one universally stable direction.",
+      "identity": "Wen, Bouri, Xu and Zhao, Intraday return predictability in the cryptocurrency markets: Momentum, reversal, or both (2022)",
+      "primary_source": "https://doi.org/10.1016/j.najef.2022.101733",
+      "role": "DIRECTIONAL_AMBIGUITY_PRIOR",
+      "transfer_boundary": "Cross-cryptocurrency intraday predictors and their timing strategy do not validate a within-day sign-pair share or DRA admission rule."
+    },
+    {
+      "finding": "A Bitcoin forecasting comparison reports that hourly BTC/USD returns were generally weak-form efficient and that any predictability depended on market regime.",
+      "identity": "Atsalakis et al., Forecasting Bitcoin with technical analysis: A not-so-random forest? (2021)",
+      "primary_source": "https://doi.org/10.1016/j.ijforecast.2021.03.013",
+      "role": "CO_EQUAL_FALSIFICATION_PRIOR",
+      "transfer_boundary": "Model-level forecast results do not settle the exact sign-persistence proxy, but they forbid assuming stable hourly transfer or strategy value."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly the 24 hourly closes wholly contained in the latest complete UTC day; form 23 close-to-close returns and 22 adjacent pairs without the preceding day's close or any later bar.",
+    "Count a pair as persistent only when the two returns have a strictly positive product; zero returns remain in the fixed denominator and are never deleted or carried forward.",
+    "Divide the daily persistence share by the median of exactly the prior 20 complete-day shares; a non-positive prior median fails closed without an epsilon or alternate normalization.",
+    "Keep the DRA parent, positive-momentum direction, lot cost, capacity, exits, fee, adverse slippage, cooldown and fill clock unchanged.",
+    "Freeze primary 1.0 and neighbors 0.8 and 1.2 before outcome access; do not search a different relation, lookback, sign rule, lag, autocorrelation estimator or threshold.",
+    "Require Design and Validation PnL improvement, annual breadth, path-risk non-inferiority, holding support and neighbor stability; otherwise close the family.",
+    "Do not open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-15T13:39:30Z",
+  "schema_version": "1",
+  "source_access": {
+    "atsalakis_sciencedirect_abstract": "PASS",
+    "lo_mackinlay_nber_abstract": "PASS",
+    "tartakovsky_arxiv_full_text": "PASS",
+    "wen_bouri_xu_zhao_sciencedirect_abstract": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "A 22-pair sign share is a coarse magnitude-neutral proxy and not a formal autocorrelation or variance-ratio test.",
+    "Historical studies disagree on direction and stability, and exchange, period and sampling differences limit transfer to OKX DRA.",
+    "The feature can select participation rather than causal alpha, so equal-capital realized, unrealized, drawdown, holding and annual breadth must remain visible together.",
+    "No post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed or authorized."
+  ]
+}

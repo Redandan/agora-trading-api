@@ -230,6 +230,40 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         with self.assertRaisesRegex(runner.ScreenReject, "positive daily variation"):
             engine._update_feature(bar(opened + timedelta(hours=23), close="110"))
 
+    def test_intraday_sign_persistence_uses_only_returns_inside_complete_day(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_INTRADAY_SIGN_PERSISTENCE_SHARE_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        engine.previous_hour_close = D("50")
+        opened = datetime(2024, 1, 1)
+        close = D("100")
+        engine._update_feature(bar(opened, close=str(close)))
+        for hour in range(1, 24):
+            close *= D("1.01") if hour <= 12 else D("0.99")
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), close=str(close))
+            )
+        self.assertEqual(engine.daily_sign_pair_count, 22)
+        self.assertEqual(engine.daily_sign_persistence_pair_count, 21)
+        self.assertEqual(engine._daily_value(), D("21") / D("22"))
+
+    def test_intraday_sign_persistence_keeps_zero_return_pairs_in_denominator(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_INTRADAY_SIGN_PERSISTENCE_SHARE_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(24):
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), close="100")
+            )
+        self.assertEqual(engine.daily_sign_pair_count, 22)
+        self.assertEqual(engine.daily_sign_persistence_pair_count, 0)
+        self.assertEqual(engine._daily_value(), D("0"))
+
     def test_manifest_binds_prior_disposition_to_feature(self) -> None:
         value = manifest(
             feature="DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN"

@@ -1,0 +1,149 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-3pct-joint-reversal-elevated-volatility-risk-v1",
+  "task_sha256": "8b4c68bba9983504e5717079a493d12de7c8021c56c4ea57ac160dc3a5f6c75a",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-15T02:08:20Z",
+  "completed_at": "2026-08-15T02:13:46Z",
+  "source_git_commit": "aadef96b390b9c8c340f7ccd9c98e8063ffdd43a",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "HISTORICAL_JOINT_REVERSAL_ELEVATED_VOLATILITY_RISK_PRIOR_CLOSE. The exact sealed pre-2025 H1 corpus passed integrity and frozen-formula checks. The 416 Design and 139 historical-Validation shock episodes yielded strictly elevated next-day volatility subsets of 246 and 91 episodes. Validation passed all directional reversal gates, but Design did not: its UP-conditioned median SignedResponseH24 was positive at 0.000833096553109737526322674059717410114489041602723616157229 and its UP reversal share was only 57/120 = 0.475. The frozen rule requires every overall and directional median to be negative and every reversal share to exceed 0.50 in both windows. A valid gate failure therefore closes the joint historical reversal-under-elevated-volatility prior without tuning, splitting or rescue variants. The two marginal forward diagnostics remain unchanged. Because OutcomeRatio and SignedResponseH24 both require completed D+1 information, this result is not an actionable predictor, factor, strategy or Trading authorization. Immediate PnL and drawdown effects are zero; predictive and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_INTENT_AND_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task, dispatch and intent SHA-256 values matched 8b4c68bba9983504e5717079a493d12de7c8021c56c4ea57ac160dc3a5f6c75a, f7829129733513c9314be101964bb8cad95498ac1351f82ff2279df91b68fa96 and 0f107222276e30e32f3c37b46ba3b19001dbb0305d1cd2a7f29fd1cec9e33774. Local parsing confirmed exact task/dispatch/intent bindings, canonical compact dispatch and intent bytes, 14 inputs, 9 non-null inputs, 20 stop conditions and canonical stop SHA-256 9170a1da9100c64606f1bc4853f94d85c0be1854af84535b1ba146da8b113f40. All nine non-null paths were contained regular non-link non-reparse files with exact hashes."
+    },
+    {
+      "name": "SOURCE_IDENTITY_AND_ZERO_WRITE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched aadef96b390b9c8c340f7ccd9c98e8063ffdd43a. Worktree and git diff --check were clean before and after analysis. No repository, .research-state, canonical or external state was written."
+    },
+    {
+      "name": "H1_CORPUS_INTEGRITY",
+      "status": "PASS",
+      "evidence": "The sealed TSV matched SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd and contained exactly 52,608 headerless seven-field rows. Positive OHLC, nonnegative volume, exact one-hour start/end clocks and uninterrupted coverage from 2019-01-01T00:00:00Z through 2025-01-01T00:00:00Z produced exactly 2,192 complete 24-bar UTC days."
+    },
+    {
+      "name": "FIXED_EVENT_WINDOW_AND_JOINT_FORMULA",
+      "status": "PASS",
+      "evidence": "Used only the inclusive absolute 0.0300 close-to-close shock, shock-signed D+1 close response, 24 squared hourly simple returns including the midnight return against the preceding 23:00 close, trailing 20-complete-day ordinary-median RV baseline and strict OutcomeRatio > 1 filter. Calculations preserved source decimals as exact rationals with 60-decimal half-even rendering, exceeding the required 50-digit precision. No threshold, window, lookback, estimator, horizon or transform was varied."
+    },
+    {
+      "name": "DESIGN_JOINT_EPISODE_INVENTORY",
+      "status": "PASS",
+      "evidence": "Design 2019-2022 had 416 frozen shock episodes and 246 strictly elevated-volatility joint episodes: UP/DOWN 120/126, 46 target UTC months, maximum month count 12 and share 12/246 = 0.048780487804878048780487804878048780487804878048780487804878. Consecutive shocks remained visible as 77 adjacent-target pairs."
+    },
+    {
+      "name": "DESIGN_SIGNED_RESPONSE_STATISTICS",
+      "status": "PASS",
+      "evidence": "Design SignedResponseH24 medians overall/UP/DOWN were -0.004630313799205581892932879953022821847071897534801996566575 / 0.000833096553109737526322674059717410114489041602723616157229 / -0.007124976902513195591825531503585788117855675436075232173874. Overall reversal/continuation/tie was 134/112/0, share 134/246 = 0.544715447154471544715447154471544715447154471544715447154472. UP was 57/63/0, share 57/120 = 0.475; DOWN was 77/49/0, share 77/126 = 0.611111111111111111111111111111111111111111111111111111111111. Maximum single absolute-response contribution share was 0.017226823037004954949946138508762879907345415499154851144413."
+    },
+    {
+      "name": "VALIDATION_JOINT_EPISODE_INVENTORY",
+      "status": "PASS",
+      "evidence": "Historical Validation 2023-2024 had 139 frozen shock episodes and 91 strictly elevated-volatility joint episodes: UP/DOWN 47/44, 22 target UTC months, maximum month count 7 and share 7/91 = 0.076923076923076923076923076923076923076923076923076923076923. Consecutive shocks remained visible as 19 adjacent-target pairs."
+    },
+    {
+      "name": "VALIDATION_SIGNED_RESPONSE_STATISTICS",
+      "status": "PASS",
+      "evidence": "Validation SignedResponseH24 medians overall/UP/DOWN were -0.005509581282819673933962004783768179693728864817309542792731 / -0.003670232448055043486087452205306336067950970228114447248326 / -0.007089611683751878322058914522180905773878389383890675830084. Overall reversal/continuation/tie was 51/40/0, share 51/91 = 0.560439560439560439560439560439560439560439560439560439560440. UP was 26/21/0, share 26/47 = 0.553191489361702127659574468085106382978723404255319148936170; DOWN was 25/19/0, share 25/44 = 0.568181818181818181818181818181818181818181818181818181818182. Maximum single absolute-response contribution share was 0.043846117708172566213656032001386573562346263707338909017938."
+    },
+    {
+      "name": "ANNUAL_2019_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2019: 54 joint episodes, UP/DOWN 27/27, median SignedResponseH24 -0.008927967313318886028033400633953005489763746565396647671365; reversal/continuation/tie 29/25/0, reversal share 29/54 = 0.537037037037037037037037037037037037037037037037037037037037."
+    },
+    {
+      "name": "ANNUAL_2020_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2020: 60 joint episodes, UP/DOWN 37/23, median SignedResponseH24 -0.011307908310989462142416249450405238280884978160193423271409; reversal/continuation/tie 37/23/0, reversal share 37/60 = 0.616666666666666666666666666666666666666666666666666666666667."
+    },
+    {
+      "name": "ANNUAL_2021_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2021: 75 joint episodes, UP/DOWN 31/44, median SignedResponseH24 0.008529968454258675078864353312302839116719242902208201892744; reversal/continuation/tie 34/41/0, reversal share 34/75 = 0.453333333333333333333333333333333333333333333333333333333333."
+    },
+    {
+      "name": "ANNUAL_2022_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2022: 57 joint episodes, UP/DOWN 25/32, median SignedResponseH24 -0.005685742858026536903203191851294369928966875264183428353454; reversal/continuation/tie 34/23/0, reversal share 34/57 = 0.596491228070175438596491228070175438596491228070175438596491."
+    },
+    {
+      "name": "ANNUAL_2023_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2023: 35 joint episodes, UP/DOWN 23/12, median SignedResponseH24 -0.008789348687927715871233345602629536806716384668224945432891; reversal/continuation/tie 22/13/0, reversal share 22/35 = 0.628571428571428571428571428571428571428571428571428571428571."
+    },
+    {
+      "name": "ANNUAL_2024_TARGET_YEAR",
+      "status": "PASS",
+      "evidence": "2024: 56 joint episodes, UP/DOWN 24/32, median SignedResponseH24 -0.000183135339021913650897268401019881338637973137578103861598; reversal/continuation/tie 29/27/0, reversal share 29/56 = 0.517857142857142857142857142857142857142857142857142857142857."
+    },
+    {
+      "name": "ANNUAL_MEDIAN_BREADTH",
+      "status": "PASS",
+      "evidence": "Design had negative annual overall medians in three of four target years: 2019, 2020 and 2022; 2021 was positive. Both Validation target years, 2023 and 2024, were negative. This exactly passes the frozen annual breadth gate without pooling or repair."
+    },
+    {
+      "name": "FROZEN_POSITIVE_GATE_MATRIX",
+      "status": "FAIL",
+      "evidence": "Count, directional count, month breadth, month concentration, absolute-response concentration, Validation median/share and annual gates passed. Design failed two mandatory directional gates: UP median SignedResponseH24 was positive at 0.000833096553109737526322674059717410114489041602723616157229, and UP reversal share was 57/120 = 0.475 rather than strictly above 0.50. The gate matrix therefore cannot support RETAIN."
+    },
+    {
+      "name": "JOINT_HISTORICAL_RISK_PRIOR_DISPOSITION",
+      "status": "PASS",
+      "evidence": "The corpus and arithmetic were valid but at least one frozen positive gate failed. Stop condition 13 therefore requires HISTORICAL_JOINT_REVERSAL_ELEVATED_VOLATILITY_RISK_PRIOR_CLOSE. No direction selection, regime split, neighboring threshold, rescue variant or post-outcome criterion was inspected."
+    },
+    {
+      "name": "PROSPECTIVE_CLASSIFICATION_BINDING",
+      "status": "PASS",
+      "evidence": "The canonical PRE_DISPATCH_INTENT binds this result family as MECHANISM_CONCLUSION with UNIQUE_FAMILY independence semantics. The selected CLOSE disposition maps to COUNT; the intent did not determine the scientific outcome."
+    },
+    {
+      "name": "ACTIONABILITY_CAUSAL_AND_FORWARD_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "OutcomeRatio and SignedResponseH24 both require completed D+1 information and are unavailable at D+1 00:00. Historical Validation is not clean OOS. Causality, untouched post-2024 persistence, forward prediction, statistical significance and operational actionability remain MISSING_PROOF."
+    },
+    {
+      "name": "PERFORMANCE_AND_DRAWDOWN_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "No fees, slippage, realized or unrealized PnL, fee-adjusted PnL, drawdown, utilization, holdings, fills, turnover, capacity, leverage, sizing, equity curve, Sharpe, Sortino or matched-capital result was computed or inferred. Immediate PnL and drawdown effects are zero; every economic claim remains MISSING_PROOF."
+    },
+    {
+      "name": "OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "Closing the joint idea prevents spending specification, implementation, candidate and OOS budget on a mechanism that failed its preregistered Design directional gates. The two already-separate marginal forward diagnostics remain unchanged and consume no additional work in this task."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No unlisted file, post-2024 data, Local history, current server status, network, Java, Maven, Spring, Trading runner, repository/state write, Research MCP write, heartbeat, schedule/timer/writer change, hypothesis, candidate, strategy, deployment, OOS or Trading/DB/orders/funds/SHADOW/PAPER/LIVE action occurred."
+    },
+    {
+      "name": "LOCAL_RESULT_EXECUTABLE_SCHEMA_VALIDATION",
+      "status": "MISSING_PROOF",
+      "evidence": "The result was shaped directly against the exact task-listed local-research-result.schema.json. No dependency was installed and no permission was requested; authoritative executable Draft 2020-12 result validation remains Manager post-return MISSING_PROOF."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: historical Validation 2023-2024 is not clean OOS, and no post-2024 or forward episode was accessed.",
+    "MISSING_PROOF: the joint D+1 labels are contemporaneous completed-outcome descriptors, not information available at the shock boundary.",
+    "MISSING_PROOF: causality, confidence intervals, statistical significance and dependence from overlapping or adjacent episodes were not established.",
+    "MISSING_PROOF: fee-adjusted PnL, realized or unrealized PnL, drawdown, fees, slippage, capacity, utilization, sizing and equal-capital strategy value were not computed.",
+    "MISSING_PROOF: authoritative executable Draft 2020-12 validation of this returned result remains pending with Manager.",
+    "The failed joint prior does not invalidate or alter either separately frozen marginal forward diagnostic."
+  ],
+  "recommended_next_action": "Manager should seal this countable CLOSE result, close only the joint reversal-under-elevated-volatility strategy idea, and leave the two existing marginal forward diagnostics unchanged; no joint strategy specification, implementation, candidate, OOS or Trading action should follow.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

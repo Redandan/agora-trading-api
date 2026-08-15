@@ -63,14 +63,21 @@ def manifest(*, feature: str = "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_ME
     }
 
 
-def bar(opened: datetime, *, close: str = "100", volume: str = "1") -> runner.base.Bar:
+def bar(
+    opened: datetime,
+    *,
+    open_price: str | None = None,
+    close: str = "100",
+    volume: str = "1",
+) -> runner.base.Bar:
     price = D(close)
+    opened_price = D(open_price) if open_price is not None else price
     return runner.base.Bar(
         open_time=opened,
         close_time=opened + timedelta(hours=1),
-        open=price,
-        high=price,
-        low=price,
+        open=opened_price,
+        high=max(opened_price, price),
+        low=min(opened_price, price),
         close=price,
         volume=D(volume),
     )
@@ -144,6 +151,51 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         self.assertEqual(engine.daily_squared_return_sum, D("0.02"))
         self.assertEqual(engine.daily_downside_squared_return_sum, D("0.01"))
         self.assertEqual(engine._daily_value(), D("0.5"))
+
+    def test_amihud_illiquidity_uses_hourly_open_close_return_and_dollar_volume(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_AMIHUD_ILLIQUIDITY_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(24):
+            engine._update_feature(
+                bar(
+                    opened + timedelta(hours=hour),
+                    open_price="100",
+                    close="110",
+                    volume="2",
+                )
+            )
+        expected_hourly = D("0.1") / D("220")
+        self.assertLess(abs(engine._daily_value() - expected_hourly), D("1e-33"))
+
+    def test_amihud_illiquidity_fails_closed_on_zero_volume_hour(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_AMIHUD_ILLIQUIDITY_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(23):
+            engine._update_feature(
+                bar(
+                    opened + timedelta(hours=hour),
+                    open_price="100",
+                    close="101",
+                    volume="0" if hour == 7 else "2",
+                )
+            )
+        with self.assertRaisesRegex(runner.ScreenReject, "positive-volume"):
+            engine._update_feature(
+                bar(
+                    opened + timedelta(hours=23),
+                    open_price="100",
+                    close="101",
+                    volume="2",
+                )
+            )
 
     def test_manifest_binds_prior_disposition_to_feature(self) -> None:
         value = manifest(

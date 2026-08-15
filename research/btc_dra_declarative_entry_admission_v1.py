@@ -60,6 +60,12 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_DOWNSIDE_SEMIVARIANCE_PRIMARY_PRIOR_V1",
     },
+    "DAILY_AMIHUD_ILLIQUIDITY_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_BELOW",
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_AMIHUD_ILLIQUIDITY_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_AMIHUD_ILLIQUIDITY_PRIMARY_PRIOR_V1",
+    },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -262,6 +268,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.feature_volume = base.ZERO
         self.daily_squared_return_sum = base.ZERO
         self.daily_downside_squared_return_sum = base.ZERO
+        self.daily_amihud_sum = base.ZERO
+        self.daily_amihud_invalid = False
         self.daily_bar_count = 0
         self.previous_hour_close: D | None = None
         self.current_feature_ratio: D | None = None
@@ -285,6 +293,13 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             if self.daily_squared_return_sum <= 0:
                 return base.ZERO
             return self.daily_downside_squared_return_sum / self.daily_squared_return_sum
+        if self.feature_key == "DAILY_AMIHUD_ILLIQUIDITY_TO_PRIOR_20D_MEDIAN":
+            if self.daily_amihud_invalid or self.daily_bar_count != 24:
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "Amihud-style illiquidity requires 24 positive-volume hourly bars",
+                )
+            return self.daily_amihud_sum / D(self.daily_bar_count)
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -296,11 +311,18 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.feature_volume = base.ZERO
             self.daily_squared_return_sum = base.ZERO
             self.daily_downside_squared_return_sum = base.ZERO
+            self.daily_amihud_sum = base.ZERO
+            self.daily_amihud_invalid = False
             self.daily_bar_count = 0
         assert self.feature_high is not None and self.feature_low is not None
         self.feature_high = max(self.feature_high, bar.high)
         self.feature_low = min(self.feature_low, bar.low)
         self.feature_volume += bar.volume
+        dollar_volume = bar.close * bar.volume
+        if dollar_volume <= 0:
+            self.daily_amihud_invalid = True
+        else:
+            self.daily_amihud_sum += abs((bar.close / bar.open) - D("1")) / dollar_volume
         if self.previous_hour_close is not None:
             hourly_return = (bar.close / self.previous_hour_close) - D("1")
             self.daily_squared_return_sum += hourly_return * hourly_return

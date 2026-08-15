@@ -18,7 +18,9 @@ The runner supports only:
 - complete-day high-low range percentage versus its prior 20-complete-day
   median, admitted at or above the threshold; and
 - complete-day downside realized-semivariance share versus its prior
-  20-complete-day median, admitted at or below the threshold.
+  20-complete-day median, admitted at or below the threshold; and
+- complete-day Amihud-style illiquidity versus its prior 20-complete-day
+  median, admitted at or below the threshold.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
@@ -37,6 +39,15 @@ volatility level. It divides squared negative hourly returns by all squared
 hourly returns for the latest complete day, compares that share with the prior
 20-complete-day median, and binds a co-equal prior/falsification audit. It does
 not reuse the closed lagged-volatility family.
+
+The Amihud-style feature is a price-impact proxy rather than plain volume,
+range, trend, or volatility. For each hourly subinterval of the latest complete
+UTC day it divides absolute open-to-close return by estimated dollar volume
+(`close * base volume`), averages the 24 ratios, and compares that value with
+the prior 20-complete-day median. A zero-volume hour fails closed. The feature
+binds a co-equal primary-literature prior, while the use of close-price dollar
+volume remains an explicit approximation rather than an order-book liquidity
+claim.
 
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,

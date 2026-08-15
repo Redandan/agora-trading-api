@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/local-direct-screen-package.v1.schema.json",
+  "title": "Local direct economic screen package blueprint V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["canonical_research_status", "classification", "decision_contract", "document_type", "inputs", "issued_at", "limits", "local_thread_id", "manager_thread_id", "objective", "package_id", "performance_case", "schema_version", "strategy_path", "task_contract"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "LOCAL_DIRECT_SCREEN_PACKAGE_BLUEPRINT_V1"},
+    "package_id": {"$ref": "#/$defs/id"},
+    "manager_thread_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "local_thread_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "objective": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "canonical_research_status": {"type": "string", "minLength": 1, "maxLength": 128},
+    "issued_at": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dispatch", "intent", "strategy_path", "task"],
+      "properties": {
+        "task": {"type": "string", "format": "date-time"},
+        "dispatch": {"type": "string", "format": "date-time"},
+        "intent": {"type": "string", "format": "date-time"},
+        "strategy_path": {"type": "string", "format": "date-time"}
+      }
+    },
+    "inputs": {
+      "type": "array", "minItems": 1, "maxItems": 32,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["kind", "locator", "sha256"],
+        "properties": {
+          "kind": {"enum": ["REPOSITORY_PATH", "SEALED_ARTIFACT", "CANONICAL_STATUS", "TASK_MESSAGE"]},
+          "locator": {"type": "string", "minLength": 1, "maxLength": 1000},
+          "sha256": {"oneOf": [{"const": "AUTO"}, {"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+        },
+        "allOf": [
+          {"if": {"properties": {"kind": {"const": "REPOSITORY_PATH"}}}, "then": {"properties": {"sha256": {"const": "AUTO"}}}},
+          {"if": {"properties": {"kind": {"const": "SEALED_ARTIFACT"}}}, "then": {"properties": {"sha256": {"$ref": "#/$defs/sha256"}}}},
+          {"if": {"properties": {"kind": {"enum": ["CANONICAL_STATUS", "TASK_MESSAGE"]}}}, "then": {"properties": {"sha256": {"type": "null"}}}}
+        ]
+      }
+    },
+    "performance_case": {
+      "type": "object", "additionalProperties": false,
+      "required": ["causal_mechanism", "claim_boundary", "drawdown_hypothesis", "expected_direction", "opportunity_cost", "performance_hypothesis"],
+      "properties": {
+        "causal_mechanism": {"$ref": "#/$defs/longText"},
+        "claim_boundary": {"$ref": "#/$defs/longText"},
+        "drawdown_hypothesis": {"$ref": "#/$defs/longText"},
+        "expected_direction": {"enum": ["POSITIVE", "NON_NEGATIVE"]},
+        "opportunity_cost": {"$ref": "#/$defs/longText"},
+        "performance_hypothesis": {"$ref": "#/$defs/longText"}
+      }
+    },
+    "decision_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["insufficient_evidence_disposition", "negative_disposition", "positive_disposition"],
+      "properties": {
+        "insufficient_evidence_disposition": {"$ref": "#/$defs/action"},
+        "negative_disposition": {"$ref": "#/$defs/action"},
+        "positive_disposition": {"$ref": "#/$defs/action"}
+      }
+    },
+    "classification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["disposition_actions", "duplicate_family_key", "independence_semantics"],
+      "properties": {
+        "duplicate_family_key": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"},
+        "independence_semantics": {"const": "UNIQUE_FAMILY"},
+        "disposition_actions": {
+          "type": "array", "minItems": 3, "maxItems": 3, "uniqueItems": true,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["action", "disposition"],
+            "properties": {"action": {"enum": ["COUNT", "EXCLUDE"]}, "disposition": {"$ref": "#/$defs/action"}}
+          }
+        }
+      }
+    },
+    "task_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["allowed_actions", "expected_outputs", "forbidden_actions", "stop_conditions"],
+      "properties": {
+        "allowed_actions": {"$ref": "#/$defs/actions"},
+        "forbidden_actions": {"type": "array", "minItems": 8, "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/action"}},
+        "expected_outputs": {"$ref": "#/$defs/actions"},
+        "stop_conditions": {"type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 500}}
+      }
+    },
+    "limits": {
+      "type": "object", "additionalProperties": false,
+      "required": ["timeout_seconds"],
+      "properties": {"timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 7200}}
+    },
+    "strategy_path": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_path", "decision_time", "evidence_bindings"],
+      "properties": {
+        "candidate_path": {
+          "type": "object", "additionalProperties": false,
+          "required": ["matched_comparator_id", "maximum_additional_research_steps", "parent_strategy_id", "positive_next_step", "runner_id", "status"],
+          "properties": {
+            "matched_comparator_id": {"$ref": "#/$defs/subject"},
+            "maximum_additional_research_steps": {"const": 1},
+            "parent_strategy_id": {"$ref": "#/$defs/subject"},
+            "positive_next_step": {"const": "FROZEN_HYPOTHESIS_MANIFEST"},
+            "runner_id": {"$ref": "#/$defs/subject"},
+            "status": {"const": "DIRECT_TO_FROZEN_HYPOTHESIS"}
+          }
+        },
+        "decision_time": {
+          "type": "object", "additionalProperties": false,
+          "required": ["availability_rule", "decision_clock", "feature_name"],
+          "properties": {
+            "availability_rule": {"type": "string", "minLength": 20, "maxLength": 1000},
+            "decision_clock": {"$ref": "#/$defs/subject"},
+            "feature_name": {"$ref": "#/$defs/subject"}
+          }
+        },
+        "evidence_bindings": {
+          "type": "object", "additionalProperties": false,
+          "required": ["decision_feature", "execution_runner", "matched_comparator", "parent_strategy"],
+          "properties": {
+            "decision_feature": {"type": "string", "minLength": 1, "maxLength": 1000},
+            "execution_runner": {"type": "string", "minLength": 1, "maxLength": 1000},
+            "matched_comparator": {"type": "string", "minLength": 1, "maxLength": 1000},
+            "parent_strategy": {"type": "string", "minLength": 1, "maxLength": 1000}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "action": {"type": "string", "pattern": "^[A-Z0-9_]{3,100}$"},
+    "actions": {"type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/action"}},
+    "longText": {"type": "string", "minLength": 20, "maxLength": 2000},
+    "subject": {"type": "string", "minLength": 3, "maxLength": 200}
+  }
+}

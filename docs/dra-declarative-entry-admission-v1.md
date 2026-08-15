@@ -16,12 +16,27 @@ The runner supports only:
 - complete-day volume versus its prior 20-complete-day median, admitted at or
   above the threshold; and
 - complete-day high-low range percentage versus its prior 20-complete-day
-  median, admitted at or above the threshold.
+  median, admitted at or above the threshold; and
+- complete-day downside realized-semivariance share versus its prior
+  20-complete-day median, admitted at or below the threshold.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
 parent side, entries, exits, lot size, eight-slot capacity, 250 USDT initial
 equity, fee, and adverse slippage remain unchanged.
+
+The volatility feature must bind the completed co-equal volatility-management
+prior audit. The already-supported volume and range features instead bind the
+pre-outcome `forward-diagnostic-contract.v1.json`, which froze their definitions
+and 1.25/1.50/1.75 thresholds before any discovery outcome. That binding is a
+design prior only: it does not convert historical development evidence into the
+90-day discovery result or clean OOS.
+
+The downside-semivariance feature is sign-asymmetric rather than another total-
+volatility level. It divides squared negative hourly returns by all squared
+hourly returns for the latest complete day, compares that share with the prior
+20-complete-day median, and binds a co-equal prior/falsification audit. It does
+not reuse the closed lagged-volatility family.
 
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,

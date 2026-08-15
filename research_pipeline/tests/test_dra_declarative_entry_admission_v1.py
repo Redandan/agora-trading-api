@@ -24,7 +24,7 @@ D = Decimal
 
 
 def manifest(*, feature: str = "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN") -> dict:
-    relation = "AT_OR_BELOW" if feature.startswith("LAGGED") else "AT_OR_ABOVE"
+    contract = runner.FEATURES[feature]
     return {
         "authorization": runner.AUTHORIZATION,
         "dataset": {
@@ -43,13 +43,13 @@ def manifest(*, feature: str = "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_ME
             "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
             "key": feature,
             "lookback_complete_days": 20,
-            "relation": relation,
+            "relation": contract["relation"],
         },
         "gate_set": runner.GATE_SET,
         "oos_access": "DENY",
         "parent_strategy": runner.PARENT_STRATEGY,
         "prior_evidence": {
-            "disposition": "PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT",
+            "disposition": contract["prior_disposition"],
             "path": "research_pipeline/examples/synthetic-prior.json",
             "sha256": "0" * 64,
         },
@@ -131,6 +131,30 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
                     self.assertIsNone(engine.current_feature_ratio)
         self.assertEqual(engine.current_feature_ratio, D("2.00000000"))
         self.assertEqual(engine.complete_feature_days, 21)
+
+    def test_downside_semivariance_share_preserves_return_sign(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        engine.previous_hour_close = D("100")
+        engine._update_feature(bar(datetime(2024, 1, 1), close="90"))
+        engine._update_feature(bar(datetime(2024, 1, 1, 1), close="99"))
+        self.assertEqual(engine.daily_squared_return_sum, D("0.02"))
+        self.assertEqual(engine.daily_downside_squared_return_sum, D("0.01"))
+        self.assertEqual(engine._daily_value(), D("0.5"))
+
+    def test_manifest_binds_prior_disposition_to_feature(self) -> None:
+        value = manifest(
+            feature="DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN"
+        )
+        self.assertIs(runner.validate_manifest(value), value)
+        value["prior_evidence"]["disposition"] = (
+            "PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT"
+        )
+        with self.assertRaisesRegex(runner.ScreenReject, "does not bind"):
+            runner.validate_manifest(value)
 
     def test_signal_fails_closed_when_feature_unavailable(self) -> None:
         engine = runner.DeclarativeEntryAdmissionEngine(

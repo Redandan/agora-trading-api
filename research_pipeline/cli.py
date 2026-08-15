@@ -163,6 +163,9 @@ def parser() -> argparse.ArgumentParser:
     validate_local_dispatch.add_argument("dispatch", type=Path)
     validate_local_dispatch.add_argument("--task", type=Path, required=True)
     validate_local_dispatch.add_argument("--result", type=Path)
+    direct_screen_package = commands.add_parser("local-direct-screen-package-build")
+    direct_screen_package.add_argument("blueprint", type=Path)
+    direct_screen_package.add_argument("--repository-root", type=Path, default=REPO_ROOT)
     manager_preflight = commands.add_parser("local-research-manager-preflight")
     manager_preflight.add_argument("dispatch", type=Path)
     manager_preflight.add_argument("--task", type=Path, required=True)
@@ -1564,6 +1567,15 @@ def main(argv: list[str] | None = None) -> int:
                 args.result,
             )
             print(canonical_json_bytes(validation).decode("utf-8"))
+            return 0
+        if args.command == "local-direct-screen-package-build":
+            from .local_direct_screen_package import write_direct_screen_package
+
+            receipt = write_direct_screen_package(
+                args.repository_root,
+                args.blueprint,
+            )
+            print(canonical_json_bytes(receipt).decode("utf-8"))
             return 0
         if args.command == "local-research-manager-preflight":
             from .local_manager import build_local_manager_preflight

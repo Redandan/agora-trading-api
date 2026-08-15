@@ -18,7 +18,7 @@
       "type": "object", "additionalProperties": false,
       "required": ["disposition", "path", "sha256"],
       "properties": {
-        "disposition": {"const": "PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT"},
+        "disposition": {"enum": ["PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT", "PREREGISTERED_V1_FORWARD_DISCOVERY_MECHANISM", "PRIOR_SUPPORTS_ONE_DOWNSIDE_SEMIVARIANCE_ADMISSION_AUDIT"]},
         "path": {"$ref": "#/$defs/repositoryPath"},
         "sha256": {"$ref": "#/$defs/sha256"}
       }
@@ -51,14 +51,15 @@
           "enum": [
             "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN",
             "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN",
-            "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN"
+            "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN",
+            "DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN"
           ]
         },
         "relation": {"enum": ["AT_OR_BELOW", "AT_OR_ABOVE"]}
       },
       "allOf": [
         {
-          "if": {"properties": {"key": {"const": "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN"}}},
+          "if": {"properties": {"key": {"enum": ["LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN", "DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN"]}}},
           "then": {"properties": {"relation": {"const": "AT_OR_BELOW"}}},
           "else": {"properties": {"relation": {"const": "AT_OR_ABOVE"}}}
         }

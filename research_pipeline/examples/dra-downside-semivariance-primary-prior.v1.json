@@ -1,0 +1,64 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "The primary literature supports realized semivariance as a sign-aware downside-risk measure and supports testing whether downside-heavy intraday paths forecast risk. It does not establish that an unlevered single-BTC DRA entry veto improves PnL, drawdown, or holding paths. Exactly one separately frozen equal-capital historical screen may test that transfer; failure closes the feature family without tuning.",
+  "disposition": "PRIOR_SUPPORTS_ONE_DOWNSIDE_SEMIVARIANCE_ADMISSION_AUDIT",
+  "document_type": "DRA_DOWNSIDE_SEMIVARIANCE_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN",
+    "formula": "sum(hourly_return_squared where hourly_return is negative) / sum(all hourly_return_squared), divided by the median of the prior 20 complete UTC-day shares",
+    "relation": "AT_OR_BELOW",
+    "thresholds": ["0.8", "1.0", "1.2"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "Realized semivariance decomposes realized variance by return sign and isolates squared negative intraday moves as downside variation.",
+      "identity": "Barndorff-Nielsen, Kinnebrock and Shephard, Measuring Downside Risk: Realised Semivariance (2010)",
+      "primary_source": "https://scholar.harvard.edu/files/downside200808.pdf",
+      "role": "MEASUREMENT_PRIOR",
+      "transfer_boundary": "The estimator defines downside risk; it does not prescribe a BTC strategy or admission threshold."
+    },
+    {
+      "finding": "Negative realized semivariance carried more information than positive semivariance for forecasting future volatility in the studied equity sample.",
+      "identity": "Patton and Sheppard, Good Volatility, Bad Volatility: Signed Jumps and the Persistence of Volatility (2015)",
+      "primary_source": "https://public.econ.duke.edu/~ap172/Patton_Sheppard_Realized%20Semivariance_11feb11.pdf",
+      "role": "POSITIVE_RISK_MECHANISM_PRIOR",
+      "transfer_boundary": "Equity volatility forecasting is not BTC return prediction, and lower future risk need not improve DRA economics."
+    },
+    {
+      "finding": "Bitcoin realized-variance research found signed estimators informative mainly at longer horizons, while explicit signed components did not improve short-horizon forecasting or utility consistently.",
+      "identity": "Hu, Härdle and Kuo, Risk of Bitcoin Market: Volatility, Jumps, and Forecasts (2021 draft)",
+      "primary_source": "https://arxiv.org/abs/1912.05228",
+      "role": "CRYPTO_CO_EQUAL_FALSIFICATION_PRIOR",
+      "transfer_boundary": "The mixed horizon result forbids assuming that a one-day downside-share veto is useful; equal-capital PnL and path-risk evidence must decide."
+    },
+    {
+      "finding": "A Bitcoin study using realized variance, downside realized semivariance, and signed jumps reported weak negative intertemporal risk-return evidence and no positive risk-return trade-off.",
+      "identity": "Ahmed, Is there a risk-return trade-off in cryptocurrency markets? The case of Bitcoin (2020)",
+      "primary_source": "https://doi.org/10.1016/j.jeconbus.2019.105886",
+      "role": "RETURN_TRANSFER_FALSIFICATION_PRIOR",
+      "transfer_boundary": "Downside risk may forecast risk without forecasting profitable returns; a strategy claim requires direct fee-adjusted economic evidence."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only hourly returns contained in the latest complete UTC day and the prior 20 complete-day feature values.",
+    "Keep the DRA parent, side, lot cost, capacity, exits, fee, adverse slippage, cooldown, and fill clock unchanged.",
+    "Freeze primary 1.0 and neighbors 0.8 and 1.2 before outcome access; do not search another lookback, threshold, sign split, or transform.",
+    "Require Design and Validation PnL improvement, annual breadth, path-risk non-inferiority, holding support, and neighbor stability; otherwise close the family.",
+    "Do not open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-15T12:00:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "ahmed_article_record": "PASS",
+    "barndorff_nielsen_kinnebrock_shephard_full_text": "PASS",
+    "hu_haerdle_kuo_full_text": "PASS",
+    "patton_sheppard_full_text": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "The H1 corpus provides only hourly sampling, not tick or five-minute realized-semivariance precision.",
+    "The feature is a relative sign-asymmetry measure, not a total-volatility level; transfer to DRA entry timing remains unproven.",
+    "No post-2024 evidence, OOS, candidate, runtime filter, or Trading path was accessed or authorized."
+  ]
+}

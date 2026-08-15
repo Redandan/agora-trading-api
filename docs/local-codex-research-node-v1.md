@@ -296,6 +296,24 @@ configure an OpenAI API key and does not claim that a ChatGPT subscription pays
 for API usage. The computer and Codex must be available for local work; cloud
 heartbeat and evidence collection continue independently while it is off.
 
+### Direct-screen package builder
+
+A new direct economic screen is authored once as a canonical blueprint under
+`research_pipeline/examples/` and materialized with:
+
+```text
+python -m research_pipeline local-direct-screen-package-build <blueprint.json>
+```
+
+The create-only builder re-hashes every repository input, verifies sealed input
+hashes, freezes zero candidate variants, and derives the task, dispatch,
+pre-dispatch classification intent, and direct strategy-path documents with
+their exact cross-document hashes. It validates all four semantic contracts
+before writing any output and refuses to overwrite an existing package. The
+package still must be committed, pushed, clean, and pass the allocation
+preflight before outcome access; generation is not dispatch or permission to
+run a strategy.
+
 ## Operational loop
 
 The local node remains message-dispatched even after operational acceptance.

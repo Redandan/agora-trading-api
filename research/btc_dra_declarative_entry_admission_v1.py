@@ -36,9 +36,22 @@ INITIAL_EQUITY_USDT = D("250")
 DD_TOLERANCE_PP = D("0.25")
 RATIO_QUANTUM = D("0.00000001")
 FEATURES = {
-    "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN": "AT_OR_BELOW",
-    "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN": "AT_OR_ABOVE",
-    "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN": "AT_OR_ABOVE",
+    "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_BELOW",
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT",
+    },
+    "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_ABOVE",
+        "prior_disposition": "PREREGISTERED_V1_FORWARD_DISCOVERY_MECHANISM",
+    },
+    "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_ABOVE",
+        "prior_disposition": "PREREGISTERED_V1_FORWARD_DISCOVERY_MECHANISM",
+    },
+    "DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_BELOW",
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_DOWNSIDE_SEMIVARIANCE_ADMISSION_AUDIT",
+    },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -134,11 +147,6 @@ def validate_manifest(value: Any) -> dict[str, Any]:
         {"disposition", "path", "sha256"},
         "prior_evidence",
     )
-    if (
-        prior["disposition"]
-        != "PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT"
-    ):
-        raise ScreenReject("CONTRACT_REJECT", "prior disposition is unsupported")
     if not isinstance(prior["path"], str) or _REPOSITORY_PATH.fullmatch(prior["path"]) is None:
         raise ScreenReject("CONTRACT_REJECT", "prior evidence path is invalid")
     if not isinstance(prior["sha256"], str) or _SHA256.fullmatch(prior["sha256"]) is None:
@@ -171,8 +179,11 @@ def validate_manifest(value: Any) -> dict[str, Any]:
         "feature",
     )
     feature_key = feature["key"]
-    if feature_key not in FEATURES or feature["relation"] != FEATURES[feature_key]:
+    feature_contract = FEATURES.get(feature_key)
+    if feature_contract is None or feature["relation"] != feature_contract["relation"]:
         raise ScreenReject("CONTRACT_REJECT", "feature or causal relation is unsupported")
+    if prior["disposition"] != feature_contract["prior_disposition"]:
+        raise ScreenReject("CONTRACT_REJECT", "prior disposition does not bind the feature")
     if feature["lookback_complete_days"] != 20:
         raise ScreenReject("CONTRACT_REJECT", "feature lookback must be 20 complete UTC days")
     if feature["decision_time"] != "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL":
@@ -242,6 +253,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.feature_low: D | None = None
         self.feature_volume = base.ZERO
         self.daily_squared_return_sum = base.ZERO
+        self.daily_downside_squared_return_sum = base.ZERO
         self.daily_bar_count = 0
         self.previous_hour_close: D | None = None
         self.current_feature_ratio: D | None = None
@@ -261,6 +273,10 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             return (self.feature_high - self.feature_low) / self.feature_open
         if self.feature_key == "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN":
             return self.daily_squared_return_sum.sqrt()
+        if self.feature_key == "DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN":
+            if self.daily_squared_return_sum <= 0:
+                return base.ZERO
+            return self.daily_downside_squared_return_sum / self.daily_squared_return_sum
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -271,6 +287,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.feature_low = bar.low
             self.feature_volume = base.ZERO
             self.daily_squared_return_sum = base.ZERO
+            self.daily_downside_squared_return_sum = base.ZERO
             self.daily_bar_count = 0
         assert self.feature_high is not None and self.feature_low is not None
         self.feature_high = max(self.feature_high, bar.high)
@@ -279,6 +296,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         if self.previous_hour_close is not None:
             hourly_return = (bar.close / self.previous_hour_close) - D("1")
             self.daily_squared_return_sum += hourly_return * hourly_return
+            if hourly_return < 0:
+                self.daily_downside_squared_return_sum += hourly_return * hourly_return
         self.previous_hour_close = bar.close
         self.daily_bar_count += 1
         if bar.open_time.hour != 23 or self.daily_bar_count != 24:

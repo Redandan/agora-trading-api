@@ -14,6 +14,7 @@ from research_pipeline.cli import main as pipeline_main
 from research_pipeline.local_dispatch import canonical_json_bytes, canonical_json_document_bytes
 from research_pipeline.local_manager import (
     build_local_manager_preflight,
+    build_local_strategy_manager_preflight,
     summarize_local_research_kpi,
 )
 
@@ -47,7 +48,7 @@ def _sha256(raw: bytes) -> str:
 
 
 class PreflightRepository:
-    def __init__(self, testcase: unittest.TestCase) -> None:
+    def __init__(self, testcase: unittest.TestCase, *, strategy_ready: bool = False) -> None:
         self._temporary = TemporaryDirectory()
         testcase.addCleanup(self._temporary.cleanup)
         self.root = Path(self._temporary.name)
@@ -90,7 +91,9 @@ class PreflightRepository:
             "state_authority": "SERVER_CANONICAL",
             "stop_conditions": ["Stop immediately on any synthetic identity or hash drift."],
             "task_id": "local-node-manager-preflight-v1",
-            "task_type": "CAPABILITY_READINESS",
+            "task_type": (
+                "EVIDENCE_DIAGNOSTIC" if strategy_ready else "CAPABILITY_READINESS"
+            ),
             "timer_authority": "CODEX_CLOUD_OPS_ONLY",
         }
         self.task_path = self.root / "records" / "task.json"
@@ -118,11 +121,13 @@ class PreflightRepository:
                 "causal_mechanism": "Mechanical preflight reduces repeated Manager validation assembly time.",
                 "claim_boundary": "This proves only local mechanical identity and input closure, never research value.",
                 "drawdown_hypothesis": "Immediate drawdown effect is zero because no strategy is executed or changed.",
-                "expected_direction": "ZERO_IMMEDIATE_EFFECT",
+                "expected_direction": (
+                    "DIAGNOSTIC_ONLY" if strategy_ready else "ZERO_IMMEDIATE_EFFECT"
+                ),
                 "opportunity_cost": "A thin reusable receipt reduces repeated recovery work without a new orchestrator.",
                 "performance_hypothesis": "Mechanical validation latency falls while semantic authority stays unchanged.",
                 "primary_metric": "fee_adjusted_total_pnl_delta_under_equal_capital",
-                "research_phase": "CAPABILITY",
+                "research_phase": "DIAGNOSTIC" if strategy_ready else "CAPABILITY",
             },
             "policy_binding": {
                 "policy_id": "AUTONOMOUS_TRADING_RESEARCH_V3",
@@ -133,7 +138,7 @@ class PreflightRepository:
             "state_authority": "SERVER_CANONICAL",
             "task_id": self.task["task_id"],
             "task_sha256": _sha256(task_raw),
-            "task_type": "CAPABILITY_READINESS",
+            "task_type": self.task["task_type"],
             "timer_authority": "CODEX_CLOUD_OPS_ONLY",
         }
         self.dispatch_path = self.root / "records" / "dispatch.json"
@@ -154,14 +159,22 @@ class PreflightRepository:
                 {"action": "EXCLUDE", "disposition": "INSUFFICIENT_PROOF"},
             ],
             "document_type": "LOCAL_WEEKLY_OUTPUT_CLASSIFICATION_V1",
-            "duplicate_family_key": "synthetic-manager-preflight-capability",
+            "duplicate_family_key": (
+                "synthetic-manager-preflight-mechanism"
+                if strategy_ready
+                else "synthetic-manager-preflight-capability"
+            ),
             "independence_semantics": "UNIQUE_FAMILY",
             "intent_id": "intent-manager-preflight-fixture-v1",
             "intent_path": "records/intent.json",
             "issued_at": "2026-08-11T00:00:30Z",
             "manager_thread_id": "manager-synthetic-thread",
             "max_candidate_variants": 0,
-            "output_class": "SPEC_OR_CAPABILITY_SLICE",
+            "output_class": (
+                "MECHANISM_CONCLUSION"
+                if strategy_ready
+                else "SPEC_OR_CAPABILITY_SLICE"
+            ),
             "output_id": "output-manager-preflight-fixture-v1",
             "record_stage": "PRE_DISPATCH_INTENT",
             "schema_version": "1",
@@ -171,6 +184,57 @@ class PreflightRepository:
         }
         self.intent_path = self.root / "records" / "intent.json"
         self.intent_path.write_bytes(canonical_json_document_bytes(self.intent))
+        self.strategy_path = None
+        if strategy_ready:
+            self.strategy_path = self.root / "records" / "strategy-path.json"
+            strategy = {
+                "admission_id": "strategy-path-manager-preflight-fixture-v1",
+                "authorization": AUTHORIZATION,
+                "candidate_path": {
+                    "existing_adapter_or_direct_runner": True,
+                    "implementation_before_economic_test": "DENY",
+                    "matched_comparator_id": "synthetic-equal-capital-parent-ledger",
+                    "maximum_additional_research_steps": 1,
+                    "parent_strategy_id": "synthetic-parent-strategy-v1",
+                    "positive_next_step": "FROZEN_HYPOTHESIS_MANIFEST",
+                    "status": "DIRECT_TO_FROZEN_HYPOTHESIS",
+                },
+                "decision_time": {
+                    "availability_rule": "Use only observations sealed before the synthetic decision timestamp.",
+                    "availability_status": "KNOWN_BEFORE_DECISION",
+                    "decision_clock": "synthetic-hour-close",
+                    "feature_name": "synthetic-predecision-feature",
+                    "post_outcome_dependency": "DENY",
+                },
+                "dispatch_id": self.dispatch["dispatch_id"],
+                "dispatch_sha256": _sha256(self.dispatch_path.read_bytes()),
+                "disposition": {
+                    "independent_forward_or_oos_boundary_preserved": True,
+                    "insufficient_stops_without_permission": True,
+                    "negative_closes_family": True,
+                },
+                "document_type": "LOCAL_RESEARCH_STRATEGY_PATH_V1",
+                "economics": {
+                    "adverse_slippage_required": True,
+                    "drawdown_required": True,
+                    "equal_capital_comparator_required": True,
+                    "fees_required": True,
+                    "holding_age_required": True,
+                    "inventory_path_required": True,
+                    "total_pnl_required": True,
+                },
+                "intent_id": self.intent["intent_id"],
+                "intent_sha256": _sha256(self.intent_path.read_bytes()),
+                "issued_at": "2026-08-11T00:00:45Z",
+                "manager_thread_id": self.task["manager_thread_id"],
+                "output_class": self.intent["output_class"],
+                "schema_version": "1",
+                "state_authority": "SERVER_CANONICAL",
+                "task_id": self.task["task_id"],
+                "task_sha256": self.dispatch["task_sha256"],
+                "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+            }
+            self.strategy_path.write_bytes(canonical_json_document_bytes(strategy))
         _run(self.root, "add", ".")
         _run(self.root, "commit", "-m", "frozen preflight fixture")
         _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
@@ -320,6 +384,65 @@ class LocalManagerPreflightTest(unittest.TestCase):
         load_policy.assert_not_called()
         research_store.assert_not_called()
 
+    def test_strategy_preflight_accepts_direct_candidate_path(self) -> None:
+        repository = PreflightRepository(self, strategy_ready=True)
+
+        result = build_local_strategy_manager_preflight(
+            repository.root,
+            repository.dispatch_path,
+            repository.task_path,
+            repository.intent_path,
+            repository.strategy_path,
+        )
+
+        self.assertEqual(
+            result["document_type"],
+            "LOCAL_MANAGER_STRATEGY_PREFLIGHT_RECEIPT_V1",
+        )
+        self.assertEqual(
+            result["strategy_path_gate"]["status"],
+            "DIRECT_CANDIDATE_PATH_REQUIRED",
+        )
+        self.assertEqual(
+            result["strategy_path_gate"]["maximum_additional_research_steps"],
+            1,
+        )
+
+    def test_top_level_strategy_preflight_runs_before_policy_or_state(self) -> None:
+        repository = PreflightRepository(self, strategy_ready=True)
+        stdout = StringIO()
+        stderr = StringIO()
+        with (
+            patch("research_pipeline.cli.load_policy") as load_policy,
+            patch("research_pipeline.cli.ResearchStore") as research_store,
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+        ):
+            exit_code = pipeline_main(
+                [
+                    "local-research-strategy-preflight",
+                    str(repository.dispatch_path),
+                    "--task",
+                    str(repository.task_path),
+                    "--intent",
+                    str(repository.intent_path),
+                    "--strategy-path",
+                    str(repository.strategy_path),
+                    "--repository-root",
+                    str(repository.root),
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(stderr.getvalue(), "")
+        receipt = json.loads(stdout.getvalue())
+        self.assertEqual(receipt["status"], "VALID")
+        self.assertEqual(
+            receipt["strategy_path_gate"]["availability_status"],
+            "KNOWN_BEFORE_DECISION",
+        )
+        load_policy.assert_not_called()
+        research_store.assert_not_called()
+
 
 class LocalResearchKpiTest(unittest.TestCase):
     def test_kpi_reports_floor_stretch_overhead_and_missing_forward_proof(self) -> None:
@@ -360,6 +483,16 @@ class LocalResearchKpiTest(unittest.TestCase):
         result = summarize_local_research_kpi(classification)
         self.assertEqual(result["goal_assessment"]["weekly_floor"]["status"], "MET")
         self.assertEqual(result["goal_assessment"]["weekly_stretch"]["status"], "MET")
+        self.assertEqual(
+            result["goal_assessment"]["candidate_delivery_efficiency"]["status"],
+            "MET",
+        )
+        self.assertEqual(
+            result["goal_assessment"]["candidate_delivery_efficiency"][
+                "direct_mechanism_ratio_basis_points"
+            ],
+            5714,
+        )
         self.assertEqual(result["goal_assessment"]["operational_overhead"]["status"], "MET")
         self.assertEqual(result["goal_assessment"]["rolling_four_week_forward_terminal"]["status"], "MISSING_PROOF")
         self.assertEqual(result["scientific_claim"], "NO_ALPHA_OR_PERFORMANCE_CLAIM")

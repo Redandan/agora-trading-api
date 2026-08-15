@@ -172,6 +172,12 @@ def parser() -> argparse.ArgumentParser:
         action="store_true",
     )
     manager_preflight.add_argument("--repository-root", type=Path, default=REPO_ROOT)
+    strategy_preflight = commands.add_parser("local-research-strategy-preflight")
+    strategy_preflight.add_argument("dispatch", type=Path)
+    strategy_preflight.add_argument("--task", type=Path, required=True)
+    strategy_preflight.add_argument("--intent", type=Path, required=True)
+    strategy_preflight.add_argument("--strategy-path", type=Path, required=True)
+    strategy_preflight.add_argument("--repository-root", type=Path, default=REPO_ROOT)
     throughput_kpi = commands.add_parser("local-research-throughput-kpi")
     throughput_kpi.add_argument("--acceptance", action="append", required=True)
     throughput_kpi.add_argument("--period-start", required=True)
@@ -1541,6 +1547,18 @@ def main(argv: list[str] | None = None) -> int:
                 allow_non_counting_integrity_repair=(
                     args.allow_non_counting_integrity_repair
                 ),
+            )
+            print(canonical_json_bytes(validation).decode("utf-8"))
+            return 0
+        if args.command == "local-research-strategy-preflight":
+            from .local_manager import build_local_strategy_manager_preflight
+
+            validation = build_local_strategy_manager_preflight(
+                args.repository_root,
+                args.dispatch,
+                args.task,
+                args.intent,
+                args.strategy_path,
             )
             print(canonical_json_bytes(validation).decode("utf-8"))
             return 0

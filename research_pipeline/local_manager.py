@@ -13,9 +13,11 @@ from .local_weekly_output_classification import (
     load_and_validate_weekly_output_classification_document,
     validate_weekly_output_classification,
 )
+from .local_strategy_path import load_and_validate_local_strategy_path
 
 
 PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_PREFLIGHT_RECEIPT_V1"
+STRATEGY_PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_STRATEGY_PREFLIGHT_RECEIPT_V1"
 KPI_DOCUMENT_TYPE = "LOCAL_RESEARCH_THROUGHPUT_KPI_V1"
 WEEKLY_FLOOR_MECHANISMS = 3
 WEEKLY_FLOOR_SLICES = 1
@@ -298,6 +300,87 @@ def build_local_manager_preflight(
     }
 
 
+def build_local_strategy_manager_preflight(
+    repository_root: Path | str,
+    dispatch_path: Path | str,
+    task_path: Path | str,
+    classification_intent_path: Path | str,
+    strategy_path_path: Path | str,
+) -> dict[str, Any]:
+    base = build_local_manager_preflight(
+        repository_root,
+        dispatch_path,
+        task_path,
+        classification_intent_path,
+    )
+    root = _exact_repository_root(repository_root)
+    strategy_file, strategy_relative = _contained_regular_file(
+        root,
+        Path(strategy_path_path),
+        "strategy path",
+    )
+    strategy, strategy_raw = load_and_validate_local_strategy_path(strategy_file)
+    _require_head_bytes(
+        root,
+        base["head_commit"],
+        strategy_relative,
+        strategy_raw,
+        "strategy path",
+    )
+
+    dispatch_file, _ = _contained_regular_file(root, Path(dispatch_path), "dispatch path")
+    task_file, _ = _contained_regular_file(root, Path(task_path), "task path")
+    dispatch = json.loads(dispatch_file.read_text(encoding="utf-8"))
+    task = json.loads(task_file.read_text(encoding="utf-8"))
+    expected_bindings = {
+        "authorization": base["authorization"],
+        "dispatch_id": base["dispatch_id"],
+        "dispatch_sha256": base["dispatch_sha256"],
+        "intent_id": base["classification_intent_id"],
+        "intent_sha256": base["classification_intent_sha256"],
+        "manager_thread_id": base["manager_thread_id"],
+        "output_class": base["research_value_gate"]["output_class"],
+        "state_authority": base["state_authority"],
+        "task_id": base["task_id"],
+        "task_sha256": base["task_sha256"],
+        "timer_authority": base["timer_authority"],
+    }
+    for field, expected in expected_bindings.items():
+        if strategy.get(field) != expected:
+            raise ValueError(f"strategy path {field} does not bind the Manager preflight")
+
+    phase = dispatch["performance_case"]["research_phase"]
+    if phase not in {"DIAGNOSTIC", "EXPERIMENT"}:
+        raise ValueError("direct strategy-path work must be DIAGNOSTIC or EXPERIMENT")
+    if task["task_type"] not in {"EVIDENCE_DIAGNOSTIC", "REGISTERED_EXPERIMENT_STEP"}:
+        raise ValueError(
+            "direct strategy-path work must be an evidence diagnostic or registered experiment step"
+        )
+
+    candidate = strategy["candidate_path"]
+    decision = strategy["decision_time"]
+    result = dict(base)
+    result["document_type"] = STRATEGY_PREFLIGHT_DOCUMENT_TYPE
+    result["strategy_path_gate"] = {
+        "admission_id": strategy["admission_id"],
+        "availability_status": decision["availability_status"],
+        "decision_clock": decision["decision_clock"],
+        "existing_adapter_or_direct_runner": candidate[
+            "existing_adapter_or_direct_runner"
+        ],
+        "matched_comparator_id": candidate["matched_comparator_id"],
+        "maximum_additional_research_steps": candidate[
+            "maximum_additional_research_steps"
+        ],
+        "parent_strategy_id": candidate["parent_strategy_id"],
+        "positive_next_step": candidate["positive_next_step"],
+        "status": "DIRECT_CANDIDATE_PATH_REQUIRED",
+        "strategy_path": strategy_relative,
+        "strategy_path_sha256": hashlib.sha256(strategy_raw).hexdigest(),
+    }
+    return result
+
+
 def _utc_timestamp(value: str, label: str) -> datetime:
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -312,6 +395,11 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
     rows = classification["rows"]
     counted = [row for row in rows if row["classification_outcome"] == "COUNT"]
     excluded = [row for row in rows if row["classification_outcome"] == "EXCLUDE"]
+    direct_mechanisms = [
+        row
+        for row in counted
+        if row["output_class"] == "MECHANISM_CONCLUSION"
+    ]
     mechanism_count = classification["unique_family_totals"]["MECHANISM_CONCLUSION"]
     slice_count = classification["unique_family_totals"]["SPEC_OR_CAPABILITY_SLICE"]
     overhead = [
@@ -322,6 +410,9 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
     ]
     denominator = len(rows)
     ratio_bps = 0 if denominator == 0 else len(overhead) * 10_000 // denominator
+    direct_ratio_bps = (
+        0 if denominator == 0 else len(direct_mechanisms) * 10_000 // denominator
+    )
 
     def target(required_mechanisms: int, required_slices: int) -> dict[str, Any]:
         return {
@@ -340,10 +431,26 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
         "classification_status": classification["status"],
         "counted_output_count": len(counted),
         "counted_output_ids": sorted(row["output_id"] for row in counted),
+        "direct_mechanism_output_count": len(direct_mechanisms),
+        "direct_mechanism_output_ids": sorted(
+            row["output_id"] for row in direct_mechanisms
+        ),
         "document_type": KPI_DOCUMENT_TYPE,
         "excluded_output_count": len(excluded),
         "excluded_output_ids": sorted(row["output_id"] for row in excluded),
         "goal_assessment": {
+            "candidate_delivery_efficiency": {
+                "accepted_output_count": denominator,
+                "direct_mechanism_count": len(direct_mechanisms),
+                "direct_mechanism_ratio_basis_points": direct_ratio_bps,
+                "status": (
+                    "MET"
+                    if denominator > 0 and len(direct_mechanisms) * 2 > denominator
+                    else "BELOW_TARGET"
+                ),
+                "support_or_excluded_count": denominator - len(direct_mechanisms),
+                "target": "DIRECT_MECHANISM_CONCLUSIONS_STRICTLY_MORE_THAN_50_PERCENT_OF_ALL_ACCEPTED_OUTPUTS",
+            },
             "operational_overhead": {
                 "denominator": denominator,
                 "non_counting_or_excluded_count": len(overhead),

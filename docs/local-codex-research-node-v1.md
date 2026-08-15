@@ -138,6 +138,30 @@ deterministic receipt to stdout; it does not write a receipt, fetch Git state,
 contact the server, inspect an outcome, or replace Manager/Coach semantic
 validation.
 
+For every new countable strategy-path assignment, Manager/Coach must also freeze
+a hash-bound admission document conforming to
+`research_pipeline/local-research-strategy-path.v1.schema.json` and run:
+
+```text
+python -m research_pipeline local-research-strategy-preflight <dispatch.json> \
+  --task <task.json> --intent <pre-dispatch-intent.json> \
+  --strategy-path <strategy-path.json>
+```
+
+This stricter receipt accepts only a diagnostic or registered experiment step.
+It proves that the tested feature is available before the decision, binds one
+existing parent and matched comparator, requires an existing adapter or direct
+runner, and permits at most one additional research step before a frozen
+hypothesis or matched-capital experiment. It also freezes fee, adverse-slippage,
+total-PnL, drawdown, inventory-path and holding-age visibility. A negative result
+closes the family; insufficient evidence stops without a permission request;
+independent forward/OOS evidence remains sealed.
+
+Capability, infrastructure, and repair work may still use the original Manager
+preflight when genuinely necessary, but it is support work and must not be
+presented as direct candidate delivery. Already sealed historical tasks and the
+current active chain retain their original byte contracts and validator command.
+
 For a bounded period of at most seven days, Manager/Coach may measure accepted
 Local output against the current throughput targets with an explicit acceptance
 allowlist:
@@ -149,10 +173,13 @@ python -m research_pipeline local-research-throughput-kpi \
 ```
 
 This command reuses the two-stage classification verifier and reports unique
-mechanism families, spec/capability families, excluded work and operational
-overhead. It is a workflow KPI only. The classification V1 contract cannot
-prove a rolling forward terminal, alpha, PnL or drawdown improvement, so those
-claims remain explicit `MISSING_PROOF` instead of being inferred from filenames.
+mechanism families, spec/capability families, excluded work, operational
+overhead, and candidate-delivery efficiency. That efficiency is met only when
+counted mechanism conclusions are strictly more than half of all accepted
+outputs; support slices and excluded work remain in the denominator. It is a
+workflow KPI only. The classification V1 contract cannot prove a rolling
+forward terminal, alpha, PnL or drawdown improvement, so those claims remain
+explicit `MISSING_PROOF` instead of being inferred from filenames.
 
 ## Execution modes
 
@@ -189,8 +216,8 @@ creates work. The fixed loop is:
 2. the Manager/Coach re-reads canonical status and verifies the event identity,
    artifact hash, authorization, queue state, and single-clock boundary;
 3. the Manager/Coach validates the exact task plus its task-hash-bound
-   performance dispatch and freezes the positive, negative, and insufficient
-   evidence dispositions before Local outcome access;
+   performance dispatch, classification intent, and—for new countable work—the
+   direct strategy-path admission before Local outcome access;
 4. for a ready microstructure V3 diagnostic, the Manager/Coach invokes the
    fixed create-once Server-to-Local handoff pull once, validates the received
    package, and validates the exact bounded Local task before dispatch;

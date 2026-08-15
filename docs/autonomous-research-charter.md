@@ -23,6 +23,12 @@ utilization, blocked entries, and holding age are all visible.
 
 Research throughput is a means, not the objective. `NO_CANDIDATE`,
 `DATA_REJECT`, and `LEAKAGE_REJECT` are valid successful workflow outcomes.
+For new countable Local work, a hash-bound strategy-path admission must show
+that the feature is known before the decision and that a positive result reaches
+a frozen hypothesis or matched-capital experiment in at most one further step.
+Capability, repair, and infrastructure output is support work, not candidate
+delivery. Counted mechanism conclusions should remain strictly more than half
+of all accepted Local outputs.
 
 ## Performance contract
 

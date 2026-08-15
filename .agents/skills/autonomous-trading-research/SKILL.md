@@ -57,6 +57,15 @@ matched-capital risk-adjusted performance, not run count or candidate count.
   only the frozen read-only integrity/diagnostic review and record exactly one
   `WAIT`, `READY_FOR_HYPOTHESIS`, or `CLOSE` review. A review-ready window is
   discovery evidence, not OOS for a hypothesis derived from it.
+- Before dispatching any new countable Local task, freeze a strategy-path
+  admission matching
+  `research_pipeline/local-research-strategy-path.v1.schema.json` and run
+  `local-research-strategy-preflight`. Require a feature known before the
+  decision, an existing parent/comparator and runner, full economic/path-risk
+  visibility, and at most one further step to a frozen hypothesis or matched-
+  capital experiment. Capability, infrastructure, and repair work may use the
+  original Manager preflight but is support work, not direct candidate delivery.
+  Do not rewrite already sealed tasks or the current active chain.
 
 ## Register a hypothesis and experiment
 

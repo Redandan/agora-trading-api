@@ -38,6 +38,9 @@ CANDIDATE_DELIVERY_MIN_ACCEPTED_OUTPUTS = 5
 CANDIDATE_DELIVERY_MIN_DIRECT_MECHANISMS = 3
 CANDIDATE_DELIVERY_MIN_DIRECT_FAMILIES = 3
 CANDIDATE_DELIVERY_REQUIRED_CONSECUTIVE_DAILY_AUDITS = 2
+RESEARCH_FACTORY_MIN_WEEKLY_ECONOMIC_CLOSURES = 2
+RESEARCH_FACTORY_MAX_DECISION_LATENCY_HOURS = 48
+RESEARCH_FACTORY_MAX_GOVERNANCE_RATIO_BPS = 2_000
 
 
 def _git(root: Path, *arguments: str) -> bytes:
@@ -557,6 +560,124 @@ def _candidate_delivery_next_dispatch_policy(
     }
 
 
+def _research_factory_next_dispatch_policy(
+    denominator: int,
+    direct_count: int,
+) -> dict[str, Any]:
+    support_count = denominator - direct_count
+    projected_denominator = denominator + 1
+    projected_support_count = support_count + 1
+    support_preserves_target = (
+        projected_support_count * 10_000
+        <= RESEARCH_FACTORY_MAX_GOVERNANCE_RATIO_BPS * projected_denominator
+    )
+    support_headroom = max(0, (denominator - 5 * support_count) // 4)
+    return {
+        "active_evidence_integrity_exception": (
+            "ALLOW_ONLY_WHEN_SEPARATELY_PROVEN_AND_CLASSIFIED_NON_COUNTING"
+        ),
+        "candidate_enabling_capability_exception": {
+            "minimum_unlocked_direct_families": 3,
+            "rolling_budget_days": 7,
+            "status": "ALLOW_ONCE_PER_WINDOW_WHEN_SCHEMA_PROVEN_AND_NON_COUNTING",
+        },
+        "direct_strategy_path": {
+            "projected_direct_economic_closure_count": direct_count + 1,
+            "projected_governance_ratio_basis_points": (
+                support_count * 10_000 // projected_denominator
+            ),
+            "status": "ALLOW_ECONOMIC_CLOSURE",
+        },
+        "policy": "RESEARCH_FACTORY_V2_ECONOMIC_CLOSURE_ALLOCATION",
+        "support_outputs_available_before_target_loss": support_headroom,
+        "support_work": {
+            "projected_direct_economic_closure_count": direct_count,
+            "projected_governance_ratio_basis_points": (
+                projected_support_count * 10_000 // projected_denominator
+            ),
+            "status": (
+                "ALLOW_WITHIN_20_PERCENT_GOVERNANCE_BUDGET"
+                if support_preserves_target
+                else "DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION"
+            ),
+        },
+    }
+
+
+def _research_factory_v2_assessment(
+    rows: list[dict[str, Any]],
+    direct_mechanisms: list[dict[str, Any]],
+) -> dict[str, Any]:
+    denominator = len(rows)
+    support_count = denominator - len(direct_mechanisms)
+    governance_ratio_bps = (
+        0 if denominator == 0 else support_count * 10_000 // denominator
+    )
+    latency_rows: list[dict[str, Any]] = []
+    missing_latency_ids: list[str] = []
+    for row in direct_mechanisms:
+        issued = row.get("intent_issued_at")
+        completed = row.get("completed_at")
+        if not isinstance(issued, str) or not isinstance(completed, str):
+            missing_latency_ids.append(row["output_id"])
+            continue
+        latency_hours = (
+            _utc_timestamp(completed, "completed_at")
+            - _utc_timestamp(issued, "intent_issued_at")
+        ).total_seconds() / 3600
+        if latency_hours < 0:
+            raise ValueError("economic closure completed before its frozen intent")
+        latency_rows.append(
+            {"latency_hours": latency_hours, "output_id": row["output_id"]}
+        )
+    closures_met = (
+        len(direct_mechanisms) >= RESEARCH_FACTORY_MIN_WEEKLY_ECONOMIC_CLOSURES
+    )
+    governance_met = (
+        denominator > 0
+        and governance_ratio_bps <= RESEARCH_FACTORY_MAX_GOVERNANCE_RATIO_BPS
+    )
+    latency_met = (
+        bool(direct_mechanisms)
+        and not missing_latency_ids
+        and all(
+            row["latency_hours"] <= RESEARCH_FACTORY_MAX_DECISION_LATENCY_HOURS
+            for row in latency_rows
+        )
+    )
+    return {
+        "decision_latency": {
+            "measure": "PRE_DISPATCH_INTENT_TO_ECONOMIC_DECISION_PROXY",
+            "missing_output_ids": sorted(missing_latency_ids),
+            "observations": sorted(latency_rows, key=lambda row: row["output_id"]),
+            "status": (
+                "MET"
+                if latency_met
+                else ("MISSING_PROOF" if missing_latency_ids or not direct_mechanisms else "ABOVE_TARGET")
+            ),
+            "target_hours_at_most": RESEARCH_FACTORY_MAX_DECISION_LATENCY_HOURS,
+        },
+        "direct_economic_closures": {
+            "count": len(direct_mechanisms),
+            "output_ids": sorted(row["output_id"] for row in direct_mechanisms),
+            "required_per_rolling_week": RESEARCH_FACTORY_MIN_WEEKLY_ECONOMIC_CLOSURES,
+            "status": "MET" if closures_met else "BELOW_TARGET",
+        },
+        "governance_and_tooling": {
+            "count": support_count,
+            "denominator": denominator,
+            "ratio_basis_points": governance_ratio_bps,
+            "status": "MET" if governance_met else "ABOVE_TARGET",
+            "target_basis_points_at_most": RESEARCH_FACTORY_MAX_GOVERNANCE_RATIO_BPS,
+        },
+        "next_dispatch_policy": _research_factory_next_dispatch_policy(
+            denominator,
+            len(direct_mechanisms),
+        ),
+        "status": "MET" if closures_met and governance_met and latency_met else "NOT_YET_MET",
+    }
+
+
 def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, Any]:
     rows = classification["rows"]
     candidate_enabling_capability_outputs = [
@@ -618,6 +739,10 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
         "excluded_output_count": len(excluded),
         "excluded_output_ids": sorted(row["output_id"] for row in excluded),
         "goal_assessment": {
+            "research_factory_v2": _research_factory_v2_assessment(
+                rows,
+                direct_mechanisms,
+            ),
             "candidate_delivery_efficiency": {
                 "accepted_output_count": denominator,
                 "direct_mechanism_count": len(direct_mechanisms),
@@ -812,7 +937,10 @@ def build_local_research_allocation_preflight(
         period_end,
     )
     efficiency = kpi["goal_assessment"]["candidate_delivery_efficiency"]
-    policy = efficiency["next_dispatch_policy"]
+    policy = _research_factory_next_dispatch_policy(
+        efficiency["accepted_output_count"],
+        efficiency["direct_mechanism_count"],
+    )
     direct = strategy_path_path is not None
     capability_exception = None
     if candidate_enabling_capability_path is not None:
@@ -886,12 +1014,12 @@ def build_local_research_allocation_preflight(
         projection = policy["support_work"]
     else:
         projection = policy["support_work"]
-        if projection["status"] != "ALLOW_WITHIN_STRICT_MAJORITY_BUDGET":
+        if projection["status"] != "ALLOW_WITHIN_20_PERCENT_GOVERNANCE_BUDGET":
             raise ValueError(
-                "allocation gate defers support work until strict-majority "
-                "candidate-delivery headroom exists"
+                "allocation gate defers support work until the 20 percent "
+                "governance budget has headroom"
             )
-        gate_status = "SUPPORT_WITHIN_STRICT_MAJORITY_BUDGET_ALLOWED"
+        gate_status = "SUPPORT_WITHIN_20_PERCENT_GOVERNANCE_BUDGET_ALLOWED"
 
     return {
         "allocation_gate": {

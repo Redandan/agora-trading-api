@@ -652,6 +652,81 @@ class LocalManagerPreflightTest(unittest.TestCase):
 
 
 class LocalResearchKpiTest(unittest.TestCase):
+    def test_research_factory_v2_uses_closures_latency_and_governance(self) -> None:
+        rows = [
+            {
+                "classification_outcome": "COUNT",
+                "completed_at": f"2026-08-15T0{index + 2}:00:00Z",
+                "duplicate_family_key": f"direct-family-{index}",
+                "intent_issued_at": "2026-08-14T12:00:00Z",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": f"direct-{index}",
+                "strategy_path_admitted": True,
+            }
+            for index in range(2)
+        ]
+        classification = {
+            "period": {
+                "start_inclusive": "2026-08-08T00:00:00Z",
+                "end_exclusive": "2026-08-15T12:00:00Z",
+            },
+            "rows": rows,
+            "status": "VALID",
+            "unique_family_totals": {
+                "MECHANISM_CONCLUSION": 2,
+                "NON_COUNTING": 0,
+                "SPEC_OR_CAPABILITY_SLICE": 0,
+            },
+        }
+
+        factory = summarize_local_research_kpi(classification)["goal_assessment"][
+            "research_factory_v2"
+        ]
+        self.assertEqual(factory["status"], "MET")
+        self.assertEqual(factory["direct_economic_closures"]["count"], 2)
+        self.assertEqual(factory["decision_latency"]["status"], "MET")
+        self.assertEqual(factory["governance_and_tooling"]["ratio_basis_points"], 0)
+        self.assertEqual(
+            factory["next_dispatch_policy"]["support_work"]["status"],
+            "DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION",
+        )
+
+    def test_research_factory_v2_allows_one_support_only_after_four_direct_closures(self) -> None:
+        rows = [
+            {
+                "classification_outcome": "COUNT",
+                "completed_at": "2026-08-15T03:00:00Z",
+                "duplicate_family_key": f"direct-family-{index}",
+                "intent_issued_at": "2026-08-14T12:00:00Z",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": f"direct-{index}",
+                "strategy_path_admitted": True,
+            }
+            for index in range(4)
+        ]
+        classification = {
+            "period": {
+                "start_inclusive": "2026-08-08T00:00:00Z",
+                "end_exclusive": "2026-08-15T12:00:00Z",
+            },
+            "rows": rows,
+            "status": "VALID",
+            "unique_family_totals": {
+                "MECHANISM_CONCLUSION": 4,
+                "NON_COUNTING": 0,
+                "SPEC_OR_CAPABILITY_SLICE": 0,
+            },
+        }
+
+        policy = summarize_local_research_kpi(classification)["goal_assessment"][
+            "research_factory_v2"
+        ]["next_dispatch_policy"]
+        self.assertEqual(
+            policy["support_work"]["status"],
+            "ALLOW_WITHIN_20_PERCENT_GOVERNANCE_BUDGET",
+        )
+        self.assertEqual(policy["support_outputs_available_before_target_loss"], 1)
+
     def test_kpi_reports_floor_stretch_overhead_and_missing_forward_proof(self) -> None:
         rows = []
         for index in range(4):

@@ -172,7 +172,7 @@ presented as direct candidate delivery. Already sealed historical tasks and the
 current active chain retain their original byte contracts and validator command.
 
 One narrowly bounded candidate-enabling capability unit may bypass missing
-strict-majority headroom per rolling seven-day window. It remains
+20-percent governance-budget headroom per rolling seven-day window. It remains
 `NON_COUNTING`, must be a `WORKTREE_WRITE` tooling or adapter task, and must bind
 a canonical sidecar conforming to
 `research_pipeline/local-candidate-enabling-capability.v1.schema.json`. The
@@ -194,17 +194,25 @@ python -m research_pipeline local-research-throughput-kpi \
 
 This command reuses the two-stage classification verifier and reports unique
 mechanism families, spec/capability families, excluded work, operational
-overhead, and candidate-delivery efficiency. That efficiency is met only when
+overhead, and economic-closure efficiency. `research_factory_v2` is the primary
+operating KPI: a rolling week needs at least two verified direct economic
+closures, every frozen-intent-to-decision latency must be no greater than 48
+hours, and governance/tooling may be no more than 20 percent of accepted work.
+The intent timestamp is an auditable proxy for idea registration; it is labelled
+as such rather than presented as an unobserved brainstorming timestamp.
+
+The older candidate-delivery compatibility field is met only when
 counted mechanism conclusions with verified strategy-path admission are
 strictly more than half of all accepted outputs; support slices, excluded work,
 and legacy mechanism labels without admission proof remain in the denominator.
-The labelled-mechanism count is retained only as a legacy proxy and cannot make
-the KPI green. It is a workflow KPI only. The classification V1 contract cannot prove a rolling
+It no longer drives allocation. The labelled-mechanism count is retained only
+as a legacy proxy. These are workflow KPIs only. The classification V1 contract cannot prove a rolling
 forward terminal, alpha, PnL or drawdown improvement, so those claims remain
 explicit `MISSING_PROOF` instead of being inferred from filenames.
 
-When the direct candidate-delivery ratio is below target, the same deterministic
-receipt reports a `natural_recovery_forecast`. It projects the first rolling
+For compatibility, when the older direct candidate-delivery ratio is below
+target, the same deterministic receipt reports a `natural_recovery_forecast`.
+It projects the first rolling
 boundary strictly after which the target would recover if no new accepted
 outputs arrive. The forecast is an allocation aid, not permission to manufacture
 mechanism tasks or suppress an active evidence-integrity repair. Missing row
@@ -213,9 +221,10 @@ as target attainment.
 
 The receipt also exposes a deterministic `next_dispatch_policy`. A direct task
 with verified strategy-path admission remains eligible because it improves or
-preserves the ratio. Support work is deferred whenever adding one accepted row
-would fail the strict-majority target. Support becomes eligible only within the
-reported integer headroom, except for a separately proven active evidence-
+extends the economic-closure stream. Ordinary support work is deferred whenever
+adding one accepted row would raise governance/tooling above 20 percent. It
+becomes eligible only within the reported integer headroom, except for a
+separately proven active evidence-
 integrity repair or the schema-proven candidate-enabling capability unit. Both
 remain `NON_COUNTING`; neither makes the workflow KPI green. The capability
 unit additionally has a fixed one-use rolling seven-day budget and must unlock
@@ -236,18 +245,19 @@ python -m research_pipeline local-research-allocation-preflight <dispatch.json> 
 The command first performs the ordinary or strategy-path Manager preflight,
 then revalidates the explicit rolling acceptance allowlist and binds the
 proposed output to the resulting allocation policy. Direct strategy-path work
-passes; support work without strict-majority headroom fails closed. The active
+passes; ordinary support work without 20-percent governance-budget headroom
+fails closed. The active
 evidence-integrity and candidate-enabling exceptions remain explicit and cannot
 be combined with each other or with a direct strategy path. The candidate-
 enabling path also fails if the rolling acceptance allowlist already contains
 an accepted use of its fixed duplicate-family key.
 
-The optimized workflow target cannot pass on ratio alone. Each rolling
-seven-day audit must contain at least five accepted outputs, at least three
-source-commit-verifiable direct mechanism outputs, at least three distinct
-direct mechanism families, and a direct-output ratio strictly above 50%.
-Workflow completion requires two daily audits whose rolling windows are exactly
-one day apart:
+The legacy two-window audit cannot pass on ratio alone. Each compatibility
+window still requires at least five accepted outputs, at least three source-
+commit-verifiable direct mechanism outputs, three distinct direct families,
+and a direct-output ratio above 50%. This audit is retained for historical
+comparability; `research_factory_v2` is the active operating target. The legacy
+audit uses two daily windows exactly one day apart:
 
 ```text
 python -m research_pipeline local-research-goal-audit \

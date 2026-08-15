@@ -1,0 +1,73 @@
+{
+  "artifact": {
+    "path": ".research-state/experiments/dra-lagged-realized-volatility-entry-admission-v1/artifacts/screen.json",
+    "sha256": "2fccd1db4e6604241f4e80aee8e9ce5e1c34bd297caf72fa6a9a6dff04182df5"
+  },
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "dataset": {
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "decision": "CLOSE_FEATURE_FAMILY_WITHOUT_TUNING",
+  "document_type": "DRA_DECLARATIVE_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-lagged-realized-volatility-entry-admission-v1",
+  "failed_primary_gates": [
+    "annual_drawdown_non_worse_at_least_4_of_5",
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_total_pnl_improves"
+  ],
+  "manifest_sha256": "8e9f5f74cfaf4022b0213a5430a2f22e21868e1fe483535dfdfd0da90ef6c97d",
+  "oos_opened": false,
+  "primary_variant": {
+    "annual_drawdown_non_worse": 3,
+    "annual_total_pnl_deltas_usdt": {
+      "2020": "-17.17379056",
+      "2021": "-6.66481231",
+      "2022": "-4.65162416",
+      "2023": "-13.85739356",
+      "2024": "-7.93942795"
+    },
+    "annual_total_wins": 0,
+    "design": {
+      "candidate_max_drawdown_pct": "19.598721",
+      "candidate_total_pnl_usdt": "45.49223573",
+      "max_drawdown_delta_pp": "-9.931727",
+      "parent_max_drawdown_pct": "29.530448",
+      "parent_total_pnl_usdt": "90.77797326",
+      "total_pnl_delta_usdt": "-45.28573753"
+    },
+    "role": "primary",
+    "threshold": "1.0",
+    "validation": {
+      "admitted_signals": 41,
+      "candidate_max_drawdown_pct": "11.489106",
+      "candidate_median_hold_hours": 277.5,
+      "candidate_p90_hold_hours": 2610.2,
+      "candidate_total_pnl_usdt": "67.58935119",
+      "max_drawdown_delta_pp": "4.367608",
+      "parent_max_drawdown_pct": "7.121498",
+      "parent_median_hold_hours": 182.5,
+      "parent_p90_hold_hours": 1418.3,
+      "parent_total_pnl_usdt": "86.20298186",
+      "total_pnl_delta_usdt": "-18.61363067",
+      "vetoed_signals": 61
+    },
+    "variant_id": "lagged-rv-low-vol-admission-1_0-v1"
+  },
+  "runner_sha256": "d599efff31032cd7660a30f85ff1bed755656e2720af3dedcb54e4d51a06434c",
+  "schema_version": "1",
+  "scientific_claim": "On the exact sealed pre-2025 corpus and frozen equal-capital economics, admitting DRA V1 entries only when lagged daily realized volatility was at or below its prior-20-day median failed Design and Validation economic gates. Both neighboring thresholds also failed Validation total-PnL and drawdown gates. This closes the feature family and does not support a candidate.",
+  "status": "NO_MECHANISM_CLOSE_FEATURE_FAMILY",
+  "uncertainty": [
+    "This is a historical Design and Validation closure, not post-2024 OOS or prospective evidence.",
+    "The result does not test continuous volatility scaling, leverage, exits, or alternate estimators because those were outside the frozen mechanism.",
+    "No threshold tuning, candidate creation, OOS opening, deployment, canonical write, or Trading action occurred."
+  ]
+}

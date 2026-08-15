@@ -526,6 +526,7 @@ def _validate_row(
         "exclusion_reason": reason,
         "independence_semantics": intent["independence_semantics"],
         "intent_id": intent["intent_id"],
+        "intent_issued_at": intent["issued_at"],
         "intent_path": acceptance["intent_path"],
         "output_class": intent["output_class"],
         "output_id": acceptance["output_id"],

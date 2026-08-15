@@ -561,6 +561,18 @@ class LocalResearchKpiTest(unittest.TestCase):
             ],
             5714,
         )
+        allocation = result["goal_assessment"]["candidate_delivery_efficiency"][
+            "next_dispatch_policy"
+        ]
+        self.assertEqual(
+            allocation["direct_strategy_path"]["status"],
+            "ALLOW_IMPROVES_OR_PRESERVES_RATIO",
+        )
+        self.assertEqual(
+            allocation["support_work"]["status"],
+            "DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY",
+        )
+        self.assertEqual(allocation["support_outputs_available_before_target_loss"], 0)
         self.assertEqual(result["goal_assessment"]["operational_overhead"]["status"], "MET")
         self.assertEqual(result["goal_assessment"]["rolling_four_week_forward_terminal"]["status"], "MISSING_PROOF")
         self.assertEqual(result["scientific_claim"], "NO_ALPHA_OR_PERFORMANCE_CLAIM")
@@ -666,6 +678,62 @@ class LocalResearchKpiTest(unittest.TestCase):
             6666,
         )
         self.assertEqual(forecast["window_seconds"], 604800)
+        allocation = result["goal_assessment"]["candidate_delivery_efficiency"][
+            "next_dispatch_policy"
+        ]
+        self.assertEqual(
+            allocation["direct_strategy_path"]["projected_ratio_basis_points"],
+            6000,
+        )
+        self.assertEqual(
+            allocation["support_work"]["status"],
+            "DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY",
+        )
+
+    def test_kpi_allows_one_support_output_only_with_strict_majority_headroom(self) -> None:
+        rows = [
+            {
+                "classification_outcome": "COUNT",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": f"direct-{index}",
+                "strategy_path_admitted": True,
+            }
+            for index in range(3)
+        ]
+        rows.append(
+            {
+                "classification_outcome": "COUNT",
+                "output_class": "SPEC_OR_CAPABILITY_SLICE",
+                "output_id": "support-existing",
+            }
+        )
+        classification = {
+            "period": {
+                "start_inclusive": "2026-08-10T00:00:00Z",
+                "end_exclusive": "2026-08-17T00:00:00Z",
+            },
+            "rows": rows,
+            "status": "VALID",
+            "unique_family_totals": {
+                "MECHANISM_CONCLUSION": 3,
+                "NON_COUNTING": 0,
+                "SPEC_OR_CAPABILITY_SLICE": 1,
+            },
+        }
+
+        result = summarize_local_research_kpi(classification)
+        allocation = result["goal_assessment"]["candidate_delivery_efficiency"][
+            "next_dispatch_policy"
+        ]
+        self.assertEqual(
+            allocation["support_work"]["status"],
+            "ALLOW_WITHIN_STRICT_MAJORITY_BUDGET",
+        )
+        self.assertEqual(allocation["support_outputs_available_before_target_loss"], 1)
+        self.assertEqual(
+            allocation["support_work"]["projected_ratio_basis_points"],
+            6000,
+        )
 
     def test_top_level_kpi_uses_explicit_allowlist_without_policy_or_state(self) -> None:
         classification = {

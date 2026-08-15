@@ -467,6 +467,41 @@ def _candidate_delivery_recovery_forecast(
     }
 
 
+def _candidate_delivery_next_dispatch_policy(
+    denominator: int,
+    direct_count: int,
+) -> dict[str, Any]:
+    projected_denominator = denominator + 1
+    direct_projection = direct_count + 1
+    support_headroom = max(0, 2 * direct_count - denominator - 1)
+    support_preserves_target = direct_count * 2 > projected_denominator
+    return {
+        "active_evidence_integrity_exception": (
+            "ALLOW_ONLY_WHEN_SEPARATELY_PROVEN_AND_CLASSIFIED_NON_COUNTING"
+        ),
+        "direct_strategy_path": {
+            "projected_direct_mechanism_count": direct_projection,
+            "projected_ratio_basis_points": (
+                direct_projection * 10_000 // projected_denominator
+            ),
+            "status": "ALLOW_IMPROVES_OR_PRESERVES_RATIO",
+        },
+        "policy": "DIRECT_FIRST_STRICT_MAJORITY_ALLOCATION",
+        "support_outputs_available_before_target_loss": support_headroom,
+        "support_work": {
+            "projected_direct_mechanism_count": direct_count,
+            "projected_ratio_basis_points": (
+                direct_count * 10_000 // projected_denominator
+            ),
+            "status": (
+                "ALLOW_WITHIN_STRICT_MAJORITY_BUDGET"
+                if support_preserves_target
+                else "DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
+            ),
+        },
+    }
+
+
 def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, Any]:
     rows = classification["rows"]
     counted = [row for row in rows if row["classification_outcome"] == "COUNT"]
@@ -526,6 +561,10 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
                 "natural_recovery_forecast": _candidate_delivery_recovery_forecast(
                     rows,
                     classification["period"],
+                ),
+                "next_dispatch_policy": _candidate_delivery_next_dispatch_policy(
+                    denominator,
+                    len(direct_mechanisms),
                 ),
                 "proof_standard": "COUNTED_MECHANISM_WITH_VERIFIED_STRATEGY_PATH_ADMISSION",
                 "status": (

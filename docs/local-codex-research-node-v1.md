@@ -200,6 +200,14 @@ mechanism tasks or suppress an active evidence-integrity repair. Missing row
 completion time remains `MISSING_PROOF`; an empty future window is never treated
 as target attainment.
 
+The receipt also exposes a deterministic `next_dispatch_policy`. A direct task
+with verified strategy-path admission remains eligible because it improves or
+preserves the ratio. Support work is deferred whenever adding one accepted row
+would fail the strict-majority target. Support becomes eligible only within the
+reported integer headroom, except for a separately proven active evidence-
+integrity repair that remains `NON_COUNTING`. The exception preserves evidence;
+it does not make the workflow KPI green.
+
 ## Execution modes
 
 - `READ_ONLY`: inspect contracts, toolchain, hashes, and sealed summaries. No

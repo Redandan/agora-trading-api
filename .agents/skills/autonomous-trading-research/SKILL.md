@@ -70,6 +70,12 @@ matched-capital risk-adjusted performance, not run count or candidate count.
   Capability, infrastructure, and repair work may use the
   original Manager preflight but is support work, not direct candidate delivery.
   Do not rewrite already sealed tasks or the current active chain.
+- Before dispatching the next Local task, inspect the latest validated throughput
+  KPI `next_dispatch_policy`. When support work is
+  `DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY`, select a verified direct strategy-
+  path task or wait for new evidence. Use the support exception only for a
+  separately proven active evidence-integrity risk, keep it `NON_COUNTING`, and
+  never invent a mechanism merely to improve the ratio.
 
 ## Register a hypothesis and experiment
 

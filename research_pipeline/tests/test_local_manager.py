@@ -813,66 +813,48 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
         }
 
     def test_allocation_preflight_allows_verified_direct_path(self) -> None:
-        manager = {
-            "authorization": AUTHORIZATION,
-            "research_value_gate": {"output_class": "MECHANISM_CONCLUSION"},
-        }
-        with (
-            patch(
-                "research_pipeline.local_manager.build_local_strategy_manager_preflight",
-                return_value=manager,
-            ) as strategy_preflight,
-            patch(
-                "research_pipeline.local_manager.build_local_manager_preflight"
-            ) as manager_preflight,
-            patch(
-                "research_pipeline.local_manager.build_local_research_kpi",
-                return_value=self._kpi(
-                    support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
-                ),
+        repository = PreflightRepository(self, strategy_ready=True)
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
             ),
         ):
             result = build_local_research_allocation_preflight(
-                "C:/repo",
-                "dispatch.json",
-                "task.json",
-                "intent.json",
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
                 ["acceptance.json"],
                 "2026-08-08T00:00:00Z",
                 "2026-08-15T00:00:00Z",
-                strategy_path_path="strategy-path.json",
+                strategy_path_path=repository.strategy_path,
             )
         self.assertEqual(result["status"], "VALID")
         self.assertEqual(
             result["allocation_gate"]["status"],
             "DIRECT_STRATEGY_PATH_ALLOWED",
         )
-        strategy_preflight.assert_called_once()
-        manager_preflight.assert_not_called()
+        self.assertEqual(result["manager_preflight"]["status"], "VALID")
+        self.assertEqual(
+            result["manager_preflight"]["strategy_path_gate"]["status"],
+            "DIRECT_CANDIDATE_PATH_REQUIRED",
+        )
 
     def test_allocation_preflight_rejects_support_without_headroom(self) -> None:
-        manager = {
-            "authorization": AUTHORIZATION,
-            "research_value_gate": {"output_class": "SPEC_OR_CAPABILITY_SLICE"},
-        }
-        with (
-            patch(
-                "research_pipeline.local_manager.build_local_manager_preflight",
-                return_value=manager,
-            ),
-            patch(
-                "research_pipeline.local_manager.build_local_research_kpi",
-                return_value=self._kpi(
-                    support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
-                ),
+        repository = PreflightRepository(self)
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
             ),
         ):
             with self.assertRaisesRegex(ValueError, "allocation gate defers support"):
                 build_local_research_allocation_preflight(
-                    "C:/repo",
-                    "dispatch.json",
-                    "task.json",
-                    "intent.json",
+                    repository.root,
+                    repository.dispatch_path,
+                    repository.task_path,
+                    repository.intent_path,
                     ["acceptance.json"],
                     "2026-08-08T00:00:00Z",
                     "2026-08-15T00:00:00Z",

@@ -243,6 +243,68 @@ class MicrostructureDiscoveryRecoveryV3R1MonitorTest(unittest.TestCase):
             legacy_monitor.assert_called_once_with(store.root, now=now)
             recovery_monitor.assert_not_called()
 
+    def test_empty_unbound_v3r1_namespace_does_not_preempt_v3(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = ResearchStore(root, lock_stale_seconds=60)
+            store.bootstrap()
+            (store.root / "microstructure-v3r1").mkdir()
+            missing_binding = root / "missing-binding.json"
+            now = datetime(2026, 8, 31, tzinfo=timezone.utc)
+            legacy = {"status": "LEGACY_STORE"}
+
+            with (
+                patch(
+                    "research_pipeline.heartbeat.microstructure_diagnostic_status",
+                    return_value=legacy,
+                ) as legacy_monitor,
+                patch(
+                    "research_pipeline.heartbeat.microstructure_discovery_recovery_status"
+                ) as recovery_monitor,
+            ):
+                diagnostic = _read_microstructure_diagnostic(
+                    store,
+                    binding_path=missing_binding,
+                    now=now,
+                )
+
+            self.assertEqual(legacy, diagnostic)
+            legacy_monitor.assert_called_once_with(store.root, now=now)
+            recovery_monitor.assert_not_called()
+
+    def test_unbound_nonempty_v3r1_namespace_remains_fail_closed(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = ResearchStore(root, lock_stale_seconds=60)
+            store.bootstrap()
+            namespace = store.root / "microstructure-v3r1"
+            namespace.mkdir()
+            (namespace / "partial-state.tmp").write_bytes(b"partial")
+            missing_binding = root / "missing-binding.json"
+            now = datetime(2026, 8, 31, tzinfo=timezone.utc)
+            artifactless = {
+                "status": "RECOVERY_BLOCKED",
+                "artifact_path": None,
+                "sha256": None,
+                "lag_classification": "RECOVERY_BLOCKED",
+            }
+
+            with (
+                patch(
+                    "research_pipeline.heartbeat.microstructure_discovery_recovery_status",
+                    return_value=artifactless,
+                ) as recovery_monitor,
+                patch("research_pipeline.heartbeat.time_module.sleep"),
+            ):
+                diagnostic = _read_microstructure_diagnostic(
+                    store,
+                    binding_path=missing_binding,
+                    now=now,
+                )
+
+            self.assertEqual(artifactless, diagnostic)
+            self.assertEqual(3, recovery_monitor.call_count)
+
     def test_heartbeat_persistent_artifactless_recovery_still_fails_closed(self) -> None:
         initial = initial_intake_state(self.binding)
         with TemporaryDirectory() as directory:

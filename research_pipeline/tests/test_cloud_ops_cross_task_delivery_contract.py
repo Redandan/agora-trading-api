@@ -176,17 +176,20 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
         self.assertNotIn("do not send before the normally due heartbeat", self.prompt)
         self.assertNotIn("new post-send receipt may be carried only", self.prompt)
 
-    def test_current_docs_preserve_active_v9_and_mark_v10_prepared_only(self) -> None:
+    def test_current_docs_mark_v10_active_and_preserve_v9_as_history(self) -> None:
         for content in self.docs:
-            self.assertIn("CLOUD_OPS_SCHEDULE_V9", content)
-            self.assertIn(V9_SHA256, content)
-            self.assertIn("MISSING_PROOF", content)
-        for content in (self.docs[0], self.docs[2]):
             self.assertIn("CLOUD_OPS_SCHEDULE_V10", content)
             self.assertIn(V10_SHA256, content)
-            self.assertIn("repository-prepared", content.lower())
-        self.assertIn("active canonical contract is V9", self.docs[0])
-        self.assertIn("exactly one active", self.docs[1])
+            self.assertIn("MISSING_PROOF", content)
+        for content in (self.docs[0], self.docs[2], self.docs[3]):
+            self.assertIn("CLOUD_OPS_SCHEDULE_V9", content)
+        for content in (self.docs[2], self.docs[3]):
+            self.assertIn(V9_SHA256, content)
+        self.assertIn("active contract is now V10", self.docs[0])
+        self.assertIn("Active heartbeat liveness decoupling V10", self.docs[0])
+        self.assertIn("Active heartbeat liveness decoupling V10", self.docs[2])
+        self.assertIn("Active Cloud Ops V10", self.docs[3])
+        self.assertIn("sole cloud clock", self.docs[1])
         self.assertIn(EXISTING_CLOUD_SCHEDULE_ID, self.docs[2])
         self.assertIn(EXISTING_CLOUD_SCHEDULE_ID, self.docs[3])
 

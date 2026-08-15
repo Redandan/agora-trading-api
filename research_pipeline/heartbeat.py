@@ -70,7 +70,10 @@ def _read_microstructure_diagnostic(
     binding_path: Path,
     now: datetime,
 ) -> dict[str, Any]:
-    v3r1_active = os.path.lexists(store.root / "microstructure-v3r1")
+    v3r1_active = _v3r1_activation_evidence(
+        store.root / "microstructure-v3r1",
+        binding_path,
+    )
     reader = (
         microstructure_discovery_recovery_status
         if v3r1_active
@@ -97,6 +100,22 @@ def _read_microstructure_diagnostic(
     if summary is None:  # pragma: no cover - the bounded loop always executes
         raise RuntimeError("microstructure monitor retry budget is invalid")
     return summary
+
+
+def _v3r1_activation_evidence(namespace: Path, binding_path: Path) -> bool:
+    """Distinguish an installer-created empty directory from V3R1 activation."""
+
+    if not os.path.lexists(namespace):
+        return False
+    if namespace.is_symlink() or not namespace.is_dir():
+        return True
+    if os.path.lexists(binding_path):
+        return True
+    try:
+        with os.scandir(namespace) as entries:
+            return next(entries, None) is not None
+    except OSError:
+        return True
 
 
 def load_heartbeat_request_payload(path: Path | None) -> list[dict[str, Any]]:

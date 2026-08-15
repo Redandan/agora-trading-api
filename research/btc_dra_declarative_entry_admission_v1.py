@@ -39,18 +39,26 @@ FEATURES = {
     "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_BELOW",
         "prior_disposition": "PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_VOLATILITY_MANAGEMENT_PRIMARY_PRIOR_AUDIT_V4",
     },
     "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_ABOVE",
         "prior_disposition": "PREREGISTERED_V1_FORWARD_DISCOVERY_MECHANISM",
+        "prior_identity_field": "contract_id",
+        "prior_identity_value": "PROSPECTIVE_MARKET_MECHANISM_DIAGNOSTIC_V1",
     },
     "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_ABOVE",
         "prior_disposition": "PREREGISTERED_V1_FORWARD_DISCOVERY_MECHANISM",
+        "prior_identity_field": "contract_id",
+        "prior_identity_value": "PROSPECTIVE_MARKET_MECHANISM_DIAGNOSTIC_V1",
     },
     "DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_BELOW",
         "prior_disposition": "PRIOR_SUPPORTS_ONE_DOWNSIDE_SEMIVARIANCE_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_DOWNSIDE_SEMIVARIANCE_PRIMARY_PRIOR_V1",
     },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
@@ -405,6 +413,7 @@ def load_selection(path: Path, manifest: dict[str, Any]) -> list[base.Bar]:
 
 def verify_prior_evidence(manifest: dict[str, Any]) -> dict[str, Any]:
     binding = manifest["prior_evidence"]
+    feature_contract = FEATURES[manifest["feature"]["key"]]
     candidate = REPOSITORY_ROOT.joinpath(*binding["path"].split("/"))
     resolved = candidate.resolve(strict=True)
     try:
@@ -423,8 +432,8 @@ def verify_prior_evidence(manifest: dict[str, Any]) -> dict[str, Any]:
     if (
         value.get("disposition") != binding["disposition"]
         or value.get("authorization") != AUTHORIZATION
-        or value.get("document_type")
-        != "DRA_VOLATILITY_MANAGEMENT_PRIMARY_PRIOR_AUDIT_V4"
+        or value.get(feature_contract["prior_identity_field"])
+        != feature_contract["prior_identity_value"]
     ):
         raise ScreenReject("PRIOR_REJECT", "prior evidence identity mismatch")
     return {"path": binding["path"], "sha256": binding["sha256"]}

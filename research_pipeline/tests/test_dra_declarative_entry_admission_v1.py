@@ -156,6 +156,31 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         with self.assertRaisesRegex(runner.ScreenReject, "does not bind"):
             runner.validate_manifest(value)
 
+    def test_prior_identity_is_bound_to_feature_family(self) -> None:
+        value = manifest(
+            feature="DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN"
+        )
+        prior = {
+            "authorization": runner.AUTHORIZATION,
+            "disposition": value["prior_evidence"]["disposition"],
+            "document_type": "DRA_DOWNSIDE_SEMIVARIANCE_PRIMARY_PRIOR_V1",
+        }
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "prior.json"
+            path.write_text(json.dumps(prior), encoding="utf-8")
+            value["prior_evidence"].update(
+                {
+                    "path": "prior.json",
+                    "sha256": runner.sha256_path(path),
+                }
+            )
+            with patch.object(runner, "REPOSITORY_ROOT", root):
+                self.assertEqual(
+                    runner.verify_prior_evidence(value)["sha256"],
+                    value["prior_evidence"]["sha256"],
+                )
+
     def test_signal_fails_closed_when_feature_unavailable(self) -> None:
         engine = runner.DeclarativeEntryAdmissionEngine(
             feature_key="LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN",

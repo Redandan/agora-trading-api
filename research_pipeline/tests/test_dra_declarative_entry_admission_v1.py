@@ -197,6 +197,39 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
                 )
             )
 
+    def test_realized_to_bipower_ratio_uses_adjacent_absolute_returns(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_REALIZED_TO_BIPOWER_VARIATION_RATIO_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        engine.previous_hour_close = D("100")
+        opened = datetime(2024, 1, 1)
+        close = D("100")
+        for hour in range(24):
+            close *= D("1.1") if hour % 2 == 0 else D("0.9")
+            engine._update_feature(bar(opened + timedelta(hours=hour), close=str(close)))
+        expected_rv = D("24") * D("0.1") * D("0.1")
+        expected_bv = runner.PI_OVER_TWO * D("23") * D("0.1") * D("0.1")
+        self.assertLess(
+            abs(engine._daily_value() - (expected_rv / expected_bv)),
+            D("1e-30"),
+        )
+
+    def test_realized_to_bipower_ratio_fails_closed_without_adjacent_variation(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_REALIZED_TO_BIPOWER_VARIATION_RATIO_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        engine.previous_hour_close = D("100")
+        opened = datetime(2024, 1, 1)
+        engine._update_feature(bar(opened, close="110"))
+        for hour in range(1, 23):
+            engine._update_feature(bar(opened + timedelta(hours=hour), close="110"))
+        with self.assertRaisesRegex(runner.ScreenReject, "positive daily variation"):
+            engine._update_feature(bar(opened + timedelta(hours=23), close="110"))
+
     def test_manifest_binds_prior_disposition_to_feature(self) -> None:
         value = manifest(
             feature="DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN"

@@ -35,6 +35,7 @@ SLOT_CAPACITY_USDT = D("240")
 INITIAL_EQUITY_USDT = D("250")
 DD_TOLERANCE_PP = D("0.25")
 RATIO_QUANTUM = D("0.00000001")
+PI_OVER_TWO = D("1.5707963267948966192313216916397514")
 FEATURES = {
     "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_BELOW",
@@ -65,6 +66,12 @@ FEATURES = {
         "prior_disposition": "PRIOR_SUPPORTS_ONE_AMIHUD_ILLIQUIDITY_ADMISSION_AUDIT",
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_AMIHUD_ILLIQUIDITY_PRIMARY_PRIOR_V1",
+    },
+    "DAILY_REALIZED_TO_BIPOWER_VARIATION_RATIO_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_BELOW",
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_BIPOWER_JUMPINESS_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_BIPOWER_JUMPINESS_PRIMARY_PRIOR_V1",
     },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
@@ -270,6 +277,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.daily_downside_squared_return_sum = base.ZERO
         self.daily_amihud_sum = base.ZERO
         self.daily_amihud_invalid = False
+        self.daily_bipower_product_sum = base.ZERO
+        self.daily_previous_hour_return: D | None = None
         self.daily_bar_count = 0
         self.previous_hour_close: D | None = None
         self.current_feature_ratio: D | None = None
@@ -300,6 +309,17 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                     "Amihud-style illiquidity requires 24 positive-volume hourly bars",
                 )
             return self.daily_amihud_sum / D(self.daily_bar_count)
+        if (
+            self.feature_key
+            == "DAILY_REALIZED_TO_BIPOWER_VARIATION_RATIO_TO_PRIOR_20D_MEDIAN"
+        ):
+            bipower_variation = PI_OVER_TWO * self.daily_bipower_product_sum
+            if self.daily_squared_return_sum <= 0 or bipower_variation <= 0:
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "realized-to-bipower jumpiness requires positive daily variation",
+                )
+            return self.daily_squared_return_sum / bipower_variation
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -313,6 +333,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.daily_downside_squared_return_sum = base.ZERO
             self.daily_amihud_sum = base.ZERO
             self.daily_amihud_invalid = False
+            self.daily_bipower_product_sum = base.ZERO
+            self.daily_previous_hour_return = None
             self.daily_bar_count = 0
         assert self.feature_high is not None and self.feature_low is not None
         self.feature_high = max(self.feature_high, bar.high)
@@ -328,6 +350,11 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.daily_squared_return_sum += hourly_return * hourly_return
             if hourly_return < 0:
                 self.daily_downside_squared_return_sum += hourly_return * hourly_return
+            if self.daily_previous_hour_return is not None:
+                self.daily_bipower_product_sum += abs(hourly_return) * abs(
+                    self.daily_previous_hour_return
+                )
+            self.daily_previous_hour_return = hourly_return
         self.previous_hour_close = bar.close
         self.daily_bar_count += 1
         if bar.open_time.hour != 23 or self.daily_bar_count != 24:

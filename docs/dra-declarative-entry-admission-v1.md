@@ -20,7 +20,9 @@ The runner supports only:
 - complete-day downside realized-semivariance share versus its prior
   20-complete-day median, admitted at or below the threshold; and
 - complete-day Amihud-style illiquidity versus its prior 20-complete-day
-  median, admitted at or below the threshold.
+  median, admitted at or below the threshold; and
+- complete-day realized-variance to bipower-variation ratio versus its prior
+  20-complete-day median, admitted at or below the threshold.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
@@ -48,6 +50,16 @@ the prior 20-complete-day median. A zero-volume hour fails closed. The feature
 binds a co-equal primary-literature prior, while the use of close-price dollar
 volume remains an explicit approximation rather than an order-book liquidity
 claim.
+
+The realized-to-bipower feature is a sign-neutral price-path jumpiness proxy,
+not another total-volatility level and not a formal H1 jump detector. It divides
+the latest complete day's sum of squared hourly close-to-close returns by
+`pi/2` times the sum of adjacent absolute-return products, then compares that
+ratio with the prior 20-complete-day median. Bipower variation is comparatively
+robust to rare jumps, while the ratio exposes how much realized variation is
+unsupported by adjacent moves. Non-positive realized or bipower variation
+fails closed. Hourly sampling is explicitly too coarse to claim a true jump
+classification.
 
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,

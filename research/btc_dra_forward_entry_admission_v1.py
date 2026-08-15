@@ -312,10 +312,10 @@ def primary_gates(variant: dict[str, Any], baseline: dict[str, Any]) -> dict[str
         "design_interventions_at_least_8": int(design["vetoed_signal_count"]) >= 8,
         "validation_interventions_at_least_4": int(validation["vetoed_signal_count"]) >= 4,
         "annual_total_wins_at_least_3_of_5": int(variant["annual_total_wins"]) >= 3,
-        "annual_drawdown_non_worse_at_least_3_of_5": int(
+        "annual_drawdown_non_worse_at_least_4_of_5": int(
             variant["annual_drawdown_non_worse"]
         )
-        >= 3,
+        >= 4,
         "top_year_positive_delta_contribution_at_most_60pct": D(
             str(variant["top_year_positive_delta_contribution_pct"])
         )

@@ -178,6 +178,23 @@ def parser() -> argparse.ArgumentParser:
     strategy_preflight.add_argument("--intent", type=Path, required=True)
     strategy_preflight.add_argument("--strategy-path", type=Path, required=True)
     strategy_preflight.add_argument("--repository-root", type=Path, default=REPO_ROOT)
+    allocation_preflight = commands.add_parser(
+        "local-research-allocation-preflight"
+    )
+    allocation_preflight.add_argument("dispatch", type=Path)
+    allocation_preflight.add_argument("--task", type=Path, required=True)
+    allocation_preflight.add_argument("--intent", type=Path, required=True)
+    allocation_preflight.add_argument("--strategy-path", type=Path)
+    allocation_preflight.add_argument("--acceptance", action="append", required=True)
+    allocation_preflight.add_argument("--period-start", required=True)
+    allocation_preflight.add_argument("--period-end", required=True)
+    allocation_preflight.add_argument(
+        "--allow-non-counting-integrity-repair",
+        action="store_true",
+    )
+    allocation_preflight.add_argument(
+        "--repository-root", type=Path, default=REPO_ROOT
+    )
     throughput_kpi = commands.add_parser("local-research-throughput-kpi")
     throughput_kpi.add_argument("--acceptance", action="append", required=True)
     throughput_kpi.add_argument("--period-start", required=True)
@@ -1559,6 +1576,24 @@ def main(argv: list[str] | None = None) -> int:
                 args.task,
                 args.intent,
                 args.strategy_path,
+            )
+            print(canonical_json_bytes(validation).decode("utf-8"))
+            return 0
+        if args.command == "local-research-allocation-preflight":
+            from .local_manager import build_local_research_allocation_preflight
+
+            validation = build_local_research_allocation_preflight(
+                args.repository_root,
+                args.dispatch,
+                args.task,
+                args.intent,
+                args.acceptance,
+                args.period_start,
+                args.period_end,
+                strategy_path_path=args.strategy_path,
+                allow_non_counting_integrity_repair=(
+                    args.allow_non_counting_integrity_repair
+                ),
             )
             print(canonical_json_bytes(validation).decode("utf-8"))
             return 0

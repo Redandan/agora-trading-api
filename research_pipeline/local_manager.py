@@ -21,6 +21,7 @@ from .local_strategy_path import (
 
 PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_PREFLIGHT_RECEIPT_V1"
 STRATEGY_PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_STRATEGY_PREFLIGHT_RECEIPT_V1"
+ALLOCATION_PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_ALLOCATION_PREFLIGHT_RECEIPT_V1"
 KPI_DOCUMENT_TYPE = "LOCAL_RESEARCH_THROUGHPUT_KPI_V1"
 WEEKLY_FLOOR_MECHANISMS = 3
 WEEKLY_FLOOR_SLICES = 1
@@ -618,3 +619,88 @@ def build_local_research_kpi(
         period_end,
     )
     return summarize_local_research_kpi(classification)
+
+
+def build_local_research_allocation_preflight(
+    repository_root: Path | str,
+    dispatch_path: Path | str,
+    task_path: Path | str,
+    classification_intent_path: Path | str,
+    acceptance_paths: Iterable[str],
+    period_start: str,
+    period_end: str,
+    *,
+    strategy_path_path: Path | str | None = None,
+    allow_non_counting_integrity_repair: bool = False,
+) -> dict[str, Any]:
+    if strategy_path_path is not None and allow_non_counting_integrity_repair:
+        raise ValueError(
+            "direct strategy-path work cannot use the non-counting integrity exception"
+        )
+    if strategy_path_path is None:
+        manager = build_local_manager_preflight(
+            repository_root,
+            dispatch_path,
+            task_path,
+            classification_intent_path,
+            allow_non_counting_integrity_repair=(
+                allow_non_counting_integrity_repair
+            ),
+        )
+    else:
+        manager = build_local_strategy_manager_preflight(
+            repository_root,
+            dispatch_path,
+            task_path,
+            classification_intent_path,
+            strategy_path_path,
+        )
+
+    kpi = build_local_research_kpi(
+        repository_root,
+        acceptance_paths,
+        period_start,
+        period_end,
+    )
+    efficiency = kpi["goal_assessment"]["candidate_delivery_efficiency"]
+    policy = efficiency["next_dispatch_policy"]
+    direct = strategy_path_path is not None
+    if direct:
+        gate_status = "DIRECT_STRATEGY_PATH_ALLOWED"
+        projection = policy["direct_strategy_path"]
+    elif allow_non_counting_integrity_repair:
+        gate_status = "ACTIVE_EVIDENCE_INTEGRITY_EXCEPTION_ALLOWED"
+        projection = policy["support_work"]
+    else:
+        projection = policy["support_work"]
+        if projection["status"] != "ALLOW_WITHIN_STRICT_MAJORITY_BUDGET":
+            raise ValueError(
+                "allocation gate defers support work until strict-majority "
+                "candidate-delivery headroom exists"
+            )
+        gate_status = "SUPPORT_WITHIN_STRICT_MAJORITY_BUDGET_ALLOWED"
+
+    return {
+        "allocation_gate": {
+            "current_direct_mechanism_count": efficiency[
+                "direct_mechanism_count"
+            ],
+            "current_direct_mechanism_ratio_basis_points": efficiency[
+                "direct_mechanism_ratio_basis_points"
+            ],
+            "current_output_count": efficiency["accepted_output_count"],
+            "policy": policy["policy"],
+            "projection": projection,
+            "status": gate_status,
+            "support_outputs_available_before_target_loss": policy[
+                "support_outputs_available_before_target_loss"
+            ],
+        },
+        "authorization": manager["authorization"],
+        "document_type": ALLOCATION_PREFLIGHT_DOCUMENT_TYPE,
+        "manager_preflight": manager,
+        "period": kpi["period"],
+        "proposed_output_class": manager["research_value_gate"]["output_class"],
+        "schema_version": "1",
+        "status": "VALID",
+    }

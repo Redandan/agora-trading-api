@@ -13,6 +13,7 @@ from unittest.mock import patch
 from research_pipeline.cli import main as pipeline_main
 from research_pipeline.local_dispatch import canonical_json_bytes, canonical_json_document_bytes
 from research_pipeline.local_manager import (
+    build_local_research_allocation_preflight,
     build_local_manager_preflight,
     build_local_strategy_manager_preflight,
     summarize_local_research_kpi,
@@ -779,6 +780,140 @@ class LocalResearchKpiTest(unittest.TestCase):
         )
         load_policy.assert_not_called()
         research_store.assert_not_called()
+
+
+class LocalResearchAllocationPreflightTest(unittest.TestCase):
+    def _kpi(self, *, support_status: str) -> dict:
+        return {
+            "goal_assessment": {
+                "candidate_delivery_efficiency": {
+                    "accepted_output_count": 28,
+                    "direct_mechanism_count": 2,
+                    "direct_mechanism_ratio_basis_points": 714,
+                    "next_dispatch_policy": {
+                        "direct_strategy_path": {
+                            "projected_direct_mechanism_count": 3,
+                            "projected_ratio_basis_points": 1034,
+                            "status": "ALLOW_IMPROVES_OR_PRESERVES_RATIO",
+                        },
+                        "policy": "DIRECT_FIRST_STRICT_MAJORITY_ALLOCATION",
+                        "support_outputs_available_before_target_loss": 0,
+                        "support_work": {
+                            "projected_direct_mechanism_count": 2,
+                            "projected_ratio_basis_points": 689,
+                            "status": support_status,
+                        },
+                    },
+                }
+            },
+            "period": {
+                "start_inclusive": "2026-08-08T00:00:00Z",
+                "end_exclusive": "2026-08-15T00:00:00Z",
+            },
+        }
+
+    def test_allocation_preflight_allows_verified_direct_path(self) -> None:
+        manager = {
+            "authorization": AUTHORIZATION,
+            "research_value_gate": {"output_class": "MECHANISM_CONCLUSION"},
+        }
+        with (
+            patch(
+                "research_pipeline.local_manager.build_local_strategy_manager_preflight",
+                return_value=manager,
+            ) as strategy_preflight,
+            patch(
+                "research_pipeline.local_manager.build_local_manager_preflight"
+            ) as manager_preflight,
+            patch(
+                "research_pipeline.local_manager.build_local_research_kpi",
+                return_value=self._kpi(
+                    support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
+                ),
+            ),
+        ):
+            result = build_local_research_allocation_preflight(
+                "C:/repo",
+                "dispatch.json",
+                "task.json",
+                "intent.json",
+                ["acceptance.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+                strategy_path_path="strategy-path.json",
+            )
+        self.assertEqual(result["status"], "VALID")
+        self.assertEqual(
+            result["allocation_gate"]["status"],
+            "DIRECT_STRATEGY_PATH_ALLOWED",
+        )
+        strategy_preflight.assert_called_once()
+        manager_preflight.assert_not_called()
+
+    def test_allocation_preflight_rejects_support_without_headroom(self) -> None:
+        manager = {
+            "authorization": AUTHORIZATION,
+            "research_value_gate": {"output_class": "SPEC_OR_CAPABILITY_SLICE"},
+        }
+        with (
+            patch(
+                "research_pipeline.local_manager.build_local_manager_preflight",
+                return_value=manager,
+            ),
+            patch(
+                "research_pipeline.local_manager.build_local_research_kpi",
+                return_value=self._kpi(
+                    support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
+                ),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "allocation gate defers support"):
+                build_local_research_allocation_preflight(
+                    "C:/repo",
+                    "dispatch.json",
+                    "task.json",
+                    "intent.json",
+                    ["acceptance.json"],
+                    "2026-08-08T00:00:00Z",
+                    "2026-08-15T00:00:00Z",
+                )
+
+    def test_allocation_preflight_allows_explicit_integrity_exception(self) -> None:
+        manager = {
+            "authorization": AUTHORIZATION,
+            "research_value_gate": {"output_class": "NON_COUNTING"},
+        }
+        with (
+            patch(
+                "research_pipeline.local_manager.build_local_manager_preflight",
+                return_value=manager,
+            ) as manager_preflight,
+            patch(
+                "research_pipeline.local_manager.build_local_research_kpi",
+                return_value=self._kpi(
+                    support_status="DEFER_UNLESS_ACTIVE_EVIDENCE_INTEGRITY"
+                ),
+            ),
+        ):
+            result = build_local_research_allocation_preflight(
+                "C:/repo",
+                "dispatch.json",
+                "task.json",
+                "intent.json",
+                ["acceptance.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+                allow_non_counting_integrity_repair=True,
+            )
+        self.assertEqual(
+            result["allocation_gate"]["status"],
+            "ACTIVE_EVIDENCE_INTEGRITY_EXCEPTION_ALLOWED",
+        )
+        self.assertTrue(
+            manager_preflight.call_args.kwargs[
+                "allow_non_counting_integrity_repair"
+            ]
+        )
 
 
 if __name__ == "__main__":

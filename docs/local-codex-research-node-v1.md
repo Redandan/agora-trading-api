@@ -208,6 +208,24 @@ reported integer headroom, except for a separately proven active evidence-
 integrity repair that remains `NON_COUNTING`. The exception preserves evidence;
 it does not make the workflow KPI green.
 
+New Local dispatches use the binding allocation preflight rather than reading
+that policy by convention:
+
+```text
+python -m research_pipeline local-research-allocation-preflight <dispatch.json> \
+  --task <task.json> --intent <pre-dispatch-intent.json> \
+  --period-start <UTC> --period-end <UTC> \
+  --acceptance <manager-acceptance.json> [--acceptance <another.json> ...] \
+  [--strategy-path <strategy-path.json>]
+```
+
+The command first performs the ordinary or strategy-path Manager preflight,
+then revalidates the explicit rolling acceptance allowlist and binds the
+proposed output to the resulting allocation policy. Direct strategy-path work
+passes; support work without strict-majority headroom fails closed. The active
+evidence-integrity exception remains explicit and cannot be combined with a
+direct strategy path.
+
 ## Execution modes
 
 - `READ_ONLY`: inspect contracts, toolchain, hashes, and sealed summaries. No

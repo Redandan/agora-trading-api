@@ -76,6 +76,9 @@ matched-capital risk-adjusted performance, not run count or candidate count.
   path task or wait for new evidence. Use the support exception only for a
   separately proven active evidence-integrity risk, keep it `NON_COUNTING`, and
   never invent a mechanism merely to improve the ratio.
+- Enforce that decision with `local-research-allocation-preflight`, passing the
+  exact rolling acceptance allowlist and the strategy-path sidecar for direct
+  work. Do not dispatch when the allocation preflight fails.
 
 ## Register a hypothesis and experiment
 

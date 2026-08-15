@@ -13,7 +13,10 @@ from .local_weekly_output_classification import (
     load_and_validate_weekly_output_classification_document,
     validate_weekly_output_classification,
 )
-from .local_strategy_path import load_and_validate_local_strategy_path
+from .local_strategy_path import (
+    load_and_validate_local_strategy_path,
+    validate_local_strategy_path_context,
+)
 
 
 PREFLIGHT_DOCUMENT_TYPE = "LOCAL_MANAGER_PREFLIGHT_RECEIPT_V1"
@@ -330,32 +333,27 @@ def build_local_strategy_manager_preflight(
 
     dispatch_file, _ = _contained_regular_file(root, Path(dispatch_path), "dispatch path")
     task_file, _ = _contained_regular_file(root, Path(task_path), "task path")
+    intent_file, _ = _contained_regular_file(
+        root,
+        Path(classification_intent_path),
+        "classification intent path",
+    )
     dispatch = json.loads(dispatch_file.read_text(encoding="utf-8"))
     task = json.loads(task_file.read_text(encoding="utf-8"))
-    expected_bindings = {
-        "authorization": base["authorization"],
-        "dispatch_id": base["dispatch_id"],
-        "dispatch_sha256": base["dispatch_sha256"],
-        "intent_id": base["classification_intent_id"],
-        "intent_sha256": base["classification_intent_sha256"],
-        "manager_thread_id": base["manager_thread_id"],
-        "output_class": base["research_value_gate"]["output_class"],
-        "state_authority": base["state_authority"],
-        "task_id": base["task_id"],
-        "task_sha256": base["task_sha256"],
-        "timer_authority": base["timer_authority"],
-    }
-    for field, expected in expected_bindings.items():
-        if strategy.get(field) != expected:
-            raise ValueError(f"strategy path {field} does not bind the Manager preflight")
-
-    phase = dispatch["performance_case"]["research_phase"]
-    if phase not in {"DIAGNOSTIC", "EXPERIMENT"}:
-        raise ValueError("direct strategy-path work must be DIAGNOSTIC or EXPERIMENT")
-    if task["task_type"] not in {"EVIDENCE_DIAGNOSTIC", "REGISTERED_EXPERIMENT_STEP"}:
-        raise ValueError(
-            "direct strategy-path work must be an evidence diagnostic or registered experiment step"
-        )
+    intent_raw = intent_file.read_bytes()
+    intent = load_and_validate_weekly_output_classification_document(
+        intent_raw,
+        "classification intent",
+    )
+    validate_local_strategy_path_context(
+        strategy,
+        task=task,
+        task_sha256=base["task_sha256"],
+        dispatch=dispatch,
+        dispatch_sha256=base["dispatch_sha256"],
+        intent=intent,
+        intent_sha256=base["classification_intent_sha256"],
+    )
 
     candidate = strategy["candidate_path"]
     decision = strategy["decision_time"]
@@ -365,6 +363,7 @@ def build_local_strategy_manager_preflight(
         "admission_id": strategy["admission_id"],
         "availability_status": decision["availability_status"],
         "decision_clock": decision["decision_clock"],
+        "evidence_bindings": strategy["evidence_bindings"],
         "existing_adapter_or_direct_runner": candidate[
             "existing_adapter_or_direct_runner"
         ],
@@ -374,6 +373,7 @@ def build_local_strategy_manager_preflight(
         ],
         "parent_strategy_id": candidate["parent_strategy_id"],
         "positive_next_step": candidate["positive_next_step"],
+        "runner_id": candidate["runner_id"],
         "status": "DIRECT_CANDIDATE_PATH_REQUIRED",
         "strategy_path": strategy_relative,
         "strategy_path_sha256": hashlib.sha256(strategy_raw).hexdigest(),
@@ -395,10 +395,13 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
     rows = classification["rows"]
     counted = [row for row in rows if row["classification_outcome"] == "COUNT"]
     excluded = [row for row in rows if row["classification_outcome"] == "EXCLUDE"]
-    direct_mechanisms = [
+    labelled_mechanisms = [
         row
         for row in counted
         if row["output_class"] == "MECHANISM_CONCLUSION"
+    ]
+    direct_mechanisms = [
+        row for row in labelled_mechanisms if row.get("strategy_path_admitted") is True
     ]
     mechanism_count = classification["unique_family_totals"]["MECHANISM_CONCLUSION"]
     slice_count = classification["unique_family_totals"]["SPEC_OR_CAPABILITY_SLICE"]
@@ -443,6 +446,8 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
                 "accepted_output_count": denominator,
                 "direct_mechanism_count": len(direct_mechanisms),
                 "direct_mechanism_ratio_basis_points": direct_ratio_bps,
+                "labelled_mechanism_proxy_count": len(labelled_mechanisms),
+                "proof_standard": "COUNTED_MECHANISM_WITH_VERIFIED_STRATEGY_PATH_ADMISSION",
                 "status": (
                     "MET"
                     if denominator > 0 and len(direct_mechanisms) * 2 > denominator

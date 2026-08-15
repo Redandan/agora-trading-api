@@ -347,6 +347,22 @@
         "safety_assertions": {
           "$ref": "#/$defs/safetyAssertions"
         },
+        "strategy_path_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "$ref": "#/$defs/repositoryPath"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
         "schema_version": {
           "const": "1"
         },

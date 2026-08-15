@@ -18,6 +18,7 @@
     "output_class",
     "decision_time",
     "candidate_path",
+    "evidence_bindings",
     "economics",
     "disposition",
     "authorization",
@@ -52,15 +53,27 @@
     "candidate_path": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "parent_strategy_id", "matched_comparator_id", "positive_next_step", "maximum_additional_research_steps", "existing_adapter_or_direct_runner", "implementation_before_economic_test"],
+      "required": ["status", "parent_strategy_id", "matched_comparator_id", "runner_id", "positive_next_step", "maximum_additional_research_steps", "existing_adapter_or_direct_runner", "implementation_before_economic_test"],
       "properties": {
         "status": {"enum": ["DIRECT_TO_FROZEN_HYPOTHESIS", "DIRECT_TO_MATCHED_CAPITAL_EXPERIMENT"]},
         "parent_strategy_id": {"type": "string", "minLength": 3, "maxLength": 200},
         "matched_comparator_id": {"type": "string", "minLength": 3, "maxLength": 200},
+        "runner_id": {"type": "string", "minLength": 3, "maxLength": 200},
         "positive_next_step": {"enum": ["FROZEN_HYPOTHESIS_MANIFEST", "MATCHED_CAPITAL_EXPERIMENT"]},
         "maximum_additional_research_steps": {"type": "integer", "minimum": 0, "maximum": 1},
         "existing_adapter_or_direct_runner": {"const": true},
         "implementation_before_economic_test": {"const": "DENY"}
+      }
+    },
+    "evidence_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_feature", "parent_strategy", "matched_comparator", "execution_runner"],
+      "properties": {
+        "decision_feature": {"$ref": "#/$defs/taskInputBinding"},
+        "parent_strategy": {"$ref": "#/$defs/taskInputBinding"},
+        "matched_comparator": {"$ref": "#/$defs/taskInputBinding"},
+        "execution_runner": {"$ref": "#/$defs/taskInputBinding"}
       }
     },
     "economics": {
@@ -90,5 +103,23 @@
     "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
     "state_authority": {"const": "SERVER_CANONICAL"},
     "timer_authority": {"const": "CODEX_CLOUD_OPS_ONLY"}
+  },
+  "$defs": {
+    "taskInputBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_id", "kind", "locator", "sha256"],
+      "properties": {
+        "subject_id": {"type": "string", "minLength": 3, "maxLength": 200},
+        "kind": {"enum": ["REPOSITORY_PATH", "SEALED_ARTIFACT", "CANONICAL_STATUS", "TASK_MESSAGE"]},
+        "locator": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "sha256": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          ]
+        }
+      }
+    }
   }
 }

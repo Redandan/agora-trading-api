@@ -26,6 +26,7 @@ def valid_strategy_path() -> dict:
             "maximum_additional_research_steps": 1,
             "parent_strategy_id": "synthetic-parent-v1",
             "positive_next_step": "FROZEN_HYPOTHESIS_MANIFEST",
+            "runner_id": "synthetic-runner-v1",
             "status": "DIRECT_TO_FROZEN_HYPOTHESIS",
         },
         "decision_time": {
@@ -43,6 +44,32 @@ def valid_strategy_path() -> dict:
             "negative_closes_family": True,
         },
         "document_type": "LOCAL_RESEARCH_STRATEGY_PATH_V1",
+        "evidence_bindings": {
+            "decision_feature": {
+                "kind": "TASK_MESSAGE",
+                "locator": "Freeze synthetic-predecision-feature before the decision.",
+                "sha256": None,
+                "subject_id": "synthetic-predecision-feature",
+            },
+            "execution_runner": {
+                "kind": "REPOSITORY_PATH",
+                "locator": "research_pipeline/synthetic_runner.py",
+                "sha256": "7" * 64,
+                "subject_id": "synthetic-runner-v1",
+            },
+            "matched_comparator": {
+                "kind": "SEALED_ARTIFACT",
+                "locator": ".research-state/synthetic/comparator.json",
+                "sha256": "6" * 64,
+                "subject_id": "equal-capital-parent-ledger",
+            },
+            "parent_strategy": {
+                "kind": "REPOSITORY_PATH",
+                "locator": "research_pipeline/synthetic_parent.json",
+                "sha256": "5" * 64,
+                "subject_id": "synthetic-parent-v1",
+            },
+        },
         "economics": {
             "adverse_slippage_required": True,
             "drawdown_required": True,
@@ -98,6 +125,18 @@ class LocalStrategyPathTest(unittest.TestCase):
         value = deepcopy(valid_strategy_path())
         value["economics"]["inventory_path_required"] = False
         with self.assertRaisesRegex(ValueError, "inventory_path_required must be true"):
+            validate_local_strategy_path(value)
+
+    def test_rejects_evidence_subject_drift(self) -> None:
+        value = deepcopy(valid_strategy_path())
+        value["evidence_bindings"]["parent_strategy"]["subject_id"] = "different-parent"
+        with self.assertRaisesRegex(ValueError, "does not bind its strategy subject"):
+            validate_local_strategy_path(value)
+
+    def test_rejects_unhashed_runner_binding(self) -> None:
+        value = deepcopy(valid_strategy_path())
+        value["evidence_bindings"]["execution_runner"]["sha256"] = None
+        with self.assertRaisesRegex(ValueError, "hash-verified repository runner"):
             validate_local_strategy_path(value)
 
     def test_rejects_more_than_one_additional_research_step(self) -> None:

@@ -8,6 +8,8 @@ import subprocess
 import tempfile
 import unittest
 
+from jsonschema import Draft202012Validator, FormatChecker
+
 from research_pipeline.local_dispatch import canonical_json_bytes, canonical_json_document_bytes
 from research_pipeline.local_weekly_output_classification import (
     AUTHORIZATION,
@@ -80,6 +82,7 @@ class SyntheticRepository:
         safety_true: bool = False,
         reuse_result: bool = False,
         post_source_dispatch: bool = False,
+        strategy_admitted: bool = False,
     ) -> None:
         self._temporary = tempfile.TemporaryDirectory()
         testcase.addCleanup(self._temporary.cleanup)
@@ -91,6 +94,40 @@ class SyntheticRepository:
         schema_path.parent.mkdir(parents=True)
         schema_path.write_bytes(SCHEMA_SOURCE.read_bytes())
 
+        strategy_inputs: list[dict[str, object]] = []
+        if strategy_admitted:
+            strategy_input_values = {
+                "records/decision-feature.json": {
+                    "feature": "synthetic-predecision-feature"
+                },
+                "records/parent-strategy.json": {
+                    "strategy": "synthetic-parent-strategy-v1"
+                },
+                "records/matched-comparator.json": {
+                    "comparator": "synthetic-equal-capital-comparator-v1"
+                },
+            }
+            for relative, value in strategy_input_values.items():
+                raw = _write(self.root, relative, value)
+                strategy_inputs.append(
+                    {
+                        "kind": "REPOSITORY_PATH",
+                        "locator": relative,
+                        "sha256": _sha256(raw),
+                    }
+                )
+            runner_relative = "records/synthetic-runner.py"
+            runner_raw = b"def run():\n    return None\n"
+            runner_path = self.root.joinpath(*runner_relative.split("/"))
+            runner_path.write_bytes(runner_raw)
+            strategy_inputs.append(
+                {
+                    "kind": "REPOSITORY_PATH",
+                    "locator": runner_relative,
+                    "sha256": _sha256(runner_raw),
+                }
+            )
+
         self.task_path = "records/task.json"
         self.dispatch_path = "records/dispatch.json"
         self.task = {
@@ -100,7 +137,7 @@ class SyntheticRepository:
             "execution_mode": "READ_ONLY",
             "expected_outputs": ["SYNTHETIC_OUTPUT"],
             "forbidden_actions": FORBIDDEN,
-            "inputs": [],
+            "inputs": strategy_inputs,
             "issued_at": "2026-06-29T00:00:00Z",
             "limits": {
                 "max_candidate_variants": 0,
@@ -114,7 +151,9 @@ class SyntheticRepository:
             "state_authority": "SERVER_CANONICAL",
             "stop_conditions": ["Stop on any synthetic fixture drift."],
             "task_id": "local-node-synthetic-classification-v1",
-            "task_type": "CAPABILITY_READINESS",
+            "task_type": (
+                "EVIDENCE_DIAGNOSTIC" if strategy_admitted else "CAPABILITY_READINESS"
+            ),
             "timer_authority": "CODEX_CLOUD_OPS_ONLY",
         }
         task_raw = _write(self.root, self.task_path, self.task)
@@ -146,7 +185,7 @@ class SyntheticRepository:
                 "opportunity_cost": "Synthetic setup cost is bounded and cannot establish any forward economic value.",
                 "performance_hypothesis": "Immediate performance remains unchanged while validation behavior becomes testable.",
                 "primary_metric": "fee_adjusted_total_pnl_delta_under_equal_capital",
-                "research_phase": "CAPABILITY",
+                "research_phase": "DIAGNOSTIC" if strategy_admitted else "CAPABILITY",
             },
             "policy_binding": {
                 "policy_id": "AUTONOMOUS_TRADING_RESEARCH_V3",
@@ -157,7 +196,7 @@ class SyntheticRepository:
             "state_authority": "SERVER_CANONICAL",
             "task_id": self.task["task_id"],
             "task_sha256": self.task_sha256,
-            "task_type": "CAPABILITY_READINESS",
+            "task_type": self.task["task_type"],
             "timer_authority": "CODEX_CLOUD_OPS_ONLY",
         }
         dispatch_raw = canonical_json_document_bytes(self.dispatch)
@@ -202,6 +241,83 @@ class SyntheticRepository:
             self.intents.append(intent)
             if not post_outcome_intent:
                 _write(self.root, intent_path, intent)
+        self.strategy_paths: list[str | None] = []
+        self.strategies: list[dict[str, object] | None] = []
+        for index, intent in enumerate(self.intents):
+            if not strategy_admitted:
+                self.strategy_paths.append(None)
+                self.strategies.append(None)
+                continue
+            strategy_path = f"records/strategy-path-{index}.json"
+            strategy = {
+                "admission_id": f"strategy-path-synthetic-{index}",
+                "authorization": AUTHORIZATION,
+                "candidate_path": {
+                    "existing_adapter_or_direct_runner": True,
+                    "implementation_before_economic_test": "DENY",
+                    "matched_comparator_id": "synthetic-equal-capital-comparator-v1",
+                    "maximum_additional_research_steps": 1,
+                    "parent_strategy_id": "synthetic-parent-strategy-v1",
+                    "positive_next_step": "FROZEN_HYPOTHESIS_MANIFEST",
+                    "runner_id": "synthetic-direct-runner-v1",
+                    "status": "DIRECT_TO_FROZEN_HYPOTHESIS",
+                },
+                "decision_time": {
+                    "availability_rule": "Read the frozen synthetic feature before the decision timestamp.",
+                    "availability_status": "KNOWN_BEFORE_DECISION",
+                    "decision_clock": "synthetic-hour-close",
+                    "feature_name": "synthetic-predecision-feature",
+                    "post_outcome_dependency": "DENY",
+                },
+                "dispatch_id": self.dispatch["dispatch_id"],
+                "dispatch_sha256": self.dispatch_sha256,
+                "disposition": {
+                    "independent_forward_or_oos_boundary_preserved": True,
+                    "insufficient_stops_without_permission": True,
+                    "negative_closes_family": True,
+                },
+                "document_type": "LOCAL_RESEARCH_STRATEGY_PATH_V1",
+                "economics": {
+                    "adverse_slippage_required": True,
+                    "drawdown_required": True,
+                    "equal_capital_comparator_required": True,
+                    "fees_required": True,
+                    "holding_age_required": True,
+                    "inventory_path_required": True,
+                    "total_pnl_required": True,
+                },
+                "evidence_bindings": {
+                    "decision_feature": {
+                        **strategy_inputs[0],
+                        "subject_id": "synthetic-predecision-feature",
+                    },
+                    "execution_runner": {
+                        **strategy_inputs[3],
+                        "subject_id": "synthetic-direct-runner-v1",
+                    },
+                    "matched_comparator": {
+                        **strategy_inputs[2],
+                        "subject_id": "synthetic-equal-capital-comparator-v1",
+                    },
+                    "parent_strategy": {
+                        **strategy_inputs[1],
+                        "subject_id": "synthetic-parent-strategy-v1",
+                    },
+                },
+                "intent_id": intent["intent_id"],
+                "intent_sha256": _sha256(canonical_json_document_bytes(intent)),
+                "issued_at": "2026-06-30T00:00:30Z",
+                "manager_thread_id": "manager-synthetic-thread",
+                "output_class": "MECHANISM_CONCLUSION",
+                "schema_version": "1",
+                "state_authority": "SERVER_CANONICAL",
+                "task_id": self.task["task_id"],
+                "task_sha256": self.task_sha256,
+                "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+            }
+            _write(self.root, strategy_path, strategy)
+            self.strategy_paths.append(strategy_path)
+            self.strategies.append(strategy)
         _run(self.root, "add", ".")
         _run(self.root, "commit", "-m", "pre-dispatch-intents")
         self.source_commit = _run(self.root, "rev-parse", "HEAD")
@@ -282,6 +398,12 @@ class SyntheticRepository:
                 "task_path": self.task_path,
                 "task_sha256": self.task_sha256,
             }
+            if strategy_admitted:
+                strategy = self.strategies[index]
+                acceptance["strategy_path_evidence"] = {
+                    "path": self.strategy_paths[index],
+                    "sha256": _sha256(canonical_json_document_bytes(strategy)),
+                }
             self.acceptance_paths.append(acceptance_path)
             self.acceptances.append(acceptance)
             _write(self.root, acceptance_path, acceptance)
@@ -301,6 +423,11 @@ class LocalWeeklyOutputClassificationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.schema = json.loads(SCHEMA_SOURCE.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(cls.schema)
+        cls.schema_validator = Draft202012Validator(
+            cls.schema,
+            format_checker=FormatChecker(),
+        )
         if cls.schema["$schema"] != "https://json-schema.org/draft/2020-12/schema":
             raise AssertionError("schema does not declare Draft 2020-12")
         if len(cls.schema["oneOf"]) != 2:
@@ -310,6 +437,10 @@ class LocalWeeklyOutputClassificationTest(unittest.TestCase):
         repository = SyntheticRepository(self)
         validate_weekly_output_classification_record(repository.intents[0])
         validate_weekly_output_classification_record(repository.acceptances[0])
+        self.schema_validator.validate(repository.intents[0])
+        self.schema_validator.validate(repository.acceptances[0])
+        admitted = SyntheticRepository(self, strategy_admitted=True)
+        self.schema_validator.validate(admitted.acceptances[0])
         invalid = dict(repository.intents[0])
         invalid["unexpected"] = True
         with self.assertRaisesRegex(ValueError, "closed companion schema"):
@@ -336,6 +467,25 @@ class LocalWeeklyOutputClassificationTest(unittest.TestCase):
             canonical_weekly_output_classification_bytes(second),
         )
         self.assertEqual(first["raw_count_totals"]["MECHANISM_CONCLUSION"], 1)
+        self.assertFalse(first["rows"][0]["strategy_path_admitted"])
+
+    def test_strategy_admission_is_recomputed_from_source_commit(self) -> None:
+        repository = SyntheticRepository(self, strategy_admitted=True)
+        result = repository.validate()
+        row = result["rows"][0]
+        self.assertTrue(row["strategy_path_admitted"])
+        self.assertEqual(row["strategy_path"], "records/strategy-path-0.json")
+        self.assertEqual(
+            row["strategy_path_sha256"],
+            repository.acceptances[0]["strategy_path_evidence"]["sha256"],
+        )
+
+    def test_strategy_admission_hash_drift_is_rejected(self) -> None:
+        repository = SyntheticRepository(self, strategy_admitted=True)
+        repository.acceptances[0]["strategy_path_evidence"]["sha256"] = "0" * 64
+        repository.commit_acceptance_update()
+        with self.assertRaisesRegex(ValueError, "strategy path evidence hash drifted"):
+            repository.validate()
 
     def test_two_nested_mechanisms_count_as_one_family(self) -> None:
         repository = SyntheticRepository(self, rows=2, nested=True, same_family=True)

@@ -28,7 +28,10 @@ that the feature is known before the decision and that a positive result reaches
 a frozen hypothesis or matched-capital experiment in at most one further step.
 Capability, repair, and infrastructure output is support work, not candidate
 delivery. Counted mechanism conclusions should remain strictly more than half
-of all accepted Local outputs.
+of all accepted Local outputs. The feature, parent, matched comparator, and
+runner must bind exact frozen task inputs, and the accepted result must retain
+source-commit-verifiable strategy-path evidence. A mechanism label without this
+closure is a historical proxy, not verified candidate delivery.
 
 ## Performance contract
 

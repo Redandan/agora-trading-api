@@ -157,6 +157,15 @@ total-PnL, drawdown, inventory-path and holding-age visibility. A negative resul
 closes the family; insufficient evidence stops without a permission request;
 independent forward/OOS evidence remains sealed.
 
+The four claimed subjects are not free text alone. `decision_feature`,
+`parent_strategy`, `matched_comparator`, and `execution_runner` must each bind
+an exact task input by kind, locator, and SHA-256 semantics. Parent and
+comparator require hash-verified repository or sealed-artifact inputs; the
+runner requires a hash-verified repository input. The acceptance record may
+carry `strategy_path_evidence`; the weekly verifier reloads that exact sidecar
+from the result source commit and recomputes the complete task/dispatch/intent
+and input closure before marking the row strategy-path admitted.
+
 Capability, infrastructure, and repair work may still use the original Manager
 preflight when genuinely necessary, but it is support work and must not be
 presented as direct candidate delivery. Already sealed historical tasks and the
@@ -175,9 +184,11 @@ python -m research_pipeline local-research-throughput-kpi \
 This command reuses the two-stage classification verifier and reports unique
 mechanism families, spec/capability families, excluded work, operational
 overhead, and candidate-delivery efficiency. That efficiency is met only when
-counted mechanism conclusions are strictly more than half of all accepted
-outputs; support slices and excluded work remain in the denominator. It is a
-workflow KPI only. The classification V1 contract cannot prove a rolling
+counted mechanism conclusions with verified strategy-path admission are
+strictly more than half of all accepted outputs; support slices, excluded work,
+and legacy mechanism labels without admission proof remain in the denominator.
+The labelled-mechanism count is retained only as a legacy proxy and cannot make
+the KPI green. It is a workflow KPI only. The classification V1 contract cannot prove a rolling
 forward terminal, alpha, PnL or drawdown improvement, so those claims remain
 explicit `MISSING_PROOF` instead of being inferred from filenames.
 

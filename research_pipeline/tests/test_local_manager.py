@@ -59,6 +59,24 @@ class PreflightRepository:
         input_path.parent.mkdir(parents=True)
         input_path.write_bytes(b"frozen input\n")
         input_sha256 = _sha256(input_path.read_bytes())
+        strategy_inputs = []
+        if strategy_ready:
+            strategy_files = {
+                "records/decision-feature.json": b'{"feature":"synthetic-predecision-feature"}\n',
+                "records/parent-strategy.json": b'{"strategy":"synthetic-parent-strategy-v1"}\n',
+                "records/matched-comparator.json": b'{"comparator":"synthetic-equal-capital-parent-ledger"}\n',
+                "records/runner.py": b"def run():\n    return None\n",
+            }
+            for relative, raw in strategy_files.items():
+                path = self.root.joinpath(*relative.split("/"))
+                path.write_bytes(raw)
+                strategy_inputs.append(
+                    {
+                        "kind": "REPOSITORY_PATH",
+                        "locator": relative,
+                        "sha256": _sha256(raw),
+                    }
+                )
         self.task = {
             "allowed_actions": ["READ_EXACT_FROZEN_INPUTS"],
             "authorization": AUTHORIZATION,
@@ -77,7 +95,7 @@ class PreflightRepository:
                     "locator": "Manager semantic validation remains authoritative for this fixture.",
                     "sha256": None,
                 },
-            ],
+            ] + strategy_inputs,
             "issued_at": "2026-08-11T00:00:00Z",
             "limits": {
                 "max_candidate_variants": 0,
@@ -197,6 +215,7 @@ class PreflightRepository:
                     "maximum_additional_research_steps": 1,
                     "parent_strategy_id": "synthetic-parent-strategy-v1",
                     "positive_next_step": "FROZEN_HYPOTHESIS_MANIFEST",
+                    "runner_id": "synthetic-direct-runner-v1",
                     "status": "DIRECT_TO_FROZEN_HYPOTHESIS",
                 },
                 "decision_time": {
@@ -214,6 +233,32 @@ class PreflightRepository:
                     "negative_closes_family": True,
                 },
                 "document_type": "LOCAL_RESEARCH_STRATEGY_PATH_V1",
+                "evidence_bindings": {
+                    "decision_feature": {
+                        "kind": "REPOSITORY_PATH",
+                        "locator": "records/decision-feature.json",
+                        "sha256": strategy_inputs[0]["sha256"],
+                        "subject_id": "synthetic-predecision-feature",
+                    },
+                    "execution_runner": {
+                        "kind": "REPOSITORY_PATH",
+                        "locator": "records/runner.py",
+                        "sha256": strategy_inputs[3]["sha256"],
+                        "subject_id": "synthetic-direct-runner-v1",
+                    },
+                    "matched_comparator": {
+                        "kind": "REPOSITORY_PATH",
+                        "locator": "records/matched-comparator.json",
+                        "sha256": strategy_inputs[2]["sha256"],
+                        "subject_id": "synthetic-equal-capital-parent-ledger",
+                    },
+                    "parent_strategy": {
+                        "kind": "REPOSITORY_PATH",
+                        "locator": "records/parent-strategy.json",
+                        "sha256": strategy_inputs[1]["sha256"],
+                        "subject_id": "synthetic-parent-strategy-v1",
+                    },
+                },
                 "economics": {
                     "adverse_slippage_required": True,
                     "drawdown_required": True,
@@ -407,6 +452,28 @@ class LocalManagerPreflightTest(unittest.TestCase):
             result["strategy_path_gate"]["maximum_additional_research_steps"],
             1,
         )
+        self.assertEqual(
+            result["strategy_path_gate"]["runner_id"],
+            "synthetic-direct-runner-v1",
+        )
+
+    def test_strategy_preflight_rejects_task_input_binding_drift(self) -> None:
+        repository = PreflightRepository(self, strategy_ready=True)
+        strategy = json.loads(repository.strategy_path.read_text(encoding="utf-8"))
+        strategy["evidence_bindings"]["execution_runner"]["sha256"] = "0" * 64
+        repository.strategy_path.write_bytes(canonical_json_document_bytes(strategy))
+        _run(repository.root, "add", "records/strategy-path.json")
+        _run(repository.root, "commit", "-m", "strategy path drift")
+        _run(repository.root, "update-ref", "refs/remotes/origin/main", "HEAD")
+
+        with self.assertRaisesRegex(ValueError, "does not bind an exact frozen task input"):
+            build_local_strategy_manager_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+                repository.strategy_path,
+            )
 
     def test_top_level_strategy_preflight_runs_before_policy_or_state(self) -> None:
         repository = PreflightRepository(self, strategy_ready=True)
@@ -453,6 +520,7 @@ class LocalResearchKpiTest(unittest.TestCase):
                     "classification_outcome": "COUNT",
                     "output_class": "MECHANISM_CONCLUSION",
                     "output_id": f"mechanism-{index}",
+                    "strategy_path_admitted": True,
                 }
             )
         for index in range(2):
@@ -496,6 +564,46 @@ class LocalResearchKpiTest(unittest.TestCase):
         self.assertEqual(result["goal_assessment"]["operational_overhead"]["status"], "MET")
         self.assertEqual(result["goal_assessment"]["rolling_four_week_forward_terminal"]["status"], "MISSING_PROOF")
         self.assertEqual(result["scientific_claim"], "NO_ALPHA_OR_PERFORMANCE_CLAIM")
+
+    def test_kpi_keeps_unverified_mechanism_labels_as_proxy_only(self) -> None:
+        rows = [
+            {
+                "classification_outcome": "COUNT",
+                "output_class": "MECHANISM_CONCLUSION",
+                "output_id": f"legacy-mechanism-{index}",
+                "strategy_path_admitted": False,
+            }
+            for index in range(5)
+        ]
+        rows.extend(
+            {
+                "classification_outcome": "COUNT",
+                "output_class": "SPEC_OR_CAPABILITY_SLICE",
+                "output_id": f"slice-{index}",
+            }
+            for index in range(21)
+        )
+        classification = {
+            "period": {
+                "start_inclusive": "2026-08-10T00:00:00Z",
+                "end_exclusive": "2026-08-17T00:00:00Z",
+            },
+            "rows": rows,
+            "status": "VALID",
+            "unique_family_totals": {
+                "MECHANISM_CONCLUSION": 5,
+                "NON_COUNTING": 0,
+                "SPEC_OR_CAPABILITY_SLICE": 21,
+            },
+        }
+
+        result = summarize_local_research_kpi(classification)
+        efficiency = result["goal_assessment"]["candidate_delivery_efficiency"]
+        self.assertEqual(efficiency["accepted_output_count"], 26)
+        self.assertEqual(efficiency["labelled_mechanism_proxy_count"], 5)
+        self.assertEqual(efficiency["direct_mechanism_count"], 0)
+        self.assertEqual(efficiency["direct_mechanism_ratio_basis_points"], 0)
+        self.assertEqual(efficiency["status"], "BELOW_TARGET")
 
     def test_top_level_kpi_uses_explicit_allowlist_without_policy_or_state(self) -> None:
         classification = {

@@ -14,6 +14,10 @@ from .local_dispatch import (
     canonical_json_document_bytes,
     load_and_validate_dispatch,
 )
+from .local_strategy_path import (
+    load_and_validate_local_strategy_path,
+    validate_local_strategy_path_context,
+)
 
 
 AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
@@ -90,6 +94,8 @@ ACCEPTANCE_KEYS = {
     "task_path",
     "task_sha256",
 }
+STRATEGY_PATH_EVIDENCE_KEY = "strategy_path_evidence"
+STRATEGY_PATH_EVIDENCE_KEYS = {"path", "sha256"}
 
 
 def _reject_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -247,7 +253,11 @@ def validate_weekly_output_classification_record(value: Any) -> dict[str, Any]:
         if len(canonical_mappings) != len(mappings):
             raise ValueError("disposition actions must be unique")
     elif stage == "MANAGER_ACCEPTANCE":
-        _exact_keys(value, ACCEPTANCE_KEYS, "Manager acceptance")
+        keys = set(value)
+        if keys != ACCEPTANCE_KEYS and keys != ACCEPTANCE_KEYS | {
+            STRATEGY_PATH_EVIDENCE_KEY
+        }:
+            raise ValueError("Manager acceptance does not satisfy the closed companion schema")
         for name in ("acceptance_id", "output_id", "task_id", "dispatch_id", "result_task_id"):
             _pattern(value[name], IDENTIFIER_PATTERN, name)
         for name in ("task_sha256", "dispatch_sha256", "intent_sha256", "result_sha256"):
@@ -274,6 +284,17 @@ def validate_weekly_output_classification_record(value: Any) -> dict[str, Any]:
             raise ValueError("non-completed result does not satisfy the closed companion schema")
         if not _all_false_safety(value["safety_assertions"]):
             raise ValueError("safety assertions do not satisfy the closed companion schema")
+        strategy_evidence = value.get(STRATEGY_PATH_EVIDENCE_KEY)
+        if strategy_evidence is not None:
+            if not isinstance(strategy_evidence, dict):
+                raise ValueError("strategy path evidence must be a closed object")
+            _exact_keys(
+                strategy_evidence,
+                STRATEGY_PATH_EVIDENCE_KEYS,
+                "strategy path evidence",
+            )
+            _repository_relative_path(strategy_evidence["path"], "strategy path evidence path")
+            _pattern(strategy_evidence["sha256"], SHA256_PATTERN, "strategy path evidence sha256")
     else:
         raise ValueError("classification record stage is unsupported")
     if value["schema_version"] != "1" or value["document_type"] != DOCUMENT_TYPE:
@@ -464,6 +485,36 @@ def _validate_row(
     if outcome == "EXCLUDE" and (not isinstance(reason, str) or not reason.strip()):
         raise ValueError("EXCLUDE requires a nonempty reason")
 
+    strategy_path_admitted = False
+    strategy_path = None
+    strategy_path_sha256 = None
+    strategy_evidence = acceptance.get(STRATEGY_PATH_EVIDENCE_KEY)
+    if strategy_evidence is not None:
+        strategy_path = strategy_evidence["path"]
+        strategy_file = _contained_regular_file(
+            root,
+            strategy_path,
+            "strategy path evidence",
+        )
+        strategy, strategy_raw = load_and_validate_local_strategy_path(strategy_file)
+        strategy_path_sha256 = _sha256(strategy_raw)
+        if strategy_path_sha256 != strategy_evidence["sha256"]:
+            raise ValueError("strategy path evidence hash drifted")
+        if _git_object(root, head, strategy_path) != strategy_raw:
+            raise ValueError("strategy path evidence bytes do not equal current HEAD object")
+        if _git_object(root, source_commit, strategy_path) != strategy_raw:
+            raise ValueError("strategy path evidence did not exist as exact source-commit bytes")
+        validate_local_strategy_path_context(
+            strategy,
+            task=task,
+            task_sha256=task_sha256,
+            dispatch=dispatch,
+            dispatch_sha256=dispatch_sha256,
+            intent=intent,
+            intent_sha256=_sha256(intent_raw),
+        )
+        strategy_path_admitted = True
+
     return {
         "acceptance_id": acceptance["acceptance_id"],
         "acceptance_path": acceptance_path,
@@ -481,6 +532,9 @@ def _validate_row(
         "result_path": acceptance["result_path"],
         "result_sha256": acceptance["result_sha256"],
         "result_status": acceptance["result_status"],
+        "strategy_path": strategy_path,
+        "strategy_path_admitted": strategy_path_admitted,
+        "strategy_path_sha256": strategy_path_sha256,
         "task_sha256": acceptance["task_sha256"],
     }
 

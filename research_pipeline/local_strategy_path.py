@@ -37,6 +37,7 @@ TOP_LEVEL_KEYS = {
     "output_class",
     "decision_time",
     "candidate_path",
+    "evidence_bindings",
     "economics",
     "disposition",
     "authorization",
@@ -54,11 +55,19 @@ CANDIDATE_PATH_KEYS = {
     "status",
     "parent_strategy_id",
     "matched_comparator_id",
+    "runner_id",
     "positive_next_step",
     "maximum_additional_research_steps",
     "existing_adapter_or_direct_runner",
     "implementation_before_economic_test",
 }
+EVIDENCE_BINDING_ROLES = {
+    "decision_feature",
+    "parent_strategy",
+    "matched_comparator",
+    "execution_runner",
+}
+TASK_INPUT_BINDING_KEYS = {"subject_id", "kind", "locator", "sha256"}
 ECONOMIC_KEYS = {
     "equal_capital_comparator_required",
     "fees_required",
@@ -158,6 +167,7 @@ def validate_local_strategy_path(value: Any) -> dict[str, Any]:
         raise ValueError("candidate path status and positive next step are inconsistent")
     _string(candidate["parent_strategy_id"], "candidate_path.parent_strategy_id", minimum=3, maximum=200)
     _string(candidate["matched_comparator_id"], "candidate_path.matched_comparator_id", minimum=3, maximum=200)
+    _string(candidate["runner_id"], "candidate_path.runner_id", minimum=3, maximum=200)
     steps = candidate["maximum_additional_research_steps"]
     if isinstance(steps, bool) or not isinstance(steps, int) or not 0 <= steps <= 1:
         raise ValueError("candidate path must require at most one additional research step")
@@ -165,6 +175,42 @@ def validate_local_strategy_path(value: Any) -> dict[str, Any]:
         raise ValueError("candidate path requires an existing adapter or direct runner")
     if candidate["implementation_before_economic_test"] != "DENY":
         raise ValueError("candidate path must not require another implementation slice")
+
+    bindings = _object(strategy["evidence_bindings"], "evidence_bindings")
+    _exact_keys(bindings, EVIDENCE_BINDING_ROLES, "evidence_bindings")
+    expected_subjects = {
+        "decision_feature": decision["feature_name"],
+        "parent_strategy": candidate["parent_strategy_id"],
+        "matched_comparator": candidate["matched_comparator_id"],
+        "execution_runner": candidate["runner_id"],
+    }
+    for role, expected_subject in expected_subjects.items():
+        binding = _object(bindings[role], f"evidence_bindings.{role}")
+        _exact_keys(binding, TASK_INPUT_BINDING_KEYS, f"evidence_bindings.{role}")
+        if binding["subject_id"] != expected_subject:
+            raise ValueError(f"evidence_bindings.{role}.subject_id does not bind its strategy subject")
+        if binding["kind"] not in {
+            "REPOSITORY_PATH",
+            "SEALED_ARTIFACT",
+            "CANONICAL_STATUS",
+            "TASK_MESSAGE",
+        }:
+            raise ValueError(f"evidence_bindings.{role}.kind is unsupported")
+        _string(binding["locator"], f"evidence_bindings.{role}.locator", minimum=1, maximum=2000)
+        sha256 = binding["sha256"]
+        if sha256 is not None:
+            _pattern(sha256, f"evidence_bindings.{role}.sha256", SHA256_PATTERN)
+
+    for role in ("parent_strategy", "matched_comparator"):
+        binding = bindings[role]
+        if binding["kind"] not in {"REPOSITORY_PATH", "SEALED_ARTIFACT"} or binding["sha256"] is None:
+            raise ValueError(f"evidence_bindings.{role} must bind a hash-verified file input")
+    runner_binding = bindings["execution_runner"]
+    if runner_binding["kind"] != "REPOSITORY_PATH" or runner_binding["sha256"] is None:
+        raise ValueError("evidence_bindings.execution_runner must bind a hash-verified repository runner")
+    feature_binding = bindings["decision_feature"]
+    if feature_binding["kind"] in {"REPOSITORY_PATH", "SEALED_ARTIFACT"} and feature_binding["sha256"] is None:
+        raise ValueError("evidence_bindings.decision_feature file input requires SHA-256")
 
     economics = _object(strategy["economics"], "economics")
     _exact_keys(economics, ECONOMIC_KEYS, "economics")
@@ -180,6 +226,59 @@ def validate_local_strategy_path(value: Any) -> dict[str, Any]:
         raise ValueError("strategy path state authority must remain SERVER_CANONICAL")
     if strategy["timer_authority"] != TIMER_AUTHORITY:
         raise ValueError("strategy path timer authority must remain CODEX_CLOUD_OPS_ONLY")
+    return strategy
+
+
+def validate_local_strategy_path_context(
+    strategy: dict[str, Any],
+    *,
+    task: dict[str, Any],
+    task_sha256: str,
+    dispatch: dict[str, Any],
+    dispatch_sha256: str,
+    intent: dict[str, Any],
+    intent_sha256: str,
+) -> dict[str, Any]:
+    validate_local_strategy_path(strategy)
+    expected_bindings = {
+        "authorization": dispatch["authorization"],
+        "dispatch_id": dispatch["dispatch_id"],
+        "dispatch_sha256": dispatch_sha256,
+        "intent_id": intent["intent_id"],
+        "intent_sha256": intent_sha256,
+        "manager_thread_id": dispatch["manager_thread_id"],
+        "output_class": intent["output_class"],
+        "state_authority": dispatch["state_authority"],
+        "task_id": task["task_id"],
+        "task_sha256": task_sha256,
+        "timer_authority": dispatch["timer_authority"],
+    }
+    for field, expected in expected_bindings.items():
+        if strategy.get(field) != expected:
+            raise ValueError(f"strategy path {field} does not bind the Manager context")
+
+    phase = dispatch["performance_case"]["research_phase"]
+    if phase not in {"DIAGNOSTIC", "EXPERIMENT"}:
+        raise ValueError("direct strategy-path work must be DIAGNOSTIC or EXPERIMENT")
+    if task["task_type"] not in {"EVIDENCE_DIAGNOSTIC", "REGISTERED_EXPERIMENT_STEP"}:
+        raise ValueError(
+            "direct strategy-path work must be an evidence diagnostic or registered experiment step"
+        )
+
+    task_inputs = task["inputs"]
+    locators = [item["locator"] for item in task_inputs]
+    if len(locators) != len(set(locators)):
+        raise ValueError("strategy-path task input locators must be unique")
+    task_inputs_by_locator = {item["locator"]: item for item in task_inputs}
+    for role, binding in strategy["evidence_bindings"].items():
+        task_input = task_inputs_by_locator.get(binding["locator"])
+        expected_input = {
+            "kind": binding["kind"],
+            "locator": binding["locator"],
+            "sha256": binding["sha256"],
+        }
+        if task_input != expected_input:
+            raise ValueError(f"evidence_bindings.{role} does not bind an exact frozen task input")
     return strategy
 
 

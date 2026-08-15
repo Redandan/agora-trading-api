@@ -63,7 +63,11 @@ matched-capital risk-adjusted performance, not run count or candidate count.
   `local-research-strategy-preflight`. Require a feature known before the
   decision, an existing parent/comparator and runner, full economic/path-risk
   visibility, and at most one further step to a frozen hypothesis or matched-
-  capital experiment. Capability, infrastructure, and repair work may use the
+  capital experiment. Bind the feature, parent, comparator, and runner to exact
+  frozen task inputs. After result validation, include source-commit-verifiable
+  `strategy_path_evidence` in the Manager acceptance; otherwise the mechanism
+  label remains a legacy proxy and must not enter candidate-delivery KPI.
+  Capability, infrastructure, and repair work may use the
   original Manager preflight but is support work, not direct candidate delivery.
   Do not rewrite already sealed tasks or the current active chain.
 

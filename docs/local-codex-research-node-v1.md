@@ -367,8 +367,14 @@ creates work. The fixed loop is:
 4. for a ready microstructure V3 diagnostic, the Manager/Coach invokes the
    fixed create-once Server-to-Local handoff pull once, validates the received
    package, and validates the exact bounded Local task before dispatch;
-5. the existing Local Research task executes only that task and returns one
-   result bound to the task SHA-256;
+5. the existing Local Research task executes browser/source work and any
+   runtime-neutral assignment, then returns one result bound to the task
+   SHA-256. For the fixed V3R1 deterministic terminal chain only, if that task
+   cannot start the already-installed Python runtime, the active Manager/Coach
+   may invoke the versioned Manager-operated local executor once after a fresh
+   `DIAGNOSTIC_READY` observation. The executor preserves the same frozen task,
+   package, runner, create-once output roots, and result hashes; it is an
+   execution adapter, not a second research authority;
 6. the Manager/Coach validates the returned result, confirms its safety
    assertions and file boundary, and interprets the evidence for performance,
    drawdown, stability, concentration, and opportunity cost;
@@ -377,9 +383,43 @@ creates work. The fixed loop is:
    hypothesis-design task; it still does not register a candidate, open OOS,
    or authorize Trading.
 
-If the local computer or Local Research task is unavailable, the canonical
-event remains durable for a later Manager/Coach run. No fallback timer, local
-poller, retry loop, second writer, or user-operated research step is added.
+If the local computer or both allowed local execution surfaces are unavailable,
+the canonical event remains durable for a later Manager/Coach run. No fallback
+timer, local poller, retry loop, second writer, or user-operated research step is
+added. The Manager-operated executor is invoked synchronously by the already
+active Manager/Coach after event verification; it never wakes itself.
+
+### Manager-operated deterministic executor
+
+`scripts/invoke_microstructure_v3r1_manager_executor.ps1` is the fixed V3R1
+process-start fallback for the Local Codex sandbox limitation. Its default mode
+is validation-only: it proves local Python availability, a clean frozen active
+chain under both Windows PowerShell 5.1 and PowerShell 7, source identity, and
+all no-write safety assertions without contacting the server or creating a
+local artifact.
+
+The execute mode is allowed only after the Manager/Coach has freshly observed
+exact canonical status `DIAGNOSTIC_READY`. It then performs exactly one
+create-once handoff pull, deterministic diagnostic, and deterministic
+interpretation through the existing V3R1 runners. The received package itself
+must prove the canonical generation and task identity. A missing, early,
+altered, or conflicting package fails closed. The executor cannot choose a
+path, task, tier, threshold, server root, local root, candidate, or OOS dataset.
+
+```text
+# Safe readiness check; no network or artifact write.
+scripts/invoke_microstructure_v3r1_manager_executor.ps1
+
+# Manager-only event handling after a fresh canonical DIAGNOSTIC_READY read.
+scripts/invoke_microstructure_v3r1_manager_executor.ps1 \
+  -Execute -ExpectedCanonicalResearchStatus DIAGNOSTIC_READY
+```
+
+This adapter does not make the Local Research conversation authoritative and
+does not count as a research output. Local remains useful for bounded source
+research and native independent hash review. Manager/Coach remains responsible
+for task allocation, post-result semantic validation, economic interpretation,
+and the decision to close or preregister one later hypothesis.
 
 ### Frozen contract precedence
 

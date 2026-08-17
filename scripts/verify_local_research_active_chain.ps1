@@ -50,6 +50,7 @@ $expectedAuthority = [ordered]@{
     interpretation_task_id = $activeTasks[2].task_id
     interpretation_task_sha256 = $activeTasks[2].sha256
     pull_script_sha256 = "42e0e60a7510c39186d675757662e75290919bdb86066e3b510062f2b8a22f63"
+    manager_executor_sha256 = "49eb32e3bdd2e551f1e319cc5f22f3cd9b3a8f24ac3a78e0be17d411941b0507"
 }
 
 function Invoke-JsonValidation {
@@ -166,6 +167,7 @@ if EXPORT_MANIFEST_TYPE != LOCAL_MANIFEST_TYPE or EXPORT_SCHEMA_SHA256 != LOCAL_
 if not (DIAGNOSTIC_TASK_ID == RECEIVE_DIAGNOSTIC_TASK_ID == INTERPRETATION_DIAGNOSTIC_TASK_ID):
     raise ValueError("Local execution authority drift")
 pull = Path("scripts/pull_microstructure_v3r1_handoff_ssh.ps1")
+manager_executor = Path("scripts/invoke_microstructure_v3r1_manager_executor.ps1")
 value = {
     "exporter_task_path": LOCAL_DIAGNOSTIC_TASK.as_posix(),
     "exporter_final_root": EXPORT_FINAL_ROOT.as_posix(),
@@ -178,6 +180,7 @@ value = {
     "interpretation_task_id": INTERPRETATION_TASK_ID,
     "interpretation_task_sha256": INTERPRETATION_TASK_SHA256,
     "pull_script_sha256": hashlib.sha256(pull.read_bytes()).hexdigest(),
+    "manager_executor_sha256": hashlib.sha256(manager_executor.read_bytes()).hexdigest(),
 }
 print(json.dumps(value, separators=(",", ":"), sort_keys=True))
 '@
@@ -223,6 +226,13 @@ print(json.dumps(value, separators=(",", ":"), sort_keys=True))
         }
         research_value_gate = $managerPreflight.research_value_gate
         exporter_to_local_authority = "VALID"
+        manager_operated_executor = [ordered]@{
+            path = "scripts/invoke_microstructure_v3r1_manager_executor.ps1"
+            sha256 = $actualAuthority.manager_executor_sha256
+            execution_authority = "MANAGER_OPERATED_LOCAL_DETERMINISTIC_ADAPTER"
+            execution_mode = "EVENT_GATED_EXECUTE_ONCE"
+            status = "VALID"
+        }
         manifest_type = $actualAuthority.manifest_type
         manifest_schema_sha256 = $actualAuthority.manifest_schema_sha256
         exporter_final_root = $actualAuthority.exporter_final_root

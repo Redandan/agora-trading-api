@@ -132,10 +132,15 @@ The control plane is deliberately outside the Spring Boot runtime:
 An optional local Codex Research task may provide bounded read-only analysis or
 worktree implementation capacity under
 `docs/local-codex-research-node-v1.md`. It receives a validated task package and
-returns a task-hash-bound result to the Manager/Coach. It has no routine wake-up,
-cannot become a second writer, and cannot call Research MCP writes or mutate
-canonical server state. The V1 node is manually message-dispatched and leaves
-the sole cloud clock and its server-canonical contract unchanged. Post-cutover
+returns a task-hash-bound result to the Manager/Coach. If the Local conversation
+sandbox cannot start the installed Python runtime, the fixed V3R1 terminal
+chain may instead use the versioned Manager-operated local deterministic
+executor after a fresh `DIAGNOSTIC_READY` observation. That synchronous adapter
+has no routine wake-up, timer, poller, canonical write, task selection, or
+scientific discretion. Neither local surface can become a second writer, call
+Research MCP writes, or mutate canonical server state. The V1 node remains
+message-dispatched and leaves the sole cloud clock and its server-canonical
+contract unchanged. Post-cutover
 readback originally proved V9 on 2026-08-10. Fresh canonical status on
 2026-08-14 proves the active contract is now V10, with exactly one daily
 `09:05 Asia/Taipei` recurrence and the same Server Canonical sole-writer

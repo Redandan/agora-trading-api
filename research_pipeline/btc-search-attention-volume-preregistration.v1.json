@@ -1,0 +1,140 @@
+{
+  "schema_version": "1",
+  "contract_id": "BTC_SEARCH_ATTENTION_VOLUME_PREREGISTRATION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "document_status": "CLOSED_PREOUTCOME_SOURCE_UNAVAILABLE",
+  "scientific_claim": "NO_ALPHA_OR_PERFORMANCE_CLAIM",
+  "accepted_idea_binding": {
+    "idea_id": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_VOLUME_INNOVATION_DRA_ADMISSION_V1",
+    "result_path": "research_pipeline/examples/local-research-result.btc-search-attention-volume-preregistration-discovery.v2.json",
+    "result_sha256": "40427b69a0ff2cc6776bf14d7b548c82064cfc9ed48855b46e1425a27884dd27",
+    "acceptance_path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-search-attention-volume-preregistration-discovery.v2.json",
+    "acceptance_sha256": "75c8192f8d5bb5a5662b128c94e8b0887dc6a00ea969c1afbcdf862d7c8dd16f",
+    "source_access_proof_path": "research_pipeline/examples/local-primary-source-access-proof.btc-search-attention-volume.v1.json",
+    "source_access_proof_sha256": "5022d7724087d45dca91ed88d6276f4c531f28b6bbcfcffabece9cc328e01984"
+  },
+  "source_readiness": {
+    "checked_at": "2026-08-17T04:37:23Z",
+    "provider": "GOOGLE_TRENDS",
+    "required_surface": "GOOGLE_TRENDS_API_ALPHA",
+    "official_evidence": [
+      {
+        "url": "https://developers.google.com/search/apis/trends",
+        "finding": "Official programmatic access is a limited alpha that requires an application; no alpha access or response schema is available in the authorized environment."
+      },
+      {
+        "url": "https://developers.google.com/search/blog/2025/07/trends-api",
+        "finding": "The alpha advertises a rolling 1800-day window, data through two days ago, daily/weekly/monthly/yearly aggregation and consistently scaled rather than absolute values."
+      },
+      {
+        "url": "https://support.google.com/trends/answer/4365533?hl=en",
+        "finding": "Google Trends is sampled, normalized and includes statistical noise; public documentation does not expose a revision or vintage identifier for an observation."
+      },
+      {
+        "url": "https://support.google.com/trends/answer/4365538?hl=en",
+        "finding": "The public website supports user-driven CSV export but documents no unattended receipt, response schema or immutable version contract."
+      }
+    ],
+    "observed_contract": {
+      "api_access": "LIMITED_ALPHA_APPLICATION_REQUIRED",
+      "api_history_days": 1800,
+      "api_availability_lag_days": 2,
+      "api_aggregations": ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+      "api_scaling": "CONSISTENT_ACROSS_REQUESTS_NOT_ABSOLUTE_SEARCH_COUNT",
+      "website_scaling": "ZERO_TO_ONE_HUNDRED_RECOMPUTED_FOR_EACH_REQUEST_WINDOW",
+      "website_programmatic_use": "INELIGIBLE_MANUAL_EXPORT_AND_WINDOW_RESCALE",
+      "bigquery_scope": "TOP_25_AND_TOP_25_RISING_ONLY_NOT_ARBITRARY_BITCOIN_SERIES",
+      "revision_or_vintage_identifier": "MISSING_PROOF",
+      "response_field_schema": "MISSING_PROOF_WITHOUT_ALPHA_ACCESS",
+      "credential_available": false,
+      "paid_api_required": false
+    },
+    "current_disposition": "CLOSE_SEARCH_ATTENTION_VOLUME_V1_SOURCE_UNAVAILABLE",
+    "reopen_rule": "NEW_V2_ONLY_AFTER_OFFICIAL_GENERAL_ACCESS_RESPONSE_SCHEMA_POINT_IN_TIME_RECEIPT_AND_REVISION_SEMANTICS_ARE_HASH_FROZEN_BEFORE_ANY_FACTOR_OR_OUTCOME_ACCESS"
+  },
+  "point_in_time_contract": {
+    "decision_clock": "UNCHANGED_DRA_COMPLETE_UTC_DAY_DECISION_BEFORE_NEXT_OPEN_FILL",
+    "required_query_identity": ["API_VERSION", "BITCOIN_TOPIC_ID", "GLOBAL_GEOGRAPHY", "ALL_CATEGORY", "WEB_SEARCH_PROPERTY", "WEEKLY_AGGREGATION", "INTERVAL_START", "INTERVAL_END"],
+    "required_receipt_fields": ["SOURCE_INTERVAL_START", "SOURCE_INTERVAL_END", "SOURCE_AVAILABLE_THROUGH", "REQUESTED_AT", "RECEIVED_AT", "HTTP_STATUS", "RAW_BYTES_SHA256", "PARSED_DOCUMENT_SHA256", "API_VERSION", "QUERY_IDENTITY_SHA256"],
+    "first_seen_rule": "USE_ONLY_FIRST_ACCEPTED_RAW_RESPONSE_RECEIVED_BEFORE_DECISION",
+    "revision_rule": "LATER_DIFFERENT_RESPONSE_IS_A_NEW_REVISION_RECORD_AND_NEVER_REWRITES_FIRST_SEEN_VALUE",
+    "missed_capture_rule": "CLOSE_GAP_NO_HISTORICAL_RECONSTRUCTION_OR_BACKFILL",
+    "forbidden_sources": ["UNOFFICIAL_PYTRENDS", "SEARCH_SNIPPET", "MANUAL_UI_EXPORT", "SCREENSHOT", "BIGQUERY_TOP_TERMS_SUBSTITUTION", "GOOGLE_ADS_KEYWORD_DATA", "RECONSTRUCTED_HISTORICAL_VINTAGE"]
+  },
+  "feature_definition": {
+    "search_attention": {
+      "topic_id": "MISSING_PROOF_UNTIL_OFFICIAL_API_QUERY_SCHEMA_IS_AVAILABLE",
+      "value_domain": "NONNEGATIVE_CONSISTENTLY_SCALED_SEARCH_INTEREST",
+      "latest_vintage": "LATEST_COMPLETE_WEEK_FIRST_SEEN_BEFORE_DECISION",
+      "prior_vintage": "IMMEDIATELY_PRECEDING_COMPLETE_WEEK_FIRST_SEEN_BEFORE_DECISION",
+      "formula": "ln(1+latest_interest)-ln(1+prior_interest)",
+      "positive_rule": ">0"
+    },
+    "volume_innovation": {
+      "source": "SEALED_OKX_BTCUSDT_COMPLETE_1H_FORWARD_EVIDENCE",
+      "daily_value": "SUM_BASE_VOLUME_OVER_EXACT_24_CONTIGUOUS_HOURS",
+      "transform": "x_t=ln(1+daily_base_volume_t)",
+      "model": "EXPANDING_OLS_x_t=a+b*x_t_minus_1",
+      "training_cutoff": "LAST_DEPENDENT_OBSERVATION_D_MINUS_2",
+      "minimum_training_pairs": 90,
+      "prediction": "predicted_x_D_minus_1=a_hat_D_minus_2+b_hat_D_minus_2*x_D_minus_2",
+      "residual": "x_D_minus_1-predicted_x_D_minus_1",
+      "positive_rule": ">0"
+    },
+    "interaction": "SEARCH_LOG_CHANGE_POSITIVE_AND_VOLUME_RESIDUAL_POSITIVE",
+    "entry_mapping": "ADMIT_OTHERWISE_ELIGIBLE_FROZEN_DRA_V1_ENTRY_ONLY_WHEN_INTERACTION_TRUE",
+    "forbidden_variants": ["RAW_VOLUME", "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN", "CURRENT_INCOMPLETE_WEEK", "CURRENT_INCOMPLETE_DAY", "ATTENTION_ONLY", "VOLUME_ONLY", "SIGN_INVERSION", "THRESHOLD_SEARCH", "LOOKBACK_SEARCH", "MODEL_SEARCH", "TOPIC_SUBSTITUTION"]
+  },
+  "forward_diagnostic": {
+    "start_rule": "NEW_UNTOUCHED_WEEK_AFTER_V2_SOURCE_CONTRACT_AND_RUNNER_ARE_FROZEN",
+    "maximum_unique_weekly_vintages": 52,
+    "one_episode_per_vintage": true,
+    "episode_selection": "FIRST_OTHERWISE_ELIGIBLE_DRA_ENTRY_AFTER_NEW_WEEKLY_VINTAGE_WITH_TRUE_INTERACTION",
+    "primary_response": "NEXT_COMPLETE_UTC_DAY_CLOSE_OVER_ENTRY_NEXT_OPEN_MINUS_ONE",
+    "matched_control": "NEAREST_STRICTLY_EARLIER_OTHERWISE_ELIGIBLE_DRA_ENTRY_IN_SAME_CHRONOLOGICAL_HALF_AND_PREDECISION_20D_REALIZED_VOLATILITY_QUARTILE_WITH_FALSE_INTERACTION",
+    "minimum_unique_weekly_vintages": 26,
+    "minimum_interaction_episodes": 12,
+    "minimum_distinct_utc_months": 6,
+    "minimum_per_chronological_half": 5,
+    "maximum_month_share": "0.25",
+    "positive_gates": ["MEDIAN_PAIRED_RETURN_DELTA_GT_0", "EXACT_ONE_SIDED_NONZERO_SIGN_TEST_P_LE_0.10", "MEDIAN_PAIRED_MAXIMUM_ADVERSE_EXCURSION_DELTA_LE_0", "BOTH_CHRONOLOGICAL_HALF_MEDIAN_RETURN_DELTAS_GT_0", "TOP_EPISODE_ABSOLUTE_RETURN_DELTA_SHARE_LE_0.20", "SEARCH_LEADS_AFTER_LAGGED_RETURN_CONTROL"],
+    "insufficient_rule": "WAIT_BEFORE_26_VINTAGES_THEN_CLOSE_AT_52_VINTAGES_IF_ANY_SUPPORT_OR_POSITIVE_GATE_FAILS"
+  },
+  "economic_experiment_boundary": {
+    "status": "NOT_AUTHORIZED_UNTIL_SEPARATE_FORWARD_DIAGNOSTIC_PASS",
+    "parent": {"id": "BTC_DRA_V1_EQUAL_EQUITY_250_USDT", "path": "docs/btc-dra-runtime-v1.md", "sha256": "eddff4af35c9f46b6487297feb64cfd7ceedf6a829aa7981c407f5479b889b60"},
+    "comparator": {"id": "DRA_FORWARD_ENTRY_ADMISSION_MATCHED_COMPARATOR", "path": "docs/dra-forward-entry-admission-v1.md", "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"},
+    "runner": "MISSING_PROOF_NO_COMPATIBLE_POINT_IN_TIME_EXTERNAL_FACTOR_RUNNER",
+    "capital": {"initial_equity_usdt": "250", "effective_whole_lot_capacity_usdt": "240", "lot_notional_usdt": "30", "maximum_lots": 8},
+    "accounting": {"fee_each_side": "0.001", "adverse_slippage_each_side": "0.0005", "fill_timing": "NEXT_OPEN", "final_valuation": "MARK_TO_MARKET_INCLUDE_TERMINAL_INVENTORY"},
+    "required_metrics": ["REALIZED_PNL", "UNREALIZED_PNL", "TOTAL_PNL", "MAXIMUM_DRAWDOWN", "UTILIZATION", "BLOCKED_ENTRIES", "MEDIAN_HOLDING_AGE", "P90_HOLDING_AGE", "UNDERWATER_DURATION", "TERMINAL_INVENTORY", "ANNUAL_BREADTH", "CONTRIBUTION_CONCENTRATION"],
+    "next_step_if_diagnostic_positive": "ONE_SEPARATELY_FROZEN_MATCHED_CAPITAL_HYPOTHESIS_AND_MANIFEST_WITH_OOS_STILL_UNOPENED"
+  },
+  "dispositions": ["CLOSE_SEARCH_ATTENTION_VOLUME_V1_SOURCE_UNAVAILABLE", "WAIT_FOR_MORE_UNTOUCHED_FORWARD_DIAGNOSTIC_EVIDENCE", "READY_FOR_ONE_MATCHED_CAPITAL_HYPOTHESIS", "CLOSE_SEARCH_ATTENTION_VOLUME_MECHANISM"],
+  "architecture": {
+    "network": "OFFICIAL_DOCUMENTATION_READ_ONLY_ONLY",
+    "paid_api": "DENY",
+    "user_operated_export": "DENY",
+    "timer": "DENY",
+    "writer": "DENY",
+    "canonical_state": "DENY",
+    "outcome_access": "DENY",
+    "backtest": "DENY",
+    "hypothesis": "DENY",
+    "candidate": "DENY",
+    "oos": "DENY",
+    "trading": "DENY"
+  },
+  "readiness": {
+    "source_ready": false,
+    "point_in_time_ready": false,
+    "runner_ready": false,
+    "forward_diagnostic_ready": false,
+    "economic_experiment_ready": false,
+    "candidate_ready": false,
+    "oos_ready": false,
+    "trading_ready": false,
+    "immediate_pnl_effect": "ZERO",
+    "immediate_drawdown_effect": "ZERO"
+  }
+}

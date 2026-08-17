@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/btc-search-attention-volume-preregistration.v1.schema.json",
+  "title": "BTC Search Attention and Volume Innovation Preregistration V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_id",
+    "authorization",
+    "document_status",
+    "scientific_claim",
+    "accepted_idea_binding",
+    "source_readiness",
+    "point_in_time_contract",
+    "feature_definition",
+    "forward_diagnostic",
+    "economic_experiment_boundary",
+    "dispositions",
+    "architecture",
+    "readiness"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "contract_id": {"const": "BTC_SEARCH_ATTENTION_VOLUME_PREREGISTRATION_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "document_status": {"const": "CLOSED_PREOUTCOME_SOURCE_UNAVAILABLE"},
+    "scientific_claim": {"const": "NO_ALPHA_OR_PERFORMANCE_CLAIM"},
+    "accepted_idea_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["idea_id", "result_path", "result_sha256", "acceptance_path", "acceptance_sha256", "source_access_proof_path", "source_access_proof_sha256"],
+      "properties": {
+        "idea_id": {"const": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_VOLUME_INNOVATION_DRA_ADMISSION_V1"},
+        "result_path": {"type": "string", "minLength": 1},
+        "result_sha256": {"$ref": "#/$defs/sha256"},
+        "acceptance_path": {"type": "string", "minLength": 1},
+        "acceptance_sha256": {"$ref": "#/$defs/sha256"},
+        "source_access_proof_path": {"type": "string", "minLength": 1},
+        "source_access_proof_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checked_at", "provider", "required_surface", "official_evidence", "observed_contract", "current_disposition", "reopen_rule"],
+      "properties": {
+        "checked_at": {"type": "string", "format": "date-time"},
+        "provider": {"const": "GOOGLE_TRENDS"},
+        "required_surface": {"const": "GOOGLE_TRENDS_API_ALPHA"},
+        "official_evidence": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["url", "finding"],
+            "properties": {
+              "url": {"type": "string", "format": "uri"},
+              "finding": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "observed_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["api_access", "api_history_days", "api_availability_lag_days", "api_aggregations", "api_scaling", "website_scaling", "website_programmatic_use", "bigquery_scope", "revision_or_vintage_identifier", "response_field_schema", "credential_available", "paid_api_required"],
+          "properties": {
+            "api_access": {"const": "LIMITED_ALPHA_APPLICATION_REQUIRED"},
+            "api_history_days": {"const": 1800},
+            "api_availability_lag_days": {"const": 2},
+            "api_aggregations": {"const": ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]},
+            "api_scaling": {"const": "CONSISTENT_ACROSS_REQUESTS_NOT_ABSOLUTE_SEARCH_COUNT"},
+            "website_scaling": {"const": "ZERO_TO_ONE_HUNDRED_RECOMPUTED_FOR_EACH_REQUEST_WINDOW"},
+            "website_programmatic_use": {"const": "INELIGIBLE_MANUAL_EXPORT_AND_WINDOW_RESCALE"},
+            "bigquery_scope": {"const": "TOP_25_AND_TOP_25_RISING_ONLY_NOT_ARBITRARY_BITCOIN_SERIES"},
+            "revision_or_vintage_identifier": {"const": "MISSING_PROOF"},
+            "response_field_schema": {"const": "MISSING_PROOF_WITHOUT_ALPHA_ACCESS"},
+            "credential_available": {"const": false},
+            "paid_api_required": {"const": false}
+          }
+        },
+        "current_disposition": {"const": "CLOSE_SEARCH_ATTENTION_VOLUME_V1_SOURCE_UNAVAILABLE"},
+        "reopen_rule": {"const": "NEW_V2_ONLY_AFTER_OFFICIAL_GENERAL_ACCESS_RESPONSE_SCHEMA_POINT_IN_TIME_RECEIPT_AND_REVISION_SEMANTICS_ARE_HASH_FROZEN_BEFORE_ANY_FACTOR_OR_OUTCOME_ACCESS"}
+      }
+    },
+    "point_in_time_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_clock", "required_query_identity", "required_receipt_fields", "first_seen_rule", "revision_rule", "missed_capture_rule", "forbidden_sources"],
+      "properties": {
+        "decision_clock": {"const": "UNCHANGED_DRA_COMPLETE_UTC_DAY_DECISION_BEFORE_NEXT_OPEN_FILL"},
+        "required_query_identity": {"const": ["API_VERSION", "BITCOIN_TOPIC_ID", "GLOBAL_GEOGRAPHY", "ALL_CATEGORY", "WEB_SEARCH_PROPERTY", "WEEKLY_AGGREGATION", "INTERVAL_START", "INTERVAL_END"]},
+        "required_receipt_fields": {"const": ["SOURCE_INTERVAL_START", "SOURCE_INTERVAL_END", "SOURCE_AVAILABLE_THROUGH", "REQUESTED_AT", "RECEIVED_AT", "HTTP_STATUS", "RAW_BYTES_SHA256", "PARSED_DOCUMENT_SHA256", "API_VERSION", "QUERY_IDENTITY_SHA256"]},
+        "first_seen_rule": {"const": "USE_ONLY_FIRST_ACCEPTED_RAW_RESPONSE_RECEIVED_BEFORE_DECISION"},
+        "revision_rule": {"const": "LATER_DIFFERENT_RESPONSE_IS_A_NEW_REVISION_RECORD_AND_NEVER_REWRITES_FIRST_SEEN_VALUE"},
+        "missed_capture_rule": {"const": "CLOSE_GAP_NO_HISTORICAL_RECONSTRUCTION_OR_BACKFILL"},
+        "forbidden_sources": {"const": ["UNOFFICIAL_PYTRENDS", "SEARCH_SNIPPET", "MANUAL_UI_EXPORT", "SCREENSHOT", "BIGQUERY_TOP_TERMS_SUBSTITUTION", "GOOGLE_ADS_KEYWORD_DATA", "RECONSTRUCTED_HISTORICAL_VINTAGE"]}
+      }
+    },
+    "feature_definition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["search_attention", "volume_innovation", "interaction", "entry_mapping", "forbidden_variants"],
+      "properties": {
+        "search_attention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["topic_id", "value_domain", "latest_vintage", "prior_vintage", "formula", "positive_rule"],
+          "properties": {
+            "topic_id": {"const": "MISSING_PROOF_UNTIL_OFFICIAL_API_QUERY_SCHEMA_IS_AVAILABLE"},
+            "value_domain": {"const": "NONNEGATIVE_CONSISTENTLY_SCALED_SEARCH_INTEREST"},
+            "latest_vintage": {"const": "LATEST_COMPLETE_WEEK_FIRST_SEEN_BEFORE_DECISION"},
+            "prior_vintage": {"const": "IMMEDIATELY_PRECEDING_COMPLETE_WEEK_FIRST_SEEN_BEFORE_DECISION"},
+            "formula": {"const": "ln(1+latest_interest)-ln(1+prior_interest)"},
+            "positive_rule": {"const": ">0"}
+          }
+        },
+        "volume_innovation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "daily_value", "transform", "model", "training_cutoff", "minimum_training_pairs", "prediction", "residual", "positive_rule"],
+          "properties": {
+            "source": {"const": "SEALED_OKX_BTCUSDT_COMPLETE_1H_FORWARD_EVIDENCE"},
+            "daily_value": {"const": "SUM_BASE_VOLUME_OVER_EXACT_24_CONTIGUOUS_HOURS"},
+            "transform": {"const": "x_t=ln(1+daily_base_volume_t)"},
+            "model": {"const": "EXPANDING_OLS_x_t=a+b*x_t_minus_1"},
+            "training_cutoff": {"const": "LAST_DEPENDENT_OBSERVATION_D_MINUS_2"},
+            "minimum_training_pairs": {"const": 90},
+            "prediction": {"const": "predicted_x_D_minus_1=a_hat_D_minus_2+b_hat_D_minus_2*x_D_minus_2"},
+            "residual": {"const": "x_D_minus_1-predicted_x_D_minus_1"},
+            "positive_rule": {"const": ">0"}
+          }
+        },
+        "interaction": {"const": "SEARCH_LOG_CHANGE_POSITIVE_AND_VOLUME_RESIDUAL_POSITIVE"},
+        "entry_mapping": {"const": "ADMIT_OTHERWISE_ELIGIBLE_FROZEN_DRA_V1_ENTRY_ONLY_WHEN_INTERACTION_TRUE"},
+        "forbidden_variants": {"const": ["RAW_VOLUME", "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN", "CURRENT_INCOMPLETE_WEEK", "CURRENT_INCOMPLETE_DAY", "ATTENTION_ONLY", "VOLUME_ONLY", "SIGN_INVERSION", "THRESHOLD_SEARCH", "LOOKBACK_SEARCH", "MODEL_SEARCH", "TOPIC_SUBSTITUTION"]}
+      }
+    },
+    "forward_diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_rule", "maximum_unique_weekly_vintages", "one_episode_per_vintage", "episode_selection", "primary_response", "matched_control", "minimum_unique_weekly_vintages", "minimum_interaction_episodes", "minimum_distinct_utc_months", "minimum_per_chronological_half", "maximum_month_share", "positive_gates", "insufficient_rule"],
+      "properties": {
+        "start_rule": {"const": "NEW_UNTOUCHED_WEEK_AFTER_V2_SOURCE_CONTRACT_AND_RUNNER_ARE_FROZEN"},
+        "maximum_unique_weekly_vintages": {"const": 52},
+        "one_episode_per_vintage": {"const": true},
+        "episode_selection": {"const": "FIRST_OTHERWISE_ELIGIBLE_DRA_ENTRY_AFTER_NEW_WEEKLY_VINTAGE_WITH_TRUE_INTERACTION"},
+        "primary_response": {"const": "NEXT_COMPLETE_UTC_DAY_CLOSE_OVER_ENTRY_NEXT_OPEN_MINUS_ONE"},
+        "matched_control": {"const": "NEAREST_STRICTLY_EARLIER_OTHERWISE_ELIGIBLE_DRA_ENTRY_IN_SAME_CHRONOLOGICAL_HALF_AND_PREDECISION_20D_REALIZED_VOLATILITY_QUARTILE_WITH_FALSE_INTERACTION"},
+        "minimum_unique_weekly_vintages": {"const": 26},
+        "minimum_interaction_episodes": {"const": 12},
+        "minimum_distinct_utc_months": {"const": 6},
+        "minimum_per_chronological_half": {"const": 5},
+        "maximum_month_share": {"const": "0.25"},
+        "positive_gates": {"const": ["MEDIAN_PAIRED_RETURN_DELTA_GT_0", "EXACT_ONE_SIDED_NONZERO_SIGN_TEST_P_LE_0.10", "MEDIAN_PAIRED_MAXIMUM_ADVERSE_EXCURSION_DELTA_LE_0", "BOTH_CHRONOLOGICAL_HALF_MEDIAN_RETURN_DELTAS_GT_0", "TOP_EPISODE_ABSOLUTE_RETURN_DELTA_SHARE_LE_0.20", "SEARCH_LEADS_AFTER_LAGGED_RETURN_CONTROL"]},
+        "insufficient_rule": {"const": "WAIT_BEFORE_26_VINTAGES_THEN_CLOSE_AT_52_VINTAGES_IF_ANY_SUPPORT_OR_POSITIVE_GATE_FAILS"}
+      }
+    },
+    "economic_experiment_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "parent", "comparator", "runner", "capital", "accounting", "required_metrics", "next_step_if_diagnostic_positive"],
+      "properties": {
+        "status": {"const": "NOT_AUTHORIZED_UNTIL_SEPARATE_FORWARD_DIAGNOSTIC_PASS"},
+        "parent": {"const": {"id": "BTC_DRA_V1_EQUAL_EQUITY_250_USDT", "path": "docs/btc-dra-runtime-v1.md", "sha256": "eddff4af35c9f46b6487297feb64cfd7ceedf6a829aa7981c407f5479b889b60"}},
+        "comparator": {"const": {"id": "DRA_FORWARD_ENTRY_ADMISSION_MATCHED_COMPARATOR", "path": "docs/dra-forward-entry-admission-v1.md", "sha256": "13157804efd537ea393658d44400175e961a5f61c5c7048392a286880ecccef5"}},
+        "runner": {"const": "MISSING_PROOF_NO_COMPATIBLE_POINT_IN_TIME_EXTERNAL_FACTOR_RUNNER"},
+        "capital": {"const": {"initial_equity_usdt": "250", "effective_whole_lot_capacity_usdt": "240", "lot_notional_usdt": "30", "maximum_lots": 8}},
+        "accounting": {"const": {"fee_each_side": "0.001", "adverse_slippage_each_side": "0.0005", "fill_timing": "NEXT_OPEN", "final_valuation": "MARK_TO_MARKET_INCLUDE_TERMINAL_INVENTORY"}},
+        "required_metrics": {"const": ["REALIZED_PNL", "UNREALIZED_PNL", "TOTAL_PNL", "MAXIMUM_DRAWDOWN", "UTILIZATION", "BLOCKED_ENTRIES", "MEDIAN_HOLDING_AGE", "P90_HOLDING_AGE", "UNDERWATER_DURATION", "TERMINAL_INVENTORY", "ANNUAL_BREADTH", "CONTRIBUTION_CONCENTRATION"]},
+        "next_step_if_diagnostic_positive": {"const": "ONE_SEPARATELY_FROZEN_MATCHED_CAPITAL_HYPOTHESIS_AND_MANIFEST_WITH_OOS_STILL_UNOPENED"}
+      }
+    },
+    "dispositions": {"const": ["CLOSE_SEARCH_ATTENTION_VOLUME_V1_SOURCE_UNAVAILABLE", "WAIT_FOR_MORE_UNTOUCHED_FORWARD_DIAGNOSTIC_EVIDENCE", "READY_FOR_ONE_MATCHED_CAPITAL_HYPOTHESIS", "CLOSE_SEARCH_ATTENTION_VOLUME_MECHANISM"]},
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["network", "paid_api", "user_operated_export", "timer", "writer", "canonical_state", "outcome_access", "backtest", "hypothesis", "candidate", "oos", "trading"],
+      "properties": {
+        "network": {"const": "OFFICIAL_DOCUMENTATION_READ_ONLY_ONLY"},
+        "paid_api": {"const": "DENY"},
+        "user_operated_export": {"const": "DENY"},
+        "timer": {"const": "DENY"},
+        "writer": {"const": "DENY"},
+        "canonical_state": {"const": "DENY"},
+        "outcome_access": {"const": "DENY"},
+        "backtest": {"const": "DENY"},
+        "hypothesis": {"const": "DENY"},
+        "candidate": {"const": "DENY"},
+        "oos": {"const": "DENY"},
+        "trading": {"const": "DENY"}
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_ready", "point_in_time_ready", "runner_ready", "forward_diagnostic_ready", "economic_experiment_ready", "candidate_ready", "oos_ready", "trading_ready", "immediate_pnl_effect", "immediate_drawdown_effect"],
+      "properties": {
+        "source_ready": {"const": false},
+        "point_in_time_ready": {"const": false},
+        "runner_ready": {"const": false},
+        "forward_diagnostic_ready": {"const": false},
+        "economic_experiment_ready": {"const": false},
+        "candidate_ready": {"const": false},
+        "oos_ready": {"const": false},
+        "trading_ready": {"const": false},
+        "immediate_pnl_effect": {"const": "ZERO"},
+        "immediate_drawdown_effect": {"const": "ZERO"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

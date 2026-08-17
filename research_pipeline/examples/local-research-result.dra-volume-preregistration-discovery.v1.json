@@ -1,0 +1,103 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-volume-preregistration-discovery-v1",
+  "task_sha256": "ba15be13adbbafec3b2bd36b7f4dfd8873d79f87028c232b4d4cc76230fc69ac",
+  "status": "BLOCKED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-17T00:59:51Z",
+  "completed_at": "2026-08-17T01:01:47Z",
+  "source_git_commit": "cc258c4dda12e111dafe039c923ba152253c4db6",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "PRIMARY_SOURCE_EVIDENCE_INSUFFICIENT. Exact source, task, dispatch, intent, allocation sidecar, stop seal and repository-input gates passed. None of the five frozen ScienceDirect publisher pages returned readable primary-page content through the available public read-only retrieval path; the bounded direct fallback failed at the local TLS credential layer before receiving an HTTP response. No article text or metadata was acquired. The task forbids search snippets, secondary sources and substitution, so the required primary-source evidence matrix, comprehensive out-of-sample counterevidence assessment and incremental-mechanism decision cannot be established. No idea skeleton was produced and the family was not scientifically closed on absent evidence. Immediate PnL and drawdown effects are zero; predictive and economic value remain MISSING_PROOF.",
+  "checks": [
+    {
+      "name": "TASK_DISPATCH_INTENT_AND_SIDECAR_CLOSURE",
+      "status": "PASS",
+      "evidence": "Task, dispatch, intent and preregistration-discovery sidecar matched SHA-256 ba15be13adbbafec3b2bd36b7f4dfd8873d79f87028c232b4d4cc76230fc69ac, d114375287debd0cbd5c20f31441bd0bfc9187a70a2eb430d12463faa15a27e7, 4ed89963183e5b463da4969abe62f7e14fa5a8783310987f2fe198be85b9426b and e271da99b7ac5c83d343b2ba44626e66fd77215410115011b7e382f97ccd2223. Task/dispatch, intent and sidecar bindings were exact; dispatch, intent and sidecar canonical compact bytes passed."
+    },
+    {
+      "name": "STOP_CONDITION_SEAL",
+      "status": "PASS",
+      "evidence": "The task contained exactly 11 stop conditions. Recursive canonicalization preserved array order and produced SHA-256 a0ab15b06eddb1349e903df36d2d01c1ca90a7d92908fff74b4dc13f7d28e278."
+    },
+    {
+      "name": "SOURCE_IDENTITY_AND_ZERO_WRITE",
+      "status": "PASS",
+      "evidence": "Branch codex/autonomous-research-control-plane-v3, HEAD and local origin all matched cc258c4dda12e111dafe039c923ba152253c4db6. The worktree and git diff --check were clean before and after execution. No repository, .research-state, canonical or external state was written."
+    },
+    {
+      "name": "REPOSITORY_INPUT_CLOSURE",
+      "status": "PASS",
+      "evidence": "All five non-null repository inputs were fully read and matched their frozen hashes. Each resolved inside the repository as a regular, non-link, non-reparse path: policy.v3.json, autonomous-research-charter.md, local-codex-research-node-v1.md, forward-diagnostic-contract.v1.json and dra-forward-entry-admission-v1.md."
+    },
+    {
+      "name": "ALLOCATION_EXCEPTION_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The exact sidecar binds five primary sources, maximum one preregistration idea, outcome access DENY and runner execution DENY. Manager's frozen allocation receipt reports PREREGISTRATION_DISCOVERY_EXCEPTION_ALLOWED, direct_evidence_ready false, zero prior rolling-window discovery uses and a clean exact source. No canonical refresh was performed."
+    },
+    {
+      "name": "PRIMARY_PUBLISHER_PAGE_ACCESS",
+      "status": "MISSING_PROOF",
+      "evidence": "The five exact frozen publisher locators were attempted without search or substitution: [10.1016/j.econmod.2017.03.019](https://www.sciencedirect.com/science/article/abs/pii/S0264999317304558), [10.1016/j.najef.2020.101297](https://www.sciencedirect.com/science/article/pii/S106294082030187X), [10.1108/SEF-08-2020-0318](https://www.sciencedirect.com/org/science/article/abs/pii/S1086737621000236), [10.1016/j.physa.2022.127379](https://www.sciencedirect.com/science/article/abs/pii/S0378437122002928) and [10.1016/j.ijforecast.2021.08.001](https://www.sciencedirect.com/science/article/pii/S0169207021001230). The public web retrieval returned no page content, and the bounded direct fallback failed at local TLS credential acquisition with HTTP status unavailable. No source text or metadata was received."
+    },
+    {
+      "name": "PRIMARY_SOURCE_EVIDENCE_MATRIX",
+      "status": "MISSING_PROOF",
+      "evidence": "Because none of the five full primary publisher pages was readable, no source-backed matrix of quantile dependence, directional predictability, reverse causality, horizon or regime dependence could be produced. Task-message summaries were not substituted for primary evidence."
+    },
+    {
+      "name": "OUT_OF_SAMPLE_COUNTEREVIDENCE",
+      "status": "MISSING_PROOF",
+      "evidence": "The mandatory comprehensive out-of-sample counterevidence associated with DOI 10.1016/j.physa.2022.127379 could not be independently read from its frozen primary publisher page. It was therefore not quoted, weakened, ignored or converted into a scientific conclusion."
+    },
+    {
+      "name": "IN_SAMPLE_REVERSE_CAUSALITY_AND_HORIZON_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "The required distinctions among in-sample association, out-of-sample predictability, returns leading volume, decision-time availability, regime dependence and hourly versus longer-horizon transfer could not be established from inaccessible primary pages."
+    },
+    {
+      "name": "EXISTING_VOLUME_SCREEN_OVERLAP",
+      "status": "MISSING_PROOF",
+      "evidence": "The frozen DAILY_VOLUME_TO_PRIOR_20D_MEDIAN contract was preserved without alteration. In the absence of primary evidence, no proposed transformation could be proven operationally distinct, known before decision, causal, falsifiable or incremental to that existing screen."
+    },
+    {
+      "name": "ONE_IDEA_LIMIT_AND_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Zero idea skeletons were produced. Primary-source inaccessibility activates the frozen insufficient-evidence disposition PRIMARY_SOURCE_EVIDENCE_INSUFFICIENT; it does not justify ONE_INCREMENTAL_VOLUME_PREREGISTRATION_IDEA_READY or the scientific family conclusion NO_INCREMENTAL_VOLUME_IDEA_CLOSE."
+    },
+    {
+      "name": "PERFORMANCE_DRAWDOWN_AND_ECONOMIC_BOUNDARY",
+      "status": "MISSING_PROOF",
+      "evidence": "No historical or forward outcomes, backtest, fees, slippage, fills, capacity, breadth, fee-adjusted PnL, drawdown, matched-capital comparison or predictive effect was accessed or computed. Immediate PnL and drawdown effects are zero; all economic magnitude and direction remain MISSING_PROOF."
+    },
+    {
+      "name": "OPPORTUNITY_COST",
+      "status": "PASS",
+      "evidence": "Failing closed avoids consuming forward evidence, runner, hypothesis, candidate or OOS capacity on an idea unsupported by accessible primary evidence. The one-idea cap and direct-work precedence remained intact."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "No secondary source, search snippet, outcome, canonical/server state, .research-state, runner, backtest, recomputation, tuning, hypothesis, candidate, OOS, implementation, deployment, timer, paid API, SSH, Production or Trading/DB/orders/funds/OCO/Grid/SHADOW/PAPER/LIVE action occurred."
+    }
+  ],
+  "artifacts": [],
+  "files_changed": [],
+  "uncertainty": [
+    "MISSING_PROOF: the five frozen full primary publisher pages were inaccessible in the Local environment, so their scientific claims were not independently evaluated.",
+    "MISSING_PROOF: comprehensive out-of-sample counterevidence, reverse causality, regime dependence and horizon transfer were not established from primary text.",
+    "MISSING_PROOF: no incremental decision-time volume mechanism was demonstrated as distinct from DAILY_VOLUME_TO_PRIOR_20D_MEDIAN.",
+    "MISSING_PROOF: fee-adjusted PnL, drawdown, fills, slippage, capacity, matched-parent performance and all predictive or economic effects.",
+    "No scientific close of the volume family is inferred from source-access failure."
+  ],
+  "recommended_next_action": "Manager should seal this EXCLUDE result. A retry is appropriate only through a separately frozen bounded task after preflight proves readable access to all five exact primary publisher pages; no search snippet, secondary source, alternative paper, idea registration, implementation, outcome access or Trading action should substitute for that proof.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

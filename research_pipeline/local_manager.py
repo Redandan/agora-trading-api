@@ -14,6 +14,11 @@ from .local_candidate_enabling_capability import (
     load_and_validate_candidate_enabling_capability,
     validate_candidate_enabling_capability_context,
 )
+from .local_preregistration_discovery import (
+    DUPLICATE_FAMILY_KEY as PREREGISTRATION_DISCOVERY_FAMILY_KEY,
+    load_and_validate_preregistration_discovery,
+    validate_preregistration_discovery_context,
+)
 from .local_weekly_output_classification import (
     load_and_validate_weekly_output_classification_document,
     validate_weekly_output_classification,
@@ -537,6 +542,12 @@ def _candidate_delivery_next_dispatch_policy(
             "rolling_budget_days": 7,
             "status": "ALLOW_ONCE_PER_WINDOW_WHEN_SCHEMA_PROVEN_AND_NON_COUNTING",
         },
+        "preregistration_discovery_exception": {
+            "direct_evidence_ready_required": False,
+            "maximum_preregistration_ideas": 1,
+            "rolling_budget_days": 7,
+            "status": "ALLOW_ONCE_PER_WINDOW_WHEN_SCHEMA_PROVEN_AND_DIRECT_WORK_NOT_READY",
+        },
         "direct_strategy_path": {
             "projected_direct_mechanism_count": direct_projection,
             "projected_ratio_basis_points": (
@@ -580,6 +591,12 @@ def _research_factory_next_dispatch_policy(
             "minimum_unlocked_direct_families": 3,
             "rolling_budget_days": 7,
             "status": "ALLOW_ONCE_PER_WINDOW_WHEN_SCHEMA_PROVEN_AND_NON_COUNTING",
+        },
+        "preregistration_discovery_exception": {
+            "direct_evidence_ready_required": False,
+            "maximum_preregistration_ideas": 1,
+            "rolling_budget_days": 7,
+            "status": "ALLOW_ONCE_PER_WINDOW_WHEN_SCHEMA_PROVEN_AND_DIRECT_WORK_NOT_READY",
         },
         "direct_strategy_path": {
             "projected_direct_economic_closure_count": direct_count + 1,
@@ -685,6 +702,11 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
         for row in rows
         if row.get("duplicate_family_key") == CANDIDATE_ENABLING_FAMILY_KEY
     ]
+    preregistration_discovery_outputs = [
+        row
+        for row in rows
+        if row.get("duplicate_family_key") == PREREGISTRATION_DISCOVERY_FAMILY_KEY
+    ]
     counted = [row for row in rows if row["classification_outcome"] == "COUNT"]
     excluded = [row for row in rows if row["classification_outcome"] == "EXCLUDE"]
     labelled_mechanisms = [
@@ -728,6 +750,9 @@ def summarize_local_research_kpi(classification: dict[str, Any]) -> dict[str, An
         "classification_status": classification["status"],
         "candidate_enabling_capability_accepted_output_ids": sorted(
             row["output_id"] for row in candidate_enabling_capability_outputs
+        ),
+        "preregistration_discovery_accepted_output_ids": sorted(
+            row["output_id"] for row in preregistration_discovery_outputs
         ),
         "counted_output_count": len(counted),
         "counted_output_ids": sorted(row["output_id"] for row in counted),
@@ -898,16 +923,18 @@ def build_local_research_allocation_preflight(
     strategy_path_path: Path | str | None = None,
     allow_non_counting_integrity_repair: bool = False,
     candidate_enabling_capability_path: Path | str | None = None,
+    preregistration_discovery_path: Path | str | None = None,
 ) -> dict[str, Any]:
     exception_count = sum(
         (
             strategy_path_path is not None,
             allow_non_counting_integrity_repair,
             candidate_enabling_capability_path is not None,
+            preregistration_discovery_path is not None,
         )
     )
     if exception_count > 1:
-        raise ValueError("direct work and non-counting exceptions cannot be combined")
+        raise ValueError("direct work and allocation exceptions cannot be combined")
     if strategy_path_path is None:
         manager = build_local_manager_preflight(
             repository_root,
@@ -943,6 +970,7 @@ def build_local_research_allocation_preflight(
     )
     direct = strategy_path_path is not None
     capability_exception = None
+    discovery_exception = None
     if candidate_enabling_capability_path is not None:
         root = _exact_repository_root(repository_root)
         capability_file, capability_relative = _contained_regular_file(
@@ -1003,6 +1031,72 @@ def build_local_research_allocation_preflight(
             "rolling_window_prior_accepted_use_count": 0,
             "status": "VALID",
         }
+    if preregistration_discovery_path is not None:
+        root = _exact_repository_root(repository_root)
+        discovery_file, discovery_relative = _contained_regular_file(
+            root,
+            Path(preregistration_discovery_path),
+            "preregistration discovery path",
+        )
+        discovery, discovery_raw = load_and_validate_preregistration_discovery(
+            discovery_file
+        )
+        head = manager["head_commit"]
+        _require_head_bytes(
+            root,
+            head,
+            discovery_relative,
+            discovery_raw,
+            "preregistration discovery",
+        )
+        task_file, _ = _contained_regular_file(root, Path(task_path), "task path")
+        dispatch_file, _ = _contained_regular_file(root, Path(dispatch_path), "dispatch path")
+        intent_file, _ = _contained_regular_file(
+            root,
+            Path(classification_intent_path),
+            "classification intent path",
+        )
+        task_raw = task_file.read_bytes()
+        dispatch_raw = dispatch_file.read_bytes()
+        intent_raw = intent_file.read_bytes()
+        task = json.loads(task_raw.decode("utf-8"))
+        dispatch = json.loads(dispatch_raw.decode("utf-8"))
+        intent = load_and_validate_weekly_output_classification_document(
+            intent_raw,
+            "classification intent",
+        )
+        validate_preregistration_discovery_context(
+            discovery,
+            task=task,
+            task_sha256=hashlib.sha256(task_raw).hexdigest(),
+            dispatch=dispatch,
+            dispatch_sha256=hashlib.sha256(dispatch_raw).hexdigest(),
+            intent=intent,
+            intent_sha256=hashlib.sha256(intent_raw).hexdigest(),
+        )
+        prior_uses = kpi.get(
+            "preregistration_discovery_accepted_output_ids",
+            [],
+        )
+        if prior_uses:
+            raise ValueError(
+                "preregistration discovery rolling seven-day budget is already used"
+            )
+        discovery_exception = {
+            "direct_evidence_ready": discovery["discovery_contract"][
+                "direct_evidence_ready"
+            ],
+            "maximum_preregistration_ideas": discovery["discovery_contract"][
+                "maximum_preregistration_ideas"
+            ],
+            "path": discovery_relative,
+            "primary_source_count": len(
+                discovery["discovery_contract"]["primary_sources"]
+            ),
+            "rolling_window_prior_accepted_use_count": 0,
+            "status": "VALID",
+            "strategy_family": discovery["discovery_contract"]["strategy_family"],
+        }
     if direct:
         gate_status = "DIRECT_STRATEGY_PATH_ALLOWED"
         projection = policy["direct_strategy_path"]
@@ -1011,6 +1105,9 @@ def build_local_research_allocation_preflight(
         projection = policy["support_work"]
     elif candidate_enabling_capability_path is not None:
         gate_status = "CANDIDATE_ENABLING_CAPABILITY_EXCEPTION_ALLOWED"
+        projection = policy["support_work"]
+    elif preregistration_discovery_path is not None:
+        gate_status = "PREREGISTRATION_DISCOVERY_EXCEPTION_ALLOWED"
         projection = policy["support_work"]
     else:
         projection = policy["support_work"]
@@ -1043,6 +1140,7 @@ def build_local_research_allocation_preflight(
         "manager_preflight": manager,
         "period": kpi["period"],
         "proposed_output_class": manager["research_value_gate"]["output_class"],
+        "preregistration_discovery": discovery_exception,
         "schema_version": "1",
         "status": "VALID",
     }

@@ -192,6 +192,10 @@ def parser() -> argparse.ArgumentParser:
         "--candidate-enabling-capability",
         type=Path,
     )
+    allocation_preflight.add_argument(
+        "--preregistration-discovery",
+        type=Path,
+    )
     allocation_preflight.add_argument("--acceptance", action="append", required=True)
     allocation_preflight.add_argument("--period-start", required=True)
     allocation_preflight.add_argument("--period-end", required=True)
@@ -1620,6 +1624,9 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 candidate_enabling_capability_path=(
                     args.candidate_enabling_capability
+                ),
+                preregistration_discovery_path=(
+                    args.preregistration_discovery
                 ),
             )
             print(canonical_json_bytes(validation).decode("utf-8"))

@@ -18,6 +18,10 @@ from research_pipeline.local_candidate_enabling_capability import (
     DUPLICATE_FAMILY_KEY as CANDIDATE_ENABLING_FAMILY_KEY,
     load_and_validate_candidate_enabling_capability,
 )
+from research_pipeline.local_preregistration_discovery import (
+    DUPLICATE_FAMILY_KEY as PREREGISTRATION_DISCOVERY_FAMILY_KEY,
+    load_and_validate_preregistration_discovery,
+)
 from research_pipeline.local_manager import (
     build_local_research_allocation_preflight,
     build_local_research_goal_audit,
@@ -91,7 +95,7 @@ class PreflightRepository:
             "canonical_research_status": "FROZEN_SYNTHETIC_STATUS",
             "execution_mode": "READ_ONLY",
             "expected_outputs": ["SYNTHETIC_OUTPUT"],
-            "forbidden_actions": FORBIDDEN,
+            "forbidden_actions": list(FORBIDDEN),
             "inputs": [
                 {
                     "kind": "REPOSITORY_PATH",
@@ -379,6 +383,9 @@ class PreflightRepository:
         _run(self.root, "commit", "-m", "freeze candidate enabling capability")
         _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
 
+    def configure_preregistration_discovery(self) -> None:
+        LocalManagerPreflightTest.configure_preregistration_discovery(self)
+
     def commit_intent(self) -> None:
         self.intent_path.write_bytes(canonical_json_document_bytes(self.intent))
         _run(self.root, "add", "records/intent.json")
@@ -524,6 +531,114 @@ class LocalManagerPreflightTest(unittest.TestCase):
         self.assertEqual(json.loads(stdout.getvalue())["status"], "VALID")
         load_policy.assert_not_called()
         research_store.assert_not_called()
+
+    def configure_preregistration_discovery(self) -> None:
+        sources = [
+            {
+                "doi": "10.1000/synthetic-a",
+                "publisher_url": "https://publisher.invalid/synthetic-a",
+                "source_kind": "PRIMARY_RESEARCH_PUBLISHER_PAGE",
+            },
+            {
+                "doi": "10.1000/synthetic-b",
+                "publisher_url": "https://publisher.invalid/synthetic-b",
+                "source_kind": "PRIMARY_RESEARCH_PUBLISHER_PAGE",
+            },
+            {
+                "doi": "10.1000/synthetic-c",
+                "publisher_url": "https://publisher.invalid/synthetic-c",
+                "source_kind": "PRIMARY_RESEARCH_PUBLISHER_PAGE",
+            },
+        ]
+        self.task["task_type"] = "EVIDENCE_DIAGNOSTIC"
+        self.task["execution_mode"] = "READ_ONLY"
+        self.task["limits"] = {
+            "max_candidate_variants": 0,
+            "max_files_changed": 0,
+            "network_access": "PUBLIC_READ_ONLY",
+            "timeout_seconds": 60,
+        }
+        self.task["allowed_actions"].append("READ_LISTED_PRIMARY_PUBLIC_SOURCES")
+        self.task["forbidden_actions"].extend(
+            [
+                "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+                "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+                "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+            ]
+        )
+        self.task["inputs"].extend(
+            {
+                "kind": "TASK_MESSAGE",
+                "locator": (
+                    f"Primary source: DOI {source['doi']} at "
+                    f"{source['publisher_url']}"
+                ),
+                "sha256": None,
+            }
+            for source in sources
+        )
+        task_raw = canonical_json_document_bytes(self.task)
+        self.task_path.write_bytes(task_raw)
+
+        self.dispatch["task_type"] = self.task["task_type"]
+        self.dispatch["execution_mode"] = self.task["execution_mode"]
+        self.dispatch["task_sha256"] = _sha256(task_raw)
+        self.dispatch["performance_case"]["research_phase"] = "DIAGNOSTIC"
+        dispatch_raw = canonical_json_document_bytes(self.dispatch)
+        self.dispatch_path.write_bytes(dispatch_raw)
+
+        self.intent["task_sha256"] = _sha256(task_raw)
+        self.intent["dispatch_sha256"] = _sha256(dispatch_raw)
+        self.intent["output_class"] = "SPEC_OR_CAPABILITY_SLICE"
+        self.intent["duplicate_family_key"] = PREREGISTRATION_DISCOVERY_FAMILY_KEY
+        intent_raw = canonical_json_document_bytes(self.intent)
+        self.intent_path.write_bytes(intent_raw)
+
+        discovery = {
+            "authorization": AUTHORIZATION,
+            "discovery_contract": {
+                "allocation_precedence": "DIRECT_EVIDENCE_READY_WORK_PREEMPTS",
+                "direct_evidence_ready": False,
+                "maximum_preregistration_ideas": 1,
+                "outcome_access": "DENY",
+                "primary_sources": sources,
+                "research_mode": "PUBLIC_PRIMARY_SOURCE_PREREGISTRATION_DISCOVERY",
+                "result_boundary": "ONE_PREREGISTRATION_READY_IDEA_OR_CLOSE",
+                "runner_execution": "DENY",
+                "strategy_family": "synthetic-volume-confirmation",
+            },
+            "dispatch_id": self.dispatch["dispatch_id"],
+            "dispatch_sha256": _sha256(dispatch_raw),
+            "document_type": "LOCAL_PREREGISTRATION_DISCOVERY_V1",
+            "duplicate_family_key": PREREGISTRATION_DISCOVERY_FAMILY_KEY,
+            "exception_id": "preregistration-discovery-fixture-v1",
+            "intent_id": self.intent["intent_id"],
+            "intent_sha256": _sha256(intent_raw),
+            "issued_at": "2026-08-11T00:02:00Z",
+            "output_class": "SPEC_OR_CAPABILITY_SLICE",
+            "rolling_budget": {"days": 7, "maximum_accepted_uses": 1},
+            "safety_boundaries": {
+                "adds_timer": False,
+                "creates_candidate": False,
+                "creates_hypothesis": False,
+                "creates_strategy_result": False,
+                "opens_oos": False,
+                "runs_backtest": False,
+                "trading_action": False,
+                "uses_paid_api": False,
+                "writes_canonical_state": False,
+            },
+            "schema_version": "1",
+            "state_authority": "SERVER_CANONICAL",
+            "task_id": self.task["task_id"],
+            "task_sha256": _sha256(task_raw),
+            "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+        }
+        self.discovery_path = self.root / "records" / "preregistration-discovery.json"
+        self.discovery_path.write_bytes(canonical_json_document_bytes(discovery))
+        _run(self.root, "add", ".")
+        _run(self.root, "commit", "-m", "freeze preregistration discovery")
+        _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
 
     def test_top_level_goal_audit_recomputes_both_windows(self) -> None:
         stdout = StringIO()
@@ -1088,10 +1203,14 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
         *,
         support_status: str,
         candidate_enabling_outputs: list[str] | None = None,
+        preregistration_discovery_outputs: list[str] | None = None,
     ) -> dict:
         return {
             "candidate_enabling_capability_accepted_output_ids": (
                 candidate_enabling_outputs or []
+            ),
+            "preregistration_discovery_accepted_output_ids": (
+                preregistration_discovery_outputs or []
             ),
             "goal_assessment": {
                 "candidate_delivery_efficiency": {
@@ -1337,6 +1456,113 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                 strategy_path_path=repository.strategy_path,
                 candidate_enabling_capability_path="candidate.json",
             )
+
+    def test_allocation_preflight_allows_preregistration_discovery(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery()
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION"
+            ),
+        ):
+            result = build_local_research_allocation_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+                ["acceptance.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+                preregistration_discovery_path=repository.discovery_path,
+            )
+        self.assertEqual(
+            result["allocation_gate"]["status"],
+            "PREREGISTRATION_DISCOVERY_EXCEPTION_ALLOWED",
+        )
+        self.assertEqual(result["preregistration_discovery"]["primary_source_count"], 3)
+        self.assertEqual(
+            result["manager_preflight"]["research_value_gate"]["status"],
+            "COUNTABLE_OUTPUT_REQUIRED",
+        )
+
+    def test_preregistration_discovery_schema_accepts_frozen_fixture(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery()
+        schema = json.loads(
+            (
+                Path(__file__).parents[1]
+                / "local-preregistration-discovery.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        document = json.loads(repository.discovery_path.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(schema)
+        Draft202012Validator(schema, format_checker=FormatChecker()).validate(document)
+        load_and_validate_preregistration_discovery(repository.discovery_path)
+
+    def test_allocation_preflight_rejects_used_preregistration_discovery_budget(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery()
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION",
+                preregistration_discovery_outputs=["prior-discovery-output"],
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "budget is already used"):
+                build_local_research_allocation_preflight(
+                    repository.root,
+                    repository.dispatch_path,
+                    repository.task_path,
+                    repository.intent_path,
+                    ["acceptance.json"],
+                    "2026-08-08T00:00:00Z",
+                    "2026-08-15T00:00:00Z",
+                    preregistration_discovery_path=repository.discovery_path,
+                )
+
+    def test_allocation_preflight_cli_routes_preregistration_discovery(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery()
+        stdout = StringIO()
+        stderr = StringIO()
+        with (
+            patch(
+                "research_pipeline.local_manager.build_local_research_kpi",
+                return_value=self._kpi(
+                    support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION"
+                ),
+            ),
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+        ):
+            exit_code = pipeline_main(
+                [
+                    "local-research-allocation-preflight",
+                    str(repository.dispatch_path),
+                    "--task",
+                    str(repository.task_path),
+                    "--intent",
+                    str(repository.intent_path),
+                    "--preregistration-discovery",
+                    str(repository.discovery_path),
+                    "--acceptance",
+                    "acceptance.json",
+                    "--period-start",
+                    "2026-08-08T00:00:00Z",
+                    "--period-end",
+                    "2026-08-15T00:00:00Z",
+                    "--repository-root",
+                    str(repository.root),
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(stderr.getvalue(), "")
+        self.assertEqual(
+            json.loads(stdout.getvalue())["allocation_gate"]["status"],
+            "PREREGISTRATION_DISCOVERY_EXCEPTION_ALLOWED",
+        )
 
 
 if __name__ == "__main__":

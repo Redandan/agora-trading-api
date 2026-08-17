@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/local-preregistration-discovery.v1.schema.json",
+  "title": "Local preregistration discovery allocation exception V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization", "discovery_contract", "dispatch_id", "dispatch_sha256",
+    "document_type", "duplicate_family_key", "exception_id", "intent_id",
+    "intent_sha256", "issued_at", "output_class", "rolling_budget",
+    "safety_boundaries", "schema_version", "state_authority", "task_id",
+    "task_sha256", "timer_authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "LOCAL_PREREGISTRATION_DISCOVERY_V1"},
+    "exception_id": {"$ref": "#/$defs/identifier"},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "state_authority": {"const": "SERVER_CANONICAL"},
+    "timer_authority": {"const": "CODEX_CLOUD_OPS_ONLY"},
+    "task_id": {"$ref": "#/$defs/identifier"},
+    "task_sha256": {"$ref": "#/$defs/sha256"},
+    "dispatch_id": {"$ref": "#/$defs/identifier"},
+    "dispatch_sha256": {"$ref": "#/$defs/sha256"},
+    "intent_id": {"$ref": "#/$defs/identifier"},
+    "intent_sha256": {"$ref": "#/$defs/sha256"},
+    "output_class": {"const": "SPEC_OR_CAPABILITY_SLICE"},
+    "duplicate_family_key": {"const": "research-factory-preregistration-discovery-v1"},
+    "rolling_budget": {
+      "type": "object", "additionalProperties": false,
+      "required": ["days", "maximum_accepted_uses"],
+      "properties": {"days": {"const": 7}, "maximum_accepted_uses": {"const": 1}}
+    },
+    "safety_boundaries": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adds_timer", "creates_candidate", "creates_hypothesis", "creates_strategy_result", "opens_oos", "runs_backtest", "trading_action", "uses_paid_api", "writes_canonical_state"],
+      "properties": {
+        "adds_timer": {"const": false}, "creates_candidate": {"const": false},
+        "creates_hypothesis": {"const": false}, "creates_strategy_result": {"const": false},
+        "opens_oos": {"const": false}, "runs_backtest": {"const": false},
+        "trading_action": {"const": false}, "uses_paid_api": {"const": false},
+        "writes_canonical_state": {"const": false}
+      }
+    },
+    "discovery_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["allocation_precedence", "direct_evidence_ready", "maximum_preregistration_ideas", "outcome_access", "primary_sources", "research_mode", "result_boundary", "runner_execution", "strategy_family"],
+      "properties": {
+        "allocation_precedence": {"const": "DIRECT_EVIDENCE_READY_WORK_PREEMPTS"},
+        "direct_evidence_ready": {"const": false},
+        "maximum_preregistration_ideas": {"const": 1},
+        "outcome_access": {"const": "DENY"},
+        "research_mode": {"const": "PUBLIC_PRIMARY_SOURCE_PREREGISTRATION_DISCOVERY"},
+        "result_boundary": {"const": "ONE_PREREGISTRATION_READY_IDEA_OR_CLOSE"},
+        "runner_execution": {"const": "DENY"},
+        "strategy_family": {"$ref": "#/$defs/family"},
+        "primary_sources": {
+          "type": "array", "minItems": 3, "maxItems": 8, "uniqueItems": true,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["doi", "publisher_url", "source_kind"],
+            "properties": {
+              "doi": {"type": "string", "pattern": "^10\\.[0-9]{4,9}/[^ ]+$"},
+              "publisher_url": {"type": "string", "pattern": "^https://[^ ]+$"},
+              "source_kind": {"const": "PRIMARY_RESEARCH_PUBLISHER_PAGE"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"},
+    "family": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

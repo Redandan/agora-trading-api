@@ -182,6 +182,19 @@ matched comparator and at most one additional step to a frozen hypothesis. The
 unit cannot create a strategy result or candidate, open OOS, add a timer, write
 canonical state, use a paid API, or take a Trading action.
 
+When no direct evidence-ready strategy-path task is ready, one bounded
+preregistration-discovery support slice may also bypass missing 20-percent
+governance-budget headroom per rolling seven-day window. It must bind a
+canonical sidecar conforming to
+`research_pipeline/local-preregistration-discovery.v1.schema.json`, remain a
+read-only `EVIDENCE_DIAGNOSTIC`, and use only three to eight primary-research
+publisher pages frozen in the task. Its only countable output is one
+`SPEC_OR_CAPABILITY_SLICE`: either at most one preregistration-ready idea or a
+family closure. It cannot inspect historical or forward outcomes, run a runner
+or backtest, create a hypothesis/candidate/result, open OOS, add a timer, write
+canonical state, use a paid API, or take a Trading action. Any direct
+evidence-ready assignment preempts this discovery allocation.
+
 For a bounded period of at most seven days, Manager/Coach may measure accepted
 Local output against the current throughput targets with an explicit acceptance
 allowlist:
@@ -239,7 +252,8 @@ python -m research_pipeline local-research-allocation-preflight <dispatch.json> 
   --period-start <UTC> --period-end <UTC> \
   --acceptance <manager-acceptance.json> [--acceptance <another.json> ...] \
   [--strategy-path <strategy-path.json> | \
-   --candidate-enabling-capability <capability.json>]
+   --candidate-enabling-capability <capability.json> | \
+   --preregistration-discovery <discovery.json>]
 ```
 
 The command first performs the ordinary or strategy-path Manager preflight,
@@ -248,9 +262,13 @@ proposed output to the resulting allocation policy. Direct strategy-path work
 passes; ordinary support work without 20-percent governance-budget headroom
 fails closed. The active
 evidence-integrity and candidate-enabling exceptions remain explicit and cannot
-be combined with each other or with a direct strategy path. The candidate-
+be combined with each other, the preregistration-discovery exception, or a
+direct strategy path. The candidate-
 enabling path also fails if the rolling acceptance allowlist already contains
-an accepted use of its fixed duplicate-family key.
+an accepted use of its fixed duplicate-family key. The discovery path likewise
+fails after one accepted use in the rolling window, and its support slice stays
+inside the governance/tooling denominator rather than being relabelled as an
+economic closure.
 
 The legacy two-window audit cannot pass on ratio alone. Each compatibility
 window still requires at least five accepted outputs, at least three source-

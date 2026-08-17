@@ -79,11 +79,19 @@ matched-capital risk-adjusted performance, not run count or candidate count.
   against `local-candidate-enabling-capability.v1.schema.json`, unlock at least
   three distinct direct mechanism families that are each only one step from a
   frozen hypothesis, and create no strategy result, candidate, OOS access,
-  timer, canonical write, paid-API use, or Trading action. Never invent a
-  mechanism merely to improve the ratio.
+  timer, canonical write, paid-API use, or Trading action. A third, countable
+  support-slice exception may run once per rolling seven days only when direct
+  evidence-ready work is not ready. It must validate against
+  `local-preregistration-discovery.v1.schema.json`, read only three to eight
+  frozen public primary-research publisher pages, and return at most one
+  preregistration-ready idea or close the family. It cannot read outcome data,
+  run a backtest, create a hypothesis/candidate/result, use a paid API, add a
+  timer, write canonical state, or take a Trading action. Direct evidence-ready
+  work always preempts it. Never invent a mechanism merely to improve the ratio.
 - Enforce that decision with `local-research-allocation-preflight`, passing the
   exact rolling acceptance allowlist and the strategy-path sidecar for direct
-  work, or the candidate-enabling sidecar for that bounded exception. Do not
+  work, the candidate-enabling sidecar for that bounded exception, or the
+  preregistration-discovery sidecar for the weekly discovery exception. Do not
   dispatch when the allocation preflight fails.
 - Treat `research_factory_v2` in the seven-day throughput KPI as the primary
   operating target: at least two verified direct economic closures, every

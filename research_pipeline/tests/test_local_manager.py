@@ -383,8 +383,23 @@ class PreflightRepository:
         _run(self.root, "commit", "-m", "freeze candidate enabling capability")
         _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
 
-    def configure_preregistration_discovery(self) -> None:
-        LocalManagerPreflightTest.configure_preregistration_discovery(self)
+    def configure_preregistration_discovery(
+        self,
+        *,
+        schema_version: str = "1",
+        prior_output_ids: list[str] | None = None,
+        excluded_strategy_families: list[str] | None = None,
+        strategy_family: str = "synthetic-volume-confirmation",
+    ) -> None:
+        if schema_version not in {"1", "2"}:
+            raise ValueError("unsupported preregistration discovery fixture version")
+        LocalManagerPreflightTest.configure_preregistration_discovery(
+            self,
+            schema_version=schema_version,
+            prior_output_ids=prior_output_ids,
+            excluded_strategy_families=excluded_strategy_families,
+            strategy_family=strategy_family,
+        )
 
     def commit_intent(self) -> None:
         self.intent_path.write_bytes(canonical_json_document_bytes(self.intent))
@@ -532,7 +547,16 @@ class LocalManagerPreflightTest(unittest.TestCase):
         load_policy.assert_not_called()
         research_store.assert_not_called()
 
-    def configure_preregistration_discovery(self) -> None:
+    def configure_preregistration_discovery(
+        self,
+        *,
+        schema_version: str = "1",
+        prior_output_ids: list[str] | None = None,
+        excluded_strategy_families: list[str] | None = None,
+        strategy_family: str = "synthetic-volume-confirmation",
+    ) -> None:
+        if schema_version not in {"1", "2"}:
+            raise ValueError("unsupported preregistration discovery fixture version")
         sources = [
             {
                 "doi": "10.1000/synthetic-a",
@@ -598,36 +622,46 @@ class LocalManagerPreflightTest(unittest.TestCase):
         intent_raw = canonical_json_document_bytes(self.intent)
         self.intent_path.write_bytes(intent_raw)
 
+        discovery_contract = {
+            "allocation_precedence": "DIRECT_EVIDENCE_READY_WORK_PREEMPTS",
+            "direct_evidence_ready": False,
+            "maximum_preregistration_ideas": 1,
+            "outcome_access": "DENY",
+            "primary_sources": [
+                {
+                    "doi": source["doi"],
+                    "publisher_url": source["publisher_url"],
+                    "source_kind": source["source_kind"],
+                }
+                for source in sources
+            ],
+            "research_mode": "PUBLIC_PRIMARY_SOURCE_PREREGISTRATION_DISCOVERY",
+            "result_boundary": "ONE_PREREGISTRATION_READY_IDEA_OR_CLOSE",
+            "runner_execution": "DENY",
+            "strategy_family": strategy_family,
+        }
+        if schema_version == "2":
+            discovery_contract["excluded_strategy_families"] = (
+                excluded_strategy_families or []
+            )
+            discovery_contract["prior_accepted_output_ids"] = prior_output_ids or []
+
         discovery = {
             "authorization": AUTHORIZATION,
-            "discovery_contract": {
-                "allocation_precedence": "DIRECT_EVIDENCE_READY_WORK_PREEMPTS",
-                "direct_evidence_ready": False,
-                "maximum_preregistration_ideas": 1,
-                "outcome_access": "DENY",
-                "primary_sources": [
-                    {
-                        "doi": source["doi"],
-                        "publisher_url": source["publisher_url"],
-                        "source_kind": source["source_kind"],
-                    }
-                    for source in sources
-                ],
-                "research_mode": "PUBLIC_PRIMARY_SOURCE_PREREGISTRATION_DISCOVERY",
-                "result_boundary": "ONE_PREREGISTRATION_READY_IDEA_OR_CLOSE",
-                "runner_execution": "DENY",
-                "strategy_family": "synthetic-volume-confirmation",
-            },
+            "discovery_contract": discovery_contract,
             "dispatch_id": self.dispatch["dispatch_id"],
             "dispatch_sha256": _sha256(dispatch_raw),
-            "document_type": "LOCAL_PREREGISTRATION_DISCOVERY_V1",
+            "document_type": f"LOCAL_PREREGISTRATION_DISCOVERY_V{schema_version}",
             "duplicate_family_key": PREREGISTRATION_DISCOVERY_FAMILY_KEY,
-            "exception_id": "preregistration-discovery-fixture-v1",
+            "exception_id": f"preregistration-discovery-fixture-v{schema_version}",
             "intent_id": self.intent["intent_id"],
             "intent_sha256": _sha256(intent_raw),
             "issued_at": "2026-08-11T00:02:00Z",
             "output_class": "SPEC_OR_CAPABILITY_SLICE",
-            "rolling_budget": {"days": 7, "maximum_accepted_uses": 1},
+            "rolling_budget": {
+                "days": 7,
+                "maximum_accepted_uses": 2 if schema_version == "2" else 1,
+            },
             "safety_boundaries": {
                 "adds_timer": False,
                 "creates_candidate": False,
@@ -639,7 +673,7 @@ class LocalManagerPreflightTest(unittest.TestCase):
                 "uses_paid_api": False,
                 "writes_canonical_state": False,
             },
-            "schema_version": "1",
+            "schema_version": schema_version,
             "state_authority": "SERVER_CANONICAL",
             "task_id": self.task["task_id"],
             "task_sha256": _sha256(task_raw),
@@ -1567,6 +1601,134 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
         Draft202012Validator(
             proof_schema, format_checker=FormatChecker()
         ).validate(proof_document)
+
+    def test_preregistration_discovery_v2_schema_accepts_two_use_contract(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery(
+            schema_version="2",
+            prior_output_ids=["prior-discovery-output"],
+            excluded_strategy_families=["prior-strategy-family"],
+            strategy_family="second-strategy-family",
+        )
+        schema = json.loads(
+            (
+                Path(__file__).parents[1]
+                / "local-preregistration-discovery.v2.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        document = json.loads(repository.discovery_path.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(schema)
+        Draft202012Validator(schema, format_checker=FormatChecker()).validate(document)
+        load_and_validate_preregistration_discovery(repository.discovery_path)
+
+    def test_allocation_preflight_allows_second_v2_discovery_use(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery(
+            schema_version="2",
+            prior_output_ids=["prior-discovery-output"],
+            excluded_strategy_families=["prior-strategy-family"],
+            strategy_family="second-strategy-family",
+        )
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION",
+                preregistration_discovery_outputs=["prior-discovery-output"],
+            ),
+        ):
+            result = build_local_research_allocation_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+                ["acceptance.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+                preregistration_discovery_path=repository.discovery_path,
+                source_access_proof_path=repository.source_access_proof_path,
+            )
+        self.assertEqual(
+            result["allocation_gate"]["status"],
+            "PREREGISTRATION_DISCOVERY_EXCEPTION_ALLOWED",
+        )
+        self.assertEqual(
+            result["preregistration_discovery"]["maximum_accepted_uses"], 2
+        )
+        self.assertEqual(
+            result["preregistration_discovery"][
+                "rolling_window_prior_accepted_use_count"
+            ],
+            1,
+        )
+
+    def test_allocation_preflight_rejects_v2_unbound_prior_output(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery(
+            schema_version="2",
+            excluded_strategy_families=[],
+            strategy_family="second-strategy-family",
+        )
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION",
+                preregistration_discovery_outputs=["prior-discovery-output"],
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "does not bind prior accepted outputs"):
+                build_local_research_allocation_preflight(
+                    repository.root,
+                    repository.dispatch_path,
+                    repository.task_path,
+                    repository.intent_path,
+                    ["acceptance.json"],
+                    "2026-08-08T00:00:00Z",
+                    "2026-08-15T00:00:00Z",
+                    preregistration_discovery_path=repository.discovery_path,
+                    source_access_proof_path=repository.source_access_proof_path,
+                )
+
+    def test_allocation_preflight_rejects_v2_repeated_strategy_family(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery(
+            schema_version="2",
+            prior_output_ids=["prior-discovery-output"],
+            excluded_strategy_families=["repeated-strategy-family"],
+            strategy_family="repeated-strategy-family",
+        )
+        with self.assertRaisesRegex(ValueError, "must use a distinct strategy family"):
+            load_and_validate_preregistration_discovery(repository.discovery_path)
+
+    def test_allocation_preflight_rejects_third_v2_discovery_use(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery(
+            schema_version="2",
+            prior_output_ids=["prior-discovery-output"],
+            excluded_strategy_families=["prior-strategy-family"],
+            strategy_family="second-strategy-family",
+        )
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION",
+                preregistration_discovery_outputs=[
+                    "prior-discovery-output",
+                    "second-discovery-output",
+                ],
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "budget is already used"):
+                build_local_research_allocation_preflight(
+                    repository.root,
+                    repository.dispatch_path,
+                    repository.task_path,
+                    repository.intent_path,
+                    ["acceptance.json"],
+                    "2026-08-08T00:00:00Z",
+                    "2026-08-15T00:00:00Z",
+                    preregistration_discovery_path=repository.discovery_path,
+                    source_access_proof_path=repository.source_access_proof_path,
+                )
 
     def test_allocation_preflight_rejects_discovery_without_access_proof(self) -> None:
         repository = PreflightRepository(self)

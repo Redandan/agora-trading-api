@@ -182,11 +182,16 @@ matched comparator and at most one additional step to a frozen hypothesis. The
 unit cannot create a strategy result or candidate, open OOS, add a timer, write
 canonical state, use a paid API, or take a Trading action.
 
-When no direct evidence-ready strategy-path task is ready, one bounded
-preregistration-discovery support slice may also bypass missing 20-percent
-governance-budget headroom per rolling seven-day window. It must bind a
-canonical sidecar conforming to
-`research_pipeline/local-preregistration-discovery.v1.schema.json`, remain a
+When no direct evidence-ready strategy-path task is ready, bounded
+preregistration-discovery support slices may also bypass missing 20-percent
+governance-budget headroom. The historical V1 contract remains limited to one
+accepted use per rolling seven-day window. The V2 contract permits at most two
+accepted uses in that window; its second use must bind the first accepted output
+ID and declare that output's strategy family in `excluded_strategy_families`,
+while selecting a different current strategy family. A slice must bind a
+canonical sidecar conforming to either
+`research_pipeline/local-preregistration-discovery.v1.schema.json` or
+`research_pipeline/local-preregistration-discovery.v2.schema.json`, remain a
 read-only `EVIDENCE_DIAGNOSTIC`, and use only three to eight primary-research
 identities frozen in the task. Before allocation it must also bind a separate
 `research_pipeline/local-primary-source-access-proof.v1.schema.json` receipt.
@@ -275,9 +280,12 @@ be combined with each other, the preregistration-discovery exception, or a
 direct strategy path. The candidate-
 enabling path also fails if the rolling acceptance allowlist already contains
 an accepted use of its fixed duplicate-family key. The discovery path likewise
-fails after one accepted use in the rolling window. It also fails unless all
-three to eight exact sources have a fresh Local browser readability proof and
-the readable URLs are frozen in the task messages. Its support slice stays
+fails when its versioned rolling limit is already consumed: one accepted use
+for V1 or two for V2. V2 also fails when the second use does not bind the exact
+prior accepted output ID or repeats the first use's declared strategy family.
+Every version fails unless all three to eight exact sources have a fresh Local
+browser readability proof and the readable URLs are frozen in the task
+messages. Its support slice stays
 inside the governance/tooling denominator rather than being relabelled as an
 economic closure.
 

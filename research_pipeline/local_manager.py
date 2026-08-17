@@ -1102,14 +1102,27 @@ def build_local_research_allocation_preflight(
             task=task,
             allocation_time=_utc_timestamp(period_end, "period_end"),
         )
-        prior_uses = kpi.get(
-            "preregistration_discovery_accepted_output_ids",
-            [],
+        prior_uses = sorted(
+            kpi.get(
+                "preregistration_discovery_accepted_output_ids",
+                [],
+            )
         )
-        if prior_uses:
+        maximum_accepted_uses = discovery["rolling_budget"][
+            "maximum_accepted_uses"
+        ]
+        if len(prior_uses) >= maximum_accepted_uses:
             raise ValueError(
                 "preregistration discovery rolling seven-day budget is already used"
             )
+        if discovery["schema_version"] == "2":
+            declared_prior_uses = sorted(
+                discovery["discovery_contract"]["prior_accepted_output_ids"]
+            )
+            if declared_prior_uses != prior_uses:
+                raise ValueError(
+                    "preregistration discovery V2 does not bind prior accepted outputs"
+                )
         discovery_exception = {
             "direct_evidence_ready": discovery["discovery_contract"][
                 "direct_evidence_ready"
@@ -1122,7 +1135,12 @@ def build_local_research_allocation_preflight(
                 discovery["discovery_contract"]["primary_sources"]
             ),
             "readable_source_count": len(proof["sources"]),
-            "rolling_window_prior_accepted_use_count": 0,
+            "excluded_strategy_families": discovery["discovery_contract"].get(
+                "excluded_strategy_families",
+                [],
+            ),
+            "maximum_accepted_uses": maximum_accepted_uses,
+            "rolling_window_prior_accepted_use_count": len(prior_uses),
             "source_access_proof": {
                 "checked_at": proof["checked_at"],
                 "expires_at": proof["expires_at"],

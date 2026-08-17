@@ -80,9 +80,13 @@ matched-capital risk-adjusted performance, not run count or candidate count.
   three distinct direct mechanism families that are each only one step from a
   frozen hypothesis, and create no strategy result, candidate, OOS access,
   timer, canonical write, paid-API use, or Trading action. A third, countable
-  support-slice exception may run once per rolling seven days only when direct
-  evidence-ready work is not ready. It must validate against
-  `local-preregistration-discovery.v1.schema.json` and bind a fresh
+  support-slice exception may run only when direct evidence-ready work is not
+  ready. Historical V1 remains limited to one accepted use per rolling seven
+  days. V2 permits at most two accepted uses in that window; its second use must
+  bind the first accepted output ID, exclude the first declared strategy family,
+  and select a different current family. It must validate against
+  `local-preregistration-discovery.v1.schema.json` or
+  `local-preregistration-discovery.v2.schema.json` and bind a fresh
   `local-primary-source-access-proof.v1.schema.json` receipt produced by the
   exact Local Research Session and probe turn before allocation. Each DOI/publisher identity
   must have a frozen public readable manuscript/full-text URL with matching
@@ -96,10 +100,10 @@ matched-capital risk-adjusted performance, not run count or candidate count.
 - Enforce that decision with `local-research-allocation-preflight`, passing the
   exact rolling acceptance allowlist and the strategy-path sidecar for direct
   work, the candidate-enabling sidecar for that bounded exception, or the
-  preregistration-discovery sidecar for the weekly discovery exception. Do not
+  preregistration-discovery sidecar for the rolling discovery exception. Do not
   dispatch when the allocation preflight fails. For discovery, also pass the
-  exact source-access proof; never consume the weekly slot merely to learn that
-  the Local node cannot read the sources.
+  exact source-access proof; never consume a rolling discovery slot merely to
+  learn that the Local node cannot read the sources.
 - Treat `research_factory_v2` in the seven-day throughput KPI as the primary
   operating target: at least two verified direct economic closures, every
   pre-dispatch-intent-to-decision latency no greater than 48 hours, and

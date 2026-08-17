@@ -11,11 +11,13 @@ from .local_dispatch import canonical_json_document_bytes
 
 AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
 DOCUMENT_TYPE = "LOCAL_PREREGISTRATION_DISCOVERY_V1"
+DOCUMENT_TYPE_V2 = "LOCAL_PREREGISTRATION_DISCOVERY_V2"
 DUPLICATE_FAMILY_KEY = "research-factory-preregistration-discovery-v1"
 STATE_AUTHORITY = "SERVER_CANONICAL"
 TIMER_AUTHORITY = "CODEX_CLOUD_OPS_ONLY"
 ROLLING_BUDGET_DAYS = 7
 MAX_ACCEPTED_USES = 1
+MAX_ACCEPTED_USES_V2 = 2
 
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$")
 _FAMILY = re.compile(r"^[a-z0-9][a-z0-9._-]{2,127}$")
@@ -42,7 +44,7 @@ _ROOT_KEYS = {
     "task_sha256",
     "timer_authority",
 }
-_DISCOVERY_KEYS = {
+_DISCOVERY_KEYS_V1 = {
     "allocation_precedence",
     "direct_evidence_ready",
     "maximum_preregistration_ideas",
@@ -52,6 +54,10 @@ _DISCOVERY_KEYS = {
     "result_boundary",
     "runner_execution",
     "strategy_family",
+}
+_DISCOVERY_KEYS_V2 = _DISCOVERY_KEYS_V1 | {
+    "excluded_strategy_families",
+    "prior_accepted_output_ids",
 }
 _SOURCE_KEYS = {"doi", "publisher_url", "source_kind"}
 _SAFETY_KEYS = {
@@ -113,8 +119,10 @@ def _timestamp(value: Any, label: str) -> datetime:
 
 def validate_preregistration_discovery(value: Any) -> dict[str, Any]:
     document = _exact_keys(value, _ROOT_KEYS, "preregistration discovery")
-    if document["schema_version"] != "1" or document["document_type"] != DOCUMENT_TYPE:
+    identity = (document["schema_version"], document["document_type"])
+    if identity not in {("1", DOCUMENT_TYPE), ("2", DOCUMENT_TYPE_V2)}:
         raise ValueError("preregistration discovery identity is unsupported")
+    is_v2 = identity == ("2", DOCUMENT_TYPE_V2)
     if document["authorization"] != AUTHORIZATION:
         raise ValueError("preregistration discovery authorization is unsupported")
     if document["state_authority"] != STATE_AUTHORITY or document["timer_authority"] != TIMER_AUTHORITY:
@@ -130,14 +138,22 @@ def validate_preregistration_discovery(value: Any) -> dict[str, Any]:
     _timestamp(document["issued_at"], "issued_at")
 
     budget = _exact_keys(document["rolling_budget"], {"days", "maximum_accepted_uses"}, "rolling_budget")
-    if budget != {"days": ROLLING_BUDGET_DAYS, "maximum_accepted_uses": MAX_ACCEPTED_USES}:
+    maximum_accepted_uses = MAX_ACCEPTED_USES_V2 if is_v2 else MAX_ACCEPTED_USES
+    if budget != {
+        "days": ROLLING_BUDGET_DAYS,
+        "maximum_accepted_uses": maximum_accepted_uses,
+    }:
         raise ValueError("preregistration discovery must use the fixed seven-day budget")
 
     safety = _exact_keys(document["safety_boundaries"], _SAFETY_KEYS, "safety_boundaries")
     if any(item is not False for item in safety.values()):
         raise ValueError("preregistration discovery safety boundaries must all be false")
 
-    discovery = _exact_keys(document["discovery_contract"], _DISCOVERY_KEYS, "discovery_contract")
+    discovery = _exact_keys(
+        document["discovery_contract"],
+        _DISCOVERY_KEYS_V2 if is_v2 else _DISCOVERY_KEYS_V1,
+        "discovery_contract",
+    )
     expected_scalars = {
         "allocation_precedence": "DIRECT_EVIDENCE_READY_WORK_PREEMPTS",
         "direct_evidence_ready": False,
@@ -151,6 +167,27 @@ def validate_preregistration_discovery(value: Any) -> dict[str, Any]:
         if discovery[name] != expected:
             raise ValueError(f"preregistration discovery {name} is unsupported")
     _pattern(discovery["strategy_family"], _FAMILY, "strategy_family")
+    if is_v2:
+        prior_output_ids = discovery["prior_accepted_output_ids"]
+        excluded_families = discovery["excluded_strategy_families"]
+        if (
+            not isinstance(prior_output_ids, list)
+            or len(prior_output_ids) > 1
+            or len(set(prior_output_ids)) != len(prior_output_ids)
+        ):
+            raise ValueError("preregistration discovery V2 prior outputs are invalid")
+        for index, output_id in enumerate(prior_output_ids):
+            _pattern(output_id, _IDENTIFIER, f"prior_accepted_output_ids[{index}]")
+        if (
+            not isinstance(excluded_families, list)
+            or len(excluded_families) != len(prior_output_ids)
+            or len(set(excluded_families)) != len(excluded_families)
+        ):
+            raise ValueError("preregistration discovery V2 excluded families are invalid")
+        for index, family in enumerate(excluded_families):
+            _pattern(family, _FAMILY, f"excluded_strategy_families[{index}]")
+        if discovery["strategy_family"] in excluded_families:
+            raise ValueError("preregistration discovery V2 must use a distinct strategy family")
     sources = discovery["primary_sources"]
     if not isinstance(sources, list) or not 3 <= len(sources) <= 8:
         raise ValueError("preregistration discovery requires three to eight primary sources")

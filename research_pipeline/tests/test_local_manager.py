@@ -537,16 +537,19 @@ class LocalManagerPreflightTest(unittest.TestCase):
             {
                 "doi": "10.1000/synthetic-a",
                 "publisher_url": "https://publisher.invalid/synthetic-a",
+                "readable_url": "https://repository.invalid/synthetic-a.pdf",
                 "source_kind": "PRIMARY_RESEARCH_PUBLISHER_PAGE",
             },
             {
                 "doi": "10.1000/synthetic-b",
                 "publisher_url": "https://publisher.invalid/synthetic-b",
+                "readable_url": "https://repository.invalid/synthetic-b.pdf",
                 "source_kind": "PRIMARY_RESEARCH_PUBLISHER_PAGE",
             },
             {
                 "doi": "10.1000/synthetic-c",
                 "publisher_url": "https://publisher.invalid/synthetic-c",
+                "readable_url": "https://repository.invalid/synthetic-c.pdf",
                 "source_kind": "PRIMARY_RESEARCH_PUBLISHER_PAGE",
             },
         ]
@@ -571,7 +574,8 @@ class LocalManagerPreflightTest(unittest.TestCase):
                 "kind": "TASK_MESSAGE",
                 "locator": (
                     f"Primary source: DOI {source['doi']} at "
-                    f"{source['publisher_url']}"
+                    f"{source['publisher_url']}; readable manuscript "
+                    f"{source['readable_url']}"
                 ),
                 "sha256": None,
             }
@@ -601,7 +605,14 @@ class LocalManagerPreflightTest(unittest.TestCase):
                 "direct_evidence_ready": False,
                 "maximum_preregistration_ideas": 1,
                 "outcome_access": "DENY",
-                "primary_sources": sources,
+                "primary_sources": [
+                    {
+                        "doi": source["doi"],
+                        "publisher_url": source["publisher_url"],
+                        "source_kind": source["source_kind"],
+                    }
+                    for source in sources
+                ],
                 "research_mode": "PUBLIC_PRIMARY_SOURCE_PREREGISTRATION_DISCOVERY",
                 "result_boundary": "ONE_PREREGISTRATION_READY_IDEA_OR_CLOSE",
                 "runner_execution": "DENY",
@@ -636,6 +647,47 @@ class LocalManagerPreflightTest(unittest.TestCase):
         }
         self.discovery_path = self.root / "records" / "preregistration-discovery.json"
         self.discovery_path.write_bytes(canonical_json_document_bytes(discovery))
+        access_proof = {
+            "access_mode": "PUBLIC_READ_ONLY_BROWSER",
+            "checked_at": "2026-08-14T12:00:00Z",
+            "document_type": "LOCAL_PRIMARY_SOURCE_ACCESS_PROOF_V1",
+            "expires_at": "2026-08-15T12:00:00Z",
+            "local_thread_id": "019fd621-68ce-7802-9eed-5ef87c35d677",
+            "local_turn_id": "01a00d6b-e505-7670-a480-51d21bee1159",
+            "proof_id": "source-access-proof-fixture-v1",
+            "safety_assertions": {
+                "canonical_state_changed": False,
+                "oos_opened": False,
+                "paid_api_used": False,
+                "repository_written": False,
+                "second_timer_created": False,
+                "server_research_mcp_write_attempted": False,
+                "trading_action_attempted": False,
+            },
+            "schema_version": "1",
+            "sources": [
+                {
+                    "access_status": "READABLE",
+                    "authors": ["Synthetic Author"],
+                    "authors_match": True,
+                    "body_readable": True,
+                    "distinct_sections_observed": 3,
+                    "doi": source["doi"],
+                    "findings_fact_observed": True,
+                    "methodology_fact_observed": True,
+                    "publisher_url": source["publisher_url"],
+                    "readable_source_kind": "INSTITUTIONAL_REPOSITORY_MANUSCRIPT",
+                    "readable_url": source["readable_url"],
+                    "title": f"Synthetic primary research source {index}",
+                    "title_match": True,
+                }
+                for index, source in enumerate(sources, start=1)
+            ],
+        }
+        self.source_access_proof_path = self.root / "records" / "source-access-proof.json"
+        self.source_access_proof_path.write_bytes(
+            canonical_json_document_bytes(access_proof)
+        )
         _run(self.root, "add", ".")
         _run(self.root, "commit", "-m", "freeze preregistration discovery")
         _run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
@@ -1475,12 +1527,14 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                 "2026-08-08T00:00:00Z",
                 "2026-08-15T00:00:00Z",
                 preregistration_discovery_path=repository.discovery_path,
+                source_access_proof_path=repository.source_access_proof_path,
             )
         self.assertEqual(
             result["allocation_gate"]["status"],
             "PREREGISTRATION_DISCOVERY_EXCEPTION_ALLOWED",
         )
         self.assertEqual(result["preregistration_discovery"]["primary_source_count"], 3)
+        self.assertEqual(result["preregistration_discovery"]["readable_source_count"], 3)
         self.assertEqual(
             result["manager_preflight"]["research_value_gate"]["status"],
             "COUNTABLE_OUTPUT_REQUIRED",
@@ -1499,6 +1553,57 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
         Draft202012Validator.check_schema(schema)
         Draft202012Validator(schema, format_checker=FormatChecker()).validate(document)
         load_and_validate_preregistration_discovery(repository.discovery_path)
+
+        proof_schema = json.loads(
+            (
+                Path(__file__).parents[1]
+                / "local-primary-source-access-proof.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        proof_document = json.loads(
+            repository.source_access_proof_path.read_text(encoding="utf-8")
+        )
+        Draft202012Validator.check_schema(proof_schema)
+        Draft202012Validator(
+            proof_schema, format_checker=FormatChecker()
+        ).validate(proof_document)
+
+    def test_allocation_preflight_rejects_discovery_without_access_proof(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery()
+        with self.assertRaisesRegex(ValueError, "must be provided together"):
+            build_local_research_allocation_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+                ["acceptance.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+                preregistration_discovery_path=repository.discovery_path,
+            )
+
+    def test_allocation_preflight_rejects_stale_source_access_proof(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery()
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION"
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "not fresh at allocation time"):
+                build_local_research_allocation_preflight(
+                    repository.root,
+                    repository.dispatch_path,
+                    repository.task_path,
+                    repository.intent_path,
+                    ["acceptance.json"],
+                    "2026-08-08T13:00:00Z",
+                    "2026-08-15T13:00:00Z",
+                    preregistration_discovery_path=repository.discovery_path,
+                    source_access_proof_path=repository.source_access_proof_path,
+                )
 
     def test_allocation_preflight_rejects_used_preregistration_discovery_budget(self) -> None:
         repository = PreflightRepository(self)
@@ -1520,6 +1625,7 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                     "2026-08-08T00:00:00Z",
                     "2026-08-15T00:00:00Z",
                     preregistration_discovery_path=repository.discovery_path,
+                    source_access_proof_path=repository.source_access_proof_path,
                 )
 
     def test_allocation_preflight_cli_routes_preregistration_discovery(self) -> None:
@@ -1547,6 +1653,8 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                     str(repository.intent_path),
                     "--preregistration-discovery",
                     str(repository.discovery_path),
+                    "--source-access-proof",
+                    str(repository.source_access_proof_path),
                     "--acceptance",
                     "acceptance.json",
                     "--period-start",

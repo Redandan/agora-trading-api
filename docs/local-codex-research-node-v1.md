@@ -188,7 +188,15 @@ governance-budget headroom per rolling seven-day window. It must bind a
 canonical sidecar conforming to
 `research_pipeline/local-preregistration-discovery.v1.schema.json`, remain a
 read-only `EVIDENCE_DIAGNOSTIC`, and use only three to eight primary-research
-publisher pages frozen in the task. Its only countable output is one
+identities frozen in the task. Before allocation it must also bind a separate
+`research_pipeline/local-primary-source-access-proof.v1.schema.json` receipt.
+That receipt expires after 24 hours and binds the exact Local Research Session
+and probe turn that proved every DOI/publisher identity has a frozen public readable
+manuscript or full-text URL with matching title/authors, at least two readable
+body sections, and observable methodology and findings. Publisher identity and
+readable content are separate bindings; a publisher abstract or paywall alone
+is not readability proof. Missing, stale, partial, substituted, or mismatched
+proof fails before the weekly discovery budget is consumed. Its only countable output is one
 `SPEC_OR_CAPABILITY_SLICE`: either at most one preregistration-ready idea or a
 family closure. It cannot inspect historical or forward outcomes, run a runner
 or backtest, create a hypothesis/candidate/result, open OOS, add a timer, write
@@ -253,7 +261,8 @@ python -m research_pipeline local-research-allocation-preflight <dispatch.json> 
   --acceptance <manager-acceptance.json> [--acceptance <another.json> ...] \
   [--strategy-path <strategy-path.json> | \
    --candidate-enabling-capability <capability.json> | \
-   --preregistration-discovery <discovery.json>]
+   --preregistration-discovery <discovery.json> \
+   --source-access-proof <source-access-proof.json>]
 ```
 
 The command first performs the ordinary or strategy-path Manager preflight,
@@ -266,7 +275,9 @@ be combined with each other, the preregistration-discovery exception, or a
 direct strategy path. The candidate-
 enabling path also fails if the rolling acceptance allowlist already contains
 an accepted use of its fixed duplicate-family key. The discovery path likewise
-fails after one accepted use in the rolling window, and its support slice stays
+fails after one accepted use in the rolling window. It also fails unless all
+three to eight exact sources have a fresh Local browser readability proof and
+the readable URLs are frozen in the task messages. Its support slice stays
 inside the governance/tooling denominator rather than being relabelled as an
 economic closure.
 

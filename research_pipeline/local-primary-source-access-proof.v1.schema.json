@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/local-primary-source-access-proof.v1.schema.json",
+  "title": "Local primary-source access proof V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["access_mode", "checked_at", "document_type", "expires_at", "local_thread_id", "local_turn_id", "proof_id", "safety_assertions", "schema_version", "sources"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "LOCAL_PRIMARY_SOURCE_ACCESS_PROOF_V1"},
+    "proof_id": {"$ref": "#/$defs/identifier"},
+    "local_thread_id": {"$ref": "#/$defs/identifier"},
+    "local_turn_id": {"$ref": "#/$defs/identifier"},
+    "checked_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "access_mode": {"const": "PUBLIC_READ_ONLY_BROWSER"},
+    "sources": {
+      "type": "array", "minItems": 3, "maxItems": 8, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["access_status", "authors", "authors_match", "body_readable", "distinct_sections_observed", "doi", "findings_fact_observed", "methodology_fact_observed", "publisher_url", "readable_source_kind", "readable_url", "title", "title_match"],
+        "properties": {
+          "doi": {"type": "string", "pattern": "^10\\.[0-9]{4,9}/[^ ]+$"},
+          "publisher_url": {"type": "string", "pattern": "^https://[^ ]+$"},
+          "readable_url": {"type": "string", "pattern": "^https://[^ ]+$"},
+          "readable_source_kind": {"enum": ["AUTHOR_HOSTED_MANUSCRIPT", "INSTITUTIONAL_REPOSITORY_MANUSCRIPT", "OPEN_ACCESS_PUBLISHER_FULL_TEXT", "PREPRINT_SERVER_MANUSCRIPT"]},
+          "access_status": {"const": "READABLE"},
+          "title": {"type": "string", "minLength": 8},
+          "authors": {"type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "title_match": {"const": true},
+          "authors_match": {"const": true},
+          "body_readable": {"const": true},
+          "distinct_sections_observed": {"type": "integer", "minimum": 2},
+          "methodology_fact_observed": {"const": true},
+          "findings_fact_observed": {"const": true}
+        }
+      }
+    },
+    "safety_assertions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["canonical_state_changed", "oos_opened", "paid_api_used", "repository_written", "second_timer_created", "server_research_mcp_write_attempted", "trading_action_attempted"],
+      "properties": {
+        "canonical_state_changed": {"const": false},
+        "oos_opened": {"const": false},
+        "paid_api_used": {"const": false},
+        "repository_written": {"const": false},
+        "second_timer_created": {"const": false},
+        "server_research_mcp_write_attempted": {"const": false},
+        "trading_action_attempted": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"}
+  }
+}

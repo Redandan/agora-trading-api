@@ -196,6 +196,10 @@ def parser() -> argparse.ArgumentParser:
         "--preregistration-discovery",
         type=Path,
     )
+    allocation_preflight.add_argument(
+        "--source-access-proof",
+        type=Path,
+    )
     allocation_preflight.add_argument("--acceptance", action="append", required=True)
     allocation_preflight.add_argument("--period-start", required=True)
     allocation_preflight.add_argument("--period-end", required=True)
@@ -1628,6 +1632,7 @@ def main(argv: list[str] | None = None) -> int:
                 preregistration_discovery_path=(
                     args.preregistration_discovery
                 ),
+                source_access_proof_path=args.source_access_proof,
             )
             print(canonical_json_bytes(validation).decode("utf-8"))
             return 0

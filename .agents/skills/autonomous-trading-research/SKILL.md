@@ -82,8 +82,13 @@ matched-capital risk-adjusted performance, not run count or candidate count.
   timer, canonical write, paid-API use, or Trading action. A third, countable
   support-slice exception may run once per rolling seven days only when direct
   evidence-ready work is not ready. It must validate against
-  `local-preregistration-discovery.v1.schema.json`, read only three to eight
-  frozen public primary-research publisher pages, and return at most one
+  `local-preregistration-discovery.v1.schema.json` and bind a fresh
+  `local-primary-source-access-proof.v1.schema.json` receipt produced by the
+  exact Local Research Session and probe turn before allocation. Each DOI/publisher identity
+  must have a frozen public readable manuscript/full-text URL with matching
+  title/authors and readable methodology/findings; a paywall or abstract alone
+  is not proof. The task may read only those three to eight frozen sources and
+  return at most one
   preregistration-ready idea or close the family. It cannot read outcome data,
   run a backtest, create a hypothesis/candidate/result, use a paid API, add a
   timer, write canonical state, or take a Trading action. Direct evidence-ready
@@ -92,7 +97,9 @@ matched-capital risk-adjusted performance, not run count or candidate count.
   exact rolling acceptance allowlist and the strategy-path sidecar for direct
   work, the candidate-enabling sidecar for that bounded exception, or the
   preregistration-discovery sidecar for the weekly discovery exception. Do not
-  dispatch when the allocation preflight fails.
+  dispatch when the allocation preflight fails. For discovery, also pass the
+  exact source-access proof; never consume the weekly slot merely to learn that
+  the Local node cannot read the sources.
 - Treat `research_factory_v2` in the seven-day throughput KPI as the primary
   operating target: at least two verified direct economic closures, every
   pre-dispatch-intent-to-decision latency no greater than 48 hours, and

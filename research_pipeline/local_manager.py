@@ -19,6 +19,10 @@ from .local_preregistration_discovery import (
     load_and_validate_preregistration_discovery,
     validate_preregistration_discovery_context,
 )
+from .local_source_access_proof import (
+    load_and_validate_source_access_proof,
+    validate_source_access_proof_context,
+)
 from .local_weekly_output_classification import (
     load_and_validate_weekly_output_classification_document,
     validate_weekly_output_classification,
@@ -924,7 +928,12 @@ def build_local_research_allocation_preflight(
     allow_non_counting_integrity_repair: bool = False,
     candidate_enabling_capability_path: Path | str | None = None,
     preregistration_discovery_path: Path | str | None = None,
+    source_access_proof_path: Path | str | None = None,
 ) -> dict[str, Any]:
+    if (preregistration_discovery_path is None) != (source_access_proof_path is None):
+        raise ValueError(
+            "preregistration discovery and source access proof must be provided together"
+        )
     exception_count = sum(
         (
             strategy_path_path is not None,
@@ -1074,6 +1083,25 @@ def build_local_research_allocation_preflight(
             intent=intent,
             intent_sha256=hashlib.sha256(intent_raw).hexdigest(),
         )
+        proof_file, proof_relative = _contained_regular_file(
+            root,
+            Path(source_access_proof_path),
+            "source access proof path",
+        )
+        proof, proof_raw = load_and_validate_source_access_proof(proof_file)
+        _require_head_bytes(
+            root,
+            head,
+            proof_relative,
+            proof_raw,
+            "source access proof",
+        )
+        validate_source_access_proof_context(
+            proof,
+            discovery=discovery,
+            task=task,
+            allocation_time=_utc_timestamp(period_end, "period_end"),
+        )
         prior_uses = kpi.get(
             "preregistration_discovery_accepted_output_ids",
             [],
@@ -1093,7 +1121,16 @@ def build_local_research_allocation_preflight(
             "primary_source_count": len(
                 discovery["discovery_contract"]["primary_sources"]
             ),
+            "readable_source_count": len(proof["sources"]),
             "rolling_window_prior_accepted_use_count": 0,
+            "source_access_proof": {
+                "checked_at": proof["checked_at"],
+                "expires_at": proof["expires_at"],
+                "local_thread_id": proof["local_thread_id"],
+                "local_turn_id": proof["local_turn_id"],
+                "path": proof_relative,
+                "sha256": hashlib.sha256(proof_raw).hexdigest(),
+            },
             "status": "VALID",
             "strategy_family": discovery["discovery_contract"]["strategy_family"],
         }

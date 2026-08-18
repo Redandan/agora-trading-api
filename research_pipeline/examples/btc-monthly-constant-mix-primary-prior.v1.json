@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_CONSTANT_MIX_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "MONTHLY_CONSTANT_MIX_BTC_CASH_REBALANCING",
+  "reviewed_at": "2026-08-18T15:07:44Z",
+  "source_access": {
+    "perold_sharpe_cfa_official_summary": "PASS",
+    "perold_sharpe_complete_article_mirror": "PASS",
+    "vanguard_rational_rebalancing_full_text": "PASS"
+  },
+  "prior_matrix": [
+    {
+      "identity": "Perold and Sharpe, Dynamic Strategies for Asset Allocation, Financial Analysts Journal 44(1), 1988, DOI 10.2469/faj.v44.n1.16",
+      "primary_source": "https://rpc.cfainstitute.org/research/financial-analysts-journal/1988/dynamic-strategies-for-asset-allocation",
+      "readable_full_text": "https://caia.org/sites/default/files/dynamic_strategies_for_asset_allocation.pdf",
+      "role": "MECHANISM_AND_CO_EQUAL_FALSIFICATION_PRIOR",
+      "finding": "A constant-mix policy holds a constant risky-asset fraction by buying after declines and selling after rises. The paper also states that it tends to do best in relatively trendless volatile markets, while offering less downside protection and upside than buy-and-hold.",
+      "transfer_boundary": "This establishes the payoff shape, not profitable transfer to one BTC spot asset, a monthly clock, a particular target weight, or performance after costs. Strong bull, bear, or regime-change paths can make the policy underperform."
+    },
+    {
+      "identity": "Vanguard Investment Strategy Group, Rational rebalancing: An analytical approach to multiasset portfolio rebalancing, 2025",
+      "primary_source": "https://corporate.vanguard.com/content/dam/corp/research/pdf/rational_rebalancing_analytical_approach_to_multiasset_portfolio_rebalancing.pdf?sf261553213=1",
+      "readable_full_text": "https://corporate.vanguard.com/content/dam/corp/research/pdf/rational_rebalancing_analytical_approach_to_multiasset_portfolio_rebalancing.pdf?sf261553213=1",
+      "role": "RISK_CONTROL_PRIOR_AND_RETURN_CLAIM_BOUNDARY",
+      "finding": "The stated primary function of rebalancing is to keep portfolio risk aligned with its target because an unrebalanced allocation drifts as risky and defensive assets diverge.",
+      "transfer_boundary": "Risk-budget maintenance is not alpha. The source studies diversified stock and bond portfolios, not BTC and zero-yield cash, and does not prove positive incremental BTC total PnL after monthly turnover costs."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "point_in_time_fields": [
+      "open_time",
+      "close_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "decision_feature": "Calendar month boundary and a fixed preregistered target weight; both are known before the next hourly open.",
+    "prospective_transport": "Existing sealed OKX BTC-USDT H1 forward evidence source; no new source, credential, timer, paid API or backfill is required.",
+    "status": "READY"
+  },
+  "real_time_design_requirements": [
+    "Use only a UTC month boundary known before the next hourly fill.",
+    "Use the same initial equity, starting BTC weight, hourly price path, fee, adverse slippage and valuation boundary as the matched no-rebalance comparator.",
+    "Designate fifty percent BTC as the primary policy before outcomes; forty and sixty percent are fixed non-selection neighbors used only to reject cliff behavior.",
+    "Report realized, unrealized and total PnL, drawdown, underwater duration, exposure drift, turnover, holding age and terminal inventory.",
+    "Require positive incremental fee-adjusted total PnL and non-worse path risk in Design and Validation; risk-budget maintenance alone cannot pass.",
+    "Do not scan frequency, thresholds, alternate weights, cash yield, leverage, shorts, volatility targets or DRA combinations after outcome access."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_MONTHLY_CONSTANT_MIX_MATCHED_CAPITAL_EXPERIMENT",
+  "uncertainty": [
+    "BTC is one volatile asset rather than a diversified risky sleeve, so the economic transfer is unusually fragile.",
+    "Zero-yield cash and the 2020-2024 path may penalize constant mix during persistent BTC appreciation and may reward it during reversals.",
+    "Historical Design and Validation cannot establish post-2024 OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one preregistered historical matched-capital BTC/cash constant-mix test. It does not establish alpha, a candidate, OOS value, deployability, or Trading authority."
+}

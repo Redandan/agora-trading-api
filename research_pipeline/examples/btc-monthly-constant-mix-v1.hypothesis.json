@@ -1,0 +1,35 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-monthly-constant-mix-v1",
+  "title": "Monthly constant-mix BTC and cash allocation-drift test",
+  "thesis": "Resetting an unlevered BTC and zero-yield cash portfolio to a fixed target at each UTC month boundary may harvest sufficiently broad price reversals and prevent risky-asset weight drift, improving fee-adjusted total PnL and path risk over an equal-capital portfolio that buys the same initial BTC weight and never rebalances.",
+  "mechanism": "Constant mix sells BTC after appreciation and buys BTC after declines. This countercyclical transfer can harvest reversals while keeping BTC weight near the frozen risk budget, but must fail when trends and trading costs dominate.",
+  "economic_rationale": "The previously closed static passive-BTC plus DRA allocation showed that an initial risk budget can drift until passive BTC dominates drawdown. A standalone BTC/cash experiment isolates whether deterministic rebalancing itself adds matched-capital economic value without another DRA factor, forecast, paid data source, or infrastructure build.",
+  "source": "BTC_MONTHLY_CONSTANT_MIX_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "MATCHED_INITIAL_WEIGHT_BTC_PLUS_ZERO_YIELD_CASH_BUY_AND_HOLD_NO_REBALANCE",
+  "required_capability": "btc-monthly-constant-mix-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "fee_adjusted_total_pnl_delta_under_equal_capital",
+    "realized_pnl",
+    "unrealized_pnl",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "capital_utilization",
+    "weight_drift",
+    "turnover",
+    "holding_age",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-18-candidate-factory-cycle-2",
+  "created_at": "2026-08-18T15:07:44Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

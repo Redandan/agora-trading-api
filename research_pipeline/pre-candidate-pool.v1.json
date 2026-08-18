@@ -257,6 +257,32 @@
   ],
   "closed_families": [
     {
+      "family_id": "closed-dra-us-traditional-session-activity-entry-admission",
+      "title": "DRA fixed 15:00-20:59 UTC traditional-session activity entry admission",
+      "decision_feature": "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_DRA_US_TRADITIONAL_SESSION_ACTIVITY_FAMILY",
+      "duplicate_family_key": "dra-us-traditional-session-activity-entry-admission",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/dra-us-traditional-session-activity-entry-admission.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "7db44e39b834af198fb61936dd1b199ff9ba130ee4e83f96be42d522e32fd498"
+        },
+        {
+          "path": "research_pipeline/examples/dra-us-traditional-session-activity-entry-admission.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "b82b13cbadd94f471d24696e945c26fb0db05bba703e44b0bf957d9005ac89ea"
+        },
+        {
+          "path": "research_pipeline/examples/dra-us-traditional-session-activity-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_PRIOR",
+          "sha256": "2acb5137a660becb68e4d0b89b6b34c99e84dec174b2420bf10218b44234187b"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-dra-weekend-calendar-entry-admission",
       "title": "DRA latest-complete-UTC-day weekend calendar entry admission",
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO",

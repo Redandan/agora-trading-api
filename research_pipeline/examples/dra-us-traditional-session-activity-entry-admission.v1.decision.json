@@ -1,0 +1,164 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_US_TRADITIONAL_SESSION_ACTIVITY_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-us-traditional-session-activity-entry-admission-v1",
+  "decided_at": "2026-08-18T11:54:37Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_US_TRADITIONAL_SESSION_ACTIVITY_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_1500_2059_UTC_QUOTE_VOLUME_SHARE_DRA_ADMISSION_FAMILY_WITHOUT_HOUR_DST_VENUE_RELATION_OR_THRESHOLD_TUNING",
+  "manifest_sha256": "b82b13cbadd94f471d24696e945c26fb0db05bba703e44b0bf957d9005ac89ea",
+  "prior_sha256": "2acb5137a660becb68e4d0b89b6b34c99e84dec174b2420bf10218b44234187b",
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "a231be0cfa7b4ba49cc644ce08746b63b60f195352552e56645730229fc3c220",
+    "git_commit": "3fa365db4f23390fe75c52c20637465ebf67df89",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-us-traditional-session-activity-entry-admission-v1/artifacts/run1.json",
+    "sha256": "e1cefebbb7a64206c0ec50da002674ba4729455d4656bb029029804a24c23c26"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-us-traditional-session-activity-entry-admission-v1/artifacts/run2.json",
+    "sha256": "e1cefebbb7a64206c0ec50da002674ba4729455d4656bb029029804a24c23c26",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature": {
+    "key": "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+    "fixed_whole_h1_hours_utc": [15, 16, 17, 18, 19, 20],
+    "primary_threshold": "1.0",
+    "neighbors": ["0.9", "1.1"],
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "economic_summary": {
+    "parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": "126.0",
+        "p90_hold_hours": "1818.6",
+        "maximum_underwater_duration_hours": 9878,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": "182.5",
+        "p90_hold_hours": "1418.3",
+        "maximum_underwater_duration_hours": 2397,
+        "terminal_inventory_count": 1
+      }
+    },
+    "primary_session_share_1p0": {
+      "design": {
+        "realized_usdt": "122.93183893",
+        "realized_pnl_delta_usdt": "-46.96662874",
+        "unrealized_usdt": "-44.03228985",
+        "unrealized_pnl_delta_usdt": "35.08820456",
+        "total_pnl_usdt": "78.89954908",
+        "total_pnl_delta_usdt": "-11.87842418",
+        "max_drawdown_pct": "18.304297",
+        "median_hold_hours": "127.0",
+        "p90_hold_hours": "1372.0",
+        "maximum_underwater_duration_hours": 9878,
+        "vetoed_signals": 91,
+        "terminal_inventory_count": 3
+      },
+      "validation": {
+        "realized_usdt": "81.86334747",
+        "realized_pnl_delta_usdt": "-7.54783560",
+        "unrealized_usdt": "0E-8",
+        "unrealized_pnl_delta_usdt": "3.20820121",
+        "total_pnl_usdt": "81.86334747",
+        "total_pnl_delta_usdt": "-4.33963439",
+        "max_drawdown_pct": "10.819231",
+        "max_drawdown_delta_pp": "3.697733",
+        "median_hold_hours": "183.0",
+        "p90_hold_hours": "2595.8",
+        "maximum_underwater_duration_hours": 3121,
+        "vetoed_signals": 33,
+        "terminal_inventory_count": 0
+      },
+      "annual_total_pnl_delta_usdt": {
+        "2020": "-11.58930992",
+        "2021": "-5.96706590",
+        "2022": "5.43378577",
+        "2023": "-4.60285022",
+        "2024": "0.26321583"
+      },
+      "annual_total_wins": "2_of_5",
+      "annual_drawdown_non_worse": "4_of_5",
+      "top_positive_year_delta_contribution_pct": "95.379748"
+    },
+    "lower_neighbor_session_share_0p9": {
+      "design_total_pnl_delta_usdt": "-7.79375990",
+      "validation_total_pnl_delta_usdt": "-2.01151207",
+      "validation_realized_pnl_delta_usdt": "-5.21971328",
+      "validation_max_drawdown_delta_pp": "6.456358",
+      "validation_max_underwater_delta_hours": 724,
+      "annual_total_wins": "1_of_5",
+      "disposition": "PERMISSIVE_NEIGHBOR_FAILS_DESIGN_VALIDATION_REALIZED_AND_PATH_RISK"
+    },
+    "upper_neighbor_session_share_1p1": {
+      "design_total_pnl_delta_usdt": "-28.88502488",
+      "validation_total_pnl_delta_usdt": "-7.35416638",
+      "validation_realized_pnl_delta_usdt": "-10.56236759",
+      "validation_max_drawdown_delta_pp": "1.183120",
+      "validation_max_underwater_delta_hours": 293,
+      "annual_total_wins": "1_of_5",
+      "disposition": "STRICT_NEIGHBOR_FAILS_DESIGN_VALIDATION_REALIZED_AND_PATH_RISK"
+    }
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "failed_neighbor_gates": {
+    "lower_0p9": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ],
+    "upper_1p1": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ]
+  },
+  "passed_evidence": [
+    "The exact 52,608-row pre-2025 H1 corpus, primary-source prior, manifest and committed runner hashes passed, and two independent runs were byte-identical.",
+    "The primary reduced Design drawdown and terminal inventory but failed both Design total and realized PnL, so apparent inventory cleanup was not independent alpha.",
+    "All variants had material interventions while keeping realized, unrealized, total PnL, drawdown, holding, utilization, underwater and terminal-inventory ledgers visible under equal capital."
+  ],
+  "material_learning": "A higher fixed 15:00-20:59 UTC share of daily quote volume is a repeatable activity pattern in the literature but not a useful DRA admission condition in this historical transfer. The primary removed 91 Design and 33 Validation signals, lost 11.88 and 4.34 USDT of total PnL respectively, and lost 46.97 and 7.55 USDT of realized PnL. Validation drawdown rose 3.70 percentage points, P90 holding increased 1,177.5 hours and maximum underwater duration increased 724 hours. The two nested neighbors also lost Validation total and realized PnL and worsened path risk.",
+  "scientific_claim": "For the exact latest-complete-UTC-day 15:00-20:59 quote-volume share normalized by the prior 20-day median, thresholds 0.9, 1.0 and 1.1 applied only to unchanged equal-capital DRA V1 entries, historical Design and Validation evidence through 2024 rejects candidate status. The result does not authorize shifting session hours, adding daylight-saving or weekday logic, changing venue, reversing the relation or searching another threshold.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "Estimated quote volume uses H1 close times base volume and omits the 14:30-14:59 half hour; those approximation limits do not authorize replacing the frozen feature after outcome access.",
+    "The conclusion closes only this exact DRA admission transfer and does not dispute intraday activity regularity in the cited studies.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

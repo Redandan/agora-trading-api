@@ -7,6 +7,7 @@ import argparse
 from collections import deque
 from datetime import datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP, localcontext
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
@@ -300,6 +301,11 @@ def median(values: list[D]) -> D:
 
 
 def realized_performance(log_returns: list[D]) -> D:
+    return _realized_performance(tuple(log_returns))
+
+
+@lru_cache(maxsize=None)
+def _realized_performance(log_returns: tuple[D, ...]) -> D:
     """Return the non-zero SW root E[exp(-lambda * r)] = 1."""
     if len(log_returns) != 24 or any(not value.is_finite() for value in log_returns):
         raise ScreenReject(

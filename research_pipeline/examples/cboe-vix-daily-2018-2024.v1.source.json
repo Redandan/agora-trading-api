@@ -1,0 +1,23 @@
+{
+  "schema_version": "1",
+  "document_type": "CBOE_VIX_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Cboe Global Markets",
+  "landing_page": "https://www.cboe.com/tradable-products/vix/vix-historical-data",
+  "download_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+  "downloaded_at": "2026-08-18T12:59:56Z",
+  "download_sha256": "a81e798b40294d5676cc0cd057659fcafa31505c8a92d13e769d2d3e685122eb",
+  "sealed_subset": {
+    "path": "research_pipeline/examples/cboe-vix-daily-2018-2024.v1.csv",
+    "sha256": "b31effdd0af01e12baf3631772e4b00136b2d62f8b18fc8dd8ef246f1076a8bf",
+    "rows": 1780,
+    "first_date": "2018-01-02",
+    "last_date": "2024-12-31",
+    "columns": ["DATE", "OPEN", "HIGH", "LOW", "CLOSE"]
+  },
+  "publication_timing_boundary": "Use a Cboe business-day close only at 00:00 UTC on the following calendar day or later. Persist the latest state across weekends and holidays. Never use the same UTC-day BTC bars before that next-day boundary.",
+  "revision_boundary": "The committed subset is the only historical input for this experiment. Any later Cboe download is a different source artifact and cannot replace or repair it after outcome access.",
+  "license_and_accuracy_boundary": "Cboe publishes the daily closing history for visitor convenience and states that accuracy is not guaranteed. The sealed copy is suitable for bounded research provenance, not redistribution, an index product, or execution authority.",
+  "scope_note": "Free public historical data only; no paid API, account, key, forward import, canonical state write or Trading action was used."
+}

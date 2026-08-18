@@ -1,0 +1,56 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_VIX_RISK_STATE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "PRIOR_SUPPORTS_ONE_VIX_PERCENTILE_LONG_CASH_HISTORICAL_AUDIT",
+  "claim_boundary": "Primary evidence supports VIX as an observable global risk-state proxy and reports negative crypto co-movement, but causality and stability are disputed. Exactly one preregistered long-or-cash historical audit may test whether avoiding only the highest lagged VIX states improves BTC risk-adjusted economics. Failure closes the exact percentile family without changing the source, publication lag, percentile lookback, relation or thresholds.",
+  "feature_contract": {
+    "source": "CBOE_VIX_DAILY_CLOSE",
+    "decision_time": "NEXT_CALENDAR_DAY_0000_UTC_AFTER_CBOE_CLOSE",
+    "feature": "LATEST_VIX_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",
+    "formula": "midrank percentile of the latest Cboe VIX close against exactly the preceding 252 Cboe business-day closes",
+    "policy": "LONG_BTC_WHEN_PERCENTILE_AT_OR_BELOW_THRESHOLD_OTHERWISE_CASH",
+    "thresholds": ["0.7", "0.8", "0.9"],
+    "primary_threshold": "0.8"
+  },
+  "prior_matrix": [
+    {
+      "identity": "Cboe, Historical Data for Cboe VIX Index",
+      "primary_source": "https://www.cboe.com/tradable-products/vix/vix-historical-data",
+      "finding": "Cboe defines VIX as a gauge of expected U.S. equity-market volatility derived from S&P 500 option prices and publishes daily closing history.",
+      "role": "OFFICIAL_FEATURE_IDENTITY_AND_SOURCE",
+      "transfer_boundary": "A volatility gauge is not proof that a threshold predicts BTC returns or improves a long-or-cash policy after costs."
+    },
+    {
+      "identity": "S&P Global, Are crypto markets correlated with macroeconomic factors?",
+      "primary_source": "https://www.spglobal.com/en/research-insights/special-reports/are-crypto-markets-correlated-with-macroeconomic-factors",
+      "finding": "The report finds negative historical crypto correlations with VIX and reports Granger-causality evidence between VIX and its broad digital-market index, while warning that idiosyncratic crypto events remain important.",
+      "role": "GLOBAL_RISK_OFF_MECHANISM_PRIOR",
+      "transfer_boundary": "Broad-index correlation and causality analysis does not establish Bitcoin-only timing, an 80th-percentile cutoff, execution feasibility or risk-adjusted PnL."
+    },
+    {
+      "identity": "Stremmel, What can monetary policy tell us about Bitcoin? (2023)",
+      "primary_source": "https://link.springer.com/article/10.1007/s10436-023-00432-3",
+      "finding": "Bitcoin reacts to traditional monetary and market information, but the magnitude and sometimes the sign of those reactions change over time and simple monthly return relationships are unclear.",
+      "role": "ADVERSARIAL_TIME_VARIATION_PRIOR",
+      "transfer_boundary": "Time-varying relationships require Design, Validation, annual breadth and neighbor stability; they forbid treating one aggregate correlation as stable alpha."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only the committed Cboe daily-close subset and exactly the prior 252 available business-day closes.",
+    "Make a VIX close effective no earlier than 00:00 UTC on the following calendar day and persist the latest state across weekends and holidays.",
+    "Freeze primary percentile 0.8 and neighbors 0.7 and 0.9 before BTC outcome access.",
+    "Use a spot-only 100-percent BTC or 100-percent cash policy with next-H1-open fills, explicit normal and doubled stress friction, realized/unrealized separation and terminal liquidation.",
+    "Require positive Design and Validation economics, drawdown and Calmar improvement, upside capture, annual breadth, concentration control and both-neighbor stability.",
+    "Do not add a VIX moving average, absolute-level threshold, slope, BTC trend interaction, leverage, shorting or threshold search after outcome access.",
+    "Do not open post-2024 OOS or create a Trading runtime rule from this audit."
+  ],
+  "uncertainty": [
+    "VIX measures expected S&P 500 volatility, not crypto-specific risk, and crypto idiosyncratic shocks may dominate.",
+    "The 252-business-day percentile normalizes levels but may still behave differently across monetary and adoption regimes.",
+    "Cboe historical data is published for convenience without an accuracy guarantee; the exact committed copy is therefore immutable evidence for this audit only.",
+    "No BTC performance result, post-2024 data, OOS, candidate, runtime filter or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-18T13:03:00Z"
+}

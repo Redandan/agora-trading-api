@@ -481,6 +481,10 @@ def status_payload(
                 "stage": state["stage"],
                 "outcome": state.get("outcome"),
                 "oos_evidence_trigger_id": state.get("oos_evidence_trigger_id"),
+                "candidate_frozen_at": state.get("candidate_frozen_at"),
+                "candidate_mechanism_key": (
+                    manifest.get("adapter_config") or {}
+                ).get("mechanism_key"),
                 "updated_at": state["updated_at"],
             }
             for manifest, state in entries

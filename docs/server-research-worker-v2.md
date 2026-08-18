@@ -100,6 +100,18 @@ candidate capabilities. If no eligible adapter exists, status reports
 `NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER`; this is an honest capability gap, not
 permission to relabel old work to satisfy the 24-hour metric.
 
+The same read-only status exposes `candidate_funnel`, derived from the
+Git-versioned, SHA-256-bound Pre-Candidate Pool V1 catalog, canonical registry,
+and existing microstructure diagnostic. It contains 5 to 10 deduplicated open
+families, closed-family tombstones, explicit `MISSING_PROOF`, ranked next gates,
+and the measured counts for active experiments and candidate OOS triggers. The
+ranking means evidence readiness, not expected performance. A prospective
+evidence-integrity alert is surfaced ahead of new hypothesis work; a breach of
+the one-active-experiment or one-candidate-OOS boundary fails closed. This view
+does not write state and adds no MCP operation, timer, queue, runner execution,
+or candidate-registration authority. The full contract is in
+`pre-candidate-pool-v1.md`.
+
 The installed eligible adapter is `dra-forward-entry-admission-v1`. Readiness
 also requires the frozen diagnostic contract and exact retained pre-2025 corpus
 to rehash successfully. A ready discovery trigger exposes a canonical

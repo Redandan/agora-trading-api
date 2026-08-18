@@ -235,12 +235,24 @@ date.
 ## Research budget
 
 - Maximum active experiment: `1`.
+- Maximum active candidate OOS: `1`.
 - Maximum new hypothesis per autonomous cycle: `1`.
 - Maximum candidate variants per experiment: `3`.
 - Default execution timeout per runner step: `7200` seconds.
 - Prefer one-factor or one-mechanism ablations over parameter search.
 - Infrastructure work must stop after a usable vertical slice and return to
   performance research.
+
+The read-only Pre-Candidate Pool and Funnel V1 maintains 5 to 10 deduplicated
+open strategy families while retaining permanent tombstones for sealed closed
+families. Canonical `get_research_status` derives the funnel from the
+Git-versioned, hash-bound catalog plus server-canonical registry and evidence
+status. Its ranking is evidence-readiness and attention priority, not an alpha
+or performance forecast. A `READY_FOR_HYPOTHESIS` family is not counted as a
+formal candidate; only `CANDIDATE_FROZEN` is. An active evidence-integrity alert
+preempts ranking, and any breach of the one-experiment or one-candidate-OOS
+budget fails closed. This adds no timer, writer, queue, or strategy activation
+path. The exact contract is in `pre-candidate-pool-v1.md`.
 
 ## Reporting contract
 

@@ -996,7 +996,12 @@ class DurableQueueContractTest(unittest.TestCase):
             stdout='{"research_status":"WAITING_FOR_EVIDENCE"}',
             stderr="",
         )
-        with patch.object(queue, "_pipeline", return_value=pipeline_result):
+        expected_funnel = {"status": "READY", "summary": {"open_family_count": 8}}
+        with patch.object(queue, "_pipeline", return_value=pipeline_result), patch.object(
+            queue,
+            "candidate_funnel_status",
+            return_value=expected_funnel,
+        ) as funnel_status:
             result = queue.research_status()
         summary = result["microstructure_diagnostic"]
         self.assertEqual(summary["status"], "WAITING_FOR_DAY")
@@ -1010,6 +1015,12 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         self.assertEqual(summary["sha256"], hashlib.sha256(artifact.read_bytes()).hexdigest())
         self.assertEqual(result["registry"]["research_status"], "WAITING_FOR_EVIDENCE")
+        self.assertEqual(result["candidate_funnel"], expected_funnel)
+        funnel_status.assert_called_once_with(
+            result["registry"],
+            microstructure=summary,
+            repo_root=self.app,
+        )
 
     def test_status_prefers_active_v3r1_namespace_over_historical_v3(self) -> None:
         historical_namespace = self.state / "microstructure-v3"

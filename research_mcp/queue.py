@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from research_pipeline.candidate_funnel import candidate_funnel_status
 from research_pipeline.evidence import evidence_progress
 from research_pipeline.heartbeat import (
     COACH_DELIVERY_PROOF_CYCLE_WINDOW,
@@ -2139,6 +2140,11 @@ def research_status() -> dict[str, Any]:
             STATE_DIR,
             now=current,
         )
+    candidate_funnel = candidate_funnel_status(
+        registry,
+        microstructure=microstructure_diagnostic,
+        repo_root=APP_DIR,
+    )
     return {
         "server_time": _now(current),
         "timer_authority": "CODEX_CLOUD_OPS_ONLY",
@@ -2159,6 +2165,7 @@ def research_status() -> dict[str, Any]:
         ),
         "evidence_capture_health": capture_health,
         "microstructure_diagnostic": microstructure_diagnostic,
+        "candidate_funnel": candidate_funnel,
         "latest_evidence_capture": source_latest,
         "latest_evidence_ingest": ingest_latest,
         "latest_heartbeat": latest,

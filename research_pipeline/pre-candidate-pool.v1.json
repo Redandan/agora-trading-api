@@ -1,0 +1,511 @@
+{
+  "schema_version": "1",
+  "document_type": "PRE_CANDIDATE_POOL_CATALOG_V1",
+  "catalog_id": "agora-pre-candidate-pool-v1",
+  "pool_constraints": {
+    "maximum_active_experiments": 1,
+    "maximum_candidate_oos": 1,
+    "maximum_open_families": 10,
+    "minimum_open_families": 5
+  },
+  "ranking_contract": {
+    "closed_family_rank": "EXCLUDED",
+    "integrity_blocker_preempts": true,
+    "ordered_dimensions": [
+      "active_evidence_integrity",
+      "evidence_readiness",
+      "matched_capital_economic_visibility",
+      "path_risk_visibility",
+      "estimated_days_to_next_gate",
+      "mechanism_independence",
+      "compute_cost",
+      "family_id"
+    ],
+    "score_semantics": "READINESS_NOT_ALPHA"
+  },
+  "families": [
+    {
+      "family_id": "dra-entry-volume-confirmation-20d",
+      "title": "DRA entry admission by complete-day volume confirmation",
+      "decision_feature": "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN_AT_OR_ABOVE_1_50",
+      "causal_hypothesis": "Unusually high complete-day volume may distinguish broad participation from weak DRA momentum signals before the unchanged next-open fill.",
+      "economic_hypothesis": "Vetoing low-participation DRA entries may improve equal-capital fee-adjusted total PnL without worsening drawdown, holding age or terminal inventory.",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+      "runner_id": "dra-forward-entry-admission-v1",
+      "base_stage": "FORWARD_EVIDENCE",
+      "estimated_days_to_next_gate": 90,
+      "compute_cost_class": "LOW",
+      "independence_key": "complete-day-total-volume-participation",
+      "next_gate": "COMPLETE_FROZEN_90_DAY_DISCOVERY",
+      "canonical_binding": {
+        "kind": "FORWARD_MECHANISM",
+        "id": "DRA_ENTRY_VOLUME_CONFIRMATION_20D"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/forward-diagnostic-contract.v1.json",
+          "role": "FROZEN_FORWARD_DIAGNOSTIC_CONTRACT",
+          "sha256": "16e22e96b32816b3de0332a6c71b1ebad6ec9e6ba623a2a7deb6cfd5b8b5ebdd"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MATCHED_CAPITAL_READY",
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "Independent 90-day predictive discovery gates have not completed.",
+        "Matched-capital Design and Validation economics have not been opened for a selected mechanism.",
+        "Independent candidate OOS has not begun."
+      ],
+      "duplicate_family_key": "dra-entry-volume-confirmation-20d"
+    },
+    {
+      "family_id": "dra-entry-range-confirmation-20d",
+      "title": "DRA entry admission by complete-day range confirmation",
+      "decision_feature": "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN_AT_OR_ABOVE_1_50",
+      "causal_hypothesis": "An unusually wide complete-day price range may identify decisive participation behind a DRA momentum signal before the unchanged next-open fill.",
+      "economic_hypothesis": "Vetoing low-range DRA entries may improve equal-capital fee-adjusted total PnL while preserving drawdown, holding and inventory paths.",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+      "runner_id": "dra-forward-entry-admission-v1",
+      "base_stage": "FORWARD_EVIDENCE",
+      "estimated_days_to_next_gate": 90,
+      "compute_cost_class": "LOW",
+      "independence_key": "complete-day-range-expansion",
+      "next_gate": "COMPLETE_FROZEN_90_DAY_DISCOVERY",
+      "canonical_binding": {
+        "kind": "FORWARD_MECHANISM",
+        "id": "DRA_ENTRY_RANGE_CONFIRMATION_20D"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/forward-diagnostic-contract.v1.json",
+          "role": "FROZEN_FORWARD_DIAGNOSTIC_CONTRACT",
+          "sha256": "16e22e96b32816b3de0332a6c71b1ebad6ec9e6ba623a2a7deb6cfd5b8b5ebdd"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MATCHED_CAPITAL_READY",
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "Independent 90-day predictive discovery gates have not completed.",
+        "Matched-capital Design and Validation economics have not been opened for a selected mechanism.",
+        "Independent candidate OOS has not begun."
+      ],
+      "duplicate_family_key": "dra-entry-range-confirmation-20d"
+    },
+    {
+      "family_id": "microstructure-dra-entry-admission",
+      "title": "OKX microstructure evidence for a future DRA entry-admission mechanism",
+      "decision_feature": "PREDECISION_OKX_TRADE_AND_BOOKS5_MICROSTRUCTURE_TIER_SELECTED_ONLY_AFTER_FROZEN_INTERPRETATION",
+      "causal_hypothesis": "Point-in-time trade and shallow-book imbalance may distinguish informed directional participation from fragile DRA entries without using later price outcomes.",
+      "economic_hypothesis": "A separately frozen microstructure admission rule may improve matched-capital DRA total PnL and reduce adverse path risk if the forward tier survives integrity and concentration gates.",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "matched_comparator_id": "BTC_DRA_V1_WITHOUT_MICROSTRUCTURE_ADMISSION",
+      "runner_id": "MICROSTRUCTURE_DIAGNOSTIC_AND_ECONOMIC_VETO_RUNNER_ONLY",
+      "base_stage": "FORWARD_EVIDENCE",
+      "estimated_days_to_next_gate": 14,
+      "compute_cost_class": "MEDIUM",
+      "independence_key": "okx-trade-book-microstructure",
+      "next_gate": "COMPLETE_CONTIGUOUS_FORWARD_MICROSTRUCTURE_WINDOW",
+      "canonical_binding": {
+        "kind": "MICROSTRUCTURE",
+        "id": "OKX_BTCUSDT_MICROSTRUCTURE_V3R1"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/okx-microstructure-dra-entry-admission-contract.v1.json",
+          "role": "PREOUTCOME_DRA_ADMISSION_CONTRACT",
+          "sha256": "e67211b5bcd716f15ff7f0344fe0fdc587596a40fbc58732204cdc31bf13654c"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "REQUIRED_NOT_MEASURED",
+        "adverse_slippage": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "A complete contiguous forward microstructure window is not sealed.",
+        "No positive tier interpretation or compatible candidate adapter exists.",
+        "Matched-capital strategy economics and independent OOS remain unmeasured."
+      ],
+      "duplicate_family_key": "microstructure-dra-entry-admission"
+    },
+    {
+      "family_id": "btc-3pct-post-shock-reversal",
+      "title": "BTC three-percent shock next-day bidirectional reversal",
+      "decision_feature": "TERMINAL_MANAGER_REVIEWED_THREE_PERCENT_COMPLETE_UTC_DAY_SHOCK_WITH_NEXT_FEASIBLE_FILL",
+      "causal_hypothesis": "Large complete-day BTC shocks may contain transient forced flow that reverses on the following complete day across both UP and DOWN shock directions.",
+      "economic_hypothesis": "A causally timed spot-only reversal admission or hold-cash overlay may improve matched-capital total PnL without increasing drawdown after fees and slippage.",
+      "parent_strategy_id": "MISSING_PROOF",
+      "matched_comparator_id": "MISSING_PROOF",
+      "runner_id": "POST_SHOCK_ACTIONABILITY_CAPABILITY_ONLY",
+      "base_stage": "HISTORICAL_PRIOR",
+      "estimated_days_to_next_gate": null,
+      "compute_cost_class": "MEDIUM",
+      "independence_key": "large-shock-forced-flow-reversal",
+      "next_gate": "SEAL_UNTOUCHED_FORWARD_TERMINAL_REVERSAL_EVIDENCE_AND_SELECT_ONE_PARENT",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "NO_CANONICAL_CANDIDATE_BINDING"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-historical-reversal-terminal-prior-audit.v1.json",
+          "role": "SEALED_HISTORICAL_REVERSAL_PRIOR",
+          "sha256": "0878a7abc60ba8336a561a187ae8209108e612a43a0f62602e06c58a651e447b"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
+          "role": "OFFLINE_ACTIONABILITY_CAPABILITY",
+          "sha256": "2363f93fd68f23f01a6b1e6de27409a7f791a253a9bb139307f1d90df5fc050d"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MISSING_PROOF",
+        "adverse_slippage": "MISSING_PROOF",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
+      },
+      "missing_proof": [
+        "No approved parent, matched comparator or strategy adapter is bound.",
+        "Untouched forward reversal evidence has not reached a terminal Manager review.",
+        "All matched-capital economics and OOS remain missing."
+      ],
+      "duplicate_family_key": "btc-3pct-post-shock-reversal"
+    },
+    {
+      "family_id": "btc-3pct-post-shock-volatility-persistence",
+      "title": "BTC three-percent shock next-day volatility persistence risk control",
+      "decision_feature": "TERMINAL_MANAGER_REVIEWED_THREE_PERCENT_SHOCK_WITH_FORWARD_VOLATILITY_PERSISTENCE_LABEL",
+      "causal_hypothesis": "Large complete-day BTC shocks may leave liquidity and uncertainty elevated, causing next-day realized variance to remain above its prior twenty-day baseline.",
+      "economic_hypothesis": "A separately frozen exposure-reduction rule may lower matched-capital drawdown without sacrificing enough positive convexity to reduce total PnL.",
+      "parent_strategy_id": "MISSING_PROOF",
+      "matched_comparator_id": "MISSING_PROOF",
+      "runner_id": "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_ONLY",
+      "base_stage": "HISTORICAL_PRIOR",
+      "estimated_days_to_next_gate": null,
+      "compute_cost_class": "MEDIUM",
+      "independence_key": "large-shock-volatility-persistence",
+      "next_gate": "SEAL_UNTOUCHED_FORWARD_VOLATILITY_RESULT_BEFORE_STRATEGY_SPECIFICATION",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "NO_CANONICAL_CANDIDATE_BINDING"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-volatility-persistence.v1.lifecycle-erratum.json",
+          "role": "SEALED_HISTORICAL_VOLATILITY_PRIOR",
+          "sha256": "7e2b6e80f3bc6a142f0a1f1d9a1b75107ac40a941ef9618bec1ffc4288bc4333"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-forward-volatility-persistence-spec.v1.json",
+          "role": "FROZEN_FORWARD_DIAGNOSTIC_SPEC",
+          "sha256": "9e272159fcb321b02777ad93735f0ce19f55f76a46236cc3af1b6c809989aa99"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MISSING_PROOF",
+        "adverse_slippage": "MISSING_PROOF",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
+      },
+      "missing_proof": [
+        "No terminal untouched forward volatility result exists.",
+        "No matched-capital parent, sizing rule or strategy adapter is selected.",
+        "PnL opportunity cost, drawdown effect and OOS remain missing."
+      ],
+      "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
+    },
+    {
+      "family_id": "btc-search-attention-volume-innovation",
+      "title": "Lagged finalized search attention with predecision volume innovation",
+      "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_EXPANDING_VOLUME_INNOVATION",
+      "causal_hypothesis": "A finalized rise in search attention that precedes an independently modelled positive volume innovation may identify broad new demand rather than nondirectional raw volume.",
+      "economic_hypothesis": "Admitting unchanged DRA entries only when both predecision signals are positive may improve fee-adjusted total PnL and preserve drawdown under equal capital.",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "matched_comparator_id": "BTC_DRA_V1_WITHOUT_SEARCH_ATTENTION_VOLUME_INTERACTION",
+      "runner_id": "MISSING_PROOF",
+      "base_stage": "PREREGISTRATION_READY",
+      "estimated_days_to_next_gate": null,
+      "compute_cost_class": "HIGH",
+      "independence_key": "lagged-search-attention-volume-innovation",
+      "next_gate": "PROVE_POINT_IN_TIME_SEARCH_VINTAGE_DATA_PATH_BEFORE_ALLOCATION",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "NO_CANONICAL_CANDIDATE_BINDING"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-search-attention-volume-preregistration-discovery.v2.json",
+          "role": "SEALED_PREREGISTRATION_IDEA",
+          "sha256": "40427b69a0ff2cc6776bf14d7b548c82064cfc9ed48855b46e1425a27884dd27"
+        },
+        {
+          "path": "research_pipeline/btc-search-attention-volume-preregistration.v1.json",
+          "role": "FROZEN_PREREGISTRATION_CONTRACT",
+          "sha256": "d543f3136e76318bad1491342707ef3cc26e9656a213dc6c27e80960f9b57c46"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "REQUIRED_NOT_MEASURED",
+        "adverse_slippage": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "MISSING_PROOF"
+      },
+      "missing_proof": [
+        "Point-in-time historical search vintages and revision identity are not executable.",
+        "No direct runner or matched-capital result exists.",
+        "Predictive value, concentration, path risk and OOS remain missing."
+      ],
+      "duplicate_family_key": "btc-search-attention-volume-innovation"
+    },
+    {
+      "family_id": "cftc-leveraged-money-positioning-delta",
+      "title": "CFTC leveraged-money net percent-of-open-interest weekly delta",
+      "decision_feature": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_168H",
+      "causal_hypothesis": "A point-in-time weekly change in leveraged-money net positioning may proxy persistent speculative demand after the regulator publication delay.",
+      "economic_hypothesis": "A spot-only DRA admission versus hold-cash mapping may improve equal-capital total PnL if forward sign, path and concentration gates pass after fees and slippage.",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "matched_comparator_id": "BTC_DRA_V1_WITHOUT_CFTC_POSITIONING_ADMISSION",
+      "runner_id": "CFTC_TFF_LEV_MONEY_FACTOR_EVALUATOR_ONLY",
+      "base_stage": "DEFERRED",
+      "estimated_days_to_next_gate": null,
+      "compute_cost_class": "MEDIUM",
+      "independence_key": "regulated-weekly-leveraged-positioning",
+      "next_gate": "AFTER_MICROSTRUCTURE_TERMINAL_REVIEW_PROVE_SOLE_CLOCK_CAPTURE_BURDEN",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "NO_CANONICAL_SOURCE_REGISTRATION"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.json",
+          "role": "OFFLINE_DISABLED_POINT_IN_TIME_SOURCE_CONTRACT",
+          "sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5"
+        },
+        {
+          "path": "research_pipeline/cftc-tff-lev-money-net-pct-oi-delta-factor-contract.v1.json",
+          "role": "FROZEN_FACTOR_CONTRACT",
+          "sha256": "7592f347d1948193d7c39a70e4a838a0516643de95e57870a8542da505274d50"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.cftc-cme-bitcoin-tff-lev-money-net-pct-oi-delta-evaluator.v1.json",
+          "role": "SYNTHETIC_ONLY_EVALUATOR_CAPABILITY",
+          "sha256": "55707ad5ce58de452dc5e6fb28e20b5e3bf8a4d78db0098dc490a46dba00ead8"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "REQUIRED_NOT_MEASURED",
+        "adverse_slippage": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "The public source contract is disabled and has no canonical producer or intake.",
+        "At least twenty-six nonoverlapping weekly outcomes would be required after activation.",
+        "No matched-capital strategy runner, economics or OOS exists."
+      ],
+      "duplicate_family_key": "cftc-leveraged-money-positioning-delta"
+    },
+    {
+      "family_id": "dra-crypto-carry-risk-veto",
+      "title": "Crypto-carry-conditioned DRA entry risk veto",
+      "decision_feature": "POINT_IN_TIME_CRYPTO_CARRY_STATE_WITH_BOTH_FIXED_MATURITY_AND_PERPETUAL_SEMANTICS",
+      "causal_hypothesis": "Crypto carry may expose leveraged demand, market segmentation and constrained arbitrage capital before an otherwise valid unlevered spot DRA entry.",
+      "economic_hypothesis": "A parameter-free carry risk veto may reduce adverse DRA entry paths without losing enough profitable participation to lower matched-capital total PnL.",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "matched_comparator_id": "BTC_DRA_V1_WITHOUT_CARRY_RISK_VETO",
+      "runner_id": "MISSING_PROOF",
+      "base_stage": "DEFERRED",
+      "estimated_days_to_next_gate": null,
+      "compute_cost_class": "HIGH",
+      "independence_key": "crypto-carry-leveraged-demand-risk",
+      "next_gate": "PROVE_SOURCE_REPRESENTATION_AND_POINT_IN_TIME_AXIS_COVERAGE_AFTER_ACTIVE_LANE",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "OFFLINE_DISABLED_NOT_REGISTERED"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json",
+          "role": "SEALED_PARAMETER_FREE_FACTOR_BOUNDARY",
+          "sha256": "9656429e3e51c64207c667ee85657d3505ea3c1a4dbff424b2901c45e53a3b18"
+        },
+        {
+          "path": "research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v2.json",
+          "role": "OFFLINE_DISABLED_SOURCE_CONTRACT",
+          "sha256": "183eeb35dc4729ff91970e4b892f141f58452abfa350591888587ce01035e4ad"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MISSING_PROOF",
+        "adverse_slippage": "MISSING_PROOF",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "MISSING_PROOF"
+      },
+      "missing_proof": [
+        "The source representation does not yet prove both required semantic axes.",
+        "No point-in-time factor formula, sign, runner or matched-capital experiment exists.",
+        "Predictive, economic and OOS value remain missing."
+      ],
+      "duplicate_family_key": "dra-crypto-carry-risk-veto"
+    }
+  ],
+  "closed_families": [
+    {
+      "family_id": "closed-dra-equal-capital-two-slot-capacity",
+      "title": "DRA equal-capital two-slot capacity",
+      "decision_feature": "TWO_SIMULTANEOUS_30_USDT_DRA_LOTS",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "DRA_EQUAL_CAPITAL_TWO_SLOT_CAPACITY_BRANCH_CLOSE",
+      "duplicate_family_key": "dra-equal-capital-two-slot-capacity",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.dra-equal-capital-two-slot-capacity.v1.json", "role": "SEALED_RESULT", "sha256": "1b72faba677e5e39ac1062f5d5d6488c279b82b1c88dcfb662d296d0983b1c17"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-equal-capital-two-slot-capacity.v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "bbd0b216c2ff3ee8aa9eb39600c30305f1cdb6a88a704c79f65a41f90e2d508c"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-dra-long-trend-entry-admission",
+      "title": "DRA long-trend entry admission",
+      "decision_feature": "LONG_TREND_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "DRA_LONG_TREND_ENTRY_ADMISSION_BRANCH_CLOSE",
+      "duplicate_family_key": "dra-long-trend-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.dra-long-trend-entry-admission.v1.json", "role": "SEALED_RESULT", "sha256": "63cc4a07761702fe0945cad0ac23798dc560d54e30adea93d42f8b4c172eb920"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-long-trend-entry-admission.v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "abcf14cdea18bea3e101e0df07edfaf5e3ff0ccae57849c4c339361817e69492"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-dra-downside-semivariance-entry-admission",
+      "title": "DRA downside-semivariance entry admission",
+      "decision_feature": "DOWNSIDE_SEMIVARIANCE_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "DRA_DOWNSIDE_SEMIVARIANCE_BRANCH_CLOSE",
+      "duplicate_family_key": "dra-downside-semivariance-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.dra-downside-semivariance-entry-admission-v1.json", "role": "SEALED_RESULT", "sha256": "145d7b9e762d11ac0b21b39e4eddc5bb07bff7c0b07fe718388029547bf0ee6b"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-downside-semivariance-entry-admission-v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "1300352d350e765395d3f28df4b565face5806bc847701e47fb2b8c26e62ff0f"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-dra-bipower-jumpiness-entry-admission",
+      "title": "DRA bipower-jumpiness entry admission",
+      "decision_feature": "BIPOWER_JUMPINESS_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "DRA_BIPOWER_JUMPINESS_BRANCH_CLOSE",
+      "duplicate_family_key": "dra-bipower-jumpiness-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.dra-bipower-jumpiness-entry-admission-v1.json", "role": "SEALED_RESULT", "sha256": "8b9806755224a435cd8e58a25d24292f68891be4af90cd132cd1354c32a55ec9"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-bipower-jumpiness-entry-admission-v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "99b841b83722eabe33f7d51bae26708251b9d8afaeb8fa8a4b4001177a8525df"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-dra-intraday-sign-persistence-entry-admission",
+      "title": "DRA intraday sign-persistence entry admission",
+      "decision_feature": "INTRADAY_SIGN_PERSISTENCE_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "DRA_INTRADAY_SIGN_PERSISTENCE_BRANCH_CLOSE",
+      "duplicate_family_key": "dra-intraday-sign-persistence-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.dra-intraday-sign-persistence-entry-admission-v1.json", "role": "SEALED_RESULT", "sha256": "613c08b1f97f8eb2372bf79d590d43f66c378a4598988a6f8d8aced6365006fb"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-intraday-sign-persistence-entry-admission-v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "9b2546d09947166f60d1e878dbafdb592322dfef7257a7033bf7e08c631b6513"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-dra-directional-volume-participation-entry-admission",
+      "title": "DRA directional-volume participation entry admission",
+      "decision_feature": "DAILY_POSITIVE_RETURN_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "DRA_DIRECTIONAL_VOLUME_PARTICIPATION_BRANCH_CLOSE",
+      "duplicate_family_key": "dra-directional-volume-participation-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.dra-directional-volume-participation-entry-admission-v1.json", "role": "SEALED_RESULT", "sha256": "c7007ef318484033edaeb63e97ff0bb53964b3ed888e4aefb9956d20fd778ea4"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-directional-volume-participation-entry-admission-v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "3c1ec5d8997b7bd8e16a6892ea3f95c6af2acbab0ab49824890af58a6e5f1946"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-dra-intraday-volume-concentration-entry-admission",
+      "title": "DRA intraday-volume concentration entry admission",
+      "decision_feature": "TOP_SIX_HOURLY_QUOTE_VOLUME_SHARE",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "DRA_INTRADAY_VOLUME_CONCENTRATION_BRANCH_CLOSE",
+      "duplicate_family_key": "dra-intraday-volume-concentration-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.dra-intraday-volume-concentration-entry-admission-v1.json", "role": "SEALED_RESULT", "sha256": "4ad3f7d32c7d3d95efe96522c4e7d6316ef897e5ba2b64d7c4670b1437323869"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-intraday-volume-concentration-entry-admission-v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "da4b65fa798f8cb985023aa593053422a09a5db71d04b09a479eb0e9ab4047c5"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-3pct-joint-reversal-elevated-volatility",
+      "title": "BTC three-percent joint reversal under elevated volatility",
+      "decision_feature": "POST_OUTCOME_JOINT_REVERSAL_AND_ELEVATED_VOLATILITY_LABEL",
+      "parent_strategy_id": "NO_ACTIONABLE_PARENT",
+      "disposition": "HISTORICAL_JOINT_REVERSAL_ELEVATED_VOLATILITY_RISK_PRIOR_CLOSE",
+      "duplicate_family_key": "btc-3pct-joint-reversal-elevated-volatility",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-joint-reversal-elevated-volatility-risk.v1.json", "role": "SEALED_RESULT", "sha256": "b85c65811b9562f7c046220b21ea444f4115e170116e8db2b270f4a75f5aa619"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-utc-day-3pct-joint-reversal-elevated-volatility-risk.v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "930876f0687b36058a3c8106c9286acdae5836b99a79072016cb854b5f6f7b81"}
+      ],
+      "prohibited_reopen": true
+    }
+  ],
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY"
+}

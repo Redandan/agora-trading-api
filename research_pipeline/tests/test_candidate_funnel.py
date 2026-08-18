@@ -1,0 +1,210 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import unittest
+
+from jsonschema import Draft202012Validator
+
+from research_pipeline.candidate_funnel import (
+    build_candidate_funnel,
+    candidate_funnel_status,
+    load_candidate_pool_catalog,
+)
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+CATALOG_PATH = REPO_ROOT / "research_pipeline" / "pre-candidate-pool.v1.json"
+SCHEMA_PATH = REPO_ROOT / "research_pipeline" / "pre-candidate-pool.v1.schema.json"
+VOLUME = "DRA_ENTRY_VOLUME_CONFIRMATION_20D"
+RANGE = "DRA_ENTRY_RANGE_CONFIRMATION_20D"
+
+
+def _registry(*, eligible: list[str] | None = None) -> dict[str, object]:
+    return {
+        "research_status": "WAITING_FOR_EVIDENCE",
+        "forward_candidate_readiness": {
+            "status": "READY",
+            "diagnostic_contract": {"mechanisms": [VOLUME, RANGE]},
+        },
+        "evidence_triggers": [
+            {
+                "trigger_id": "prospective-mechanism-neutral-evidence-refresh",
+                "purpose": "HYPOTHESIS_DISCOVERY",
+                "status": "OPEN",
+                "progress": {
+                    "status": "COLLECTING",
+                    "observation_count": 1,
+                    "minimum_observations": 90,
+                },
+                "candidate_context": {"eligible_mechanisms": eligible or []},
+                "next_review_at": "2026-11-15T00:00:00Z",
+            }
+        ],
+        "experiments": [
+            {
+                "experiment_id": "sealed-example",
+                "title": "Sealed example",
+                "stage": "CLOSED",
+                "outcome": "NO_CANDIDATE",
+                "adapter": "example-adapter",
+                "updated_at": "2026-08-18T00:00:00Z",
+            }
+        ],
+    }
+
+
+def _microstructure(status: str = "CAPTURE_OVERDUE") -> dict[str, object]:
+    return {
+        "diagnostic_id": "okx-btcusdt-microstructure-v3r1",
+        "status": status,
+        "complete_day_count": 2,
+        "required_day_count": 42,
+        "next_calendar_day": "2026-08-17",
+    }
+
+
+class CandidateFunnelTest(unittest.TestCase):
+    def test_catalog_is_schema_valid_and_all_evidence_hashes_verify(self) -> None:
+        schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+        catalog_document = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(schema)
+        Draft202012Validator(schema).validate(catalog_document)
+
+        catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
+        self.assertEqual(len(catalog["families"]), 8)
+        self.assertEqual(len(catalog["closed_families"]), 8)
+        self.assertTrue(
+            all(
+                binding["verified"]
+                for family in catalog["families"] + catalog["closed_families"]
+                for binding in family["evidence_bindings"]
+            )
+        )
+
+    def test_integrity_alert_preempts_ranking_without_creating_a_candidate(self) -> None:
+        snapshot = build_candidate_funnel(
+            _registry(),
+            microstructure=_microstructure(),
+            repo_root=REPO_ROOT,
+        )
+
+        self.assertEqual(snapshot["status"], "READY_WITH_INTEGRITY_ALERT")
+        self.assertEqual(snapshot["summary"]["open_family_count"], 8)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 9)
+        self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
+        self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
+        self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)
+        self.assertEqual(
+            snapshot["ranked_families"][0]["family_id"],
+            "microstructure-dra-entry-admission",
+        )
+        self.assertEqual(snapshot["ranked_families"][0]["stage"], "INTEGRITY_BLOCKED")
+        forward = {
+            family["family_id"]: family
+            for family in snapshot["ranked_families"]
+            if family["canonical_binding"]["kind"] == "FORWARD_MECHANISM"
+        }
+        self.assertEqual(forward["dra-entry-volume-confirmation-20d"]["stage"], "FORWARD_EVIDENCE")
+        self.assertEqual(forward["dra-entry-volume-confirmation-20d"]["estimated_days_to_next_gate"], 89)
+        self.assertTrue(snapshot["safety"]["read_only_derived_view"])
+        self.assertFalse(snapshot["safety"]["canonical_state_write"])
+        self.assertFalse(snapshot["safety"]["second_timer_or_writer"])
+        self.assertFalse(snapshot["safety"]["shadow_paper_live"])
+
+    def test_evidence_ready_mechanism_is_not_counted_as_formal_candidate(self) -> None:
+        snapshot = build_candidate_funnel(
+            _registry(eligible=[VOLUME]),
+            microstructure=_microstructure("WAITING_FOR_DAY"),
+            repo_root=REPO_ROOT,
+        )
+
+        volume = next(
+            family
+            for family in snapshot["ranked_families"]
+            if family["family_id"] == "dra-entry-volume-confirmation-20d"
+        )
+        self.assertEqual(snapshot["status"], "READY")
+        self.assertEqual(volume["stage"], "READY_FOR_HYPOTHESIS")
+        self.assertEqual(volume["rank"], 1)
+        self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
+
+    def test_frozen_candidate_is_linked_to_its_pool_family(self) -> None:
+        registry = _registry()
+        registry["experiments"] = [
+            {
+                "experiment_id": "volume-candidate",
+                "title": "Volume candidate",
+                "adapter": "dra-forward-entry-admission-v1",
+                "stage": "PREREGISTERED",
+                "outcome": None,
+                "candidate_mechanism_key": VOLUME,
+                "candidate_frozen_at": "2026-11-16T00:00:00Z",
+                "oos_evidence_trigger_id": "volume-candidate-oos",
+                "updated_at": "2026-11-16T00:00:00Z",
+            }
+        ]
+        registry["evidence_triggers"].append(
+            {
+                "trigger_id": "volume-candidate-oos",
+                "purpose": "CANDIDATE_OOS",
+                "status": "WAITING",
+            }
+        )
+
+        snapshot = build_candidate_funnel(
+            registry,
+            microstructure=_microstructure("WAITING_FOR_DAY"),
+            repo_root=REPO_ROOT,
+        )
+
+        volume = next(
+            family
+            for family in snapshot["ranked_families"]
+            if family["family_id"] == "dra-entry-volume-confirmation-20d"
+        )
+        self.assertEqual(volume["stage"], "CANDIDATE_FROZEN")
+        self.assertEqual(volume["progress"]["experiment_id"], "volume-candidate")
+        self.assertEqual(snapshot["summary"]["formal_candidate_count"], 1)
+        self.assertEqual(snapshot["summary"]["active_experiment_count"], 1)
+        self.assertEqual(snapshot["summary"]["candidate_oos_count"], 1)
+
+    def test_single_lane_constraints_fail_closed(self) -> None:
+        registry = _registry()
+        registry["experiments"] = [
+            {"experiment_id": "active-a", "stage": "DESIGN"},
+            {"experiment_id": "active-b", "stage": "VALIDATION"},
+        ]
+        registry["evidence_triggers"].extend(
+            [
+                {"trigger_id": "oos-a", "purpose": "CANDIDATE_OOS", "status": "OPEN"},
+                {"trigger_id": "oos-b", "purpose": "CANDIDATE_OOS", "status": "OPEN"},
+            ]
+        )
+
+        snapshot = build_candidate_funnel(
+            registry,
+            microstructure=_microstructure("WAITING_FOR_DAY"),
+            repo_root=REPO_ROOT,
+        )
+
+        self.assertEqual(snapshot["status"], "INTEGRITY_BLOCKED")
+        self.assertEqual(
+            snapshot["constraint_violations"],
+            ["MAXIMUM_ACTIVE_EXPERIMENTS_EXCEEDED", "MAXIMUM_CANDIDATE_OOS_EXCEEDED"],
+        )
+
+    def test_status_wrapper_fails_closed_when_catalog_is_outside_repo_root(self) -> None:
+        result = candidate_funnel_status(
+            _registry(),
+            microstructure=_microstructure(),
+            repo_root=REPO_ROOT / "research_pipeline" / "tests",
+        )
+
+        self.assertEqual(result["status"], "INTEGRITY_BLOCKED")
+        self.assertFalse(result["safety"]["canonical_state_write"])
+        self.assertFalse(result["safety"]["second_timer_or_writer"])
+
+
+if __name__ == "__main__":
+    unittest.main()

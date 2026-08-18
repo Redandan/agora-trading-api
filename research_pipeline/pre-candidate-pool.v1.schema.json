@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/schemas/pre-candidate-pool.v1.schema.json",
+  "title": "Agora Pre-Candidate Pool Catalog V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "catalog_id",
+    "pool_constraints",
+    "ranking_contract",
+    "families",
+    "closed_families",
+    "authorization",
+    "state_authority",
+    "timer_authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "PRE_CANDIDATE_POOL_CATALOG_V1"},
+    "catalog_id": {"type": "string", "minLength": 3, "maxLength": 120},
+    "pool_constraints": {
+      "const": {
+        "maximum_active_experiments": 1,
+        "maximum_candidate_oos": 1,
+        "maximum_open_families": 10,
+        "minimum_open_families": 5
+      }
+    },
+    "ranking_contract": {
+      "const": {
+        "closed_family_rank": "EXCLUDED",
+        "integrity_blocker_preempts": true,
+        "ordered_dimensions": [
+          "active_evidence_integrity",
+          "evidence_readiness",
+          "matched_capital_economic_visibility",
+          "path_risk_visibility",
+          "estimated_days_to_next_gate",
+          "mechanism_independence",
+          "compute_cost",
+          "family_id"
+        ],
+        "score_semantics": "READINESS_NOT_ALPHA"
+      }
+    },
+    "families": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 10,
+      "items": {"$ref": "#/$defs/family"}
+    },
+    "closed_families": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/closedFamily"}
+    },
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "state_authority": {"const": "SERVER_CANONICAL"},
+    "timer_authority": {"const": "CODEX_CLOUD_OPS_ONLY"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "evidenceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "role", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "role": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "economicStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fees",
+        "adverse_slippage",
+        "realized_pnl",
+        "unrealized_pnl",
+        "total_pnl",
+        "maximum_drawdown",
+        "holding_age",
+        "terminal_inventory",
+        "breadth_and_path_risk"
+      ],
+      "properties": {
+        "fees": {"$ref": "#/$defs/economicState"},
+        "adverse_slippage": {"$ref": "#/$defs/economicState"},
+        "realized_pnl": {"$ref": "#/$defs/economicState"},
+        "unrealized_pnl": {"$ref": "#/$defs/economicState"},
+        "total_pnl": {"$ref": "#/$defs/economicState"},
+        "maximum_drawdown": {"$ref": "#/$defs/economicState"},
+        "holding_age": {"$ref": "#/$defs/economicState"},
+        "terminal_inventory": {"$ref": "#/$defs/economicState"},
+        "breadth_and_path_risk": {"$ref": "#/$defs/economicState"}
+      }
+    },
+    "economicState": {
+      "enum": [
+        "MISSING_PROOF",
+        "REQUIRED_NOT_MEASURED",
+        "HISTORICAL_PRIOR_ONLY",
+        "MATCHED_CAPITAL_READY",
+        "VALIDATION_PASS",
+        "OOS_PASS"
+      ]
+    },
+    "family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family_id",
+        "title",
+        "decision_feature",
+        "causal_hypothesis",
+        "economic_hypothesis",
+        "parent_strategy_id",
+        "matched_comparator_id",
+        "runner_id",
+        "base_stage",
+        "estimated_days_to_next_gate",
+        "compute_cost_class",
+        "independence_key",
+        "next_gate",
+        "canonical_binding",
+        "evidence_bindings",
+        "economic_evidence_status",
+        "missing_proof",
+        "duplicate_family_key"
+      ],
+      "properties": {
+        "family_id": {"type": "string", "minLength": 3},
+        "title": {"type": "string", "minLength": 3},
+        "decision_feature": {"type": "string", "minLength": 3},
+        "causal_hypothesis": {"type": "string", "minLength": 20},
+        "economic_hypothesis": {"type": "string", "minLength": 20},
+        "parent_strategy_id": {"type": "string", "minLength": 3},
+        "matched_comparator_id": {"type": "string", "minLength": 3},
+        "runner_id": {"type": "string", "minLength": 3},
+        "base_stage": {
+          "enum": [
+            "READY_FOR_HYPOTHESIS",
+            "CANDIDATE_FROZEN",
+            "REGISTERED_EXPERIMENT",
+            "FORWARD_EVIDENCE",
+            "PREREGISTRATION_READY",
+            "HISTORICAL_PRIOR",
+            "DEFERRED",
+            "INTEGRITY_BLOCKED"
+          ]
+        },
+        "estimated_days_to_next_gate": {"type": ["integer", "null"], "minimum": 0},
+        "compute_cost_class": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+        "independence_key": {"type": "string", "minLength": 3},
+        "next_gate": {"type": "string", "minLength": 3},
+        "canonical_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": {"enum": ["FORWARD_MECHANISM", "MICROSTRUCTURE", "NONE"]},
+            "id": {"type": "string", "minLength": 1}
+          }
+        },
+        "evidence_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/evidenceBinding"}
+        },
+        "economic_evidence_status": {"$ref": "#/$defs/economicStatus"},
+        "missing_proof": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 3}
+        },
+        "duplicate_family_key": {"type": "string", "minLength": 3}
+      }
+    },
+    "closedFamily": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family_id",
+        "title",
+        "decision_feature",
+        "parent_strategy_id",
+        "disposition",
+        "duplicate_family_key",
+        "evidence_bindings",
+        "prohibited_reopen"
+      ],
+      "properties": {
+        "family_id": {"type": "string", "minLength": 3},
+        "title": {"type": "string", "minLength": 3},
+        "decision_feature": {"type": "string", "minLength": 3},
+        "parent_strategy_id": {"type": "string", "minLength": 3},
+        "disposition": {"type": "string", "minLength": 3},
+        "duplicate_family_key": {"type": "string", "minLength": 3},
+        "evidence_bindings": {
+          "type": "array",
+          "minItems": 2,
+          "items": {"$ref": "#/$defs/evidenceBinding"}
+        },
+        "prohibited_reopen": {"const": true}
+      }
+    }
+  }
+}

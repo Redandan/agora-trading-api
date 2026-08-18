@@ -1,0 +1,102 @@
+{
+  "artifact": {
+    "bytes": 256360,
+    "path": ".research-state/experiments/dra-close-location-entry-admission-v1/artifacts/screen.json",
+    "sha256": "3073bbf012cc18872b983049b54ec133b951c8ef2f0e02c9e51b3dfa59ad0c08"
+  },
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "dataset": {
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "decision": "PERMANENTLY_CLOSE_DRA_CLOSE_LOCATION_FACTOR_FAMILY_WITHOUT_TUNING",
+  "document_type": "BTC_DRA_CLOSE_LOCATION_HISTORICAL_ENTRY_ADMISSION_DECISION_V1",
+  "economic_summary": {
+    "annual_drawdown_non_worse": 4,
+    "annual_total_pnl_deltas_usdt": {
+      "2020": "-2.16709369",
+      "2021": "-3.16436490",
+      "2022": "9.13843787",
+      "2023": "-4.06866620",
+      "2024": "3.38190752"
+    },
+    "annual_total_wins": 2,
+    "design": {
+      "candidate_max_drawdown_pct": "24.106504",
+      "candidate_maximum_underwater_duration_hours": 9878,
+      "candidate_median_hold_hours": 163.5,
+      "candidate_p90_hold_hours": 1400.4,
+      "candidate_realized_pnl_usdt": "154.44879829",
+      "candidate_terminal_inventory_count": 4,
+      "candidate_total_pnl_usdt": "84.46674175",
+      "candidate_unrealized_pnl_usdt": "-69.98205654",
+      "parent_max_drawdown_pct": "29.530448",
+      "parent_maximum_underwater_duration_hours": 9878,
+      "parent_median_hold_hours": 126.0,
+      "parent_p90_hold_hours": 1818.6,
+      "parent_realized_pnl_usdt": "169.89846767",
+      "parent_terminal_inventory_count": 5,
+      "parent_total_pnl_usdt": "90.77797326",
+      "parent_unrealized_pnl_usdt": "-79.12049441",
+      "vetoed_signals": 19
+    },
+    "top_year_positive_delta_contribution_pct": "72.988704",
+    "validation": {
+      "candidate_max_drawdown_pct": "8.649183",
+      "candidate_maximum_underwater_duration_hours": 2397,
+      "candidate_median_hold_hours": 175.5,
+      "candidate_p90_hold_hours": 2648.6,
+      "candidate_realized_pnl_usdt": "85.70210541",
+      "candidate_terminal_inventory_count": 0,
+      "candidate_total_pnl_usdt": "85.70210541",
+      "candidate_unrealized_pnl_usdt": "0E-8",
+      "parent_max_drawdown_pct": "7.121498",
+      "parent_maximum_underwater_duration_hours": 2397,
+      "parent_median_hold_hours": 182.5,
+      "parent_p90_hold_hours": 1418.3,
+      "parent_realized_pnl_usdt": "89.41118307",
+      "parent_terminal_inventory_count": 1,
+      "parent_total_pnl_usdt": "86.20298186",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "vetoed_signals": 15
+    }
+  },
+  "experiment_id": "dra-close-location-entry-admission-v1",
+  "failed_neighbor_gates": {
+    "close-location-admission-0_8-v1": [
+      "validation_interventions_at_least_4"
+    ],
+    "close-location-admission-1_2-v1": [
+      "validation_drawdown_within_0_25pp",
+      "validation_max_underwater_duration_non_worse",
+      "validation_realized_non_worse",
+      "validation_total_pnl_non_worse"
+    ]
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2",
+  "manifest_sha256": "318ea5c2f8368396dca30a41dd6ef6040e4004b3065827820917d9334f826b21",
+  "oos_opened": false,
+  "prior_sha256": "8615a4e0caad55963e5810f84fbe55c4084f5577bf9f7adea396d5b764b68428",
+  "prohibited_reopen": true,
+  "runner_sha256": "94e21a7528966054f6fe5a0d9d36c3f268bde40ee3d0d9ca7c80d8af33ba4198",
+  "schema_version": "1",
+  "scientific_claim": "The preregistered close-location admission filter removed some losing terminal inventory and improved Design drawdown, but it reduced realized and total PnL in both Design and Validation. Validation drawdown rose from 7.121498% to 8.649183%, P90 holding expanded from 1418.3 to 2648.6 hours, annual total PnL won only two of five years, and the positive annual delta was 72.988704% concentrated in one year. Both frozen neighbors also failed. The exact family is not a candidate and must not be inverted, thresholded, tuned, rerun or reopened.",
+  "status": "NO_CANDIDATE_CLOSE_DRA_CLOSE_LOCATION_FACTOR_FAMILY",
+  "uncertainty": [
+    "This is historical Design and Validation evidence through 2024, not independent post-2024 OOS or prospective evidence.",
+    "The result closes only the frozen daily close-location-to-prior-20-day-median long-entry admission family; it does not claim that every possible OHLC path representation is ineffective.",
+    "No source activation, second timer or writer, candidate registration, OOS opening, canonical write, Trading, database, order, fund, SHADOW, PAPER or LIVE action occurred."
+  ]
+}

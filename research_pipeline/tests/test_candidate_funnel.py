@@ -86,7 +86,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 6)
-        self.assertEqual(len(catalog["closed_families"]), 12)
+        self.assertEqual(len(catalog["closed_families"]), 13)
         cftc = next(
             family
             for family in catalog["closed_families"]
@@ -98,6 +98,25 @@ class CandidateFunnelTest(unittest.TestCase):
             "NO_CANDIDATE_CLOSE_CFTC_TFF_FACTOR_FAMILY",
         )
         self.assertTrue(cftc["prohibited_reopen"])
+        close_location = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-close-location-entry-admission"
+        )
+        self.assertEqual(
+            close_location["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_CLOSE_LOCATION_FACTOR_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in close_location["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_PRIOR",
+            ],
+        )
+        self.assertTrue(close_location["prohibited_reopen"])
         amihud = next(
             family
             for family in catalog["closed_families"]
@@ -152,7 +171,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY_WITH_INTEGRITY_ALERT")
         self.assertEqual(snapshot["summary"]["open_family_count"], 6)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 13)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 14)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

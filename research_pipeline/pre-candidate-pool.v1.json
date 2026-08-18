@@ -313,6 +313,20 @@
       "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-close-location-entry-admission",
+      "title": "DRA complete-day close-location entry admission",
+      "decision_feature": "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_DRA_CLOSE_LOCATION_FACTOR_FAMILY",
+      "duplicate_family_key": "dra-close-location-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/dra-close-location-entry-admission.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "62d727e7f25434dbfc2185fb876918d74a0b3a4537801e7964b6128c8977fa58"},
+        {"path": "research_pipeline/examples/dra-close-location-entry-admission.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "318ea5c2f8368396dca30a41dd6ef6040e4004b3065827820917d9334f826b21"},
+        {"path": "research_pipeline/examples/dra-close-location-primary-prior.v1.json", "role": "SEALED_PRIMARY_PRIOR", "sha256": "8615a4e0caad55963e5810f84fbe55c4084f5577bf9f7adea396d5b764b68428"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-dra-equal-capital-two-slot-capacity",
       "title": "DRA equal-capital two-slot capacity",
       "decision_feature": "TWO_SIMULTANEOUS_30_USDT_DRA_LOTS",

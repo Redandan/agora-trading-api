@@ -996,7 +996,7 @@ class DurableQueueContractTest(unittest.TestCase):
             stdout='{"research_status":"WAITING_FOR_EVIDENCE"}',
             stderr="",
         )
-        expected_funnel = {"status": "READY", "summary": {"open_family_count": 8}}
+        expected_funnel = {"status": "READY", "summary": {"open_family_count": 7}}
         with patch.object(queue, "_pipeline", return_value=pipeline_result), patch.object(
             queue,
             "candidate_funnel_status",

@@ -72,8 +72,8 @@ class CandidateFunnelTest(unittest.TestCase):
         Draft202012Validator(schema).validate(catalog_document)
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
-        self.assertEqual(len(catalog["families"]), 8)
-        self.assertEqual(len(catalog["closed_families"]), 8)
+        self.assertEqual(len(catalog["families"]), 7)
+        self.assertEqual(len(catalog["closed_families"]), 9)
         self.assertTrue(
             all(
                 binding["verified"]
@@ -90,8 +90,8 @@ class CandidateFunnelTest(unittest.TestCase):
         )
 
         self.assertEqual(snapshot["status"], "READY_WITH_INTEGRITY_ALERT")
-        self.assertEqual(snapshot["summary"]["open_family_count"], 8)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 9)
+        self.assertEqual(snapshot["summary"]["open_family_count"], 7)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 10)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

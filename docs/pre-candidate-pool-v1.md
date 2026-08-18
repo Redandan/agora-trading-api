@@ -44,7 +44,7 @@ server Research Worker remains the state authority.
   unrealized, and total PnL, maximum drawdown, holding age, terminal inventory,
   and breadth/path risk. `MISSING_PROOF` remains explicit.
 
-The initial V1 catalog contains eight open families and eight repository-sealed
+The active V1 catalog contains seven open families and nine repository-sealed
 closed families. Catalog membership is not authorization to start an
 experiment.
 

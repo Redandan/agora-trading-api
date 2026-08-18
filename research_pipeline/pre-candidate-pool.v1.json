@@ -250,54 +250,6 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-search-attention-volume-innovation",
-      "title": "Lagged finalized search attention with predecision volume innovation",
-      "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_EXPANDING_VOLUME_INNOVATION",
-      "causal_hypothesis": "A finalized rise in search attention that precedes an independently modelled positive volume innovation may identify broad new demand rather than nondirectional raw volume.",
-      "economic_hypothesis": "Admitting unchanged DRA entries only when both predecision signals are positive may improve fee-adjusted total PnL and preserve drawdown under equal capital.",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "matched_comparator_id": "BTC_DRA_V1_WITHOUT_SEARCH_ATTENTION_VOLUME_INTERACTION",
-      "runner_id": "MISSING_PROOF",
-      "base_stage": "PREREGISTRATION_READY",
-      "estimated_days_to_next_gate": null,
-      "compute_cost_class": "HIGH",
-      "independence_key": "lagged-search-attention-volume-innovation",
-      "next_gate": "PROVE_POINT_IN_TIME_SEARCH_VINTAGE_DATA_PATH_BEFORE_ALLOCATION",
-      "canonical_binding": {
-        "kind": "NONE",
-        "id": "NO_CANONICAL_CANDIDATE_BINDING"
-      },
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/examples/local-research-result.btc-search-attention-volume-preregistration-discovery.v2.json",
-          "role": "SEALED_PREREGISTRATION_IDEA",
-          "sha256": "40427b69a0ff2cc6776bf14d7b548c82064cfc9ed48855b46e1425a27884dd27"
-        },
-        {
-          "path": "research_pipeline/btc-search-attention-volume-preregistration.v1.json",
-          "role": "FROZEN_PREREGISTRATION_CONTRACT",
-          "sha256": "d543f3136e76318bad1491342707ef3cc26e9656a213dc6c27e80960f9b57c46"
-        }
-      ],
-      "economic_evidence_status": {
-        "fees": "REQUIRED_NOT_MEASURED",
-        "adverse_slippage": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "MISSING_PROOF",
-        "unrealized_pnl": "MISSING_PROOF",
-        "total_pnl": "MISSING_PROOF",
-        "maximum_drawdown": "MISSING_PROOF",
-        "holding_age": "MISSING_PROOF",
-        "terminal_inventory": "MISSING_PROOF",
-        "breadth_and_path_risk": "MISSING_PROOF"
-      },
-      "missing_proof": [
-        "Point-in-time historical search vintages and revision identity are not executable.",
-        "No direct runner or matched-capital result exists.",
-        "Predictive value, concentration, path risk and OOS remain missing."
-      ],
-      "duplicate_family_key": "btc-search-attention-volume-innovation"
-    },
-    {
       "family_id": "cftc-leveraged-money-positioning-delta",
       "title": "CFTC leveraged-money net percent-of-open-interest weekly delta",
       "decision_feature": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_168H",
@@ -501,6 +453,20 @@
       "evidence_bindings": [
         {"path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-joint-reversal-elevated-volatility-risk.v1.json", "role": "SEALED_RESULT", "sha256": "b85c65811b9562f7c046220b21ea444f4115e170116e8db2b270f4a75f5aa619"},
         {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-utc-day-3pct-joint-reversal-elevated-volatility-risk.v1.json", "role": "MANAGER_ACCEPTANCE", "sha256": "930876f0687b36058a3c8106c9286acdae5836b99a79072016cb854b5f6f7b81"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-search-attention-volume-innovation-v1",
+      "title": "Lagged finalized search attention with predecision volume innovation V1",
+      "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_EXPANDING_VOLUME_INNOVATION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "CLOSE_SEARCH_ATTENTION_VOLUME_V1_SOURCE_UNAVAILABLE",
+      "duplicate_family_key": "btc-search-attention-volume-innovation",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.btc-search-attention-volume-preregistration-discovery.v2.json", "role": "SEALED_PREREGISTRATION_RESULT", "sha256": "40427b69a0ff2cc6776bf14d7b548c82064cfc9ed48855b46e1425a27884dd27"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-search-attention-volume-preregistration-discovery.v2.json", "role": "MANAGER_ACCEPTANCE", "sha256": "75c8192f8d5bb5a5662b128c94e8b0887dc6a00ea969c1afbcdf862d7c8dd16f"},
+        {"path": "research_pipeline/btc-search-attention-volume-preregistration.v1.json", "role": "CLOSED_PREOUTCOME_SOURCE_CONTRACT", "sha256": "d543f3136e76318bad1491342707ef3cc26e9656a213dc6c27e80960f9b57c46"}
       ],
       "prohibited_reopen": true
     }

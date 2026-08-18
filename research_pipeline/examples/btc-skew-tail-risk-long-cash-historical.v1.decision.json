@@ -1,0 +1,214 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_SKEW_TAIL_RISK_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-skew-tail-risk-long-cash-historical-v1",
+  "decided_at": "2026-08-18T13:46:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_SKEW_TAIL_RISK_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_LAGGED_CBOE_SKEW_PRIOR_252_BUSINESS_DAY_PERCENTILE_LONG_CASH_FAMILY_WITHOUT_SOURCE_LOOKBACK_RELATION_THRESHOLD_OR_SIZING_TUNING",
+  "manifest_sha256": "b8af209e1d7413e3db9dbb55ea0634237af30a90a033fc264ed06af8c8d53eb1",
+  "prior_sha256": "aa81d877f4e98b57f494ffbbb9950cbd024e5f9819431e1926b777485444ecdf",
+  "runner": {
+    "path": "research/btc_skew_tail_risk_long_cash_historical.py",
+    "sha256": "3d9f8819d850cd4ee5c2c1869712c0bffef4d7105265b0b6690e1e693ec71050",
+    "git_commit": "da6961f31032ccaa010725e7abadd27988a26a86",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-skew-tail-risk-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "1f6fc92166508a54dffc2950c04e2e9e2470dc66ab0f71eba3bef98f152d3238"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-skew-tail-risk-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "1f6fc92166508a54dffc2950c04e2e9e2470dc66ab0f71eba3bef98f152d3238",
+    "byte_identical": true
+  },
+  "datasets": {
+    "btc_h1": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "cboe_skew": {
+      "path": "research_pipeline/examples/cboe-skew-daily-2018-2024.v1.csv",
+      "sha256": "27e8e939759342b37f1d8bcb1667ca7389f20bcf471032d5b6a45d16a35c1454",
+      "rows": 1758,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31",
+      "usable_signals_after_warmup": 1506
+    }
+  },
+  "policy": {
+    "feature": "LATEST_SKEW_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",
+    "effective_time": "NEXT_CALENDAR_DAY_0000_UTC",
+    "long_relation": "AT_OR_BELOW",
+    "primary_threshold": "0.8",
+    "neighbors": [
+      "0.7",
+      "0.9"
+    ],
+    "targets": [
+      "BTC_100_PERCENT",
+      "CASH_100_PERCENT"
+    ]
+  },
+  "economic_summary": {
+    "primary_p80": {
+      "design_normal": {
+        "total_return_pct": "-25.69720268",
+        "realized_return_pct": "108.90414215",
+        "unrealized_return_pct": "-134.60134483",
+        "maximum_drawdown_pct": "77.78511948",
+        "maximum_underwater_duration_hours": 15041,
+        "average_exposure_pct": "68.61313869",
+        "median_hold_hours": "108.00000000",
+        "p90_hold_hours": "616.80000000",
+        "terminal_holding_age_hours": "8688.00000000",
+        "calmar_ratio": "-0.33036142",
+        "buy_hold_total_return_pct": "129.60544229",
+        "buy_hold_maximum_drawdown_pct": "77.18955925",
+        "buy_hold_calmar_ratio": "1.67905405",
+        "total_return_delta_pp": "-155.30264497",
+        "drawdown_delta_pp": "0.59556023",
+        "calmar_ratio_to_buy_hold": "-0.19675449",
+        "position_changes": 65,
+        "terminal_liquidation_adjusted_return_pct": "-25.80861972"
+      },
+      "design_stress": {
+        "total_return_pct": "-32.59964369",
+        "maximum_drawdown_pct": "78.31193051",
+        "calmar_ratio": "-0.41627940",
+        "buy_hold_total_return_pct": "129.26172157"
+      },
+      "validation_normal": {
+        "total_return_pct": "183.39222507",
+        "realized_return_pct": "183.39222507",
+        "unrealized_return_pct": "0E-8",
+        "maximum_drawdown_pct": "36.54855673",
+        "maximum_underwater_duration_hours": 5985,
+        "average_exposure_pct": "51.16279070",
+        "median_hold_hours": "216.00000000",
+        "p90_hold_hours": "756.00000000",
+        "calmar_ratio": "5.01776928",
+        "buy_hold_total_return_pct": "464.75475156",
+        "buy_hold_maximum_drawdown_pct": "32.28416349",
+        "buy_hold_calmar_ratio": "14.39575015",
+        "total_return_delta_pp": "-281.36252649",
+        "drawdown_delta_pp": "4.26439324",
+        "upside_capture_ratio": "0.39460000",
+        "calmar_ratio_to_buy_hold": "0.34855907",
+        "position_changes": 52,
+        "terminal_liquidation_adjusted_return_pct": "183.39222507"
+      },
+      "validation_stress": {
+        "total_return_pct": "162.12769117",
+        "maximum_drawdown_pct": "38.05326527",
+        "calmar_ratio": "4.26054611",
+        "buy_hold_total_return_pct": "463.90931032",
+        "calmar_ratio_to_buy_hold": "0.29649797"
+      },
+      "annual_normal": {
+        "2020": {
+          "total_return_pct": "144.46308750",
+          "maximum_drawdown_pct": "55.67127622",
+          "calmar_ratio": "2.59493041",
+          "buy_hold_calmar_ratio": "4.97485425"
+        },
+        "2021": {
+          "total_return_pct": "-14.54573192",
+          "maximum_drawdown_pct": "44.17514782",
+          "calmar_ratio": "-0.32927410",
+          "buy_hold_calmar_ratio": "1.08927814"
+        },
+        "2022": {
+          "total_return_pct": "-64.43210912",
+          "maximum_drawdown_pct": "67.36039868",
+          "calmar_ratio": "-0.95652803",
+          "buy_hold_calmar_ratio": "-0.95391866"
+        },
+        "2023": {
+          "total_return_pct": "92.00131314",
+          "maximum_drawdown_pct": "22.22975730",
+          "calmar_ratio": "4.13865576",
+          "buy_hold_calmar_ratio": "7.14316254"
+        },
+        "2024": {
+          "total_return_pct": "38.61545611",
+          "maximum_drawdown_pct": "36.54855673",
+          "calmar_ratio": "1.05655215",
+          "buy_hold_calmar_ratio": "3.74776589"
+        }
+      },
+      "breadth": {
+        "normal_positive_years": "3_of_5",
+        "stress_positive_years": "3_of_5",
+        "drawdown_non_worse_years": "3_of_5",
+        "calmar_non_worse_years": "0_of_5",
+        "top_year_positive_contribution_pct": "52.51678156"
+      }
+    },
+    "lower_neighbor_p70": {
+      "design_normal_total_return_pct": "-24.80997365",
+      "validation_normal_total_return_pct": "80.32195000",
+      "validation_maximum_drawdown_pct": "29.74237641",
+      "validation_calmar_ratio": "2.70058952",
+      "validation_calmar_ratio_to_buy_hold": "0.18759630",
+      "validation_upside_capture_ratio": "0.17282653",
+      "normal_positive_years": "4_of_5",
+      "calmar_non_worse_years": "1_of_5",
+      "disposition": "FAILS_FROZEN_DESIGN_RETURN_AND_VALIDATION_CALMAR_NEIGHBOR_GATES"
+    },
+    "upper_neighbor_p90": {
+      "design_normal_total_return_pct": "-4.46938375",
+      "validation_normal_total_return_pct": "224.00242621",
+      "validation_maximum_drawdown_pct": "35.42902044",
+      "validation_calmar_ratio": "6.32256900",
+      "validation_calmar_ratio_to_buy_hold": "0.43919691",
+      "validation_upside_capture_ratio": "0.48197985",
+      "normal_positive_years": "4_of_5",
+      "calmar_non_worse_years": "1_of_5",
+      "disposition": "FAILS_FROZEN_DESIGN_RETURN_VALIDATION_DRAWDOWN_AND_CALMAR_NEIGHBOR_GATES"
+    }
+  },
+  "failed_primary_gates": [
+    "design_normal_total_return_positive",
+    "design_stress_total_return_positive",
+    "design_drawdown_at_most_85pct_of_buy_hold",
+    "design_upside_capture_at_least_60pct",
+    "design_calmar_at_least_buy_hold",
+    "validation_drawdown_at_most_85pct_of_buy_hold",
+    "validation_upside_capture_at_least_60pct",
+    "validation_calmar_at_least_buy_hold",
+    "normal_positive_annual_return_at_least_4_of_5",
+    "stress_positive_annual_return_at_least_4_of_5",
+    "annual_drawdown_non_worse_5_of_5",
+    "annual_calmar_non_worse_at_least_3_of_5"
+  ],
+  "failed_neighbor_gates": {
+    "skew-percentile-p70-v1": [
+      "design_normal_total_return_positive",
+      "validation_calmar_at_least_75pct_of_buy_hold"
+    ],
+    "skew-percentile-p90-v1": [
+      "design_normal_total_return_positive",
+      "validation_drawdown_non_worse_than_buy_hold",
+      "validation_calmar_at_least_75pct_of_buy_hold"
+    ]
+  },
+  "passed_evidence": [
+    "The exact sealed BTC and Cboe inputs, parser, source revision identity, prior and frozen runner hashes passed; two outputs were byte-identical.",
+    "The primary Validation result remained positive under Normal and doubled friction and exposed zero terminal inventory, so rejection is not caused by a hidden Validation mark.",
+    "Annual and episode concentration remained visible; the failure is broad risk-adjusted weakness rather than one top positive episode exceeding the frozen concentration gate."
+  ],
+  "material_learning": "Lagged high-SKEW avoidance is not a credible BTC risk-control strategy. In Design, the primary realized +108.90414215 percent but carried -134.60134483 percent unrealized, leaving total return -25.69720268 percent and drawdown 77.78511948 percent versus passive BTC +129.60544229 percent and 77.18955925 percent drawdown. In Validation it returned +183.39222507 percent, but passive BTC returned +464.75475156 percent; drawdown worsened to 36.54855673 percent versus 32.28416349 percent and Calmar reached only 34.855907 percent of passive. Annual Calmar was non-worse in zero of five years, while both frozen neighboring percentiles also failed. High option-implied equity tail pricing therefore removed too much BTC participation without reliably improving path risk.",
+  "scientific_claim": "For the exact committed Cboe SKEW close, next-calendar-day 00:00 UTC availability, prior-252-business-day midrank percentile and long-at-or-below thresholds 0.7, 0.8 and 0.9, historical Design and Validation evidence through 2024 rejects candidate status. The result does not authorize an absolute SKEW threshold, different lookback or percentile, smoothing, VIX combination, partial sizing, BTC interaction, leverage or shorting.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "Cboe SKEW measures equity option-implied left-tail pricing, not crypto-specific risk; that limitation does not authorize replacing the frozen feature after outcome access.",
+    "The endpoint may publish later revisions; the exact committed bytes, ETag and Last-Modified identity remain the immutable evidence boundary for this conclusion.",
+    "No canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

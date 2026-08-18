@@ -257,6 +257,37 @@
   ],
   "closed_families": [
     {
+      "family_id": "closed-btc-skew-tail-risk-long-cash",
+      "title": "BTC lagged Cboe SKEW 252-business-day percentile long-or-cash",
+      "decision_feature": "LATEST_SKEW_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",
+      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_SKEW_TAIL_RISK_LONG_CASH_FAMILY",
+      "duplicate_family_key": "btc-skew-tail-risk-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-skew-tail-risk-long-cash-historical.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "5d976e1212ad8e346dc1b136ae83f9190fee6da53d6ab683c0b1162b8eecc704"
+        },
+        {
+          "path": "research_pipeline/examples/btc-skew-tail-risk-long-cash-historical.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "b8af209e1d7413e3db9dbb55ea0634237af30a90a033fc264ed06af8c8d53eb1"
+        },
+        {
+          "path": "research_pipeline/examples/btc-skew-tail-risk-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_PRIOR",
+          "sha256": "aa81d877f4e98b57f494ffbbb9950cbd024e5f9819431e1926b777485444ecdf"
+        },
+        {
+          "path": "research_pipeline/examples/cboe-skew-daily-2018-2024.v1.source.json",
+          "role": "SEALED_EXTERNAL_SOURCE_PROVENANCE",
+          "sha256": "1149bbc04b6f4ade3248628e92d0ebc6bfe9544af1a1b8cca306e0bb32de1670"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-btc-vix-risk-state-long-cash",
       "title": "BTC lagged Cboe VIX 252-business-day percentile long-or-cash",
       "decision_feature": "LATEST_VIX_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",

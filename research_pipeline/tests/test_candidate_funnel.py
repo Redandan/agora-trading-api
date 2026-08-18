@@ -86,7 +86,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 7)
-        self.assertEqual(len(catalog["closed_families"]), 10)
+        self.assertEqual(len(catalog["closed_families"]), 11)
         amihud = next(
             family
             for family in catalog["closed_families"]
@@ -102,6 +102,28 @@ class CandidateFunnelTest(unittest.TestCase):
             ["SEALED_DATA_REJECT_RESULT", "MANAGER_EXCLUDE_ACCEPTANCE"],
         )
         self.assertTrue(amihud["prohibited_reopen"])
+        lagged_volatility = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-lagged-realized-volatility-entry-admission"
+        )
+        self.assertEqual(
+            lagged_volatility["disposition"],
+            "CLOSE_FEATURE_FAMILY_WITHOUT_TUNING",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in lagged_volatility["evidence_bindings"]
+            ],
+            [
+                "LEGACY_SEALED_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_PRIOR",
+            ],
+        )
+        self.assertTrue(lagged_volatility["prohibited_reopen"])
         self.assertTrue(
             all(
                 binding["verified"]
@@ -119,7 +141,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY_WITH_INTEGRITY_ALERT")
         self.assertEqual(snapshot["summary"]["open_family_count"], 7)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 11)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 12)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

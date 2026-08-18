@@ -392,6 +392,20 @@
       "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-lagged-realized-volatility-entry-admission",
+      "title": "DRA lagged realized-volatility entry admission",
+      "decision_feature": "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "CLOSE_FEATURE_FAMILY_WITHOUT_TUNING",
+      "duplicate_family_key": "dra-lagged-realized-volatility-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/dra-lagged-realized-volatility-entry-admission.v1.decision.json", "role": "LEGACY_SEALED_ECONOMIC_DECISION", "sha256": "7e1e5be639d0e361f7a0f2667ef7704d59b8c2847b04799e167189d0be01801c"},
+        {"path": "research_pipeline/examples/dra-lagged-realized-volatility-entry-admission.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "8e9f5f74cfaf4022b0213a5430a2f22e21868e1fe483535dfdfd0da90ef6c97d"},
+        {"path": "research_pipeline/examples/dra-volatility-management-primary-prior-audit.v4.json", "role": "SEALED_PRIMARY_PRIOR", "sha256": "1d94c0af9e6bdabbda34862cd6740eef9d77932a77183a027ac75246435427d3"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-dra-downside-semivariance-entry-admission",
       "title": "DRA downside-semivariance entry admission",
       "decision_feature": "DOWNSIDE_SEMIVARIANCE_ADMISSION",

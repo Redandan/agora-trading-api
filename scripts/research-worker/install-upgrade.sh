@@ -1118,7 +1118,8 @@ case "$(systemctl is-enabled "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)" in
     ;;
 esac
 if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
-  fail "microstructure source ended upgrade in a failed state"
+  [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ] && [ "$microstructure_active" = failed ] \
+    || fail "microstructure source newly entered a failed state during upgrade"
 fi
 if [ "$install_carry_unit" = true ]; then
   case "$(systemctl is-enabled "$CARRY_UNIT" 2>/dev/null || true)" in

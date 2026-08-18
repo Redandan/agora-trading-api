@@ -239,6 +239,11 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn('inactive|failed) [ "$preserve_source_main_pid" = 0 ]', self.installer)
         self.assertIn('failed-preserved)', self.verifier)
         self.assertIn(
+            '[ "$PRESERVE_BOUND_DATA_PLANE" = 1 ] '
+            '&& [ "$microstructure_active" = failed ]',
+            self.installer,
+        )
+        self.assertIn(
             'microstructure source fail-closed state preserved without restart or reset',
             self.verifier,
         )

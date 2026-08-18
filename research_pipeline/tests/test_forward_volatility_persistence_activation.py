@@ -114,6 +114,26 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
         self.assertFalse(repeated.created)
         self.assertEqual(created.receipt, repeated.receipt)
 
+    def test_lawful_multi_rollover_lineage_binds_latest_active_leaf(self) -> None:
+        store = self._store()
+        release = _ReleaseFixture(Path(self.directory.name))
+        lineage = _lineage(rollover_depth=2)
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=lineage,
+        ):
+            created = self._prepare(store, release, existing=None)
+
+        self.assertTrue(created.created)
+        self.assertEqual(
+            lineage.leaf_trigger["trigger_id"], created.receipt["leaf_trigger_id"]
+        )
+        self.assertEqual(
+            lineage.leaf_trigger["fingerprint"],
+            created.receipt["leaf_trigger_fingerprint"],
+        )
+
     def test_existing_conflicting_leaf_or_release_fails_closed(self) -> None:
         store = self._store()
         release = _ReleaseFixture(Path(self.directory.name))
@@ -413,7 +433,9 @@ class _ReleaseFixture:
         os.symlink(self.release, self.control, target_is_directory=True)
 
 
-def _lineage(*, rolled_over: bool = True) -> ActiveForwardTriggerLineage:
+def _lineage(
+    *, rolled_over: bool = True, rollover_depth: int = 1
+) -> ActiveForwardTriggerLineage:
     root = {
         "trigger_id": ROOT_TRIGGER_ID,
         "fingerprint": ROOT_TRIGGER_FINGERPRINT,
@@ -431,19 +453,33 @@ def _lineage(*, rolled_over: bool = True) -> ActiveForwardTriggerLineage:
             leaf_state=root_state,
             trigger_ids=(ROOT_TRIGGER_ID,),
         )
+    if rollover_depth < 1:
+        raise ValueError("rollover_depth must be positive")
+    leaf_created = ROLLOVER_AT + timedelta(days=rollover_depth - 1)
     leaf = {
-        "trigger_id": "prospective-mechanism-neutral-evidence-refresh-rollover-r2",
-        "fingerprint": "b" * 64,
-        "created_at": ROLLOVER_AT.isoformat(timespec="seconds").replace("+00:00", "Z"),
+        "trigger_id": (
+            "prospective-mechanism-neutral-evidence-refresh-rollover-r2"
+            if rollover_depth == 1
+            else f"prospective-mechanism-neutral-evidence-refresh-rollover-r{rollover_depth + 1}"
+        ),
+        "fingerprint": format(10 + rollover_depth, "x") * 64,
+        "created_at": leaf_created.isoformat(timespec="seconds").replace("+00:00", "Z"),
     }
-    root_state["rollover_closed_at"] = leaf["created_at"]
+    root_state["rollover_closed_at"] = ROLLOVER_AT.isoformat(
+        timespec="seconds"
+    ).replace("+00:00", "Z")
     leaf_state = {"trigger_id": leaf["trigger_id"], "status": "WAITING"}
+    trigger_ids = [ROOT_TRIGGER_ID]
+    trigger_ids.extend(
+        f"synthetic-rollover-{index}" for index in range(1, rollover_depth)
+    )
+    trigger_ids.append(leaf["trigger_id"])
     return ActiveForwardTriggerLineage(
         root_trigger=root,
         root_state=root_state,
         leaf_trigger=leaf,
         leaf_state=leaf_state,
-        trigger_ids=(ROOT_TRIGGER_ID, leaf["trigger_id"]),
+        trigger_ids=tuple(trigger_ids),
     )
 
 

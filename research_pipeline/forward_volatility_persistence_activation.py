@@ -202,21 +202,18 @@ def _eligible_successor_closed_at(lineage: ActiveForwardTriggerLineage) -> datet
         raise ActivationIntegrityError(
             "volatility activation receipt cannot bind the discovery root"
         )
-    if len(lineage.trigger_ids) != 2:
+    if len(lineage.trigger_ids) < 2:
         raise ActivationIntegrityError(
-            "volatility activation successor lineage has drifted"
+            "volatility activation successor lineage is incomplete"
         )
-    closed_at = _parse_canonical_timestamp(
-        lineage.root_state.get("rollover_closed_at"), "rollover_closed_at"
-    )
+    # The lineage resolver has already verified every predecessor/successor
+    # closure and prohibited forks.  Bind the latest active descendant so a
+    # second lawful missed-window rollover cannot permanently brick an
+    # outcome-neutral evaluator before its first activation.
     leaf_created_at = _parse_canonical_timestamp(
         lineage.leaf_trigger.get("created_at"), "successor created_at"
     )
-    if closed_at != leaf_created_at:
-        raise ActivationIntegrityError(
-            "volatility activation successor clock conflicts"
-        )
-    return closed_at
+    return leaf_created_at
 
 
 def _validated_existing_receipt(

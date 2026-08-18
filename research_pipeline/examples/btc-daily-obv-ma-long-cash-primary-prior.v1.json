@@ -1,0 +1,66 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_OBV_MA_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "DAILY_ON_BALANCE_VOLUME_MOVING_AVERAGE_LONG_CASH",
+  "reviewed_at": "2026-08-18T15:42:49Z",
+  "prior_matrix": [
+    {
+      "identity": "Deprez and Frommel, Are simple technical trading rules profitable in bitcoin markets?, International Review of Economics & Finance 93, 2024, DOI 10.1016/j.iref.2024.05.003",
+      "primary_source": "https://backoffice.biblio.ugent.be/download/01HY3C3S169G1N6QNYR55NZMFB/01HY60XZGZYHNQ6188MSVJT0SG",
+      "publisher_record": "https://doi.org/10.1016/j.iref.2024.05.003",
+      "role": "SUPPORTIVE_MECHANISM_AND_PARAMETER_GRID_PRIOR",
+      "finding": "The study evaluates 75,360 technical rules with transaction costs, false-discovery control and out-of-sample portfolios. It defines OBV as cumulative signed volume and applies moving-average rules to OBV. Its complete-sample discussion reports OBV rules as the strongest class, while daily rules were more robust to cost increases than higher-frequency rules.",
+      "parameter_boundary": "The paper's published OBV grid includes short length 2, long lengths 18, 24 and 30, zero band, zero delay and an indefinite hold until a different signal. The present experiment freezes primary 2/24 and rejection-only 2/18 and 2/30 neighbors before outcome access. It does not claim that this exact tuple was the paper's selected best rule.",
+      "transfer_boundary": "The paper used Bitstamp BTC-USD data from 2012-2022, rolling rule selection and portfolios. It does not establish profitability for one fixed OKX BTC-USDT rule during 2020-2024, zero-yield cash, this cost model, or independent OOS."
+    },
+    {
+      "identity": "Anghel, A reality check on trading rule performance in the cryptocurrency market: Machine Learning vs. Technical Analysis, Finance Research Letters 39, 2021, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_FRICTION_PRIOR",
+      "finding": "After controlling for data snooping, market frictions and risk, statistically significant positive excess returns were rare; apparent trading-rule performance was often associated with beta, idiosyncratic volatility and market frictions.",
+      "transfer_boundary": "This is a cross-cryptocurrency reality check rather than a direct rejection of the frozen OBV tuple. It requires this experiment to pre-register variants, charge fees and slippage, compare matched capital, measure path risk and close the family on weak breadth instead of selecting a winner after outcomes."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": [
+      "open_time",
+      "close_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "decision_feature": "Cumulative signed volume and its two complete-day versus 18, 24 or 30 complete-day simple moving averages, computed only after a complete UTC day and executed at the next hourly open.",
+    "prospective_transport": "The existing sealed OKX BTC-USDT H1 source already provides close and base volume; no new source, credential, paid API, timer, writer or backfill is required.",
+    "status": "READY"
+  },
+  "independence_from_closed_families": [
+    "The closed DRA directional-volume-participation filter used the share of positive-return hourly volume inside one day and retained the DRA parent; this experiment uses cumulative signed complete-day volume, moving-average state and a standalone full-capital long/cash policy.",
+    "The open forward volume-confirmation family uses total daily volume relative to its prior twenty-day median as a DRA admission diagnostic; it does not use signed accumulation or an OBV trend state.",
+    "The closed intraday-volume-concentration, raw Amihud, close-location and search-attention interactions do not implement cumulative OBV moving-average timing.",
+    "The closed price-only time-series-momentum and Donchian families use price direction or price extrema without volume flow; OBV can disagree with price trend when participation diverges."
+  ],
+  "real_time_design_requirements": [
+    "Use complete UTC days only and execute a changed target at the next hourly open.",
+    "Use primary 2/24 OBV SMA and rejection-only 2/18 and 2/30 neighbors; no tuple may replace a failed primary.",
+    "Use no band, delay, minimum hold, leverage, short position, cash yield, price filter, DRA interaction or alternate volume transform.",
+    "Compare with full-capital BTC buy-and-hold under the same initial equity, hourly path, fee, adverse slippage and valuation boundary.",
+    "Report realized, unrealized and total return, drawdown, underwater duration, Calmar, exposure, turnover, holding age, episode concentration and terminal inventory.",
+    "Require positive after-cost returns, meaningful upside capture, lower drawdown with non-worse risk-adjusted performance, annual breadth and neighbor stability; otherwise permanently close the exact family."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_DAILY_OBV_MA_LONG_CASH_EXPERIMENT",
+  "uncertainty": [
+    "The supportive paper's strongest evidence is for dynamically selected portfolios of many rules, not one immutable OBV tuple.",
+    "Single-venue base volume can change with market-share migration and may not represent aggregate Bitcoin demand.",
+    "OBV levels are path-dependent, although a constant starting offset cancels in same-window moving-average comparisons.",
+    "Historical Design and Validation through 2024 cannot establish post-selection OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one preregistered historical three-variant OBV moving-average matched-capital screen. It does not establish alpha, a candidate, OOS value, deployability or Trading authority."
+}

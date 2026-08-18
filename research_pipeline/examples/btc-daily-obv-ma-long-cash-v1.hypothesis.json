@@ -1,0 +1,53 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-obv-ma-long-cash-v1",
+  "title": "Daily on-balance-volume moving-average long/cash timing",
+  "thesis": "When cumulative signed BTC volume has a positive short-versus-long moving-average state, broad participation may confirm price demand strongly enough that a next-open long/cash policy preserves most upside while avoiding enough weak-flow downside to improve fee-adjusted path risk over full-capital buy-and-hold.",
+  "mechanism": "Each complete UTC day's base volume is added to OBV after a nonnegative daily close return and subtracted after a negative return. The strategy is fully long BTC when the two-day OBV average exceeds a frozen slower average and otherwise holds zero-yield cash, with every state change executed at the next H1 open.",
+  "economic_rationale": "Unlike raw volume, price-only trend or within-day volume concentration, cumulative signed volume represents persistent participation imbalance. The mechanism is useful only if the fixed primary retains material BTC upside after costs while lowering drawdown and improving Calmar with broad annual support; reduced participation alone cannot pass.",
+  "source": "BTC_DAILY_OBV_MA_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-obv-ma-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "short_complete_days": 2,
+      "long_complete_days": 24
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "short_complete_days": 2,
+      "long_complete_days": 18
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "short_complete_days": 2,
+      "long_complete_days": 30
+    }
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-18-candidate-factory-cycle-3",
+  "created_at": "2026-08-18T15:42:49Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

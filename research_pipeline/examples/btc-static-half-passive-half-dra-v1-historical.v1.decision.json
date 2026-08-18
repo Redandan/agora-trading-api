@@ -1,0 +1,116 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_STATIC_HALF_PASSIVE_HALF_DRA_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-static-half-passive-half-dra-v1-historical-v1",
+  "decided_at": "2026-08-18T08:16:42Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_STATIC_HALF_PASSIVE_HALF_DRA_V1_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_STATIC_50_50_NO_REBALANCE_FAMILY_WITHOUT_WEIGHT_OR_REBALANCE_TUNING",
+  "manifest_sha256": "720725a7bf15c54ccabe818650f3d852d08fa171af9aa5f964735c0a73f84669",
+  "runner": {
+    "path": "research/btc_static_half_passive_half_dra_v1_historical.py",
+    "sha256": "ed0505777b344c2b97b90185fee98f7f978c32c6ba238e7def1c4450cf2b4eae",
+    "git_commit": "84e200184bf2ef30691c752758c67b559e1a1577",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-static-half-passive-half-dra-v1-historical-v1/artifacts/run1.json",
+    "sha256": "5dbcfaee8c4761c902877ea109e45c98d8bcbb90cb9f8f33aefb6d6e92799910"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-static-half-passive-half-dra-v1-historical-v1/artifacts/run2.json",
+    "sha256": "5dbcfaee8c4761c902877ea109e45c98d8bcbb90cb9f8f33aefb6d6e92799910",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "design": {
+      "candidate_total_return_pct": "191.31590660",
+      "primary_50pct_passive_50pct_cash_total_return_pct": "173.16031194",
+      "candidate_minus_primary_total_return_pp": "18.15559466",
+      "frozen_dra_v1_total_return_pct": "36.31118930",
+      "full_passive_btc_total_return_pct": "346.32062389",
+      "candidate_maximum_drawdown_pct": "72.36291631",
+      "primary_maximum_drawdown_pct": "73.23356946",
+      "full_passive_btc_maximum_drawdown_pct": "77.18955925",
+      "candidate_minus_primary_maximum_drawdown_pp": "-0.87065315",
+      "candidate_calmar_ratio": "2.64383909",
+      "primary_calmar_ratio": "2.36449368",
+      "candidate_upside_capture_vs_passive": "0.55242424"
+    },
+    "validation": {
+      "candidate_total_return_pct": "249.61797215",
+      "primary_50pct_passive_50pct_cash_total_return_pct": "232.37737578",
+      "candidate_minus_primary_total_return_pp": "17.24059637",
+      "frozen_dra_v1_total_return_pct": "34.48119274",
+      "full_passive_btc_total_return_pct": "464.75475156",
+      "candidate_maximum_drawdown_pct": "25.76255807",
+      "primary_maximum_drawdown_pct": "26.34899406",
+      "full_passive_btc_maximum_drawdown_pct": "32.28416349",
+      "candidate_minus_primary_maximum_drawdown_pp": "-0.58643599",
+      "candidate_calmar_ratio": "9.68917650",
+      "primary_calmar_ratio": "8.81921242",
+      "candidate_upside_capture_vs_passive": "0.53709612",
+      "terminal_dra_unrealized_positive_incremental_contribution_pct": "0.00000000"
+    },
+    "annual_fair_reset": {
+      "2020": {
+        "candidate_total_return_pct": "161.90118999",
+        "candidate_minus_primary_total_return_pp": "11.23980845",
+        "candidate_minus_primary_maximum_drawdown_pp": "5.40181747"
+      },
+      "2021": {
+        "candidate_total_return_pct": "36.09486673",
+        "candidate_minus_primary_total_return_pp": "6.29031863",
+        "candidate_minus_primary_maximum_drawdown_pp": "3.72795286"
+      },
+      "2022": {
+        "candidate_total_return_pct": "-35.28329792",
+        "candidate_minus_primary_total_return_pp": "-3.15512745",
+        "candidate_minus_primary_maximum_drawdown_pp": "5.22471385"
+      },
+      "2023": {
+        "candidate_total_return_pct": "86.42191032",
+        "candidate_minus_primary_total_return_pp": "8.84003478",
+        "candidate_minus_primary_maximum_drawdown_pp": "2.16539078"
+      },
+      "2024": {
+        "candidate_total_return_pct": "68.25447696",
+        "candidate_minus_primary_total_return_pp": "7.75773357",
+        "candidate_minus_primary_maximum_drawdown_pp": "0.70329442"
+      }
+    },
+    "breadth": {
+      "positive_candidate_years": "4_of_5",
+      "candidate_total_return_gt_primary_years": "4_of_5",
+      "candidate_drawdown_at_most_primary_plus_2pp_years": "1_of_5",
+      "candidate_drawdown_at_most_passive_years": "5_of_5",
+      "top_year_positive_incremental_return_contribution_pct": "32.93437321"
+    }
+  },
+  "failed_gates": [
+    "design_candidate_maximum_drawdown_at_most_75pct_of_passive",
+    "validation_candidate_maximum_drawdown_at_most_75pct_of_passive",
+    "candidate_annual_drawdown_at_most_primary_plus_2pp_at_least_4_of_5"
+  ],
+  "passed_evidence": [
+    "The candidate added 18.15559466 and 17.24059637 percentage points over the matched initial fifty-percent BTC plus fifty-percent cash risk-budget comparator in Design and Validation.",
+    "Candidate Calmar exceeded the primary comparator in both full windows, and full-window maximum drawdown was slightly lower than the primary comparator.",
+    "Candidate total return exceeded the primary comparator in four of five fair-reset years, positive incremental return was not dominated by one year, and Validation uplift did not depend on positive terminal DRA unrealized inventory.",
+    "All dataset, source-binding and frozen DRA Design and Validation parity checkpoints passed."
+  ],
+  "material_learning": "An initial fifty-percent passive BTC allocation without rebalancing does not preserve a fifty-percent risk budget after large BTC appreciation. The passive sleeve grows into the dominant portfolio weight, so the candidate retained 93.75 percent of passive Design drawdown and 79.80 percent of passive Validation drawdown. DRA added return and improved full-window Calmar, but it added more than two percentage points of annual drawdown relative to the matched BTC-plus-cash comparator in four of five years, including 5.40181747pp in 2020, 3.72795286pp in 2021 and 5.22471385pp in 2022. The static no-rebalance mechanism therefore lacks stable path-risk control.",
+  "scientific_claim": "The exact static fifty-percent passive BTC plus fifty-percent frozen DRA V1 portfolio demonstrated broad historical return uplift and improved full-window Calmar, but it failed the frozen long-window drawdown-reduction and annual marginal-drawdown breadth gates. This is a closed portfolio-allocation family, not a candidate strategy and not evidence that any alternate weight or rebalancing frequency will work.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is retrospective historical Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The conclusion closes only the exact initial fifty-fifty, no-rebalance, unlevered passive BTC plus frozen DRA V1 policy on the bound OKX H1 corpus.",
+    "A future rebalanced allocation would require a genuinely new pre-outcome economic rationale, family fingerprint, manifest and independent gate set; it cannot be treated as a rescue or neighbor scan of this result."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

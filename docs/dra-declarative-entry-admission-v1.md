@@ -159,6 +159,18 @@ not assume or optimize a weekday return premium. UTC, the weekday subsets and
 the three thresholds are frozen, and the family closes on failure without
 shifting time zones or selecting individual weekdays.
 
+The fixed UTC traditional-session activity feature sums estimated quote volume
+(`H1 close * base volume`) for exactly the six whole bars opened from 15:00
+through 20:00 UTC, divides it by estimated quote volume across all 24 bars in
+the latest complete UTC day, and then divides that share by the median of the
+prior 20 complete-day shares. The six-bar interval is the whole-H1 subset fully
+inside the published 14:30-21:00 GMT NYSE window. It is frozen in UTC: no
+daylight-saving shift, half-hour reconstruction, venue-local reinterpretation,
+or after-outcome session search is allowed. This participation-share feature is
+distinct from total daily volume, positive-return volume share, hourly volume
+concentration, and the weekend calendar label. It tests matched-capital DRA
+economics, not a standalone time-of-day return anomaly.
+
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,
 holding distribution, utilization, underwater duration, realized-lot fills,
@@ -173,8 +185,9 @@ non-worse neighbor stability. A failure returns
 `NO_MECHANISM_CLOSE_FEATURE_FAMILY`; it does not authorize tuning. A pass only
 permits one separately frozen hypothesis manifest. OOS remains denied.
 
-New close-location, H1 volume-weighted close-location, realized-performance,
-H1 lag-1 return-autocorrelation, and weekend-calendar screens use gate set V2. In addition to every V1 gate, the
+New fixed UTC traditional-session activity, close-location, H1 volume-weighted
+close-location, realized-performance, H1 lag-1 return-autocorrelation, and
+weekend-calendar screens use gate set V2. In addition to every V1 gate, the
 primary must strictly improve realized PnL in both Design and Validation, keep
 maximum underwater duration non-worse in both windows, and not increase
 terminal inventory counts. Both neighbors must also keep Validation realized

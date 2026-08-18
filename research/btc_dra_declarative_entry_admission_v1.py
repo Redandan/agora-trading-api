@@ -94,6 +94,13 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_INTRADAY_VOLUME_CONCENTRATION_PRIMARY_PRIOR_V1",
     },
+    "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_US_TRADITIONAL_SESSION_ACTIVITY_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_US_TRADITIONAL_SESSION_ACTIVITY_PRIMARY_PRIOR_V1",
+    },
     "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_ABOVE",
         "gate_set": GATE_SET_V2,
@@ -441,6 +448,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.daily_sign_pair_count = 0
         self.daily_sign_persistence_pair_count = 0
         self.daily_total_quote_volume = base.ZERO
+        self.daily_1500_2059_utc_quote_volume = base.ZERO
         self.daily_positive_return_quote_volume = base.ZERO
         self.daily_quote_volume_square_sum = base.ZERO
         self.daily_intraday_log_returns: list[D] = []
@@ -522,6 +530,19 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             return self.daily_quote_volume_square_sum / (
                 self.daily_total_quote_volume * self.daily_total_quote_volume
             )
+        if (
+            self.feature_key
+            == "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN"
+        ):
+            if self.daily_bar_count != 24 or self.daily_total_quote_volume <= 0:
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "fixed UTC traditional-session activity requires 24 hourly bars and positive daily quote volume",
+                )
+            return (
+                self.daily_1500_2059_utc_quote_volume
+                / self.daily_total_quote_volume
+            )
         if self.feature_key == "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN":
             if (
                 self.daily_bar_count != 24
@@ -591,6 +612,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.daily_sign_pair_count = 0
             self.daily_sign_persistence_pair_count = 0
             self.daily_total_quote_volume = base.ZERO
+            self.daily_1500_2059_utc_quote_volume = base.ZERO
             self.daily_positive_return_quote_volume = base.ZERO
             self.daily_quote_volume_square_sum = base.ZERO
             self.daily_intraday_log_returns = []
@@ -605,6 +627,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.daily_intraday_log_returns.append((bar.close / bar.open).ln())
         dollar_volume = bar.close * bar.volume
         self.daily_total_quote_volume += dollar_volume
+        if 15 <= bar.open_time.hour <= 20:
+            self.daily_1500_2059_utc_quote_volume += dollar_volume
         self.daily_quote_volume_square_sum += dollar_volume * dollar_volume
         if bar.close > bar.open:
             self.daily_positive_return_quote_volume += dollar_volume

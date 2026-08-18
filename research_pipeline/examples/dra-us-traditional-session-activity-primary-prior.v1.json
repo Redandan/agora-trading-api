@@ -1,0 +1,67 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary evidence supports a repeatable concentration of Bitcoin and cryptocurrency activity during overlapping European and US traditional-market hours. It does not establish that a high fixed-session volume share predicts DRA profitability. Exactly one separately frozen matched-capital historical screen may test the latest complete UTC day's 15:00-20:59 quote-volume share as an entry-admission condition. Failure closes this exact fixed-UTC six-hour family without shifting hours, adding daylight-saving logic, changing venues or searching thresholds.",
+  "disposition": "PRIOR_SUPPORTS_ONE_US_TRADITIONAL_SESSION_ACTIVITY_ADMISSION_AUDIT",
+  "document_type": "DRA_US_TRADITIONAL_SESSION_ACTIVITY_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+    "formula": "sum(close*base_volume for whole H1 bars opened 15:00 through 20:00 UTC) / sum(close*base_volume for all 24 H1 bars), divided by the median of exactly the prior 20 complete UTC-day shares",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.9", "1.0", "1.1"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "Using 2,096,640 one-minute Bitstamp observations from 2015 through 2018, the authors define hourly volume share and find higher Bitcoin volume and volatility during European and US stock-market daytime hours, with a reverse-V activity pattern.",
+      "identity": "Wang, Xie, Wen and Zhao, Time-of-day periodicities of trading volume and volatility in Bitcoin exchange: Does the stock market matter? (2020)",
+      "primary_source": "https://www.sciencedirect.com/science/article/abs/pii/S1544612319301904",
+      "role": "HOURLY_VOLUME_SHARE_MECHANISM_PRIOR",
+      "transfer_boundary": "Single-exchange 2015-2018 intraday regularity does not establish the exact OKX H1 proxy, a causal admission threshold or DRA alpha."
+    },
+    {
+      "finding": "Across 1,940 crypto trading pairs from centralized exchanges around the world, activity, volatility and illiquidity peak in afternoon UTC, especially around 16:00-17:00 UTC, while local venue effects remain visible.",
+      "identity": "Brauneis, Mestel and Riordan, The crypto world trades at tea time: intraday evidence from centralized exchanges across the globe (2024)",
+      "primary_source": "https://link.springer.com/article/10.1007/s11156-024-01304-1",
+      "role": "CROSS_VENUE_INTRADAY_COMMONALITY_PRIOR",
+      "transfer_boundary": "Cross-venue commonality supports a fixed UTC participation measure but not the frozen six-hour boundary, Bitcoin-only transfer or strategy economics."
+    },
+    {
+      "finding": "Bitcoin exchange and on-chain activity are elevated during the 14:30-21:00 GMT NYSE session, the effect strengthens through much of 2010-2021 and diminishes at weekends; the authors cannot eliminate algorithmic trading as a driver.",
+      "identity": "Jahanshahloo, Corbet and Oxley, Seeking sigma: Time-of-the-day effects on the Bitcoin network (2022)",
+      "primary_source": "https://researchcommons.waikato.ac.nz/server/api/core/bitstreams/884cab70-4888-4899-bd47-7307455fa56e/content",
+      "role": "NYSE_SESSION_ACTIVITY_PRIOR",
+      "transfer_boundary": "Network and exchange transaction counts do not prove that session quote-volume share improves a long-only accumulation strategy after fees or path risk."
+    },
+    {
+      "finding": "High-frequency trades and quotes from three US BTC-USD exchanges show highest activity and volatility and lowest spreads during US market hours, but the authors interpret the participant mechanism as retail rather than institutional.",
+      "identity": "Dyhrberg, Foley and Svec, How investible is Bitcoin? Analyzing the liquidity and transaction costs of Bitcoin markets (2018)",
+      "primary_source": "https://www.sciencedirect.com/science/article/pii/S0165176518302921",
+      "role": "ADVERSARIAL_PARTICIPANT_IDENTITY_PRIOR",
+      "transfer_boundary": "The evidence supports time-dependent activity, not an institutional-information label; the audit must not claim participant identity or superior price discovery."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only the latest complete UTC day and exactly 24 contiguous H1 bars before the unchanged next-bar fill.",
+    "Use whole bars opened 15:00 through 20:00 UTC as the fixed session subset; hours 14 and 21 are excluded.",
+    "Normalize the daily session share by exactly the prior 20 complete-day median; freeze thresholds 0.9, 1.0 and 1.1 with 1.0 primary.",
+    "Keep DRA parent, capital, fees, adverse slippage, cooldown, lot management and fill timing unchanged.",
+    "Require gate set V2 Design and Validation total and realized improvement, drawdown, underwater, holding, terminal inventory, annual breadth and both-neighbor stability.",
+    "Do not shift the UTC interval, add daylight-saving or weekday logic, change venue, reverse the relation or scan another threshold after outcome access.",
+    "Do not open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T11:58:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "brauneis_mestel_riordan_official_open_full_text": "PASS",
+    "dyhrberg_foley_svec_official_article_method_and_findings": "PASS",
+    "jahanshahloo_corbet_oxley_open_full_text": "PASS",
+    "wang_xie_wen_zhao_official_article_method_and_findings": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "High session-share days may reflect information, volatility, retail flow or temporary illiquidity; the prior cannot identify the cause.",
+    "The fixed whole-H1 interval intentionally sacrifices the 14:30-14:59 half hour to avoid reconstructing unavailable sub-hour data.",
+    "Estimated quote volume uses H1 close times base volume and is not exchange-reported quote volume or trade-level order flow.",
+    "No post-2024 OOS, strategy candidate, runtime filter or Trading path was accessed or authorized."
+  ]
+}

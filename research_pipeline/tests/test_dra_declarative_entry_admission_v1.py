@@ -423,6 +423,61 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
                 bar(opened + timedelta(hours=23), volume="0")
             )
 
+    def test_fixed_utc_traditional_session_share_uses_only_six_whole_h1_bars(self) -> None:
+        feature = "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN"
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(24):
+            engine._update_feature(
+                bar(
+                    opened + timedelta(hours=hour),
+                    close="100",
+                    volume="2" if 15 <= hour <= 20 else "1",
+                )
+            )
+        self.assertEqual(engine.daily_1500_2059_utc_quote_volume, D("1200"))
+        self.assertEqual(engine.daily_total_quote_volume, D("3000"))
+        self.assertEqual(engine._daily_value(), D("0.4"))
+
+    def test_fixed_utc_traditional_session_share_is_causal_and_uses_v2_gates(self) -> None:
+        feature = "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN"
+        value = manifest(feature=feature)
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["feature"]["lookback_complete_days"], 20)
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for day in range(21):
+            for hour in range(24):
+                session_volume = "2" if day == 20 and 15 <= hour <= 20 else "1"
+                engine._update_feature(
+                    bar(
+                        opened + timedelta(days=day, hours=hour),
+                        close="100",
+                        volume=session_volume,
+                    )
+                )
+                if day == 20 and hour == 22:
+                    self.assertIsNone(engine.current_feature_ratio)
+        self.assertEqual(engine.current_feature_ratio, D("1.60000000"))
+
     def test_close_location_uses_final_close_inside_complete_day_range(self) -> None:
         engine = runner.DeclarativeEntryAdmissionEngine(
             feature_key="DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN",

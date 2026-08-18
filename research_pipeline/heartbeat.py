@@ -13,6 +13,10 @@ from .evidence import MISSED_DISCOVERY_ROLLOVER_STATUS
 from .forward_volatility_persistence import (
     seal_forward_volatility_persistence_snapshots,
 )
+from .forward_volatility_persistence_activation import (
+    ACTIVATION_STATE_KEY,
+    prepare_forward_volatility_persistence_activation,
+)
 from .microstructure_monitor import (
     microstructure_diagnostic_status,
     microstructure_discovery_recovery_status,
@@ -233,13 +237,24 @@ def run_heartbeat_cycle(
             now=now,
         )
     )
+    volatility_activation = prepare_forward_volatility_persistence_activation(
+        store,
+        now=now,
+        previous_success=state.get("last_success"),
+        existing_receipt=state.get(
+                "btc_utc_day_3pct_forward_volatility_persistence_activation"
+        ),
+    )
+    if volatility_activation.created:
+        state[ACTIVATION_STATE_KEY] = volatility_activation.receipt
+        # Persist the create-once receipt before evaluator execution.  A later
+        # evaluator failure therefore cannot cause a different retry identity.
+        _write_state(store, state)
     events.extend(
         seal_forward_volatility_persistence_snapshots(
             store,
             now=now,
-            activation_receipt=state.get(
-                "btc_utc_day_3pct_forward_volatility_persistence_activation"
-            ),
+            activation_receipt=volatility_activation.receipt,
         )
     )
 

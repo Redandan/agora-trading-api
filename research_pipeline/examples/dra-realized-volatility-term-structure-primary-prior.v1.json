@@ -70,7 +70,7 @@
     "Require gate set V2 Design and Validation total and realized PnL improvement, annual breadth, drawdown and underwater non-inferiority, holding support, terminal inventory and neighbor stability; otherwise close the family.",
     "Do not open post-2024 OOS or create a runtime rule from this prior audit."
   ],
-  "reviewed_at": "2026-08-18T14:40:00Z",
+  "reviewed_at": "2026-08-18T14:35:00Z",
   "schema_version": "1",
   "source_access": {
     "andersen_bollerslev_diebold_labys_nber_identity_and_abstract": "PASS",

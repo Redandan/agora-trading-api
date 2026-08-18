@@ -46,6 +46,13 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_VOLATILITY_MANAGEMENT_PRIMARY_PRIOR_AUDIT_V4",
     },
+    "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_BELOW",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_REALIZED_VOLATILITY_TERM_STRUCTURE_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_REALIZED_VOLATILITY_TERM_STRUCTURE_PRIMARY_PRIOR_V1",
+    },
     "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_ABOVE",
         "prior_disposition": "PREREGISTERED_V1_FORWARD_DISCOVERY_MECHANISM",
@@ -444,6 +451,64 @@ def intraday_price_path_efficiency(log_returns: list[D]) -> D:
     return abs(sum(log_returns, D("0"))) / gross_path
 
 
+def realized_volatility_term_structure(
+    prior_daily_variances: list[D], current_daily_variance: D
+) -> tuple[D, D]:
+    if len(prior_daily_variances) != 19:
+        raise ScreenReject(
+            "DATA_REJECT",
+            "realized-volatility term structure requires 19 prior complete days",
+        )
+    twenty_day_variances = [*prior_daily_variances, current_daily_variance]
+    short_variance = sum(twenty_day_variances[-5:], D("0"))
+    long_variance = sum(twenty_day_variances, D("0"))
+    if short_variance <= 0 or long_variance <= 0:
+        raise ScreenReject(
+            "DATA_REJECT",
+            "realized-volatility term structure requires positive five- and twenty-day variation",
+        )
+    long_realized_volatility = long_variance.sqrt()
+    return short_variance.sqrt() / long_realized_volatility, long_realized_volatility
+
+
+def _midranks(values: list[D]) -> list[D]:
+    ordered = sorted(enumerate(values), key=lambda item: item[1])
+    ranks = [D("0")] * len(values)
+    start = 0
+    while start < len(ordered):
+        end = start + 1
+        while end < len(ordered) and ordered[end][1] == ordered[start][1]:
+            end += 1
+        rank = (D(start + 1) + D(end)) / D("2")
+        for position in range(start, end):
+            ranks[ordered[position][0]] = rank
+        start = end
+    return ranks
+
+
+def spearman_correlation(left: list[D], right: list[D]) -> D:
+    if len(left) != len(right) or len(left) < 3:
+        raise ScreenReject(
+            "DATA_REJECT", "Spearman correlation requires matched non-trivial samples"
+        )
+    left_ranks = _midranks(left)
+    right_ranks = _midranks(right)
+    count = D(len(left_ranks))
+    left_mean = sum(left_ranks, D("0")) / count
+    right_mean = sum(right_ranks, D("0")) / count
+    covariance = sum(
+        (a - left_mean) * (b - right_mean)
+        for a, b in zip(left_ranks, right_ranks, strict=True)
+    )
+    left_variance = sum((value - left_mean) ** 2 for value in left_ranks)
+    right_variance = sum((value - right_mean) ** 2 for value in right_ranks)
+    if left_variance <= 0 or right_variance <= 0:
+        raise ScreenReject(
+            "DATA_REJECT", "Spearman correlation requires non-constant ranks"
+        )
+    return covariance / (left_variance * right_variance).sqrt()
+
+
 class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
     def __init__(self, *, feature_key: str, relation: str, threshold: D) -> None:
         super().__init__(
@@ -454,6 +519,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.relation = relation
         self.threshold = threshold
         self.daily_history: deque[D] = deque(maxlen=20)
+        self.rv_term_daily_variance_history: deque[D] = deque(maxlen=19)
+        self.rv_term_structure_observations: list[tuple[datetime, D, D]] = []
         self.feature_day: datetime | None = None
         self.feature_open: D | None = None
         self.feature_high: D | None = None
@@ -484,7 +551,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.vetoed_signal_count = 0
         self.feature_unavailable_signal_count = 0
 
-    def _daily_value(self) -> D:
+    def _daily_value(self) -> D | None:
         if self.feature_key == "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN":
             return self.feature_volume
         if self.feature_key == "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN":
@@ -494,6 +561,14 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             return (self.feature_high - self.feature_low) / self.feature_open
         if self.feature_key == "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN":
             return self.daily_squared_return_sum.sqrt()
+        if self.feature_key == "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN":
+            if len(self.rv_term_daily_variance_history) < 19:
+                return None
+            ratio, _ = realized_volatility_term_structure(
+                list(self.rv_term_daily_variance_history),
+                self.daily_squared_return_sum,
+            )
+            return ratio
         if self.feature_key == "DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN":
             if self.daily_squared_return_sum <= 0:
                 return base.ZERO
@@ -687,7 +762,9 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         if bar.open_time.hour != 23 or self.daily_bar_count != 24:
             return
         current = self._daily_value()
-        if self.feature_key in DIRECT_FEATURES:
+        if current is None:
+            self.current_feature_ratio = None
+        elif self.feature_key in DIRECT_FEATURES:
             self.current_feature_ratio = current.quantize(
                 RATIO_QUANTUM, rounding=ROUND_HALF_UP
             )
@@ -707,8 +784,21 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                 )
         else:
             self.current_feature_ratio = None
-        if self.feature_key not in DIRECT_FEATURES:
+        if current is not None and self.feature_key not in DIRECT_FEATURES:
             self.daily_history.append(current)
+        if self.feature_key == "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN":
+            if current is not None:
+                _, long_realized_volatility = realized_volatility_term_structure(
+                    list(self.rv_term_daily_variance_history),
+                    self.daily_squared_return_sum,
+                )
+                assert self.feature_day is not None
+                self.rv_term_structure_observations.append(
+                    (self.feature_day, current, long_realized_volatility)
+                )
+            self.rv_term_daily_variance_history.append(
+                self.daily_squared_return_sum
+            )
         self.complete_feature_days += 1
 
     def _indicators(self, bar: base.Bar) -> None:
@@ -797,6 +887,40 @@ def load_selection(path: Path, manifest: dict[str, Any]) -> list[base.Bar]:
     if bars[-1].close_time > datetime.fromisoformat(SELECTION_CUTOFF):
         raise ScreenReject("OOS_REJECT", "selection corpus crosses the frozen cutoff")
     return bars
+
+
+def term_structure_redundancy_gate(bars: list[base.Bar]) -> dict[str, Any]:
+    engine = DeclarativeEntryAdmissionEngine(
+        feature_key="DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN",
+        relation="AT_OR_BELOW",
+        threshold=D("1"),
+    )
+    for bar in bars:
+        engine._update_feature(bar)
+    windows = {"design": DESIGN, "validation": VALIDATION}
+    correlations: dict[str, str] = {}
+    sample_counts: dict[str, int] = {}
+    passed = True
+    for label, (start, end) in windows.items():
+        selected = [
+            observation
+            for observation in engine.rv_term_structure_observations
+            if start <= observation[0] < end
+        ]
+        ratios = [observation[1] for observation in selected]
+        levels = [observation[2] for observation in selected]
+        correlation = spearman_correlation(ratios, levels)
+        correlations[label] = str(
+            correlation.quantize(D("0.00000001"), rounding=ROUND_HALF_UP)
+        )
+        sample_counts[label] = len(selected)
+        passed = passed and abs(correlation) <= D("0.80")
+    return {
+        "absolute_spearman_limit": "0.80",
+        "correlation_to_contemporaneous_20d_realized_volatility": correlations,
+        "passed": passed,
+        "sample_counts": sample_counts,
+    }
 
 
 def verify_prior_evidence(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -1026,6 +1150,12 @@ def run_screen(manifest_path: Path, input_path: Path, output_path: Path) -> dict
     manifest, manifest_raw = load_manifest(manifest_path)
     prior_evidence = verify_prior_evidence(manifest)
     bars = load_selection(input_path, manifest)
+    pre_economic_gates = None
+    if feature_key := manifest["feature"]["key"]:
+        if feature_key == "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN":
+            pre_economic_gates = term_structure_redundancy_gate(bars)
+            if not pre_economic_gates["passed"]:
+                raise ScreenReject("DUPLICATE_REJECT", pre_economic_gates)
     baseline = parent_baseline(bars)
     feature = manifest["feature"]
     variants = [
@@ -1067,6 +1197,11 @@ def run_screen(manifest_path: Path, input_path: Path, output_path: Path) -> dict
         "oos_opened": False,
         "parent_strategy": PARENT_STRATEGY,
         "prior_evidence": prior_evidence,
+        **(
+            {"pre_economic_gates": pre_economic_gates}
+            if pre_economic_gates is not None
+            else {}
+        ),
         "primary_gates": primary_checks,
         "recommended_next_action": (
             "FREEZE_ONE_HYPOTHESIS_MANIFEST"

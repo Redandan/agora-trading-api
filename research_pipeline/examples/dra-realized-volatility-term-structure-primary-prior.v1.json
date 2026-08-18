@@ -1,0 +1,89 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary evidence supports measuring realized volatility from intraday returns, treating short- and longer-horizon volatility components separately, and directly testing whether lower risk during elevated volatility improves implementable economics. It does not establish that the exact five-day to twenty-day realized-volatility ratio predicts Bitcoin returns or improves DRA entry selection. Exactly one separately frozen equal-capital historical screen may test whether admitting DRA entries only when the latest complete-day volatility-slope ratio is not elevated relative to its own prior twenty-day distribution improves risk-adjusted economics; feature redundancy or economic failure closes the exact family without tuning.",
+  "disposition": "PRIOR_SUPPORTS_ONE_REALIZED_VOLATILITY_TERM_STRUCTURE_ADMISSION_AUDIT",
+  "document_type": "DRA_REALIZED_VOLATILITY_TERM_STRUCTURE_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN",
+    "formula": "sqrt(sum of the latest five complete UTC days of H1 close-to-close squared returns) divided by sqrt(sum of the latest twenty complete UTC days of the same squared returns), then divided by the median of exactly the prior twenty complete-day ratios",
+    "relation": "AT_OR_BELOW",
+    "thresholds": ["0.8", "1.0", "1.2"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "The paper develops realized volatility from high-frequency intraday returns and shows that realized-volatility dynamics can be modeled and forecast with standard time-series methods.",
+      "identity": "Andersen, Bollerslev, Diebold and Labys, Modeling and Forecasting Realized Volatility, Econometrica 71 (2003)",
+      "primary_source": "https://doi.org/10.3386/w8160",
+      "role": "REALIZED_VOLATILITY_MEASUREMENT_AND_PERSISTENCE_PRIOR",
+      "transfer_boundary": "Foreign-exchange forecasting evidence does not establish a Bitcoin return signal, the exact five-to-twenty-day ratio, a rolling median threshold or DRA economics."
+    },
+    {
+      "finding": "The HAR-RV model represents volatility with components over heterogeneous daily, weekly and monthly horizons and reports useful realized-volatility forecasting performance.",
+      "identity": "Corsi, A Simple Approximate Long-Memory Model of Realized Volatility, Journal of Financial Econometrics 7 (2009) 174-196",
+      "primary_source": "https://doi.org/10.1093/jjfinec/nbp001",
+      "role": "MULTI_HORIZON_VOLATILITY_COMPONENT_PRIOR",
+      "transfer_boundary": "The HAR cascade motivates separating short and longer volatility horizons but does not prescribe a ratio, a veto direction, thresholds or a trading policy."
+    },
+    {
+      "finding": "Volatility-managed portfolios that reduce risk when volatility is high can improve risk-adjusted performance across several traditional factors and currency carry in the authors' sample.",
+      "identity": "Moreira and Muir, Volatility-Managed Portfolios, Journal of Finance 72 (2017) 1611-1644",
+      "primary_source": "https://doi.org/10.3386/w22208",
+      "role": "RISK_REDUCTION_ECONOMIC_RATIONALE",
+      "transfer_boundary": "Traditional-asset factor evidence does not establish that vetoing unlevered BTC DRA entries improves total PnL, drawdown, holding time or terminal inventory after costs."
+    },
+    {
+      "finding": "A broad re-evaluation of volatility-managed equity strategies finds that improvements are not systematic and that implementable out-of-sample utility and Sharpe evidence can be weak.",
+      "identity": "Cederburg, O'Doherty, Wang and Yan, On the Performance of Volatility-Managed Portfolios, Journal of Financial Economics 138 (2020) 95-117",
+      "primary_source": "https://www.lehigh.edu/~xuy219/research/COWY.pdf",
+      "role": "CO_EQUAL_FALSIFICATION_PRIOR",
+      "transfer_boundary": "The exact BTC transfer must therefore pass matched-capital PnL, drawdown, realized/unrealized, annual breadth, holding, underwater-duration, concentration and neighbor gates rather than relying on volatility-management intuition."
+    }
+  ],
+  "pre_economic_redundancy_audit": {
+    "dataset": {
+      "rows": 52608,
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "formula": "Spearman correlation of the daily five-to-twenty-day realized-volatility ratio with contemporaneous twenty-day realized-volatility level, calculated separately before any strategy economics",
+    "absolute_correlation_limit": "0.80",
+    "design": {
+      "sample_count": 1442,
+      "correlation": "-0.04234535",
+      "status": "PASS"
+    },
+    "validation": {
+      "sample_count": 731,
+      "correlation": "-0.04099175",
+      "status": "PASS"
+    },
+    "disposition": "FEATURE_NONREDUNDANCY_PASS_ECONOMIC_PREREGISTRATION_PERMITTED"
+  },
+  "real_time_design_requirements": [
+    "Use only H1 close-to-close returns known by the latest complete UTC-day boundary and execute no earlier than the unchanged next-bar open.",
+    "Compute the short component from exactly five complete-day realized variances and the long component from exactly twenty; use the current complete day in both and no future bar.",
+    "Normalize the latest five-to-twenty-day ratio only by the median of exactly the prior twenty complete-day ratios.",
+    "Before economic interpretation, require the daily slope ratio to have absolute Spearman correlation at most 0.80 with the contemporaneous twenty-day realized-volatility level in both Design and Validation; otherwise close as a repackaged volatility-level factor.",
+    "Keep DRA parent side, entries, exits, lot cost, capacity, fee, adverse slippage, cooldown and next-bar fill clock unchanged.",
+    "Freeze primary 1.0 and neighbors 0.8 and 1.2 before outcome access; do not search another horizon, estimator, normalization, threshold or relation.",
+    "Require gate set V2 Design and Validation total and realized PnL improvement, annual breadth, drawdown and underwater non-inferiority, holding support, terminal inventory and neighbor stability; otherwise close the family.",
+    "Do not open post-2024 OOS or create a runtime rule from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T14:40:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "andersen_bollerslev_diebold_labys_nber_identity_and_abstract": "PASS",
+    "cederburg_odoherty_wang_yan_open_manuscript_identity_and_findings": "PASS",
+    "corsi_official_publisher_identity_and_abstract": "PASS",
+    "moreira_muir_nber_identity_and_abstract": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "No primary source directly validates this exact single-BTC five-to-twenty-day volatility-slope DRA admission rule.",
+    "The ratio may be a transformation of the already closed absolute realized-volatility family; the frozen correlation gate must close it before economics if so.",
+    "A five-day component may react after rather than before a harmful move, while a stricter threshold may remove profitable rebound participation.",
+    "H1 sampling and close-to-close squared returns are implementation approximations rather than noise-robust high-frequency realized-volatility estimators.",
+    "No post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed while freezing this prior."
+  ]
+}

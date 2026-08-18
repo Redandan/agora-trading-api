@@ -13,6 +13,9 @@ The runner supports only:
 
 - lagged complete-day realized volatility versus its prior 20-complete-day
   median, admitted at or below the frozen threshold;
+- the latest five-complete-day to twenty-complete-day realized-volatility
+  ratio versus its prior 20-complete-day median, admitted at or below the
+  frozen threshold;
 - complete-day volume versus its prior 20-complete-day median, admitted at or
   above the threshold; and
 - complete-day high-low range percentage versus its prior 20-complete-day
@@ -56,6 +59,17 @@ pre-outcome `forward-diagnostic-contract.v1.json`, which froze their definitions
 and 1.25/1.50/1.75 thresholds before any discovery outcome. That binding is a
 design prior only: it does not convert historical development evidence into the
 90-day discovery result or clean OOS.
+
+The realized-volatility term-structure feature uses the square root of summed
+H1 close-to-close squared returns over the latest five complete UTC days divided
+by the same measure over the latest twenty complete UTC days. It then divides
+that slope by the median of exactly the prior twenty complete-day slopes. This
+tests volatility acceleration rather than absolute volatility level. Before
+any economic ledger is opened, its absolute Spearman correlation with the
+contemporaneous twenty-day realized-volatility level must be at most 0.80 in
+both Design and Validation; otherwise the family closes as a repackaged version
+of the already closed volatility-level filter. The primary 1.0 threshold and
+0.8/1.2 neighbors use gate set V2.
 
 The downside-semivariance feature is sign-asymmetric rather than another total-
 volatility level. It divides squared negative hourly returns by all squared

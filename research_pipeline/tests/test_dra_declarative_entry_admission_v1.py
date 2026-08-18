@@ -139,6 +139,57 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         self.assertEqual(engine.current_feature_ratio, D("2.00000000"))
         self.assertEqual(engine.complete_feature_days, 21)
 
+    def test_realized_volatility_term_structure_uses_exact_five_and_twenty_days(self) -> None:
+        prior = [D("1")] * 15 + [D("4")] * 4
+        ratio, long_realized_volatility = runner.realized_volatility_term_structure(
+            prior, D("4")
+        )
+        self.assertEqual(long_realized_volatility, D("35").sqrt())
+        self.assertEqual(ratio, D("20").sqrt() / D("35").sqrt())
+        with self.assertRaisesRegex(runner.ScreenReject, "19 prior"):
+            runner.realized_volatility_term_structure(prior[:-1], D("4"))
+
+    def test_realized_volatility_term_structure_is_v2_and_fails_closed_until_warm(self) -> None:
+        feature = "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN"
+        value = manifest(feature=feature)
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        close = D("100")
+        for day in range(40):
+            for hour in range(24):
+                close *= D("1.001") if hour % 2 == 0 else D("0.999")
+                engine._update_feature(
+                    bar(
+                        opened + timedelta(days=day, hours=hour),
+                        close=str(close),
+                    )
+                )
+            if day < 19:
+                self.assertIsNone(engine.current_feature_ratio)
+        self.assertEqual(len(engine.rv_term_structure_observations), 21)
+        self.assertIsNotNone(engine.current_feature_ratio)
+
+    def test_spearman_correlation_detects_duplicate_ordering(self) -> None:
+        ascending = [D(value) for value in range(1, 7)]
+        mixed = [D(value) for value in (1, 4, 2, 6, 3, 5)]
+        self.assertEqual(runner.spearman_correlation(ascending, ascending), D("1"))
+        self.assertLess(abs(runner.spearman_correlation(ascending, mixed)), D("0.80"))
+
     def test_weekend_calendar_feature_requires_zero_lookback_and_v2_gates(self) -> None:
         value = manifest(
             feature="LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO"

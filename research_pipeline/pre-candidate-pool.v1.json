@@ -216,8 +216,8 @@
       "independence_key": "large-shock-volatility-persistence",
       "next_gate": "SEAL_UNTOUCHED_FORWARD_VOLATILITY_RESULT_BEFORE_STRATEGY_SPECIFICATION",
       "canonical_binding": {
-        "kind": "NONE",
-        "id": "NO_CANONICAL_CANDIDATE_BINDING"
+        "kind": "FORWARD_VOLATILITY_PERSISTENCE",
+        "id": "BTC_UTC_DAY_3PCT_FORWARD_VOLATILITY_PERSISTENCE_V1"
       },
       "evidence_bindings": [
         {

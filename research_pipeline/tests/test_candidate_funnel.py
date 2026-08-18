@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 from jsonschema import Draft202012Validator
 
@@ -10,6 +14,15 @@ from research_pipeline.candidate_funnel import (
     build_candidate_funnel,
     candidate_funnel_status,
     load_candidate_pool_catalog,
+)
+from research_pipeline.forward_volatility_persistence import (
+    CLOSE as VOLATILITY_CLOSE,
+    RETAIN as VOLATILITY_RETAIN,
+    _canonical_bytes as _volatility_canonical_bytes,
+)
+from research_pipeline.forward_volatility_persistence_activation import (
+    ACTIVATION_STATE_KEY,
+    ActivationDecision,
 )
 
 
@@ -194,6 +207,143 @@ class CandidateFunnelTest(unittest.TestCase):
             ["MAXIMUM_ACTIVE_EXPERIMENTS_EXCEEDED", "MAXIMUM_CANDIDATE_OOS_EXCEEDED"],
         )
 
+    def test_volatility_activation_promotes_only_to_forward_evidence(self) -> None:
+        receipt = _volatility_receipt()
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "research_pipeline.candidate_funnel."
+            "prepare_forward_volatility_persistence_activation",
+            return_value=ActivationDecision(
+                receipt, False, "ACTIVATION_RECEIPT_REVALIDATED"
+            ),
+        ), patch(
+            "research_pipeline.candidate_funnel.resolve_active_forward_trigger_lineage",
+            return_value=object(),
+        ), patch(
+            "research_pipeline.candidate_funnel._load_volatility_snapshots",
+            return_value=[],
+        ):
+            snapshot = build_candidate_funnel(
+                _registry(),
+                microstructure=_microstructure("WAITING_FOR_DAY"),
+                heartbeat_state={
+                    "last_success": "2026-08-18T01:05:00Z",
+                    ACTIVATION_STATE_KEY: receipt,
+                },
+                state_root=Path(directory),
+                as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                repo_root=REPO_ROOT,
+            )
+
+        volatility = _family(snapshot, "btc-3pct-post-shock-volatility-persistence")
+        self.assertEqual("FORWARD_EVIDENCE", volatility["stage"])
+        self.assertEqual(
+            "FORWARD_VOLATILITY_PERSISTENCE",
+            volatility["canonical_binding"]["kind"],
+        )
+        self.assertEqual(0, volatility["progress"]["episode_count"])
+        self.assertFalse(volatility["progress"]["terminal"])
+        self.assertEqual(0, snapshot["summary"]["formal_candidate_count"])
+
+    def test_volatility_terminal_retain_is_not_a_formal_candidate(self) -> None:
+        receipt = _volatility_receipt()
+        terminal = _volatility_terminal(receipt, VOLATILITY_RETAIN)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "terminal-retain.json"
+            path.write_text("{}\n", encoding="utf-8")
+            with patch(
+                "research_pipeline.candidate_funnel."
+                "prepare_forward_volatility_persistence_activation",
+                return_value=ActivationDecision(
+                    receipt, False, "ACTIVATION_RECEIPT_REVALIDATED"
+                ),
+            ), patch(
+                "research_pipeline.candidate_funnel."
+                "resolve_active_forward_trigger_lineage",
+                return_value=object(),
+            ), patch(
+                "research_pipeline.candidate_funnel._load_volatility_snapshots",
+                return_value=[(path, terminal)],
+            ):
+                snapshot = build_candidate_funnel(
+                    _registry(),
+                    microstructure=_microstructure("WAITING_FOR_DAY"),
+                    heartbeat_state={ACTIVATION_STATE_KEY: receipt},
+                    state_root=Path(directory),
+                    as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                    repo_root=REPO_ROOT,
+                )
+
+        volatility = _family(snapshot, "btc-3pct-post-shock-volatility-persistence")
+        self.assertEqual("READY_FOR_HYPOTHESIS", volatility["stage"])
+        self.assertTrue(volatility["progress"]["terminal"])
+        self.assertEqual(VOLATILITY_RETAIN, volatility["progress"]["disposition"])
+        self.assertEqual(0, snapshot["summary"]["formal_candidate_count"])
+
+    def test_volatility_terminal_close_becomes_dynamic_tombstone(self) -> None:
+        receipt = _volatility_receipt()
+        terminal = _volatility_terminal(receipt, VOLATILITY_CLOSE)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "terminal-close.json"
+            path.write_text("{}\n", encoding="utf-8")
+            with patch(
+                "research_pipeline.candidate_funnel."
+                "prepare_forward_volatility_persistence_activation",
+                return_value=ActivationDecision(
+                    receipt, False, "ACTIVATION_RECEIPT_REVALIDATED"
+                ),
+            ), patch(
+                "research_pipeline.candidate_funnel."
+                "resolve_active_forward_trigger_lineage",
+                return_value=object(),
+            ), patch(
+                "research_pipeline.candidate_funnel._load_volatility_snapshots",
+                return_value=[(path, terminal)],
+            ):
+                snapshot = build_candidate_funnel(
+                    _registry(),
+                    microstructure=_microstructure("WAITING_FOR_DAY"),
+                    heartbeat_state={ACTIVATION_STATE_KEY: receipt},
+                    state_root=Path(directory),
+                    as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                    repo_root=REPO_ROOT,
+                )
+
+        self.assertNotIn(
+            "btc-3pct-post-shock-volatility-persistence",
+            [family["family_id"] for family in snapshot["ranked_families"]],
+        )
+        closed = _family(
+            {"ranked_families": snapshot["closed_families"]},
+            "btc-3pct-post-shock-volatility-persistence",
+        )
+        self.assertEqual("CLOSED", closed["stage"])
+        self.assertEqual(VOLATILITY_CLOSE, closed["disposition"])
+        self.assertTrue(closed["prohibited_reopen"])
+        self.assertEqual(6, snapshot["summary"]["open_family_count"])
+
+    def test_volatility_receipt_conflict_blocks_only_that_family(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "research_pipeline.candidate_funnel."
+            "prepare_forward_volatility_persistence_activation",
+            side_effect=ValueError("synthetic receipt conflict"),
+        ):
+            snapshot = build_candidate_funnel(
+                _registry(),
+                microstructure=_microstructure("WAITING_FOR_DAY"),
+                heartbeat_state={ACTIVATION_STATE_KEY: _volatility_receipt()},
+                state_root=Path(directory),
+                as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                repo_root=REPO_ROOT,
+            )
+
+        volatility = _family(snapshot, "btc-3pct-post-shock-volatility-persistence")
+        self.assertEqual("INTEGRITY_BLOCKED", volatility["stage"])
+        self.assertIn("synthetic receipt conflict", volatility["integrity_status"])
+        self.assertEqual(
+            ["btc-3pct-post-shock-volatility-persistence"],
+            snapshot["summary"]["integrity_blocked_families"],
+        )
+
     def test_status_wrapper_fails_closed_when_catalog_is_outside_repo_root(self) -> None:
         result = candidate_funnel_status(
             _registry(),
@@ -204,6 +354,37 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual(result["status"], "INTEGRITY_BLOCKED")
         self.assertFalse(result["safety"]["canonical_state_write"])
         self.assertFalse(result["safety"]["second_timer_or_writer"])
+
+
+def _family(snapshot: dict[str, object], family_id: str) -> dict[str, object]:
+    return next(
+        family
+        for family in snapshot["ranked_families"]
+        if family["family_id"] == family_id
+    )
+
+
+def _volatility_receipt() -> dict[str, object]:
+    return {
+        "activated_at": "2026-08-18T01:05:00Z",
+        "worker_release_id": "20260818T010000Z",
+        "worker_source_commit": "a" * 40,
+        "leaf_trigger_id": "prospective-mechanism-neutral-evidence-refresh-rollover",
+        "leaf_trigger_fingerprint": "b" * 64,
+    }
+
+
+def _volatility_terminal(
+    receipt: dict[str, object], disposition: str
+) -> dict[str, object]:
+    return {
+        "episodes": [{} for _ in range(12)],
+        "terminal": True,
+        "disposition": disposition,
+        "activation_receipt_sha256": hashlib.sha256(
+            _volatility_canonical_bytes(receipt)
+        ).hexdigest(),
+    }
 
 
 if __name__ == "__main__":

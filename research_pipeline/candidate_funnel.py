@@ -2,9 +2,25 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 import re
 from typing import Any
+
+from .forward_trigger_lineage import resolve_active_forward_trigger_lineage
+from .forward_volatility_persistence import (
+    CLOSE as VOLATILITY_CLOSE,
+    HARD_CAP_EPISODES as VOLATILITY_HARD_CAP_EPISODES,
+    MINIMUM_EPISODES as VOLATILITY_MINIMUM_EPISODES,
+    RETAIN as VOLATILITY_RETAIN,
+    _canonical_bytes as _volatility_canonical_bytes,
+    _load_snapshots as _load_volatility_snapshots,
+)
+from .forward_volatility_persistence_activation import (
+    ACTIVATION_STATE_KEY,
+    prepare_forward_volatility_persistence_activation,
+)
+from .storage import ResearchStore, sha256_file, store_relative_reference
 
 
 AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
@@ -179,7 +195,12 @@ def _validate_family(repo_root: Path, value: Any, index: int) -> dict[str, Any]:
     if not isinstance(canonical, dict):
         raise ValueError(f"families[{index}].canonical_binding must be an object")
     _exact_keys(canonical, {"id", "kind"}, f"families[{index}].canonical_binding")
-    if canonical["kind"] not in {"FORWARD_MECHANISM", "MICROSTRUCTURE", "NONE"}:
+    if canonical["kind"] not in {
+        "FORWARD_MECHANISM",
+        "FORWARD_VOLATILITY_PERSISTENCE",
+        "MICROSTRUCTURE",
+        "NONE",
+    }:
         raise ValueError(f"families[{index}].canonical_binding.kind is unsupported")
     _require_string(canonical["id"], f"families[{index}].canonical_binding.id")
     bindings = value["evidence_bindings"]
@@ -498,14 +519,140 @@ def _static_state(family: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _volatility_persistence_state(
+    family: dict[str, Any],
+    *,
+    heartbeat_state: dict[str, Any] | None,
+    state_root: Path | None,
+    as_of: datetime,
+) -> dict[str, Any]:
+    if not isinstance(heartbeat_state, dict):
+        return _static_state(family)
+    receipt = heartbeat_state.get(ACTIVATION_STATE_KEY)
+    if receipt is None:
+        return _static_state(family)
+    if state_root is None:
+        return {
+            "stage": "INTEGRITY_BLOCKED",
+            "integrity_status": "VOLATILITY_CANONICAL_STATE_ROOT_MISSING",
+            "progress": None,
+            "next_gate": "RESTORE_READ_ONLY_CANONICAL_STATE_BINDING",
+            "estimated_days": None,
+        }
+
+    store = ResearchStore(Path(state_root), lock_stale_seconds=3600)
+    try:
+        activation = prepare_forward_volatility_persistence_activation(
+            store,
+            now=as_of,
+            previous_success=heartbeat_state.get("last_success"),
+            existing_receipt=receipt,
+        )
+        if activation.created or activation.receipt is None:
+            raise ValueError("read-only funnel cannot create an activation receipt")
+        lineage = resolve_active_forward_trigger_lineage(store)
+        if lineage is None:
+            raise ValueError("volatility activation lineage is unavailable")
+        snapshots = _load_volatility_snapshots(store, lineage=lineage)
+        receipt_hash = hashlib.sha256(
+            _volatility_canonical_bytes(activation.receipt)
+        ).hexdigest()
+        for _, snapshot in snapshots:
+            if snapshot.get("activation_receipt_sha256") != receipt_hash:
+                raise ValueError("volatility snapshot activation receipt binding drift")
+    except (FileNotFoundError, OSError, ValueError) as error:
+        return {
+            "stage": "INTEGRITY_BLOCKED",
+            "integrity_status": f"VOLATILITY_ACTIVATION_OR_SNAPSHOT_INVALID:{error}",
+            "progress": None,
+            "next_gate": "RESTORE_VOLATILITY_EVIDENCE_INTEGRITY_WITHOUT_REWRITE",
+            "estimated_days": None,
+        }
+
+    latest_path: Path | None = None
+    latest: dict[str, Any] | None = None
+    if snapshots:
+        latest_path, latest = snapshots[-1]
+    episode_count = len(latest["episodes"]) if latest is not None else 0
+    terminal = bool(latest and latest["terminal"])
+    disposition = latest.get("disposition") if latest is not None else None
+    latest_reference = (
+        {
+            "artifact_path": store_relative_reference(store.root, latest_path),
+            "sha256": sha256_file(latest_path),
+        }
+        if latest_path is not None
+        else None
+    )
+    progress = {
+        "activation_status": activation.status,
+        "activated_at": activation.receipt["activated_at"],
+        "worker_release_id": activation.receipt["worker_release_id"],
+        "worker_source_commit": activation.receipt["worker_source_commit"],
+        "leaf_trigger_id": activation.receipt["leaf_trigger_id"],
+        "leaf_trigger_fingerprint": activation.receipt["leaf_trigger_fingerprint"],
+        "snapshot_count": len(snapshots),
+        "episode_count": episode_count,
+        "minimum_episodes": VOLATILITY_MINIMUM_EPISODES,
+        "hard_cap_episodes": VOLATILITY_HARD_CAP_EPISODES,
+        "terminal": terminal,
+        "disposition": disposition,
+        "latest_snapshot": latest_reference,
+    }
+    if terminal and disposition == VOLATILITY_RETAIN:
+        return {
+            "stage": "READY_FOR_HYPOTHESIS",
+            "integrity_status": "SEALED_FORWARD_DIAGNOSTIC_RETAIN",
+            "progress": progress,
+            "next_gate": "FREEZE_AT_MOST_ONE_VOLATILITY_RISK_CONTROL_HYPOTHESIS",
+            "estimated_days": 0,
+            "missing_proof": family["missing_proof"][1:],
+        }
+    if terminal and disposition == VOLATILITY_CLOSE:
+        return {
+            "stage": "FORWARD_EVIDENCE",
+            "integrity_status": "SEALED_FORWARD_DIAGNOSTIC_CLOSE",
+            "progress": progress,
+            "next_gate": "KEEP_FAMILY_CLOSED_NO_RETUNING",
+            "estimated_days": 0,
+            "dynamic_closure": {
+                "disposition": disposition,
+                "artifact_path": latest_reference["artifact_path"],
+                "sha256": latest_reference["sha256"],
+            },
+        }
+    return {
+        "stage": "FORWARD_EVIDENCE",
+        "integrity_status": "SEALED_ACTIVATION_FORWARD_EVIDENCE_COLLECTING",
+        "progress": progress,
+        "next_gate": (
+            "ACCUMULATE_FIRST_ELIGIBLE_FORWARD_SHOCK_EPISODE"
+            if episode_count == 0
+            else "ACCUMULATE_TO_EARLIEST_FROZEN_TERMINAL_PREFIX"
+        ),
+        "estimated_days": None,
+    }
+
+
 def _family_snapshot(
     family: dict[str, Any],
     registry: dict[str, Any],
     microstructure: dict[str, Any] | None,
+    *,
+    heartbeat_state: dict[str, Any] | None,
+    state_root: Path | None,
+    as_of: datetime,
 ) -> dict[str, Any]:
     kind = family["canonical_binding"]["kind"]
     if kind == "FORWARD_MECHANISM":
         dynamic = _forward_mechanism_state(family, registry)
+    elif kind == "FORWARD_VOLATILITY_PERSISTENCE":
+        dynamic = _volatility_persistence_state(
+            family,
+            heartbeat_state=heartbeat_state,
+            state_root=state_root,
+            as_of=as_of,
+        )
     elif kind == "MICROSTRUCTURE":
         dynamic = _microstructure_state(family, microstructure)
     else:
@@ -542,7 +689,7 @@ def _family_snapshot(
         "compute_cost_class": family["compute_cost_class"],
         "independence_key": family["independence_key"],
         "next_gate": dynamic["next_gate"],
-        "missing_proof": family["missing_proof"],
+        "missing_proof": dynamic.get("missing_proof", family["missing_proof"]),
         "evidence_bindings": family["evidence_bindings"],
         "canonical_binding": family["canonical_binding"],
         "progress": dynamic["progress"],
@@ -553,6 +700,7 @@ def _family_snapshot(
             "readiness_score": readiness_score,
             "score_semantics": "READINESS_NOT_ALPHA",
         },
+        "_dynamic_closure": dynamic.get("dynamic_closure"),
     }
 
 
@@ -602,10 +750,42 @@ def _registry_closed_snapshots(registry: dict[str, Any]) -> list[dict[str, Any]]
     return values
 
 
+def _dynamic_closed_snapshot(
+    family: dict[str, Any], closure: dict[str, Any]
+) -> dict[str, Any]:
+    return {
+        "family_id": family["family_id"],
+        "title": family["title"],
+        "stage": "CLOSED",
+        "disposition": closure["disposition"],
+        "duplicate_family_key": family["duplicate_family_key"],
+        "closed_fingerprint": _fingerprint(
+            family["duplicate_family_key"],
+            family["decision_feature"],
+            family["parent_strategy_id"],
+            closure["disposition"],
+            closure["sha256"],
+        ),
+        "evidence_bindings": [
+            *family["evidence_bindings"],
+            {
+                "role": "SERVER_CANONICAL_FORWARD_VOLATILITY_TERMINAL",
+                "path": closure["artifact_path"],
+                "sha256": closure["sha256"],
+                "verified": True,
+            },
+        ],
+        "prohibited_reopen": True,
+    }
+
+
 def build_candidate_funnel(
     registry: dict[str, Any],
     *,
     microstructure: dict[str, Any] | None = None,
+    heartbeat_state: dict[str, Any] | None = None,
+    state_root: Path | None = None,
+    as_of: datetime | None = None,
     repo_root: Path | None = None,
     catalog_path: Path | None = None,
 ) -> dict[str, Any]:
@@ -625,11 +805,25 @@ def build_candidate_funnel(
         and experiment.get("stage") in TERMINAL_EXPERIMENT_STAGES
         and experiment.get("candidate_mechanism_key")
     }
-    families = [
-        _family_snapshot(family, registry, microstructure)
-        for family in catalog["families"]
-        if family["canonical_binding"]["id"] not in terminal_mechanisms
-    ]
+    current = (as_of or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    families: list[dict[str, Any]] = []
+    dynamically_closed: list[dict[str, Any]] = []
+    for family in catalog["families"]:
+        if family["canonical_binding"]["id"] in terminal_mechanisms:
+            continue
+        snapshot = _family_snapshot(
+            family,
+            registry,
+            microstructure,
+            heartbeat_state=heartbeat_state,
+            state_root=state_root,
+            as_of=current,
+        )
+        closure = snapshot.pop("_dynamic_closure")
+        if closure is None:
+            families.append(snapshot)
+        else:
+            dynamically_closed.append(_dynamic_closed_snapshot(snapshot, closure))
     active_experiments = [
         experiment
         for experiment in experiments
@@ -676,6 +870,10 @@ def build_candidate_funnel(
         _catalog_closed_snapshot(family) for family in catalog["closed_families"]
     ]
     closed.extend(_registry_closed_snapshots(registry))
+    closed.extend(dynamically_closed)
+    closed_ids = [family["family_id"] for family in closed]
+    if len(closed_ids) != len(set(closed_ids)):
+        constraint_violations.append("CLOSED_FAMILY_ID_COLLISION")
     closed.sort(key=lambda family: family["family_id"])
     integrity_blocked = [
         family["family_id"] for family in families if family["stage"] == "INTEGRITY_BLOCKED"
@@ -730,12 +928,18 @@ def candidate_funnel_status(
     registry: dict[str, Any],
     *,
     microstructure: dict[str, Any] | None = None,
+    heartbeat_state: dict[str, Any] | None = None,
+    state_root: Path | None = None,
+    as_of: datetime | None = None,
     repo_root: Path | None = None,
 ) -> dict[str, Any]:
     try:
         return build_candidate_funnel(
             registry,
             microstructure=microstructure,
+            heartbeat_state=heartbeat_state,
+            state_root=state_root,
+            as_of=as_of,
             repo_root=repo_root,
         )
     except (FileNotFoundError, json.JSONDecodeError, OSError, ValueError) as error:

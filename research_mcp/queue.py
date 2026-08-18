@@ -2143,6 +2143,9 @@ def research_status() -> dict[str, Any]:
     candidate_funnel = candidate_funnel_status(
         registry,
         microstructure=microstructure_diagnostic,
+        heartbeat_state=heartbeat_state,
+        state_root=STATE_DIR,
+        as_of=current,
         repo_root=APP_DIR,
     )
     return {

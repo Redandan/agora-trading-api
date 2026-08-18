@@ -160,7 +160,7 @@
           "additionalProperties": false,
           "required": ["kind", "id"],
           "properties": {
-            "kind": {"enum": ["FORWARD_MECHANISM", "MICROSTRUCTURE", "NONE"]},
+            "kind": {"enum": ["FORWARD_MECHANISM", "FORWARD_VOLATILITY_PERSISTENCE", "MICROSTRUCTURE", "NONE"]},
             "id": {"type": "string", "minLength": 1}
           }
         },

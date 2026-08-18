@@ -1016,11 +1016,14 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(summary["sha256"], hashlib.sha256(artifact.read_bytes()).hexdigest())
         self.assertEqual(result["registry"]["research_status"], "WAITING_FOR_EVIDENCE")
         self.assertEqual(result["candidate_funnel"], expected_funnel)
-        funnel_status.assert_called_once_with(
-            result["registry"],
-            microstructure=summary,
-            repo_root=self.app,
-        )
+        funnel_status.assert_called_once()
+        positional, keywords = funnel_status.call_args
+        self.assertEqual((result["registry"],), positional)
+        self.assertEqual(summary, keywords["microstructure"])
+        self.assertEqual({}, keywords["heartbeat_state"])
+        self.assertEqual(self.state, keywords["state_root"])
+        self.assertIsInstance(keywords["as_of"], datetime)
+        self.assertEqual(self.app, keywords["repo_root"])
 
     def test_status_prefers_active_v3r1_namespace_over_historical_v3(self) -> None:
         historical_namespace = self.state / "microstructure-v3"

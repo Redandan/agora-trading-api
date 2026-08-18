@@ -19,16 +19,26 @@ evidence binding is SHA-256 verified before the pool is returned.
 
 ## Authority and safety
 
-`get_research_status` derives `candidate_funnel` from three existing inputs:
+`get_research_status` derives `candidate_funnel` from four existing inputs:
 
 - the Git-versioned pool catalog;
 - the server-canonical research registry;
-- the existing canonical microstructure diagnostic.
+- the existing canonical microstructure diagnostic; and
+- the existing heartbeat state plus sealed volatility-persistence snapshots.
 
 The funnel never writes canonical state, opens OOS, executes a runner, registers
 a hypothesis, or activates a strategy. It adds no MCP operation, timer, queue,
 or writer. The one Codex cloud Ops schedule remains the sole clock and the
 server Research Worker remains the state authority.
+
+The BTC three-percent volatility-persistence family stays `HISTORICAL_PRIOR`
+until the sole heartbeat has created and persisted its release- and leaf-bound
+activation receipt. The read-only funnel then reports `FORWARD_EVIDENCE`, the
+eligible episode count, the earliest terminal prefix and the sealed artifact
+identity. A terminal retain result can advance only to `READY_FOR_HYPOTHESIS`;
+a terminal close result becomes a dynamic prohibited-reopen tombstone. Receipt,
+release, lineage or snapshot drift is `INTEGRITY_BLOCKED` and is never repaired
+by the funnel.
 
 ## Pool contract
 

@@ -86,7 +86,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 6)
-        self.assertEqual(len(catalog["closed_families"]), 13)
+        self.assertEqual(len(catalog["closed_families"]), 14)
         cftc = next(
             family
             for family in catalog["closed_families"]
@@ -117,6 +117,17 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
         )
         self.assertTrue(close_location["prohibited_reopen"])
+        h1_volume_weighted_close_location = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-h1-volume-weighted-close-location-entry-admission"
+        )
+        self.assertEqual(
+            h1_volume_weighted_close_location["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_FACTOR_FAMILY",
+        )
+        self.assertTrue(h1_volume_weighted_close_location["prohibited_reopen"])
         amihud = next(
             family
             for family in catalog["closed_families"]
@@ -171,7 +182,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY_WITH_INTEGRITY_ALERT")
         self.assertEqual(snapshot["summary"]["open_family_count"], 6)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 14)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 15)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

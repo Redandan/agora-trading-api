@@ -1,0 +1,104 @@
+{
+  "artifact": {
+    "bytes": 247695,
+    "path": ".research-state/experiments/dra-h1-volume-weighted-close-location-entry-admission-v1/artifacts/screen.json",
+    "sha256": "9790c5fc75d2730034251521da092de80bd7e7947db5489c5b87d49b387fe251"
+  },
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "dataset": {
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "decision": "PERMANENTLY_CLOSE_DRA_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_FACTOR_FAMILY_WITHOUT_TUNING",
+  "document_type": "BTC_DRA_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_HISTORICAL_ENTRY_ADMISSION_DECISION_V1",
+  "economic_summary": {
+    "annual_drawdown_non_worse": 4,
+    "annual_total_pnl_deltas_usdt": {
+      "2020": "-3.56765618",
+      "2021": "-5.01799824",
+      "2022": "0.81693078",
+      "2023": "-6.39704024",
+      "2024": "3.15310856"
+    },
+    "annual_total_wins": 2,
+    "design": {
+      "candidate_max_drawdown_pct": "18.053375",
+      "candidate_maximum_underwater_duration_hours": 9878,
+      "candidate_median_hold_hours": 127.0,
+      "candidate_p90_hold_hours": 1308.4,
+      "candidate_realized_pnl_usdt": "148.63602824",
+      "candidate_terminal_inventory_count": 5,
+      "candidate_total_pnl_usdt": "72.05690451",
+      "candidate_unrealized_pnl_usdt": "-76.57912373",
+      "parent_max_drawdown_pct": "29.530448",
+      "parent_maximum_underwater_duration_hours": 9878,
+      "parent_median_hold_hours": 126.0,
+      "parent_p90_hold_hours": 1818.6,
+      "parent_realized_pnl_usdt": "169.89846767",
+      "parent_terminal_inventory_count": 5,
+      "parent_total_pnl_usdt": "90.77797326",
+      "parent_unrealized_pnl_usdt": "-79.12049441",
+      "vetoed_signals": 24
+    },
+    "top_year_positive_delta_contribution_pct": "79.422602",
+    "validation": {
+      "candidate_max_drawdown_pct": "13.938838",
+      "candidate_maximum_underwater_duration_hours": 3121,
+      "candidate_median_hold_hours": 188.5,
+      "candidate_p90_hold_hours": 3718.9,
+      "candidate_realized_pnl_usdt": "85.32441081",
+      "candidate_terminal_inventory_count": 0,
+      "candidate_total_pnl_usdt": "85.32441081",
+      "candidate_unrealized_pnl_usdt": "0E-8",
+      "parent_max_drawdown_pct": "7.121498",
+      "parent_maximum_underwater_duration_hours": 2397,
+      "parent_median_hold_hours": 182.5,
+      "parent_p90_hold_hours": 1418.3,
+      "parent_realized_pnl_usdt": "89.41118307",
+      "parent_terminal_inventory_count": 1,
+      "parent_total_pnl_usdt": "86.20298186",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "vetoed_signals": 18
+    }
+  },
+  "experiment_id": "dra-h1-volume-weighted-close-location-entry-admission-v1",
+  "failed_neighbor_gates": {
+    "h1-volume-weighted-close-location-admission-0_99-v1": [
+      "validation_interventions_at_least_4"
+    ],
+    "h1-volume-weighted-close-location-admission-1_01-v1": [
+      "validation_drawdown_within_0_25pp",
+      "validation_max_underwater_duration_non_worse",
+      "validation_realized_non_worse",
+      "validation_total_pnl_non_worse"
+    ]
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2",
+  "manifest_sha256": "ccc4bbc548776d74cacb43045bb24c5acbb06edcb5b721be78f398281ed65a9c",
+  "oos_opened": false,
+  "prior_sha256": "7b45d2cc632413b7ffc25fee3910647d94d4e7065bd524f12161183e908cc0b4",
+  "prohibited_reopen": true,
+  "runner_sha256": "27f55f906a2baa9f166e1dde48021e1704cd5814ca4b10b6120c3b8741b44482",
+  "schema_version": "1",
+  "scientific_claim": "The preregistered H1 base-volume-weighted close-location admission filter substantially improved Design drawdown but reduced Design realized and total PnL. In Validation it reduced total PnL from 86.20298186 to 85.32441081 USDT and realized PnL from 89.41118307 to 85.32441081 USDT, while drawdown rose from 7.121498% to 13.938838%, maximum underwater duration rose from 2397 to 3121 hours and P90 holding rose from 1418.3 to 3718.9 hours. Annual total PnL won only two of five years, 79.422602% of positive annual delta came from one year, and both frozen neighbors failed. The exact family is not a candidate and must not be inverted, reweighted, thresholded, tuned, rerun or reopened.",
+  "status": "NO_CANDIDATE_CLOSE_DRA_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_FACTOR_FAMILY",
+  "uncertainty": [
+    "This is historical Design and Validation evidence through 2024, not independent post-2024 OOS or prospective evidence.",
+    "The result closes only the frozen final H1 close relative to the same complete day's H1 base-volume-weighted mean, normalized by the prior 20-day median; it does not evaluate trade-level VWAP, order flow, fair value or the open minute-level microstructure family.",
+    "No source activation, second timer or writer, candidate registration, OOS opening, canonical write, Trading, database, order, fund, SHADOW, PAPER or LIVE action occurred."
+  ]
+}

@@ -1,0 +1,224 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_CONSTANT_MIX_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-monthly-constant-mix-v1-historical-v1",
+  "created_at": "2026-08-18T15:12:36Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "Resetting an unlevered BTC and zero-yield cash portfolio to a fixed target at each UTC month boundary may harvest sufficiently broad price reversals and prevent risky-asset weight drift, improving fee-adjusted total PnL and path risk over an equal-capital portfolio that buys the same initial BTC weight and never rebalances.",
+  "economic_rationale": "Constant mix is a deterministic countercyclical transfer rather than a forecast: it sells BTC after appreciation and buys after declines. The mechanism is valuable only if reversal harvesting exceeds fees and adverse slippage, matched-capital total PnL improves, drawdown and Calmar do not deteriorate, the effect survives Validation and annual breadth, and the primary fifty-percent result is not a weight cliff. Risk-budget maintenance alone cannot pass.",
+  "opportunity_cost": "Resolve whether the passive-weight drift found in the closed static passive-BTC plus DRA family can be controlled by a simpler standalone allocation mechanism before allocating more research to DRA factor admission or portfolio overlays.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-cash-monthly-constant-mix-40-50-60",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_STANDALONE_POLICY",
+    "distinct_from_closed_families": [
+      "The closed static fifty-percent passive BTC plus fifty-percent DRA policy did not rebalance and included a DRA trading sleeve; this experiment has no DRA logic and compares constant mix directly with the same initial BTC weight plus cash.",
+      "The closed monthly volatility-target family changed exposure from lagged realized volatility; this policy uses no price-derived forecast or volatility estimate and always returns to a fixed preregistered weight.",
+      "The closed monthly momentum family selected binary long or cash from lagged direction; this policy does not use return direction and never selects a directional state.",
+      "The closed range hybrid rotated between DRA and range sleeves; this policy contains one spot BTC asset and zero-yield cash only."
+    ],
+    "excluded_reinterpretations": [
+      "Fifty percent is the primary policy. Forty and sixty percent are stability neighbors only and cannot replace a failed primary result.",
+      "No alternate target weight, rebalance frequency, threshold, drift band, cash yield, leverage, short leg, volatility target, DRA sleeve or tax assumption may be scanned after outcome access.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_monthly_constant_mix_v1_historical.py",
+      "sha256": "0b804a2bad5191410f6d0a4dd72cc7ed4db79f44eb63d5140380444ef17a4d3b",
+      "git_commit": "703e07911fb30e6bc7f7b74ac71c69b42ed601c6",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research/btc_monthly_30d_volatility_target_40pct_historical.py",
+      "sha256": "8eb185644904b62152feb9170964fa86032ee561680a1ba92786746dc9a466d6",
+      "role": "FROZEN_FIFO_PARTIAL_REBALANCE_ENGINE_REFERENCE"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_PATH_METRICS_AND_PASSIVE_REFERENCE"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-monthly-constant-mix-primary-prior.v1.json",
+      "sha256": "f211b62623a20fbf706d2b719967feb7e9f436b7afe0e342b3adf47327daed3c",
+      "role": "SEALED_PRIMARY_MECHANISM_AND_FALSIFICATION_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-monthly-constant-mix-v1.hypothesis.json",
+      "sha256": "a4a3034823a9df6bf31888816fd3e238dffc25c4a06649d3ead54bdc55f08aa6",
+      "role": "FROZEN_HYPOTHESIS"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_MONTHLY_CONSTANT_MIX_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "EACH_UTC_MONTH_BOUNDARY_AFTER_THE_LATEST_COMPLETE_HOURLY_BAR",
+    "decision_feature": "CALENDAR_MONTH_BOUNDARY_AND_PREREGISTERED_CONSTANT_WEIGHT_ONLY",
+    "primary_target_weight": "0.50",
+    "neighbor_target_weights": [
+      "0.40",
+      "0.60"
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "execution": "NEXT_HOURLY_BAR_OPEN",
+    "sizing": "PRE_TRADE_EQUITY_TARGET_WEIGHT_WITH_NO_LEVERAGE_AND_FEES_DEBITED_FROM_CASH",
+    "rebalance": "UTC_MONTH_BOUNDARY_NEXT_HOURLY_OPEN",
+    "cost_basis": "FIFO_FOR_PARTIAL_SALES",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_THE_SAME_INITIAL_TARGET_BTC_WEIGHT_AT_THE_FIRST_WINDOW_OPEN_AND_HOLD_WITH_REMAINING_ZERO_YIELD_CASH_AND_NO_REBALANCE",
+    "secondary": "FULL_PASSIVE_BTC_BUY_AND_HOLD",
+    "capital_matching": "SAME_INITIAL_EQUITY_TARGET_WEIGHT_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "FIFO_PARTIAL_SALE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct",
+    "unrealized_return_pct",
+    "total_return_pct",
+    "candidate_minus_primary_total_return_pp",
+    "terminal_liquidation_adjusted_return_pct",
+    "candidate_minus_primary_terminal_liquidation_return_pp",
+    "maximum_drawdown_pct",
+    "candidate_minus_primary_maximum_drawdown_pp",
+    "maximum_underwater_duration_hours",
+    "calmar_ratio",
+    "average_exposure_pct",
+    "average_absolute_weight_error_pp",
+    "maximum_absolute_weight_error_pp",
+    "terminal_btc_weight_pct",
+    "fees_equity_units",
+    "turnover_equity_units",
+    "signal_evaluation_count",
+    "trade_count",
+    "buy_trade_count",
+    "sell_trade_count",
+    "blocked_entry_count",
+    "median_realized_lot_hold_hours",
+    "p90_realized_lot_hold_hours",
+    "terminal_oldest_lot_age_hours",
+    "terminal_inventory_cost_basis",
+    "annual_breadth",
+    "top_year_positive_incremental_return_contribution_pct",
+    "top_positive_realized_lot_contribution_pct",
+    "neighbor_stability"
+  ],
+  "gate_set": {
+    "id": "BTC_MONTHLY_CONSTANT_MIX_MATCHED_CAPITAL_GATES_V1",
+    "primary_design_and_validation": [
+      "normal_and_stress_candidate_total_return_pct_gt_0",
+      "normal_and_stress_candidate_minus_primary_total_return_pp_gt_0",
+      "normal_maximum_drawdown_non_worse_than_matched_static",
+      "normal_calmar_at_least_matched_static",
+      "average_absolute_weight_error_at_most_5pp",
+      "expected_monthly_signal_and_trade_counts",
+      "validation_stress_drawdown_no_more_than_normal_plus_2pp",
+      "validation_terminal_liquidation_incremental_return_pp_gt_0"
+    ],
+    "neighbor_stability": [
+      "both_40_and_60_percent_neighbors_have_positive_normal_and_stress_incremental_return_in_design_and_validation",
+      "both_neighbors_have_validation_drawdown_non_worse_than_their_own_matched_static_comparator",
+      "neighbors_are_rejection_only_and_cannot_replace_the_primary"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_candidate_return_at_least_4_of_5_years",
+      "normal_and_stress_positive_incremental_return_at_least_4_of_5_years",
+      "normal_drawdown_and_calmar_non_worse_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_incremental_return_contribution_at_most_60pct",
+      "validation_top_positive_realized_lot_contribution_at_most_60pct",
+      "validation_p90_realized_lot_hold_and_terminal_oldest_lot_age_at_most_17520_hours",
+      "validation_terminal_liquidation_cost_at_most_1pp",
+      "blocked_entries_exactly_0"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_THE_EXACT_MONTHLY_40_50_60_CONSTANT_MIX_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset, lattice, OHLCV, source hash, daily inventory or month-boundary inventory gate fails.",
+    "Stop and permanently close the exact monthly 40/50/60 constant-mix family if the fifty-percent primary or either fixed stability neighbor fails any frozen gate.",
+    "Do not choose forty or sixty percent after seeing outcomes, even if one neighbor outperforms the primary.",
+    "Do not scan another weight, timing rule, rebalance frequency, drift threshold, cash yield, cost model, leverage, short leg, risk target, DRA combination or adjacent allocation after results.",
+    "Do not use any post-2024 data as part of this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

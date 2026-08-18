@@ -129,6 +129,13 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_H1_LAG1_RETURN_AUTOCORRELATION_PRIMARY_PRIOR_V1",
     },
+    "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_INTRADAY_PRICE_PATH_EFFICIENCY_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_INTRADAY_PRICE_PATH_EFFICIENCY_PRIMARY_PRIOR_V1",
+    },
     "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO": {
         "relation": "AT_OR_BELOW",
         "gate_set": GATE_SET_V2,
@@ -141,6 +148,7 @@ FEATURES = {
 PERCENTILE_FEATURES = {
     "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",
     "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE",
+    "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE",
 }
 DIRECT_FEATURES = {"LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO"}
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
@@ -421,6 +429,21 @@ def lag1_return_autocorrelation(log_returns: list[D]) -> D:
         return covariance_sum / (leading_square_sum * lagged_square_sum).sqrt()
 
 
+def intraday_price_path_efficiency(log_returns: list[D]) -> D:
+    if len(log_returns) != 24 or any(not value.is_finite() for value in log_returns):
+        raise ScreenReject(
+            "DATA_REJECT",
+            "intraday price-path efficiency requires exactly 24 finite intraday log returns",
+        )
+    gross_path = sum((abs(value) for value in log_returns), D("0"))
+    if gross_path <= 0:
+        raise ScreenReject(
+            "DATA_REJECT",
+            "intraday price-path efficiency requires a positive gross price path",
+        )
+    return abs(sum(log_returns, D("0"))) / gross_path
+
+
 class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
     def __init__(self, *, feature_key: str, relation: str, threshold: D) -> None:
         super().__init__(
@@ -584,6 +607,11 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             == "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE"
         ):
             return lag1_return_autocorrelation(self.daily_intraday_log_returns)
+        if (
+            self.feature_key
+            == "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE"
+        ):
+            return intraday_price_path_efficiency(self.daily_intraday_log_returns)
         if self.feature_key == "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO":
             if self.feature_day is None or self.daily_bar_count != 24:
                 raise ScreenReject(

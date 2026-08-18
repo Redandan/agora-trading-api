@@ -633,6 +633,35 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
         self.assertIs(runner.validate_manifest(value), value)
 
+    def test_intraday_price_path_efficiency_separates_smooth_and_cancelled_paths(self) -> None:
+        smooth = [D("0.01")] * 24
+        cancelled = [D("0.01")] * 12 + [D("-0.01")] * 12
+        self.assertEqual(runner.intraday_price_path_efficiency(smooth), D("1"))
+        self.assertEqual(runner.intraday_price_path_efficiency(cancelled), D("0"))
+
+    def test_intraday_price_path_efficiency_fails_closed_on_flat_day(self) -> None:
+        with self.assertRaisesRegex(runner.ScreenReject, "positive gross price path"):
+            runner.intraday_price_path_efficiency([D("0")] * 24)
+
+    def test_intraday_price_path_efficiency_feature_requires_v2_gate_set(self) -> None:
+        feature = "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE"
+        value = manifest(feature=feature)
+        value["variants"] = [
+            {"role": "lower_neighbor", "threshold": "0.4", "variant_id": "lower-pe-v1"},
+            {"role": "primary", "threshold": "0.5", "variant_id": "primary-pe-v1"},
+            {"role": "upper_neighbor", "threshold": "0.6", "variant_id": "upper-pe-v1"},
+        ]
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+
 
     def test_v2_primary_gate_fails_on_worse_underwater_duration(self) -> None:
         parent_design = {

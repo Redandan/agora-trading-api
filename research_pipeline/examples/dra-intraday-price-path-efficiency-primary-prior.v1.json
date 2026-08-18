@@ -1,0 +1,59 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary evidence supports the idea that the path by which a momentum return accumulates can matter: gradual continuous price changes may be followed by stronger continuation than discrete moves, while cryptocurrency intraday evidence contains both momentum and reversal and varies around jumps and liquidity. It does not establish that a one-day H1 price-path-efficiency percentile predicts DRA profitability. Exactly one separately frozen matched-capital historical screen may test this scale-normalized cancellation measure; failure closes the exact family without changing the return interval, percentile, lookback, relation or thresholds.",
+  "disposition": "PRIOR_SUPPORTS_ONE_INTRADAY_PRICE_PATH_EFFICIENCY_ADMISSION_AUDIT",
+  "document_type": "DRA_INTRADAY_PRICE_PATH_EFFICIENCY_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE",
+    "formula": "absolute sum of exactly 24 open-to-close H1 log returns wholly inside the latest complete UTC day divided by the sum of their absolute values, midranked against exactly the prior 20 complete-day ratios",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.4", "0.5", "0.6"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "After conditioning on similar formation-period returns, continuous information represented by frequent smaller signed returns is followed by stronger and more persistent equity momentum than discrete information in the authors' long historical sample.",
+      "identity": "Da, Gurun and Warachka, Frog in the Pan: Continuous Information and Momentum (2014)",
+      "primary_source": "https://business.uq.edu.au/sites/default/files/events/files/mitch-warachka-paper.pdf",
+      "role": "PRICE_PATH_CONTINUITY_MECHANISM_PRIOR",
+      "transfer_boundary": "Cross-sectional equity evidence at daily and monthly horizons does not establish Bitcoin H1 behavior, the frozen efficiency formula, a one-day window, DRA timing or after-cost economics."
+    },
+    {
+      "finding": "Using high-frequency Bitcoin and other cryptocurrency prices, the authors report both intraday momentum and reversal; the pattern changes around large jumps, liquidity, FOMC announcements and COVID-19.",
+      "identity": "Wen, Bouri, Xu and Zhao, Intraday return predictability in the cryptocurrency markets: Momentum, reversal, or both (2022)",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4080253",
+      "role": "CRYPTO_INTRADAY_PREDICTABILITY_AND_ADVERSARIAL_REGIME_PRIOR",
+      "transfer_boundary": "Mixed momentum and reversal makes direction uncertain and forbids treating smoothness as alpha without direct matched-capital Design and Validation evidence."
+    },
+    {
+      "finding": "High-frequency cryptoasset regressions find statistically significant lagged-return dependence in many markets, but explanatory power is generally low and BTC-USDT predictability is weaker than fiat-quoted markets at lower frequencies.",
+      "identity": "Barucci, Giuffra Moncayo and Marazzina, Market impact and efficiency in cryptoassets markets (2023)",
+      "primary_source": "https://link.springer.com/article/10.1007/s42521-023-00095-9",
+      "role": "ADVERSARIAL_LOW_EXPLANATORY_POWER_PRIOR",
+      "transfer_boundary": "Serial dependence and participant behavior do not prove a one-day path-quality filter, persistence after fees or DRA economic value."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly 24 open-to-close H1 log returns wholly inside the latest complete UTC day and no preceding-day or later return.",
+    "Compute absolute net log return divided by gross absolute log-return path; fail closed when the gross path is non-positive.",
+    "Convert only the latest complete-day ratio to a midrank percentile against exactly the prior 20 complete-day ratios.",
+    "Keep DRA parent, capital, side, fee, adverse slippage, cooldown, lot management, exit and next-open fill timing unchanged.",
+    "Freeze primary 0.5 and neighbors 0.4 and 0.6 before outcome access; do not search another return definition, lookback, percentile, relation or threshold.",
+    "Require gate set V2 Design and Validation total and realized improvement, drawdown, underwater, holding, terminal inventory, annual breadth and both-neighbor stability.",
+    "Do not open post-2024 OOS or create a runtime filter or strategy activation from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T12:31:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "barbon_ranaldo_official_open_full_text": "PASS",
+    "da_gurun_warachka_open_full_text": "PASS",
+    "wen_bouri_xu_zhao_official_abstract": "PASS_ABSTRACT_ONLY"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "The frozen efficiency ratio is a preregistered transfer measure, not the exact information-discreteness statistic used in the equity paper.",
+    "A one-day H1 path may be too short and noisy to carry the longer-horizon continuity mechanism.",
+    "The measure is direction-neutral before it is combined with the already-long DRA signal, and its incremental value remains unknown.",
+    "No post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed or authorized."
+  ]
+}

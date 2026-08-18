@@ -39,6 +39,8 @@ The runner supports only:
 - complete-day H1 lag-1 open-to-close log-return autocorrelation, ranked
   against the prior 20 complete days, admitted at or above the frozen
   percentile; and
+- complete-day intraday price-path efficiency, ranked against the prior 20
+  complete days, admitted at or above the frozen percentile; and
 - the latest complete UTC day's weekday index (`Monday=0` through `Sunday=6`),
   admitted at or below the frozen threshold without a rolling lookback.
 
@@ -149,6 +151,20 @@ recent history; it does not by itself prove price direction or profitability.
 Zero variation in either sequence fails closed. This sequence-order statistic
 is distinct from the closed magnitude-neutral same-sign-pair share, total
 volatility, jumpiness and long-trend families.
+
+The intraday price-path-efficiency feature divides the absolute sum of the 24
+open-to-close H1 log returns wholly inside the latest complete UTC day by the
+sum of their absolute values. It is one when every non-zero hourly move has the
+same sign and approaches zero when opposing moves cancel. The latest value is
+converted to a midrank percentile against exactly the prior 20 complete-day
+values. This magnitude-weighted cancellation statistic ignores return order,
+so it is distinct from the closed adjacent-sign-persistence and lag-1
+autocorrelation families; it is scale-normalized and intraday-only, so it is
+also distinct from total volatility and the closed prior-200-day trend family.
+A zero gross path fails closed. The feature tests whether a smoother completed
+momentum path improves the unchanged long DRA admission after equal-capital
+fees and path risk; it does not inherit equity-market or cross-crypto momentum
+returns from its literature prior.
 
 The weekend-calendar feature maps the latest complete UTC day to an integer
 from Monday `0` through Sunday `6`. Its nested thresholds admit Monday through

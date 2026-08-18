@@ -85,8 +85,19 @@ class CandidateFunnelTest(unittest.TestCase):
         Draft202012Validator(schema).validate(catalog_document)
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
-        self.assertEqual(len(catalog["families"]), 6)
-        self.assertEqual(len(catalog["closed_families"]), 17)
+        self.assertEqual(len(catalog["families"]), 5)
+        self.assertEqual(len(catalog["closed_families"]), 18)
+        monthly_momentum = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-monthly-12m-time-series-momentum-long-cash"
+        )
+        self.assertEqual(
+            monthly_momentum["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_MONTHLY_12M_TIME_SERIES_MOMENTUM_FAMILY",
+        )
+        self.assertTrue(monthly_momentum["prohibited_reopen"])
         static_allocation = next(
             family
             for family in catalog["closed_families"]
@@ -222,8 +233,8 @@ class CandidateFunnelTest(unittest.TestCase):
         )
 
         self.assertEqual(snapshot["status"], "READY")
-        self.assertEqual(snapshot["summary"]["open_family_count"], 6)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 18)
+        self.assertEqual(snapshot["summary"]["open_family_count"], 5)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 19)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)
@@ -442,7 +453,7 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual("CLOSED", closed["stage"])
         self.assertEqual(VOLATILITY_CLOSE, closed["disposition"])
         self.assertTrue(closed["prohibited_reopen"])
-        self.assertEqual(5, snapshot["summary"]["open_family_count"])
+        self.assertEqual(4, snapshot["summary"]["open_family_count"])
 
     def test_volatility_receipt_conflict_blocks_only_that_family(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch(

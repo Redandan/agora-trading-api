@@ -1,0 +1,139 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_12M_TIME_SERIES_MOMENTUM_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-monthly-12m-time-series-momentum-historical-v1",
+  "decided_at": "2026-08-18T08:43:32Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_12M_TIME_SERIES_MOMENTUM_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_MONTHLY_12M_SIGN_FAMILY_WITHOUT_LOOKBACK_OR_EXECUTION_TUNING",
+  "manifest_sha256": "4f21d8e11482a040532197359b3e74a071bd9d3fb62c5ec59971485320abf97f",
+  "runner": {
+    "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+    "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+    "git_commit": "48b9d19519f9379f07d3d0de20fda75bf10e7100",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-monthly-12m-time-series-momentum-historical-v1/artifacts/run1.json",
+    "sha256": "a6c6332847edb31be05bb9f1259341ca3c2739242b888a254a2142399fb3bd1a"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-monthly-12m-time-series-momentum-historical-v1/artifacts/run2.json",
+    "sha256": "a6c6332847edb31be05bb9f1259341ca3c2739242b888a254a2142399fb3bd1a",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "month_end_count": 72,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "design_normal": {
+      "candidate_realized_return_pct": "269.81105035",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "269.81105035",
+      "candidate_maximum_drawdown_pct": "60.56916406",
+      "candidate_calmar_ratio": "4.45459426",
+      "buy_hold_total_return_pct": "76.64789962",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "0.99298273",
+      "upside_capture_ratio": "3.52013626",
+      "signal_evaluations": 35,
+      "position_changes": 4,
+      "completed_episodes": 2,
+      "median_hold_hours": "8736.00000000",
+      "p90_hold_hours": "12825.60000000",
+      "top_positive_episode_contribution_pct": "100.00000000"
+    },
+    "design_stress": {
+      "candidate_total_return_pct": "267.59882349",
+      "candidate_maximum_drawdown_pct": "60.56916406",
+      "buy_hold_total_return_pct": "76.38345666"
+    },
+    "validation_normal": {
+      "candidate_realized_return_pct": "0.00000000",
+      "candidate_unrealized_return_pct": "206.62398508",
+      "candidate_total_return_pct": "206.62398508",
+      "candidate_terminal_liquidation_adjusted_return_pct": "206.16420241",
+      "candidate_maximum_drawdown_pct": "32.28416349",
+      "candidate_calmar_ratio": "6.40016537",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.44458714",
+      "signal_evaluations": 24,
+      "position_changes": 1,
+      "completed_episodes": 0,
+      "terminal_position": true,
+      "terminal_holding_age_hours": "13200.00000000"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "206.16496714",
+      "candidate_terminal_liquidation_adjusted_return_pct": "205.24708457",
+      "candidate_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_total_return_pct": "463.90931032"
+    },
+    "annual_fair_reset_normal": {
+      "2020": {
+        "candidate_total_return_pct": "148.09284837",
+        "candidate_maximum_drawdown_pct": "60.56916406",
+        "buy_hold_total_return_pct": "208.75933280",
+        "buy_hold_maximum_drawdown_pct": "60.56916406"
+      },
+      "2021": {
+        "candidate_total_return_pct": "59.60909620",
+        "candidate_maximum_drawdown_pct": "54.72348518",
+        "buy_hold_total_return_pct": "59.60909620",
+        "buy_hold_maximum_drawdown_pct": "54.72348518"
+      },
+      "2022": {
+        "candidate_total_return_pct": "-6.87286044",
+        "candidate_maximum_drawdown_pct": "30.71382987",
+        "buy_hold_total_return_pct": "-64.25634095",
+        "buy_hold_maximum_drawdown_pct": "67.36039868"
+      },
+      "2023": {
+        "candidate_total_return_pct": "38.53681795",
+        "candidate_maximum_drawdown_pct": "20.87026923",
+        "buy_hold_total_return_pct": "155.16375107",
+        "buy_hold_maximum_drawdown_pct": "21.72199642"
+      },
+      "2024": {
+        "candidate_total_return_pct": "120.99348678",
+        "candidate_maximum_drawdown_pct": "32.28416349",
+        "buy_hold_total_return_pct": "120.99348678",
+        "buy_hold_maximum_drawdown_pct": "32.28416349"
+      }
+    },
+    "breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "5_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "3_of_5",
+      "top_year_positive_total_return_contribution_pct": "40.32675470"
+    }
+  },
+  "failed_gates": [
+    "design_normal_maximum_drawdown_at_most_75pct_of_buy_hold",
+    "validation_normal_maximum_drawdown_at_most_90pct_of_buy_hold",
+    "validation_normal_upside_capture_at_least_60pct",
+    "validation_normal_calmar_at_least_75pct_of_buy_hold"
+  ],
+  "passed_evidence": [
+    "The exact dataset, parser, passive-reference and seventy-two-month-end integrity gates passed, and two runs were byte-identical.",
+    "Design Normal and Stress returns were strongly positive, Design Calmar exceeded buy-and-hold, and the policy preserved much of the 2020-2021 advance before reducing 2022 exposure.",
+    "Validation Normal and Stress returns and terminal-liquidation-adjusted returns were positive after explicit costs.",
+    "Four of five fair-reset windows were positive, all five annual drawdowns were no worse than buy-and-hold, three of five annual Calmar comparisons passed, and positive returns were not dominated by one year."
+  ],
+  "material_learning": "The twelve-month sign can preserve a completed bull-market gain and materially reduce a prolonged bear loss, but it is too slow at both path transitions. It entered the 2020 crash while still fully long, leaving Design drawdown at 60.56916406 percent, and did not re-enter after the 2022 bear market until 2023-07-01. Validation therefore captured only 44.458714 percent of passive upside, then carried the same 32.28416349 percent drawdown as passive BTC after entry. All Validation gain remained in one terminal open episode; hypothetical liquidation stayed positive but did not repair the missing realized support or weak Calmar.",
+  "scientific_claim": "The exact monthly twelve-complete-month positive-return long-or-cash policy showed economically meaningful historical bear-loss avoidance and strong Design performance, but it failed frozen Design and Validation drawdown, Validation upside-capture and Validation Calmar gates. It is not a candidate, and the result does not authorize a shorter lookback, skip month, partial allocation, alternate execution time or another trend rescue.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The 2020 annual fold starts on 2020-02-01 because an earlier full twelve-month month-end signal is unavailable in the sealed corpus.",
+    "The conclusion closes only the exact monthly twelve-complete-month sign, full-long-or-cash, next-H1-open policy; unrelated future mechanisms require a new pre-outcome fingerprint and gates."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

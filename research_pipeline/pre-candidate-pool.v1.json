@@ -253,52 +253,30 @@
         "Predictive, economic and OOS value remain missing."
       ],
       "duplicate_family_key": "dra-crypto-carry-risk-veto"
-    },
+    }
+  ],
+  "closed_families": [
     {
-      "family_id": "btc-monthly-12m-time-series-momentum-long-cash",
+      "family_id": "closed-btc-monthly-12m-time-series-momentum-long-cash",
       "title": "BTC monthly twelve-month time-series momentum long-or-cash",
       "decision_feature": "LATEST_COMPLETE_MONTH_CLOSE_VS_CLOSE_EXACTLY_TWELVE_COMPLETE_MONTH_ENDS_EARLIER",
-      "causal_hypothesis": "Slow-moving capital allocation may create persistent multi-month BTC demand while a negative twelve-month return may identify prolonged capital impairment before the next monthly allocation decision.",
-      "economic_hypothesis": "A low-turnover monthly long-or-cash policy may retain broad passive BTC upside while reducing prolonged bear-market drawdown enough to improve fee-adjusted Calmar after explicit adverse execution costs.",
       "parent_strategy_id": "BTC_MONTHLY_12M_TIME_SERIES_MOMENTUM_LONG_CASH_V1",
-      "matched_comparator_id": "BTC_BUY_AND_HOLD_SAME_EQUITY_WINDOW_AND_COST_SCENARIO",
-      "runner_id": "btc-monthly-12m-time-series-momentum-historical-v1",
-      "base_stage": "REGISTERED_EXPERIMENT",
-      "estimated_days_to_next_gate": 1,
-      "compute_cost_class": "LOW",
-      "independence_key": "monthly-twelve-month-return-sign-long-cash-allocation",
-      "next_gate": "RUN_FROZEN_DESIGN_VALIDATION_AND_ANNUAL_ECONOMIC_SCREEN",
-      "canonical_binding": {
-        "kind": "NONE",
-        "id": "OFFLINE_HISTORICAL_NOT_CANONICAL"
-      },
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_12M_TIME_SERIES_MOMENTUM_FAMILY",
+      "duplicate_family_key": "btc-monthly-12m-time-series-momentum-long-cash",
       "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-monthly-12m-time-series-momentum-historical.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "1d5cd2e887b40e2289b67b1edbce2ab5c88aa988bcd709963b5cf9803cabfb65"
+        },
         {
           "path": "research_pipeline/examples/btc-monthly-12m-time-series-momentum-historical.v1.manifest.json",
           "role": "FROZEN_PREREGISTRATION_MANIFEST",
           "sha256": "4f21d8e11482a040532197359b3e74a071bd9d3fb62c5ec59971485320abf97f"
         }
       ],
-      "economic_evidence_status": {
-        "fees": "MATCHED_CAPITAL_READY",
-        "adverse_slippage": "MATCHED_CAPITAL_READY",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
-      },
-      "missing_proof": [
-        "Frozen Design, Validation and annual matched-capital economics have not run.",
-        "Cost stress, holding duration, concentration and terminal liquidation sensitivity have not been measured.",
-        "Independent post-selection OOS has not been opened."
-      ],
-      "duplicate_family_key": "btc-monthly-12m-time-series-momentum-long-cash"
-    }
-  ],
-  "closed_families": [
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-btc-static-half-passive-half-dra-v1",
       "title": "Static equal-capital passive BTC and frozen DRA V1 portfolio",

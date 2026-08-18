@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "document_type": "CBOE_SKEW_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Cboe Global Markets",
+  "landing_page": "https://www.cboe.com/us/indices/dashboard/skew/",
+  "methodology_url": "https://cdn.cboe.com/resources/indices/documents/SKEWwhitepaperjan2011.pdf",
+  "download_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv",
+  "downloaded_at": "2026-08-18T13:36:48Z",
+  "download_sha256": "6cc9a09499211fb39333b04f2601f6edf90d3797ae46ddcec07c7a7a7de12854",
+  "response_revision_identity": {
+    "etag": "\"ff948d5a3fa3e0c350d1909571e71c99\"",
+    "last_modified": "Tue, 18 Aug 2026 13:30:50 GMT",
+    "content_length": 202564
+  },
+  "sealed_subset": {
+    "path": "research_pipeline/examples/cboe-skew-daily-2018-2024.v1.csv",
+    "sha256": "27e8e939759342b37f1d8bcb1667ca7389f20bcf471032d5b6a45d16a35c1454",
+    "rows": 1758,
+    "first_date": "2018-01-02",
+    "last_date": "2024-12-31",
+    "columns": ["DATE", "SKEW"]
+  },
+  "publication_timing_boundary": "Use a Cboe business-day close only at 00:00 UTC on the following calendar day or later. Persist the latest state across weekends and holidays. Never use the same UTC-day BTC bars before that next-day boundary.",
+  "revision_boundary": "The committed subset, response ETag and Last-Modified identity are the only historical source revision for this experiment. Any later Cboe response is a different artifact and cannot replace or repair this source after outcome access.",
+  "license_and_accuracy_boundary": "Cboe publishes index history for informational research use without an execution or accuracy claim. The sealed copy is an immutable bounded research input, not redistribution authority, an index product, or Trading evidence.",
+  "scope_note": "Free public historical data only; no paid API, account, key, canonical state write or Trading action was used."
+}

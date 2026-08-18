@@ -1,0 +1,68 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_SKEW_TAIL_RISK_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "PRIOR_SUPPORTS_ONE_SKEW_PERCENTILE_LONG_CASH_HISTORICAL_AUDIT",
+  "claim_boundary": "Primary evidence identifies Cboe SKEW as a risk-neutral left-tail measure that is low-correlated with and complementary to VIX. Cross-market Bitcoin evidence supports time-varying traditional-risk transmission but not a stable SKEW timing rule. Exactly one preregistered long-or-cash historical audit may test whether avoiding only the highest lagged SKEW states improves BTC risk-adjusted economics. Failure closes this exact tail-risk percentile family without changing source, lag, lookback, relation or thresholds.",
+  "feature_contract": {
+    "source": "CBOE_SKEW_DAILY_CLOSE",
+    "decision_time": "NEXT_CALENDAR_DAY_0000_UTC_AFTER_CBOE_CLOSE",
+    "feature": "LATEST_SKEW_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",
+    "formula": "midrank percentile of the latest Cboe SKEW close against exactly the preceding 252 Cboe business-day closes",
+    "policy": "LONG_BTC_WHEN_PERCENTILE_AT_OR_BELOW_THRESHOLD_OTHERWISE_CASH",
+    "thresholds": ["0.7", "0.8", "0.9"],
+    "primary_threshold": "0.8"
+  },
+  "independence_contract": {
+    "duplicate_family_key": "btc-skew-tail-risk-long-cash",
+    "independence_key": "equity-option-left-tail-asymmetry",
+    "not_vix_rescue": "The feature is risk-neutral third-moment asymmetry, not the VIX variance level, slope, threshold, smoothing or BTC interaction. Cboe reports low variation correlation between SKEW and VIX and describes SKEW as an additional tail-risk layer.",
+    "excluded_closed_families": [
+      "btc-vix-risk-state-long-cash",
+      "btc-3pct-joint-reversal-elevated-volatility",
+      "dra-downside-semivariance-entry-admission",
+      "dra-bipower-jumpiness-entry-admission"
+    ]
+  },
+  "prior_matrix": [
+    {
+      "identity": "Cboe, The Cboe SKEW Index",
+      "primary_source": "https://cdn.cboe.com/resources/indices/documents/SKEWwhitepaperjan2011.pdf",
+      "finding": "Cboe defines SKEW from S&P 500 option prices as a 30-day risk-neutral skewness measure that rises with perceived negative tail risk, reports low correlation with VIX variations, and positions it as a complementary tail-risk layer.",
+      "role": "OFFICIAL_FEATURE_IDENTITY_AND_VIX_INDEPENDENCE",
+      "transfer_boundary": "An equity-option tail-risk price is not proof that it forecasts Bitcoin or that a long-or-cash implementation improves economics."
+    },
+    {
+      "identity": "Yae and Tian, Volatile safe-haven asset: Evidence from Bitcoin (2024)",
+      "primary_source": "https://doi.org/10.1016/j.jfs.2024.101285",
+      "finding": "The study reports that time-varying Bitcoin and S&P 500 correlation contains next-day Bitcoin return information, supporting a possible cross-market risk-transmission channel.",
+      "role": "CROSS_MARKET_TRANSFER_PRIOR",
+      "transfer_boundary": "Correlation-state predictability does not identify SKEW, an 80th-percentile rule, execution feasibility, costs or risk-adjusted performance."
+    },
+    {
+      "identity": "Stremmel, What can monetary policy tell us about Bitcoin? (2023)",
+      "primary_source": "https://link.springer.com/article/10.1007/s10436-023-00432-3",
+      "finding": "Bitcoin reacts to traditional monetary and market information, but the magnitude and sign vary over time and simple stable return relations are unclear.",
+      "role": "ADVERSARIAL_TIME_VARIATION_PRIOR",
+      "transfer_boundary": "Time variation requires separate Design and Validation, annual breadth, concentration visibility and neighbor stability rather than reliance on an aggregate relation."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only the committed Cboe daily SKEW subset and exactly the prior 252 available Cboe business-day closes.",
+    "Make each SKEW close effective no earlier than 00:00 UTC on the following calendar day and persist its state across weekends and holidays.",
+    "Freeze primary percentile 0.8 and neighbors 0.7 and 0.9 before BTC outcome access.",
+    "Use a spot-only 100-percent BTC or 100-percent cash policy with next-H1-open fills, explicit normal and doubled stress friction, realized/unrealized separation and terminal liquidation.",
+    "Require positive Design and Validation economics, drawdown and Calmar improvement, upside capture, annual breadth, concentration control and both-neighbor stability.",
+    "Do not add an absolute SKEW threshold, different lookback, smoothing, VIX combination, BTC interaction, partial sizing, leverage, shorting or threshold search after outcome access.",
+    "Do not open post-2024 OOS or create a Trading runtime rule from this audit."
+  ],
+  "uncertainty": [
+    "SKEW measures S&P 500 option-implied left-tail pricing, not crypto-specific tail risk, and its Bitcoin transfer may be weak or regime-dependent.",
+    "High SKEW may represent priced insurance demand or a risk premium rather than an immediately avoidable BTC drawdown state.",
+    "The 252-business-day percentile normalizes secular index levels but may still vary across monetary, option-market and Bitcoin-adoption regimes.",
+    "Cboe historical data is informational and mutable at its public endpoint; only the exact committed bytes and response revision identity are evidence for this audit.",
+    "No BTC performance result, post-2024 data, OOS, candidate, runtime filter or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-18T13:38:00Z"
+}

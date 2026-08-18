@@ -1,0 +1,233 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-monthly-volatility-of-volatility-half-risk-historical-v1",
+  "created_at": "2026-08-18T14:24:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "Instability in lagged Bitcoin realized volatility may identify transition states with unusually uncertain risk. Reducing an otherwise passive unlevered BTC position from 100 percent to 50 percent only during high volatility-of-volatility percentile states may lower drawdown while preserving enough upside to improve fee-adjusted Calmar over passive BTC.",
+  "economic_rationale": "Unlike volatility-level targeting, this policy responds only when the dispersion of log daily realized volatility is unusually high relative to its own trailing distribution. It is useful only if the state is not a repackaging of the closed volatility-level family and if partial de-risking improves direct matched-capital economics after fees, adverse slippage, annual path risk and terminal inventory accounting.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-monthly-volatility-of-volatility-half-risk",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_MONTHLY_VOV_PERCENTILE_100_OR_50_PERCENT_POLICY",
+    "distinct_from_closed_families": [
+      "The closed monthly 30-day volatility-target family continuously sized exposure as 0.40 divided by the current volatility level; this policy uses the dispersion of twenty log daily realized-volatility observations, percentile normalization, exactly two fixed weights and a frozen non-redundancy gate.",
+      "The closed DRA realized-volatility family admitted or vetoed individual DRA entries; this policy has no DRA parent, no entry veto and instead partially rebalances a standalone passive BTC allocation.",
+      "The closed VIX and SKEW families used external risk gauges and binary long-or-cash targets; this policy uses only sealed BTC hourly paths and never exits completely to cash.",
+      "The open post-shock volatility family conditions on a three-percent event and awaits forward evidence; this policy uses every month boundary and no shock label."
+    ],
+    "redundancy_gate": "ABSOLUTE_SPEARMAN_CORRELATION_BETWEEN_MONTHLY_VOV_AND_20D_MEAN_DAILY_RV_AT_MOST_0_80_IN_BOTH_DESIGN_AND_VALIDATION",
+    "excluded_reinterpretations": [
+      "No alternate daily estimator, VOV lookback, percentile lookback, threshold, target weight, relation, rebalance frequency, smoothing, hysteresis, leverage, short leg or trend interaction may be scanned after outcome access.",
+      "If either non-redundancy gate fails, close before opening economics and retain it as a duplicate rejection.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-monthly-volatility-of-volatility-half-risk-primary-prior.v1.json",
+      "sha256": "a3d8e953bbca7cb178d10f9bb8f9f9cc271749ebc7cb53b4fba812a8210e5468",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research/btc_monthly_30d_volatility_target_40pct_historical.py",
+      "sha256": "8eb185644904b62152feb9170964fa86032ee561680a1ba92786746dc9a466d6",
+      "role": "FROZEN_FIFO_PARTIAL_REBALANCE_AND_INVENTORY_REFERENCE"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_PASSIVE_BENCHMARK_AND_PATH_METRIC_REFERENCE"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_MONTHLY_VOV20_PRIOR252_PERCENTILE_HALF_RISK_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "EACH_UTC_MONTH_BOUNDARY_AFTER_THE_LATEST_COMPLETE_UTC_DAY",
+    "daily_realized_volatility": "SQRT_OF_SUM_OF_EXACTLY_24_SQUARED_HOURLY_LOG_CLOSE_RETURNS",
+    "volatility_of_volatility": "POPULATION_STANDARD_DEVIATION_OF_LOG_DAILY_REALIZED_VOLATILITY_OVER_EXACTLY_20_COMPLETE_UTC_DAYS",
+    "decision_feature": "LATEST_VOLATILITY_OF_VOLATILITY_PRIOR_252_COMPLETE_DAY_MIDRANK_PERCENTILE",
+    "relation": "HIGH_RISK_WHEN_STRICTLY_ABOVE_THRESHOLD",
+    "low_risk_target": "BTC_100_PERCENT",
+    "high_risk_target": "BTC_50_PERCENT_CASH_50_PERCENT",
+    "execution": "NEXT_HOURLY_BAR_OPEN",
+    "sizing": "PRE_TRADE_EQUITY_TARGET_WEIGHT_WITH_NO_LEVERAGE_AND_FEES_DEBITED_FROM_CASH",
+    "rebalance": "ONLY_AT_UTC_MONTH_BOUNDARIES_WITH_FIFO_COST_BASIS_FOR_PARTIAL_SALES",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": [
+      {
+        "variant_id": "volatility-of-volatility-p70-v1",
+        "role": "lower_neighbor",
+        "threshold": "0.7"
+      },
+      {
+        "variant_id": "volatility-of-volatility-p80-v1",
+        "role": "primary",
+        "threshold": "0.8"
+      },
+      {
+        "variant_id": "volatility-of-volatility-p90-v1",
+        "role": "upper_neighbor",
+        "threshold": "0.9"
+      }
+    ]
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_CASH_WITH_PREWINDOW_FEATURE_WARMUP"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_CASH_WITH_PREWINDOW_FEATURE_WARMUP"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_CASH_WITH_PREWINDOW_FEATURE_WARMUP"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "FIFO_PARTIAL_SALE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct",
+    "unrealized_return_pct",
+    "total_return_pct",
+    "terminal_liquidation_adjusted_return_pct",
+    "maximum_drawdown_pct",
+    "maximum_underwater_duration_hours",
+    "fees_equity_units",
+    "turnover_equity_units",
+    "average_exposure_pct",
+    "median_target_exposure_pct",
+    "signal_evaluation_count",
+    "high_risk_target_count",
+    "full_risk_target_count",
+    "rebalance_trade_count",
+    "realized_lot_slice_count",
+    "median_realized_lot_hold_hours",
+    "p90_realized_lot_hold_hours",
+    "terminal_position",
+    "terminal_oldest_lot_age_hours",
+    "terminal_inventory_cost_basis",
+    "buy_hold_total_return_pct",
+    "buy_hold_maximum_drawdown_pct",
+    "upside_capture_ratio",
+    "calmar_ratio",
+    "annual_breadth",
+    "top_year_positive_return_contribution_pct",
+    "top_positive_realized_lot_contribution_pct",
+    "feature_spearman_to_20d_mean_realized_volatility"
+  ],
+  "gate_set": {
+    "id": "BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_ECONOMIC_GATES_V1",
+    "pre_economic": [
+      "dataset_sha256_and_52608_rows_match",
+      "hourly_lattice_and_ohlcv_invariants_pass",
+      "frozen_source_binding_sha256s_match",
+      "exact_24h_daily_rv_20d_vov_and_prior252_percentile_inventory_match",
+      "absolute_monthly_feature_spearman_to_20d_mean_rv_at_most_0_80_in_design_and_validation"
+    ],
+    "primary": [
+      "design_normal_and_stress_total_return_positive",
+      "design_drawdown_at_most_95pct_of_buy_hold",
+      "design_upside_capture_at_least_80pct",
+      "design_calmar_at_least_buy_hold",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_at_most_95pct_of_buy_hold",
+      "validation_upside_capture_at_least_80pct",
+      "validation_calmar_at_least_buy_hold",
+      "design_and_validation_signal_counts_exactly_36_and_24",
+      "both_risk_states_observed_in_design_and_validation",
+      "validation_at_least_2_rebalance_trades",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_and_stress_positive_annual_return_at_least_4_of_5",
+      "annual_drawdown_non_worse_at_least_4_of_5",
+      "annual_calmar_non_worse_at_least_3_of_5",
+      "top_year_and_top_positive_realized_lot_contribution_at_most_60pct",
+      "validation_holding_and_terminal_inventory_gates_pass"
+    ],
+    "neighbors": [
+      "design_and_validation_normal_total_return_positive",
+      "validation_stress_total_return_positive",
+      "validation_drawdown_non_worse_than_buy_hold",
+      "validation_upside_capture_at_least_80pct",
+      "validation_calmar_at_least_85pct_of_buy_hold",
+      "normal_positive_annual_return_at_least_4_of_5"
+    ],
+    "decision": "PRE_ECONOMIC_NONREDUNDANCY_AND_PRIMARY_AND_BOTH_NEIGHBORS_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before features if any dataset, parser, hourly lattice, OHLCV or frozen source hash gate fails.",
+    "Stop with DUPLICATE_REJECT before economics if the absolute monthly Spearman correlation between volatility-of-volatility and the twenty-day mean realized-volatility level exceeds 0.80 in Design or Validation.",
+    "Stop and permanently close the exact monthly VOV20 prior-252 percentile 100-or-50-percent family if any frozen primary, neighbor, breadth, concentration, holding or inventory gate fails.",
+    "Do not scan another lookback, estimator, percentile, threshold, target weight, relation, rebalance clock, smoothing, hysteresis, leverage, short leg or interaction after seeing results.",
+    "Do not use any post-2024 data as part of this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with independent sealed OOS still required."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

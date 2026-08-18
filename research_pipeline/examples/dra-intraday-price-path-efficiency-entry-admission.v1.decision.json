@@ -1,0 +1,169 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_INTRADAY_PRICE_PATH_EFFICIENCY_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-intraday-price-path-efficiency-entry-admission-v1",
+  "decided_at": "2026-08-18T12:35:59Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_INTRADAY_PRICE_PATH_EFFICIENCY_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_LATEST_COMPLETE_UTC_DAY_INTRADAY_PRICE_PATH_EFFICIENCY_PERCENTILE_DRA_ADMISSION_FAMILY_WITHOUT_RETURN_INTERVAL_LOOKBACK_RELATION_OR_THRESHOLD_TUNING",
+  "manifest_sha256": "85ad075f998661e5536bcdda56aadb5a261856fc1fe60332d9ad31b24ba1d59c",
+  "prior_sha256": "7f2bb70e1b738c34e3d183844808a70319cf1e1378072ae492013ff6dc3310fe",
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "2ea4f8fe1d018b87e3808725174c6ef1ecf906d7fed5958552b25f4089d3c5fd",
+    "git_commit": "97280610ea685fe7aabcf92f4a6cc75a5367c583",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-intraday-price-path-efficiency-entry-admission-v1/artifacts/run1.json",
+    "sha256": "a7c66beb498765b6ff3968c31ea2d61e02cdb15674fc56a8c0a598c7f17653ef"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-intraday-price-path-efficiency-entry-admission-v1/artifacts/run2.json",
+    "sha256": "a7c66beb498765b6ff3968c31ea2d61e02cdb15674fc56a8c0a598c7f17653ef",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature": {
+    "key": "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE",
+    "formula": "ABSOLUTE_SUM_OF_24_COMPLETE_DAY_H1_LOG_RETURNS_DIVIDED_BY_SUM_OF_ABSOLUTE_H1_LOG_RETURNS_MIDRANKED_AGAINST_PRIOR_20_COMPLETE_DAYS",
+    "primary_threshold": "0.5",
+    "neighbors": ["0.4", "0.6"],
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "economic_summary": {
+    "parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": "126.0",
+        "p90_hold_hours": "1818.6",
+        "maximum_underwater_duration_hours": 9878,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": "182.5",
+        "p90_hold_hours": "1418.3",
+        "maximum_underwater_duration_hours": 2397,
+        "terminal_inventory_count": 1
+      }
+    },
+    "primary_efficiency_percentile_0p5": {
+      "design": {
+        "realized_usdt": "140.70586400",
+        "realized_pnl_delta_usdt": "-29.19260367",
+        "unrealized_usdt": "-58.54594789",
+        "unrealized_pnl_delta_usdt": "20.57454652",
+        "total_pnl_usdt": "82.15991611",
+        "total_pnl_delta_usdt": "-8.61805715",
+        "max_drawdown_pct": "24.285685",
+        "max_drawdown_delta_pp": "-5.244763",
+        "median_hold_hours": "196.0",
+        "p90_hold_hours": "1428.0",
+        "maximum_underwater_duration_hours": 9878,
+        "vetoed_signals": 54,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "82.46456510",
+        "realized_pnl_delta_usdt": "-6.94661797",
+        "unrealized_usdt": "-3.20820121",
+        "unrealized_pnl_delta_usdt": "0.00000000",
+        "total_pnl_usdt": "79.25636389",
+        "total_pnl_delta_usdt": "-6.94661797",
+        "max_drawdown_pct": "17.118459",
+        "max_drawdown_delta_pp": "9.996961",
+        "median_hold_hours": "217.0",
+        "median_hold_delta_hours": "34.5",
+        "p90_hold_hours": "3725.2",
+        "p90_hold_delta_hours": "2306.9",
+        "maximum_underwater_duration_hours": 3195,
+        "maximum_underwater_delta_hours": 798,
+        "vetoed_signals": 26,
+        "terminal_inventory_count": 1
+      },
+      "annual_total_pnl_delta_usdt": {
+        "2020": "-6.60815506",
+        "2021": "-2.23111315",
+        "2022": "-4.59035195",
+        "2023": "-4.25501494",
+        "2024": "-4.88526470"
+      },
+      "annual_total_wins": "0_of_5",
+      "annual_drawdown_non_worse": "4_of_5",
+      "top_positive_year_delta_contribution_pct": "100.000000"
+    },
+    "lower_neighbor_efficiency_percentile_0p4": {
+      "design_total_pnl_delta_usdt": "-22.51464427",
+      "validation_total_pnl_delta_usdt": "-2.40158641",
+      "validation_realized_pnl_delta_usdt": "-2.00031346",
+      "validation_max_drawdown_delta_pp": "3.872475",
+      "validation_max_underwater_delta_hours": 724,
+      "annual_total_wins": "0_of_5",
+      "disposition": "PERMISSIVE_NEIGHBOR_FAILS_DESIGN_VALIDATION_REALIZED_AND_PATH_RISK"
+    },
+    "upper_neighbor_efficiency_percentile_0p6": {
+      "design_total_pnl_delta_usdt": "8.11036459",
+      "design_realized_pnl_delta_usdt": "-34.90907209",
+      "validation_total_pnl_delta_usdt": "-8.93208242",
+      "validation_realized_pnl_delta_usdt": "-8.93208242",
+      "validation_max_drawdown_delta_pp": "10.108705",
+      "validation_max_underwater_delta_hours": 798,
+      "annual_total_wins": "1_of_5",
+      "disposition": "STRICT_NEIGHBOR_DESIGN_TOTAL_IS_INVENTORY_CLEANUP_NOT_REALIZED_ALPHA_AND_VALIDATION_PATH_RISK_FAILS"
+    }
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "failed_neighbor_gates": {
+    "lower_0p4": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ],
+    "upper_0p6": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ]
+  },
+  "passed_evidence": [
+    "The exact 52,608-row pre-2025 H1 corpus, primary-source prior, manifest and committed runner hashes passed, and two independent runs were byte-identical.",
+    "The primary reduced Design drawdown but failed Design realized and total PnL; its less-negative Design terminal mark did not transfer to Validation.",
+    "All three variants made material entry interventions while preserving equal-capital realized, unrealized, total PnL, drawdown, holding, utilization, underwater and terminal-inventory visibility."
+  ],
+  "material_learning": "A smoother latest complete UTC-day H1 price path is not a useful DRA V1 admission condition in this historical transfer. The primary vetoed 54 Design and 26 Validation signals, lost 8.62 and 6.95 USDT of total PnL respectively, and lost 29.19 and 6.95 USDT of realized PnL. Validation drawdown rose 10.00 percentage points, median holding increased 34.5 hours, P90 holding increased 2,306.9 hours and maximum underwater duration increased 798 hours. Every annual total delta was negative. The two frozen neighbors also lost Validation total and realized PnL and worsened path risk; the strict neighbor's positive Design total came with lower realized PnL and failed Validation.",
+  "scientific_claim": "For the exact latest-complete-UTC-day absolute net H1 log return divided by gross absolute H1 log-return path, midranked against the prior twenty complete days, thresholds 0.4, 0.5 and 0.6 applied only to unchanged equal-capital DRA V1 entries, historical Design and Validation evidence through 2024 rejects candidate status. The result does not authorize changing the return interval, path formula, lookback, percentile, relation or threshold.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The frozen one-day H1 efficiency ratio transfers only one interpretation of price-path continuity and is not the exact statistic from the equity literature.",
+    "The conclusion closes only this exact DRA admission transfer and does not dispute broader evidence that return paths or intraday regimes can matter in other assets or strategy parents.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

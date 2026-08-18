@@ -257,6 +257,32 @@
   ],
   "closed_families": [
     {
+      "family_id": "closed-dra-intraday-price-path-efficiency-entry-admission",
+      "title": "DRA latest-complete-day intraday price-path efficiency percentile entry admission",
+      "decision_feature": "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_DRA_INTRADAY_PRICE_PATH_EFFICIENCY_FAMILY",
+      "duplicate_family_key": "dra-intraday-price-path-efficiency-entry-admission",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "6cc6c1de7582306477250274ed9e8c055ba5627021a69370ff852a795d7c3189"
+        },
+        {
+          "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "85ad075f998661e5536bcdda56aadb5a261856fc1fe60332d9ad31b24ba1d59c"
+        },
+        {
+          "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_PRIOR",
+          "sha256": "7f2bb70e1b738c34e3d183844808a70319cf1e1378072ae492013ff6dc3310fe"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-dra-us-traditional-session-activity-entry-admission",
       "title": "DRA fixed 15:00-20:59 UTC traditional-session activity entry admission",
       "decision_feature": "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",

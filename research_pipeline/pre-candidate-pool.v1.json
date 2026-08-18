@@ -25,6 +25,49 @@
   },
   "families": [
     {
+      "family_id": "btc-donchian-20d-10d-standalone",
+      "title": "BTC standalone Donchian 20-day breakout and 10-day breakdown",
+      "decision_feature": "COMPLETE_UTC_DAY_CLOSE_VS_PRIOR_20_DAY_HIGH_AND_PRIOR_10_DAY_LOW",
+      "causal_hypothesis": "Complete-day breakouts may identify persistent directional demand while ATR risk sizing, a fixed initial stop and a ten-day breakdown exit contain failed-trend losses.",
+      "economic_hypothesis": "The parameter-frozen long-only system may deliver positive fee-adjusted capital returns with materially less drawdown than matched-capital passive BTC while preserving enough upside and broad realized trade support.",
+      "parent_strategy_id": "BTC_DONCHIAN_20D_10D_V1",
+      "matched_comparator_id": "MATCHED_CAPITAL_CASH_AND_BUY_HOLD_V1",
+      "runner_id": "btc-donchian-standalone-historical-v1",
+      "base_stage": "REGISTERED_EXPERIMENT",
+      "estimated_days_to_next_gate": 1,
+      "compute_cost_class": "LOW",
+      "independence_key": "standalone-donchian-trend-following-capital-return",
+      "next_gate": "IMPLEMENT_THIN_JAVA21_ADAPTER_AND_RUN_FROZEN_DESIGN_VALIDATION_SCREEN",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "REPOSITORY_FROZEN_HISTORICAL_EXPERIMENT"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-donchian-20d-10d-standalone-historical.v1.manifest.json",
+          "role": "FROZEN_STANDALONE_HISTORICAL_MANIFEST",
+          "sha256": "0e76ef3bdcf4e30ae352cadd04eafdf4677cede3ac2b976790528ddc3c906ee8"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MATCHED_CAPITAL_READY",
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "The frozen Java 21 offline adapter has not yet produced deterministic Design and Validation economics.",
+        "Matched-capital return, drawdown, holding, concentration and terminal inventory gates remain unopened.",
+        "Independent post-selection OOS is explicitly unopened."
+      ],
+      "duplicate_family_key": "btc-donchian-20d-10d-standalone"
+    },
+    {
       "family_id": "dra-entry-volume-confirmation-20d",
       "title": "DRA entry admission by complete-day volume confirmation",
       "decision_feature": "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN_AT_OR_ABOVE_1_50",

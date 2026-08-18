@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/schemas/btc-donchian-standalone-historical-manifest.v1.json",
+  "title": "BTC Donchian Standalone Historical Manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "document_type", "experiment_id", "created_at",
+    "authorization", "research_classification", "thesis",
+    "economic_rationale", "uniqueness", "dataset", "source_bindings",
+    "strategy_policy", "windows", "comparators", "metrics", "gate_set",
+    "determinism", "stop_conditions", "prohibited_actions"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_DONCHIAN_STANDALONE_HISTORICAL_MANIFEST_V1"},
+    "experiment_id": {"const": "btc-donchian-20d-10d-standalone-historical-v1"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "research_classification": {"const": "HISTORICAL_RETROSPECTIVE_NO_OOS"},
+    "thesis": {"type": "string", "minLength": 40},
+    "economic_rationale": {"type": "string", "minLength": 40},
+    "uniqueness": {
+      "type": "object", "additionalProperties": false,
+      "required": ["duplicate_family_key", "prior_result_status", "excluded_reinterpretations"],
+      "properties": {
+        "duplicate_family_key": {"const": "btc-donchian-20d-10d-standalone"},
+        "prior_result_status": {"const": "NO_STANDALONE_MATCHED_CAPITAL_ECONOMIC_RESULT_FOUND"},
+        "excluded_reinterpretations": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 10}}
+      }
+    },
+    "dataset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256", "rows", "first_open_time", "last_close_time", "selection_cutoff"],
+      "properties": {
+        "path": {"const": ".research-state/java-parity/selection-2019-2024.tsv"},
+        "sha256": {"const": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"},
+        "rows": {"const": 52608},
+        "first_open_time": {"const": "2019-01-01T00:00:00"},
+        "last_close_time": {"const": "2025-01-01T00:00:00"},
+        "selection_cutoff": {"const": "2025-01-01T00:00:00"}
+      }
+    },
+    "source_bindings": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["path", "sha256", "role"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "role": {"enum": ["FROZEN_JAVA_STRATEGY_ENGINE", "FROZEN_JAVA_POLICY", "FROZEN_BAR_ENTITY_CONTRACT"]}
+        }
+      }
+    },
+    "strategy_policy": {
+      "const": {
+        "policy_id": "BTC_DONCHIAN_20D_10D_V1",
+        "instrument": "OKX_BTC_USDT_SPOT",
+        "bar_interval": "1h",
+        "entry": "COMPLETE_UTC_DAY_CLOSE_ABOVE_PRIOR_20_COMPLETE_DAY_HIGHS",
+        "exit": "COMPLETE_UTC_DAY_CLOSE_BELOW_PRIOR_10_COMPLETE_DAY_LOWS",
+        "atr_days": 14,
+        "initial_stop_atr_multiple": "2.0",
+        "equity_risk_per_trade": "0.01",
+        "maximum_exposure": "1.0",
+        "leverage": "DENY",
+        "variants": 1
+      }
+    },
+    "windows": {
+      "type": "object", "additionalProperties": false,
+      "required": ["design", "validation", "annual_breadth"],
+      "properties": {
+        "design": {"const": {"start": "2019-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_INITIAL_EQUITY_1"}},
+        "validation": {"const": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_INITIAL_EQUITY_1"}},
+        "annual_breadth": {"const": {"years": [2020, 2021, 2022, 2023, 2024], "state": "FAIR_RESET_EACH_YEAR_INITIAL_EQUITY_1"}}
+      }
+    },
+    "comparators": {
+      "const": {
+        "cash": "INITIAL_EQUITY_1_NO_RETURN",
+        "buy_and_hold": "BUY_AT_FIRST_WINDOW_OPEN_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE_THEN_MARK_TO_MARKET_WITHOUT_TERMINAL_LIQUIDATION",
+        "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+      }
+    },
+    "metrics": {"type": "array", "minItems": 12, "uniqueItems": true, "items": {"type": "string", "minLength": 3}},
+    "gate_set": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "data", "design", "validation", "breadth", "concentration", "holding_and_inventory", "decision"],
+      "properties": {
+        "id": {"const": "BTC_DONCHIAN_STANDALONE_ECONOMIC_GATES_V1"},
+        "data": {"type": "array", "minItems": 3, "items": {"type": "string"}},
+        "design": {"type": "array", "minItems": 4, "items": {"type": "string"}},
+        "validation": {"type": "array", "minItems": 7, "items": {"type": "string"}},
+        "breadth": {"type": "array", "minItems": 3, "items": {"type": "string"}},
+        "concentration": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+        "holding_and_inventory": {"type": "array", "minItems": 3, "items": {"type": "string"}},
+        "decision": {"const": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"}
+      }
+    },
+    "determinism": {
+      "const": {
+        "java_version": "21",
+        "launch": "DIRECT_CLASSPATH_NO_MAVEN_EXEC_NO_SPRING",
+        "output": "CREATE_NEW_SEALED_JSON",
+        "reruns": 2,
+        "required": "BYTE_IDENTICAL_OUTPUTS"
+      }
+    },
+    "stop_conditions": {"type": "array", "minItems": 5, "items": {"type": "string", "minLength": 10}},
+    "prohibited_actions": {"type": "array", "minItems": 8, "uniqueItems": true, "items": {"type": "string", "minLength": 3}}
+  }
+}

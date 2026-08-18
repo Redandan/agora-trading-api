@@ -1,0 +1,123 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DONCHIAN_STANDALONE_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-donchian-20d-10d-standalone-historical-v1",
+  "created_at": "2026-08-18T07:33:47Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_RETROSPECTIVE_NO_OOS",
+  "thesis": "The existing parameter-frozen long-only BTC Donchian 20-day breakout and 10-day breakdown system may convert persistent trends into positive fee-adjusted capital returns while materially reducing the drawdown path relative to passive BTC exposure.",
+  "economic_rationale": "A complete-day breakout waits for evidence of persistent demand, ATR risk sizing limits loss per entry, and the 10-day breakdown plus fixed initial stop exits failed trends. The system is useful only if the lower exposure still captures a meaningful fraction of passive upside with broad, non-concentrated realized gains under both normal and adverse-cost assumptions.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-donchian-20d-10d-standalone",
+    "prior_result_status": "NO_STANDALONE_MATCHED_CAPITAL_ECONOMIC_RESULT_FOUND",
+    "excluded_reinterpretations": [
+      "DRA overlays that use a fresh Donchian event as an entry entitlement, promotion or exit condition are different parent strategies and do not answer standalone Donchian economics.",
+      "Golden signal, order and trade ledger parity proves deterministic implementation only; it does not prove historical or forward profitability.",
+      "No alternative entry day, exit day, ATR period, stop multiple, risk fraction, exposure cap, direction, venue or threshold may be scanned after outcome access."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {"path": "src/main/java/com/agora/service/trading/BtcDonchianShadowEngine.java", "sha256": "4bfada16ae164445c8ea7a37afc88ed7997f3f7410d9fc6b454f7545d36f0414", "role": "FROZEN_JAVA_STRATEGY_ENGINE"},
+    {"path": "src/main/java/com/agora/service/trading/BtcDonchianShadowPolicy.java", "sha256": "039a2dc71fcc0dbf90a44ab4e89f3460030ba67637d3515bd17e76a999f9db21", "role": "FROZEN_JAVA_POLICY"},
+    {"path": "src/main/java/com/agora/model/MdKline.java", "sha256": "0decc7638859e80a5f54e56749948534e6f755e5f0b24af713d145cc22c050c9", "role": "FROZEN_BAR_ENTITY_CONTRACT"}
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DONCHIAN_20D_10D_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "entry": "COMPLETE_UTC_DAY_CLOSE_ABOVE_PRIOR_20_COMPLETE_DAY_HIGHS",
+    "exit": "COMPLETE_UTC_DAY_CLOSE_BELOW_PRIOR_10_COMPLETE_DAY_LOWS",
+    "atr_days": 14,
+    "initial_stop_atr_multiple": "2.0",
+    "equity_risk_per_trade": "0.01",
+    "maximum_exposure": "1.0",
+    "leverage": "DENY",
+    "variants": 1
+  },
+  "windows": {
+    "design": {"start": "2019-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_INITIAL_EQUITY_1"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_INITIAL_EQUITY_1"},
+    "annual_breadth": {"years": [2020, 2021, 2022, 2023, 2024], "state": "FAIR_RESET_EACH_YEAR_INITIAL_EQUITY_1"}
+  },
+  "comparators": {
+    "cash": "INITIAL_EQUITY_1_NO_RETURN",
+    "buy_and_hold": "BUY_AT_FIRST_WINDOW_OPEN_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE_THEN_MARK_TO_MARKET_WITHOUT_TERMINAL_LIQUIDATION",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "metrics": [
+    "realized_return_pct", "unrealized_return_pct", "total_return_pct",
+    "maximum_drawdown_pct", "maximum_underwater_duration_hours",
+    "fees_equity_units", "turnover_equity_units", "average_exposure_pct",
+    "completed_trade_count", "winning_trade_count", "median_hold_hours",
+    "p90_hold_hours", "terminal_position", "terminal_holding_age_hours",
+    "buy_hold_total_return_pct", "buy_hold_maximum_drawdown_pct",
+    "upside_capture_ratio", "calmar_ratio", "annual_breadth",
+    "top_year_positive_contribution_pct", "top_trade_positive_contribution_pct"
+  ],
+  "gate_set": {
+    "id": "BTC_DONCHIAN_STANDALONE_ECONOMIC_GATES_V1",
+    "data": [
+      "dataset_sha256_and_52608_rows_match",
+      "hourly_lattice_and_ohlcv_invariants_pass",
+      "frozen_engine_policy_and_entity_sha256_match"
+    ],
+    "design": [
+      "normal_total_return_pct_gt_0",
+      "stress_total_return_pct_gt_0",
+      "normal_completed_trades_at_least_10",
+      "normal_maximum_drawdown_at_most_60pct_of_buy_hold"
+    ],
+    "validation": [
+      "normal_total_return_pct_gt_0",
+      "stress_total_return_pct_gt_0",
+      "normal_realized_return_pct_gt_0",
+      "normal_completed_trades_at_least_5",
+      "normal_maximum_drawdown_at_most_60pct_of_buy_hold",
+      "normal_upside_capture_at_least_15pct_when_buy_hold_positive",
+      "normal_calmar_at_least_50pct_of_buy_hold_calmar",
+      "stress_maximum_drawdown_no_more_than_normal_plus_5pp"
+    ],
+    "breadth": [
+      "normal_positive_annual_total_return_at_least_3_of_5",
+      "stress_positive_annual_total_return_at_least_3_of_5",
+      "normal_annual_drawdown_non_worse_than_buy_hold_at_least_4_of_5"
+    ],
+    "concentration": [
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "top_trade_positive_realized_pnl_contribution_at_most_40pct"
+    ],
+    "holding_and_inventory": [
+      "validation_normal_median_completed_trade_hold_at_most_2160_hours",
+      "validation_normal_p90_completed_trade_hold_at_most_4320_hours",
+      "validation_terminal_unrealized_positive_contribution_at_most_40pct_of_positive_total_return"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "java_version": "21",
+    "launch": "DIRECT_CLASSPATH_NO_MAVEN_EXEC_NO_SPRING",
+    "output": "CREATE_NEW_SEALED_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset, lattice, OHLCV or frozen source hash gate fails.",
+    "Stop and permanently close the exact family if any frozen Design, Validation, breadth, concentration, holding or inventory gate fails.",
+    "Do not invert, tune, resize, leverage, short, scan neighbors or change a comparator after seeing results.",
+    "Do not use the existing through-2026 golden parity corpus as independent OOS for a policy already encoded against it.",
+    "A historical pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with independent OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL",
+    "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO",
+    "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"
+  ]
+}

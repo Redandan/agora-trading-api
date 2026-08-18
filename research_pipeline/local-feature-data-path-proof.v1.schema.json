@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/local-feature-data-path-proof.v1.schema.json",
+  "title": "Local feature data path proof V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["access_mode", "checked_at", "discovery_exception_id", "document_type", "expires_at", "feature_data_paths", "proof_id", "safety_assertions", "schema_version", "strategy_family", "task_id", "task_sha256"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "LOCAL_FEATURE_DATA_PATH_PROOF_V1"},
+    "proof_id": {"$ref": "#/$defs/identifier"},
+    "discovery_exception_id": {"$ref": "#/$defs/identifier"},
+    "task_id": {"$ref": "#/$defs/identifier"},
+    "task_sha256": {"$ref": "#/$defs/sha256"},
+    "strategy_family": {"$ref": "#/$defs/family"},
+    "checked_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "access_mode": {"const": "PUBLIC_NO_CREDENTIAL_OR_EXISTING_SEALED"},
+    "feature_data_paths": {
+      "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["access_status", "credential_required", "decision_time_known", "feature_id", "feature_semantics", "historical_coverage", "locator", "machine_readable", "manual_export_required", "paid_api_required", "point_in_time_rule", "probe_receipt_sha256", "probe_status", "prospective_coverage", "provider", "revision_identity", "schema_fields", "timestamp_field", "transport"],
+        "properties": {
+          "feature_id": {"$ref": "#/$defs/family"},
+          "provider": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9 ._/-]{1,127}$"},
+          "transport": {"enum": ["PUBLIC_HTTPS_GET", "EXISTING_SEALED_REPOSITORY_ARTIFACT"]},
+          "locator": {"type": "string", "minLength": 3, "maxLength": 512},
+          "access_status": {"const": "EXECUTABLE_NOW"},
+          "credential_required": {"const": false},
+          "paid_api_required": {"const": false},
+          "manual_export_required": {"const": false},
+          "machine_readable": {"const": true},
+          "probe_status": {"enum": ["READ_SUCCEEDED", "SEALED_ARTIFACT_VERIFIED"]},
+          "probe_receipt_sha256": {"$ref": "#/$defs/sha256"},
+          "schema_fields": {"type": "array", "minItems": 2, "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/field"}},
+          "timestamp_field": {"$ref": "#/$defs/field"},
+          "point_in_time_rule": {"enum": ["FIRST_SEEN_IMMUTABLE", "PROVIDER_FINALIZED_NO_BACKDATED_REVISION"]},
+          "revision_identity": {"type": "string", "minLength": 3, "maxLength": 256},
+          "decision_time_known": {"const": true},
+          "feature_semantics": {"type": "string", "minLength": 8, "maxLength": 512},
+          "historical_coverage": {
+            "type": "object", "additionalProperties": false,
+            "required": ["end", "minimum_observations", "start", "status"],
+            "properties": {
+              "status": {"const": "AVAILABLE"},
+              "start": {"type": "string", "format": "date-time"},
+              "end": {"type": "string", "format": "date-time"},
+              "minimum_observations": {"type": "integer", "minimum": 30}
+            }
+          },
+          "prospective_coverage": {
+            "type": "object", "additionalProperties": false,
+            "required": ["capture_without_backfill", "maximum_availability_lag_seconds", "status"],
+            "properties": {
+              "status": {"const": "AVAILABLE"},
+              "maximum_availability_lag_seconds": {"type": "integer", "minimum": 0, "maximum": 2678400},
+              "capture_without_backfill": {"const": true}
+            }
+          }
+        }
+      }
+    },
+    "safety_assertions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["api_key_used", "canonical_state_changed", "factor_values_retained", "oos_opened", "outcome_accessed", "paid_api_used", "repository_written", "runner_executed", "second_timer_created", "server_research_mcp_write_attempted", "trading_action_attempted"],
+      "properties": {
+        "api_key_used": {"const": false},
+        "canonical_state_changed": {"const": false},
+        "factor_values_retained": {"const": false},
+        "oos_opened": {"const": false},
+        "outcome_accessed": {"const": false},
+        "paid_api_used": {"const": false},
+        "repository_written": {"const": false},
+        "runner_executed": {"const": false},
+        "second_timer_created": {"const": false},
+        "server_research_mcp_write_attempted": {"const": false},
+        "trading_action_attempted": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"},
+    "family": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"},
+    "field": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,127}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -14,6 +14,10 @@ from .local_candidate_enabling_capability import (
     load_and_validate_candidate_enabling_capability,
     validate_candidate_enabling_capability_context,
 )
+from .local_feature_data_path_proof import (
+    load_and_validate_feature_data_path_proof,
+    validate_feature_data_path_proof_context,
+)
 from .local_preregistration_discovery import (
     DUPLICATE_FAMILY_KEY as PREREGISTRATION_DISCOVERY_FAMILY_KEY,
     load_and_validate_preregistration_discovery,
@@ -929,10 +933,17 @@ def build_local_research_allocation_preflight(
     candidate_enabling_capability_path: Path | str | None = None,
     preregistration_discovery_path: Path | str | None = None,
     source_access_proof_path: Path | str | None = None,
+    feature_data_path_proof_path: Path | str | None = None,
 ) -> dict[str, Any]:
-    if (preregistration_discovery_path is None) != (source_access_proof_path is None):
+    discovery_inputs_present = (
+        preregistration_discovery_path is not None,
+        source_access_proof_path is not None,
+        feature_data_path_proof_path is not None,
+    )
+    if any(discovery_inputs_present) and not all(discovery_inputs_present):
         raise ValueError(
-            "preregistration discovery and source access proof must be provided together"
+            "preregistration discovery, source access proof and feature data path proof "
+            "must be provided together"
         )
     exception_count = sum(
         (
@@ -1050,6 +1061,11 @@ def build_local_research_allocation_preflight(
         discovery, discovery_raw = load_and_validate_preregistration_discovery(
             discovery_file
         )
+        if discovery["schema_version"] != "3":
+            raise ValueError(
+                "preregistration discovery V1/V2 are historical only; new allocation "
+                "requires V3 executable feature data path proof"
+            )
         head = manager["head_commit"]
         _require_head_bytes(
             root,
@@ -1102,6 +1118,28 @@ def build_local_research_allocation_preflight(
             task=task,
             allocation_time=_utc_timestamp(period_end, "period_end"),
         )
+        feature_proof_file, feature_proof_relative = _contained_regular_file(
+            root,
+            Path(feature_data_path_proof_path),
+            "feature data path proof path",
+        )
+        feature_proof, feature_proof_raw = load_and_validate_feature_data_path_proof(
+            feature_proof_file
+        )
+        _require_head_bytes(
+            root,
+            head,
+            feature_proof_relative,
+            feature_proof_raw,
+            "feature data path proof",
+        )
+        validate_feature_data_path_proof_context(
+            feature_proof,
+            discovery=discovery,
+            task=task,
+            task_sha256=hashlib.sha256(task_raw).hexdigest(),
+            allocation_time=_utc_timestamp(period_end, "period_end"),
+        )
         prior_uses = sorted(
             kpi.get(
                 "preregistration_discovery_accepted_output_ids",
@@ -1115,13 +1153,13 @@ def build_local_research_allocation_preflight(
             raise ValueError(
                 "preregistration discovery rolling seven-day budget is already used"
             )
-        if discovery["schema_version"] == "2":
+        if discovery["schema_version"] in {"2", "3"}:
             declared_prior_uses = sorted(
                 discovery["discovery_contract"]["prior_accepted_output_ids"]
             )
             if declared_prior_uses != prior_uses:
                 raise ValueError(
-                    "preregistration discovery V2 does not bind prior accepted outputs"
+                    "preregistration discovery V3 does not bind prior accepted outputs"
                 )
         discovery_exception = {
             "direct_evidence_ready": discovery["discovery_contract"][
@@ -1141,6 +1179,13 @@ def build_local_research_allocation_preflight(
             ),
             "maximum_accepted_uses": maximum_accepted_uses,
             "rolling_window_prior_accepted_use_count": len(prior_uses),
+            "feature_data_path_proof": {
+                "checked_at": feature_proof["checked_at"],
+                "executable_path_count": len(feature_proof["feature_data_paths"]),
+                "expires_at": feature_proof["expires_at"],
+                "path": feature_proof_relative,
+                "sha256": hashlib.sha256(feature_proof_raw).hexdigest(),
+            },
             "source_access_proof": {
                 "checked_at": proof["checked_at"],
                 "expires_at": proof["expires_at"],

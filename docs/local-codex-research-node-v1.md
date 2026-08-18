@@ -184,14 +184,13 @@ canonical state, use a paid API, or take a Trading action.
 
 When no direct evidence-ready strategy-path task is ready, bounded
 preregistration-discovery support slices may also bypass missing 20-percent
-governance-budget headroom. The historical V1 contract remains limited to one
-accepted use per rolling seven-day window. The V2 contract permits at most two
-accepted uses in that window; its second use must bind the first accepted output
-ID and declare that output's strategy family in `excluded_strategy_families`,
-while selecting a different current strategy family. A slice must bind a
-canonical sidecar conforming to either
-`research_pipeline/local-preregistration-discovery.v1.schema.json` or
-`research_pipeline/local-preregistration-discovery.v2.schema.json`, remain a
+governance-budget headroom. V1 and V2 remain valid historical evidence but are
+closed to new allocation. New work uses V3, with at most two accepted uses per
+rolling seven-day window; its second use must bind the first accepted output ID
+and declare that output's strategy family in `excluded_strategy_families`, while
+selecting a different current strategy family. A slice must bind a canonical
+sidecar conforming to
+`research_pipeline/local-preregistration-discovery.v3.schema.json`, remain a
 read-only `EVIDENCE_DIAGNOSTIC`, and use only three to eight primary-research
 identities frozen in the task. Before allocation it must also bind a separate
 `research_pipeline/local-primary-source-access-proof.v1.schema.json` receipt.
@@ -207,6 +206,19 @@ family closure. It cannot inspect historical or forward outcomes, run a runner
 or backtest, create a hypothesis/candidate/result, open OOS, add a timer, write
 canonical state, use a paid API, or take a Trading action. Any direct
 evidence-ready assignment preempts this discovery allocation.
+
+V3 also requires a fresh, separate
+`research_pipeline/local-feature-data-path-proof.v1.schema.json` receipt before
+allocation. At least one exact decision-time feature route must be executable
+now through public no-credential HTTPS or an existing sealed repository
+artifact. The receipt binds a successful schema-only probe, timestamp field,
+point-in-time and revision semantics, at least 30 historical observations,
+prospective availability without backfill, machine-readable transport, and the
+exact task/discovery/family hashes. Paid or credentialed APIs, manual exports,
+unknown vintage rules, unavailable schemas, missing historical or prospective
+coverage, and retained factor values fail before a discovery slot is consumed.
+This moves source feasibility ahead of literature synthesis; it does not inspect
+market outcomes, execute a runner, or make an alpha claim.
 
 For a bounded period of at most seven days, Manager/Coach may measure accepted
 Local output against the current throughput targets with an explicit acceptance
@@ -267,7 +279,8 @@ python -m research_pipeline local-research-allocation-preflight <dispatch.json> 
   [--strategy-path <strategy-path.json> | \
    --candidate-enabling-capability <capability.json> | \
    --preregistration-discovery <discovery.json> \
-   --source-access-proof <source-access-proof.json>]
+   --source-access-proof <source-access-proof.json> \
+   --feature-data-path-proof <feature-data-path-proof.json>]
 ```
 
 The command first performs the ordinary or strategy-path Manager preflight,
@@ -280,12 +293,12 @@ be combined with each other, the preregistration-discovery exception, or a
 direct strategy path. The candidate-
 enabling path also fails if the rolling acceptance allowlist already contains
 an accepted use of its fixed duplicate-family key. The discovery path likewise
-fails when its versioned rolling limit is already consumed: one accepted use
-for V1 or two for V2. V2 also fails when the second use does not bind the exact
-prior accepted output ID or repeats the first use's declared strategy family.
-Every version fails unless all three to eight exact sources have a fresh Local
-browser readability proof and the readable URLs are frozen in the task
-messages. Its support slice stays
+fails when its two-use rolling limit is already consumed. V3 also fails when the
+second use does not bind the exact prior accepted output ID or repeats the first
+use's declared strategy family. It fails unless all three to eight exact sources
+have a fresh Local browser readability proof and at least one exact feature data
+path has a fresh executable-path proof; every readable URL, data locator, schema
+probe receipt and identity must be frozen in task messages. Its support slice stays
 inside the governance/tooling denominator rather than being relabelled as an
 economic closure.
 

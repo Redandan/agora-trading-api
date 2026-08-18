@@ -18,6 +18,9 @@ from research_pipeline.local_candidate_enabling_capability import (
     DUPLICATE_FAMILY_KEY as CANDIDATE_ENABLING_FAMILY_KEY,
     load_and_validate_candidate_enabling_capability,
 )
+from research_pipeline.local_feature_data_path_proof import (
+    load_and_validate_feature_data_path_proof,
+)
 from research_pipeline.local_preregistration_discovery import (
     DUPLICATE_FAMILY_KEY as PREREGISTRATION_DISCOVERY_FAMILY_KEY,
     load_and_validate_preregistration_discovery,
@@ -386,12 +389,12 @@ class PreflightRepository:
     def configure_preregistration_discovery(
         self,
         *,
-        schema_version: str = "1",
+        schema_version: str = "3",
         prior_output_ids: list[str] | None = None,
         excluded_strategy_families: list[str] | None = None,
         strategy_family: str = "synthetic-volume-confirmation",
     ) -> None:
-        if schema_version not in {"1", "2"}:
+        if schema_version not in {"1", "2", "3"}:
             raise ValueError("unsupported preregistration discovery fixture version")
         LocalManagerPreflightTest.configure_preregistration_discovery(
             self,
@@ -550,12 +553,12 @@ class LocalManagerPreflightTest(unittest.TestCase):
     def configure_preregistration_discovery(
         self,
         *,
-        schema_version: str = "1",
+        schema_version: str = "3",
         prior_output_ids: list[str] | None = None,
         excluded_strategy_families: list[str] | None = None,
         strategy_family: str = "synthetic-volume-confirmation",
     ) -> None:
-        if schema_version not in {"1", "2"}:
+        if schema_version not in {"1", "2", "3"}:
             raise ValueError("unsupported preregistration discovery fixture version")
         sources = [
             {
@@ -586,6 +589,7 @@ class LocalManagerPreflightTest(unittest.TestCase):
             "timeout_seconds": 60,
         }
         self.task["allowed_actions"].append("READ_LISTED_PRIMARY_PUBLIC_SOURCES")
+        self.task["allowed_actions"].append("PROBE_LISTED_PUBLIC_FEATURE_DATA_PATHS")
         self.task["forbidden_actions"].extend(
             [
                 "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
@@ -604,6 +608,19 @@ class LocalManagerPreflightTest(unittest.TestCase):
                 "sha256": None,
             }
             for source in sources
+        )
+        feature_probe_sha256 = "d" * 64
+        feature_id = "synthetic-predecision-feature"
+        feature_locator = "https://data.invalid/synthetic-feature.json"
+        self.task["inputs"].append(
+            {
+                "kind": "TASK_MESSAGE",
+                "locator": (
+                    f"Executable feature data path: {feature_id} at {feature_locator}; "
+                    f"schema-only probe receipt SHA-256 {feature_probe_sha256}"
+                ),
+                "sha256": None,
+            }
         )
         task_raw = canonical_json_document_bytes(self.task)
         self.task_path.write_bytes(task_raw)
@@ -640,7 +657,7 @@ class LocalManagerPreflightTest(unittest.TestCase):
             "runner_execution": "DENY",
             "strategy_family": strategy_family,
         }
-        if schema_version == "2":
+        if schema_version in {"2", "3"}:
             discovery_contract["excluded_strategy_families"] = (
                 excluded_strategy_families or []
             )
@@ -660,7 +677,7 @@ class LocalManagerPreflightTest(unittest.TestCase):
             "output_class": "SPEC_OR_CAPABILITY_SLICE",
             "rolling_budget": {
                 "days": 7,
-                "maximum_accepted_uses": 2 if schema_version == "2" else 1,
+                "maximum_accepted_uses": 2 if schema_version in {"2", "3"} else 1,
             },
             "safety_boundaries": {
                 "adds_timer": False,
@@ -721,6 +738,69 @@ class LocalManagerPreflightTest(unittest.TestCase):
         self.source_access_proof_path = self.root / "records" / "source-access-proof.json"
         self.source_access_proof_path.write_bytes(
             canonical_json_document_bytes(access_proof)
+        )
+        feature_data_path_proof = {
+            "access_mode": "PUBLIC_NO_CREDENTIAL_OR_EXISTING_SEALED",
+            "checked_at": "2026-08-14T12:00:00Z",
+            "discovery_exception_id": discovery["exception_id"],
+            "document_type": "LOCAL_FEATURE_DATA_PATH_PROOF_V1",
+            "expires_at": "2026-08-15T12:00:00Z",
+            "feature_data_paths": [
+                {
+                    "access_status": "EXECUTABLE_NOW",
+                    "credential_required": False,
+                    "decision_time_known": True,
+                    "feature_id": feature_id,
+                    "feature_semantics": "Synthetic finalized predecision feature value",
+                    "historical_coverage": {
+                        "end": "2026-08-01T00:00:00Z",
+                        "minimum_observations": 365,
+                        "start": "2025-08-01T00:00:00Z",
+                        "status": "AVAILABLE",
+                    },
+                    "locator": feature_locator,
+                    "machine_readable": True,
+                    "manual_export_required": False,
+                    "paid_api_required": False,
+                    "point_in_time_rule": "PROVIDER_FINALIZED_NO_BACKDATED_REVISION",
+                    "probe_receipt_sha256": feature_probe_sha256,
+                    "probe_status": "READ_SUCCEEDED",
+                    "prospective_coverage": {
+                        "capture_without_backfill": True,
+                        "maximum_availability_lag_seconds": 86400,
+                        "status": "AVAILABLE",
+                    },
+                    "provider": "Synthetic Public Provider",
+                    "revision_identity": "provider publication timestamp and raw bytes hash",
+                    "schema_fields": ["published_at", "value"],
+                    "timestamp_field": "published_at",
+                    "transport": "PUBLIC_HTTPS_GET",
+                }
+            ],
+            "proof_id": "feature-data-path-proof-fixture-v1",
+            "safety_assertions": {
+                "api_key_used": False,
+                "canonical_state_changed": False,
+                "factor_values_retained": False,
+                "oos_opened": False,
+                "outcome_accessed": False,
+                "paid_api_used": False,
+                "repository_written": False,
+                "runner_executed": False,
+                "second_timer_created": False,
+                "server_research_mcp_write_attempted": False,
+                "trading_action_attempted": False,
+            },
+            "schema_version": "1",
+            "strategy_family": strategy_family,
+            "task_id": self.task["task_id"],
+            "task_sha256": _sha256(task_raw),
+        }
+        self.feature_data_path_proof_path = (
+            self.root / "records" / "feature-data-path-proof.json"
+        )
+        self.feature_data_path_proof_path.write_bytes(
+            canonical_json_document_bytes(feature_data_path_proof)
         )
         _run(self.root, "add", ".")
         _run(self.root, "commit", "-m", "freeze preregistration discovery")
@@ -1562,6 +1642,7 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                 "2026-08-15T00:00:00Z",
                 preregistration_discovery_path=repository.discovery_path,
                 source_access_proof_path=repository.source_access_proof_path,
+                feature_data_path_proof_path=repository.feature_data_path_proof_path,
             )
         self.assertEqual(
             result["allocation_gate"]["status"],
@@ -1570,13 +1651,19 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
         self.assertEqual(result["preregistration_discovery"]["primary_source_count"], 3)
         self.assertEqual(result["preregistration_discovery"]["readable_source_count"], 3)
         self.assertEqual(
+            result["preregistration_discovery"]["feature_data_path_proof"][
+                "executable_path_count"
+            ],
+            1,
+        )
+        self.assertEqual(
             result["manager_preflight"]["research_value_gate"]["status"],
             "COUNTABLE_OUTPUT_REQUIRED",
         )
 
     def test_preregistration_discovery_schema_accepts_frozen_fixture(self) -> None:
         repository = PreflightRepository(self)
-        repository.configure_preregistration_discovery()
+        repository.configure_preregistration_discovery(schema_version="1")
         schema = json.loads(
             (
                 Path(__file__).parents[1]
@@ -1602,6 +1689,38 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
             proof_schema, format_checker=FormatChecker()
         ).validate(proof_document)
 
+    def test_preregistration_discovery_v3_requires_executable_feature_data_path(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery(schema_version="3")
+        discovery_schema = json.loads(
+            (
+                Path(__file__).parents[1]
+                / "local-preregistration-discovery.v3.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        feature_schema = json.loads(
+            (
+                Path(__file__).parents[1]
+                / "local-feature-data-path-proof.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        discovery = json.loads(repository.discovery_path.read_text(encoding="utf-8"))
+        feature_proof = json.loads(
+            repository.feature_data_path_proof_path.read_text(encoding="utf-8")
+        )
+        Draft202012Validator.check_schema(discovery_schema)
+        Draft202012Validator.check_schema(feature_schema)
+        Draft202012Validator(
+            discovery_schema, format_checker=FormatChecker()
+        ).validate(discovery)
+        Draft202012Validator(
+            feature_schema, format_checker=FormatChecker()
+        ).validate(feature_proof)
+        load_and_validate_preregistration_discovery(repository.discovery_path)
+        load_and_validate_feature_data_path_proof(
+            repository.feature_data_path_proof_path
+        )
+
     def test_preregistration_discovery_v2_schema_accepts_two_use_contract(self) -> None:
         repository = PreflightRepository(self)
         repository.configure_preregistration_discovery(
@@ -1621,10 +1740,10 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
         Draft202012Validator(schema, format_checker=FormatChecker()).validate(document)
         load_and_validate_preregistration_discovery(repository.discovery_path)
 
-    def test_allocation_preflight_allows_second_v2_discovery_use(self) -> None:
+    def test_allocation_preflight_allows_second_v3_discovery_use(self) -> None:
         repository = PreflightRepository(self)
         repository.configure_preregistration_discovery(
-            schema_version="2",
+            schema_version="3",
             prior_output_ids=["prior-discovery-output"],
             excluded_strategy_families=["prior-strategy-family"],
             strategy_family="second-strategy-family",
@@ -1646,6 +1765,7 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                 "2026-08-15T00:00:00Z",
                 preregistration_discovery_path=repository.discovery_path,
                 source_access_proof_path=repository.source_access_proof_path,
+                feature_data_path_proof_path=repository.feature_data_path_proof_path,
             )
         self.assertEqual(
             result["allocation_gate"]["status"],
@@ -1661,10 +1781,10 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
             1,
         )
 
-    def test_allocation_preflight_rejects_v2_unbound_prior_output(self) -> None:
+    def test_allocation_preflight_rejects_v3_unbound_prior_output(self) -> None:
         repository = PreflightRepository(self)
         repository.configure_preregistration_discovery(
-            schema_version="2",
+            schema_version="3",
             excluded_strategy_families=[],
             strategy_family="second-strategy-family",
         )
@@ -1686,6 +1806,7 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                     "2026-08-15T00:00:00Z",
                     preregistration_discovery_path=repository.discovery_path,
                     source_access_proof_path=repository.source_access_proof_path,
+                    feature_data_path_proof_path=repository.feature_data_path_proof_path,
                 )
 
     def test_allocation_preflight_rejects_v2_repeated_strategy_family(self) -> None:
@@ -1699,10 +1820,10 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must use a distinct strategy family"):
             load_and_validate_preregistration_discovery(repository.discovery_path)
 
-    def test_allocation_preflight_rejects_third_v2_discovery_use(self) -> None:
+    def test_allocation_preflight_rejects_third_v3_discovery_use(self) -> None:
         repository = PreflightRepository(self)
         repository.configure_preregistration_discovery(
-            schema_version="2",
+            schema_version="3",
             prior_output_ids=["prior-discovery-output"],
             excluded_strategy_families=["prior-strategy-family"],
             strategy_family="second-strategy-family",
@@ -1728,6 +1849,7 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                     "2026-08-15T00:00:00Z",
                     preregistration_discovery_path=repository.discovery_path,
                     source_access_proof_path=repository.source_access_proof_path,
+                    feature_data_path_proof_path=repository.feature_data_path_proof_path,
                 )
 
     def test_allocation_preflight_rejects_discovery_without_access_proof(self) -> None:
@@ -1744,6 +1866,48 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                 "2026-08-15T00:00:00Z",
                 preregistration_discovery_path=repository.discovery_path,
             )
+
+    def test_allocation_preflight_rejects_discovery_without_feature_data_path_proof(
+            self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery()
+        with self.assertRaisesRegex(ValueError, "must be provided together"):
+            build_local_research_allocation_preflight(
+                repository.root,
+                repository.dispatch_path,
+                repository.task_path,
+                repository.intent_path,
+                ["acceptance.json"],
+                "2026-08-08T00:00:00Z",
+                "2026-08-15T00:00:00Z",
+                preregistration_discovery_path=repository.discovery_path,
+                source_access_proof_path=repository.source_access_proof_path,
+            )
+
+    def test_allocation_preflight_rejects_legacy_discovery_version(self) -> None:
+        repository = PreflightRepository(self)
+        repository.configure_preregistration_discovery(schema_version="2")
+        with patch(
+            "research_pipeline.local_manager.build_local_research_kpi",
+            return_value=self._kpi(
+                support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION"
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "historical only"):
+                build_local_research_allocation_preflight(
+                    repository.root,
+                    repository.dispatch_path,
+                    repository.task_path,
+                    repository.intent_path,
+                    ["acceptance.json"],
+                    "2026-08-08T00:00:00Z",
+                    "2026-08-15T00:00:00Z",
+                    preregistration_discovery_path=repository.discovery_path,
+                    source_access_proof_path=repository.source_access_proof_path,
+                    feature_data_path_proof_path=(
+                        repository.feature_data_path_proof_path
+                    ),
+                )
 
     def test_allocation_preflight_rejects_stale_source_access_proof(self) -> None:
         repository = PreflightRepository(self)
@@ -1765,6 +1929,7 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                     "2026-08-15T13:00:00Z",
                     preregistration_discovery_path=repository.discovery_path,
                     source_access_proof_path=repository.source_access_proof_path,
+                    feature_data_path_proof_path=repository.feature_data_path_proof_path,
                 )
 
     def test_allocation_preflight_rejects_used_preregistration_discovery_budget(self) -> None:
@@ -1774,7 +1939,10 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
             "research_pipeline.local_manager.build_local_research_kpi",
             return_value=self._kpi(
                 support_status="DEFER_UNLESS_APPROVED_NON_COUNTING_EXCEPTION",
-                preregistration_discovery_outputs=["prior-discovery-output"],
+                preregistration_discovery_outputs=[
+                    "prior-discovery-output",
+                    "second-discovery-output",
+                ],
             ),
         ):
             with self.assertRaisesRegex(ValueError, "budget is already used"):
@@ -1788,6 +1956,7 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                     "2026-08-15T00:00:00Z",
                     preregistration_discovery_path=repository.discovery_path,
                     source_access_proof_path=repository.source_access_proof_path,
+                    feature_data_path_proof_path=repository.feature_data_path_proof_path,
                 )
 
     def test_allocation_preflight_cli_routes_preregistration_discovery(self) -> None:
@@ -1817,6 +1986,8 @@ class LocalResearchAllocationPreflightTest(unittest.TestCase):
                     str(repository.discovery_path),
                     "--source-access-proof",
                     str(repository.source_access_proof_path),
+                    "--feature-data-path-proof",
+                    str(repository.feature_data_path_proof_path),
                     "--acceptance",
                     "acceptance.json",
                     "--period-start",

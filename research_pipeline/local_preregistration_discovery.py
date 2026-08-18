@@ -12,6 +12,7 @@ from .local_dispatch import canonical_json_document_bytes
 AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
 DOCUMENT_TYPE = "LOCAL_PREREGISTRATION_DISCOVERY_V1"
 DOCUMENT_TYPE_V2 = "LOCAL_PREREGISTRATION_DISCOVERY_V2"
+DOCUMENT_TYPE_V3 = "LOCAL_PREREGISTRATION_DISCOVERY_V3"
 DUPLICATE_FAMILY_KEY = "research-factory-preregistration-discovery-v1"
 STATE_AUTHORITY = "SERVER_CANONICAL"
 TIMER_AUTHORITY = "CODEX_CLOUD_OPS_ONLY"
@@ -120,9 +121,16 @@ def _timestamp(value: Any, label: str) -> datetime:
 def validate_preregistration_discovery(value: Any) -> dict[str, Any]:
     document = _exact_keys(value, _ROOT_KEYS, "preregistration discovery")
     identity = (document["schema_version"], document["document_type"])
-    if identity not in {("1", DOCUMENT_TYPE), ("2", DOCUMENT_TYPE_V2)}:
+    if identity not in {
+        ("1", DOCUMENT_TYPE),
+        ("2", DOCUMENT_TYPE_V2),
+        ("3", DOCUMENT_TYPE_V3),
+    }:
         raise ValueError("preregistration discovery identity is unsupported")
-    is_v2 = identity == ("2", DOCUMENT_TYPE_V2)
+    is_multi_use = identity in {
+        ("2", DOCUMENT_TYPE_V2),
+        ("3", DOCUMENT_TYPE_V3),
+    }
     if document["authorization"] != AUTHORIZATION:
         raise ValueError("preregistration discovery authorization is unsupported")
     if document["state_authority"] != STATE_AUTHORITY or document["timer_authority"] != TIMER_AUTHORITY:
@@ -138,7 +146,7 @@ def validate_preregistration_discovery(value: Any) -> dict[str, Any]:
     _timestamp(document["issued_at"], "issued_at")
 
     budget = _exact_keys(document["rolling_budget"], {"days", "maximum_accepted_uses"}, "rolling_budget")
-    maximum_accepted_uses = MAX_ACCEPTED_USES_V2 if is_v2 else MAX_ACCEPTED_USES
+    maximum_accepted_uses = MAX_ACCEPTED_USES_V2 if is_multi_use else MAX_ACCEPTED_USES
     if budget != {
         "days": ROLLING_BUDGET_DAYS,
         "maximum_accepted_uses": maximum_accepted_uses,
@@ -151,7 +159,7 @@ def validate_preregistration_discovery(value: Any) -> dict[str, Any]:
 
     discovery = _exact_keys(
         document["discovery_contract"],
-        _DISCOVERY_KEYS_V2 if is_v2 else _DISCOVERY_KEYS_V1,
+        _DISCOVERY_KEYS_V2 if is_multi_use else _DISCOVERY_KEYS_V1,
         "discovery_contract",
     )
     expected_scalars = {
@@ -167,7 +175,7 @@ def validate_preregistration_discovery(value: Any) -> dict[str, Any]:
         if discovery[name] != expected:
             raise ValueError(f"preregistration discovery {name} is unsupported")
     _pattern(discovery["strategy_family"], _FAMILY, "strategy_family")
-    if is_v2:
+    if is_multi_use:
         prior_output_ids = discovery["prior_accepted_output_ids"]
         excluded_families = discovery["excluded_strategy_families"]
         if (

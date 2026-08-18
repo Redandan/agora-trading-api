@@ -579,21 +579,46 @@ public final class OkxMicrostructureDiscoveryRecoverySourceCli {
             if (!accepting()) {
                 return;
             }
+            String failureStage = "VALIDATE_DISCONNECT";
             try {
                 if (disconnectedAt != null) {
                     throw new IllegalStateException("DUPLICATE_DISCONNECT");
                 }
                 disconnectedAt = at;
                 if (state == ProducerState.ACTIVE_DAY) {
-                    checkpointActive(true);
-                    Instant rejectionAt = at.isBefore(checkpoint.updatedAt())
-                            ? checkpoint.updatedAt() : at;
+                    failureStage = "BUILD_ATOMIC_REJECTION_CHECKPOINT";
+                    Instant checkpointAt = clock.instant();
                     var previous = checkpoint;
-                    checkpoint = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1
+                    var observed = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1.active(
+                            previous,
+                            host.bootId(),
+                            activeDay,
+                            activeStartedAt,
+                            lastObservedAt,
+                            acknowledgements.stream().sorted().toList(),
+                            Math.min(
+                                    latestDataInstant == null
+                                            ? 0
+                                            : collector.completedMinuteCountBefore(
+                                                    latestDataInstant),
+                                    1439),
+                            dataMessageCount,
+                            controlEventCount,
+                            rawArrivalChain,
+                            controlEventChain,
+                            checkpointAt);
+                    Instant rejectionAt = at.isBefore(observed.updatedAt())
+                            ? observed.updatedAt() : at;
+                    var pending = OkxMicrostructureDiscoveryRecoveryCheckpointV3R1
                             .pendingRejection(
-                            checkpoint, "TRANSPORT_DISCONNECT_UNPROVED_GAP", null,
-                            rejectionAt);
-                    checkpointStore.save(previous, checkpoint);
+                                    observed,
+                                    "TRANSPORT_DISCONNECT_UNPROVED_GAP",
+                                    null,
+                                    rejectionAt);
+                    failureStage = "SAVE_ATOMIC_REJECTION_CHECKPOINT";
+                    checkpointStore.save(previous, pending);
+                    checkpoint = pending;
+                    failureStage = "PUBLISH_DISCONNECT_REJECTION";
                     publishPendingRejection(rejectionAt);
                 }
                 acknowledgements.clear();
@@ -601,7 +626,8 @@ public final class OkxMicrostructureDiscoveryRecoverySourceCli {
                 continuity = OkxMicrostructureCollector.Continuity.empty();
                 awaitingNoticeDisconnect = false;
             } catch (Exception error) {
-                block("DISCONNECT_REJECTION_FAILED");
+                block("DISCONNECT_REJECTION_FAILED_" + failureStage + "_"
+                        + boundedFailureCode(error));
             }
         }
 
@@ -667,6 +693,19 @@ public final class OkxMicrostructureDiscoveryRecoverySourceCli {
         private void block(String reason) {
             state = ProducerState.BLOCKED;
             blockedReason = reason;
+        }
+
+        private static String boundedFailureCode(Exception error) {
+            String message = error.getMessage();
+            if (message != null && message.matches("[A-Z][A-Z0-9_]{2,80}")) {
+                return message;
+            }
+            String type = error.getClass().getSimpleName()
+                    .replaceAll("[^A-Za-z0-9]", "_")
+                    .toUpperCase(java.util.Locale.ROOT);
+            return type.isEmpty()
+                    ? "UNCLASSIFIED"
+                    : type.substring(0, Math.min(80, type.length()));
         }
     }
 

@@ -33,6 +33,17 @@ runner must bind exact frozen task inputs, and the accepted result must retain
 source-commit-verifiable strategy-path evidence. A mechanism label without this
 closure is a historical proxy, not verified candidate delivery.
 
+New Local preregistration discovery uses Candidate Factory V3 admission. V1 and
+V2 discovery envelopes remain historical evidence but cannot receive a new
+allocation. Before a V3 discovery slot is consumed, the exact task must bind
+both fresh readable-primary-source proof and at least one fresh executable
+feature-data-path proof: public no-credential or existing sealed transport,
+machine-readable schema and timestamp, point-in-time and revision identity,
+historical coverage, prospective availability without backfill, and no paid API
+or manual export. A literature-supported idea whose factor data path is not
+already executable closes before allocation; source feasibility is not deferred
+until after idea acceptance.
+
 ## Performance contract
 
 Every experiment must preregister:

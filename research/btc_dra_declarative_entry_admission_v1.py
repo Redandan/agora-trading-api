@@ -23,7 +23,9 @@ DOCUMENT_TYPE = "DRA_DECLARATIVE_ENTRY_ADMISSION_MANIFEST_V1"
 RESULT_TYPE = "DRA_DECLARATIVE_ENTRY_ADMISSION_SCREEN_V1"
 RUNNER_IDENTITY = "BTC_DRA_DECLARATIVE_ENTRY_ADMISSION_RUNNER_V1"
 PARENT_STRATEGY = "BTC_DRA_V1"
-GATE_SET = "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V1"
+GATE_SET_V1 = "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V1"
+GATE_SET_V2 = "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+GATE_SET = GATE_SET_V1
 SELECTION_CUTOFF = "2025-01-01T00:00:00"
 DESIGN = (datetime(2019, 1, 1), datetime(2023, 1, 1))
 VALIDATION = (datetime(2023, 1, 1), datetime(2025, 1, 1))
@@ -90,6 +92,13 @@ FEATURES = {
         "prior_disposition": "PRIOR_SUPPORTS_ONE_INTRADAY_VOLUME_CONCENTRATION_ADMISSION_AUDIT",
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_INTRADAY_VOLUME_CONCENTRATION_PRIMARY_PRIOR_V1",
+    },
+    "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_CLOSE_LOCATION_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_CLOSE_LOCATION_PRIMARY_PRIOR_V1",
     },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
@@ -178,9 +187,6 @@ def validate_manifest(value: Any) -> dict[str, Any]:
         raise ScreenReject("CONTRACT_REJECT", "parent strategy must be BTC_DRA_V1")
     if manifest["selection_cutoff"] != SELECTION_CUTOFF or manifest["oos_access"] != "DENY":
         raise ScreenReject("CONTRACT_REJECT", "selection cutoff and OOS boundary are frozen")
-    if manifest["gate_set"] != GATE_SET:
-        raise ScreenReject("CONTRACT_REJECT", "gate set is unsupported")
-
     prior = _exact_keys(
         manifest["prior_evidence"],
         {"disposition", "path", "sha256"},
@@ -223,6 +229,9 @@ def validate_manifest(value: Any) -> dict[str, Any]:
         raise ScreenReject("CONTRACT_REJECT", "feature or causal relation is unsupported")
     if prior["disposition"] != feature_contract["prior_disposition"]:
         raise ScreenReject("CONTRACT_REJECT", "prior disposition does not bind the feature")
+    expected_gate_set = feature_contract.get("gate_set", GATE_SET_V1)
+    if manifest["gate_set"] != expected_gate_set:
+        raise ScreenReject("CONTRACT_REJECT", "gate set does not bind the feature")
     if feature["lookback_complete_days"] != 20:
         raise ScreenReject("CONTRACT_REJECT", "feature lookback must be 20 complete UTC days")
     if feature["decision_time"] != "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL":
@@ -290,6 +299,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.feature_open: D | None = None
         self.feature_high: D | None = None
         self.feature_low: D | None = None
+        self.feature_close: D | None = None
         self.feature_volume = base.ZERO
         self.daily_squared_return_sum = base.ZERO
         self.daily_downside_squared_return_sum = base.ZERO
@@ -382,6 +392,21 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             return self.daily_quote_volume_square_sum / (
                 self.daily_total_quote_volume * self.daily_total_quote_volume
             )
+        if self.feature_key == "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN":
+            if (
+                self.daily_bar_count != 24
+                or self.feature_high is None
+                or self.feature_low is None
+                or self.feature_close is None
+                or self.feature_high <= self.feature_low
+            ):
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "close location requires 24 hourly bars and a positive complete-day range",
+                )
+            return (self.feature_close - self.feature_low) / (
+                self.feature_high - self.feature_low
+            )
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -390,6 +415,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.feature_open = bar.open
             self.feature_high = bar.high
             self.feature_low = bar.low
+            self.feature_close = bar.close
             self.feature_volume = base.ZERO
             self.daily_squared_return_sum = base.ZERO
             self.daily_downside_squared_return_sum = base.ZERO
@@ -408,6 +434,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         assert self.feature_high is not None and self.feature_low is not None
         self.feature_high = max(self.feature_high, bar.high)
         self.feature_low = min(self.feature_low, bar.low)
+        self.feature_close = bar.close
         self.feature_volume += bar.volume
         dollar_volume = bar.close * bar.volume
         self.daily_total_quote_volume += dollar_volume
@@ -657,12 +684,17 @@ def variant_evidence(
     }
 
 
-def primary_gates(variant: dict[str, Any], baseline: dict[str, Any]) -> dict[str, bool]:
+def primary_gates(
+    variant: dict[str, Any],
+    baseline: dict[str, Any],
+    *,
+    gate_set: str = GATE_SET_V1,
+) -> dict[str, bool]:
     design = variant["design"]
     validation = variant["validation"]
     parent_design = baseline["design"]
     parent_validation = baseline["validation"]
-    return {
+    checks = {
         "design_total_pnl_improves": _value(design, "total_pnl_usdt") > _value(parent_design, "total_pnl_usdt"),
         "validation_total_pnl_improves": _value(validation, "total_pnl_usdt") > _value(parent_validation, "total_pnl_usdt"),
         "validation_realized_non_worse": _value(validation, "realized_usdt") >= _value(parent_validation, "realized_usdt"),
@@ -676,16 +708,85 @@ def primary_gates(variant: dict[str, Any], baseline: dict[str, Any]) -> dict[str
         "annual_drawdown_non_worse_at_least_4_of_5": int(variant["annual_drawdown_non_worse"]) >= 4,
         "top_year_positive_delta_contribution_at_most_60pct": D(str(variant["top_year_positive_delta_contribution_pct"])) <= D("60"),
     }
+    if gate_set == GATE_SET_V2:
+        checks.update(
+            {
+                "design_realized_pnl_improves": _value(design, "realized_usdt")
+                > _value(parent_design, "realized_usdt"),
+                "design_max_underwater_duration_non_worse": int(
+                    design["inventory_path"]["maximum_underwater_duration_hours"]
+                )
+                <= int(
+                    parent_design["inventory_path"][
+                        "maximum_underwater_duration_hours"
+                    ]
+                ),
+                "design_terminal_inventory_count_non_worse": len(
+                    design["terminal_inventory"]
+                )
+                <= len(parent_design["terminal_inventory"]),
+                "validation_realized_pnl_improves": _value(
+                    validation, "realized_usdt"
+                )
+                > _value(parent_validation, "realized_usdt"),
+                "validation_max_underwater_duration_non_worse": int(
+                    validation["inventory_path"][
+                        "maximum_underwater_duration_hours"
+                    ]
+                )
+                <= int(
+                    parent_validation["inventory_path"][
+                        "maximum_underwater_duration_hours"
+                    ]
+                ),
+                "validation_terminal_inventory_count_non_worse": len(
+                    validation["terminal_inventory"]
+                )
+                <= len(parent_validation["terminal_inventory"]),
+            }
+        )
+    elif gate_set != GATE_SET_V1:
+        raise ScreenReject("CONTRACT_REJECT", "gate set is unsupported")
+    return checks
 
 
-def neighbor_gates(variant: dict[str, Any], baseline: dict[str, Any]) -> dict[str, bool]:
+def neighbor_gates(
+    variant: dict[str, Any],
+    baseline: dict[str, Any],
+    *,
+    gate_set: str = GATE_SET_V1,
+) -> dict[str, bool]:
     validation = variant["validation"]
     parent = baseline["validation"]
-    return {
+    checks = {
         "validation_total_pnl_non_worse": _value(validation, "total_pnl_usdt") >= _value(parent, "total_pnl_usdt"),
         "validation_drawdown_within_0_25pp": _value(validation, "max_drawdown_pct") <= _value(parent, "max_drawdown_pct") + DD_TOLERANCE_PP,
         "validation_interventions_at_least_4": int(validation["vetoed_signal_count"]) >= 4,
     }
+    if gate_set == GATE_SET_V2:
+        checks.update(
+            {
+                "validation_realized_non_worse": _value(
+                    validation, "realized_usdt"
+                )
+                >= _value(parent, "realized_usdt"),
+                "validation_max_underwater_duration_non_worse": int(
+                    validation["inventory_path"][
+                        "maximum_underwater_duration_hours"
+                    ]
+                )
+                <= int(
+                    parent["inventory_path"]["maximum_underwater_duration_hours"]
+                ),
+                "validation_terminal_inventory_count_non_worse": len(
+                    validation["terminal_inventory"]
+                )
+                <= len(parent["terminal_inventory"]),
+            }
+        )
+    elif gate_set != GATE_SET_V1:
+        raise ScreenReject("CONTRACT_REJECT", "gate set is unsupported")
+    return checks
 
 
 def run_screen(manifest_path: Path, input_path: Path, output_path: Path) -> dict[str, Any]:
@@ -707,9 +808,10 @@ def run_screen(manifest_path: Path, input_path: Path, output_path: Path) -> dict
         for variant in manifest["variants"]
     ]
     primary = next(item for item in variants if item["role"] == "primary")
-    primary_checks = primary_gates(primary, baseline)
+    gate_set = manifest["gate_set"]
+    primary_checks = primary_gates(primary, baseline, gate_set=gate_set)
     neighbor_checks = {
-        item["variant_id"]: neighbor_gates(item, baseline)
+        item["variant_id"]: neighbor_gates(item, baseline, gate_set=gate_set)
         for item in variants
         if item["role"] != "primary"
     }
@@ -728,7 +830,7 @@ def run_screen(manifest_path: Path, input_path: Path, output_path: Path) -> dict
         "economic_assumptions": manifest["economics"],
         "experiment_id": manifest["experiment_id"],
         "feature": feature,
-        "gate_set": GATE_SET,
+        "gate_set": gate_set,
         "manifest_sha256": sha256_bytes(manifest_raw),
         "neighbor_stability_gates": neighbor_checks,
         "oos_opened": False,

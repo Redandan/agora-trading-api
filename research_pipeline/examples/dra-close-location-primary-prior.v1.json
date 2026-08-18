@@ -1,0 +1,59 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Daily OHLC patterns and high-low information can contain market-state information, but neither broad equity evidence nor range-based microstructure estimators establish that a Bitcoin close near its daily high predicts robust DRA economics. Exactly one separately frozen equal-capital historical screen may therefore falsify whether close location distinguishes unresolved directional persistence from intraday rejection at an unchanged positive-momentum DRA entry. Failure closes the exact family without tuning; success only retains a prior for one separately frozen hypothesis.",
+  "disposition": "PRIOR_SUPPORTS_ONE_CLOSE_LOCATION_ADMISSION_AUDIT",
+  "document_type": "DRA_CLOSE_LOCATION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN",
+    "formula": "the final hourly close minus the complete UTC-day low, divided by the complete UTC-day high minus low, then divided by the median of exactly the prior 20 complete UTC-day close-location values",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.8", "1.0", "1.2"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "Large-sample tests report that some multi-day open-high-low-close price patterns contain out-of-sample information in historical US equities.",
+      "identity": "Caginalp and Laurent, The Predictive Power of Price Patterns (1998)",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=932984",
+      "role": "OHLC_PATTERN_PRIOR",
+      "transfer_boundary": "Multi-day equity candlestick evidence does not validate a one-day Bitcoin close-location feature, its direction, normalization, threshold or DRA profit effect."
+    },
+    {
+      "finding": "Daily high and low prices encode both variance and bid-ask-spread effects, showing that range position can inherit microstructure noise as well as price information.",
+      "identity": "Corwin and Schultz, A Simple Way to Estimate Bid-Ask Spreads from Daily High and Low Prices (2012)",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1106193",
+      "role": "RANGE_MICROSTRUCTURE_FALSIFICATION_PRIOR",
+      "transfer_boundary": "The high-low range is not pure directional demand; spread, sampling and venue effects can create apparent close-location structure without tradable alpha."
+    },
+    {
+      "finding": "Range-based estimators can carry information not present in close-to-close volatility alone, while their empirical predictability is estimator- and market-dependent.",
+      "identity": "Petnehazi and Gall, Exploring the Predictability of Range-Based Volatility Estimators Using RNNs (2018)",
+      "primary_source": "https://arxiv.org/abs/1803.07152",
+      "role": "RANGE_INFORMATION_PRIOR",
+      "transfer_boundary": "Volatility-estimator predictability is not return predictability and does not establish persistence rather than reversal after a high close location."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly the 24 hourly OHLCV bars wholly inside the latest complete UTC day and no preceding or later bar.",
+    "Compute close location as final close minus daily low divided by daily high minus daily low; require a strictly positive range and retain the value in the closed interval from zero to one.",
+    "Divide the latest complete-day close location by the median of exactly the prior 20 complete-day values.",
+    "Keep the DRA parent, positive-momentum direction, lot cost, capacity, exits, fee, adverse slippage, cooldown and fill clock unchanged.",
+    "Freeze primary 1.0 and neighbors 0.8 and 1.2 before outcome access; do not search a different relation, absolute cutoff, lookback, candle definition or threshold.",
+    "Require every V1 economic, annual breadth, holding and neighbor gate plus strict Design and Validation realized-PnL improvement, non-worse underwater duration and non-increased terminal inventory under V2.",
+    "Do not describe the feature as order flow, open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T06:19:57Z",
+  "schema_version": "1",
+  "source_access": {
+    "caginalp_laurent_ssrn": "PASS",
+    "corwin_schultz_ssrn": "PASS",
+    "petnehazi_gall_arxiv": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "Close location is mechanically related to the day's extrema and may proxy volatility, spread, path or sampling effects rather than directional persistence.",
+    "The DRA parent already requires positive 24-hour momentum, so the feature may be redundant and may have too few independent interventions.",
+    "A positive total-PnL screen could still come from suppressed losing inventory; V2 therefore requires realized improvement and explicit underwater and terminal-inventory non-inferiority.",
+    "No pre-2025 feature outcome, post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed or authorized while freezing this prior."
+  ]
+}

@@ -13,12 +13,12 @@
     "parent_strategy": {"const": "BTC_DRA_V1"},
     "selection_cutoff": {"const": "2025-01-01T00:00:00"},
     "oos_access": {"const": "DENY"},
-    "gate_set": {"const": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V1"},
+    "gate_set": {"enum": ["DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V1", "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"]},
     "prior_evidence": {
       "type": "object", "additionalProperties": false,
       "required": ["disposition", "path", "sha256"],
       "properties": {
-        "disposition": {"enum": ["PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT", "PREREGISTERED_V1_FORWARD_DISCOVERY_MECHANISM", "PRIOR_SUPPORTS_ONE_DOWNSIDE_SEMIVARIANCE_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_AMIHUD_ILLIQUIDITY_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_BIPOWER_JUMPINESS_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_INTRADAY_SIGN_PERSISTENCE_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_DIRECTIONAL_VOLUME_PARTICIPATION_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_INTRADAY_VOLUME_CONCENTRATION_ADMISSION_AUDIT"]},
+        "disposition": {"enum": ["PRIOR_SUPPORTS_ONE_VOLATILITY_MANAGEMENT_DESIGN_AUDIT", "PREREGISTERED_V1_FORWARD_DISCOVERY_MECHANISM", "PRIOR_SUPPORTS_ONE_DOWNSIDE_SEMIVARIANCE_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_AMIHUD_ILLIQUIDITY_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_BIPOWER_JUMPINESS_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_INTRADAY_SIGN_PERSISTENCE_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_DIRECTIONAL_VOLUME_PARTICIPATION_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_INTRADAY_VOLUME_CONCENTRATION_ADMISSION_AUDIT", "PRIOR_SUPPORTS_ONE_CLOSE_LOCATION_ADMISSION_AUDIT"]},
         "path": {"$ref": "#/$defs/repositoryPath"},
         "sha256": {"$ref": "#/$defs/sha256"}
       }
@@ -57,7 +57,8 @@
             "DAILY_REALIZED_TO_BIPOWER_VARIATION_RATIO_TO_PRIOR_20D_MEDIAN",
             "DAILY_INTRADAY_SIGN_PERSISTENCE_SHARE_TO_PRIOR_20D_MEDIAN",
             "DAILY_POSITIVE_RETURN_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
-            "DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN"
+            "DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN",
+            "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN"
           ]
         },
         "relation": {"enum": ["AT_OR_BELOW", "AT_OR_ABOVE"]}
@@ -85,6 +86,23 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": ["feature"],
+        "properties": {
+          "feature": {
+            "required": ["key"],
+            "properties": {
+              "key": {"const": "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN"}
+            }
+          }
+        }
+      },
+      "then": {"properties": {"gate_set": {"const": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"}}},
+      "else": {"properties": {"gate_set": {"const": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V1"}}}
+    }
+  ],
   "$defs": {
     "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"},
     "repositoryPath": {"type": "string", "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"},

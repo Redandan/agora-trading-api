@@ -45,7 +45,7 @@ def manifest(*, feature: str = "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_ME
             "lookback_complete_days": 20,
             "relation": contract["relation"],
         },
-        "gate_set": runner.GATE_SET,
+        "gate_set": contract.get("gate_set", runner.GATE_SET_V1),
         "oos_access": "DENY",
         "parent_strategy": runner.PARENT_STRATEGY,
         "prior_evidence": {
@@ -371,6 +371,88 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
             engine._update_feature(
                 bar(opened + timedelta(hours=23), volume="0")
             )
+
+    def test_close_location_uses_final_close_inside_complete_day_range(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(24):
+            close = "108" if hour == 23 else ("90" if hour == 7 else "110")
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), close=close)
+            )
+        self.assertEqual(engine.feature_low, D("90"))
+        self.assertEqual(engine.feature_high, D("110"))
+        self.assertEqual(engine.feature_close, D("108"))
+        self.assertEqual(engine._daily_value(), D("0.9"))
+
+    def test_close_location_requires_positive_complete_day_range(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(23):
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), close="100")
+            )
+        with self.assertRaisesRegex(runner.ScreenReject, "positive complete-day range"):
+            engine._update_feature(
+                bar(opened + timedelta(hours=23), close="100")
+            )
+
+    def test_close_location_requires_v2_gate_set(self) -> None:
+        value = manifest(feature="DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN")
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+        value["gate_set"] = runner.GATE_SET_V1
+        with self.assertRaisesRegex(runner.ScreenReject, "does not bind"):
+            runner.validate_manifest(value)
+
+    def test_v2_primary_gate_fails_on_worse_underwater_duration(self) -> None:
+        parent_design = {
+            "total_pnl_usdt": "1",
+            "realized_usdt": "1",
+            "unrealized_usdt": "0",
+            "max_drawdown_pct": "1",
+            "median_hold_hours": 10,
+            "p90_hold_hours": 20,
+            "inventory_path": {"maximum_underwater_duration_hours": 10},
+            "terminal_inventory": [{}],
+        }
+        parent_validation = dict(parent_design)
+        candidate_design = {
+            **parent_design,
+            "total_pnl_usdt": "2",
+            "realized_usdt": "2",
+            "vetoed_signal_count": 8,
+            "inventory_path": {"maximum_underwater_duration_hours": 9},
+        }
+        candidate_validation = {
+            **parent_validation,
+            "total_pnl_usdt": "2",
+            "realized_usdt": "2",
+            "vetoed_signal_count": 4,
+            "inventory_path": {"maximum_underwater_duration_hours": 11},
+        }
+        variant = {
+            "design": candidate_design,
+            "validation": candidate_validation,
+            "annual_total_wins": 3,
+            "annual_drawdown_non_worse": 4,
+            "top_year_positive_delta_contribution_pct": "50",
+        }
+        checks = runner.primary_gates(
+            variant,
+            {"design": parent_design, "validation": parent_validation},
+            gate_set=runner.GATE_SET_V2,
+        )
+        self.assertFalse(checks["validation_max_underwater_duration_non_worse"])
+        self.assertTrue(checks["validation_realized_pnl_improves"])
 
     def test_manifest_binds_prior_disposition_to_feature(self) -> None:
         value = manifest(

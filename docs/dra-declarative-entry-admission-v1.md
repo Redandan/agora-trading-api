@@ -28,7 +28,9 @@ The runner supports only:
 - complete-day positive-return estimated quote-volume share versus its prior
   20-complete-day median, admitted at or above the threshold; and
 - complete-day estimated quote-volume Herfindahl concentration versus its
-  prior 20-complete-day median, admitted at or below the threshold.
+  prior 20-complete-day median, admitted at or below the threshold; and
+- complete-day close location within the day's high-low range versus its prior
+  20-complete-day median, admitted at or above the threshold.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
@@ -97,6 +99,14 @@ within-day liquidity-path proxy rather than a total-volume, directional-volume,
 order-flow or market-wide liquidity claim. Individual zero-volume hours remain
 in the fixed 24-hour day; non-positive total daily quote volume fails closed.
 
+The close-location feature measures where the final hourly close sits inside
+the latest complete UTC day's high-low range. It is zero at the daily low and
+one at the daily high, then is divided by the median of exactly the prior 20
+complete-day values. This is a price-path rejection-versus-persistence proxy,
+not an order-flow, total-range, volatility or candle-pattern claim. It requires
+exactly 24 hourly bars and a positive daily range. The unchanged long DRA entry
+is admitted only when the ratio is at or above the frozen threshold.
+
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,
 holding distribution, utilization, underwater duration, realized-lot fills,
@@ -110,6 +120,13 @@ drawdown non-worse years, positive-delta concentration no greater than 60%, and
 non-worse neighbor stability. A failure returns
 `NO_MECHANISM_CLOSE_FEATURE_FAMILY`; it does not authorize tuning. A pass only
 permits one separately frozen hypothesis manifest. OOS remains denied.
+
+New close-location screens use gate set V2. In addition to every V1 gate, the
+primary must strictly improve realized PnL in both Design and Validation, keep
+maximum underwater duration non-worse in both windows, and not increase
+terminal inventory counts. Both neighbors must also keep Validation realized
+PnL, underwater duration, and terminal inventory non-worse. Earlier sealed V1
+screens retain their original gate identity and are never reinterpreted.
 
 Run a frozen screen with:
 

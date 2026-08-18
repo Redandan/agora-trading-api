@@ -115,6 +115,17 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_REALIZED_PERFORMANCE_PRIMARY_PRIOR_V1",
     },
+    "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_H1_LAG1_RETURN_AUTOCORRELATION_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_H1_LAG1_RETURN_AUTOCORRELATION_PRIMARY_PRIOR_V1",
+    },
+}
+PERCENTILE_FEATURES = {
+    "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",
+    "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE",
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -352,11 +363,42 @@ def _realized_performance(log_returns: tuple[D, ...]) -> D:
 def prior_percentile(current: D, prior: list[D]) -> D:
     if len(prior) != 20:
         raise ScreenReject(
-            "DATA_REJECT", "realized performance percentile requires 20 prior days"
+            "DATA_REJECT", "percentile feature requires 20 prior days"
         )
     below = sum(value < current for value in prior)
     equal = sum(value == current for value in prior)
     return (D(below) + D(equal) / D("2")) / D(len(prior))
+
+
+def lag1_return_autocorrelation(log_returns: list[D]) -> D:
+    if len(log_returns) != 24 or any(not value.is_finite() for value in log_returns):
+        raise ScreenReject(
+            "DATA_REJECT",
+            "H1 lag-1 return autocorrelation requires exactly 24 finite intraday log returns",
+        )
+    leading = log_returns[:-1]
+    lagged = log_returns[1:]
+    count = D(len(leading))
+    leading_mean = sum(leading, D("0")) / count
+    lagged_mean = sum(lagged, D("0")) / count
+    covariance_sum = sum(
+        (left - leading_mean) * (right - lagged_mean)
+        for left, right in zip(leading, lagged)
+    )
+    leading_square_sum = sum(
+        (value - leading_mean) * (value - leading_mean) for value in leading
+    )
+    lagged_square_sum = sum(
+        (value - lagged_mean) * (value - lagged_mean) for value in lagged
+    )
+    if leading_square_sum <= 0 or lagged_square_sum <= 0:
+        raise ScreenReject(
+            "DATA_REJECT",
+            "H1 lag-1 return autocorrelation requires non-zero variation on both lagged sequences",
+        )
+    with localcontext() as context:
+        context.prec = 50
+        return covariance_sum / (leading_square_sum * lagged_square_sum).sqrt()
 
 
 class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
@@ -503,6 +545,11 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             )
         if self.feature_key == "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE":
             return realized_performance(self.daily_intraday_log_returns)
+        if (
+            self.feature_key
+            == "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE"
+        ):
+            return lag1_return_autocorrelation(self.daily_intraday_log_returns)
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -569,7 +616,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             return
         current = self._daily_value()
         if len(self.daily_history) == 20:
-            if self.feature_key == "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE":
+            if self.feature_key in PERCENTILE_FEATURES:
                 self.current_feature_ratio = prior_percentile(
                     current, list(self.daily_history)
                 ).quantize(RATIO_QUANTUM, rounding=ROUND_HALF_UP)

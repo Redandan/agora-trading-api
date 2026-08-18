@@ -506,6 +506,28 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         with self.assertRaisesRegex(runner.ScreenReject, "does not bind"):
             runner.validate_manifest(value)
 
+    def test_h1_lag1_return_autocorrelation_preserves_sequence_order(self) -> None:
+        increasing = [D(value) for value in range(1, 25)]
+        alternating = [D("1") if index % 2 == 0 else D("-1") for index in range(24)]
+        self.assertEqual(runner.lag1_return_autocorrelation(increasing), D("1"))
+        self.assertEqual(runner.lag1_return_autocorrelation(alternating), D("-1"))
+
+    def test_h1_lag1_return_autocorrelation_fails_closed_without_variation(self) -> None:
+        with self.assertRaisesRegex(runner.ScreenReject, "non-zero variation"):
+            runner.lag1_return_autocorrelation([D("0.01")] * 24)
+
+    def test_h1_lag1_return_autocorrelation_feature_requires_v2_gate_set(self) -> None:
+        feature = "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE"
+        value = manifest(feature=feature)
+        value["variants"] = [
+            {"role": "lower_neighbor", "threshold": "0.4", "variant_id": "lower-ac-v1"},
+            {"role": "primary", "threshold": "0.5", "variant_id": "primary-ac-v1"},
+            {"role": "upper_neighbor", "threshold": "0.6", "variant_id": "upper-ac-v1"},
+        ]
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+
+
     def test_v2_primary_gate_fails_on_worse_underwater_duration(self) -> None:
         parent_design = {
             "total_pnl_usdt": "1",

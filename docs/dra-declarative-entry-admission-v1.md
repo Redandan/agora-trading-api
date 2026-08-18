@@ -36,6 +36,9 @@ The runner supports only:
   threshold; and
 - complete-day Schnytzer-Westreich realized performance, ranked against the
   prior 20 complete days, admitted at or above the frozen percentile.
+- complete-day H1 lag-1 open-to-close log-return autocorrelation, ranked
+  against the prior 20 complete days, admitted at or above the frozen
+  percentile.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
@@ -133,6 +136,17 @@ and negative intraday outcomes fails closed; no epsilon, clipping or alternate
 moment approximation is allowed. This is an H1 proxy for published 5-minute
 evidence and does not inherit that paper's significance or return claim.
 
+The H1 lag-1 return-autocorrelation feature uses the same 24 open-to-close log
+returns wholly inside the latest complete UTC day, forms 23 ordered adjacent
+pairs, and computes their Pearson correlation with separately demeaned leading
+and lagged sequences. It then converts the coefficient to a midrank percentile
+against exactly the prior 20 complete days. A higher percentile means that
+hourly returns were less negatively autocorrelated or more persistent than
+recent history; it does not by itself prove price direction or profitability.
+Zero variation in either sequence fails closed. This sequence-order statistic
+is distinct from the closed magnitude-neutral same-sign-pair share, total
+volatility, jumpiness and long-trend families.
+
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,
 holding distribution, utilization, underwater duration, realized-lot fills,
@@ -147,8 +161,8 @@ non-worse neighbor stability. A failure returns
 `NO_MECHANISM_CLOSE_FEATURE_FAMILY`; it does not authorize tuning. A pass only
 permits one separately frozen hypothesis manifest. OOS remains denied.
 
-New close-location, H1 volume-weighted close-location, and realized-performance
-screens use gate set V2. In addition to every V1 gate, the
+New close-location, H1 volume-weighted close-location, realized-performance,
+and H1 lag-1 return-autocorrelation screens use gate set V2. In addition to every V1 gate, the
 primary must strictly improve realized PnL in both Design and Validation, keep
 maximum underwater duration non-worse in both windows, and not increase
 terminal inventory counts. Both neighbors must also keep Validation realized

@@ -1,0 +1,59 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary evidence is mixed: older high-frequency Bitcoin studies report statistically significant serial dependence at 1H, while newer robust inference reports returns broadly uncorrelated over time. Neither result establishes a profitable DRA entry filter. Exactly one separately frozen equal-capital historical screen may test whether a relatively high prior-day H1 lag-1 return autocorrelation percentile distinguishes less oscillatory or more persistent DRA momentum entries; failure closes this exact family without tuning.",
+  "disposition": "PRIOR_SUPPORTS_ONE_H1_LAG1_RETURN_AUTOCORRELATION_ADMISSION_AUDIT",
+  "document_type": "DRA_H1_LAG1_RETURN_AUTOCORRELATION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE",
+    "formula": "Pearson correlation of the 23 ordered adjacent pairs formed from exactly 24 open-to-close H1 log returns wholly inside the latest complete UTC day, midranked against exactly the prior 20 complete-day coefficients",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.4", "0.5", "0.6"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "The authors report statistically significant lower-order autocorrelation on 5-minute and 1-hour cryptocurrency returns, with BTC 1H lower-order autocorrelation negative in their sample; they explicitly state that inefficiency alone is insufficient to extract profits.",
+      "identity": "Tartakovsky, Plesovskikh, Sarmakeeva and Bibik, Autocorrelation of returns in major cryptocurrency markets (2020)",
+      "primary_source": "https://arxiv.org/abs/2003.13517",
+      "role": "BITCOIN_H1_SERIAL_DEPENDENCE_PRIOR",
+      "transfer_boundary": "Bitfinex and BitMEX evidence through 2019 does not establish OKX H1 persistence, a one-day coefficient, a rolling percentile, DRA timing or strategy economics."
+    },
+    {
+      "finding": "Variance-ratio tests at 15-, 30-, 60- and 120-minute frequencies reject memoryless Bitcoin returns in the study's historical sample.",
+      "identity": "Zargar and Kumar, Informational inefficiency of Bitcoin: A study based on high-frequency data (2019)",
+      "primary_source": "https://doi.org/10.1016/j.ribaf.2018.08.008",
+      "role": "HIGH_FREQUENCY_INEFFICIENCY_PRIOR",
+      "transfer_boundary": "A martingale rejection is not a directional trading rule and supplies no DRA threshold, cost model or matched-capital evidence."
+    },
+    {
+      "finding": "Using robust inference designed for heavy tails and nonlinear dependence, the authors report that Bitcoin and Ethereum returns are broadly uncorrelated over time despite volatility clustering.",
+      "identity": "Abdullaev and Ibragimov, Stylized facts of cryptocurrency markets: Robust definitions and inference approaches (2026)",
+      "primary_source": "https://doi.org/10.1016/j.ememar.2026.101440",
+      "role": "ADVERSARIAL_MATURATION_PRIOR",
+      "transfer_boundary": "Aggregate uncorrelatedness does not rule out conditional entry-selection value, but it makes persistence of the older H1 effect uncertain and requires direct economic falsification."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly 24 open-to-close H1 log returns wholly contained in the latest complete UTC day; never include a preceding-day close or later bar.",
+    "Compute Pearson lag-1 correlation from 23 ordered adjacent pairs with separately demeaned leading and lagged sequences; fail closed if either sequence has zero variation.",
+    "Convert only the latest complete-day coefficient to a midrank percentile against exactly the prior 20 complete-day coefficients.",
+    "Keep DRA parent side, entries, exits, lot cost, capacity, fee, adverse slippage, cooldown and next-bar fill clock unchanged.",
+    "Freeze primary 0.5 and neighbors 0.4 and 0.6 before outcome access; do not search another percentile, lookback, return definition, lag, correlation estimator or relation.",
+    "Require Design and Validation total and realized PnL improvement, annual breadth, drawdown and underwater non-inferiority, holding support, terminal inventory and neighbor stability under gate set V2; otherwise close the family.",
+    "Do not open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T10:57:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "abdullaev_ibragimov_official_open_access_identity_and_findings": "PASS",
+    "tartakovsky_et_al_full_text_methodology_findings_and_profit_warning": "PASS",
+    "zargar_kumar_official_publisher_identity_and_abstract": "PASS_ABSTRACT_ONLY"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "A coefficient estimated from 23 adjacent pairs is noisy and may be dominated by a small number of hourly moves.",
+    "Older BTC evidence often found negative rather than positive 1H autocorrelation, while newer robust evidence finds no aggregate linear autocorrelation.",
+    "The within-day percentile and DRA admission transfer are preregistered research choices, not strategies reported by the cited papers.",
+    "No post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed or authorized."
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "PRIOR_SUPPORTS_ONE_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_HISTORICAL_AUDIT",
+  "claim_boundary": "Primary evidence supports time-varying and forecastable Bitcoin volatility, the importance of jumps and structural breaks, and the need to test volatility management against direct implementable economics. It does not establish that the exact volatility-of-volatility percentile predicts Bitcoin returns. Exactly one preregistered monthly 100-or-50-percent BTC allocation audit may test whether instability in lagged realized volatility improves risk-adjusted economics. Failure or feature redundancy closes the exact family without changing the lookbacks, thresholds, relation, target weights or rebalance clock.",
+  "feature_contract": {
+    "source": "SEALED_OKX_BTC_USDT_SPOT_HOURLY_OHLCV",
+    "decision_time": "EACH_UTC_MONTH_BOUNDARY_AFTER_THE_LATEST_COMPLETE_UTC_DAY",
+    "daily_realized_volatility": "SQRT_OF_SUM_OF_24_SQUARED_HOURLY_LOG_CLOSE_RETURNS",
+    "volatility_of_volatility": "POPULATION_STANDARD_DEVIATION_OF_LOG_DAILY_REALIZED_VOLATILITY_OVER_EXACTLY_20_COMPLETE_UTC_DAYS",
+    "state_feature": "LATEST_VOLATILITY_OF_VOLATILITY_PRIOR_252_COMPLETE_DAY_MIDRANK_PERCENTILE",
+    "policy": "TARGET_50_PERCENT_BTC_WHEN_PERCENTILE_IS_ABOVE_THRESHOLD_OTHERWISE_TARGET_100_PERCENT_BTC",
+    "thresholds": ["0.7", "0.8", "0.9"],
+    "primary_threshold": "0.8",
+    "execution": "NEXT_HOURLY_BAR_OPEN_WITH_FIFO_PARTIAL_REBALANCING"
+  },
+  "prior_matrix": [
+    {
+      "identity": "Trucios, Forecasting Bitcoin risk measures: A robust approach, International Journal of Forecasting 35 (2019) 836-847",
+      "primary_source": "https://doi.org/10.1016/j.ijforecast.2019.01.003",
+      "finding": "The study compares one-step-ahead Bitcoin volatility and Value-at-Risk forecasts and reports that robust volatility procedures outperform non-robust procedures.",
+      "role": "BITCOIN_TIME_VARYING_RISK_AND_FORECASTABILITY_PRIOR",
+      "transfer_boundary": "Forecastable volatility is not return timing, does not identify volatility-of-volatility as an alpha factor, and does not prove that reducing spot exposure improves Calmar after costs."
+    },
+    {
+      "identity": "Shen, Urquhart and Wang, Forecasting the volatility of Bitcoin: The importance of jumps and structural breaks, European Financial Management 26 (2020)",
+      "primary_source": "https://doi.org/10.1111/eufm.12254",
+      "finding": "The study examines Bitcoin volatility forecasting and identifies jumps and structural breaks as material to forecast performance.",
+      "role": "VOLATILITY_INSTABILITY_MECHANISM_PRIOR",
+      "transfer_boundary": "Jumps and breaks motivate measuring instability but do not select a twenty-day log-volatility dispersion, a percentile threshold, a monthly clock or a 50-percent target."
+    },
+    {
+      "identity": "Cederburg, O'Doherty, Wang and Yan, On the performance of volatility-managed portfolios, Journal of Financial Economics 138 (2020) 95-117",
+      "primary_source": "https://www.lehigh.edu/~xuy219/research/COWY.pdf",
+      "finding": "Across 103 equity strategies, implementable volatility-managed portfolios did not systematically outperform unmanaged portfolios and commonly had weaker out-of-sample utility or Sharpe evidence.",
+      "role": "CO_EQUAL_FALSIFICATION_PRIOR",
+      "transfer_boundary": "A historical drawdown reduction or positive return is insufficient; the exact BTC policy must beat its matched passive comparator on frozen Calmar, breadth, path risk and friction gates."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only hourly closes available by each complete UTC-day boundary and execute no earlier than the next hourly open.",
+    "Compute each daily realized-volatility observation from exactly twenty-four hourly log returns, then compute volatility-of-volatility from exactly twenty complete daily observations.",
+    "Compare the latest volatility-of-volatility observation only with the preceding 252 observations; exclude the current observation from the reference distribution.",
+    "Freeze p80 as primary and p70 and p90 as neighbors before outcome access; target 50-percent BTC only above the threshold and 100-percent BTC otherwise.",
+    "Rebalance only at UTC month boundaries with equal initial capital, FIFO cost basis, explicit normal and doubled stress friction, realized/unrealized separation and terminal liquidation sensitivity.",
+    "Require feature non-redundancy against the contemporaneous twenty-day average realized-volatility level before accepting any economic result.",
+    "Require positive Design and Validation economics, passive-relative Calmar, upside capture, annual breadth, concentration control and both-neighbor stability.",
+    "Do not scan a different lookback, volatility estimator, threshold, target weight, relation, rebalance frequency, hysteresis, leverage, short leg or BTC trend interaction after outcome access.",
+    "Do not open post-2024 OOS or create a Trading runtime rule from this audit."
+  ],
+  "uncertainty": [
+    "No primary source directly validates this exact single-BTC time-series volatility-of-volatility allocation rule.",
+    "Volatility-of-volatility may be highly correlated with the already closed realized-volatility-level family; the frozen non-redundancy gate must close it if so.",
+    "Monthly decisions may react too slowly to abrupt shocks, while more frequent decisions could add churn; neither clock may be substituted after results.",
+    "A fixed 50-percent risk state may preserve upside but reduce drawdown too little to improve Calmar.",
+    "No post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-18T14:18:00Z"
+}

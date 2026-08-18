@@ -86,7 +86,26 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 20)
+        self.assertEqual(len(catalog["closed_families"]), 21)
+        realized_performance = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-realized-performance-entry-admission"
+        )
+        self.assertEqual(
+            realized_performance["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_REALIZED_PERFORMANCE_FACTOR_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in realized_performance["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_PRIOR",
+            ],
+        )
+        self.assertTrue(realized_performance["prohibited_reopen"])
         turn_of_month = next(
             family
             for family in catalog["closed_families"]
@@ -260,7 +279,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 21)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 22)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

@@ -1,0 +1,148 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_REALIZED_PERFORMANCE_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-realized-performance-entry-admission-v1",
+  "decided_at": "2026-08-18T10:33:29Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_REALIZED_PERFORMANCE_FACTOR_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_REALIZED_PERFORMANCE_PERCENTILE_ADMISSION_FAMILY_WITHOUT_THRESHOLD_OR_ROOT_TUNING",
+  "manifest_sha256": "2f959b61c225dbd0e4f0a1dcdf46135e8e25d5e9fa0aab95f7db076d5619e461",
+  "prior_sha256": "fba4515d2fed27e2763d6c85e2586754d9ab9885c9aeff8faedce7b1a7ed7127",
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "e4e702f478f20a8e4ff2bf65919eff7344f5ef3fcce42d72e33f31a60ec11980",
+    "git_commit": "0c641d7d34a05152086ddcdf031561f9f971598f",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-realized-performance-entry-admission-v1/artifacts/run1.json",
+    "sha256": "c919d643cdf2622f6f06f162c38a1d92e211088d4b47c82decc8d57d3884865c"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-realized-performance-entry-admission-v1/artifacts/run2.json",
+    "sha256": "c919d643cdf2622f6f06f162c38a1d92e211088d4b47c82decc8d57d3884865c",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature": {
+    "key": "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",
+    "primary_threshold": "0.5",
+    "neighbors": ["0.4", "0.6"],
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "economic_summary": {
+    "parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": "126.0",
+        "p90_hold_hours": "1818.6",
+        "maximum_underwater_duration_hours": 9878,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": "182.5",
+        "p90_hold_hours": "1418.3",
+        "maximum_underwater_duration_hours": 2397,
+        "terminal_inventory_count": 1
+      }
+    },
+    "primary_0_5": {
+      "design": {
+        "realized_usdt": "160.29693090",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "81.17643649",
+        "total_pnl_delta_usdt": "-9.60153677",
+        "max_drawdown_pct": "30.281894",
+        "median_hold_hours": "180.5",
+        "p90_hold_hours": "1422.4",
+        "vetoed_signals": 11,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "88.07200686",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "84.86380565",
+        "total_pnl_delta_usdt": "-1.33917621",
+        "max_drawdown_pct": "7.130257",
+        "median_hold_hours": "193.0",
+        "p90_hold_hours": "1548.6",
+        "vetoed_signals": 7,
+        "terminal_inventory_count": 1
+      },
+      "annual_total_pnl_delta_usdt": {
+        "2020": "-1.25940998",
+        "2021": "0.05273758",
+        "2022": "0E-8",
+        "2023": "-4.90004837",
+        "2024": "-1.39702017"
+      },
+      "annual_total_wins": "1_of_5",
+      "annual_drawdown_non_worse": "5_of_5",
+      "top_positive_year_delta_contribution_pct": "100.000000"
+    },
+    "lower_neighbor_0_4": {
+      "design_total_pnl_usdt": "85.28415829",
+      "validation_total_pnl_usdt": "86.20298186",
+      "validation_vetoed_signals": 0,
+      "annual_total_wins": "0_of_5",
+      "disposition": "NON_DISCRIMINATING_IN_VALIDATION_AND_WORSE_IN_DESIGN"
+    },
+    "upper_neighbor_0_6": {
+      "design_total_pnl_usdt": "67.62339638",
+      "validation_realized_usdt": "83.92499849",
+      "validation_total_pnl_usdt": "80.71679728",
+      "validation_max_drawdown_pct": "14.133326",
+      "validation_p90_hold_hours": "3087.8",
+      "annual_total_wins": "0_of_5",
+      "annual_drawdown_non_worse": "3_of_5",
+      "disposition": "STRICTER_FILTER_WORSENS_PNL_DRAWDOWN_AND_HOLDING_PATH"
+    }
+  },
+  "failed_primary_gates": [
+    "design_total_pnl_improves",
+    "design_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "annual_total_wins_at_least_3_of_5",
+    "top_year_positive_delta_contribution_at_most_60pct"
+  ],
+  "failed_neighbor_gates": {
+    "lower_0_4": ["validation_interventions_at_least_4"],
+    "upper_0_6": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ]
+  },
+  "passed_evidence": [
+    "The exact 52,608-row pre-2025 H1 corpus, frozen prior, manifest and runner hashes passed, and two independent runs were byte-identical.",
+    "The primary had enough Design and Validation interventions and preserved Validation unrealized PnL, terminal inventory count, underwater duration and annual drawdown breadth.",
+    "All primary and neighbor realized, unrealized, total PnL, drawdown, holding, utilization, underwater and terminal-inventory ledgers remained visible under equal capital."
+  ],
+  "material_learning": "The published positive return-predictability result for a full-distribution realized-performance statistic did not transfer into DRA entry-selection economics at H1 resolution. The primary veto removed profitable participation in both windows, reduced realized PnL, worsened Validation holding times and won only one annual total-PnL comparison. The permissive neighbor did nothing in Validation, while the stricter neighbor nearly doubled Validation drawdown and more than doubled P90 holding. This is neither an independent alpha nor a useful risk veto.",
+  "scientific_claim": "For the exact H1 Schnytzer-Westreich root, prior-20-day midrank percentile, 0.5 primary and 0.4/0.6 neighbors applied only to unchanged equal-capital DRA V1 entries, historical Design and Validation evidence through 2024 rejects candidate status. The result does not authorize another percentile, root approximation, lookback, sampling interval, return definition or realized-moment rescue.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The H1 root is much coarser than the five-minute estimator in the primary paper, but that limitation does not authorize a paid or unsealed higher-frequency backfill.",
+    "The conclusion closes only the exact percentile admission transfer; it does not dispute the paper's regression evidence in its own sample.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

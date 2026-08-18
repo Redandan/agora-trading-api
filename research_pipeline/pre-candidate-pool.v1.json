@@ -257,6 +257,32 @@
   ],
   "closed_families": [
     {
+      "family_id": "closed-dra-realized-performance-entry-admission",
+      "title": "DRA complete-day realized-performance percentile entry admission",
+      "decision_feature": "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_DRA_REALIZED_PERFORMANCE_FACTOR_FAMILY",
+      "duplicate_family_key": "dra-realized-performance-entry-admission",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/dra-realized-performance-entry-admission.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "e2e9a4ed9d97ae1319f54f6039330464b514080c1d755967b82030e4b8f8736e"
+        },
+        {
+          "path": "research_pipeline/examples/dra-realized-performance-entry-admission.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "2f959b61c225dbd0e4f0a1dcdf46135e8e25d5e9fa0aab95f7db076d5619e461"
+        },
+        {
+          "path": "research_pipeline/examples/dra-realized-performance-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_PRIOR",
+          "sha256": "fba4515d2fed27e2763d6c85e2586754d9ab9885c9aeff8faedce7b1a7ed7127"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-btc-turn-of-month-last-day-plus-three-long-cash",
       "title": "BTC canonical turn-of-month four-day long-or-cash",
       "decision_feature": "UTC_CALENDAR_POSITION_LAST_DAY_OR_FIRST_THREE_DAYS_OF_MONTH",

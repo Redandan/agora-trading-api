@@ -1,0 +1,158 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_WEEKEND_CALENDAR_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-weekend-calendar-entry-admission-v1",
+  "decided_at": "2026-08-18T11:30:01Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_WEEKEND_CALENDAR_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_UTC_WEEKEND_CALENDAR_DRA_ADMISSION_FAMILY_WITHOUT_TIMEZONE_WEEKDAY_SUBSET_OR_THRESHOLD_TUNING",
+  "manifest_sha256": "6d66b36f90b7ba4af575a8e849ad8b2c5618ff7e6b8931d2eef020464d1ac000",
+  "prior_sha256": "ea06599dc81d0723e1e1e0e7bbd299ed977f41a4f8910aa5caf966c11dbc2a7f",
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "36d06ed906f9ff873f70d4ff1c8c91503d21fc857bc90ca0552a893ce931e09f",
+    "git_commit": "46852de0a7f7e02a64ea9e5e5e99b4939bf38735",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-weekend-calendar-entry-admission-v1/artifacts/run1.json",
+    "sha256": "d078f72ca8c1a7ecfeaae7fd6b866319ac191f2363ae546eeb226c8853fa3233"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-weekend-calendar-entry-admission-v1/artifacts/run2.json",
+    "sha256": "d078f72ca8c1a7ecfeaae7fd6b866319ac191f2363ae546eeb226c8853fa3233",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature": {
+    "key": "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO",
+    "primary_threshold": "4",
+    "primary_admission": "MONDAY_THROUGH_FRIDAY",
+    "neighbors": ["3", "5"],
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "economic_summary": {
+    "parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": "126.0",
+        "p90_hold_hours": "1818.6",
+        "maximum_underwater_duration_hours": 9878,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": "182.5",
+        "p90_hold_hours": "1418.3",
+        "maximum_underwater_duration_hours": 2397,
+        "terminal_inventory_count": 1
+      }
+    },
+    "primary_mon_fri": {
+      "design": {
+        "realized_usdt": "147.18104499",
+        "unrealized_usdt": "-29.61387269",
+        "total_pnl_usdt": "117.56717230",
+        "total_pnl_delta_usdt": "26.78919904",
+        "realized_pnl_delta_usdt": "-22.71742268",
+        "unrealized_pnl_delta_usdt": "49.50662172",
+        "max_drawdown_pct": "17.461865",
+        "median_hold_hours": "144.0",
+        "p90_hold_hours": "1671.0",
+        "maximum_underwater_duration_hours": 6660,
+        "vetoed_signals": 37,
+        "terminal_inventory_count": 3
+      },
+      "validation": {
+        "realized_usdt": "83.24734190",
+        "unrealized_usdt": "0E-8",
+        "total_pnl_usdt": "83.24734190",
+        "total_pnl_delta_usdt": "-2.95563996",
+        "realized_pnl_delta_usdt": "-6.16384117",
+        "unrealized_pnl_delta_usdt": "3.20820121",
+        "max_drawdown_pct": "11.021184",
+        "max_drawdown_delta_pp": "3.899686",
+        "median_hold_hours": "177.5",
+        "p90_hold_hours": "3058.1",
+        "maximum_underwater_duration_hours": 3121,
+        "vetoed_signals": 17,
+        "terminal_inventory_count": 0
+      },
+      "annual_total_pnl_delta_usdt": {
+        "2020": "-4.63971587",
+        "2021": "8.63974878",
+        "2022": "3.72187535",
+        "2023": "-7.70654270",
+        "2024": "2.38554211"
+      },
+      "annual_total_wins": "3_of_5",
+      "annual_drawdown_non_worse": "4_of_5",
+      "top_positive_year_delta_contribution_pct": "58.585823"
+    },
+    "lower_neighbor_mon_thu": {
+      "design_total_pnl_delta_usdt": "-0.46840507",
+      "validation_total_pnl_delta_usdt": "-6.67685189",
+      "validation_realized_pnl_delta_usdt": "-9.88505310",
+      "validation_max_drawdown_delta_pp": "3.959394",
+      "annual_total_wins": "1_of_5",
+      "disposition": "STRICTER_WEEKDAY_ONLY_FILTER_FAILS_DESIGN_VALIDATION_AND_PATH_RISK"
+    },
+    "upper_neighbor_mon_sat": {
+      "design_total_pnl_delta_usdt": "3.75399119",
+      "validation_total_pnl_delta_usdt": "-3.27906691",
+      "validation_realized_pnl_delta_usdt": "-2.87779396",
+      "validation_max_drawdown_delta_pp": "3.844056",
+      "annual_total_wins": "1_of_5",
+      "disposition": "SUNDAY_ONLY_FILTER_FAILS_VALIDATION_AND_PATH_RISK"
+    }
+  },
+  "failed_primary_gates": [
+    "design_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_drawdown_within_0_25pp",
+    "validation_p90_hold_non_worse",
+    "validation_max_underwater_duration_non_worse"
+  ],
+  "failed_neighbor_gates": {
+    "lower_mon_thu": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ],
+    "upper_mon_sat": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ]
+  },
+  "passed_evidence": [
+    "The exact 52,608-row pre-2025 H1 corpus, primary-source prior, manifest and committed runner hashes passed, and two independent runs were byte-identical.",
+    "The primary passed Design total PnL, Design drawdown, annual total-win breadth and annual drawdown breadth gates, but failed realized-alpha and Validation transfer gates.",
+    "All variants had material interventions while keeping realized, unrealized, total PnL, drawdown, holding, utilization, underwater and terminal-inventory ledgers visible under equal capital."
+  ],
+  "material_learning": "Blocking weekend DRA entries did not create transferable risk-adjusted value. The primary's 26.79 USDT Design total-PnL uplift came with 22.72 USDT less realized PnL and 49.51 USDT less negative terminal unrealized inventory, so it was inventory cleanup rather than independent realized alpha. In Validation it lost 2.96 USDT total and 6.16 USDT realized PnL, increased drawdown by 3.90 percentage points, more than doubled P90 holding time, and extended maximum underwater duration by 724 hours. Both nested neighbors also lost Validation PnL and worsened path risk.",
+  "scientific_claim": "For the exact latest-complete-UTC-day weekday index, Monday-through-Friday primary admission and Monday-through-Thursday and Monday-through-Saturday neighbors applied only to unchanged equal-capital DRA V1 entries, historical Design and Validation evidence through 2024 rejects candidate status. The result does not authorize a different time zone, weekday subset, holiday/session definition, reversed relation or threshold rescue.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The calendar label is only a participation proxy and does not directly measure liquidity, but that limitation does not authorize replacing the feature after outcome access.",
+    "The conclusion closes only this exact DRA admission transfer and does not dispute lower weekend activity in the cited studies.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

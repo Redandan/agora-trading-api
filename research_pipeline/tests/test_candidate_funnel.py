@@ -86,7 +86,26 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 22)
+        self.assertEqual(len(catalog["closed_families"]), 23)
+        weekend_calendar = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-weekend-calendar-entry-admission"
+        )
+        self.assertEqual(
+            weekend_calendar["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_WEEKEND_CALENDAR_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in weekend_calendar["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_PRIOR",
+            ],
+        )
+        self.assertTrue(weekend_calendar["prohibited_reopen"])
         autocorrelation = next(
             family
             for family in catalog["closed_families"]
@@ -298,7 +317,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 23)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 24)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

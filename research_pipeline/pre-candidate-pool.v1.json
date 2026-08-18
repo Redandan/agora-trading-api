@@ -257,6 +257,32 @@
   ],
   "closed_families": [
     {
+      "family_id": "closed-dra-weekend-calendar-entry-admission",
+      "title": "DRA latest-complete-UTC-day weekend calendar entry admission",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_DRA_WEEKEND_CALENDAR_FAMILY",
+      "duplicate_family_key": "dra-weekend-calendar-entry-admission",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/dra-weekend-calendar-entry-admission.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "aceb6315b141d5a796913baef1e981d766f4f1a3414600128eb2ea4065260414"
+        },
+        {
+          "path": "research_pipeline/examples/dra-weekend-calendar-entry-admission.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "6d66b36f90b7ba4af575a8e849ad8b2c5618ff7e6b8931d2eef020464d1ac000"
+        },
+        {
+          "path": "research_pipeline/examples/dra-weekend-calendar-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_PRIOR",
+          "sha256": "ea06599dc81d0723e1e1e0e7bbd299ed977f41a4f8910aa5caf966c11dbc2a7f"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-dra-h1-lag1-return-autocorrelation-entry-admission",
       "title": "DRA complete-day H1 lag-1 return-autocorrelation percentile entry admission",
       "decision_feature": "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE",

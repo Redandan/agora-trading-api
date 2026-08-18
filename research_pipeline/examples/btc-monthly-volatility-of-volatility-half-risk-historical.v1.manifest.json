@@ -2,7 +2,7 @@
   "schema_version": "1",
   "document_type": "BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_HISTORICAL_MANIFEST_V1",
   "experiment_id": "btc-monthly-volatility-of-volatility-half-risk-historical-v1",
-  "created_at": "2026-08-18T14:24:00Z",
+  "created_at": "2026-08-18T14:11:00Z",
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
   "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
   "thesis": "Instability in lagged Bitcoin realized volatility may identify transition states with unusually uncertain risk. Reducing an otherwise passive unlevered BTC position from 100 percent to 50 percent only during high volatility-of-volatility percentile states may lower drawdown while preserving enough upside to improve fee-adjusted Calmar over passive BTC.",
@@ -34,7 +34,7 @@
   "source_bindings": [
     {
       "path": "research_pipeline/examples/btc-monthly-volatility-of-volatility-half-risk-primary-prior.v1.json",
-      "sha256": "a3d8e953bbca7cb178d10f9bb8f9f9cc271749ebc7cb53b4fba812a8210e5468",
+      "sha256": "7ad992e99eda7a143f633ec8ec1372da0deb0683f9ac75a34a7909b32983486c",
       "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
     },
     {

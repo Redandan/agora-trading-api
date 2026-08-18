@@ -226,8 +226,21 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             'systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT"', self.installer
         )
         self.assertIn(
+            'failed microstructure source may only be retained by preserve mode',
+            self.installer,
+        )
+        self.assertIn(
             'fail "microstructure source unit must be inactive before upgrade"',
             self.installer,
+        )
+
+    def test_preserve_upgrade_can_retain_failed_source_without_lifecycle_write(self) -> None:
+        self.assertIn("failed) expected_source='failed-preserved'", self.wrapper)
+        self.assertIn('inactive|failed) [ "$preserve_source_main_pid" = 0 ]', self.installer)
+        self.assertIn('failed-preserved)', self.verifier)
+        self.assertIn(
+            'microstructure source fail-closed state preserved without restart or reset',
+            self.verifier,
         )
 
     def test_preserve_preflight_binds_release_manifest_state_and_pid(self) -> None:
@@ -424,7 +437,7 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             '"$EXPECT_MICROSTRUCTURE_SOURCE" <<\'PY\'', self.verifier
         )
         self.assertIn(
-            'if expected_source != "active" and binding["start_day"] <=', self.verifier
+            'if expected_source == "disabled" and binding["start_day"] <=', self.verifier
         )
         self.assertIn(
             'binding forward start day is not strictly future for an inactive source',

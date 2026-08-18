@@ -229,6 +229,14 @@ it in a dirty worktree; failure there is intentional, and the task that prepares
 the commit may use only static parser/closure checks. A successful package-only
 result is still not Linux/server/deployment proof.
 
+`-PreserveBoundDataPlane` may install a new control release while retaining an
+existing bound microstructure data release in exactly one of three observed
+lifecycle states: active, inactive, or fail-closed. A retained failed state is
+not reset, restarted, enabled, or repaired. The installer seals the unit
+properties, PID, binding, state, release metadata, and bytes before installation
+and requires exact equality afterward. Ordinary non-preserve upgrades continue
+to reject active or failed microstructure sources.
+
 When the reviewed release intentionally includes the frozen DRA crypto-carry
 producer bytes, run the opt-in dual-distribution closure instead:
 

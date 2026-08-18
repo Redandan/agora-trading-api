@@ -498,6 +498,7 @@ if [ "`$preserve_mode" = 1 ]; then
   case "`$source_state" in
     active) expected_source='active'; expected_intake_preflight='1' ;;
     inactive) expected_source='disabled' ;;
+    failed) expected_source='failed-preserved' ;;
     *) echo 'microstructure source has an unsupported pre-install state' >&2; exit 1 ;;
   esac
 fi

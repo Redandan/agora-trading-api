@@ -698,7 +698,7 @@ paths = RuntimePaths(
 binding = _load_binding(
     paths, require_future=False, today=datetime.now(timezone.utc).date()
 )
-if expected_source != "active" and binding["start_day"] <= datetime.now(timezone.utc).date().isoformat():
+if expected_source == "disabled" and binding["start_day"] <= datetime.now(timezone.utc).date().isoformat():
     raise SystemExit("binding forward start day is not strictly future for an inactive source")
 PY
   )
@@ -1578,6 +1578,18 @@ case "$EXPECT_MICROSTRUCTURE_SOURCE" in
     systemctl is-active --quiet "$MICROSTRUCTURE_UNIT" \
       || fail "microstructure source is not active"
     ok "microstructure source active only with explicit intake preflight"
+    ;;
+  failed-preserved)
+    systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" \
+      || fail "microstructure source failed state was not preserved"
+    [ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=MainPID --value)" = 0 ] \
+      || fail "failed microstructure source retains a MainPID"
+    case "$(systemctl is-enabled "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)" in
+      enabled|enabled-runtime|linked|linked-runtime|alias)
+        fail "failed microstructure source became enabled"
+        ;;
+    esac
+    ok "microstructure source fail-closed state preserved without restart or reset"
     ;;
   *) fail "unsupported EXPECT_MICROSTRUCTURE_SOURCE: $EXPECT_MICROSTRUCTURE_SOURCE" ;;
 esac

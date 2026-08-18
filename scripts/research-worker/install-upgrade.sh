@@ -96,11 +96,17 @@ case "$microstructure_enabled" in
     ;;
 esac
 microstructure_active="$(systemctl is-active "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)"
-case "$microstructure_active" in active|inactive) ;; *) fail "microstructure source unit state is unsupported: $microstructure_active" ;; esac
+case "$microstructure_active" in
+  active|inactive) ;;
+  failed) [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ] \
+    || fail "failed microstructure source may only be retained by preserve mode" ;;
+  *) fail "microstructure source unit state is unsupported: $microstructure_active" ;;
+esac
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] && [ "$microstructure_active" = active ]; then
   fail "microstructure source unit must be inactive before upgrade"
 fi
-if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \
+    && systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
   fail "microstructure source has a lingering failed state; explicit read-only review and reset-failed are required before upgrade"
 fi
 carry_unit_preexisting=false
@@ -321,7 +327,7 @@ PY
   preserve_source_main_pid="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=MainPID --value)"
   case "$microstructure_active" in
     active) [[ "$preserve_source_main_pid" =~ ^[1-9][0-9]*$ ]] || fail "active source has no valid MainPID" ;;
-    inactive) [ "$preserve_source_main_pid" = 0 ] || fail "inactive source retains a MainPID" ;;
+    inactive|failed) [ "$preserve_source_main_pid" = 0 ] || fail "non-running source retains a MainPID" ;;
   esac
   preserve_source_properties="$(systemctl show "$MICROSTRUCTURE_UNIT" --no-pager \
     --property=LoadState --property=ActiveState --property=SubState \

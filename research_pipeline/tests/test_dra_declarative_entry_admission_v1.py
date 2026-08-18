@@ -264,6 +264,66 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         self.assertEqual(engine.daily_sign_persistence_pair_count, 0)
         self.assertEqual(engine._daily_value(), D("0"))
 
+    def test_directional_volume_participation_uses_close_weighted_base_volume(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_POSITIVE_RETURN_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        engine._update_feature(
+            bar(opened, open_price="100", close="110", volume="2")
+        )
+        engine._update_feature(
+            bar(opened + timedelta(hours=1), open_price="100", close="90", volume="2")
+        )
+        for hour in range(2, 24):
+            engine._update_feature(
+                bar(
+                    opened + timedelta(hours=hour),
+                    open_price="100",
+                    close="100",
+                    volume="0",
+                )
+            )
+        self.assertEqual(engine.daily_positive_return_quote_volume, D("220"))
+        self.assertEqual(engine.daily_total_quote_volume, D("400"))
+        self.assertEqual(engine._daily_value(), D("0.55"))
+
+    def test_directional_volume_participation_allows_zero_volume_hours(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_POSITIVE_RETURN_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(24):
+            engine._update_feature(
+                bar(
+                    opened + timedelta(hours=hour),
+                    open_price="100",
+                    close="101",
+                    volume="1" if hour == 7 else "0",
+                )
+            )
+        self.assertEqual(engine._daily_value(), D("1"))
+
+    def test_directional_volume_participation_fails_closed_without_daily_volume(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_POSITIVE_RETURN_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(23):
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), volume="0")
+            )
+        with self.assertRaisesRegex(runner.ScreenReject, "positive daily quote volume"):
+            engine._update_feature(
+                bar(opened + timedelta(hours=23), volume="0")
+            )
+
     def test_manifest_binds_prior_disposition_to_feature(self) -> None:
         value = manifest(
             feature="DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN"

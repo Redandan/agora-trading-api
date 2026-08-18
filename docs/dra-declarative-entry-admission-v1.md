@@ -24,6 +24,8 @@ The runner supports only:
 - complete-day realized-variance to bipower-variation ratio versus its prior
   20-complete-day median, admitted at or below the threshold; and
 - complete-day intraday return-sign persistence share versus its prior
+  20-complete-day median, admitted at or above the threshold; and
+- complete-day positive-return estimated quote-volume share versus its prior
   20-complete-day median, admitted at or above the threshold.
 
 All features fail closed until their prior window is complete. A signal uses
@@ -72,6 +74,17 @@ then compares that share with the prior 20-complete-day median. Zero returns do
 not count as persistence and the denominator remains 22, so the result cannot
 be improved by silently deleting flat hours. The feature deliberately excludes
 the preceding day's close and binds a co-equal primary-literature prior.
+
+The directional-volume-participation feature is an H1 bar proxy, not true
+taker order flow or an order-book imbalance measure. For every hourly bar in
+the latest complete UTC day it estimates quote volume as `close * base volume`,
+sums that amount for bars whose close is strictly above their open, and divides
+it by the day's total estimated quote volume. The share is then divided by the
+median of exactly the prior 20 complete-day shares. Individual zero-volume
+hours remain valid and contribute zero; non-positive total daily quote volume
+fails closed. This keeps the mechanism distinct from total volume magnitude
+and unweighted return-sign persistence while binding a co-equal market-impact
+and Bitcoin fragmentation prior.
 
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,

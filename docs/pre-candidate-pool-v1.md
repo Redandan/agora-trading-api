@@ -60,7 +60,7 @@ by the funnel.
   unrealized, and total PnL, maximum drawdown, holding age, terminal inventory,
   and breadth/path risk. `MISSING_PROOF` remains explicit.
 
-The active V1 catalog contains six open families and fifteen repository-sealed
+The active V1 catalog contains five open families and sixteen repository-sealed
 closed or excluded families. One is the Amihud-style `DATA_REJECT`: it records
 missing economic proof rather than a negative performance conclusion, while
 still prohibiting imputation, row deletion, or relabeling from silently

@@ -1,0 +1,104 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DONCHIAN_STANDALONE_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-donchian-20d-10d-standalone-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DONCHIAN_20D_10D_STANDALONE_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_STANDALONE_POLICY_WITHOUT_TUNING_LEVERAGE_OR_REOPEN",
+  "manifest_sha256": "0e76ef3bdcf4e30ae352cadd04eafdf4677cede3ac2b976790528ddc3c906ee8",
+  "runner": {
+    "path": "src/main/java/com/agora/research/BtcDonchianStandaloneHistoricalCli.java",
+    "sha256": "4ce8133148e691793c2d21419e11b9c2afaf70f9c2442b83d3b9c67e0fc68760",
+    "git_commit": "f5f645894f2036aa55a64560939c126b3811fae8",
+    "java_version": "21",
+    "launch": "DIRECT_CLASSPATH_NO_MAVEN_EXEC_NO_SPRING"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-donchian-20d-10d-standalone-historical-v1/artifacts/run3.json",
+    "sha256": "5caf37b63352698750eac51602ad62c565e45b3c2f45e96815862b9dc290457f",
+    "bytes": 22857
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-donchian-20d-10d-standalone-historical-v1/artifacts/run4.json",
+    "sha256": "5caf37b63352698750eac51602ad62c565e45b3c2f45e96815862b9dc290457f",
+    "byte_identical": true,
+    "preliminary_run_note": "Preserved run1 and run2 were semantically identical but byte hashes differed only because Map.of and Map.copyOf serialized fields in unstable order. Commit f5f64589 changed insertion order only; it did not change metrics, gates, strategy, data, window or comparator."
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "design_normal": {
+      "realized_return_pct": "122.30032301",
+      "unrealized_return_pct": "0.00000000",
+      "total_return_pct": "122.30032301",
+      "maximum_drawdown_pct": "15.10008027",
+      "buy_hold_total_return_pct": "346.32062389",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "completed_trades": 20,
+      "top_positive_trade_contribution_pct": "70.32595022"
+    },
+    "validation_normal": {
+      "realized_return_pct": "6.60085213",
+      "unrealized_return_pct": "6.76228407",
+      "total_return_pct": "13.36313619",
+      "maximum_drawdown_pct": "7.01474294",
+      "maximum_underwater_duration_hours": 6045,
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_maximum_underwater_duration_hours": 5684,
+      "upside_capture_ratio": "0.02875309",
+      "calmar_ratio": "1.90500725",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "completed_trades": 11,
+      "winning_trades": 4,
+      "median_hold_hours": "456.00000000",
+      "p90_hold_hours": "984.00000000",
+      "terminal_position": true,
+      "terminal_holding_age_hours": "1848.00000000",
+      "top_positive_trade_contribution_pct": "61.26666387",
+      "terminal_unrealized_positive_contribution_pct": "50.60401970"
+    },
+    "validation_stress": {
+      "realized_return_pct": "6.02897135",
+      "unrealized_return_pct": "6.74554455",
+      "total_return_pct": "12.77451590",
+      "maximum_drawdown_pct": "6.78830761",
+      "completed_trades": 11,
+      "winning_trades": 4
+    },
+    "annual_fair_reset_normal_total_return_pct": {
+      "2020": "39.75479379",
+      "2021": "3.92341230",
+      "2022": "-5.16136215",
+      "2023": "2.35969388",
+      "2024": "11.17728520"
+    },
+    "annual_positive_years": "4_of_5",
+    "top_year_positive_total_return_contribution_pct": "69.48294176"
+  },
+  "failed_gates": [
+    "validation_normal_upside_capture_at_least_15pct_when_buy_hold_positive",
+    "validation_normal_calmar_at_least_50pct_of_buy_hold_calmar",
+    "top_year_positive_total_return_contribution_at_most_60pct",
+    "top_trade_positive_realized_pnl_contribution_at_most_40pct",
+    "validation_terminal_unrealized_positive_contribution_at_most_40pct_of_positive_total_return"
+  ],
+  "passed_evidence": [
+    "Design and Validation Normal and Stress total returns were positive.",
+    "Design and Validation drawdown stayed below sixty percent of matched-capital buy-and-hold drawdown.",
+    "Validation produced eleven completed trades with positive realized return and acceptable median and P90 holding durations.",
+    "Four of five fair-reset years were positive and all five candidate annual drawdowns were no worse than buy-and-hold."
+  ],
+  "scientific_claim": "The fixed standalone Donchian policy demonstrated genuine historical loss containment and positive fee-adjusted returns, but Validation captured only 2.875309% of positive buy-and-hold return and its Calmar was only 13.233122% of buy-and-hold Calmar. Positive evidence was too concentrated in one year and one trade, and 50.604020% of Validation positive total return remained in terminal unrealized inventory. These failures deny candidate status. Increasing the risk fraction, adding leverage, changing the 20/10 periods, altering stops or scanning variants after seeing the result is prohibited.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is retrospective historical Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The conclusion closes only the exact long-only 20-day entry, 10-day exit, ATR14, two-ATR initial stop, one-percent risk and unlevered exposure policy on the frozen OKX H1 corpus.",
+    "A genuinely different future trend family requires a new pre-outcome mechanism, duplicate fingerprint, data path and frozen gates; it cannot be a neighbor scan or risk rescaling of this result."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

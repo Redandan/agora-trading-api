@@ -16,6 +16,11 @@ MANIFEST_PATH = (
     / "examples"
     / "btc-donchian-20d-10d-standalone-historical.v1.manifest.json"
 )
+DECISION_PATH = (
+    PACKAGE_ROOT
+    / "examples"
+    / "btc-donchian-20d-10d-standalone-historical.v1.decision.json"
+)
 
 
 class BtcDonchianStandaloneHistoricalManifestTest(unittest.TestCase):
@@ -52,6 +57,36 @@ class BtcDonchianStandaloneHistoricalManifestTest(unittest.TestCase):
                     manifest["dataset"]["rows"],
                     sum(1 for _ in handle),
                 )
+
+    def test_decision_binds_byte_identical_runs_and_denies_oos(self) -> None:
+        decision = json.loads(DECISION_PATH.read_text(encoding="utf-8"))
+        self.assertEqual(
+            "NO_CANDIDATE_CLOSE_BTC_DONCHIAN_20D_10D_STANDALONE_FAMILY",
+            decision["status"],
+        )
+        self.assertTrue(decision["deterministic_replication"]["byte_identical"])
+        self.assertEqual(
+            decision["artifact"]["sha256"],
+            decision["deterministic_replication"]["sha256"],
+        )
+        self.assertFalse(decision["oos_opened"])
+        self.assertTrue(decision["prohibited_reopen"])
+        self.assertEqual(5, len(decision["failed_gates"]))
+
+        runner = REPO_ROOT / decision["runner"]["path"]
+        if runner.is_file():
+            self.assertEqual(
+                decision["runner"]["sha256"],
+                hashlib.sha256(runner.read_bytes()).hexdigest(),
+            )
+        artifact = REPO_ROOT / decision["artifact"]["path"]
+        replica = REPO_ROOT / decision["deterministic_replication"]["path"]
+        if artifact.is_file() and replica.is_file():
+            self.assertEqual(
+                decision["artifact"]["sha256"],
+                hashlib.sha256(artifact.read_bytes()).hexdigest(),
+            )
+            self.assertEqual(artifact.read_bytes(), replica.read_bytes())
 
 
 if __name__ == "__main__":

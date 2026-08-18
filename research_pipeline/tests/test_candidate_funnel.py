@@ -85,8 +85,19 @@ class CandidateFunnelTest(unittest.TestCase):
         Draft202012Validator(schema).validate(catalog_document)
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
-        self.assertEqual(len(catalog["families"]), 6)
-        self.assertEqual(len(catalog["closed_families"]), 15)
+        self.assertEqual(len(catalog["families"]), 5)
+        self.assertEqual(len(catalog["closed_families"]), 16)
+        donchian = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-donchian-20d-10d-standalone"
+        )
+        self.assertEqual(
+            donchian["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_DONCHIAN_20D_10D_STANDALONE_FAMILY",
+        )
+        self.assertTrue(donchian["prohibited_reopen"])
         microstructure = next(
             family
             for family in catalog["closed_families"]
@@ -200,8 +211,8 @@ class CandidateFunnelTest(unittest.TestCase):
         )
 
         self.assertEqual(snapshot["status"], "READY")
-        self.assertEqual(snapshot["summary"]["open_family_count"], 6)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 16)
+        self.assertEqual(snapshot["summary"]["open_family_count"], 5)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 17)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)
@@ -210,13 +221,9 @@ class CandidateFunnelTest(unittest.TestCase):
             [family["family_id"] for family in snapshot["ranked_families"]],
         )
         self.assertEqual(snapshot["summary"]["integrity_blocked_family_count"], 0)
-        self.assertEqual(
-            snapshot["ranked_families"][0]["family_id"],
+        self.assertNotIn(
             "btc-donchian-20d-10d-standalone",
-        )
-        self.assertEqual(
-            snapshot["ranked_families"][0]["stage"],
-            "REGISTERED_EXPERIMENT",
+            [family["family_id"] for family in snapshot["ranked_families"]],
         )
         forward = {
             family["family_id"]: family
@@ -424,7 +431,7 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual("CLOSED", closed["stage"])
         self.assertEqual(VOLATILITY_CLOSE, closed["disposition"])
         self.assertTrue(closed["prohibited_reopen"])
-        self.assertEqual(5, snapshot["summary"]["open_family_count"])
+        self.assertEqual(4, snapshot["summary"]["open_family_count"])
 
     def test_volatility_receipt_conflict_blocks_only_that_family(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch(

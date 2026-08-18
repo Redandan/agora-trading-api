@@ -1,0 +1,116 @@
+{
+  "artifact": {
+    "bytes": 236515,
+    "path": ".research-state/experiments/cftc-tff-dra-entry-admission-historical-v1/artifacts/screen.json",
+    "sha256": "9af8ed0d436c9252018571b7f73f48dd7b7fc3368e56a540357ffa470727025d"
+  },
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "dataset": {
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "decision": "PERMANENTLY_CLOSE_CFTC_TFF_FACTOR_FAMILY_WITHOUT_TUNING",
+  "document_type": "BTC_DRA_CFTC_TFF_HISTORICAL_ENTRY_ADMISSION_DECISION_V1",
+  "economic_summary": {
+    "annual_drawdown_non_worse": 4,
+    "annual_total_pnl_deltas_usdt": {
+      "2020": "-23.08916037",
+      "2021": "-8.74660497",
+      "2022": "-7.61203614",
+      "2023": "-20.75818391",
+      "2024": "-10.91236918"
+    },
+    "annual_total_wins": 0,
+    "design": {
+      "candidate_max_drawdown_pct": "16.909956",
+      "candidate_p90_hold_hours": 1349.5,
+      "candidate_realized_pnl_usdt": "75.03584873",
+      "candidate_total_pnl_usdt": "16.48167045",
+      "parent_max_drawdown_pct": "18.673983",
+      "parent_p90_hold_hours": 1266.0,
+      "parent_realized_pnl_usdt": "122.11969534",
+      "parent_total_pnl_usdt": "42.99920093",
+      "vetoed_signals": 88
+    },
+    "top_year_positive_delta_contribution_pct": "100.000000",
+    "validation": {
+      "candidate_max_drawdown_pct": "5.719912",
+      "candidate_maximum_underwater_duration_hours": 3121,
+      "candidate_median_hold_hours": 171.0,
+      "candidate_p90_hold_hours": 1867.0,
+      "candidate_realized_pnl_usdt": "54.53242877",
+      "candidate_terminal_inventory_count": 0,
+      "candidate_total_pnl_usdt": "54.53242877",
+      "candidate_unrealized_pnl_usdt": "0E-8",
+      "parent_max_drawdown_pct": "7.121498",
+      "parent_maximum_underwater_duration_hours": 2397,
+      "parent_median_hold_hours": 182.5,
+      "parent_p90_hold_hours": 1418.3,
+      "parent_realized_pnl_usdt": "89.41118307",
+      "parent_terminal_inventory_count": 1,
+      "parent_total_pnl_usdt": "86.20298186",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "vetoed_signals": 94
+    }
+  },
+  "experiment_id": "cftc-tff-dra-entry-admission-historical-v1",
+  "factor_evidence": {
+    "eligible_factor_points": 298,
+    "exclusions": {
+      "decision_at_or_after_cutoff": 2,
+      "ion_delay": 7,
+      "missing_exact_predecessor": 4,
+      "non_tuesday": 2
+    }
+  },
+  "failed_economic_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_p90_hold_non_worse",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_underwater_duration_non_worse"
+  ],
+  "failed_predictive_gates": {
+    "design": [],
+    "validation": [
+      "negative_factor_median_raw_return_negative",
+      "one_sided_sign_test_at_most_0_10"
+    ]
+  },
+  "manifest_sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a",
+  "oos_opened": false,
+  "predictive_summary": {
+    "design": {
+      "episode_count": 150,
+      "median_signed_response_168h": "0.00957717852046521450865043430980515",
+      "negative_factor_count": 69,
+      "negative_factor_median_raw_return_168h": "-0.0042466368380852688933851610254054",
+      "one_sided_sign_test_p_value": "0.06026458485474418882158120781245886",
+      "positive_factor_count": 81,
+      "positive_factor_median_raw_return_168h": "0.019481951471542615193653874022595"
+    },
+    "validation": {
+      "episode_count": 94,
+      "median_signed_response_168h": "0.00469377112696615835559391620840675",
+      "negative_factor_count": 48,
+      "negative_factor_median_raw_return_168h": "0.0113361114204023053237208468215965",
+      "one_sided_sign_test_p_value": "0.3031479688469829522086038067419354",
+      "positive_factor_count": 46,
+      "positive_factor_median_raw_return_168h": "0.010904399265626039514976129973234"
+    }
+  },
+  "prohibited_reopen": true,
+  "runner_sha256": "fdde75be9efe7b9dfe065c46429de75594da88c4d2360b0c7891ee467649635b",
+  "schema_version": "1",
+  "scientific_claim": "The preregistered positive Leveraged Money net-percent-of-open-interest weekly delta admitted too few economically valuable BTC DRA V1 entries. It reduced Design and Validation total and realized PnL, won zero of five annual total-PnL comparisons, lengthened Validation P90 holding and maximum underwater duration, and failed independent Validation directional gates even though Design directional gates passed. The fixed family is not a candidate and must not be inverted, thresholded, tuned, rerun, or reopened.",
+  "status": "NO_CANDIDATE_CLOSE_CFTC_TFF_FACTOR_FAMILY",
+  "uncertainty": [
+    "This is historical Design and Validation evidence through 2024, not independent post-2024 OOS or prospective evidence.",
+    "The result closes only the frozen Leveraged Money net-percent-of-open-interest weekly-delta continuation admission family; it does not claim that every possible CFTC category or use is ineffective.",
+    "No source activation, second timer or writer, candidate registration, OOS opening, deployment, canonical write, Trading, database, order, fund, SHADOW, PAPER, or LIVE action occurred."
+  ]
+}

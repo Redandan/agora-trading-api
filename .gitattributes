@@ -5,3 +5,4 @@ docs/tradingview/*.csv text eol=lf
 research/btc_dra_cftc_tff_entry_admission_historical_v1.py text eol=lf
 research_pipeline/btc-dra-cftc-tff-historical-entry-admission-manifest.v1.schema.json text eol=lf
 research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json text eol=lf
+research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.decision.json text eol=lf

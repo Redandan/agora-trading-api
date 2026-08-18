@@ -250,59 +250,6 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "cftc-leveraged-money-positioning-delta",
-      "title": "CFTC leveraged-money net percent-of-open-interest weekly delta",
-      "decision_feature": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_168H",
-      "causal_hypothesis": "A point-in-time weekly change in leveraged-money net positioning may proxy persistent speculative demand after the regulator publication delay.",
-      "economic_hypothesis": "A spot-only DRA admission versus hold-cash mapping may improve equal-capital total PnL if forward sign, path and concentration gates pass after fees and slippage.",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "matched_comparator_id": "BTC_DRA_V1_WITHOUT_CFTC_POSITIONING_ADMISSION",
-      "runner_id": "CFTC_TFF_LEV_MONEY_FACTOR_EVALUATOR_ONLY",
-      "base_stage": "DEFERRED",
-      "estimated_days_to_next_gate": null,
-      "compute_cost_class": "MEDIUM",
-      "independence_key": "regulated-weekly-leveraged-positioning",
-      "next_gate": "AFTER_MICROSTRUCTURE_TERMINAL_REVIEW_PROVE_SOLE_CLOCK_CAPTURE_BURDEN",
-      "canonical_binding": {
-        "kind": "NONE",
-        "id": "NO_CANONICAL_SOURCE_REGISTRATION"
-      },
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.json",
-          "role": "OFFLINE_DISABLED_POINT_IN_TIME_SOURCE_CONTRACT",
-          "sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5"
-        },
-        {
-          "path": "research_pipeline/cftc-tff-lev-money-net-pct-oi-delta-factor-contract.v1.json",
-          "role": "FROZEN_FACTOR_CONTRACT",
-          "sha256": "7592f347d1948193d7c39a70e4a838a0516643de95e57870a8542da505274d50"
-        },
-        {
-          "path": "research_pipeline/examples/local-research-result.cftc-cme-bitcoin-tff-lev-money-net-pct-oi-delta-evaluator.v1.json",
-          "role": "SYNTHETIC_ONLY_EVALUATOR_CAPABILITY",
-          "sha256": "55707ad5ce58de452dc5e6fb28e20b5e3bf8a4d78db0098dc490a46dba00ead8"
-        }
-      ],
-      "economic_evidence_status": {
-        "fees": "REQUIRED_NOT_MEASURED",
-        "adverse_slippage": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "MISSING_PROOF",
-        "unrealized_pnl": "MISSING_PROOF",
-        "total_pnl": "MISSING_PROOF",
-        "maximum_drawdown": "MISSING_PROOF",
-        "holding_age": "MISSING_PROOF",
-        "terminal_inventory": "MISSING_PROOF",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
-      },
-      "missing_proof": [
-        "The public source contract is disabled and has no canonical producer or intake.",
-        "At least twenty-six nonoverlapping weekly outcomes would be required after activation.",
-        "No matched-capital strategy runner, economics or OOS exists."
-      ],
-      "duplicate_family_key": "cftc-leveraged-money-positioning-delta"
-    },
-    {
       "family_id": "dra-crypto-carry-risk-veto",
       "title": "Crypto-carry-conditioned DRA entry risk veto",
       "decision_feature": "POINT_IN_TIME_CRYPTO_CARRY_STATE_WITH_BOTH_FIXED_MATURITY_AND_PERPETUAL_SEMANTICS",
@@ -352,6 +299,19 @@
     }
   ],
   "closed_families": [
+    {
+      "family_id": "closed-cftc-leveraged-money-positioning-delta",
+      "title": "CFTC leveraged-money net percent-of-open-interest weekly delta",
+      "decision_feature": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_168H",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_CFTC_TFF_FACTOR_FAMILY",
+      "duplicate_family_key": "cftc-leveraged-money-positioning-delta",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "a2019b57c730f44522845a6012214e0d0ee47726460af01839e3be87bf44af95"},
+        {"path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a"}
+      ],
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-dra-equal-capital-two-slot-capacity",
       "title": "DRA equal-capital two-slot capacity",

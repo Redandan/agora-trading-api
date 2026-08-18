@@ -85,8 +85,19 @@ class CandidateFunnelTest(unittest.TestCase):
         Draft202012Validator(schema).validate(catalog_document)
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
-        self.assertEqual(len(catalog["families"]), 7)
-        self.assertEqual(len(catalog["closed_families"]), 11)
+        self.assertEqual(len(catalog["families"]), 6)
+        self.assertEqual(len(catalog["closed_families"]), 12)
+        cftc = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-cftc-leveraged-money-positioning-delta"
+        )
+        self.assertEqual(
+            cftc["disposition"],
+            "NO_CANDIDATE_CLOSE_CFTC_TFF_FACTOR_FAMILY",
+        )
+        self.assertTrue(cftc["prohibited_reopen"])
         amihud = next(
             family
             for family in catalog["closed_families"]
@@ -140,8 +151,8 @@ class CandidateFunnelTest(unittest.TestCase):
         )
 
         self.assertEqual(snapshot["status"], "READY_WITH_INTEGRITY_ALERT")
-        self.assertEqual(snapshot["summary"]["open_family_count"], 7)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 12)
+        self.assertEqual(snapshot["summary"]["open_family_count"], 6)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 13)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)
@@ -356,7 +367,7 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual("CLOSED", closed["stage"])
         self.assertEqual(VOLATILITY_CLOSE, closed["disposition"])
         self.assertTrue(closed["prohibited_reopen"])
-        self.assertEqual(6, snapshot["summary"]["open_family_count"])
+        self.assertEqual(5, snapshot["summary"]["open_family_count"])
 
     def test_volatility_receipt_conflict_blocks_only_that_family(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch(

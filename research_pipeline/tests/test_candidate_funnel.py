@@ -85,8 +85,27 @@ class CandidateFunnelTest(unittest.TestCase):
         Draft202012Validator(schema).validate(catalog_document)
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
-        self.assertEqual(len(catalog["families"]), 6)
-        self.assertEqual(len(catalog["closed_families"]), 14)
+        self.assertEqual(len(catalog["families"]), 5)
+        self.assertEqual(len(catalog["closed_families"]), 15)
+        microstructure = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-microstructure-dra-entry-admission-v3r1"
+        )
+        self.assertEqual(
+            microstructure["disposition"],
+            "NO_EVIDENCE_CLOSE_MICROSTRUCTURE_SOURCE_INTEGRITY_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in microstructure["evidence_bindings"]],
+            [
+                "SOURCE_INTEGRITY_OPPORTUNITY_COST_CLOSURE",
+                "FROZEN_SOURCE_RECOVERY_CONTRACT",
+                "FROZEN_PREOUTCOME_ADMISSION_CONTRACT",
+            ],
+        )
+        self.assertTrue(microstructure["prohibited_reopen"])
         cftc = next(
             family
             for family in catalog["closed_families"]
@@ -173,24 +192,24 @@ class CandidateFunnelTest(unittest.TestCase):
             )
         )
 
-    def test_integrity_alert_preempts_ranking_without_creating_a_candidate(self) -> None:
+    def test_closed_microstructure_source_does_not_block_open_family_ranking(self) -> None:
         snapshot = build_candidate_funnel(
             _registry(),
             microstructure=_microstructure(),
             repo_root=REPO_ROOT,
         )
 
-        self.assertEqual(snapshot["status"], "READY_WITH_INTEGRITY_ALERT")
-        self.assertEqual(snapshot["summary"]["open_family_count"], 6)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 15)
+        self.assertEqual(snapshot["status"], "READY")
+        self.assertEqual(snapshot["summary"]["open_family_count"], 5)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 16)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)
-        self.assertEqual(
-            snapshot["ranked_families"][0]["family_id"],
+        self.assertNotIn(
             "microstructure-dra-entry-admission",
+            [family["family_id"] for family in snapshot["ranked_families"]],
         )
-        self.assertEqual(snapshot["ranked_families"][0]["stage"], "INTEGRITY_BLOCKED")
+        self.assertEqual(snapshot["summary"]["integrity_blocked_family_count"], 0)
         forward = {
             family["family_id"]: family
             for family in snapshot["ranked_families"]
@@ -397,7 +416,7 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual("CLOSED", closed["stage"])
         self.assertEqual(VOLATILITY_CLOSE, closed["disposition"])
         self.assertTrue(closed["prohibited_reopen"])
-        self.assertEqual(5, snapshot["summary"]["open_family_count"])
+        self.assertEqual(4, snapshot["summary"]["open_family_count"])
 
     def test_volatility_receipt_conflict_blocks_only_that_family(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch(

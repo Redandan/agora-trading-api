@@ -111,49 +111,6 @@
       "duplicate_family_key": "dra-entry-range-confirmation-20d"
     },
     {
-      "family_id": "microstructure-dra-entry-admission",
-      "title": "OKX microstructure evidence for a future DRA entry-admission mechanism",
-      "decision_feature": "PREDECISION_OKX_TRADE_AND_BOOKS5_MICROSTRUCTURE_TIER_SELECTED_ONLY_AFTER_FROZEN_INTERPRETATION",
-      "causal_hypothesis": "Point-in-time trade and shallow-book imbalance may distinguish informed directional participation from fragile DRA entries without using later price outcomes.",
-      "economic_hypothesis": "A separately frozen microstructure admission rule may improve matched-capital DRA total PnL and reduce adverse path risk if the forward tier survives integrity and concentration gates.",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "matched_comparator_id": "BTC_DRA_V1_WITHOUT_MICROSTRUCTURE_ADMISSION",
-      "runner_id": "MICROSTRUCTURE_DIAGNOSTIC_AND_ECONOMIC_VETO_RUNNER_ONLY",
-      "base_stage": "FORWARD_EVIDENCE",
-      "estimated_days_to_next_gate": 14,
-      "compute_cost_class": "MEDIUM",
-      "independence_key": "okx-trade-book-microstructure",
-      "next_gate": "COMPLETE_CONTIGUOUS_FORWARD_MICROSTRUCTURE_WINDOW",
-      "canonical_binding": {
-        "kind": "MICROSTRUCTURE",
-        "id": "OKX_BTCUSDT_MICROSTRUCTURE_V3R1"
-      },
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/okx-microstructure-dra-entry-admission-contract.v1.json",
-          "role": "PREOUTCOME_DRA_ADMISSION_CONTRACT",
-          "sha256": "e67211b5bcd716f15ff7f0344fe0fdc587596a40fbc58732204cdc31bf13654c"
-        }
-      ],
-      "economic_evidence_status": {
-        "fees": "REQUIRED_NOT_MEASURED",
-        "adverse_slippage": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "MISSING_PROOF",
-        "unrealized_pnl": "MISSING_PROOF",
-        "total_pnl": "MISSING_PROOF",
-        "maximum_drawdown": "MISSING_PROOF",
-        "holding_age": "MISSING_PROOF",
-        "terminal_inventory": "MISSING_PROOF",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
-      },
-      "missing_proof": [
-        "A complete contiguous forward microstructure window is not sealed.",
-        "No positive tier interpretation or compatible candidate adapter exists.",
-        "Matched-capital strategy economics and independent OOS remain unmeasured."
-      ],
-      "duplicate_family_key": "microstructure-dra-entry-admission"
-    },
-    {
       "family_id": "btc-3pct-post-shock-reversal",
       "title": "BTC three-percent shock next-day bidirectional reversal",
       "decision_feature": "TERMINAL_MANAGER_REVIEWED_THREE_PERCENT_COMPLETE_UTC_DAY_SHOCK_WITH_NEXT_FEASIBLE_FILL",
@@ -299,6 +256,20 @@
     }
   ],
   "closed_families": [
+    {
+      "family_id": "closed-microstructure-dra-entry-admission-v3r1",
+      "title": "OKX V3R1 microstructure DRA entry-admission source lifecycle",
+      "decision_feature": "PREDECISION_OKX_TRADE_AND_BOOKS5_MICROSTRUCTURE_V3R1",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_EVIDENCE_CLOSE_MICROSTRUCTURE_SOURCE_INTEGRITY_FAMILY",
+      "duplicate_family_key": "microstructure-dra-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/okx-microstructure-v3r1-source-integrity-opportunity-cost-closure.v1.json", "role": "SOURCE_INTEGRITY_OPPORTUNITY_COST_CLOSURE", "sha256": "b95271a4f758e1d7a4ef2d1e283ffb7fb4d77cdd77bd2977520393f08e6d0f09"},
+        {"path": "research_pipeline/okx-microstructure-discovery-recovery-contract.v3r1.json", "role": "FROZEN_SOURCE_RECOVERY_CONTRACT", "sha256": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd"},
+        {"path": "research_pipeline/okx-microstructure-dra-entry-admission-contract.v1.json", "role": "FROZEN_PREOUTCOME_ADMISSION_CONTRACT", "sha256": "e67211b5bcd716f15ff7f0344fe0fdc587596a40fbc58732204cdc31bf13654c"}
+      ],
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-cftc-leveraged-money-positioning-delta",
       "title": "CFTC leveraged-money net percent-of-open-interest weekly delta",

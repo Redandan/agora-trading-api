@@ -1,0 +1,84 @@
+{
+  "schema_version": "1",
+  "document_type": "OKX_MICROSTRUCTURE_V3R1_SOURCE_INTEGRITY_OPPORTUNITY_COST_CLOSURE_V1",
+  "decision_at": "2026-08-18T07:15:44Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "microstructure-dra-entry-admission",
+  "generation_id": "okx-btcusdt-microstructure-discovery-v3r1-20260813-r3",
+  "diagnostic_id": "okx-btcusdt-microstructure-forward-v3r1-20260813-r3",
+  "disposition": "V3R1_SOURCE_OR_INTAKE_INTEGRITY_CLOSE",
+  "candidate_pool_disposition": "NO_EVIDENCE_CLOSE_MICROSTRUCTURE_SOURCE_INTEGRITY_FAMILY",
+  "canonical_diagnostic": {
+    "status": "CAPTURE_OVERDUE",
+    "artifact_path": "microstructure-v3r1/okx-btcusdt-microstructure-discovery-v3r1-20260813-r3.json",
+    "sha256": "718f493437c885be88b3a16efdae01625df00a406e3381636aab96794a615566",
+    "start_day": "2026-08-13",
+    "end_day": "2026-09-23",
+    "calendar_day_count": 4,
+    "calendar_day_budget": 42,
+    "complete_day_count": 2,
+    "rejected_day_count": 2,
+    "current_streak_count": 2,
+    "selected_streak_count": 0,
+    "next_calendar_day": "2026-08-17",
+    "lag_classification": "OVERDUE_UTC_DAY"
+  },
+  "source_runtime_audit": {
+    "result": "exit-code",
+    "exec_main_status": 2,
+    "failed_at": "2026-08-17T14:47:54Z",
+    "terminal_event": "MICROSTRUCTURE_DISCOVERY_RECOVERY_SOURCE_BLOCKED",
+    "terminal_detail": "DISCONNECT_REJECTION_FAILED",
+    "deployed_data_release_id": "20260812T044255Z",
+    "deployed_source_git_commit": "22612a55266b05d7be83daa45918066c65a02c4a",
+    "active_day": "2026-08-17",
+    "checkpoint_phase": "ACTIVE_DAY",
+    "checkpoint_updated_at": "2026-08-17T14:47:54.314182635Z",
+    "completed_minutes": 887,
+    "data_message_count": 363919,
+    "both_channels_acknowledged": true,
+    "pending_publication": null,
+    "pending_rejection": null,
+    "partial_day_publication": false
+  },
+  "root_cause": {
+    "classification": "MONOTONIC_CHECKPOINT_TIMESTAMP_REGRESSION_ON_ACTIVE_DAY_DISCONNECT",
+    "code_path": "OkxMicrostructureDiscoveryRecoverySourceCli.onDisconnect",
+    "deployed_behavior": "The deployed source checkpointed ACTIVE_DAY with clock.instant(), then attempted to create the rejection using the earlier disconnect callback timestamp. The checkpoint transition rejected that timestamp regression and the source blocked before it could persist or publish a rejection envelope.",
+    "fixed_by_commits": [
+      "4eda923c065c81f8f79e44a9083f7c00c1f7a418",
+      "e7fb6e88f8a0e067f908e31fa16814f62957a029"
+    ],
+    "fixed_behavior": "The first fix clamps rejection time to the saved checkpoint time; the second creates the observed and pending-rejection checkpoint atomically and records a bounded failure stage and cause. These fixes were not present in the bound data-plane release."
+  },
+  "immutable_contracts": [
+    {
+      "path": "research_pipeline/okx-microstructure-discovery-recovery-contract.v3r1.json",
+      "sha256": "6448b47a373dca743df6492593582660461382b639fdb77aa897ffa5a9f604bd"
+    },
+    {
+      "path": "research_pipeline/okx-microstructure-dra-entry-admission-contract.v1.json",
+      "sha256": "e67211b5bcd716f15ff7f0344fe0fdc587596a40fbc58732204cdc31bf13654c"
+    }
+  ],
+  "opportunity_cost_decision": {
+    "repair_route": "A lawful restart with fixed bytes requires a new strictly future versioned source generation and immutable binding; the failed R3 binding cannot be overwritten or reused under a different release.",
+    "decision": "CLOSE_FAMILY_AND_PIVOT_TO_DIRECT_HISTORICAL_STRATEGY_ECONOMICS",
+    "rationale": "Rebuilding another microstructure source lifecycle is infrastructure work with no predictive or economic result yet, while sealed free historical data and existing deterministic strategy engines can produce direct matched-capital conclusions within the Candidate Factory throughput target.",
+    "prohibited_reopen": true,
+    "new_successor_requirement": "A future microstructure family must use a new versioned contract, a strictly future source generation, a distinct duplicate-family key and a predeclared path to strategy economics. It cannot relabel, backfill, stitch or reuse R3 observations."
+  },
+  "scientific_claim_boundary": {
+    "alpha_conclusion": "MISSING_PROOF",
+    "predictive_value": "MISSING_PROOF",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "holding_age": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF",
+    "independent_oos": "NOT_OPENED",
+    "interpretation": "This is a source-integrity and opportunity-cost closure, not evidence that microstructure has no alpha."
+  },
+  "scope_note": "No reset-failed, restart, new generation, backfill, schedule change, canonical write, hypothesis, manifest, experiment, OOS, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

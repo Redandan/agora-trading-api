@@ -46,10 +46,13 @@ by the funnel.
 - Keep at most one non-terminal experiment.
 - Keep at most one open `CANDIDATE_OOS` trigger.
 - Permanently exclude a family when a sealed result and manager acceptance
-  close it. The one pre-classification legacy lagged-volatility closure instead
-  binds its repository-sealed economic decision, frozen manifest, and sealed
-  prior; it is not counted in the newer Local throughput KPI. Canonical closed
-  experiments are appended as dynamic tombstones.
+  close it. A source-lifecycle integrity closure instead binds its read-only
+  diagnostic decision plus the frozen source and strategy contracts; it makes
+  no alpha or economic claim. The one pre-classification legacy
+  lagged-volatility closure instead binds its repository-sealed economic
+  decision, frozen manifest, and sealed prior; it is not counted in the newer
+  Local throughput KPI. Canonical closed experiments are appended as dynamic
+  tombstones.
 - Require every open family to state its decision feature, causal and economic
   thesis, parent, matched comparator, runner, next gate, evidence bindings, and
   missing proof.
@@ -57,7 +60,7 @@ by the funnel.
   unrealized, and total PnL, maximum drawdown, holding age, terminal inventory,
   and breadth/path risk. `MISSING_PROOF` remains explicit.
 
-The active V1 catalog contains seven open families and eleven repository-sealed
+The active V1 catalog contains five open families and fifteen repository-sealed
 closed or excluded families. One is the Amihud-style `DATA_REJECT`: it records
 missing economic proof rather than a negative performance conclusion, while
 still prohibiting imputation, row deletion, or relabeling from silently

@@ -98,16 +98,20 @@ public final class BtcDonchianStandaloneHistoricalCli {
         output.put("authorization", AUTHORIZATION);
         output.put("experiment_id", EXPERIMENT_ID);
         output.put("manifest_sha256", MANIFEST_SHA256);
-        output.put("dataset", Map.of(
-                "sha256", input.sha256(),
-                "rows", input.bars().size(),
-                "first_open_time", input.bars().getFirst().getOpenTime().toString(),
-                "last_close_time", input.bars().getLast().getCloseTime().toString()));
+        Map<String, Object> datasetOutput = new LinkedHashMap<>();
+        datasetOutput.put("sha256", input.sha256());
+        datasetOutput.put("rows", input.bars().size());
+        datasetOutput.put("first_open_time",
+                input.bars().getFirst().getOpenTime().toString());
+        datasetOutput.put("last_close_time",
+                input.bars().getLast().getCloseTime().toString());
+        output.put("dataset", datasetOutput);
         output.put("engine", BtcDonchianShadowEngine.class.getName());
         output.put("policy", BtcDonchianShadowPolicy.POLICY_MODE);
-        output.put("windows", Map.of(
-                "design", design.output(),
-                "validation", validation.output()));
+        Map<String, Object> windowsOutput = new LinkedHashMap<>();
+        windowsOutput.put("design", design.output());
+        windowsOutput.put("validation", validation.output());
+        output.put("windows", windowsOutput);
         Map<String, Object> annualOutput = new LinkedHashMap<>();
         annual.forEach((year, result) -> annualOutput.put(year, result.output()));
         output.put("annual_fair_reset", annualOutput);
@@ -431,7 +435,7 @@ public final class BtcDonchianStandaloneHistoricalCli {
                 .filter(entry -> !entry.getValue())
                 .map(Map.Entry::getKey)
                 .toList();
-        return new GateDecision(Map.copyOf(gates), failed, failed.isEmpty());
+        return new GateDecision(gates, failed, failed.isEmpty());
     }
 
     private boolean calmarGate(
@@ -594,9 +598,11 @@ public final class BtcDonchianStandaloneHistoricalCli {
         Map<String, Object> output() {
             Map<String, Object> scenarios = new LinkedHashMap<>();
             for (String name : List.of("NORMAL", "STRESS")) {
-                scenarios.put(name, Map.of(
-                        "candidate", candidate.get(name).output(buyHold.get(name)),
-                        "buy_and_hold", buyHold.get(name).output()));
+                Map<String, Object> comparison = new LinkedHashMap<>();
+                comparison.put("candidate",
+                        candidate.get(name).output(buyHold.get(name)));
+                comparison.put("buy_and_hold", buyHold.get(name).output());
+                scenarios.put(name, comparison);
             }
             Map<String, Object> value = new LinkedHashMap<>();
             value.put("start", start.toString());

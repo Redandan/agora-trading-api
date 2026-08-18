@@ -35,6 +35,7 @@ class BtcDonchianStandaloneHistoricalCliTest(unittest.TestCase):
         self.assertNotIn("JdbcTemplate", source)
         self.assertNotIn("RestTemplate", source)
         self.assertNotIn("WebClient", source)
+        self.assertNotIn("new GateDecision(Map.copyOf(gates)", source)
 
 
 if __name__ == "__main__":

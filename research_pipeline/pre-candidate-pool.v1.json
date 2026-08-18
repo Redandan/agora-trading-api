@@ -379,6 +379,19 @@
       "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-amihud-illiquidity-entry-admission",
+      "title": "DRA Amihud-style illiquidity entry admission",
+      "decision_feature": "DAILY_AMIHUD_ILLIQUIDITY_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "DRA_AMIHUD_ILLIQUIDITY_EVIDENCE_INSUFFICIENT",
+      "duplicate_family_key": "dra-amihud-illiquidity-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/local-research-result.dra-amihud-illiquidity-entry-admission-v1.json", "role": "SEALED_DATA_REJECT_RESULT", "sha256": "c46f80021b8ba658ce21e906b429a8e32027f44a984d2e5daea635bd4900f035"},
+        {"path": "research_pipeline/examples/local-weekly-output-classification.acceptance.dra-amihud-illiquidity-entry-admission-v1.json", "role": "MANAGER_EXCLUDE_ACCEPTANCE", "sha256": "6548bf0933140c8d1c2d1ca871bf5780b20d8ea844ceb326354d6dcdb5fb7808"}
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-dra-downside-semivariance-entry-admission",
       "title": "DRA downside-semivariance entry admission",
       "decision_feature": "DOWNSIDE_SEMIVARIANCE_ADMISSION",

@@ -86,7 +86,22 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 7)
-        self.assertEqual(len(catalog["closed_families"]), 9)
+        self.assertEqual(len(catalog["closed_families"]), 10)
+        amihud = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-amihud-illiquidity-entry-admission"
+        )
+        self.assertEqual(
+            amihud["disposition"],
+            "DRA_AMIHUD_ILLIQUIDITY_EVIDENCE_INSUFFICIENT",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in amihud["evidence_bindings"]],
+            ["SEALED_DATA_REJECT_RESULT", "MANAGER_EXCLUDE_ACCEPTANCE"],
+        )
+        self.assertTrue(amihud["prohibited_reopen"])
         self.assertTrue(
             all(
                 binding["verified"]
@@ -104,7 +119,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY_WITH_INTEGRITY_ALERT")
         self.assertEqual(snapshot["summary"]["open_family_count"], 7)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 10)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 11)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

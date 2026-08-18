@@ -54,9 +54,12 @@ by the funnel.
   unrealized, and total PnL, maximum drawdown, holding age, terminal inventory,
   and breadth/path risk. `MISSING_PROOF` remains explicit.
 
-The active V1 catalog contains seven open families and nine repository-sealed
-closed families. Catalog membership is not authorization to start an
-experiment.
+The active V1 catalog contains seven open families and ten repository-sealed
+closed or excluded families. One is the Amihud-style `DATA_REJECT`: it records
+missing economic proof rather than a negative performance conclusion, while
+still prohibiting imputation, row deletion, or relabeling from silently
+reopening the exact rejected formula. Catalog membership is not authorization
+to start an experiment.
 
 ## Ranking semantics
 

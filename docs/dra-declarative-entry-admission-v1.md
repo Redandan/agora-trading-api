@@ -30,7 +30,10 @@ The runner supports only:
 - complete-day estimated quote-volume Herfindahl concentration versus its
   prior 20-complete-day median, admitted at or below the threshold; and
 - complete-day close location within the day's high-low range versus its prior
-  20-complete-day median, admitted at or above the threshold.
+  20-complete-day median, admitted at or above the threshold; and
+- final close relative to the complete day's H1 base-volume-weighted mean
+  close versus its prior 20-complete-day median, admitted at or above the
+  threshold.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
@@ -107,6 +110,16 @@ not an order-flow, total-range, volatility or candle-pattern claim. It requires
 exactly 24 hourly bars and a positive daily range. The unchanged long DRA entry
 is admitted only when the ratio is at or above the frozen threshold.
 
+The H1 volume-weighted close-location feature divides the final hourly close
+by `sum(hourly close * base volume) / sum(base volume)` for exactly the 24 bars
+inside the latest complete UTC day, then divides that value by the median of
+exactly the prior 20 complete-day values. It is an OHLCV approximation of
+ending price relative to the day's volume-weighted price center, not trade-level
+VWAP, order flow, price impact or fair value. Individual zero-volume hours
+remain in the day; non-positive daily base or estimated quote volume fails
+closed. The feature is distinct from total volume, green-candle volume share,
+volume concentration, daily range and high-low close location.
+
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,
 holding distribution, utilization, underwater duration, realized-lot fills,
@@ -121,7 +134,8 @@ non-worse neighbor stability. A failure returns
 `NO_MECHANISM_CLOSE_FEATURE_FAMILY`; it does not authorize tuning. A pass only
 permits one separately frozen hypothesis manifest. OOS remains denied.
 
-New close-location screens use gate set V2. In addition to every V1 gate, the
+New close-location and H1 volume-weighted close-location screens use gate set
+V2. In addition to every V1 gate, the
 primary must strictly improve realized PnL in both Design and Validation, keep
 maximum underwater duration non-worse in both windows, and not increase
 terminal inventory counts. Both neighbors must also keep Validation realized

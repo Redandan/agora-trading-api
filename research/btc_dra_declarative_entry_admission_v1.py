@@ -100,6 +100,13 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_CLOSE_LOCATION_PRIMARY_PRIOR_V1",
     },
+    "DAILY_CLOSE_TO_H1_VOLUME_WEIGHTED_CLOSE_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_PRIMARY_PRIOR_V1",
+    },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -406,6 +413,25 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                 )
             return (self.feature_close - self.feature_low) / (
                 self.feature_high - self.feature_low
+            )
+        if (
+            self.feature_key
+            == "DAILY_CLOSE_TO_H1_VOLUME_WEIGHTED_CLOSE_TO_PRIOR_20D_MEDIAN"
+        ):
+            if (
+                self.daily_bar_count != 24
+                or self.feature_close is None
+                or self.feature_volume <= 0
+                or self.daily_total_quote_volume <= 0
+            ):
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "H1 volume-weighted close location requires 24 hourly bars and positive daily base and quote volume",
+                )
+            return (
+                self.feature_close
+                * self.feature_volume
+                / self.daily_total_quote_volume
             )
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 

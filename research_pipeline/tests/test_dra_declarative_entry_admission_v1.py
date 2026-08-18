@@ -413,6 +413,61 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         with self.assertRaisesRegex(runner.ScreenReject, "does not bind"):
             runner.validate_manifest(value)
 
+    def test_h1_volume_weighted_close_location_uses_base_volume_weights(self) -> None:
+        feature = "DAILY_CLOSE_TO_H1_VOLUME_WEIGHTED_CLOSE_TO_PRIOR_20D_MEDIAN"
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        engine._update_feature(bar(opened, close="100", volume="1"))
+        engine._update_feature(
+            bar(opened + timedelta(hours=1), close="110", volume="3")
+        )
+        for hour in range(2, 23):
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), close="100", volume="0")
+            )
+        engine._update_feature(
+            bar(opened + timedelta(hours=23), close="105", volume="0")
+        )
+        self.assertEqual(engine.feature_volume, D("4"))
+        self.assertEqual(engine.daily_total_quote_volume, D("430"))
+        self.assertEqual(engine.feature_close, D("105"))
+        self.assertEqual(engine._daily_value(), D("420") / D("430"))
+
+    def test_h1_volume_weighted_close_location_fails_without_daily_volume(self) -> None:
+        feature = "DAILY_CLOSE_TO_H1_VOLUME_WEIGHTED_CLOSE_TO_PRIOR_20D_MEDIAN"
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(23):
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), close="100", volume="0")
+            )
+        with self.assertRaisesRegex(runner.ScreenReject, "positive daily base"):
+            engine._update_feature(
+                bar(opened + timedelta(hours=23), close="100", volume="0")
+            )
+
+    def test_h1_volume_weighted_close_location_requires_v2_gate_set(self) -> None:
+        feature = "DAILY_CLOSE_TO_H1_VOLUME_WEIGHTED_CLOSE_TO_PRIOR_20D_MEDIAN"
+        value = manifest(feature=feature)
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+
     def test_v2_primary_gate_fails_on_worse_underwater_duration(self) -> None:
         parent_design = {
             "total_pnl_usdt": "1",

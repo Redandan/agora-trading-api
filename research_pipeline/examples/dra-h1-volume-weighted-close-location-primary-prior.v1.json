@@ -1,0 +1,75 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Volume-weighted prices are established execution and price-distribution summaries, and published cryptocurrency research reports that volume-weighted momentum can contain information. Those results do not establish that a final BTC H1 close above the same day's H1 base-volume-weighted mean predicts robust DRA economics. Exactly one separately frozen equal-capital historical screen may therefore falsify whether this coarse price-volume location distinguishes persistent participation from fragile positive momentum. Failure closes the exact H1 proxy without tuning; success only retains a prior for one separately frozen hypothesis.",
+  "disposition": "PRIOR_SUPPORTS_ONE_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_ADMISSION_AUDIT",
+  "document_type": "DRA_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_CLOSE_TO_H1_VOLUME_WEIGHTED_CLOSE_TO_PRIOR_20D_MEDIAN",
+    "formula": "the final hourly close divided by (sum(hourly close multiplied by base volume) divided by sum(base volume)) across exactly 24 hourly bars, then divided by the median of exactly the prior 20 complete UTC-day values",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.99", "1.0", "1.01"]
+  },
+  "independence_audit": {
+    "closed_family_exclusions": [
+      "Do not reinterpret this feature as total volume, positive-return volume share, volume concentration, daily range, high-low close location, sign persistence, jumpiness or Amihud illiquidity.",
+      "Failure closes only the exact H1 base-volume-weighted close-location proxy and cannot be repaired by a different price field, weight, lookback, normalization or threshold."
+    ],
+    "microstructure_boundary": "The open minute-level microstructure family uses above-mid buy notional, net taker flow and books5 support in the 23:00-23:58 UTC window. It explicitly forbids return inputs. This H1 historical proxy uses no trades, books, midline, taker side or minute response and cannot close, validate or substitute for that family.",
+    "status": "DISTINCT_COARSE_H1_PRICE_VOLUME_LOCATION_FAMILY"
+  },
+  "prior_matrix": [
+    {
+      "finding": "Cryptocurrency time-series momentum can differ when market returns are weighted by trading volume, supporting a price-volume interaction question while not fixing this feature or direction.",
+      "identity": "Huang, Sangiorgi and Urquhart, Cryptocurrency Volume-Weighted Time Series Momentum (2024)",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4825389",
+      "role": "CRYPTO_PRICE_VOLUME_PRIOR",
+      "transfer_boundary": "Cross-asset volume-weighted momentum does not validate a single BTC daily H1 close-to-weighted-mean ratio, a DRA veto or any threshold."
+    },
+    {
+      "finding": "VWAP is a volume-weighted execution benchmark whose optimal trading dynamics depend on transient price impact and the benchmark interval.",
+      "identity": "Barzykin and Lillo, Optimal VWAP Execution under Transient Price Impact (2019)",
+      "primary_source": "https://arxiv.org/abs/1901.02327",
+      "role": "VWAP_EXECUTION_PRIOR",
+      "transfer_boundary": "An execution benchmark is not fair value or return predictability, and H1 closes cannot reproduce trade-level VWAP."
+    },
+    {
+      "finding": "VWAP benchmark trajectories can themselves generate price-pressure and volatility effects, so end-price displacement from a volume-weighted center need not represent informed demand.",
+      "identity": "Choi, Larsen and Seppi, Equilibrium Effects of Intraday Order-Splitting Benchmarks (2020)",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3146658",
+      "role": "PRICE_PRESSURE_FALSIFICATION_PRIOR",
+      "transfer_boundary": "Benchmark-induced pressure and institutional equity-market structure may not transfer to continuous BTC spot trading."
+    },
+    {
+      "finding": "Historical equity evidence links trading volume to the magnitude and persistence of momentum, but the sign and horizon of continuation versus reversal vary.",
+      "identity": "Lee and Swaminathan, Price Momentum and Trading Volume (2000)",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=92589",
+      "role": "MOMENTUM_VOLUME_FALSIFICATION_PRIOR",
+      "transfer_boundary": "Cross-sectional equity momentum horizons do not establish one-day BTC continuation or this DRA entry-admission direction."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly the 24 hourly OHLCV bars wholly inside the latest complete UTC day and no preceding or later bar.",
+    "Compute the H1 volume-weighted mean close as sum(close multiplied by base volume) divided by sum(base volume); individual zero-volume hours remain, but daily base and estimated quote volume must be positive.",
+    "Divide the final hourly close by that weighted mean, then divide the result by the median of exactly the prior 20 complete-day values.",
+    "Keep the DRA parent, positive-momentum direction, lot cost, capacity, exits, fee, adverse slippage, cooldown and fill clock unchanged.",
+    "Freeze primary 1.0 and symmetric neighbors 0.99 and 1.01 before outcome access; do not search a different weighting field, price proxy, relation, lookback, normalization or threshold.",
+    "Require every V1 economic, annual breadth, holding and neighbor gate plus strict Design and Validation realized-PnL improvement, non-worse underwater duration and non-increased terminal inventory under V2.",
+    "Do not describe the feature as trade-level VWAP, order flow, fair value or a substitute for the open minute-level microstructure family; do not open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T06:47:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "barzykin_lillo_arxiv": "PASS",
+    "choi_larsen_seppi_ssrn": "PASS",
+    "huang_sangiorgi_urquhart_ssrn": "PASS",
+    "lee_swaminathan_ssrn": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "Hourly close times base volume is only an OHLCV approximation; it omits within-hour trade prices, trade initiator, order-book state, venue fragmentation and wash-volume risk.",
+    "The DRA parent already requires positive 24-hour momentum, so the feature may be redundant or may mainly suppress inventory rather than improve realized alpha.",
+    "A positive total-PnL screen could still come from fewer losing terminal lots; V2 therefore requires realized improvement and explicit underwater and terminal-inventory non-inferiority.",
+    "No pre-2025 feature outcome, post-2024 evidence, OOS, candidate, minute-level microstructure result, runtime filter or Trading path was accessed or authorized while freezing this prior."
+  ]
+}

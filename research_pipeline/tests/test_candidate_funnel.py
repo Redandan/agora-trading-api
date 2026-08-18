@@ -85,7 +85,7 @@ class CandidateFunnelTest(unittest.TestCase):
         Draft202012Validator(schema).validate(catalog_document)
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
-        self.assertEqual(len(catalog["families"]), 5)
+        self.assertEqual(len(catalog["families"]), 6)
         self.assertEqual(len(catalog["closed_families"]), 17)
         static_allocation = next(
             family
@@ -222,7 +222,7 @@ class CandidateFunnelTest(unittest.TestCase):
         )
 
         self.assertEqual(snapshot["status"], "READY")
-        self.assertEqual(snapshot["summary"]["open_family_count"], 5)
+        self.assertEqual(snapshot["summary"]["open_family_count"], 6)
         self.assertEqual(snapshot["summary"]["closed_family_count"], 18)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
@@ -442,7 +442,7 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual("CLOSED", closed["stage"])
         self.assertEqual(VOLATILITY_CLOSE, closed["disposition"])
         self.assertTrue(closed["prohibited_reopen"])
-        self.assertEqual(4, snapshot["summary"]["open_family_count"])
+        self.assertEqual(5, snapshot["summary"]["open_family_count"])
 
     def test_volatility_receipt_conflict_blocks_only_that_family(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch(

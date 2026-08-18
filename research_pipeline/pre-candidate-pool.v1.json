@@ -253,6 +253,49 @@
         "Predictive, economic and OOS value remain missing."
       ],
       "duplicate_family_key": "dra-crypto-carry-risk-veto"
+    },
+    {
+      "family_id": "btc-static-half-passive-half-dra-v1",
+      "title": "Static equal-capital passive BTC and frozen DRA V1 portfolio",
+      "decision_feature": "FIXED_FIFTY_PERCENT_PASSIVE_BTC_AND_FIFTY_PERCENT_NORMALIZED_DRA_V1_WITHOUT_REBALANCING",
+      "causal_hypothesis": "Passive BTC beta and the frozen DRA V1 deployment path may combine complementary capital-use profiles because DRA holds defensive cash until its unchanged trend admission while passive BTC remains continuously exposed.",
+      "economic_hypothesis": "Replacing the cash half of a fifty-percent BTC risk-budget portfolio with frozen DRA V1 may add broad fee-adjusted return and Calmar without adding more than two percentage points of drawdown.",
+      "parent_strategy_id": "BTC_STATIC_50_PASSIVE_50_DRA_V1",
+      "matched_comparator_id": "BTC_STATIC_50_PASSIVE_50_CASH_SAME_BTC_RISK_BUDGET",
+      "runner_id": "btc-static-half-passive-half-dra-v1-historical-v1",
+      "base_stage": "REGISTERED_EXPERIMENT",
+      "estimated_days_to_next_gate": 1,
+      "compute_cost_class": "LOW",
+      "independence_key": "static-passive-beta-plus-dra-capital-allocation",
+      "next_gate": "RUN_FROZEN_DESIGN_VALIDATION_AND_ANNUAL_ECONOMIC_SCREEN",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "OFFLINE_HISTORICAL_NOT_CANONICAL"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-static-half-passive-half-dra-v1-historical.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "720725a7bf15c54ccabe818650f3d852d08fa171af9aa5f964735c0a73f84669"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MATCHED_CAPITAL_READY",
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "Frozen Design, Validation and annual matched-risk-budget economics have not run.",
+        "Concentration and terminal DRA inventory dependence have not been measured.",
+        "Independent post-selection OOS has not been opened."
+      ],
+      "duplicate_family_key": "btc-static-half-passive-half-dra-v1"
     }
   ],
   "closed_families": [

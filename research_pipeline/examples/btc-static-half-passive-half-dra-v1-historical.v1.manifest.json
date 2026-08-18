@@ -1,0 +1,178 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_STATIC_HALF_PASSIVE_HALF_DRA_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-static-half-passive-half-dra-v1-historical-v1",
+  "created_at": "2026-08-18T08:10:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_RETROSPECTIVE_NO_OOS",
+  "thesis": "A static equal-capital allocation to passive BTC and the frozen DRA V1 sleeve may use otherwise idle defensive capital to improve the risk-adjusted economics of a fifty-percent BTC plus fifty-percent cash allocation without surrendering the DRA sleeve's loss containment.",
+  "economic_rationale": "The passive sleeve supplies long-horizon BTC beta while the DRA sleeve deploys the defensive half only after its frozen trend admission and realizes profitable lots under its unchanged exit policy. The allocation is useful only if DRA adds broad fee-adjusted return and Calmar relative to the same fifty-percent passive BTC risk budget held with cash, without adding more than two percentage points of drawdown or depending on one year or terminal DRA inventory.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-static-half-passive-half-dra-v1",
+    "prior_result_status": "NO_MATCHED_BTC_RISK_BUDGET_PORTFOLIO_RESULT_FOUND",
+    "distinct_from_closed_families": [
+      "DRA entry-admission, volatility, exit-management, capacity and route-substitution studies modify the DRA policy; this experiment leaves DRA V1 unchanged and tests a static capital-allocation portfolio.",
+      "The closed standalone Donchian family tested a separate trend system against passive BTC; it did not combine the frozen DRA V1 equity path with passive BTC.",
+      "The historical range monthly hybrid used a regime-selected range sleeve and a different sixty-forty parent; it does not answer static passive BTC plus DRA V1 economics."
+    ],
+    "excluded_reinterpretations": [
+      "No allocation weight, rebalance frequency, DRA rule, BTC entry time, fee, slippage, leverage, short direction or neighboring portfolio may be scanned after outcome access.",
+      "A lower drawdown than one-hundred-percent passive BTC is not sufficient because a fifty-percent BTC plus fifty-percent cash benchmark has the same initial passive BTC risk budget.",
+      "The result is portfolio-allocation evidence, not independent signal alpha."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_DRA_V1_ENGINE_AND_CHECKPOINTS"
+    },
+    {
+      "path": "src/main/java/com/agora/research/BtcDonchianStandaloneHistoricalCli.java",
+      "sha256": "4ce8133148e691793c2d21419e11b9c2afaf70f9c2442b83d3b9c67e0fc68760",
+      "role": "FROZEN_PASSIVE_BTC_BENCHMARK_VALUATION_REFERENCE"
+    }
+  ],
+  "portfolio_policy": {
+    "policy_id": "BTC_STATIC_50_PASSIVE_50_DRA_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "initial_total_equity_usdt": "250.00",
+    "passive_btc_initial_weight": "0.50",
+    "dra_v1_initial_weight": "0.50",
+    "allocation_method": "NORMALIZE_FROZEN_250_USDT_DRA_V1_EQUITY_PATH_THEN_ASSIGN_FIFTY_PERCENT_OF_PORTFOLIO_CAPITAL",
+    "rebalance": "NONE",
+    "capital_transfer_between_sleeves": "NONE",
+    "leverage": "DENY",
+    "short": "DENY",
+    "variants": 1
+  },
+  "execution_and_valuation": {
+    "dra_v1": "UNCHANGED_30_USDT_LOTS_ON_FROZEN_250_USDT_REFERENCE_ENGINE_WITH_0_10PCT_FEE_AND_0_05PCT_ADVERSE_SLIPPAGE_PER_SIDE",
+    "passive_btc_entry": "BUY_AT_FIRST_WINDOW_OPEN_WITH_0_10PCT_FEE_AND_0_05PCT_ADVERSE_SLIPPAGE",
+    "passive_btc_valuation": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_TERMINAL_LIQUIDATION",
+    "dra_open_inventory_valuation": "FROZEN_ENGINE_ESTIMATED_NET_AT_HOURLY_CLOSE_INCLUDING_HYPOTHETICAL_EXIT_FEE_AND_ADVERSE_SLIPPAGE",
+    "cash_return": "ZERO",
+    "rounding": "FROZEN_DRA_DECIMAL_ROUNDING_AND_EIGHT_DECIMAL_OUTPUT"
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_TOTAL_EQUITY_250_WITH_DRA_90_DAY_WARMUP"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_TOTAL_EQUITY_250_WITH_DRA_90_DAY_WARMUP"
+    },
+    "annual_breadth": {
+      "years": [2020, 2021, 2022, 2023, 2024],
+      "state": "FAIR_RESET_EACH_YEAR_TOTAL_EQUITY_250_WITH_DRA_90_DAY_WARMUP"
+    }
+  },
+  "comparators": {
+    "primary": "STATIC_50PCT_PASSIVE_BTC_50PCT_CASH_SAME_ENTRY_COST_AND_HOURLY_PRICE_PATH",
+    "secondary": [
+      "FROZEN_DRA_V1_NORMALIZED_TO_SAME_INITIAL_TOTAL_EQUITY",
+      "ONE_HUNDRED_PERCENT_PASSIVE_BTC_SAME_ENTRY_COST_AND_HOURLY_PRICE_PATH"
+    ],
+    "capital_matching": "SAME_250_USDT_INITIAL_TOTAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "metrics": [
+    "total_return_pct",
+    "maximum_drawdown_pct",
+    "maximum_underwater_duration_hours",
+    "calmar_ratio",
+    "average_passive_exposure_pct",
+    "average_dra_deployed_capital_pct",
+    "candidate_minus_primary_total_return_pp",
+    "candidate_minus_primary_maximum_drawdown_pp",
+    "candidate_minus_primary_calmar_ratio",
+    "candidate_upside_capture_vs_passive",
+    "dra_realized_return_pct",
+    "dra_unrealized_return_pct",
+    "dra_total_return_pct",
+    "dra_completed_lot_count",
+    "dra_median_hold_hours",
+    "dra_p90_hold_hours",
+    "dra_terminal_open_lots",
+    "dra_terminal_open_cost_usdt",
+    "annual_breadth",
+    "top_year_positive_incremental_contribution_pct",
+    "terminal_dra_unrealized_incremental_contribution_pct"
+  ],
+  "gate_set": {
+    "id": "BTC_STATIC_HALF_PASSIVE_HALF_DRA_ECONOMIC_GATES_V1",
+    "data_and_parity": [
+      "dataset_sha256_and_52608_rows_match",
+      "hourly_lattice_and_ohlcv_invariants_pass",
+      "frozen_dra_source_and_passive_reference_sha256_match",
+      "dra_design_and_validation_checkpoints_exact"
+    ],
+    "design": [
+      "candidate_total_return_gt_primary_fifty_percent_btc_fifty_percent_cash",
+      "candidate_total_return_gt_frozen_dra_v1",
+      "candidate_maximum_drawdown_at_most_primary_plus_2pp",
+      "candidate_calmar_at_least_primary_calmar",
+      "candidate_maximum_drawdown_at_most_75pct_of_full_passive_btc"
+    ],
+    "validation": [
+      "candidate_total_return_gt_primary_fifty_percent_btc_fifty_percent_cash",
+      "candidate_total_return_gt_frozen_dra_v1",
+      "candidate_maximum_drawdown_at_most_primary_plus_2pp",
+      "candidate_calmar_at_least_primary_calmar",
+      "candidate_maximum_drawdown_at_most_75pct_of_full_passive_btc",
+      "candidate_upside_capture_at_least_45pct_when_passive_positive"
+    ],
+    "breadth": [
+      "candidate_positive_annual_total_return_at_least_4_of_5",
+      "candidate_total_return_gt_primary_at_least_4_of_5",
+      "candidate_annual_drawdown_at_most_primary_plus_2pp_at_least_4_of_5",
+      "candidate_annual_drawdown_at_most_full_passive_at_least_4_of_5"
+    ],
+    "concentration_and_inventory": [
+      "top_year_positive_incremental_return_contribution_at_most_60pct",
+      "validation_terminal_dra_unrealized_positive_incremental_contribution_at_most_40pct"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_WEIGHT_OR_POLICY_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset, lattice, OHLCV, source hash or DRA checkpoint gate fails.",
+    "Stop and permanently close the exact static fifty-fifty family if any frozen Design, Validation, breadth, concentration or inventory gate fails.",
+    "Do not tune the weight, add rebalancing, modify either sleeve, scan neighbors, add leverage, add a short leg or change a comparator after seeing results.",
+    "Do not use the through-2024 corpus as independent OOS; historical pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with independent OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

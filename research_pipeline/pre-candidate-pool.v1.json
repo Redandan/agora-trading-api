@@ -257,6 +257,32 @@
   ],
   "closed_families": [
     {
+      "family_id": "closed-dra-h1-lag1-return-autocorrelation-entry-admission",
+      "title": "DRA complete-day H1 lag-1 return-autocorrelation percentile entry admission",
+      "decision_feature": "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_DRA_H1_LAG1_RETURN_AUTOCORRELATION_FAMILY",
+      "duplicate_family_key": "dra-h1-lag1-return-autocorrelation-entry-admission",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/dra-h1-lag1-return-autocorrelation-entry-admission.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "63db244d1d110769adba7493421932264b49363f28fcfaa313c39c270d0f7bf5"
+        },
+        {
+          "path": "research_pipeline/examples/dra-h1-lag1-return-autocorrelation-entry-admission.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "659b4c4c4fe9e34577da10e7d63c7b86c535caddb7635fa478232bc418c74ef6"
+        },
+        {
+          "path": "research_pipeline/examples/dra-h1-lag1-return-autocorrelation-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_PRIOR",
+          "sha256": "5b3b2d85292fd98174f5405580726cfcc299ff4ddaa64e7ce8f8c887793d4f55"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-dra-realized-performance-entry-admission",
       "title": "DRA complete-day realized-performance percentile entry admission",
       "decision_feature": "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",

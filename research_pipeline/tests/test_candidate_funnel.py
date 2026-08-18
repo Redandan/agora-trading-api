@@ -86,7 +86,26 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 21)
+        self.assertEqual(len(catalog["closed_families"]), 22)
+        autocorrelation = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-h1-lag1-return-autocorrelation-entry-admission"
+        )
+        self.assertEqual(
+            autocorrelation["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_H1_LAG1_RETURN_AUTOCORRELATION_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in autocorrelation["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_PRIOR",
+            ],
+        )
+        self.assertTrue(autocorrelation["prohibited_reopen"])
         realized_performance = next(
             family
             for family in catalog["closed_families"]
@@ -279,7 +298,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 22)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 23)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

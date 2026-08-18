@@ -1,0 +1,66 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary evidence repeatedly reports lower Bitcoin and cryptocurrency trading activity on weekends, but newer evidence rejects robust return seasonality and finds that older positive Monday effects do not persist. Exactly one separately frozen equal-capital historical screen may therefore test weekend participation only as a DRA entry-admission risk condition. It must not claim a weekday return premium; failure closes the exact UTC weekend-calendar family without changing time zone, weekday subsets or thresholds.",
+  "disposition": "PRIOR_SUPPORTS_ONE_WEEKEND_CALENDAR_ADMISSION_AUDIT",
+  "document_type": "DRA_WEEKEND_CALENDAR_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO",
+    "formula": "Integer weekday index of the latest complete UTC day, Monday=0 through Sunday=6",
+    "relation": "AT_OR_BELOW",
+    "thresholds": ["3", "4", "5"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "Across more than 15 million observations from seven global Bitcoin exchanges, return patterns were not persistent while trading activity was persistently lower on weekends.",
+      "identity": "Baur, Cahill, Godfrey and Liu, Bitcoin time-of-day, day-of-week and month-of-year effects in returns and trading volume (2019)",
+      "primary_source": "https://www.sciencedirect.com/science/article/pii/S1544612319301710",
+      "role": "CROSS_EXCHANGE_WEEKEND_ACTIVITY_PRIOR",
+      "transfer_boundary": "Seven-exchange historical activity differences do not establish OKX DRA entry economics, a causal threshold or a profitable return anomaly."
+    },
+    {
+      "finding": "The open-access study finds no robust cryptocurrency return seasonality, reports that Bitcoin's earlier positive Monday effect does not persist after 2015, and still finds lower weekend trading activity across 500 coins.",
+      "identity": "Revisiting seasonality in cryptocurrencies (2024)",
+      "primary_source": "https://www.sciencedirect.com/science/article/pii/S1544612324004598",
+      "role": "ADVERSARIAL_RETURN_SEASONALITY_PRIOR",
+      "transfer_boundary": "The robust absence of a return anomaly prevents interpreting this audit as calendar alpha; only a direct matched-capital risk/admission test can support the transfer."
+    },
+    {
+      "finding": "Using daily Bitcoin data from 2010 through 2017 with OLS and GARCH models, the authors report weekday effects in returns and volatility, including higher Monday return and volatility, while noting lower weekend attention.",
+      "identity": "Caporale and Plastun, Bitcoin and the day-of-the-week effect (2019)",
+      "primary_source": "https://www.sciencedirect.com/science/article/pii/S1544612317307894",
+      "role": "OLDER_WEEKDAY_EFFECT_PRIOR",
+      "transfer_boundary": "The old sample and model evidence conflicts with later robustness results and supplies neither the DRA parent nor the preregistered thresholds."
+    },
+    {
+      "finding": "Bitcoin exchange and on-chain activity track traditional market sessions and those effects diminish on weekends; the authors characterize observed activity as closer to 12/5 than uniformly 24/7.",
+      "identity": "Jahanshahloo, Corbet and Oxley, Seeking sigma: Time-of-the-day effects on the Bitcoin network (2022)",
+      "primary_source": "https://researchcommons.waikato.ac.nz/server/api/core/bitstreams/884cab70-4888-4899-bd47-7307455fa56e/content",
+      "role": "WEEKDAY_ACTIVITY_MECHANISM_PRIOR",
+      "transfer_boundary": "Network and multi-exchange activity through 2021 is mechanism context, not proof that weekend DRA entries are worse after fees or that UTC is the unique economic boundary."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use the weekday of exactly the latest complete UTC day; Monday is 0 and Sunday is 6, with no local-time conversion.",
+    "Freeze primary threshold 4 to admit Monday through Friday and block Saturday through Sunday; freeze lower threshold 3 and upper threshold 5 as nested neighbors.",
+    "Keep DRA parent side, entries, exits, lot cost, capacity, fee, adverse slippage, cooldown and next-bar fill clock unchanged.",
+    "Require Design and Validation total and realized PnL improvement, annual breadth, drawdown and underwater non-inferiority, holding support, terminal inventory and neighbor stability under gate set V2; otherwise close the family.",
+    "Do not select individual weekdays, shift the UTC boundary, reverse the relation, add holiday/session logic or search another threshold after outcome access.",
+    "Do not open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T11:30:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "baur_et_al_official_article_method_findings_and_data": "PASS",
+    "caporale_plastun_official_article_identity_method_and_findings": "PASS",
+    "jahanshahloo_corbet_oxley_open_full_text_methodology_and_findings": "PASS",
+    "revisiting_seasonality_official_open_access_findings": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "Weekend activity is consistently lower, but lower activity may reduce noise, reduce opportunity or have no conditional effect on DRA signals.",
+    "UTC day boundaries are operationally deterministic but do not uniquely represent every exchange's local weekend participation.",
+    "The feature is a fixed calendar label, not a direct liquidity measurement, so a positive result would still require independent OOS before candidate status.",
+    "No post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed or authorized."
+  ]
+}

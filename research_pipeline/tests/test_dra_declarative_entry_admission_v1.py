@@ -42,7 +42,7 @@ def manifest(*, feature: str = "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_ME
         "feature": {
             "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
             "key": feature,
-            "lookback_complete_days": 20,
+            "lookback_complete_days": contract.get("lookback_complete_days", 20),
             "relation": contract["relation"],
         },
         "gate_set": contract.get("gate_set", runner.GATE_SET_V1),
@@ -138,6 +138,57 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
                     self.assertIsNone(engine.current_feature_ratio)
         self.assertEqual(engine.current_feature_ratio, D("2.00000000"))
         self.assertEqual(engine.complete_feature_days, 21)
+
+    def test_weekend_calendar_feature_requires_zero_lookback_and_v2_gates(self) -> None:
+        value = manifest(
+            feature="LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO"
+        )
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["feature"]["lookback_complete_days"], 0)
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+
+        value["feature"]["lookback_complete_days"] = 20
+        with self.assertRaisesRegex(runner.ScreenReject, "lookback must be 0"):
+            runner.validate_manifest(value)
+
+    def test_weekend_calendar_feature_applies_nested_weekday_thresholds(self) -> None:
+        def completed_day(
+            day: datetime, threshold: str
+        ) -> runner.DeclarativeEntryAdmissionEngine:
+            engine = runner.DeclarativeEntryAdmissionEngine(
+                feature_key="LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO",
+                relation="AT_OR_BELOW",
+                threshold=D(threshold),
+            )
+            for hour in range(24):
+                engine._update_feature(bar(day + timedelta(hours=hour)))
+            return engine
+
+        friday = completed_day(datetime(2024, 1, 5), "4")
+        saturday_primary = completed_day(datetime(2024, 1, 6), "4")
+        saturday_upper = completed_day(datetime(2024, 1, 6), "5")
+        sunday_upper = completed_day(datetime(2024, 1, 7), "5")
+        self.assertEqual(friday.current_feature_ratio, D("4.00000000"))
+        self.assertEqual(saturday_primary.current_feature_ratio, D("5.00000000"))
+        with patch.object(
+            runner.capacity.EqualCapitalCapacityEngine,
+            "_signal",
+            return_value=True,
+        ):
+            self.assertTrue(friday._signal(bar(datetime(2024, 1, 5, 23))))
+            self.assertFalse(
+                saturday_primary._signal(bar(datetime(2024, 1, 6, 23)))
+            )
+            self.assertTrue(saturday_upper._signal(bar(datetime(2024, 1, 6, 23))))
+            self.assertFalse(sunday_upper._signal(bar(datetime(2024, 1, 7, 23))))
 
     def test_downside_semivariance_share_preserves_return_sign(self) -> None:
         engine = runner.DeclarativeEntryAdmissionEngine(

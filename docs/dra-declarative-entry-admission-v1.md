@@ -38,10 +38,13 @@ The runner supports only:
   prior 20 complete days, admitted at or above the frozen percentile.
 - complete-day H1 lag-1 open-to-close log-return autocorrelation, ranked
   against the prior 20 complete days, admitted at or above the frozen
-  percentile.
+  percentile; and
+- the latest complete UTC day's weekday index (`Monday=0` through `Sunday=6`),
+  admitted at or below the frozen threshold without a rolling lookback.
 
-All features fail closed until their prior window is complete. A signal uses
-only the latest complete UTC-day feature known before the next-bar fill. The
+Rolling features fail closed until their prior window is complete. The direct
+calendar feature becomes available only after its 24-hour UTC day is complete.
+A signal uses only the latest complete UTC-day feature known before the next-bar fill. The
 parent side, entries, exits, lot size, eight-slot capacity, 250 USDT initial
 equity, fee, and adverse slippage remain unchanged.
 
@@ -147,6 +150,15 @@ Zero variation in either sequence fails closed. This sequence-order statistic
 is distinct from the closed magnitude-neutral same-sign-pair share, total
 volatility, jumpiness and long-trend families.
 
+The weekend-calendar feature maps the latest complete UTC day to an integer
+from Monday `0` through Sunday `6`. Its nested thresholds admit Monday through
+Thursday (`3`), Monday through Friday (`4`, primary), or Monday through
+Saturday (`5`). It tests whether the repeatedly observed reduction in weekend
+Bitcoin trading activity is useful as a DRA entry-admission condition; it does
+not assume or optimize a weekday return premium. UTC, the weekday subsets and
+the three thresholds are frozen, and the family closes on failure without
+shifting time zones or selecting individual weekdays.
+
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,
 holding distribution, utilization, underwater duration, realized-lot fills,
@@ -162,7 +174,7 @@ non-worse neighbor stability. A failure returns
 permits one separately frozen hypothesis manifest. OOS remains denied.
 
 New close-location, H1 volume-weighted close-location, realized-performance,
-and H1 lag-1 return-autocorrelation screens use gate set V2. In addition to every V1 gate, the
+H1 lag-1 return-autocorrelation, and weekend-calendar screens use gate set V2. In addition to every V1 gate, the
 primary must strictly improve realized PnL in both Design and Validation, keep
 maximum underwater duration non-worse in both windows, and not increase
 terminal inventory counts. Both neighbors must also keep Validation realized

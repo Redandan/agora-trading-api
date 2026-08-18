@@ -122,11 +122,20 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_H1_LAG1_RETURN_AUTOCORRELATION_PRIMARY_PRIOR_V1",
     },
+    "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO": {
+        "relation": "AT_OR_BELOW",
+        "gate_set": GATE_SET_V2,
+        "lookback_complete_days": 0,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_WEEKEND_CALENDAR_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_WEEKEND_CALENDAR_PRIMARY_PRIOR_V1",
+    },
 }
 PERCENTILE_FEATURES = {
     "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",
     "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE",
 }
+DIRECT_FEATURES = {"LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO"}
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$")
@@ -258,8 +267,12 @@ def validate_manifest(value: Any) -> dict[str, Any]:
     expected_gate_set = feature_contract.get("gate_set", GATE_SET_V1)
     if manifest["gate_set"] != expected_gate_set:
         raise ScreenReject("CONTRACT_REJECT", "gate set does not bind the feature")
-    if feature["lookback_complete_days"] != 20:
-        raise ScreenReject("CONTRACT_REJECT", "feature lookback must be 20 complete UTC days")
+    expected_lookback = feature_contract.get("lookback_complete_days", 20)
+    if feature["lookback_complete_days"] != expected_lookback:
+        raise ScreenReject(
+            "CONTRACT_REJECT",
+            f"feature lookback must be {expected_lookback} complete UTC days",
+        )
     if feature["decision_time"] != "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL":
         raise ScreenReject("CONTRACT_REJECT", "feature must be known before the next-bar fill")
 
@@ -550,6 +563,13 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             == "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE"
         ):
             return lag1_return_autocorrelation(self.daily_intraday_log_returns)
+        if self.feature_key == "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO":
+            if self.feature_day is None or self.daily_bar_count != 24:
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "weekday index requires one complete 24-hour UTC day",
+                )
+            return D(self.feature_day.weekday())
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -615,7 +635,11 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         if bar.open_time.hour != 23 or self.daily_bar_count != 24:
             return
         current = self._daily_value()
-        if len(self.daily_history) == 20:
+        if self.feature_key in DIRECT_FEATURES:
+            self.current_feature_ratio = current.quantize(
+                RATIO_QUANTUM, rounding=ROUND_HALF_UP
+            )
+        elif len(self.daily_history) == 20:
             if self.feature_key in PERCENTILE_FEATURES:
                 self.current_feature_ratio = prior_percentile(
                     current, list(self.daily_history)
@@ -631,7 +655,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                 )
         else:
             self.current_feature_ratio = None
-        self.daily_history.append(current)
+        if self.feature_key not in DIRECT_FEATURES:
+            self.daily_history.append(current)
         self.complete_feature_days += 1
 
     def _indicators(self, bar: base.Bar) -> None:

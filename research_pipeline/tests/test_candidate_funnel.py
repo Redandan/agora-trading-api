@@ -93,7 +93,7 @@ class CandidateFunnelTest(unittest.TestCase):
             if family["family_id"]
             == "btc-turn-of-month-last-day-plus-three-long-cash"
         )
-        self.assertEqual(turn_of_month["base_stage"], "PREREGISTRATION_READY")
+        self.assertEqual(turn_of_month["base_stage"], "REGISTERED_EXPERIMENT")
         self.assertEqual(
             turn_of_month["duplicate_family_key"],
             "btc-turn-of-month-last-day-plus-three-long-cash",

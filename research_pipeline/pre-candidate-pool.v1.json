@@ -119,11 +119,11 @@
       "parent_strategy_id": "BTC_TURN_OF_MONTH_LAST_DAY_PLUS_THREE_LONG_CASH_V1",
       "matched_comparator_id": "BTC_BUY_AND_HOLD_EQUAL_CAPITAL_V1",
       "runner_id": "btc-turn-of-month-last-day-plus-three-historical-v1",
-      "base_stage": "PREREGISTRATION_READY",
+      "base_stage": "REGISTERED_EXPERIMENT",
       "estimated_days_to_next_gate": 0,
       "compute_cost_class": "LOW",
       "independence_key": "calendar-month-boundary-recurring-capital-flow",
-      "next_gate": "IMPLEMENT_HASH_BOUND_RUNNER_AND_EXECUTE_TWO_BYTE_IDENTICAL_HISTORICAL_RUNS",
+      "next_gate": "EXECUTE_TWO_BYTE_IDENTICAL_HISTORICAL_RUNS_AND_APPLY_FROZEN_GATES",
       "canonical_binding": {
         "kind": "NONE",
         "id": "HISTORICAL_DESIGN_VALIDATION_ONLY"
@@ -138,6 +138,11 @@
           "path": "research_pipeline/examples/btc-turn-of-month-last-day-plus-three-long-cash-historical.v1.manifest.json",
           "role": "FROZEN_PREREGISTRATION_MANIFEST",
           "sha256": "b770f089e0128c02e68db12edae698be8465aa68830e446f9c948262926b3ffd"
+        },
+        {
+          "path": "research/btc_turn_of_month_last_day_plus_three_historical.py",
+          "role": "HASH_BOUND_DETERMINISTIC_RUNNER",
+          "sha256": "a23699034fe081a959010543b0a0c43a8fd12b04c0a495dd9a89bc1642e3ae0b"
         }
       ],
       "economic_evidence_status": {
@@ -152,7 +157,6 @@
         "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
       },
       "missing_proof": [
-        "The hash-bound deterministic runner has not yet been committed.",
         "Design, Validation, annual breadth, concentration, holding and terminal-inventory economics have not been measured.",
         "Independent candidate OOS has not begun."
       ],

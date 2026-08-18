@@ -1,0 +1,172 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_REALIZED_VOLATILITY_TERM_STRUCTURE_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-realized-volatility-term-structure-entry-admission-v1",
+  "decided_at": "2026-08-18T14:41:04Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_REALIZED_VOLATILITY_TERM_STRUCTURE_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_RV5_TO_RV20_PRIOR20_MEDIAN_DRA_ADMISSION_FAMILY_WITHOUT_HORIZON_ESTIMATOR_NORMALIZATION_THRESHOLD_OR_RELATION_TUNING",
+  "manifest_sha256": "217cb4b964a5f8c749436d2284bb9a1cd54edd2fc152fabb40c98f30c2adc16b",
+  "prior_sha256": "28d66df1be6997fb8ee5b31f13bfad698be6275f87b52e2c7ad3e4627ee0483d",
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "f1b5d042ef9754a6a5d52aafdccc385027c7be2bef973e13b71e2e0f3149fdbb",
+    "git_commit": "ba4bc30722b2f904d4d7e95a2454703307d013b3",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-realized-volatility-term-structure-entry-admission-v1/artifacts/run3.json",
+    "sha256": "2df2a1c3181430bf2b8ac64fe70666f46e87b55f02ff1ae70d8ac90fb1de9150"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-realized-volatility-term-structure-entry-admission-v1/artifacts/run4.json",
+    "sha256": "2df2a1c3181430bf2b8ac64fe70666f46e87b55f02ff1ae70d8ac90fb1de9150",
+    "byte_identical": true
+  },
+  "superseded_predecision_artifacts": {
+    "paths": [
+      ".research-state/experiments/dra-realized-volatility-term-structure-entry-admission-v1/artifacts/run1.json",
+      ".research-state/experiments/dra-realized-volatility-term-structure-entry-admission-v1/artifacts/run2.json"
+    ],
+    "shared_sha256": "b3df4464974bf6f545c2ef5be4bb3980d7b34da1964f73e9e143595178299cf6",
+    "disposition": "SUPERSEDED_AFTER_PRIOR_REVIEWED_AT_METADATA_ONLY_CORRECTION_AND_NEVER_USED_FOR_THE_FORMAL_DECISION",
+    "scientific_change": false
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature": {
+    "key": "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN",
+    "primary_threshold": "1.0",
+    "neighbors": ["0.8", "1.2"],
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2",
+    "pre_economic_nonredundancy": {
+      "absolute_spearman_limit": "0.80",
+      "design_correlation_to_20d_realized_volatility": "-0.04234535",
+      "validation_correlation_to_20d_realized_volatility": "-0.04099175",
+      "status": "PASS"
+    }
+  },
+  "economic_summary": {
+    "parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": 126.0,
+        "p90_hold_hours": 1818.6,
+        "maximum_underwater_duration_hours": 9878,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": 182.5,
+        "p90_hold_hours": 1418.3,
+        "maximum_underwater_duration_hours": 2397,
+        "terminal_inventory_count": 1
+      }
+    },
+    "primary_1_0": {
+      "design": {
+        "realized_usdt": "100.76085955",
+        "total_pnl_usdt": "58.00283489",
+        "total_pnl_delta_usdt": "-32.77513837",
+        "max_drawdown_pct": "10.660219",
+        "median_hold_hours": 136.0,
+        "p90_hold_hours": 1373.8,
+        "maximum_underwater_duration_hours": 9990,
+        "vetoed_signals": 133,
+        "terminal_inventory_count": 2
+      },
+      "validation": {
+        "realized_usdt": "65.12423030",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "61.91602909",
+        "total_pnl_delta_usdt": "-24.28695277",
+        "max_drawdown_pct": "9.054185",
+        "median_hold_hours": 183.0,
+        "p90_hold_hours": 2667.8,
+        "maximum_underwater_duration_hours": 2433,
+        "vetoed_signals": 76,
+        "terminal_inventory_count": 1
+      },
+      "annual_total_pnl_delta_usdt": {
+        "2020": "-22.56223355",
+        "2021": "-12.24576001",
+        "2022": "26.76724395",
+        "2023": "-16.12761482",
+        "2024": "-10.73701852"
+      },
+      "annual_total_wins": "1_of_5",
+      "annual_drawdown_non_worse": "4_of_5",
+      "top_positive_year_delta_contribution_pct": "100.000000"
+    },
+    "lower_neighbor_0_8": {
+      "design_total_pnl_usdt": "53.51097076",
+      "validation_realized_usdt": "34.56814197",
+      "validation_total_pnl_usdt": "34.56814197",
+      "validation_max_drawdown_pct": "7.504344",
+      "validation_maximum_underwater_duration_hours": 4561,
+      "annual_total_wins": "1_of_5",
+      "disposition": "STRICTER_SLOPE_VETO_REMOVES_TOO_MUCH_PROFITABLE_PARTICIPATION"
+    },
+    "upper_neighbor_1_2": {
+      "design_total_pnl_usdt": "70.45294423",
+      "validation_realized_usdt": "77.98391078",
+      "validation_total_pnl_usdt": "77.98391078",
+      "validation_max_drawdown_pct": "8.771326",
+      "validation_maximum_underwater_duration_hours": 2431,
+      "annual_total_wins": "1_of_5",
+      "disposition": "LOOSER_SLOPE_VETO_STILL_LOSES_PNL_AND_WORSENS_VALIDATION_PATH_RISK"
+    }
+  },
+  "failed_primary_gates": [
+    "design_total_pnl_improves",
+    "design_realized_pnl_improves",
+    "design_max_underwater_duration_non_worse",
+    "validation_total_pnl_improves",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_drawdown_within_0_25pp",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "annual_total_wins_at_least_3_of_5",
+    "top_year_positive_delta_contribution_at_most_60pct"
+  ],
+  "failed_neighbor_gates": {
+    "lower_0_8": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ],
+    "upper_1_2": [
+      "validation_total_pnl_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_max_underwater_duration_non_worse"
+    ]
+  },
+  "passed_evidence": [
+    "The exact 52,608-row pre-2025 H1 corpus, frozen prior, corrected metadata-bound manifest and committed runner hashes passed, and formal runs 3 and 4 were byte-identical.",
+    "The slope feature passed its preregistered nonredundancy gate by a wide margin in both windows before economics were interpreted.",
+    "The primary materially reduced Design drawdown and terminal inventory count, while annual drawdown was non-worse in four of five years; those isolated risk passes remained fully visible rather than being converted into a candidate claim."
+  ],
+  "material_learning": "Volatility acceleration was genuinely distinct from absolute realized-volatility level but did not select better DRA entries. The primary removed 133 Design and 76 Validation signals, reducing Design drawdown by 18.87 percentage points while losing 32.78 USDT of Design total PnL. That protection did not transfer: Validation total PnL fell by 24.29 USDT, drawdown worsened by 1.93 percentage points, P90 holding nearly doubled, and only 2022 improved. Both stricter and looser neighbors also lost Validation realized and total PnL and worsened path risk.",
+  "scientific_claim": "For the exact H1 close-to-close RV5/RV20 slope, prior-20-day median normalization, 1.0 primary and 0.8/1.2 neighbors applied only to unchanged equal-capital DRA V1 entries, historical Design and Validation evidence through 2024 rejects candidate status. Lower Design drawdown was paid for by broad participation loss and did not generalize to Validation.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "H1 close-to-close realized variance is an implementation approximation; that limitation does not authorize another estimator or sampling interval after outcome access.",
+    "The conclusion closes only this exact DRA admission transfer and does not dispute multi-horizon volatility forecasting or volatility management in other assets and strategies.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

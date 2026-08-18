@@ -780,6 +780,20 @@
         {"path": "research_pipeline/btc-search-attention-volume-preregistration.v1.json", "role": "CLOSED_PREOUTCOME_SOURCE_CONTRACT", "sha256": "d543f3136e76318bad1491342707ef3cc26e9656a213dc6c27e80960f9b57c46"}
       ],
       "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-dra-realized-volatility-term-structure-entry-admission",
+      "title": "DRA five-day to twenty-day realized-volatility term-structure entry admission",
+      "decision_feature": "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_DRA_REALIZED_VOLATILITY_TERM_STRUCTURE_FAMILY",
+      "duplicate_family_key": "dra-realized-volatility-term-structure-entry-admission",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/dra-realized-volatility-term-structure-entry-admission.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "7111f7e7ceaed6bb676a8d1af29bbe96f82ca5b245a02831ceab75e72a93eca9"},
+        {"path": "research_pipeline/examples/dra-realized-volatility-term-structure-entry-admission.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "217cb4b964a5f8c749436d2284bb9a1cd54edd2fc152fabb40c98f30c2adc16b"},
+        {"path": "research_pipeline/examples/dra-realized-volatility-term-structure-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "28d66df1be6997fb8ee5b31f13bfad698be6275f87b52e2c7ad3e4627ee0483d"}
+      ],
+      "prohibited_reopen": true
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

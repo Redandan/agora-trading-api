@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-directional-volume-participation-entry-admission-v1",
+  "task_sha256": "849dfdd96453f470860ba6ed7d040de20339a18c9c48bf49bafe671fa61aca14",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-18T03:12:14Z",
+  "completed_at": "2026-08-18T03:13:05Z",
+  "source_git_commit": "c2f1fab90396fa9a7e58f5cad367a13d7361b71d",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_DIRECTIONAL_VOLUME_PARTICIPATION_BRANCH_CLOSE. The exact 52,608-row pre-2025 sealed H1 corpus, primary prior, frozen declarative runner, unchanged DRA V1 parent parity, directionally weighted volume accounting and equal-capital assumptions passed. Primary 1.0 improved Design total PnL from 90.77797326 to 105.36030037 USDT, mainly by reducing terminal unrealized loss, but failed historical Validation: total PnL fell from 86.20298186 to 86.06498471, realized PnL fell from 89.41118307 to 86.06498471, drawdown rose from 7.121498% to 11.105036%, and median/P90 holding rose from 182.5/1418.3h to 193.5/2648.6h. Annual total-PnL breadth was only 2/5 and 95.500864% of positive annual uplift came from 2022. The 0.8 neighbor lost Validation PnL and lacked four interventions; the 1.2 neighbor lost heavily with worse drawdown. The exact family is closed without selecting a neighbor, changing candle direction, tuning, candidate creation or OOS access.",
+  "checks": [
+    {
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Manager, strategy-path and allocation preflights returned VALID and DIRECT_STRATEGY_PATH_ALLOWED at clean HEAD/origin c2f1fab90396fa9a7e58f5cad367a13d7361b71d. Frozen task 849dfdd96453f470860ba6ed7d040de20339a18c9c48bf49bafe671fa61aca14, dispatch a5abbd158fbeb1496cc9334def5a0041ac8563ac1232d2ff4e02f7e1ae2b623c, intent ac664cfa23a4c45d488527ca8d099ee47ef567463583d4db5279b8cf4377e457 and strategy path 8d1badf3db3b8fe38825639a4eadfdb4fd4455f5e940380e8c3f7964ac18b830 were validated before outcome access."
+    },
+    {
+      "name": "PRIMARY_PRIOR_AND_RUNNER_IDENTITY",
+      "status": "PASS",
+      "evidence": "The feature-specific prior SHA-256 was 2bf47009c6fcf436c2cf225116d934fa8e46ee92a223f6c5c9f6e7e35386954d and authorized exactly one coarse directional-volume-participation admission audit. Executed runner SHA-256 2af29c394fd8a8413ccbb6968f8c67e18e826dc1c61ee867a41f0fca061aac1e and manifest SHA-256 fd016686c372765fb20669e0755d0ddfa53e1e8382d2c6f45c6f85f1acfbb552 matched the frozen task."
+    },
+    {
+      "name": "SEALED_DATA_AND_PARENT_PARITY",
+      "status": "PASS",
+      "evidence": "The input contained exactly 52,608 contiguous pre-2025 H1 rows with canonical SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd. Parent Design reproduced realized 169.89846767, unrealized -79.12049441, total 90.77797326 USDT, drawdown 29.530448% and median/P90 126.0/1818.6h. Parent Validation reproduced realized 89.41118307, unrealized -3.20820121, total 86.20298186, drawdown 7.121498% and median/P90 182.5/1418.3h."
+    },
+    {
+      "name": "DECISION_TIME_FEATURE_ACCOUNTING",
+      "status": "PASS",
+      "evidence": "Each feature value used exactly 24 H1 bars wholly inside a complete UTC day. Estimated quote volume was close multiplied by base volume, positive participation counted only bars with close strictly above open, individual zero-volume hours contributed zero, and the resulting share used only the prior 20-complete-day median before the unchanged next-open fill. Primary Design reconciled 92 admissions, 34 vetoes and two unavailable signals; Validation reconciled 48 admissions, 11 vetoes and zero unavailable signals."
+    },
+    {
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "PASS",
+      "evidence": "Parent to primary Design: realized 169.89846767 to 155.96446736, unrealized -79.12049441 to -50.60416699, total 90.77797326 to 105.36030037 USDT, drawdown 29.530448% to 29.967551%, median/P90 hold 126.0/1818.6h to 136.0/1777.6h, and open lots 5 to 3. Total PnL improved, but the uplift depended on terminal unrealized cleanup rather than higher realized PnL."
+    },
+    {
+      "name": "VALIDATION_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent to primary Validation: realized 89.41118307 to 86.06498471, unrealized -3.20820121 to 0, total 86.20298186 to 86.06498471 USDT, drawdown 7.121498% to 11.105036%, median/P90 hold 182.5/1418.3h to 193.5/2648.6h, average/peak utilization 21.632695/60.000000% to 24.599863/84.000000%, and open lots 1 to 0. Total, realized, drawdown and both holding gates failed."
+    },
+    {
+      "name": "ANNUAL_BREADTH_AND_CONCENTRATION",
+      "status": "FAIL",
+      "evidence": "Primary candidate-minus-parent total-PnL deltas were 2020 -0.77697544, 2021 -7.57585693, 2022 +28.51632742, 2023 -4.68658485 and 2024 +1.34343112 USDT. Strict total-PnL wins were 2/5 versus the required 3/5. Drawdown was non-worse in 4/5 years, but 95.500864% of positive annual uplift came from 2022 versus the maximum 60% concentration gate."
+    },
+    {
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL",
+      "evidence": "The frozen 0.8 neighbor produced Validation total 83.60161270 versus parent 86.20298186 USDT and only two veto interventions; its annual total wins were 0/5. The 1.2 neighbor produced Validation total 68.00171887 and drawdown 14.408594% with annual total wins 0/5. Neither neighbor passed the frozen non-worse PnL, drawdown and support matrix."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Valid paired evidence failed primary Validation total PnL, realized PnL, drawdown, median and P90 holding, annual PnL breadth, concentration and both-neighbor stability. The frozen disposition is DRA_DIRECTIONAL_VOLUME_PARTICIPATION_BRANCH_CLOSE. No opposite direction, candle rule, threshold, lookback, estimator, year exclusion or interaction rescue was evaluated."
+    },
+    {
+      "name": "ARTIFACT_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly one create-only artifact was written at .research-state/experiments/dra-directional-volume-participation-entry-admission-v1/artifacts/screen.json with SHA-256 42d1cd6933ec3f520657ea4b216786a681f2264fcdef7ef753e1d768a5e39a67 and terminal status NO_MECHANISM_CLOSE_FEATURE_FAMILY."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The execution made no canonical-state or server Research MCP write, heartbeat or schedule change, paid-API call, deployment, database mutation, and no Trading, order, fund, SHADOW, PAPER or LIVE action. The permitted create-only screen artifact was the sole research-state output."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/dra-directional-volume-participation-entry-admission-v1/artifacts/screen.json",
+      "sha256": "42d1cd6933ec3f520657ea4b216786a681f2264fcdef7ef753e1d768a5e39a67"
+    }
+  ],
+  "files_changed": [],
+  "uncertainty": [
+    "Historical Validation is post-hoc development evidence and not clean OOS; the study cannot establish independent alpha or a strategy candidate.",
+    "Hourly positive-candle estimated quote-volume share is not aggressor-signed order flow, order-book imbalance, metaorder flow or market-wide demand.",
+    "The primary Design uplift came from reduced terminal unrealized loss while realized PnL fell, and its positive annual uplift was concentrated in 2022.",
+    "No post-2024, prospective, SHADOW, PAPER or LIVE evidence was opened or created."
+  ],
+  "recommended_next_action": "Close and deduplicate the exact DAILY_POSITIVE_RETURN_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN DRA entry-admission family without opposite-direction, candle-rule, weighting, threshold, lookback or interaction rescue. Preserve the result as evidence that Design terminal-inventory cleanup and one-year uplift do not generalize when Validation drawdown and holding paths deteriorate. Continue only with a causally distinct pre-outcome mechanism or lawful forward evidence.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

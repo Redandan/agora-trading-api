@@ -86,7 +86,18 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 18)
+        self.assertEqual(len(catalog["closed_families"]), 19)
+        volatility_target = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-monthly-30d-volatility-target-40pct"
+        )
+        self.assertEqual(
+            volatility_target["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_MONTHLY_30D_VOLATILITY_TARGET_40PCT_FAMILY",
+        )
+        self.assertTrue(volatility_target["prohibited_reopen"])
         monthly_momentum = next(
             family
             for family in catalog["closed_families"]
@@ -234,7 +245,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 19)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 20)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

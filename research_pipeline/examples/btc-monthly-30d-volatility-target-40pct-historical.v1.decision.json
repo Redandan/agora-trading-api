@@ -1,0 +1,152 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_30D_VOLATILITY_TARGET_40PCT_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-monthly-30d-volatility-target-40pct-historical-v1",
+  "decided_at": "2026-08-18T09:10:58Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_30D_VOLATILITY_TARGET_40PCT_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_MONTHLY_30D_VOLATILITY_TARGET_40PCT_FAMILY_WITHOUT_TARGET_LOOKBACK_ESTIMATOR_OR_REBALANCE_TUNING",
+  "manifest_sha256": "5468752a0c98071d5641cfe1c06590510869479cad6058d93c33df97b7b15115",
+  "runner": {
+    "path": "research/btc_monthly_30d_volatility_target_40pct_historical.py",
+    "sha256": "8eb185644904b62152feb9170964fa86032ee561680a1ba92786746dc9a466d6",
+    "git_commit": "6cf545635107f6ddd3b1081d60f5542ea964d115",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-monthly-30d-volatility-target-40pct-historical-v1/artifacts/run1.json",
+    "sha256": "189360fe08ea1fbfe45d4561bffe177777fa1453ea071be5af399263297568f9"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-monthly-30d-volatility-target-40pct-historical-v1/artifacts/run2.json",
+    "sha256": "189360fe08ea1fbfe45d4561bffe177777fa1453ea071be5af399263297568f9",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "complete_day_count": 2192,
+    "month_boundary_count": 72,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "design_normal": {
+      "candidate_realized_return_pct": "74.56942243",
+      "candidate_unrealized_return_pct": "-17.61608902",
+      "candidate_total_return_pct": "56.95333341",
+      "candidate_terminal_liquidation_adjusted_return_pct": "56.84053035",
+      "candidate_maximum_drawdown_pct": "62.74962595",
+      "candidate_calmar_ratio": "0.90762825",
+      "candidate_average_exposure_pct": "63.37260862",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "upside_capture_ratio": "0.43943628",
+      "signal_evaluations": 36,
+      "rebalance_trades": 36,
+      "p90_realized_lot_hold_hours": "7872.00000000",
+      "terminal_oldest_lot_age_hours": "3672.00000000"
+    },
+    "design_stress": {
+      "candidate_total_return_pct": "55.41712783",
+      "candidate_maximum_drawdown_pct": "62.86277670",
+      "buy_hold_total_return_pct": "129.26172157"
+    },
+    "validation_normal": {
+      "candidate_realized_return_pct": "302.15094286",
+      "candidate_unrealized_return_pct": "102.78886858",
+      "candidate_total_return_pct": "404.93981144",
+      "candidate_terminal_liquidation_adjusted_return_pct": "404.45736411",
+      "candidate_maximum_drawdown_pct": "25.66579765",
+      "candidate_calmar_ratio": "15.77740996",
+      "candidate_average_exposure_pct": "85.33192972",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.87129784",
+      "signal_evaluations": 24,
+      "rebalance_trades": 23,
+      "realized_lot_slices": 20,
+      "p90_realized_lot_hold_hours": "11064.00000000",
+      "terminal_oldest_lot_age_hours": "4416.00000000",
+      "top_positive_realized_lot_contribution_pct": "16.64900543"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "401.53786978",
+      "candidate_terminal_liquidation_adjusted_return_pct": "400.57927353",
+      "candidate_maximum_drawdown_pct": "25.68528039",
+      "buy_hold_total_return_pct": "463.90931032"
+    },
+    "annual_fair_reset_normal": {
+      "2020": {
+        "candidate_total_return_pct": "153.76334540",
+        "candidate_maximum_drawdown_pct": "48.55168298",
+        "candidate_calmar_ratio": "3.16700341",
+        "buy_hold_total_return_pct": "301.32276307",
+        "buy_hold_maximum_drawdown_pct": "60.56916406",
+        "buy_hold_calmar_ratio": "4.97485425"
+      },
+      "2021": {
+        "candidate_total_return_pct": "20.10497504",
+        "candidate_maximum_drawdown_pct": "33.13144686",
+        "candidate_calmar_ratio": "0.60682454",
+        "buy_hold_total_return_pct": "59.60909620",
+        "buy_hold_maximum_drawdown_pct": "54.72348518",
+        "buy_hold_calmar_ratio": "1.08927814"
+      },
+      "2022": {
+        "candidate_total_return_pct": "-48.58797777",
+        "candidate_maximum_drawdown_pct": "53.60167314",
+        "candidate_calmar_ratio": "-0.90646383",
+        "buy_hold_total_return_pct": "-64.25634095",
+        "buy_hold_maximum_drawdown_pct": "67.36039868",
+        "buy_hold_calmar_ratio": "-0.95391866"
+      },
+      "2023": {
+        "candidate_total_return_pct": "139.96717372",
+        "candidate_maximum_drawdown_pct": "19.78665130",
+        "candidate_calmar_ratio": "7.07381818",
+        "buy_hold_total_return_pct": "155.16375107",
+        "buy_hold_maximum_drawdown_pct": "21.72199642",
+        "buy_hold_calmar_ratio": "7.14316254"
+      },
+      "2024": {
+        "candidate_total_return_pct": "110.14826533",
+        "candidate_maximum_drawdown_pct": "25.66579765",
+        "candidate_calmar_ratio": "4.29163616",
+        "buy_hold_total_return_pct": "120.99348678",
+        "buy_hold_maximum_drawdown_pct": "32.28416349",
+        "buy_hold_calmar_ratio": "3.74776589"
+      }
+    },
+    "breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "5_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "2_of_5",
+      "top_year_positive_total_return_contribution_pct": "36.26632906"
+    }
+  },
+  "failed_gates": [
+    "design_normal_maximum_drawdown_at_most_70pct_of_buy_hold",
+    "design_normal_calmar_at_least_buy_hold",
+    "validation_normal_average_exposure_between_25pct_and_85pct",
+    "normal_annual_calmar_at_least_75pct_of_buy_hold_at_least_4_of_5"
+  ],
+  "passed_evidence": [
+    "The exact dataset, source hashes, 2192 complete-day closes and 72 month boundaries passed, and two runs were byte-identical.",
+    "Validation Normal returned 404.93981144 percent with 25.66579765 percent drawdown and Calmar 15.77740996 versus passive Calmar 14.39575015; Stress remained strongly positive.",
+    "Validation contained 302.15094286 percent realized and 102.78886858 percent unrealized return, 20 realized FIFO lot slices, broad realized contribution and a positive terminal-liquidation-adjusted result, so its strength was not solely a terminal mark.",
+    "All five annual drawdowns were below passive BTC, four of five annual returns were positive under both cost scenarios, and positive performance was not dominated by one year."
+  ],
+  "material_learning": "A fixed unlevered volatility budget can reduce BTC path risk, but the return cost is regime dependent. In 2020-2022 Design it cut maximum drawdown by 14.43993330 percentage points yet captured only 43.943628 percent of passive upside, leaving Calmar at 0.90762825 versus 1.67905405. The same rule worked much better in 2023-2024, capturing 87.129784 percent of passive upside while reducing drawdown by 6.61836584 percentage points. Only two of five annual folds reached 75 percent of passive Calmar. This instability means recent Validation strength cannot support a candidate.",
+  "scientific_claim": "The exact monthly policy using thirty complete-day log-return realized volatility and a fixed 40 percent annualized unlevered target produced real historical drawdown reductions and strong 2023-2024 risk-adjusted economics, but failed frozen Design drawdown and Calmar gates plus cross-year Calmar breadth. It is not a candidate and does not authorize another target, lookback, estimator, rebalance clock or volatility-managed rescue.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The conclusion closes only the exact 30-complete-day, 40-percent annualized target, monthly next-H1-open, unlevered FIFO policy.",
+    "The deterministic friction and FIFO accounting model does not prove exchange execution quality or future volatility-estimator stability."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -253,57 +253,30 @@
         "Predictive, economic and OOS value remain missing."
       ],
       "duplicate_family_key": "dra-crypto-carry-risk-veto"
-    },
+    }
+  ],
+  "closed_families": [
     {
-      "family_id": "btc-monthly-30d-volatility-target-40pct",
+      "family_id": "closed-btc-monthly-30d-volatility-target-40pct",
       "title": "BTC monthly 30-day realized-volatility 40% target",
       "decision_feature": "ANNUALIZED_REALIZED_VOLATILITY_FROM_EXACTLY_30_COMPLETE_UTC_DAY_LOG_RETURNS",
-      "causal_hypothesis": "Lagged BTC volatility may vary more than expected return, so a fixed unlevered risk budget can reduce uncompensated high-volatility exposure without selecting return direction.",
-      "economic_hypothesis": "Monthly scaling to a fixed 40% annualized volatility target may preserve enough passive upside while improving fee-adjusted drawdown and Calmar under equal capital.",
       "parent_strategy_id": "BTC_BUY_AND_HOLD_EQUAL_CAPITAL_V1",
-      "matched_comparator_id": "BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_COSTS",
-      "runner_id": "btc-monthly-30d-volatility-target-40pct-historical-v1",
-      "base_stage": "PREREGISTRATION_READY",
-      "estimated_days_to_next_gate": 0,
-      "compute_cost_class": "LOW",
-      "independence_key": "standalone-absolute-volatility-risk-budget",
-      "next_gate": "RUN_FROZEN_DESIGN_VALIDATION_ECONOMIC_SCREEN_TWICE",
-      "canonical_binding": {
-        "kind": "NONE",
-        "id": "OFFLINE_HISTORICAL_NO_CANONICAL_WRITE"
-      },
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_30D_VOLATILITY_TARGET_40PCT_FAMILY",
+      "duplicate_family_key": "btc-monthly-30d-volatility-target-40pct",
       "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-monthly-30d-volatility-target-40pct-historical.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "ba1c31c4a17837869770ebc376397ab77bd99a698547abdfcff66e2cf2e6e123"
+        },
         {
           "path": "research_pipeline/examples/btc-monthly-30d-volatility-target-40pct-historical.v1.manifest.json",
           "role": "FROZEN_PREREGISTRATION_MANIFEST",
           "sha256": "5468752a0c98071d5641cfe1c06590510869479cad6058d93c33df97b7b15115"
-        },
-        {
-          "path": "research_pipeline/examples/dra-volatility-management-primary-prior-audit.v4.json",
-          "role": "SEALED_POSITIVE_AND_FALSIFICATION_PRIOR_WITH_TRANSFER_LIMITS",
-          "sha256": "1d94c0af9e6bdabbda34862cd6740eef9d77932a77183a027ac75246435427d3"
         }
       ],
-      "economic_evidence_status": {
-        "fees": "MATCHED_CAPITAL_READY",
-        "adverse_slippage": "MATCHED_CAPITAL_READY",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
-      },
-      "missing_proof": [
-        "Frozen Design and Validation economics have not run.",
-        "Annual breadth, FIFO holding and terminal inventory effects are not measured.",
-        "Independent sealed OOS has not begun."
-      ],
-      "duplicate_family_key": "btc-monthly-30d-volatility-target-40pct"
-    }
-  ],
-  "closed_families": [
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-btc-monthly-12m-time-series-momentum-long-cash",
       "title": "BTC monthly twelve-month time-series momentum long-or-cash",

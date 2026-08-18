@@ -1,0 +1,216 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_TURN_OF_MONTH_LAST_DAY_PLUS_THREE_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-turn-of-month-last-day-plus-three-long-cash-historical-v1",
+  "created_at": "2026-08-18T09:46:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "Recurring month-boundary capital flows may concentrate BTC returns into the canonical interval spanning the final UTC calendar day and the first three UTC calendar days of the next month, allowing a low-exposure long-or-cash policy to improve fee-adjusted Calmar and drawdown breadth without selecting price outcomes.",
+  "economic_rationale": "The calendar position is known before every decision and requires no fitted market feature. The mechanism is valuable only if approximately thirteen-percent time exposure preserves enough passive upside to remain positive after two trades per month while materially reducing drawdown, surviving Validation, doubled friction, annual breadth, concentration and terminal-inventory gates.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-turn-of-month-last-day-plus-three-long-cash",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_OKX_UTC_SPOT_ONLY_POLICY",
+    "distinct_from_closed_families": [
+      "The closed twelve-month momentum family used return sign to choose long or cash; this policy uses only immutable UTC calendar position and no price feature.",
+      "The closed thirty-day volatility-target family changed continuous exposure magnitude from lagged realized volatility; this policy is binary and uses no volatility estimate.",
+      "The closed Donchian family used breakout and breakdown levels; this policy has no price level, stop or trend rule.",
+      "The closed static BTC plus DRA allocation remained continuously invested; this policy alternates standalone BTC and cash on a fixed four-day monthly clock.",
+      "The open three-percent shock families condition on realized price events; this policy never reads a return before selecting its interval."
+    ],
+    "excluded_reinterpretations": [
+      "No alternate entry day, exit day, interval length, day-of-week interaction, month selection, holiday rule, intramonth optimization, leverage, short leg or neighboring calendar variant may be scanned after outcome access.",
+      "The result cannot be attributed to a fitted payroll, ETF, fund-flow or institutional-demand series because none is observed in the policy.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_PASSIVE_BENCHMARK_AND_PATH_METRIC_REFERENCE"
+    },
+    {
+      "path": "research_pipeline/examples/btc-turn-of-month-primary-prior.v1.json",
+      "sha256": "a2281fc9e080ec3de19b7d2555b92b51ec48a03099701397576a4ffe1a2c2ca9",
+      "role": "SEALED_EXACT_RULE_POSITIVE_AND_FALSIFICATION_PRIOR"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_TURN_OF_MONTH_LAST_DAY_PLUS_THREE_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "EVERY_COMPLETE_UTC_HOUR_WITH_CALENDAR_TRANSITIONS_AT_00_00_UTC",
+    "decision_feature": "UTC_CALENDAR_POSITION_LAST_DAY_OR_FIRST_THREE_DAYS_OF_MONTH",
+    "long_interval": "FROM_00_00_UTC_ON_THE_FINAL_CALENDAR_DAY_THROUGH_00_00_UTC_ON_DAY_FOUR_OF_THE_NEXT_MONTH",
+    "target_exposure": "ONE_WHEN_IN_LONG_INTERVAL_OTHERWISE_ZERO",
+    "execution": "FIRST_HOURLY_BAR_OPEN_AT_EACH_CALENDAR_TRANSITION_AFTER_THE_PREVIOUS_HOUR_IS_COMPLETE",
+    "sizing": "ONE_HUNDRED_PERCENT_PRE_TRADE_EQUITY_WITH_NO_LEVERAGE_AND_FEES_DEBITED_FROM_CASH",
+    "rebalance": "BINARY_BUY_OR_SELL_ONLY_WHEN_TARGET_EXPOSURE_CHANGES",
+    "cost_basis": "FIFO",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_AND_APPLY_CALENDAR_TARGET_AT_FIRST_WINDOW_OPEN"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_AND_APPLY_CALENDAR_TARGET_AT_FIRST_WINDOW_OPEN"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_AND_APPLY_CALENDAR_TARGET_AT_FIRST_WINDOW_OPEN"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "FIFO_REALIZED_ROUND_TRIPS_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct",
+    "unrealized_return_pct",
+    "total_return_pct",
+    "terminal_liquidation_adjusted_return_pct",
+    "maximum_drawdown_pct",
+    "maximum_underwater_duration_hours",
+    "fees_equity_units",
+    "turnover_equity_units",
+    "average_exposure_pct",
+    "signal_evaluation_count",
+    "trade_count",
+    "buy_trade_count",
+    "sell_trade_count",
+    "realized_lot_count",
+    "median_realized_lot_hold_hours",
+    "p90_realized_lot_hold_hours",
+    "terminal_position",
+    "terminal_oldest_lot_age_hours",
+    "terminal_inventory_cost_basis",
+    "buy_hold_total_return_pct",
+    "buy_hold_maximum_drawdown_pct",
+    "upside_capture_ratio",
+    "calmar_ratio",
+    "annual_breadth",
+    "top_year_positive_return_contribution_pct",
+    "top_positive_realized_lot_contribution_pct"
+  ],
+  "gate_set": {
+    "id": "BTC_TURN_OF_MONTH_LAST_DAY_PLUS_THREE_ECONOMIC_GATES_V1",
+    "data": [
+      "dataset_sha256_and_52608_rows_match",
+      "hourly_lattice_and_ohlcv_invariants_pass",
+      "frozen_source_binding_sha256s_match",
+      "calendar_transition_inventory_matches_exact_policy"
+    ],
+    "design": [
+      "normal_total_return_pct_gt_0",
+      "stress_total_return_pct_gt_0",
+      "normal_maximum_drawdown_at_most_50pct_of_buy_hold",
+      "normal_upside_capture_at_least_20pct_when_buy_hold_positive",
+      "normal_calmar_at_least_buy_hold_calmar",
+      "normal_average_exposure_between_10pct_and_16pct",
+      "normal_signal_evaluations_exactly_73",
+      "normal_sell_trades_exactly_36"
+    ],
+    "validation": [
+      "normal_total_return_pct_gt_0",
+      "stress_total_return_pct_gt_0",
+      "normal_maximum_drawdown_at_most_60pct_of_buy_hold",
+      "normal_upside_capture_at_least_20pct_when_buy_hold_positive",
+      "normal_calmar_at_least_buy_hold_calmar",
+      "normal_average_exposure_between_10pct_and_16pct",
+      "normal_signal_evaluations_exactly_49",
+      "normal_sell_trades_exactly_24",
+      "stress_maximum_drawdown_no_more_than_normal_plus_2pp"
+    ],
+    "breadth": [
+      "normal_positive_annual_total_return_at_least_4_of_5",
+      "stress_positive_annual_total_return_at_least_4_of_5",
+      "normal_annual_drawdown_non_worse_than_buy_hold_5_of_5",
+      "normal_annual_calmar_at_least_buy_hold_at_least_4_of_5",
+      "normal_annual_upside_capture_at_least_20pct_at_least_3_of_5_when_buy_hold_positive"
+    ],
+    "concentration": [
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "top_positive_realized_lot_contribution_at_most_40pct_when_positive_sales_exist"
+    ],
+    "holding_and_inventory": [
+      "validation_normal_p90_realized_lot_hold_at_most_96_hours",
+      "validation_normal_terminal_oldest_lot_age_at_most_24_hours_when_position_open",
+      "validation_normal_terminal_liquidation_adjusted_return_pct_gt_0",
+      "validation_normal_terminal_liquidation_cost_at_most_0_5pp_of_mark_to_market_return"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_CALENDAR_WINDOW_OR_INTERACTION_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset, lattice, OHLCV, source hash or exact calendar-transition inventory gate fails.",
+    "Stop and permanently close the exact last-day-plus-first-three-days long-or-cash family if any frozen Design, Validation, breadth, concentration, holding or inventory gate fails.",
+    "Do not scan another entry day, exit day, interval length, month, weekday, holiday, short leg, leverage or related calendar formulation after seeing results.",
+    "Do not use any post-2024 data as part of this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

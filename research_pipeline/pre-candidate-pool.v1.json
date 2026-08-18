@@ -111,6 +111,54 @@
       "duplicate_family_key": "dra-entry-range-confirmation-20d"
     },
     {
+      "family_id": "btc-turn-of-month-last-day-plus-three-long-cash",
+      "title": "BTC canonical turn-of-month four-day long-or-cash",
+      "decision_feature": "UTC_CALENDAR_POSITION_LAST_DAY_OR_FIRST_THREE_DAYS_OF_MONTH",
+      "causal_hypothesis": "Recurring month-boundary savings, payroll, fund-flow and portfolio-rebalancing demand may concentrate net BTC buying pressure into a calendar interval known before every decision.",
+      "economic_hypothesis": "Holding unlevered BTC only from the final UTC calendar day through the first three UTC calendar days may preserve enough upside with materially lower exposure and drawdown to improve fee-adjusted Calmar after explicit costs.",
+      "parent_strategy_id": "BTC_TURN_OF_MONTH_LAST_DAY_PLUS_THREE_LONG_CASH_V1",
+      "matched_comparator_id": "BTC_BUY_AND_HOLD_EQUAL_CAPITAL_V1",
+      "runner_id": "btc-turn-of-month-last-day-plus-three-historical-v1",
+      "base_stage": "PREREGISTRATION_READY",
+      "estimated_days_to_next_gate": 0,
+      "compute_cost_class": "LOW",
+      "independence_key": "calendar-month-boundary-recurring-capital-flow",
+      "next_gate": "IMPLEMENT_HASH_BOUND_RUNNER_AND_EXECUTE_TWO_BYTE_IDENTICAL_HISTORICAL_RUNS",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "HISTORICAL_DESIGN_VALIDATION_ONLY"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-turn-of-month-primary-prior.v1.json",
+          "role": "SEALED_EXACT_RULE_POSITIVE_AND_FALSIFICATION_PRIOR",
+          "sha256": "a2281fc9e080ec3de19b7d2555b92b51ec48a03099701397576a4ffe1a2c2ca9"
+        },
+        {
+          "path": "research_pipeline/examples/btc-turn-of-month-last-day-plus-three-long-cash-historical.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "b770f089e0128c02e68db12edae698be8465aa68830e446f9c948262926b3ffd"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MATCHED_CAPITAL_READY",
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "The hash-bound deterministic runner has not yet been committed.",
+        "Design, Validation, annual breadth, concentration, holding and terminal-inventory economics have not been measured.",
+        "Independent candidate OOS has not begun."
+      ],
+      "duplicate_family_key": "btc-turn-of-month-last-day-plus-three-long-cash"
+    },
+    {
       "family_id": "btc-3pct-post-shock-reversal",
       "title": "BTC three-percent shock next-day bidirectional reversal",
       "decision_feature": "TERMINAL_MANAGER_REVIEWED_THREE_PERCENT_COMPLETE_UTC_DAY_SHOCK_WITH_NEXT_FEASIBLE_FILL",

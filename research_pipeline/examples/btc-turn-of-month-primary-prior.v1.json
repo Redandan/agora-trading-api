@@ -1,0 +1,70 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_TURN_OF_MONTH_PRIMARY_PRIOR_V1",
+  "created_at": "2026-08-18T09:44:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-turn-of-month-last-day-plus-three-long-cash",
+  "claim_boundary": "Primary cryptocurrency studies provide a testable but conflicting prior for the canonical turn-of-month interval from the last calendar day through the first three calendar days. The exact spot-only long-or-cash policy may receive one preregistered historical Design/Validation test with explicit costs and no neighboring-day scan. Positive literature does not establish current OKX profitability, and failure closes this exact family without optimizing the calendar window.",
+  "fixed_mechanism": {
+    "decision_feature": "UTC_CALENDAR_POSITION_LAST_DAY_OR_FIRST_THREE_DAYS_OF_MONTH",
+    "causal_hypothesis": "Recurring month-boundary savings, payroll, fund-flow and portfolio-rebalancing demand may concentrate net buying pressure into a known calendar interval.",
+    "economic_hypothesis": "Holding unlevered BTC only during the canonical four-day turn-of-month interval may retain a meaningful share of passive upside with materially lower exposure and drawdown, improving fee-adjusted Calmar after two round-trip costs per month.",
+    "fixed_direction": "LONG_DURING_LAST_UTC_CALENDAR_DAY_AND_FIRST_THREE_UTC_CALENDAR_DAYS_OTHERWISE_CASH",
+    "variants": 1
+  },
+  "sources": [
+    {
+      "title": "Is the Turn of the Month an anomaly on which an investment strategy could be based? Evidence from BitCoin and Ethereum",
+      "authors": ["Evangelos Vasileiou"],
+      "publication_year": 2023,
+      "url": "https://www.researchgate.net/publication/363808047_Is_the_Turn_of_the_Month_an_anomaly_on_which_an_investment_strategy_could_be_based_Evidence_from_BitCoin_and_Ethereum",
+      "source_access": "PUBLIC_READABLE_AUTHOR_MANUSCRIPT",
+      "method_binding": "Defines the dominant canonical turn-of-month interval as the last day of one month through the first three days of the next month, denoted minus one through plus three.",
+      "finding": "Reports that turn-of-month timing may improve return-to-risk even when it does not consistently beat buy-and-hold profit; the paper also tests optimized four-day periods, which this preregistration explicitly forbids copying or scanning.",
+      "role": "EXACT_RULE_AND_RISK_ADJUSTED_POSITIVE_PRIOR"
+    },
+    {
+      "title": "Turn-of-the-month effect in cryptocurrencies",
+      "authors": ["Satish Kumar"],
+      "publication_year": 2022,
+      "doi": "10.1108/MF-02-2022-0084",
+      "url": "https://doi.org/10.1108/MF-02-2022-0084",
+      "source_access": "PUBLIC_PUBLISHER_ABSTRACT_AND_METHOD_SUMMARY_ONLY",
+      "method_binding": "Tests Bitcoin, Ethereum and Litecoin from August 2015 through August 2021 using dummy regressions and a turn-of-month trading strategy.",
+      "finding": "Reports positive turn-of-month returns above non-turn-of-month returns and a Bitcoin timing strategy that outperformed buy-and-hold in the studied sample.",
+      "role": "INDEPENDENT_POSITIVE_PRIOR_WITH_ABSTRACT_ONLY_LIMIT"
+    },
+    {
+      "title": "Bitcoin time-of-day, day-of-week and month-of-year effects in returns and trading volume",
+      "authors": ["Dirk G. Baur", "KiHoon Hong", "Adrian D. Lee"],
+      "publication_year": 2019,
+      "doi": "10.1016/j.frl.2019.04.023",
+      "url": "https://doi.org/10.1016/j.frl.2019.04.023",
+      "source_access": "PUBLIC_PUBLISHER_ABSTRACT_AND_METHOD_SUMMARY_ONLY",
+      "method_binding": "Studies more than fifteen million observations across seven continuously traded Bitcoin exchanges and separates return from volume seasonality.",
+      "finding": "Finds time-specific return anomalies but no return pattern persistent across time, while lower weekend volume is more persistent.",
+      "role": "FALSIFICATION_AND_REGIME_INSTABILITY_PRIOR"
+    }
+  ],
+  "admission": {
+    "status": "ONE_DIRECT_HISTORICAL_TEST_JUSTIFIED",
+    "local_discovery_slot_consumed": false,
+    "reason": "The exact feature is calendar-known before decision, the canonical rule is available in a public readable primary manuscript, the free sealed H1 path and passive comparator already exist, and the conflicting primary evidence makes the mechanism directly falsifiable without another discovery task.",
+    "prohibited": [
+      "NEIGHBORING_DAY_SCAN",
+      "MONTH_SPECIFIC_FILTER",
+      "DAY_OF_WEEK_INTERACTION",
+      "SHORT_NON_TURN_OF_MONTH",
+      "LEVERAGE",
+      "POST_OUTCOME_GATE_CHANGE",
+      "OOS_OPEN"
+    ]
+  },
+  "uncertainty": [
+    "The cited positive studies use different venues, samples and execution assumptions from the sealed OKX H1 corpus.",
+    "Two supporting sources are accessible only at publisher abstract and method-summary level; they provide context, not the exact policy binding.",
+    "Calendar correlation does not prove that month-boundary flows cause Bitcoin returns or that the effect survived after 2021.",
+    "Historical Design and Validation cannot serve as independent post-selection OOS."
+  ],
+  "scope_note": "No outcome data, backtest, hypothesis registration, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

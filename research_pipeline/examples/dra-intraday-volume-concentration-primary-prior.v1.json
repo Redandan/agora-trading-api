@@ -1,0 +1,60 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary research documents systematic hour-of-day cryptocurrency volume and liquidity patterns, time-varying trade impact, and execution consequences from intraday liquidity variation. It does not establish that lower daily H1 volume concentration predicts Bitcoin returns or DRA profits. Exactly one separately frozen equal-capital historical screen may therefore falsify whether unusually diffuse estimated quote-volume participation distinguishes robust DRA positive-momentum entries. Failure closes the exact family without tuning; success only retains a prior for one separately frozen hypothesis.",
+  "disposition": "PRIOR_SUPPORTS_ONE_INTRADAY_VOLUME_CONCENTRATION_ADMISSION_AUDIT",
+  "document_type": "DRA_INTRADAY_VOLUME_CONCENTRATION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN",
+    "formula": "sum of squared hourly estimated quote-volume shares across exactly 24 bars in the latest complete UTC day, where each hourly amount is close multiplied by base volume, then divided by the median of exactly the prior 20 complete UTC-day Herfindahl values",
+    "relation": "AT_OR_BELOW",
+    "thresholds": ["0.8", "1.0", "1.2"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "Bitcoin and Ether exhibit systematic hour-of-day and within-hour patterns in volume and volatility across centralized and decentralized venues.",
+      "identity": "Hansen, Kim and Kimbrough, Periodicity in Cryptocurrency Volatility and Liquidity (2021)",
+      "primary_source": "https://arxiv.org/abs/2109.12142",
+      "role": "CRYPTO_INTRADAY_LIQUIDITY_PRIOR",
+      "transfer_boundary": "Periodic volume patterns do not prescribe a daily Herfindahl statistic, lower-concentration direction, normalization, threshold or DRA profit effect."
+    },
+    {
+      "finding": "Trade impact varies through the day and depends on local liquidity and recent price and trade history.",
+      "identity": "Campigli, Bormetti and Lillo, Measuring price impact and information content of trades in a time-varying setting (2023)",
+      "primary_source": "https://arxiv.org/abs/2212.12687",
+      "role": "TIME_VARYING_IMPACT_PRIOR",
+      "transfer_boundary": "Event-level trade and liquidity models do not make H1 reported volume concentration a causal impact or return predictor."
+    },
+    {
+      "finding": "Intraday liquidity variation and volume surprises can alter optimal execution and cross-impact, showing that the timing distribution of volume can matter economically.",
+      "identity": "Min, Maglaras and Moallemi, Cross-Sectional Variation of Intraday Liquidity, Cross-Impact, and their Effect on Portfolio Execution (2018)",
+      "primary_source": "https://arxiv.org/abs/1811.05524",
+      "role": "EXECUTION_TIMING_PRIOR",
+      "transfer_boundary": "S&P 500 portfolio execution evidence does not transfer a sign, threshold or predictive claim to a single-venue Bitcoin DRA strategy."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly the 24 H1 OHLCV bars wholly inside the latest complete UTC day and no preceding or later bar.",
+    "Estimate each hourly quote-volume amount deterministically as close multiplied by base volume and compute the Herfindahl sum of squared shares over all 24 hours.",
+    "Retain zero-volume hours in the fixed 24-hour day, but fail closed when total daily estimated quote volume is non-positive.",
+    "Divide the daily Herfindahl value by the median of exactly the prior 20 complete-day values and admit only at or below the frozen threshold.",
+    "Keep the DRA parent, positive-momentum direction, lot cost, capacity, exits, fee, adverse slippage, cooldown and fill clock unchanged.",
+    "Freeze primary 1.0 and neighbors 0.8 and 1.2 before outcome access; do not search a different relation, lookback, concentration statistic, time-of-day adjustment or threshold.",
+    "Require Design and Validation PnL improvement, annual breadth, path-risk non-inferiority, holding support and neighbor stability; otherwise close the family.",
+    "Do not describe the proxy as market-wide liquidity, open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T03:17:29Z",
+  "schema_version": "1",
+  "source_access": {
+    "campigli_bormetti_lillo_arxiv": "PASS",
+    "hansen_kim_kimbrough_arxiv": "PASS",
+    "min_maglaras_moallemi_arxiv": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "The raw daily Herfindahl value does not remove deterministic hour-of-day seasonality and is not a formal volume-surprise model.",
+    "Close multiplied by base volume is only an estimated quote-volume weight and one venue cannot represent market-wide liquidity.",
+    "Lower concentration may reflect diffuse participation or merely a different trading schedule; literature does not establish the proposed sign.",
+    "No post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed or authorized."
+  ]
+}

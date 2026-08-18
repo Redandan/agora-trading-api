@@ -26,7 +26,9 @@ The runner supports only:
 - complete-day intraday return-sign persistence share versus its prior
   20-complete-day median, admitted at or above the threshold; and
 - complete-day positive-return estimated quote-volume share versus its prior
-  20-complete-day median, admitted at or above the threshold.
+  20-complete-day median, admitted at or above the threshold; and
+- complete-day estimated quote-volume Herfindahl concentration versus its
+  prior 20-complete-day median, admitted at or below the threshold.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
@@ -85,6 +87,15 @@ hours remain valid and contribute zero; non-positive total daily quote volume
 fails closed. This keeps the mechanism distinct from total volume magnitude
 and unweighted return-sign persistence while binding a co-equal market-impact
 and Bitcoin fragmentation prior.
+
+The intraday-volume-concentration feature measures how unevenly the latest
+complete UTC day's estimated quote volume is distributed across its 24 hourly
+bars. It sums the squared hourly shares of `close * base volume`, producing
+`1/24` for perfectly even participation and `1` when all volume is confined to
+one hour, then divides that value by the prior 20-complete-day median. It is a
+within-day liquidity-path proxy rather than a total-volume, directional-volume,
+order-flow or market-wide liquidity claim. Individual zero-volume hours remain
+in the fixed 24-hour day; non-positive total daily quote volume fails closed.
 
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,

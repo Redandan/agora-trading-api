@@ -85,6 +85,12 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_DIRECTIONAL_VOLUME_PARTICIPATION_PRIMARY_PRIOR_V1",
     },
+    "DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_BELOW",
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_INTRADAY_VOLUME_CONCENTRATION_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_INTRADAY_VOLUME_CONCENTRATION_PRIMARY_PRIOR_V1",
+    },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -297,6 +303,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.daily_sign_persistence_pair_count = 0
         self.daily_total_quote_volume = base.ZERO
         self.daily_positive_return_quote_volume = base.ZERO
+        self.daily_quote_volume_square_sum = base.ZERO
         self.daily_bar_count = 0
         self.previous_hour_close: D | None = None
         self.current_feature_ratio: D | None = None
@@ -363,6 +370,18 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                 self.daily_positive_return_quote_volume
                 / self.daily_total_quote_volume
             )
+        if (
+            self.feature_key
+            == "DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN"
+        ):
+            if self.daily_bar_count != 24 or self.daily_total_quote_volume <= 0:
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "intraday volume concentration requires 24 hourly bars and positive daily quote volume",
+                )
+            return self.daily_quote_volume_square_sum / (
+                self.daily_total_quote_volume * self.daily_total_quote_volume
+            )
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -384,6 +403,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.daily_sign_persistence_pair_count = 0
             self.daily_total_quote_volume = base.ZERO
             self.daily_positive_return_quote_volume = base.ZERO
+            self.daily_quote_volume_square_sum = base.ZERO
             self.daily_bar_count = 0
         assert self.feature_high is not None and self.feature_low is not None
         self.feature_high = max(self.feature_high, bar.high)
@@ -391,6 +411,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.feature_volume += bar.volume
         dollar_volume = bar.close * bar.volume
         self.daily_total_quote_volume += dollar_volume
+        self.daily_quote_volume_square_sum += dollar_volume * dollar_volume
         if bar.close > bar.open:
             self.daily_positive_return_quote_volume += dollar_volume
         if dollar_volume <= 0:

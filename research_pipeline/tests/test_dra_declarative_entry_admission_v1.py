@@ -324,6 +324,54 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
                 bar(opened + timedelta(hours=23), volume="0")
             )
 
+    def test_intraday_volume_concentration_uses_quote_volume_herfindahl(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(24):
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), close="100", volume="1")
+            )
+        self.assertEqual(engine.daily_total_quote_volume, D("2400"))
+        self.assertEqual(engine.daily_quote_volume_square_sum, D("240000"))
+        self.assertEqual(engine._daily_value(), D("1") / D("24"))
+
+    def test_intraday_volume_concentration_keeps_zero_volume_hours(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(24):
+            engine._update_feature(
+                bar(
+                    opened + timedelta(hours=hour),
+                    close="100",
+                    volume="1" if hour == 7 else "0",
+                )
+            )
+        self.assertEqual(engine._daily_value(), D("1"))
+
+    def test_intraday_volume_concentration_fails_closed_without_daily_volume(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN",
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for hour in range(23):
+            engine._update_feature(
+                bar(opened + timedelta(hours=hour), volume="0")
+            )
+        with self.assertRaisesRegex(runner.ScreenReject, "positive daily quote volume"):
+            engine._update_feature(
+                bar(opened + timedelta(hours=23), volume="0")
+            )
+
     def test_manifest_binds_prior_disposition_to_feature(self) -> None:
         value = manifest(
             feature="DAILY_DOWNSIDE_SEMIVARIANCE_SHARE_TO_PRIOR_20D_MEDIAN"

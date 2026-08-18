@@ -1,0 +1,143 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_CONSTANT_MIX_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-monthly-constant-mix-v1-historical-v1",
+  "decided_at": "2026-08-18T15:15:56Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_CONSTANT_MIX_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_MONTHLY_40_50_60_CONSTANT_MIX_FAMILY_WITHOUT_TUNING",
+  "manifest_sha256": "a9938e9d8f533a021f44b8c95c4d7f667a09ad4c9bc448f2f027536e1148926b",
+  "runner": {
+    "path": "research/btc_monthly_constant_mix_v1_historical.py",
+    "sha256": "0b804a2bad5191410f6d0a4dd72cc7ed4db79f44eb63d5140380444ef17a4d3b",
+    "git_commit": "703e07911fb30e6bc7f7b74ac71c69b42ed601c6",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-monthly-constant-mix-v1-historical-v1/artifacts/run1.json",
+    "sha256": "e66f5cfd7c469bf58e75d2041820dacf949121ad21f7e010288b8d93c255c3ec"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-monthly-constant-mix-v1-historical-v1/artifacts/run2.json",
+    "sha256": "e66f5cfd7c469bf58e75d2041820dacf949121ad21f7e010288b8d93c255c3ec",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "primary_50pct": {
+      "design_normal": {
+        "candidate_total_return_pct": "85.70874637",
+        "matched_static_total_return_pct": "64.89995763",
+        "incremental_total_return_pp": "20.80878874",
+        "candidate_maximum_drawdown_pct": "49.26721708",
+        "matched_static_maximum_drawdown_pct": "69.87438894",
+        "incremental_maximum_drawdown_pp": "-20.60717186",
+        "candidate_calmar_ratio": "1.73967095",
+        "matched_static_calmar_ratio": "0.92880895",
+        "terminal_liquidation_incremental_return_pp": "20.84450941",
+        "turnover_equity_units": "3.91854057",
+        "fees_equity_units": "0.00391854"
+      },
+      "validation_normal": {
+        "candidate_total_return_pct": "155.77986303",
+        "matched_static_total_return_pct": "232.72605803",
+        "incremental_total_return_pp": "-76.94619500",
+        "candidate_maximum_drawdown_pct": "16.68578075",
+        "matched_static_maximum_drawdown_pct": "26.36351724",
+        "incremental_maximum_drawdown_pp": "-9.67773649",
+        "candidate_calmar_ratio": "9.33608474",
+        "matched_static_calmar_ratio": "8.82758002",
+        "terminal_liquidation_incremental_return_pp": "-76.71107784",
+        "turnover_equity_units": "1.78141861",
+        "fees_equity_units": "0.00178142"
+      },
+      "validation_stress": {
+        "candidate_total_return_pct": "155.35037137",
+        "matched_static_total_return_pct": "232.65098303",
+        "incremental_total_return_pp": "-77.30061166",
+        "candidate_maximum_drawdown_pct": "16.70265173",
+        "matched_static_maximum_drawdown_pct": "26.37078968",
+        "incremental_maximum_drawdown_pp": "-9.66813795",
+        "terminal_liquidation_incremental_return_pp": "-76.82994477"
+      },
+      "validation_path_visibility": {
+        "realized_return_pct": "67.00835870",
+        "unrealized_return_pct": "88.77150434",
+        "average_exposure_pct": "50.88900999",
+        "average_absolute_weight_error_pp": "1.86043734",
+        "maximum_underwater_duration_hours": 5505,
+        "median_realized_lot_hold_hours": "8760.00000000",
+        "p90_realized_lot_hold_hours": "15633.60000000",
+        "terminal_oldest_lot_age_hours": "17544.00000000",
+        "terminal_inventory_cost_basis": "0.37232539",
+        "top_positive_realized_lot_contribution_pct": "25.08225207",
+        "signal_evaluation_count": 24,
+        "trade_count": 24,
+        "blocked_entry_count": 0
+      }
+    },
+    "validation_normal_neighbors": {
+      "40pct": {
+        "candidate_total_return_pct": "114.72574904",
+        "matched_static_total_return_pct": "186.18084643",
+        "incremental_total_return_pp": "-71.45509739",
+        "candidate_maximum_drawdown_pct": "13.43248302",
+        "matched_static_maximum_drawdown_pct": "24.14609390"
+      },
+      "60pct": {
+        "candidate_total_return_pct": "202.91779185",
+        "matched_static_total_return_pct": "279.27126964",
+        "incremental_total_return_pp": "-76.35347780",
+        "candidate_maximum_drawdown_pct": "19.89569663",
+        "matched_static_maximum_drawdown_pct": "28.08281505"
+      }
+    },
+    "annual_primary_50pct_normal": {
+      "2020_incremental_return_pp": "-33.88647548",
+      "2021_incremental_return_pp": "6.02868767",
+      "2022_incremental_return_pp": "-4.91699265",
+      "2023_incremental_return_pp": "-12.46028210",
+      "2024_incremental_return_pp": "-5.90385733",
+      "positive_candidate_years": "4_of_5",
+      "incremental_return_win_years": "1_of_5",
+      "drawdown_non_worse_years": "4_of_5",
+      "calmar_non_worse_years": "4_of_5",
+      "top_year_positive_incremental_return_contribution_pct": "100.00000000"
+    }
+  },
+  "failed_gates": [
+    "validation_primary_normal_incremental_total_return_pp_gt_0",
+    "validation_primary_stress_incremental_total_return_pp_gt_0",
+    "validation_primary_normal_terminal_liquidation_incremental_return_pp_gt_0",
+    "validation_primary_terminal_oldest_lot_age_at_most_17520_hours",
+    "neighbor_w40_validation_normal_incremental_return_gt_0",
+    "neighbor_w40_validation_stress_incremental_return_gt_0",
+    "neighbor_w60_validation_normal_incremental_return_gt_0",
+    "neighbor_w60_validation_stress_incremental_return_gt_0",
+    "primary_normal_incremental_total_return_win_at_least_4_of_5_years",
+    "primary_stress_incremental_total_return_win_at_least_4_of_5_years",
+    "top_year_positive_incremental_return_contribution_at_most_60pct"
+  ],
+  "passed_evidence": [
+    "In Design, the fifty-percent constant-mix policy added 20.80878874 percentage points of normal-cost total return and reduced maximum drawdown by 20.60717186 percentage points versus its matched same-initial-weight static comparator.",
+    "In Validation, the primary and both fixed neighbors materially reduced drawdown versus their own static comparators, and the primary retained a slightly higher Calmar ratio.",
+    "The primary held average BTC exposure near its target, executed all expected month-boundary trades, had zero blocked entries, and its positive realized-lot contribution was not dominated by one sale.",
+    "Both runs were byte-identical under normal and doubled cost scenarios."
+  ],
+  "gate_design_observation": "The 17520-hour terminal-oldest-lot gate is twenty-four hours shorter than the exact 2023-01-01 through 2025-01-01 Validation interval because 2024 is a leap year. The frozen gate is retained and recorded as failed. It is not material to the closure because independent fee-adjusted total-PnL, terminal-liquidation, neighbor and annual-breadth gates also failed by large margins.",
+  "material_learning": "Monthly constant mix solved allocation drift but did not create broad incremental alpha. It benefited from the reversal-rich Design path, then sold too much BTC during the persistent 2023-2024 appreciation path: the fifty-percent policy sacrificed 76.94619500 percentage points of Validation total return for a 9.67773649-point drawdown reduction. Forty and sixty percent showed the same negative Validation return direction, and only 2021 beat the matched static comparator on a fair-reset annual basis. The mechanism is path-dependent risk control, not a robust return-improving strategy on this corpus.",
+  "scientific_claim": "The exact monthly 40/50/60 BTC and zero-yield cash constant-mix family provides causal evidence that deterministic rebalancing can reduce allocation drift and drawdown, but it fails the frozen primary objective of positive fee-adjusted matched-capital total-PnL improvement in Validation, neighbor stability and annual breadth. It is closed, not a candidate and not a basis for selecting another weight or frequency.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "The conclusion is historical through 2024 and does not establish behavior in post-2024 OOS or a different BTC regime.",
+    "Cash return was frozen at zero; introducing yield would be a different economic family and cannot rescue this result.",
+    "Monthly calendar rebalancing only was tested. Threshold, weekly, quarterly, tax-aware and volatility-controlled variants remain untested and are prohibited as post-outcome neighbors of this experiment.",
+    "The result does not say rebalancing is useless for risk mandates; it says this exact family does not meet the Candidate Factory requirement for positive incremental total PnL plus path-risk evidence."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

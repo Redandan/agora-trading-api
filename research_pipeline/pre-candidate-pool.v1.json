@@ -794,6 +794,20 @@
         {"path": "research_pipeline/examples/dra-realized-volatility-term-structure-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "28d66df1be6997fb8ee5b31f13bfad698be6275f87b52e2c7ad3e4627ee0483d"}
       ],
       "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-monthly-constant-mix",
+      "title": "BTC and zero-yield cash monthly constant mix",
+      "decision_feature": "UTC_MONTH_BOUNDARY_FIXED_40_50_60_BTC_WEIGHT",
+      "parent_strategy_id": "MATCHED_INITIAL_WEIGHT_BTC_PLUS_ZERO_YIELD_CASH_NO_REBALANCE",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_CONSTANT_MIX_FAMILY",
+      "duplicate_family_key": "btc-cash-monthly-constant-mix-40-50-60",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/btc-monthly-constant-mix-v1-historical.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "1118e89230b6fe40871fd1c4a4faebf4553d43275bc517d8a0609b7dbf818446"},
+        {"path": "research_pipeline/examples/btc-monthly-constant-mix-v1-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "a9938e9d8f533a021f44b8c95c4d7f667a09ad4c9bc448f2f027536e1148926b"},
+        {"path": "research_pipeline/examples/btc-monthly-constant-mix-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "f211b62623a20fbf706d2b719967feb7e9f436b7afe0e342b3adf47327daed3c"}
+      ],
+      "prohibited_reopen": true
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

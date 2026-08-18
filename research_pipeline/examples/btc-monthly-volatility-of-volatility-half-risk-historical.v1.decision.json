@@ -1,0 +1,185 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-monthly-volatility-of-volatility-half-risk-historical-v1",
+  "decided_at": "2026-08-18T14:14:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_MONTHLY_VOV20_PRIOR252_PERCENTILE_100_OR_50_PERCENT_BTC_FAMILY_WITHOUT_LOOKBACK_THRESHOLD_WEIGHT_RELATION_OR_CLOCK_TUNING",
+  "manifest_sha256": "183819e1fe82b28d1852f98ad0acc3d5a531d9ca58af40854a3f76ffa24f99fe",
+  "prior_sha256": "7ad992e99eda7a143f633ec8ec1372da0deb0683f9ac75a34a7909b32983486c",
+  "runner": {
+    "path": "research/btc_monthly_volatility_of_volatility_half_risk_historical.py",
+    "sha256": "295d4f098d660260c69fe315960434495281f4c5a69762525e39abc02237eb2b",
+    "git_commit": "57dd36820533e7b50cf87dd66927ec32726d9f33",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-monthly-volatility-of-volatility-half-risk-historical-v1/artifacts/run3.json",
+    "sha256": "69a4a24cfb2c7df7a1c96183931e3700a08bf583325632d11fadbeaa49940443"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-monthly-volatility-of-volatility-half-risk-historical-v1/artifacts/run4.json",
+    "sha256": "69a4a24cfb2c7df7a1c96183931e3700a08bf583325632d11fadbeaa49940443",
+    "byte_identical": true
+  },
+  "superseded_predecision_artifacts": {
+    "paths": [
+      ".research-state/experiments/btc-monthly-volatility-of-volatility-half-risk-historical-v1/artifacts/run1.json",
+      ".research-state/experiments/btc-monthly-volatility-of-volatility-half-risk-historical-v1/artifacts/run2.json"
+    ],
+    "shared_sha256": "e12ead47510a643b92c9f32cda824b4c9a0a484e2a4db9065df278acd6ebff22",
+    "disposition": "SUPERSEDED_AFTER_METADATA_ONLY_UTC_TIMESTAMP_CORRECTION_AND_NEVER_USED_FOR_DECISION"
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "complete_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "policy": {
+    "daily_realized_volatility": "SQRT_SUM_24_SQUARED_HOURLY_LOG_RETURNS",
+    "volatility_of_volatility": "POPULATION_STANDARD_DEVIATION_OF_20_LOG_DAILY_REALIZED_VOLATILITY_OBSERVATIONS",
+    "state_feature": "LATEST_VOV_PRIOR_252_COMPLETE_DAY_MIDRANK_PERCENTILE",
+    "decision_clock": "UTC_MONTH_BOUNDARY",
+    "high_risk_relation": "STRICTLY_ABOVE_THRESHOLD",
+    "primary_threshold": "0.8",
+    "neighbors": ["0.7", "0.9"],
+    "targets": ["BTC_100_PERCENT", "BTC_50_PERCENT_CASH_50_PERCENT"],
+    "execution": "NEXT_HOURLY_OPEN"
+  },
+  "feature_nonredundancy": {
+    "design_monthly_observations": 36,
+    "design_absolute_spearman_to_20d_mean_realized_volatility": "0.1528957528957528957528957528957529",
+    "validation_monthly_observations": 24,
+    "validation_absolute_spearman_to_20d_mean_realized_volatility": "0.4173913043478260869565217391304348",
+    "maximum_allowed": "0.80",
+    "disposition": "PASS_DISTINCT_FROM_CLOSED_VOLATILITY_LEVEL_FAMILY"
+  },
+  "economic_summary": {
+    "primary_p80": {
+      "design_normal": {
+        "total_return_pct": "125.47108120",
+        "realized_return_pct": "170.82472706",
+        "unrealized_return_pct": "-45.35364586",
+        "maximum_drawdown_pct": "70.89265615",
+        "maximum_underwater_duration_hours": 15041,
+        "calmar_ratio": "1.76987417",
+        "buy_hold_total_return_pct": "129.60544229",
+        "buy_hold_maximum_drawdown_pct": "77.18955925",
+        "buy_hold_calmar_ratio": "1.67905405",
+        "calmar_ratio_to_buy_hold": "1.05409005",
+        "upside_capture_ratio": "0.96810041",
+        "average_exposure_pct": "87.58622552",
+        "high_risk_months": 9,
+        "rebalance_trades": 16,
+        "stress_total_return_pct": "123.11884205"
+      },
+      "validation_normal": {
+        "total_return_pct": "357.63152689",
+        "realized_return_pct": "117.58287828",
+        "unrealized_return_pct": "240.04864861",
+        "maximum_drawdown_pct": "32.28416349",
+        "maximum_underwater_duration_hours": 5723,
+        "calmar_ratio": "11.07761479",
+        "buy_hold_total_return_pct": "464.75475156",
+        "buy_hold_maximum_drawdown_pct": "32.28416349",
+        "buy_hold_calmar_ratio": "14.39575015",
+        "calmar_ratio_to_buy_hold": "0.76950591",
+        "upside_capture_ratio": "0.76950591",
+        "average_exposure_pct": "94.01025453",
+        "high_risk_months": 3,
+        "rebalance_trades": 6,
+        "p90_realized_lot_hold_hours": "14467.20000000",
+        "top_positive_realized_lot_contribution_pct": "63.86903390",
+        "terminal_liquidation_adjusted_return_pct": "356.94530842",
+        "stress_total_return_pct": "355.73177167",
+        "stress_maximum_drawdown_pct": "32.28416349"
+      },
+      "annual_normal": {
+        "2020": {
+          "total_return_pct": "244.19674696",
+          "calmar_ratio": "4.03170080",
+          "buy_hold_calmar_ratio": "4.97485425"
+        },
+        "2021": {
+          "total_return_pct": "36.67653417",
+          "calmar_ratio": "0.67021561",
+          "buy_hold_calmar_ratio": "1.08927814"
+        },
+        "2022": {
+          "total_return_pct": "-52.20764936",
+          "calmar_ratio": "-0.96552818",
+          "buy_hold_calmar_ratio": "-0.95391866"
+        },
+        "2023": {
+          "total_return_pct": "114.43366185",
+          "calmar_ratio": "5.26810058",
+          "buy_hold_calmar_ratio": "7.14316254"
+        },
+        "2024": {
+          "total_return_pct": "113.08924591",
+          "calmar_ratio": "3.50293251",
+          "buy_hold_calmar_ratio": "3.74776589"
+        }
+      },
+      "breadth": {
+        "normal_positive_years": "4_of_5",
+        "stress_positive_years": "4_of_5",
+        "drawdown_non_worse_years": "5_of_5",
+        "calmar_non_worse_years": "0_of_5",
+        "top_year_positive_contribution_pct": "48.03276506"
+      }
+    },
+    "lower_neighbor_p70": {
+      "design_normal_total_return_pct": "125.47108120",
+      "validation_normal_total_return_pct": "325.90318988",
+      "validation_maximum_drawdown_pct": "33.35482429",
+      "validation_calmar_ratio_to_buy_hold": "0.67872782",
+      "validation_upside_capture_ratio": "0.70123692",
+      "disposition": "FAILS_VALIDATION_DRAWDOWN_UPSIDE_AND_CALMAR_NEIGHBOR_GATES"
+    },
+    "upper_neighbor_p90": {
+      "design_normal_total_return_pct": "169.35391185",
+      "validation_normal_total_return_pct": "453.22577554",
+      "validation_maximum_drawdown_pct": "32.28416349",
+      "validation_calmar_ratio_to_buy_hold": "0.97519342",
+      "validation_upside_capture_ratio": "0.97519342",
+      "validation_high_risk_months": 1,
+      "validation_top_positive_realized_lot_contribution_pct": "100.00000000",
+      "disposition": "PASSES_NEIGHBOR_MINIMUMS_BUT_CANNOT_RESCUE_PRIMARY_OR_LOWER_NEIGHBOR"
+    }
+  },
+  "failed_primary_gates": [
+    "validation_drawdown_at_most_95pct_of_buy_hold",
+    "validation_upside_capture_at_least_80pct",
+    "validation_calmar_at_least_buy_hold",
+    "annual_calmar_non_worse_at_least_3_of_5",
+    "validation_top_positive_realized_lot_contribution_at_most_60pct"
+  ],
+  "failed_neighbor_gates": {
+    "volatility-of-volatility-p70-v1": [
+      "validation_drawdown_non_worse_than_buy_hold",
+      "validation_upside_capture_at_least_80pct",
+      "validation_calmar_at_least_85pct_of_buy_hold"
+    ]
+  },
+  "passed_evidence": [
+    "The exact sealed BTC corpus, prior, parser, FIFO reference, passive benchmark reference and frozen manifest hashes passed; corrected run3 and run4 were byte-identical.",
+    "The feature was not redundant with the closed realized-volatility-level family under the frozen 0.80 Spearman gate.",
+    "The primary improved Design drawdown and Calmar while preserving 96.810041 percent of passive Design upside and remained positive under doubled friction.",
+    "The primary produced positive Normal and Stress returns in four of five annual folds and kept annual drawdown non-worse in all five."
+  ],
+  "material_learning": "Volatility instability is distinct from volatility level, but the exact monthly partial de-risking rule does not improve Validation risk-adjusted performance. The p80 primary returned 357.63152689 percent versus passive 464.75475156 percent, captured only 76.950591 percent of upside, and left maximum drawdown unchanged at 32.28416349 percent. Its Calmar reached only 76.950591 percent of passive and was non-worse in zero of five annual folds. The p70 neighbor was worse on Validation drawdown as well as upside and Calmar. The p90 neighbor nearly matched passive but acted in only one Validation month and concentrated all positive realized contribution in one lot, which is insufficient breadth rather than evidence to tune upward.",
+  "scientific_claim": "For the exact sealed OKX BTC hourly corpus through 2024, 24-hour realized-volatility estimator, twenty-day log-volatility dispersion, prior-252-day midrank percentile, monthly clock, p70/p80/p90 thresholds and 100-or-50-percent unlevered targets, historical Design and Validation evidence rejects candidate status. The result does not authorize another VoV lookback, threshold, target weight, clock, hysteresis, smoothing, leverage, shorting or interaction.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The feature formula is a risk-state proxy motivated by volatility forecasting literature; no primary source directly validates the exact policy.",
+    "The metadata-only timestamp correction changed source hashes but no formula, gate, threshold, target or result interpretation; only the subsequent byte-identical run3/run4 pair is decision evidence.",
+    "No canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

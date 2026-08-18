@@ -86,7 +86,26 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 27)
+        self.assertEqual(len(catalog["closed_families"]), 28)
+        volatility_instability = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-monthly-volatility-of-volatility-half-risk"
+        )
+        self.assertEqual(
+            volatility_instability["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in volatility_instability["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+            ],
+        )
+        self.assertTrue(volatility_instability["prohibited_reopen"])
         vix_risk_state = next(
             family
             for family in catalog["closed_families"]
@@ -355,7 +374,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 28)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 29)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

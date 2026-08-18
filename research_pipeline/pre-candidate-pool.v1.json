@@ -257,6 +257,32 @@
   ],
   "closed_families": [
     {
+      "family_id": "closed-btc-monthly-volatility-of-volatility-half-risk",
+      "title": "BTC monthly volatility-of-volatility percentile 100-or-50-percent allocation",
+      "decision_feature": "LATEST_VOV20_PRIOR_252_COMPLETE_DAY_MIDRANK_PERCENTILE",
+      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_FAMILY",
+      "duplicate_family_key": "btc-monthly-volatility-of-volatility-half-risk",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-monthly-volatility-of-volatility-half-risk-historical.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "4eafec3795d3926fc057bab0bace9d888f104913d9d4c682f47da3183fd3a343"
+        },
+        {
+          "path": "research_pipeline/examples/btc-monthly-volatility-of-volatility-half-risk-historical.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "183819e1fe82b28d1852f98ad0acc3d5a531d9ca58af40854a3f76ffa24f99fe"
+        },
+        {
+          "path": "research_pipeline/examples/btc-monthly-volatility-of-volatility-half-risk-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+          "sha256": "7ad992e99eda7a143f633ec8ec1372da0deb0683f9ac75a34a7909b32983486c"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-btc-skew-tail-risk-long-cash",
       "title": "BTC lagged Cboe SKEW 252-business-day percentile long-or-cash",
       "decision_feature": "LATEST_SKEW_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",

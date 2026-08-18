@@ -257,6 +257,37 @@
   ],
   "closed_families": [
     {
+      "family_id": "closed-btc-vix-risk-state-long-cash",
+      "title": "BTC lagged Cboe VIX 252-business-day percentile long-or-cash",
+      "decision_feature": "LATEST_VIX_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",
+      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_VIX_RISK_STATE_LONG_CASH_FAMILY",
+      "duplicate_family_key": "btc-vix-risk-state-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-vix-risk-state-long-cash-historical.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "84e428870134aaf75834b38c2dabfbc04504651be94bab36f97ec8ae83e91a2e"
+        },
+        {
+          "path": "research_pipeline/examples/btc-vix-risk-state-long-cash-historical.v1.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "06d4e4b04c1c9bed64b653c36c1d3519fbebad11a3f829438fcb1325f7cb6dc0"
+        },
+        {
+          "path": "research_pipeline/examples/btc-vix-risk-state-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_PRIOR",
+          "sha256": "d5d6280c555f06c094da9d799c54daa3ffee0460d1ee7f05c6c6a085fbe5eceb"
+        },
+        {
+          "path": "research_pipeline/examples/cboe-vix-daily-2018-2024.v1.source.json",
+          "role": "SEALED_EXTERNAL_SOURCE_PROVENANCE",
+          "sha256": "cc4cc1edc7d387594a9c82ecfea19e98cd8fbf0219837ba939ec0cb2bdf66fc8"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
       "family_id": "closed-dra-intraday-price-path-efficiency-entry-admission",
       "title": "DRA latest-complete-day intraday price-path efficiency percentile entry admission",
       "decision_feature": "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE",

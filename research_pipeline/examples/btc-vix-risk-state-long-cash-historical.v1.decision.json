@@ -1,0 +1,161 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_VIX_RISK_STATE_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-vix-risk-state-long-cash-historical-v1",
+  "decided_at": "2026-08-18T13:09:39Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_VIX_RISK_STATE_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_LAGGED_CBOE_VIX_PRIOR_252_BUSINESS_DAY_PERCENTILE_LONG_CASH_FAMILY_WITHOUT_SOURCE_LOOKBACK_RELATION_THRESHOLD_OR_SIZING_TUNING",
+  "manifest_sha256": "06d4e4b04c1c9bed64b653c36c1d3519fbebad11a3f829438fcb1325f7cb6dc0",
+  "prior_sha256": "d5d6280c555f06c094da9d799c54daa3ffee0460d1ee7f05c6c6a085fbe5eceb",
+  "runner": {
+    "path": "research/btc_vix_risk_state_long_cash_historical.py",
+    "sha256": "83563163d35d6a3fd2cf12785aa4f923235dba7b833ad4d1f2b932b431b43ad7",
+    "git_commit": "2359ac3fd37eef218d4127d2cd2f4d3112327912",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-vix-risk-state-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "cabf08e76d452504fa9fb161e9389b7ecc1196bb8de0360998884f01049c36e0"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-vix-risk-state-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "cabf08e76d452504fa9fb161e9389b7ecc1196bb8de0360998884f01049c36e0",
+    "byte_identical": true
+  },
+  "datasets": {
+    "btc_h1": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "cboe_vix": {
+      "path": "research_pipeline/examples/cboe-vix-daily-2018-2024.v1.csv",
+      "sha256": "b31effdd0af01e12baf3631772e4b00136b2d62f8b18fc8dd8ef246f1076a8bf",
+      "rows": 1780,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31",
+      "usable_signals_after_warmup": 1528
+    }
+  },
+  "policy": {
+    "feature": "LATEST_VIX_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",
+    "effective_time": "NEXT_CALENDAR_DAY_0000_UTC",
+    "long_relation": "AT_OR_BELOW",
+    "primary_threshold": "0.8",
+    "neighbors": ["0.7", "0.9"],
+    "targets": ["BTC_100_PERCENT", "CASH_100_PERCENT"]
+  },
+  "economic_summary": {
+    "primary_p80": {
+      "design_normal": {
+        "total_return_pct": "257.13346427",
+        "realized_return_pct": "311.69298102",
+        "unrealized_return_pct": "-54.55951676",
+        "maximum_drawdown_pct": "58.99523463",
+        "maximum_underwater_duration_hours": 9990,
+        "average_exposure_pct": "76.00364964",
+        "calmar_ratio": "4.35854634",
+        "buy_hold_total_return_pct": "129.60544229",
+        "buy_hold_maximum_drawdown_pct": "77.18955925",
+        "buy_hold_calmar_ratio": "1.67905405",
+        "total_return_delta_pp": "127.52802198",
+        "drawdown_delta_pp": "-18.19432462",
+        "calmar_ratio_to_buy_hold": "2.59583444",
+        "position_changes": 45
+      },
+      "design_stress": {
+        "total_return_pct": "233.82313550",
+        "maximum_drawdown_pct": "60.32631067",
+        "calmar_ratio": "3.87597274",
+        "buy_hold_total_return_pct": "129.26172157"
+      },
+      "validation_normal": {
+        "total_return_pct": "324.58451899",
+        "realized_return_pct": "331.12386033",
+        "unrealized_return_pct": "-6.53934134",
+        "maximum_drawdown_pct": "26.56660237",
+        "maximum_underwater_duration_hours": 5863,
+        "average_exposure_pct": "86.45690834",
+        "calmar_ratio": "12.21776554",
+        "buy_hold_total_return_pct": "464.75475156",
+        "buy_hold_maximum_drawdown_pct": "32.28416349",
+        "buy_hold_calmar_ratio": "14.39575015",
+        "total_return_delta_pp": "-140.17023257",
+        "drawdown_delta_pp": "-5.71756112",
+        "upside_capture_ratio": "0.69839957",
+        "calmar_ratio_to_buy_hold": "0.84870642",
+        "median_hold_hours": "192.00000000",
+        "p90_hold_hours": "4411.20000000",
+        "position_changes": 21,
+        "terminal_liquidation_adjusted_return_pct": "323.94785450"
+      },
+      "validation_stress": {
+        "total_return_pct": "311.41930788",
+        "maximum_drawdown_pct": "26.78657283",
+        "calmar_ratio": "11.62594819",
+        "buy_hold_total_return_pct": "463.90931032",
+        "calmar_ratio_to_buy_hold": "0.80906764"
+      },
+      "annual_normal": {
+        "2020": {"total_return_pct": "262.58433022", "calmar_ratio": "13.23771538", "buy_hold_calmar_ratio": "4.97485425"},
+        "2021": {"total_return_pct": "54.89565691", "calmar_ratio": "1.00314621", "buy_hold_calmar_ratio": "1.08927814"},
+        "2022": {"total_return_pct": "-36.59105353", "calmar_ratio": "-0.87338029", "buy_hold_calmar_ratio": "-0.95391866"},
+        "2023": {"total_return_pct": "126.40900691", "calmar_ratio": "5.81940096", "buy_hold_calmar_ratio": "7.14316254"},
+        "2024": {"total_return_pct": "76.11582498", "calmar_ratio": "2.86509445", "buy_hold_calmar_ratio": "3.74776589"}
+      },
+      "breadth": {
+        "normal_positive_years": "4_of_5",
+        "stress_positive_years": "4_of_5",
+        "drawdown_non_worse_years": "5_of_5",
+        "calmar_non_worse_years": "2_of_5",
+        "top_year_positive_contribution_pct": "50.49651861"
+      }
+    },
+    "lower_neighbor_p70": {
+      "design_normal_total_return_pct": "130.90430134",
+      "validation_normal_total_return_pct": "246.94393186",
+      "validation_maximum_drawdown_pct": "30.03004428",
+      "validation_calmar_ratio": "8.22322903",
+      "validation_calmar_ratio_to_buy_hold": "0.57122616",
+      "validation_upside_capture_ratio": "0.53134246",
+      "normal_positive_years": "4_of_5",
+      "calmar_non_worse_years": "2_of_5",
+      "disposition": "FAILS_FROZEN_VALIDATION_CALMAR_NEIGHBOR_GATE"
+    },
+    "upper_neighbor_p90": {
+      "design_normal_total_return_pct": "191.69620578",
+      "validation_normal_total_return_pct": "331.04358734",
+      "validation_maximum_drawdown_pct": "30.60474069",
+      "validation_calmar_ratio": "10.81674211",
+      "validation_calmar_ratio_to_buy_hold": "0.75138440",
+      "validation_upside_capture_ratio": "0.71229737",
+      "normal_positive_years": "4_of_5",
+      "calmar_non_worse_years": "2_of_5",
+      "disposition": "PASSES_NEIGHBOR_MINIMUMS_BUT_CANNOT_RESCUE_PRIMARY_OR_LOWER_NEIGHBOR"
+    }
+  },
+  "failed_primary_gates": [
+    "validation_calmar_at_least_buy_hold",
+    "annual_calmar_non_worse_at_least_3_of_5"
+  ],
+  "failed_neighbor_gates": {
+    "vix-percentile-p70-v1": ["validation_calmar_at_least_75pct_of_buy_hold"]
+  },
+  "passed_evidence": [
+    "The exact sealed BTC and Cboe inputs, parser, prior, source metadata and frozen runner hashes passed; two independent outputs were byte-identical.",
+    "The primary improved Design total return, drawdown and Calmar, remained positive under doubled friction, and reduced Validation drawdown by 5.71756112 percentage points.",
+    "The primary produced positive Normal and Stress returns in four of five annual folds, kept annual drawdown non-worse in all five, limited top-year contribution to 50.49651861 percent, and exposed realized, unrealized and terminal inventory explicitly."
+  ],
+  "material_learning": "Lagged high-VIX avoidance is a real historical risk-state effect but not a sufficiently stable risk-adjusted BTC strategy. The primary reduced Validation drawdown from 32.28416349 to 26.56660237 percent and still returned 324.58451899 percent after Normal costs, but passive BTC returned 464.75475156 percent. Its Validation Calmar was only 84.870642 percent of passive and annual Calmar was non-worse in only 2020 and 2022. The stricter 0.7 neighbor captured only 53.134246 percent of Validation upside and reached only 57.122616 percent of passive Calmar. Thus drawdown reduction was purchased with too much missed upside, while neighbor stability failed.",
+  "scientific_claim": "For the exact committed Cboe VIX close, next-calendar-day 00:00 UTC availability, prior-252-business-day midrank percentile and long-at-or-below thresholds 0.7, 0.8 and 0.9, historical Design and Validation evidence through 2024 rejects candidate status. The result does not authorize an absolute VIX threshold, different lookback or percentile, smoothing, partial sizing, BTC interaction, leverage or shorting.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "Cboe VIX is an equity-volatility gauge and may omit crypto-specific risk; that limitation does not authorize replacing the frozen feature after outcome access.",
+    "Cboe publishes the historical file for convenience without an accuracy guarantee; the exact committed bytes remain the immutable evidence boundary for this conclusion.",
+    "No canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

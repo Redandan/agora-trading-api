@@ -468,6 +468,44 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
         self.assertIs(runner.validate_manifest(value), value)
 
+    def test_realized_performance_root_reconciles_and_preserves_mean_sign(self) -> None:
+        positive = [D("0.01")] * 13 + [D("-0.01")] * 11
+        root = runner.realized_performance(positive)
+        self.assertGreater(root, 0)
+        with runner.localcontext() as context:
+            context.prec = 50
+            moment = sum((-root * value).exp() for value in positive) / D("24")
+        self.assertLess(abs(moment - D("1")), D("1e-45"))
+        negative_root = runner.realized_performance([-value for value in positive])
+        self.assertEqual(
+            negative_root.quantize(D("1e-24")),
+            (-root).quantize(D("1e-24")),
+        )
+
+    def test_realized_performance_percentile_uses_midrank_and_twenty_days(self) -> None:
+        prior = [D(value) for value in range(20)]
+        self.assertEqual(runner.prior_percentile(D("10"), prior), D("0.525"))
+        with self.assertRaisesRegex(runner.ScreenReject, "20 prior days"):
+            runner.prior_percentile(D("1"), prior[:-1])
+
+    def test_realized_performance_fails_closed_without_two_sided_intraday_path(self) -> None:
+        with self.assertRaisesRegex(runner.ScreenReject, "positive and negative"):
+            runner.realized_performance([D("0.01")] * 24)
+
+    def test_realized_performance_feature_requires_v2_gate_set(self) -> None:
+        feature = "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE"
+        value = manifest(feature=feature)
+        value["variants"] = [
+            {"role": "lower_neighbor", "threshold": "0.4", "variant_id": "lower-rp-v1"},
+            {"role": "primary", "threshold": "0.5", "variant_id": "primary-rp-v1"},
+            {"role": "upper_neighbor", "threshold": "0.6", "variant_id": "upper-rp-v1"},
+        ]
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+        value["gate_set"] = runner.GATE_SET_V1
+        with self.assertRaisesRegex(runner.ScreenReject, "does not bind"):
+            runner.validate_manifest(value)
+
     def test_v2_primary_gate_fails_on_worse_underwater_duration(self) -> None:
         parent_design = {
             "total_pnl_usdt": "1",

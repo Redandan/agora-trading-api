@@ -33,7 +33,9 @@ The runner supports only:
   20-complete-day median, admitted at or above the threshold; and
 - final close relative to the complete day's H1 base-volume-weighted mean
   close versus its prior 20-complete-day median, admitted at or above the
-  threshold.
+  threshold; and
+- complete-day Schnytzer-Westreich realized performance, ranked against the
+  prior 20 complete days, admitted at or above the frozen percentile.
 
 All features fail closed until their prior window is complete. A signal uses
 only the latest complete UTC-day feature known before the next-bar fill. The
@@ -120,6 +122,17 @@ remain in the day; non-positive daily base or estimated quote volume fails
 closed. The feature is distinct from total volume, green-candle volume share,
 volume concentration, daily range and high-low close location.
 
+The realized-performance feature uses all 24 open-to-close H1 log returns
+inside the latest complete UTC day. It solves the non-zero
+`mean(exp(-lambda * return)) = 1` root, which combines the entire intraday
+return distribution rather than selecting variance, skewness or kurtosis in
+isolation. The latest value is converted to a midrank percentile against
+exactly the prior 20 complete-day values, so the frozen 0.4/0.5/0.6 thresholds
+do not depend on the unstable scale of `lambda`. A day without both positive
+and negative intraday outcomes fails closed; no epsilon, clipping or alternate
+moment approximation is allowed. This is an H1 proxy for published 5-minute
+evidence and does not inherit that paper's significance or return claim.
+
 Each screen reports the parent and candidate Design, Validation, and 2020-2024
 annual ledgers, including realized, unrealized, and total PnL, maximum drawdown,
 holding distribution, utilization, underwater duration, realized-lot fills,
@@ -134,8 +147,8 @@ non-worse neighbor stability. A failure returns
 `NO_MECHANISM_CLOSE_FEATURE_FAMILY`; it does not authorize tuning. A pass only
 permits one separately frozen hypothesis manifest. OOS remains denied.
 
-New close-location and H1 volume-weighted close-location screens use gate set
-V2. In addition to every V1 gate, the
+New close-location, H1 volume-weighted close-location, and realized-performance
+screens use gate set V2. In addition to every V1 gate, the
 primary must strictly improve realized PnL in both Design and Validation, keep
 maximum underwater duration non-worse in both windows, and not increase
 terminal inventory counts. Both neighbors must also keep Validation realized

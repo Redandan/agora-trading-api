@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 from collections import deque
 from datetime import datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, localcontext
 import hashlib
 import json
 from pathlib import Path
@@ -106,6 +106,13 @@ FEATURES = {
         "prior_disposition": "PRIOR_SUPPORTS_ONE_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_ADMISSION_AUDIT",
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_PRIMARY_PRIOR_V1",
+    },
+    "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_REALIZED_PERFORMANCE_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_REALIZED_PERFORMANCE_PRIMARY_PRIOR_V1",
     },
 }
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
@@ -292,6 +299,60 @@ def median(values: list[D]) -> D:
     )
 
 
+def realized_performance(log_returns: list[D]) -> D:
+    """Return the non-zero SW root E[exp(-lambda * r)] = 1."""
+    if len(log_returns) != 24 or any(not value.is_finite() for value in log_returns):
+        raise ScreenReject(
+            "DATA_REJECT",
+            "realized performance requires exactly 24 finite intraday log returns",
+        )
+    with localcontext() as context:
+        context.prec = 50
+        mean = sum(log_returns, D("0")) / D(len(log_returns))
+        if mean == 0:
+            return D("0")
+        direction = D("1") if mean > 0 else D("-1")
+        adjusted = [direction * value for value in log_returns]
+        if min(adjusted) >= 0:
+            raise ScreenReject(
+                "DATA_REJECT",
+                "realized performance requires both positive and negative intraday outcomes",
+            )
+
+        def moment(root: D) -> D:
+            return sum((-root * value).exp() for value in adjusted) / D(
+                len(adjusted)
+            ) - D("1")
+
+        lower = D("0")
+        upper = D("1")
+        for _ in range(256):
+            if moment(upper) > 0:
+                break
+            upper *= D("2")
+        else:
+            raise ScreenReject(
+                "DATA_REJECT", "realized performance root could not be bracketed"
+            )
+        for _ in range(256):
+            midpoint = (lower + upper) / D("2")
+            if moment(midpoint) > 0:
+                upper = midpoint
+            else:
+                lower = midpoint
+        return +(direction * ((lower + upper) / D("2")))
+
+
+def prior_percentile(current: D, prior: list[D]) -> D:
+    if len(prior) != 20:
+        raise ScreenReject(
+            "DATA_REJECT", "realized performance percentile requires 20 prior days"
+        )
+    below = sum(value < current for value in prior)
+    equal = sum(value == current for value in prior)
+    return (D(below) + D(equal) / D("2")) / D(len(prior))
+
+
 class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
     def __init__(self, *, feature_key: str, relation: str, threshold: D) -> None:
         super().__init__(
@@ -321,6 +382,7 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.daily_total_quote_volume = base.ZERO
         self.daily_positive_return_quote_volume = base.ZERO
         self.daily_quote_volume_square_sum = base.ZERO
+        self.daily_intraday_log_returns: list[D] = []
         self.daily_bar_count = 0
         self.previous_hour_close: D | None = None
         self.current_feature_ratio: D | None = None
@@ -433,6 +495,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                 * self.feature_volume
                 / self.daily_total_quote_volume
             )
+        if self.feature_key == "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE":
+            return realized_performance(self.daily_intraday_log_returns)
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -456,12 +520,16 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.daily_total_quote_volume = base.ZERO
             self.daily_positive_return_quote_volume = base.ZERO
             self.daily_quote_volume_square_sum = base.ZERO
+            self.daily_intraday_log_returns = []
             self.daily_bar_count = 0
         assert self.feature_high is not None and self.feature_low is not None
         self.feature_high = max(self.feature_high, bar.high)
         self.feature_low = min(self.feature_low, bar.low)
         self.feature_close = bar.close
         self.feature_volume += bar.volume
+        with localcontext() as context:
+            context.prec = 50
+            self.daily_intraday_log_returns.append((bar.close / bar.open).ln())
         dollar_volume = bar.close * bar.volume
         self.daily_total_quote_volume += dollar_volume
         self.daily_quote_volume_square_sum += dollar_volume * dollar_volume
@@ -495,12 +563,19 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             return
         current = self._daily_value()
         if len(self.daily_history) == 20:
-            prior_median = median(list(self.daily_history))
-            self.current_feature_ratio = (
-                None
-                if prior_median <= 0
-                else (current / prior_median).quantize(RATIO_QUANTUM, rounding=ROUND_HALF_UP)
-            )
+            if self.feature_key == "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE":
+                self.current_feature_ratio = prior_percentile(
+                    current, list(self.daily_history)
+                ).quantize(RATIO_QUANTUM, rounding=ROUND_HALF_UP)
+            else:
+                prior_median = median(list(self.daily_history))
+                self.current_feature_ratio = (
+                    None
+                    if prior_median <= 0
+                    else (current / prior_median).quantize(
+                        RATIO_QUANTUM, rounding=ROUND_HALF_UP
+                    )
+                )
         else:
             self.current_feature_ratio = None
         self.daily_history.append(current)

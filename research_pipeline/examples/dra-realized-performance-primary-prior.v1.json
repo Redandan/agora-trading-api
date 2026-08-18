@@ -1,0 +1,58 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary research defines the Schnytzer-Westreich performance measure through the non-zero root of the return moment-generating equation and reports that a realized version computed from intraday cryptocurrency returns positively predicts next-day Bitcoin returns while dominating isolated realized variance, skewness and kurtosis in that study. The evidence used five-minute Binance data ending in 2020 and did not test an OKX H1 DRA admission filter. Exactly one separately frozen equal-capital historical screen may therefore test a coarse decision-time H1 percentile proxy; failure closes this family without tuning.",
+  "disposition": "PRIOR_SUPPORTS_ONE_REALIZED_PERFORMANCE_ADMISSION_AUDIT",
+  "document_type": "DRA_REALIZED_PERFORMANCE_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",
+    "formula": "For the 24 open-to-close H1 log returns wholly inside the latest complete UTC day, solve the non-zero lambda satisfying mean(exp(-lambda * return)) = 1; rank that lambda by midrank against exactly the prior 20 complete-day lambda values",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.4", "0.5", "0.6"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "The global riskiness index extends the Aumann-Serrano construction to return distributions with positive or negative expectations and supplies the non-zero moment-generating-function root used by the realized performance measure.",
+      "identity": "Schnytzer and Westreich, A global index of riskiness (2013)",
+      "primary_source": "https://doi.org/10.1016/j.econlet.2012.12.018",
+      "role": "MEASUREMENT_PRIOR",
+      "transfer_boundary": "The theoretical index does not prescribe H1 sampling, a rolling percentile, DRA admission, thresholds or strategy value."
+    },
+    {
+      "finding": "Using intraday cryptocurrency data, the authors report that higher realized performance has positive explanatory and predictive ability for Bitcoin daily returns and dominates isolated realized variance, skewness and kurtosis in their tests.",
+      "identity": "Yang, Chiu and Yen, Does the realized distribution-based measure dominate particular moments? Evidence from cryptocurrency markets (2023)",
+      "primary_source": "https://doi.org/10.1016/j.frl.2022.103396",
+      "role": "BITCOIN_DIRECTIONAL_PRIOR",
+      "transfer_boundary": "Five-minute Binance evidence from 2017-2020 does not establish modern OKX H1 timing, persistence after costs, DRA entry alpha or the chosen percentile discretization."
+    },
+    {
+      "finding": "The same Bitcoin study reports that lagged realized variance and skewness did not predict BTC returns in its specification, while the full-distribution realized performance measure did.",
+      "identity": "Yang, Chiu and Yen, Does the realized distribution-based measure dominate particular moments? Evidence from cryptocurrency markets (2023)",
+      "primary_source": "https://www.sciencedirect.com/science/article/pii/S1544612322005736",
+      "role": "NON_DUPLICATION_AND_FALSIFICATION_PRIOR",
+      "transfer_boundary": "This distinction prevents relabeling the already closed volatility, downside-semivariance or jumpiness branches, but it does not guarantee that a 24-observation H1 root contains enough information."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly the 24 open-to-close log returns wholly contained in the latest complete UTC day; exclude the preceding close and every later bar.",
+    "Solve the non-zero moment-generating-function root deterministically and fail closed if the day lacks both positive and negative intraday outcomes or the root cannot be bracketed.",
+    "Convert only the latest complete-day root to a midrank percentile against exactly the prior 20 complete-day roots; do not use outcome-fitted scaling or a different lookback.",
+    "Keep the DRA parent, side, lot cost, capacity, exits, fee, adverse slippage, cooldown and fill clock unchanged.",
+    "Freeze primary 0.5 and neighbors 0.4 and 0.6 before outcome access; do not search another percentile, root approximation, return definition, sampling interval or relation.",
+    "Require Design and Validation PnL improvement, realized and unrealized support, annual breadth, path-risk non-inferiority, holding support, terminal inventory and neighbor stability under gate set V2; otherwise close the family.",
+    "Do not open post-2024 OOS or create a candidate from this prior audit."
+  ],
+  "reviewed_at": "2026-08-18T10:22:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "schnytzer_westreich_publisher_identity_and_formula": "PASS",
+    "yang_chiu_yen_official_full_methodology_and_findings": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "Twenty-four H1 returns are much coarser than the paper's five-minute estimator and may discard the higher-moment information that motivated the feature.",
+    "The rolling percentile and DRA admission use are preregistered transfer choices rather than trading rules reported by the paper.",
+    "The study sample ends in 2020, so regime persistence through 2024 remains unproven before this screen.",
+    "No post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed or authorized."
+  ]
+}

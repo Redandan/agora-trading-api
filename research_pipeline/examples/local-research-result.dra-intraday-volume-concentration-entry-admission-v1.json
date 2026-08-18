@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-dra-intraday-volume-concentration-entry-admission-v1",
+  "task_sha256": "cdd922909ab179b58cd415cd3b8179131e56b455e04bbc5934b50567c93568e5",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "started_at": "2026-08-18T03:21:50Z",
+  "completed_at": "2026-08-18T03:22:04Z",
+  "source_git_commit": "2213e2e5b50704c043a475f8fa700af434493991",
+  "source_git_dirty_before": false,
+  "source_git_dirty_after": false,
+  "summary": "DRA_INTRADAY_VOLUME_CONCENTRATION_BRANCH_CLOSE. The exact 52,608-row pre-2025 sealed H1 corpus, primary prior, frozen declarative runner, unchanged DRA V1 parent parity, Herfindahl accounting and equal-capital assumptions passed. Primary 1.0 failed both development windows: Design total PnL fell from 90.77797326 to 32.35501364 USDT, and historical Validation total PnL fell from 86.20298186 to 75.56919212 while realized PnL fell from 89.41118307 to 75.56919212, drawdown rose from 7.121498% to 11.244641%, and median/P90 holding rose from 182.5/1418.3h to 197.0/3420.6h. It lost all five annual total-PnL folds. The 0.8 and 1.2 neighbors also lost Validation total PnL and won zero annual folds. The exact family is closed without changing direction, seasonality adjustment, concentration statistic, threshold, candidate creation or OOS access.",
+  "checks": [
+    {
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS",
+      "evidence": "Manager, strategy-path and allocation preflights returned VALID and DIRECT_STRATEGY_PATH_ALLOWED at clean HEAD/origin 2213e2e5b50704c043a475f8fa700af434493991. Frozen task cdd922909ab179b58cd415cd3b8179131e56b455e04bbc5934b50567c93568e5, dispatch 4c2404b59beb36db7e030bbd3c5d79c4d01d314e45e75b413c88f6afdf425ecc, intent e871e3bc6c1b6dd3f8a86a0524fb2ad76fa1b7bbfb4a3a129817d52ba50b49ca and strategy path b18aae560c199dbcac02fa91ce8b77e412d2d7742ce69998e5169a440bda6c1c were validated before outcome access."
+    },
+    {
+      "name": "PRIMARY_PRIOR_AND_RUNNER_IDENTITY",
+      "status": "PASS",
+      "evidence": "The feature-specific prior SHA-256 was 01faefd415ca3f479e618e21440bc73a2b95b7f7f708b1bd1e91f41c52c0a952 and authorized exactly one coarse intraday-volume-concentration admission audit. Executed runner SHA-256 a7f0929d5c6b986de363029c579f764d72c53b895bef68d695432bad93410a08 and manifest SHA-256 a78f473f6d26ffc05daa77a9efd4fe6da39d6fa702b852f43e6d664a904dad60 matched the frozen task."
+    },
+    {
+      "name": "SEALED_DATA_AND_PARENT_PARITY",
+      "status": "PASS",
+      "evidence": "The input contained exactly 52,608 contiguous pre-2025 H1 rows with canonical SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd. Parent Design reproduced realized 169.89846767, unrealized -79.12049441, total 90.77797326 USDT, drawdown 29.530448% and median/P90 126.0/1818.6h. Parent Validation reproduced realized 89.41118307, unrealized -3.20820121, total 86.20298186, drawdown 7.121498% and median/P90 182.5/1418.3h."
+    },
+    {
+      "name": "DECISION_TIME_FEATURE_ACCOUNTING",
+      "status": "PASS",
+      "evidence": "Each feature value used exactly 24 H1 bars wholly inside a complete UTC day. Estimated quote volume was close multiplied by base volume, every zero-volume hour remained in the fixed day, the 24 squared volume shares formed the Herfindahl value, and normalization used only the prior 20-complete-day median before the unchanged next-open fill. Primary Design reconciled 72 admissions, 104 vetoes and two unavailable signals; Validation reconciled 43 admissions, 44 vetoes and zero unavailable signals."
+    },
+    {
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent to primary Design: realized 169.89846767 to 117.17350131, unrealized -79.12049441 to -84.81848767, total 90.77797326 to 32.35501364 USDT, drawdown 29.530448% to 23.070736%, median/P90 hold 126.0/1818.6h to 107.5/1473.5h, and open lots 5 to 6. Lower drawdown and shorter realized holding did not offset the 58.42295962 USDT total-PnL loss or worse terminal inventory."
+    },
+    {
+      "name": "VALIDATION_ECONOMIC_PATH",
+      "status": "FAIL",
+      "evidence": "Parent to primary Validation: realized 89.41118307 to 75.56919212, unrealized -3.20820121 to 0, total 86.20298186 to 75.56919212 USDT, drawdown 7.121498% to 11.244641%, median/P90 hold 182.5/1418.3h to 197.0/3420.6h, average/peak utilization 21.632695/60.000000% to 24.530780/84.000000%, and open lots 1 to 0. Total, realized, drawdown and both holding gates failed."
+    },
+    {
+      "name": "ANNUAL_BREADTH_AND_CONCENTRATION",
+      "status": "FAIL",
+      "evidence": "Primary candidate-minus-parent total-PnL deltas were 2020 -19.49712070, 2021 -4.32525371, 2022 -16.85293232, 2023 -11.28768981 and 2024 -3.72169132 USDT. Strict total-PnL wins were 0/5 versus the required 3/5, and drawdown was non-worse in only 3/5 years versus the required 4/5. With no positive annual delta, the concentration gate also failed closed."
+    },
+    {
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL",
+      "evidence": "The frozen 0.8 neighbor produced Validation total 31.23714961 versus parent 86.20298186 USDT despite lower drawdown, and annual total wins were 0/5. The 1.2 neighbor produced Validation total 81.02020725 with annual total wins 0/5. Both neighbors had adequate intervention support and acceptable drawdown tolerance, but neither passed the required non-worse Validation total-PnL gate."
+    },
+    {
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS",
+      "evidence": "Valid paired evidence failed primary Design and Validation total PnL, Validation realized PnL, drawdown, median and P90 holding, annual PnL breadth, annual drawdown breadth, concentration and both-neighbor stability. The frozen disposition is DRA_INTRADAY_VOLUME_CONCENTRATION_BRANCH_CLOSE. No opposite direction, time-of-day adjustment, concentration statistic, threshold, lookback, year exclusion or interaction rescue was evaluated."
+    },
+    {
+      "name": "ARTIFACT_SEAL",
+      "status": "PASS",
+      "evidence": "Exactly one create-only artifact was written at .research-state/experiments/dra-intraday-volume-concentration-entry-admission-v1/artifacts/screen.json with SHA-256 8538714dfb38be227266ff427c3d5ab0a537666078947be8977de50b2e174569 and terminal status NO_MECHANISM_CLOSE_FEATURE_FAMILY."
+    },
+    {
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS",
+      "evidence": "The execution made no canonical-state or server Research MCP write, heartbeat or schedule change, paid-API call, deployment, database mutation, and no Trading, order, fund, SHADOW, PAPER or LIVE action. The permitted create-only screen artifact was the sole research-state output."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/dra-intraday-volume-concentration-entry-admission-v1/artifacts/screen.json",
+      "sha256": "8538714dfb38be227266ff427c3d5ab0a537666078947be8977de50b2e174569"
+    }
+  ],
+  "files_changed": [],
+  "uncertainty": [
+    "Historical Validation is post-hoc development evidence and not clean OOS; the study cannot establish independent alpha or a strategy candidate.",
+    "The daily Herfindahl does not remove deterministic hour-of-day seasonality and is not a formal volume-surprise or market-wide liquidity model.",
+    "Close multiplied by base volume is only an estimated quote-volume weight from one venue.",
+    "No post-2024, prospective, SHADOW, PAPER or LIVE evidence was opened or created."
+  ],
+  "recommended_next_action": "Close and deduplicate the exact DAILY_QUOTE_VOLUME_HERFINDAHL_TO_PRIOR_20D_MEDIAN DRA entry-admission family without opposite-direction, time-of-day adjustment, concentration-statistic, threshold, lookback or interaction rescue. Preserve the result as evidence that diffuse single-venue H1 participation reduced some drawdown paths but destroyed fee-adjusted PnL and annual breadth. Continue only with a causally distinct pre-outcome mechanism or lawful forward evidence.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false,
+    "oos_opened": false,
+    "paid_api_used": false
+  }
+}

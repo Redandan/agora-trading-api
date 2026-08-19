@@ -1,0 +1,172 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_RSI14_MIDLINE_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-daily-rsi14-midline-long-cash-historical-v1",
+  "decided_at": "2026-08-19T02:24:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DAILY_RSI14_MIDLINE_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DAILY_RSI14_GT45_50_55_LONG_CASH_FAMILY_WITHOUT_TUNING",
+  "manifest_sha256": "b2ad708ee8191f9581d3c0f72b386923953ca5e17b775b197b26aa3eabe86267",
+  "runner": {
+    "path": "research/btc_daily_rsi14_midline_long_cash_historical.py",
+    "sha256": "1753cfd3a28bf7fdad8bb6a63e7de486d179491b2eab5d433830a71eca523281",
+    "git_commit": "2869ba1949b22c64721506caafe40239aaa88fd8",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-daily-rsi14-midline-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "9de9e12fcbd7987c0db710e90f52e64649adb04d4a49af9d34211e4e9256893a"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-daily-rsi14-midline-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "9de9e12fcbd7987c0db710e90f52e64649adb04d4a49af9d34211e4e9256893a",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "primary_rsi14_gt50_design_normal": {
+      "candidate_realized_return_pct": "274.98902114",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "274.98902114",
+      "candidate_maximum_drawdown_pct": "53.84417790",
+      "candidate_calmar_ratio": "5.10712638",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "total_return_delta_pp": "145.38357886",
+      "maximum_drawdown_delta_pp": "-23.34538135",
+      "upside_capture_ratio": "2.12173977",
+      "calmar_ratio_to_buy_hold": "3.04166883",
+      "position_changes": 126,
+      "completed_episodes": 63,
+      "median_hold_hours": "96.00000000",
+      "p90_hold_hours": "643.20000000"
+    },
+    "primary_rsi14_gt50_design_stress": {
+      "candidate_total_return_pct": "210.41074919",
+      "candidate_maximum_drawdown_pct": "57.37158307",
+      "buy_hold_total_return_pct": "129.26172157"
+    },
+    "primary_rsi14_gt50_validation_normal": {
+      "candidate_realized_return_pct": "237.64036353",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "237.64036353",
+      "candidate_maximum_drawdown_pct": "31.30120835",
+      "candidate_calmar_ratio": "7.59205079",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "total_return_delta_pp": "-227.11438803",
+      "maximum_drawdown_delta_pp": "-0.98295514",
+      "upside_capture_ratio": "0.51132423",
+      "calmar_ratio_to_buy_hold": "0.52738139",
+      "average_exposure_pct": "60.60191518",
+      "position_changes": 88,
+      "completed_episodes": 44,
+      "median_hold_hours": "96.00000000",
+      "p90_hold_hours": "643.20000000",
+      "fees_equity_units": "0.18038086",
+      "terminal_position": false
+    },
+    "primary_rsi14_gt50_validation_stress": {
+      "candidate_total_return_pct": "195.88802381",
+      "candidate_maximum_drawdown_pct": "34.12680957",
+      "buy_hold_total_return_pct": "463.90931032"
+    },
+    "rejection_only_neighbor_rsi14_gt45_validation_normal": {
+      "candidate_total_return_pct": "194.82516221",
+      "candidate_maximum_drawdown_pct": "32.06070874",
+      "candidate_calmar_ratio": "6.07675781",
+      "total_return_delta_pp": "-269.92958936",
+      "maximum_drawdown_delta_pp": "-0.22345475",
+      "upside_capture_ratio": "0.41919994",
+      "calmar_ratio_to_buy_hold": "0.42212165"
+    },
+    "rejection_only_neighbor_rsi14_gt55_validation_normal": {
+      "candidate_total_return_pct": "222.37832255",
+      "candidate_maximum_drawdown_pct": "17.79520416",
+      "candidate_calmar_ratio": "12.49653112",
+      "total_return_delta_pp": "-242.37642901",
+      "maximum_drawdown_delta_pp": "-14.48895934",
+      "upside_capture_ratio": "0.47848531",
+      "calmar_ratio_to_buy_hold": "0.86807085"
+    },
+    "annual_primary_normal": {
+      "2020": {
+        "candidate_total_return_pct": "288.25306780",
+        "candidate_maximum_drawdown_pct": "21.81254656",
+        "buy_hold_total_return_pct": "301.32276307",
+        "buy_hold_maximum_drawdown_pct": "60.56916406",
+        "upside_capture_ratio": "0.95662560"
+      },
+      "2021": {
+        "candidate_total_return_pct": "70.32357619",
+        "candidate_maximum_drawdown_pct": "46.14724315",
+        "buy_hold_total_return_pct": "59.60909620",
+        "buy_hold_maximum_drawdown_pct": "54.72348518",
+        "upside_capture_ratio": "1.17974572"
+      },
+      "2022": {
+        "candidate_total_return_pct": "-43.37173069",
+        "candidate_maximum_drawdown_pct": "48.14471908",
+        "buy_hold_total_return_pct": "-64.25634095",
+        "buy_hold_maximum_drawdown_pct": "67.36039868",
+        "total_return_delta_pp": "20.88461026"
+      },
+      "2023": {
+        "candidate_total_return_pct": "100.94982556",
+        "candidate_maximum_drawdown_pct": "24.25062229",
+        "buy_hold_total_return_pct": "155.16375107",
+        "buy_hold_maximum_drawdown_pct": "21.72199642",
+        "upside_capture_ratio": "0.65060186"
+      },
+      "2024": {
+        "candidate_total_return_pct": "68.02222276",
+        "candidate_maximum_drawdown_pct": "31.30120835",
+        "buy_hold_total_return_pct": "120.99348678",
+        "buy_hold_maximum_drawdown_pct": "32.28416349",
+        "upside_capture_ratio": "0.56219739"
+      }
+    },
+    "breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "4_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "2_of_5",
+      "normal_upside_capture_at_least_50pct_years": "4_of_5",
+      "top_year_positive_total_return_contribution_pct": "54.64008764",
+      "validation_top_positive_episode_contribution_pct": "26.91160053"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_rsi14_gt45_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_rsi14_gt45_validation_normal_upside_capture_at_least_50pct",
+    "neighbor_rsi14_gt55_validation_normal_upside_capture_at_least_50pct",
+    "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5"
+  ],
+  "passed_evidence": [
+    "The exact dataset, frozen sources, hourly lattice, 2192 complete UTC days and two byte-identical runs passed every integrity gate.",
+    "The primary produced positive Normal and Stress returns in both Design and Validation, had forty-four completed Validation episodes, and ended with no terminal position.",
+    "Design strongly exceeded buy-and-hold return and Calmar while reducing maximum drawdown by 23.34538135 percentage points.",
+    "The primary reduced the 2022 loss and passed positive-return, drawdown, upside-capture and concentration breadth in four of five annual windows."
+  ],
+  "material_learning": "RSI14 above 50 was a real but regime-dependent short-horizon momentum state. It was exceptionally effective during Design and reduced the 2022 bear loss, but in 2023-2024 it captured only 51.132423 percent of passive upside while reducing maximum drawdown by just 0.98295514 percentage points; its Calmar fell to 52.738139 percent of buy-and-hold. Threshold 55 materially lowered Validation drawdown to 17.79520416 percent but captured only 47.848531 percent of upside, while threshold 45 captured still less upside and had weak Calmar. The frozen family therefore presents an exposure trade-off rather than independent risk-adjusted alpha.",
+  "scientific_claim": "The exact daily simple RSI14 greater-than-50 long-or-zero-yield-cash policy and its preregistered 45 and 55 rejection-only threshold neighbors produced positive after-cost historical returns but failed frozen Validation drawdown, upside-capture, Calmar, annual-Calmar breadth and neighbor-stability gates. None is a candidate, and the result does not authorize choosing threshold 55, another threshold or length, Wilder smoothing, hysteresis, confirmation, stop, DRA interaction or ensemble.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The supportive paper used different execution and source assumptions and followed broad strategy exploration; its reported result did not transfer to all frozen path-risk gates here.",
+    "A different RSI construction could differ but would be a new fingerprint and cannot rescue this closed family without a genuinely independent pre-outcome prior.",
+    "The result establishes no deployability or Trading authority."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

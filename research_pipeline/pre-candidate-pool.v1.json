@@ -822,6 +822,20 @@
         {"path": "research_pipeline/examples/btc-daily-obv-ma-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "d4d21ead87a94e8d65d8e7a4efa06f2e0f425256cede0aeb1aad0e05523121aa"}
       ],
       "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-daily-rsi14-midline-long-cash",
+      "title": "BTC daily RSI14 midline momentum-state long/cash timing",
+      "decision_feature": "COMPLETE_UTC_DAY_SIMPLE_RSI14_GT_45_50_55",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_RSI14_MIDLINE_LONG_CASH_FAMILY",
+      "duplicate_family_key": "btc-daily-rsi14-midline-long-cash-45-50-55",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc"},
+        {"path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "b2ad708ee8191f9581d3c0f72b386923953ca5e17b775b197b26aa3eabe86267"},
+        {"path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "a9b8265e9f29d76cc205404eb7b431b349878129018260faf8904ad84de7733a"}
+      ],
+      "prohibited_reopen": true
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

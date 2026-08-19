@@ -1,0 +1,53 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-supertrend10x3-long-cash-v1",
+  "title": "Daily Supertrend ATR10 multiplier-3 long/cash timing",
+  "thesis": "A ratcheted volatility-scaled band may remain in BTC trends through ordinary noise yet switch to cash after volatility-adjusted breakdowns, preserving enough upside while avoiding sufficiently deep adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "mechanism": "For each complete UTC day, compute gap-aware true range and Wilder RMA ATR10, construct midpoint plus-or-minus multiplier-times-ATR bands, ratchet both bands using prior close and prior final bands, and update the Supertrend direction from prior state. Hold full BTC in uptrend and zero-yield cash in downtrend, executing state changes at the next H1 open.",
+  "economic_rationale": "The mechanism changes its trend threshold with current causal volatility and path-dependent band state instead of relying on a fixed price channel or endpoint return. It is useful only if multiplier 3 retains material after-cost upside, reduces drawdown, improves Calmar and is supported by annual breadth and rejection-only multiplier neighbors.",
+  "source": "BTC_DAILY_SUPERTREND10X3_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-supertrend10x3-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "atr_complete_days": 10,
+      "multiplier": "3.0"
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "atr_complete_days": 10,
+      "multiplier": "2.5"
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "atr_complete_days": 10,
+      "multiplier": "3.5"
+    }
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-5",
+  "created_at": "2026-08-19T02:41:47Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

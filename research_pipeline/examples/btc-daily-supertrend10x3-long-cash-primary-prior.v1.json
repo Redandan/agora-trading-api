@@ -1,0 +1,81 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_SUPERTREND10X3_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "DAILY_SUPERTREND_ATR_RATCHETED_BAND_STATE_LONG_CASH",
+  "reviewed_at": "2026-08-19T02:41:47Z",
+  "prior_matrix": [
+    {
+      "identity": "Zatwarnicki, Zatwarnicki and Stolarski, Effectiveness of the Relative Strength Index Signals in Timing the Cryptocurrency Market, Sensors 23(3), 2023, DOI 10.3390/s23031664",
+      "primary_source": "https://mdpi-res.com/d_attachment/sensors/sensors-23-01664/article_deploy/sensors-23-01664-v4.pdf?version=1675738046",
+      "publisher_record": "https://doi.org/10.3390/s23031664",
+      "role": "SUPPORTIVE_CRYPTO_LONG_ONLY_SUPERTREND_ECONOMIC_PRIOR",
+      "finding": "The authors compare long-only Supertrend with buy-and-hold and other technical rules across cryptocurrencies and report strong BTC and cross-asset results under their 2018-2022 TradingView study.",
+      "parameter_boundary": "The article supports the mechanism but does not disclose enough detail to reproduce its Supertrend parameter tuple. This experiment does not claim to replicate the article and obtains its frozen formula and default tuple from first-party indicator documentation.",
+      "transfer_boundary": "The paper used different venues, sample boundaries, TradingView execution and no adverse-slippage model. It does not establish performance for causal next-H1-open execution on the sealed OKX 2019-2024 corpus or independent OOS."
+    },
+    {
+      "identity": "TradingView first-party Supertrend and Average True Range documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000634738-supertrend/",
+      "atr_source": "https://www.tradingview.com/support/solutions/43000501823-average-true-range-atr/",
+      "role": "FIRST_PARTY_EXACT_FORMULA_AND_SMOOTHING_PROOF",
+      "finding": "TradingView defines basic midpoint plus-or-minus multiplier-times-ATR bands, ratcheted final bands, prior-state-dependent trend switching and RMA-smoothed true range. It identifies Supertrend as an ATR-based trend-direction and stop indicator.",
+      "parameter_boundary": "The formula and Wilder-style RMA are frozen exactly. Parameter defaults are not inferred from this page."
+    },
+    {
+      "identity": "Spotware cTrader first-party Supertrend documentation",
+      "primary_source": "https://help.ctrader.com/indicators/built-in/trend/supertrend/",
+      "role": "FIRST_PARTY_DEFAULT_PARAMETER_PRIOR",
+      "finding": "The first-party built-in indicator documentation defines the ATR-band mechanism and states default settings of ten periods and multiplier three.",
+      "parameter_boundary": "The primary is ATR length 10 and multiplier 3. Multipliers 2.5 and 3.5 are symmetric rejection-only sensitivity neighbors and cannot replace a failed primary."
+    },
+    {
+      "identity": "Anghel, A reality check on trading rule performance in the cryptocurrency market: Machine Learning vs. Technical Analysis, Finance Research Letters 39, 2021, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_FRICTION_PRIOR",
+      "finding": "After controls for data snooping, risk and market frictions, statistically significant positive excess returns from cryptocurrency trading rules were rare.",
+      "transfer_boundary": "This does not directly reject the frozen Supertrend rule. It requires pre-outcome parameters, matched costs and capital, explicit path risk, annual breadth, rejection-only neighbors and permanent closure on failure."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": [
+      "open_time",
+      "close_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "decision_feature": "Complete UTC-day high, low and close produce causal true range, RMA ATR10, ratcheted upper and lower bands and the next Supertrend direction; a changed target executes only at the next hourly open.",
+    "prospective_transport": "The existing sealed OKX BTC-USDT H1 source contains every required OHLC field and timestamp. No credential, paid API, timer, writer, database, manual export or backfill is required.",
+    "status": "READY"
+  },
+  "independence_from_closed_families": [
+    "The closed standalone Donchian rule switches on prior fixed price extrema and uses separate ATR risk sizing and a fixed initial stop. Supertrend switches on one continuously ratcheted volatility-scaled band state and always uses full available equity when long.",
+    "The closed DRA ATR studies modify exits for separately admitted DRA lots. This experiment has no DRA signal, lot manager, entry-ATR target or highest-close-only exit; its same dynamic band state defines both re-entry and exit for a standalone long/cash policy.",
+    "The closed monthly time-series momentum and daily RSI rules use returns only, while Supertrend requires complete-day high-low range, gap-aware true range and path-dependent band state.",
+    "The closed OBV rule uses signed volume and moving averages; Supertrend uses no volume."
+  ],
+  "real_time_design_requirements": [
+    "Aggregate exactly twenty-four contiguous H1 bars per UTC day and use only the completed day's high, low, close and the prior completed close.",
+    "Use Wilder RMA ATR10, midpoint bands and the exact TradingView state transition; initialize as downtrend until ATR10 exists.",
+    "Use primary multiplier 3 and rejection-only multipliers 2.5 and 3.5; no neighbor may replace a failed primary.",
+    "Execute a changed full-long or cash target at the next H1 open with no leverage, short leg, cash yield, confirmation, minimum hold or DRA interaction.",
+    "Compare with full-capital BTC buy-and-hold under identical initial capital, hourly price path, fees, adverse slippage and valuation boundary.",
+    "Report total, realized and unrealized return, drawdown, underwater duration, Calmar, upside capture, exposure, turnover, holding age, episode concentration, annual breadth and terminal inventory."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_DAILY_SUPERTREND10X3_LONG_CASH_EXPERIMENT",
+  "uncertainty": [
+    "The supportive paper does not expose the exact Supertrend tuple or enough implementation detail for direct replication.",
+    "Supertrend is still a price-trend rule adjacent to already closed trend families, so only materially better matched-capital path-risk quality can justify a candidate.",
+    "A daily ATR band may whipsaw during sideways regimes and lose upside through repeated costs.",
+    "Historical Design and Validation through 2024 cannot establish independent OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one preregistered historical three-multiplier Supertrend screen. It does not establish alpha, a candidate, OOS value, deployability or Trading authority."
+}

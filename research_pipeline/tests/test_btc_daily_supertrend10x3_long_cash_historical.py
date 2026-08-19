@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 import unittest
 from datetime import datetime, timedelta
@@ -11,6 +12,12 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RUNNER_PATH = (
     REPO_ROOT / "research" / "btc_daily_supertrend10x3_long_cash_historical.py"
+)
+MANIFEST_PATH = (
+    REPO_ROOT
+    / "research_pipeline"
+    / "examples"
+    / "btc-daily-supertrend10x3-long-cash-historical.v1.manifest.json"
 )
 
 
@@ -118,6 +125,32 @@ class BtcDailySupertrend10x3LongCashHistoricalTest(unittest.TestCase):
             self.runner.ResearchReject, "MANIFEST_REJECT:SUPERTREND_POLICY"
         ):
             self.runner.target_by_execution_time(points, 14, d("3.0"))
+
+    def test_manifest_freezes_primary_neighbors_and_authorization(self) -> None:
+        manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+
+        self.runner.validate_manifest(manifest)
+        self.assertEqual(manifest["strategy_policy"]["variants"], 3)
+        self.assertEqual(
+            manifest["prohibited_actions"],
+            [
+                "PAID_API",
+                "SECOND_TIMER",
+                "SECOND_WRITER",
+                "UNSEALED_BACKFILL",
+                "PRODUCTION",
+                "TRADING",
+                "DATABASE",
+                "ORDERS",
+                "FUNDS",
+                "OCO",
+                "GRID",
+                "SHADOW",
+                "PAPER",
+                "LIVE",
+                "OOS_OPEN",
+            ],
+        )
 
 
 if __name__ == "__main__":

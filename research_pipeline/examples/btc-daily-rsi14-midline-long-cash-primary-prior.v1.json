@@ -1,0 +1,66 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_RSI14_MIDLINE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "DAILY_RSI14_MIDLINE_MOMENTUM_STATE_LONG_CASH",
+  "reviewed_at": "2026-08-19T02:12:00Z",
+  "prior_matrix": [
+    {
+      "identity": "Zmudziński, Effectiveness of the Relative Strength Index Signals in Timing the Cryptocurrency Market, Sensors 23(3), 2023, DOI 10.3390/s23031664",
+      "primary_source": "https://mdpi-res.com/d_attachment/sensors/sensors-23-01664/article_deploy/sensors-23-01664-v4.pdf?version=1675738046",
+      "publisher_record": "https://doi.org/10.3390/s23031664",
+      "role": "SUPPORTIVE_EXACT_FEATURE_AND_THRESHOLD_PRIOR",
+      "finding": "The paper fixes daily close-based RSI at fourteen candles, defines a long-only modified Cardwell rule from the previous candle's RSI above 50, charges a 0.1 percent spot fee, and reports that the BTC rule exceeded buy-and-hold during its 2018-2022 study while reducing the 2022 loss in a post-study check.",
+      "parameter_boundary": "This experiment freezes the published RSI length 14 and primary midline 50. Thresholds 45 and 55 are rejection-only sensitivity neighbors and cannot replace a failed primary.",
+      "transfer_boundary": "The paper used a different venue, sample, close execution convention, no slippage, broad strategy comparisons and an exhaustive-search research process. It does not establish performance for causal next-H1-open execution on the sealed OKX 2019-2024 corpus or independent OOS."
+    },
+    {
+      "identity": "Anghel, A reality check on trading rule performance in the cryptocurrency market: Machine Learning vs. Technical Analysis, Finance Research Letters 39, 2021, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_FRICTION_PRIOR",
+      "finding": "After controlling for data snooping, market frictions and risk, statistically significant positive excess returns were rare and apparent trading-rule performance was often associated with risk exposures and frictions.",
+      "transfer_boundary": "This does not directly reject the frozen RSI rule. It requires pre-outcome thresholds, explicit fee and adverse-slippage scenarios, matched-capital path-risk metrics, annual breadth, rejection-only neighbor checks and permanent closure on failure."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": [
+      "open_time",
+      "close_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "decision_feature": "Fourteen complete UTC-day close changes converted to 100 times rolling gains divided by rolling gains plus absolute losses; target is known after day close and executed at the next hourly open.",
+    "prospective_transport": "The existing sealed OKX BTC-USDT H1 source contains every required close and timestamp. No new source, credential, paid API, timer, writer or backfill is required.",
+    "status": "READY"
+  },
+  "independence_from_closed_families": [
+    "The closed monthly twelve-month time-series-momentum rule uses one long-horizon endpoint return and monthly decisions; RSI14 uses the balance and magnitude of fourteen separate daily gains and losses with daily decisions.",
+    "The closed Donchian family uses prior price extrema, while RSI14 has no breakout level or channel.",
+    "The closed OBV family accumulates signed volume and compares moving averages; RSI14 uses no volume and no moving average.",
+    "The closed volatility-allocation and DRA entry-admission families use different parents, sizing rules and causal features."
+  ],
+  "real_time_design_requirements": [
+    "Use complete UTC days only, compute simple rolling fourteen-change RSI from close data, and execute a changed target at the next hourly open.",
+    "Use primary RSI14 strictly above 50 and rejection-only thresholds strictly above 45 and 55; no neighbor may replace a failed primary.",
+    "Use no Wilder smoothing, alternate length, hysteresis, confirmation, delay, minimum hold, leverage, short position, cash yield, stop, DRA interaction or ensemble.",
+    "Compare with full-capital BTC buy-and-hold under the same initial equity, hourly path, fee, adverse slippage and valuation boundary.",
+    "Report realized, unrealized and total return, drawdown, underwater duration, Calmar, upside capture, exposure, turnover, holding age, episode concentration and terminal inventory.",
+    "Require positive after-cost returns, lower drawdown, non-worse Calmar, material upside capture, annual breadth and rejection-only neighbor stability; otherwise permanently close the family."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_DAILY_RSI14_MIDLINE_LONG_CASH_EXPERIMENT",
+  "uncertainty": [
+    "The supportive paper's result followed broad indicator exploration and its execution assumptions are not identical to this experiment.",
+    "RSI above 50 is economically close to short-horizon trend following, so a positive result must show incremental path-risk quality rather than merely beta timing.",
+    "Daily threshold crossings can create material turnover and cost drag.",
+    "Historical Design and Validation through 2024 cannot establish post-selection OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one preregistered historical three-threshold RSI14 matched-capital screen. It does not establish alpha, a candidate, OOS value, deployability or Trading authority."
+}

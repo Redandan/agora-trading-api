@@ -808,6 +808,20 @@
         {"path": "research_pipeline/examples/btc-monthly-constant-mix-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "f211b62623a20fbf706d2b719967feb7e9f436b7afe0e342b3adf47327daed3c"}
       ],
       "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-daily-obv-ma-long-cash",
+      "title": "BTC daily on-balance-volume moving-average long/cash timing",
+      "decision_feature": "COMPLETE_UTC_DAY_BASE_VOLUME_SIGNED_OBV_SMA_2_VS_18_24_30",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_OBV_MA_LONG_CASH_FAMILY",
+      "duplicate_family_key": "btc-daily-obv-ma-long-cash-2-18-24-30",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/btc-daily-obv-ma-long-cash-historical.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "66a165857032233a29b9e59b8fe077f82235b4607bf7e91126343e83dce930ce"},
+        {"path": "research_pipeline/examples/btc-daily-obv-ma-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "28b3e345d780dec6badc05f7cf32a2f7705fdcb053b5d21ca655d14c3d411601"},
+        {"path": "research_pipeline/examples/btc-daily-obv-ma-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "d4d21ead87a94e8d65d8e7a4efa06f2e0f425256cede0aeb1aad0e05523121aa"}
+      ],
+      "prohibited_reopen": true
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

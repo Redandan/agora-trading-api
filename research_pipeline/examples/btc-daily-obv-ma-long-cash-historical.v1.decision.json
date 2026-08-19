@@ -1,0 +1,172 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_OBV_MA_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-daily-obv-ma-long-cash-historical-v1",
+  "decided_at": "2026-08-18T15:50:07Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DAILY_OBV_MA_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DAILY_OBV_2_18_24_30_LONG_CASH_FAMILY_WITHOUT_PARAMETER_OR_PORTFOLIO_RESCUE",
+  "manifest_sha256": "28b3e345d780dec6badc05f7cf32a2f7705fdcb053b5d21ca655d14c3d411601",
+  "runner": {
+    "path": "research/btc_daily_obv_ma_long_cash_historical.py",
+    "sha256": "449f6790007cc0fc57298059f9f3f3dee812e37ec3539c9fc8c63593fe99a3d5",
+    "git_commit": "855940582a47e4fc5a68d6b133037b1de628f8f8",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-daily-obv-ma-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "c549922cea3759a57e8609c59d0c48b062275c08e3a08f4d5a10d9bb1a0bb759"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-daily-obv-ma-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "c549922cea3759a57e8609c59d0c48b062275c08e3a08f4d5a10d9bb1a0bb759",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "primary_2_24_design_normal": {
+      "candidate_realized_return_pct": "307.78044609",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "307.78044609",
+      "candidate_maximum_drawdown_pct": "57.98700424",
+      "candidate_calmar_ratio": "5.30774870",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "total_return_delta_pp": "178.17500380",
+      "maximum_drawdown_delta_pp": "-19.20255501",
+      "upside_capture_ratio": "2.37474940",
+      "calmar_ratio_to_buy_hold": "3.16115415",
+      "position_changes": 84,
+      "completed_episodes": 42,
+      "median_hold_hours": "168.00000000",
+      "p90_hold_hours": "808.80000000"
+    },
+    "primary_2_24_design_stress": {
+      "candidate_total_return_pct": "259.50521623",
+      "candidate_maximum_drawdown_pct": "60.35734651",
+      "buy_hold_total_return_pct": "129.26172157"
+    },
+    "primary_2_24_validation_normal": {
+      "candidate_realized_return_pct": "190.65608735",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "190.65608735",
+      "candidate_maximum_drawdown_pct": "41.65479998",
+      "candidate_calmar_ratio": "4.57704964",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "total_return_delta_pp": "-274.09866421",
+      "maximum_drawdown_delta_pp": "9.37063649",
+      "upside_capture_ratio": "0.41022945",
+      "calmar_ratio_to_buy_hold": "0.31794450",
+      "position_changes": 52,
+      "completed_episodes": 26,
+      "median_hold_hours": "168.00000000",
+      "p90_hold_hours": "780.00000000",
+      "fees_equity_units": "0.12234531",
+      "turnover_equity_units": "122.34531250",
+      "terminal_position": false
+    },
+    "primary_2_24_validation_stress": {
+      "candidate_total_return_pct": "168.84650446",
+      "candidate_maximum_drawdown_pct": "43.71787268",
+      "buy_hold_total_return_pct": "463.90931032"
+    },
+    "rejection_only_neighbor_2_18_validation_normal": {
+      "candidate_total_return_pct": "264.01117862",
+      "candidate_maximum_drawdown_pct": "34.84451231",
+      "candidate_calmar_ratio": "7.57683667",
+      "total_return_delta_pp": "-200.74357294",
+      "maximum_drawdown_delta_pp": "2.56034882",
+      "upside_capture_ratio": "0.56806558",
+      "calmar_ratio_to_buy_hold": "0.52632455"
+    },
+    "rejection_only_neighbor_2_30_validation_normal": {
+      "candidate_total_return_pct": "265.85149411",
+      "candidate_maximum_drawdown_pct": "33.61580602",
+      "candidate_calmar_ratio": "7.90852654",
+      "total_return_delta_pp": "-198.90325745",
+      "maximum_drawdown_delta_pp": "1.33164253",
+      "upside_capture_ratio": "0.57202534",
+      "calmar_ratio_to_buy_hold": "0.54936537"
+    },
+    "annual_primary_normal": {
+      "2020": {
+        "candidate_total_return_pct": "254.35462987",
+        "candidate_maximum_drawdown_pct": "24.40312350",
+        "buy_hold_total_return_pct": "301.32276307",
+        "buy_hold_maximum_drawdown_pct": "60.56916406",
+        "upside_capture_ratio": "0.84412683"
+      },
+      "2021": {
+        "candidate_total_return_pct": "118.09377811",
+        "candidate_maximum_drawdown_pct": "23.81924290",
+        "buy_hold_total_return_pct": "59.60909620",
+        "buy_hold_maximum_drawdown_pct": "54.72348518",
+        "upside_capture_ratio": "1.98113687"
+      },
+      "2022": {
+        "candidate_total_return_pct": "-47.30742669",
+        "candidate_maximum_drawdown_pct": "55.15362015",
+        "buy_hold_total_return_pct": "-64.25634095",
+        "buy_hold_maximum_drawdown_pct": "67.36039868",
+        "total_return_delta_pp": "16.94891426"
+      },
+      "2023": {
+        "candidate_total_return_pct": "128.00590862",
+        "candidate_maximum_drawdown_pct": "21.32408296",
+        "buy_hold_total_return_pct": "155.16375107",
+        "buy_hold_maximum_drawdown_pct": "21.72199642",
+        "upside_capture_ratio": "0.82497302"
+      },
+      "2024": {
+        "candidate_total_return_pct": "27.47743649",
+        "candidate_maximum_drawdown_pct": "41.65479998",
+        "buy_hold_total_return_pct": "120.99348678",
+        "buy_hold_maximum_drawdown_pct": "32.28416349",
+        "upside_capture_ratio": "0.22709848"
+      }
+    },
+    "breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_years": "4_of_5",
+      "normal_calmar_at_least_75pct_buy_hold_years": "3_of_5",
+      "normal_upside_capture_at_least_50pct_years": "3_of_5",
+      "top_year_positive_total_return_contribution_pct": "48.17945281",
+      "validation_top_positive_episode_contribution_pct": "31.67719708"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_2_18_validation_normal_drawdown_non_worse",
+    "neighbor_2_18_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_2_30_validation_normal_drawdown_non_worse",
+    "neighbor_2_30_validation_normal_calmar_at_least_75pct_buy_hold",
+    "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5"
+  ],
+  "passed_evidence": [
+    "The exact dataset, frozen sources, hourly lattice, 2192 complete UTC days and two byte-identical runs passed every integrity gate.",
+    "The primary produced strongly positive Normal and Stress returns in both Design and Validation and had no terminal inventory at either boundary.",
+    "Design showed large return, drawdown and Calmar improvement, while annual positive-return, drawdown and Calmar breadth mostly passed.",
+    "Validation episode support was broad rather than dominated by one trade: 26 completed episodes and 31.67719708 percent top-positive-episode contribution."
+  ],
+  "material_learning": "A fixed OBV moving-average state was highly regime-dependent rather than a durable participation edge. Primary 2/24 was excellent in Design, including strong 2020-2021 timing and a smaller 2022 loss than buy-and-hold, but in Validation it captured only 41.022945 percent of passive upside while maximum drawdown rose 9.37063649 percentage points and Calmar fell to 31.794450 percent of buy-and-hold. The two frozen slower-average neighbors preserved more upside but still had worse Validation drawdown and only 52.632455 to 54.936537 percent of passive Calmar. The 2024 fold was the clearest failure: only 22.709848 percent upside capture with worse drawdown. This supports the adversarial prior that a dynamically selected portfolio's OBV success does not transfer to one immutable tuple.",
+  "scientific_claim": "The exact daily base-volume OBV SMA 2/24 long-or-zero-yield-cash policy and its preregistered 2/18 and 2/30 rejection-only neighbors produced positive after-cost historical returns but failed frozen Validation drawdown, upside-capture, Calmar and annual breadth gates. None is a candidate, and the result does not authorize choosing the better neighbor, a different length, EMA, band, delay, price confirmation, rolling selector, portfolio ensemble or DRA interaction.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The sealed dataset contains one exchange's base volume; another venue or aggregate volume could differ but would be a new source and may not rescue this fingerprint.",
+    "The result closes the exact published-grid 2/18, 2/24 and 2/30 zero-band, zero-delay, indefinite-hold family; a genuinely independent future mechanism still requires a new pre-outcome prior and fingerprint."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

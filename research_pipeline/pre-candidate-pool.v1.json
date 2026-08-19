@@ -836,6 +836,20 @@
         {"path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "a9b8265e9f29d76cc205404eb7b431b349878129018260faf8904ad84de7733a"}
       ],
       "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-daily-supertrend10x3-long-cash",
+      "title": "BTC daily Supertrend ATR10 multiplier-3 long/cash timing",
+      "decision_feature": "COMPLETE_UTC_DAY_WILDER_RMA_ATR10_RATCHETED_SUPERTREND_MULTIPLIER_2_5_3_0_3_5",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_SUPERTREND10X3_LONG_CASH_FAMILY",
+      "duplicate_family_key": "btc-daily-supertrend-atr10-multiplier-2_5-3_0-3_5-long-cash",
+      "evidence_bindings": [
+        {"path": "research_pipeline/examples/btc-daily-supertrend10x3-long-cash-historical.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "6a6ef95be9cec4369b9f74b0ed7adeb4c8ec25e83887dbfe523ea9113ced59d3"},
+        {"path": "research_pipeline/examples/btc-daily-supertrend10x3-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "77156bb8ae384dca3e5cda8fcfc846dfb07223b353f42af6bc44324be838ba73"},
+        {"path": "research_pipeline/examples/btc-daily-supertrend10x3-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "12ce9bb7c779346e0c66d280bb76397890bb8787ca2648a6cd7adf33fd7029d7"}
+      ],
+      "prohibited_reopen": true
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

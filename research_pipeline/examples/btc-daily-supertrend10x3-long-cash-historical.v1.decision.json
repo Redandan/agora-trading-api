@@ -1,0 +1,143 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_SUPERTREND10X3_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-daily-supertrend10x3-long-cash-historical-v1",
+  "decided_at": "2026-08-19T02:59:16Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DAILY_SUPERTREND10X3_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DAILY_SUPERTREND10_MULTIPLIER_2_5_3_0_3_5_LONG_CASH_FAMILY_WITHOUT_TUNING",
+  "manifest_sha256": "77156bb8ae384dca3e5cda8fcfc846dfb07223b353f42af6bc44324be838ba73",
+  "runner": {
+    "path": "research/btc_daily_supertrend10x3_long_cash_historical.py",
+    "sha256": "46db811403ae61f70eff615e342d8c4d93e7d72c1bb8edc162c4cc6022d18213",
+    "git_commit": "7e543efbe8fce024764ad7fe1afede5037ed94cf",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-daily-supertrend10x3-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "15ee03e09afb94a09ba0e39f00e51e1e1586292faec1bb81237dfc5bcd656dbf"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-daily-supertrend10x3-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "15ee03e09afb94a09ba0e39f00e51e1e1586292faec1bb81237dfc5bcd656dbf",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "primary_supertrend10x3_design_normal": {
+      "candidate_realized_return_pct": "171.18291155",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "171.18291155",
+      "candidate_maximum_drawdown_pct": "55.47112583",
+      "candidate_calmar_ratio": "3.08598228",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "total_return_delta_pp": "41.57746926",
+      "maximum_drawdown_delta_pp": "-21.71843342",
+      "upside_capture_ratio": "1.32080033",
+      "calmar_ratio_to_buy_hold": "1.83792909",
+      "average_exposure_pct": "49.17883212",
+      "position_changes": 24,
+      "completed_episodes": 12,
+      "median_hold_hours": "924.00000000",
+      "p90_hold_hours": "2304.00000000",
+      "terminal_position": false
+    },
+    "primary_supertrend10x3_design_stress": {
+      "candidate_total_return_pct": "161.59394691",
+      "candidate_maximum_drawdown_pct": "56.13407555",
+      "buy_hold_total_return_pct": "129.26172157"
+    },
+    "primary_supertrend10x3_validation_normal": {
+      "candidate_realized_return_pct": "167.79303819",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "167.79303819",
+      "candidate_maximum_drawdown_pct": "41.91370359",
+      "candidate_calmar_ratio": "4.00329782",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "total_return_delta_pp": "-296.96171338",
+      "maximum_drawdown_delta_pp": "9.62954010",
+      "upside_capture_ratio": "0.36103566",
+      "calmar_ratio_to_buy_hold": "0.27808886",
+      "average_exposure_pct": "64.15868673",
+      "position_changes": 18,
+      "completed_episodes": 9,
+      "median_hold_hours": "960.00000000",
+      "p90_hold_hours": "2443.20000000",
+      "fees_equity_units": "0.03192209",
+      "terminal_position": false,
+      "top_positive_episode_contribution_pct": "36.58429010"
+    },
+    "primary_supertrend10x3_validation_stress": {
+      "candidate_total_return_pct": "160.65935180",
+      "candidate_maximum_drawdown_pct": "42.60657482",
+      "buy_hold_total_return_pct": "463.90931032"
+    },
+    "rejection_only_neighbor_supertrend10x2_5_validation_normal": {
+      "candidate_total_return_pct": "186.14692780",
+      "candidate_maximum_drawdown_pct": "32.43347532",
+      "candidate_calmar_ratio": "5.73934572",
+      "total_return_delta_pp": "-278.60782376",
+      "maximum_drawdown_delta_pp": "0.14931182",
+      "upside_capture_ratio": "0.40052722",
+      "calmar_ratio_to_buy_hold": "0.39868334"
+    },
+    "rejection_only_neighbor_supertrend10x3_5_validation_normal": {
+      "candidate_total_return_pct": "136.11911554",
+      "candidate_maximum_drawdown_pct": "38.80523050",
+      "candidate_calmar_ratio": "3.50775176",
+      "total_return_delta_pp": "-328.63563602",
+      "maximum_drawdown_delta_pp": "6.52106700",
+      "upside_capture_ratio": "0.29288375",
+      "calmar_ratio_to_buy_hold": "0.24366578"
+    },
+    "breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "4_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "1_of_5",
+      "normal_upside_capture_at_least_50pct_years": "2_of_5",
+      "top_year_positive_total_return_contribution_pct": "63.69213992",
+      "validation_top_positive_episode_contribution_pct": "36.58429010"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_supertrend10x2_5_validation_normal_drawdown_non_worse",
+    "neighbor_supertrend10x2_5_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_supertrend10x2_5_validation_normal_upside_capture_at_least_50pct",
+    "neighbor_supertrend10x3_5_validation_normal_drawdown_non_worse",
+    "neighbor_supertrend10x3_5_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_supertrend10x3_5_validation_normal_upside_capture_at_least_50pct",
+    "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+    "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+    "primary_top_year_positive_total_return_contribution_at_most_60pct"
+  ],
+  "passed_evidence": [
+    "The exact dataset, frozen sources, hourly lattice, 2192 complete UTC days and two byte-identical runs passed every integrity gate.",
+    "The primary produced positive Normal and Stress returns in Design and Validation, ended flat, and stayed within the frozen holding, turnover, stress-drawdown and episode-concentration limits.",
+    "Design exceeded buy-and-hold by 41.57746926 percentage points and reduced maximum drawdown by 21.71843342 percentage points.",
+    "The primary was positive under both cost scenarios in four of five annual windows and had drawdown no worse than buy-and-hold in four of five years."
+  ],
+  "material_learning": "Daily Supertrend ATR10 multiplier 3 was a strong Design-period trend state but did not generalize to 2023-2024 path-risk quality. Validation captured only 36.103566 percent of passive upside while maximum drawdown rose by 9.62954010 percentage points and Calmar fell to 27.808886 percent of buy-and-hold. Multiplier 2.5 captured 40.052722 percent of upside with slightly worse drawdown, and multiplier 3.5 captured only 29.288375 percent with materially worse drawdown. Only one of five years reached 75 percent of passive Calmar, only two reached 50 percent upside capture, and 63.69213992 percent of positive annual return was concentrated in the top year. The family therefore represents Design-period trend fit and reduced participation, not stable independent risk-adjusted alpha.",
+  "scientific_claim": "The exact daily complete-UTC-day Supertrend policy using Wilder RMA ATR10, primary multiplier 3.0 and preregistered rejection-only multipliers 2.5 and 3.5 produced positive after-cost historical returns but failed frozen Validation drawdown, upside-capture, Calmar, neighbor-stability, annual-breadth and year-concentration gates. None is a candidate, and the result does not authorize selecting multiplier 2.5, changing ATR length or formula, adding confirmation, a stop, a DRA interaction or an ensemble.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The supportive paper used different execution, sample and friction assumptions and did not disclose a directly reproducible parameter tuple.",
+    "Another band construction or parameter tuple would be a new fingerprint and cannot rescue this closed family without a genuinely independent pre-outcome prior.",
+    "The result establishes no deployability or Trading authority."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

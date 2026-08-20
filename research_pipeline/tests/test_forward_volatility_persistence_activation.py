@@ -134,7 +134,9 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
             created.receipt["leaf_trigger_fingerprint"],
         )
 
-    def test_existing_conflicting_leaf_or_release_fails_closed(self) -> None:
+    def test_existing_conflicting_leaf_fails_but_verified_release_upgrade_survives(
+        self,
+    ) -> None:
         store = self._store()
         release = _ReleaseFixture(Path(self.directory.name))
         lineage = _lineage()
@@ -153,8 +155,34 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
                 Path(self.directory.name) / "other",
                 release_id="20260818T020000Z",
             )
-            with self.assertRaisesRegex(ActivationIntegrityError, "conflicts"):
-                self._prepare(store, other, existing=created.receipt)
+            upgraded = self._prepare(store, other, existing=created.receipt)
+
+        self.assertFalse(upgraded.created)
+        self.assertEqual("ACTIVATION_RECEIPT_REVALIDATED", upgraded.status)
+        self.assertEqual(created.receipt, upgraded.receipt)
+        self.assertNotEqual(
+            other.release_id, upgraded.receipt["worker_release_id"]
+        )
+
+    def test_existing_receipt_rejects_upgraded_release_with_changed_evaluator(
+        self,
+    ) -> None:
+        store = self._store()
+        original = _ReleaseFixture(Path(self.directory.name))
+        lineage = _lineage()
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=lineage,
+        ):
+            created = self._prepare(store, original, existing=None)
+            upgraded = _ReleaseFixture(
+                Path(self.directory.name) / "changed-upgrade",
+                release_id="20260818T020000Z",
+            )
+            (upgraded.release / EVALUATOR_MODULE_RELATIVE).write_bytes(b"changed")
+            with self.assertRaises(ActivationIntegrityError):
+                self._prepare(store, upgraded, existing=created.receipt)
 
     def test_non_symlink_stale_or_escaped_control_current_fails_closed(self) -> None:
         store = self._store()

@@ -118,8 +118,16 @@ def prepare_forward_volatility_persistence_activation(
             raise ActivationIntegrityError(
                 "volatility activation receipt exists without forward lineage"
             )
-        closed_at = _eligible_successor_closed_at(lineage)
         validated = _validated_existing_receipt(existing_receipt, current=current)
+        if (
+            validated["leaf_trigger_id"] != lineage.leaf_trigger["trigger_id"]
+            or validated["leaf_trigger_fingerprint"]
+            != lineage.leaf_trigger["fingerprint"]
+        ):
+            raise ActivationIntegrityError(
+                "volatility activation receipt conflicts with current leaf"
+            )
+        closed_at = _eligible_successor_closed_at(lineage)
         activated_at = parse_timestamp(
             validated["activated_at"], "activation activated_at"
         ).astimezone(timezone.utc)
@@ -128,7 +136,7 @@ def prepare_forward_volatility_persistence_activation(
                 "volatility activation receipt predates successor observation"
             )
         try:
-            release = _require_release_identity(
+            _require_release_identity(
                 worker_root=Path(worker_root),
                 control_current=control_current,
                 activation_module_path=activation_module_path,
@@ -141,15 +149,13 @@ def prepare_forward_volatility_persistence_activation(
             raise ActivationIntegrityError(
                 "receipt-bound release metadata is absent"
             ) from error
-        expected = _build_receipt(
-            lineage=lineage,
-            activated_at=validated["activated_at"],
-            release=release,
-        )
-        if validated != expected:
-            raise ActivationIntegrityError(
-                "volatility activation receipt conflicts with current leaf or release"
-            )
+        # The receipt preserves the immutable release that first activated the
+        # evaluator.  A later clean Worker release is allowed to carry that
+        # receipt forward only after the current immutable release independently
+        # proves the same frozen evaluator schema/module and accepted result.
+        # Rebinding the receipt to the new release would rewrite provenance;
+        # requiring the historical release id to remain current would make every
+        # lawful Worker upgrade an integrity incident.
         return ActivationDecision(validated, False, "ACTIVATION_RECEIPT_REVALIDATED")
 
     if lineage is None or not lineage.rolled_over:

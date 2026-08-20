@@ -1,0 +1,11 @@
+{
+  "schema_version": "3.1",
+  "document_type": "OKX_DRA_CRYPTO_CARRY_PUBLIC_AXES_SCHEMA_PROBE_REQUEST_V3R1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "request_id": "okx-dra-crypto-carry-public-axes-schema-probe-v3r1-20260819",
+  "source_contract_id": "OKX_DRA_CRYPTO_CARRY_PUBLIC_AXES_SOURCE_V3R1",
+  "source_contract_sha256": "2e44b85a5a3998bf7285adbaba62095f80f0c7fce3fec9c75a0ec26369d90bcd",
+  "output_filename": "okx-dra-crypto-carry-public-axes-schema-probe.v3r1.json",
+  "single_use": true,
+  "source_activation_authorized": false
+}

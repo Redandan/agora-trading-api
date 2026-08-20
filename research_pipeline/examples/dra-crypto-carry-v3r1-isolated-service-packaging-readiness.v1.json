@@ -1,0 +1,82 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CRYPTO_CARRY_V3R1_ISOLATED_SERVICE_PACKAGING_READINESS_V1",
+  "readiness_id": "dra-crypto-carry-v3r1-isolated-service-packaging-readiness-v1",
+  "reviewed_at": "2026-08-19T06:30:00Z",
+  "family_id": "dra-crypto-carry-risk-veto",
+  "reuse_target": {
+    "service": "agora-research-dra-crypto-carry-source.service",
+    "identity": "agora-dra-carry-source",
+    "service_type": "ONESHOT",
+    "default_state": "DISABLED_INACTIVE",
+    "new_service": false,
+    "new_timer": false,
+    "new_path_unit": false,
+    "new_writer": false
+  },
+  "fixed_request": {
+    "path": "research_pipeline/examples/okx-dra-crypto-carry-public-axes-schema-probe-request.v3r1.json",
+    "sha256": "f0bd0d148cfdc6e5164e51f370300edcb03022879d6c04f1cfbc4c1dc99f0f9e",
+    "request_root": "/var/lib/agora-research/dra-crypto-carry-source-request-v3r1",
+    "request_filename": "schema-probe-request.v3r1.json",
+    "caller_arguments": false,
+    "caller_selected_endpoint_or_query": false,
+    "single_use": true,
+    "source_activation_authorized": false
+  },
+  "create_only_output": {
+    "drop_root": "/var/lib/agora-dra-carry-source/dra-crypto-carry-v3r1-probe-drop",
+    "filename": "okx-dra-crypto-carry-public-axes-schema-probe.v3r1.json",
+    "overwrite": "DENY",
+    "raw_response": "ABSENT",
+    "market_values": "REDACTED",
+    "fixed_identity_values": "RETAINED_FOR_SOURCE_PROOF"
+  },
+  "bindings": [
+    {
+      "path": "scripts/research-worker/run-dra-crypto-carry-phase.sh",
+      "role": "ZERO_ARGUMENT_V2_OR_EXACT_V3R1_REQUEST_ROUTER",
+      "sha256": "9793909862535fdae28a23686106c1ce2c8e4d939bfc3ebc8f482a11a82a4881"
+    },
+    {
+      "path": "scripts/research-worker/agora-research-dra-crypto-carry-source.service",
+      "role": "EXISTING_INACTIVE_CONFINED_ONESHOT",
+      "sha256": "9355b6ac6978020760b843af00bdac850d46d180a92eb7fe8649adef3dee2b88"
+    },
+    {
+      "path": "scripts/research-worker/install-upgrade.sh",
+      "role": "INACTIVE_PACKAGE_INSTALLER_NO_START",
+      "sha256": "5f5682c388d2d504a39d378a3b4e389d2f71e5bb5a4bafb42b6bb7f209c3d911"
+    },
+    {
+      "path": "scripts/research-worker/verify-worker.sh",
+      "role": "INACTIVE_CONFINEMENT_AND_NO_TIMER_VERIFIER",
+      "sha256": "f70610be2ba3232ab13410d7c09727183e4c7e7887bad16576cd99693a5439a8"
+    }
+  ],
+  "fail_closed_routing": [
+    "The exact V3R1 request hash is required.",
+    "A V3R1 request refuses any simultaneous V2 binding or request root.",
+    "The V3R1 request directory must contain exactly one fixed request file.",
+    "A pre-existing output refuses execution.",
+    "No V3R1 request preserves the existing V2 Java path without behavior drift.",
+    "The service remains disabled and has no timer or path companion."
+  ],
+  "verification": {
+    "test_path": "research_pipeline/tests/test_research_worker_release_lanes.py",
+    "test_sha256": "164796122508ab57f5fac6e702b8ad7c8060d6b5ed3d686102cf03c78a7d8d34",
+    "release_lane_tests_run": 25,
+    "release_lane_tests_passed": 25,
+    "shell_syntax_check": "PASS",
+    "systemd_host_verify": "NOT_RUN_NO_DEPLOYMENT",
+    "endpoint_access": false
+  },
+  "readiness": "PACKAGE_READY_NOT_DEPLOYED_NOT_REQUESTED_NOT_EXECUTED",
+  "next_gate": "DEPLOY_REVIEWED_INACTIVE_PACKAGE_THEN_INSTALL_EXACT_ONE_SHOT_REQUEST_AND_START_ONCE",
+  "deployment_performed": false,
+  "service_started": false,
+  "canonical_state_changed": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

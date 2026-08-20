@@ -39,12 +39,14 @@ CARRY_GROUP=agora-dra-carry-publish
 CARRY_UNIT=agora-research-dra-crypto-carry-source.service
 CARRY_BINDING=/etc/agora-research/okx-dra-crypto-carry-source-v2.json
 CARRY_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v2"
+CARRY_V3R1_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v3r1"
 CARRY_ROOT=/var/lib/agora-dra-carry-source
 CARRY_PRIVATE="$CARRY_ROOT/dra-crypto-carry-v2-private"
 CARRY_INVENTORY_STAGING="$CARRY_ROOT/dra-crypto-carry-v2-inventory-staging"
 CARRY_INVENTORY_DROP="$CARRY_ROOT/dra-crypto-carry-v2-inventory-drop"
 CARRY_DAY_STAGING="$CARRY_ROOT/dra-crypto-carry-v2-day-staging"
 CARRY_DAY_DROP="$CARRY_ROOT/dra-crypto-carry-v2-day-drop"
+CARRY_V3R1_PROBE_DROP="$CARRY_ROOT/dra-crypto-carry-v3r1-probe-drop"
 
 fail() { echo "[research-worker-upgrade] FAIL: $*" >&2; exit 1; }
 ok() { echo "[research-worker-upgrade] OK: $*"; }
@@ -690,6 +692,16 @@ if [ "$carry_package" = true ]; then
     a438ba041e0ac80e3757f842659f2afa14b701c9a94034b1f59dffa5e2aa0563
   require_sha256 "$SOURCE_DIR/research_pipeline/okx-dra-crypto-carry-intake-state.v2.schema.json" \
     2c8af00a076616ffc25b95a2709bde1d4b6b7efb5899240e50d7c9f9322060d8
+  require_sha256 "$SOURCE_DIR/research_pipeline/okx-dra-crypto-carry-public-axes-source-contract.v3r1.json" \
+    2e44b85a5a3998bf7285adbaba62095f80f0c7fce3fec9c75a0ec26369d90bcd
+  require_sha256 "$SOURCE_DIR/research_pipeline/okx-dra-crypto-carry-public-axes-schema-probe.v3r1.schema.json" \
+    137eda117cdcecaaccdd5ca03c54f26be5f718d28e5718553dbbd46421f6787a
+  require_sha256 "$SOURCE_DIR/research_pipeline/dra_crypto_carry_public_axes_v3r1.py" \
+    b1855510810e19f919d22e671bfa6f06da7b2c32b43c4b8bc2c2f7a0ced87d79
+  require_sha256 "$SOURCE_DIR/research_pipeline/dra_crypto_carry_public_axes_v3r1_producer.py" \
+    b5bfb85c2bb1b3fcbcaf454220c89adfbd1dfd9abed336af7274ccfc089c702e
+  require_sha256 "$SOURCE_DIR/research_pipeline/examples/okx-dra-crypto-carry-public-axes-schema-probe-request.v3r1.json" \
+    f0bd0d148cfdc6e5164e51f370300edcb03022879d6c04f1cfbc4c1dc99f0f9e
 
   if ! getent group "$CARRY_GROUP" >/dev/null; then
     sudo groupadd --system "$CARRY_GROUP"
@@ -817,7 +829,7 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
     sudo install -d -o "$CARRY_USER" -g "$CARRY_GROUP" -m 0700 \
       "$CARRY_PRIVATE" "$CARRY_INVENTORY_STAGING" "$CARRY_DAY_STAGING"
     sudo install -d -o root -g "$CARRY_GROUP" -m 1770 \
-      "$CARRY_INVENTORY_DROP" "$CARRY_DAY_DROP"
+      "$CARRY_INVENTORY_DROP" "$CARRY_DAY_DROP" "$CARRY_V3R1_PROBE_DROP"
   fi
 fi
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \

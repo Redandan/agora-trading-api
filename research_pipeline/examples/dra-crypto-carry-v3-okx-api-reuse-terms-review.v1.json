@@ -1,0 +1,108 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CRYPTO_CARRY_V3_OKX_API_REUSE_TERMS_REVIEW_V1",
+  "review_id": "dra-crypto-carry-v3-okx-api-reuse-terms-review-v1",
+  "reviewed_on": "2026-08-19",
+  "research_scope": "BOUNDED_INTERNAL_NONCOMMERCIAL_PERSONAL_TRADING_RESEARCH_ONLY",
+  "legal_advice": false,
+  "source_access_performed": false,
+  "market_values_observed_or_recorded": false,
+  "official_sources": [
+    {
+      "title": "OKX API Agreement",
+      "url": "https://www.okx.com/en-gb/help/okx-api-agreement",
+      "published_on": "2026-03-26",
+      "last_updated_on": "2026-07-28",
+      "reviewed_sections": [
+        "1.8",
+        "2.1",
+        "2.2",
+        "3.2(a)",
+        "3.3",
+        "3.4",
+        "3.5",
+        "8.3",
+        "9.2",
+        "9.3",
+        "9.4",
+        "9.7",
+        "13.3",
+        "15"
+      ]
+    },
+    {
+      "title": "OKX API V5 Documentation",
+      "url": "https://www.okx.com/docs-v5/en/",
+      "reviewed_on": "2026-08-19",
+      "reviewed_topics": [
+        "public market data authentication",
+        "endpoint and schema mutability",
+        "regional API domains"
+      ]
+    }
+  ],
+  "material_findings": [
+    {
+      "finding_id": "PUBLIC_DATA_REMAINS_RESTRICTED_MARKET_DATA",
+      "basis": "Agreement sections 1.8, 3.2(a) and 9.4",
+      "finding": "Funding rate, open interest and other values from unauthenticated public endpoints remain OKX Market Data and are not free of use restrictions merely because no API key is required."
+    },
+    {
+      "finding_id": "INTERNAL_PERSONAL_NONCOMMERCIAL_USE_ONLY",
+      "basis": "Agreement sections 9.2 through 9.4",
+      "finding": "The available license is limited, revocable and restricted to the user's own internal, personal, non-commercial trading and account-management purposes."
+    },
+    {
+      "finding_id": "NO_REDISTRIBUTION_OR_COMMERCIAL_DATA_PRODUCT",
+      "basis": "Agreement sections 9.3 and 9.4",
+      "finding": "Raw or reconstructable Market Data must not be published, redistributed, resold, exposed to third parties or used in a competing data or commercial analytics product without prior written consent."
+    },
+    {
+      "finding_id": "NO_COMMERCIALIZED_AI_TRAINING_OR_EVALUATION",
+      "basis": "Agreement sections 9.4(c) and 13.3",
+      "finding": "Market Data must not be used to train, fine-tune or evaluate an AI system intended for commercialization or third-party availability."
+    },
+    {
+      "finding_id": "BOUNDED_RATE_AND_SCALE_REQUIRED",
+      "basis": "Agreement section 9.4 automated scraping and circumvention restrictions",
+      "finding": "Automated access must remain reasonably necessary for personal trading use, respect published limits and avoid high-frequency, large-scale, circumvention or unreasonable platform load."
+    },
+    {
+      "finding_id": "TERMS_AND_SCHEMA_CAN_CHANGE",
+      "basis": "Agreement sections 3.1, 9.7 and 15 plus API V5 documentation",
+      "finding": "Endpoint schemas, access rights and agreement terms can change or be revoked, so source activation requires a fresh schema receipt and recurring terms-version review."
+    }
+  ],
+  "permitted_research_envelope": {
+    "purpose": "Private evidence generation for the user's own non-commercial trading research",
+    "request_scope": "The four credential-free request identities frozen by the V3 source contract",
+    "initial_probe": "One schema-only probe that records keys and value types but no market values",
+    "prospective_capture": "Only after separate source activation review; bounded frequency and rows; no endpoint expansion",
+    "storage": "Access-controlled private research state only; no raw values in publishable reports, prompts or source-controlled examples",
+    "outputs": "Aggregate internal research diagnostics that do not expose or reconstruct OKX Market Data",
+    "trading_scope": "Research only; no order, account, SHADOW, PAPER or LIVE activation"
+  },
+  "prohibited_or_unproven_uses": [
+    "Commercial strategy, signal, analytics, data-feed or marketplace distribution",
+    "Third-party access to raw or reconstructable OKX Market Data",
+    "Commercialized or third-party AI training, fine-tuning or evaluation",
+    "High-frequency or large-scale extraction without a separate data license",
+    "Rate-limit, regional-domain, account-eligibility or technical-control circumvention",
+    "Any claim that this review is legal advice or written OKX consent"
+  ],
+  "activation_conditions": [
+    "The operator confirms the use remains personal, internal and non-commercial for the user's own trading research.",
+    "A fresh approved isolated schema-only receipt passes the frozen V3 offline validator.",
+    "No raw or reconstructable Market Data is sent to third parties or placed in publishable artifacts.",
+    "The capture remains within the four frozen public requests and bounded rate and row limits.",
+    "The applicable regional domain, user eligibility and current agreement version are checked before activation.",
+    "Any agreement or endpoint change forces fail-closed re-review before further capture."
+  ],
+  "disposition": "TERMS_GATE_CONDITIONALLY_PASSED_FOR_BOUNDED_INTERNAL_NONCOMMERCIAL_RESEARCH_ONLY",
+  "remaining_blocker": "FRESH_APPROVED_ISOLATED_SCHEMA_ONLY_PROBE_RECEIPT_NOT_ACCEPTED",
+  "source_activation": false,
+  "capture_registered": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

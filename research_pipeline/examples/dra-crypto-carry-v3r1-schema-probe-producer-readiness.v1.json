@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CRYPTO_CARRY_V3R1_SCHEMA_PROBE_PRODUCER_READINESS_V1",
+  "readiness_id": "dra-crypto-carry-v3r1-schema-probe-producer-readiness-v1",
+  "reviewed_at": "2026-08-19T06:26:00Z",
+  "family_id": "dra-crypto-carry-risk-veto",
+  "producer": {
+    "path": "research_pipeline/dra_crypto_carry_public_axes_v3r1_producer.py",
+    "sha256": "b5bfb85c2bb1b3fcbcaf454220c89adfbd1dfd9abed336af7274ccfc089c702e",
+    "execution_identity": "APPROVED_ISOLATED_CREDENTIAL_FREE_SOURCE_HOST",
+    "import_network_side_effect": false,
+    "runtime_arguments": ["CREATE_ONLY_RECEIPT_OUTPUT_PATH"],
+    "caller_selected_url_symbol_interval_or_query": false,
+    "retry": false,
+    "alternate_provider": false
+  },
+  "frozen_behavior": {
+    "requests": 4,
+    "origin": "https://www.okx.com",
+    "methods": ["GET"],
+    "credential_headers": false,
+    "environment_credentials": false,
+    "proxy_environment_inheritance": false,
+    "timeout_seconds_each": 15,
+    "maximum_raw_response_bytes_each": 262144,
+    "raw_response_persistence": false,
+    "raw_response_transport": false,
+    "market_value_receipt_fields": false,
+    "fixed_identity_values_retained": true,
+    "receipt_write": "CREATE_ONCE_NO_OVERWRITE",
+    "source_activation_authorized": false
+  },
+  "verification": {
+    "test_path": "research_pipeline/tests/test_dra_crypto_carry_public_axes_v3r1_producer.py",
+    "test_sha256": "2a6fee54f214df4b152494efa939a52eca8dee2242652e1635249b584dffe3eb",
+    "tests_run": 6,
+    "tests_passed": 6,
+    "fixtures": "SYNTHETIC_ONLY_NO_OKX_REQUEST",
+    "validated_failures": [
+      "WRONG_FIXED_IDENTITY",
+      "ROW_SCHEMA_DRIFT",
+      "NONZERO_API_CODE",
+      "REDIRECT",
+      "MULTIPLE_FIXED_ROWS",
+      "OVERWRITE_ATTEMPT"
+    ]
+  },
+  "reuse_boundary": {
+    "existing_source_identity": "agora-dra-carry-source",
+    "existing_unit": "agora-research-dra-crypto-carry-source.service",
+    "new_timer_required": false,
+    "new_writer_required": false,
+    "deployment_or_unit_change_performed": false,
+    "unit_started": false,
+    "endpoint_access_performed": false
+  },
+  "readiness": "PRODUCER_CODE_READY_NOT_INSTALLED_NOT_EXECUTED",
+  "next_gate": "PACKAGE_ON_EXISTING_INACTIVE_SOURCE_IDENTITY_AND_RUN_ONE_APPROVED_V3R1_SCHEMA_ONLY_PROBE",
+  "candidate_created": false,
+  "oos_opened": false,
+  "canonical_state_changed": false,
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

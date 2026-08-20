@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-dra-crypto-carry-public-axes-schema-probe.v3r1.schema.json",
+  "title": "OKX DRA crypto carry public axes schema-only probe receipt V3R1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "authorization",
+    "source_contract_id",
+    "source_contract_sha256",
+    "probed_at",
+    "probe_host_identity",
+    "network_path",
+    "endpoints",
+    "no_market_values_persisted",
+    "raw_responses_persisted",
+    "raw_responses_transported",
+    "source_activation_authorized",
+    "probe_seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "3.1"},
+    "document_type": {"const": "OKX_DRA_CRYPTO_CARRY_PUBLIC_AXES_SCHEMA_ONLY_PROBE_V3R1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "source_contract_id": {"const": "OKX_DRA_CRYPTO_CARRY_PUBLIC_AXES_SOURCE_V3R1"},
+    "source_contract_sha256": {"$ref": "#/$defs/sha256"},
+    "probed_at": {"$ref": "#/$defs/timestamp"},
+    "probe_host_identity": {"const": "APPROVED_ISOLATED_CREDENTIAL_FREE_SOURCE_HOST"},
+    "network_path": {"const": "SOURCE_HOST_HTTPS_GET_ONLY_NO_RESEARCH_WORKER_NETWORK"},
+    "endpoints": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {"$ref": "#/$defs/endpointProbe"}
+    },
+    "no_market_values_persisted": {"const": true},
+    "raw_responses_persisted": {"const": false},
+    "raw_responses_transported": {"const": false},
+    "source_activation_authorized": {"const": false},
+    "probe_seal": {"$ref": "#/$defs/seal"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "identityValues": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["instId", "instType"],
+          "properties": {
+            "instId": {"type": "string", "pattern": "^BTC-USDT-[0-9]{6}$"},
+            "instType": {"const": "FUTURES"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["instId", "instType"],
+          "properties": {
+            "instId": {"const": "BTC-USDT-SWAP"},
+            "instType": {"const": "SWAP"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["formulaType", "instId", "method"],
+          "properties": {
+            "formulaType": {"type": "string", "minLength": 1},
+            "instId": {"const": "BTC-USDT-SWAP"},
+            "method": {"type": "string", "minLength": 1}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ccy"],
+          "properties": {"ccy": {"const": "USDT"}}
+        }
+      ]
+    },
+    "endpointProbe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endpoint_id",
+        "request_fingerprint_sha256",
+        "credential_sent",
+        "http_status",
+        "response_observed_at",
+        "top_level_keys",
+        "api_code",
+        "response_data_row_count",
+        "inspected_data_row_index",
+        "inspected_data_row_keys",
+        "inspected_data_value_types",
+        "identity_values",
+        "required_timestamp_fields_present",
+        "raw_response_sha256",
+        "raw_response_bytes",
+        "values_redacted",
+        "schema_match"
+      ],
+      "properties": {
+        "endpoint_id": {"enum": ["FUTURES_OPEN_INTEREST", "SWAP_OPEN_INTEREST", "SWAP_FUNDING_RATE_HISTORY", "USDT_LENDING_RATE_HISTORY"]},
+        "request_fingerprint_sha256": {"$ref": "#/$defs/sha256"},
+        "credential_sent": {"const": false},
+        "http_status": {"const": 200},
+        "response_observed_at": {"$ref": "#/$defs/timestamp"},
+        "top_level_keys": {"const": ["code", "data", "msg"]},
+        "api_code": {"const": "0"},
+        "response_data_row_count": {"type": "integer", "minimum": 1},
+        "inspected_data_row_index": {"type": "integer", "minimum": 0},
+        "inspected_data_row_keys": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "inspected_data_value_types": {"type": "object", "additionalProperties": {"const": "STRING"}},
+        "identity_values": {"$ref": "#/$defs/identityValues"},
+        "required_timestamp_fields_present": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "raw_response_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_response_bytes": {"type": "integer", "minimum": 1, "maximum": 262144},
+        "values_redacted": {"const": true},
+        "schema_match": {"const": true}
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization", "sealed_at"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {"const": "UTF-8 compact sorted-key JSON excluding probe_seal"},
+        "sealed_at": {"$ref": "#/$defs/timestamp"}
+      }
+    }
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "schema_version": "3",
+  "contract_id": "OKX_DRA_CRYPTO_CARRY_PUBLIC_AXES_SOURCE_V3",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "document_status": "FROZEN_AWAITING_ISOLATED_SCHEMA_ONLY_PROBE_NOT_REGISTERED",
+  "frozen_at": "2026-08-19T07:00:00Z",
+  "family_id": "dra-crypto-carry-risk-veto",
+  "source_label": "PROSPECTIVE_OKX_PUBLIC_CRYPTO_CARRY_AXES_V3",
+  "source_identity": "approved-isolated-okx-public-carry-source",
+  "intake_identity": "agora-research-network-denied",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "state_authority": "SERVER_CANONICAL",
+  "predecessor_evidence": {
+    "semantic_axis_audit": {
+      "path": "research_pipeline/examples/dra-crypto-carry-v3-public-semantic-axis-representation-audit.v1.json",
+      "sha256": "67ddd1d476f510522ec23a32454b5880b3b95a2432d41e0a96bd35c5fb3fef8a"
+    },
+    "disabled_v2_contract": {
+      "path": "research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v2.json",
+      "sha256": "183eeb35dc4729ff91970e4b892f141f58452abfa350591888587ce01035e4ad"
+    }
+  },
+  "schemas": {
+    "schema_only_probe_receipt": {
+      "path": "research_pipeline/okx-dra-crypto-carry-public-axes-schema-probe.v3.schema.json",
+      "id": "https://agora.local/research/okx-dra-crypto-carry-public-axes-schema-probe.v3.schema.json",
+      "sha256": "c9d6448c252a02e4209148bb75941990f2ec787c65277bd2a94d2010f875d643"
+    }
+  },
+  "requests": [
+    {
+      "endpoint_id": "FUTURES_OPEN_INTEREST",
+      "method": "GET",
+      "origin": "https://www.okx.com",
+      "path": "/api/v5/public/open-interest",
+      "query": {"instFamily": "BTC-USDT", "instType": "FUTURES"},
+      "credentials": "NONE",
+      "maximum_probe_rows": 1,
+      "expected_top_level_keys": ["code", "data", "msg"],
+      "expected_data_row_keys": ["instId", "instType", "oi", "oiCcy", "oiUsd", "ts"],
+      "required_identity_fields": ["instId", "instType"],
+      "required_timestamp_fields": ["ts"],
+      "identity_rule": "instType MUST equal FUTURES and instId MUST be an expiry-specific BTC-USDT instrument selected only from the preserved V2 inventory semantics"
+    },
+    {
+      "endpoint_id": "SWAP_OPEN_INTEREST",
+      "method": "GET",
+      "origin": "https://www.okx.com",
+      "path": "/api/v5/public/open-interest",
+      "query": {"instId": "BTC-USDT-SWAP", "instType": "SWAP"},
+      "credentials": "NONE",
+      "maximum_probe_rows": 1,
+      "expected_top_level_keys": ["code", "data", "msg"],
+      "expected_data_row_keys": ["instId", "instType", "oi", "oiCcy", "oiUsd", "ts"],
+      "required_identity_fields": ["instId", "instType"],
+      "required_timestamp_fields": ["ts"],
+      "identity_rule": "instType MUST equal SWAP and instId MUST equal BTC-USDT-SWAP"
+    },
+    {
+      "endpoint_id": "SWAP_FUNDING_RATE_HISTORY",
+      "method": "GET",
+      "origin": "https://www.okx.com",
+      "path": "/api/v5/public/funding-rate-history",
+      "query": {"instId": "BTC-USDT-SWAP", "limit": "1"},
+      "credentials": "NONE",
+      "maximum_probe_rows": 1,
+      "expected_top_level_keys": ["code", "data", "msg"],
+      "expected_data_row_keys": ["formulaType", "fundingRate", "fundingTime", "impactMargin", "instId", "interestRate", "method"],
+      "required_identity_fields": ["formulaType", "instId", "method"],
+      "required_timestamp_fields": ["fundingTime"],
+      "identity_rule": "instId MUST equal BTC-USDT-SWAP; method and formulaType MUST be retained as source-provided strings and never inferred"
+    },
+    {
+      "endpoint_id": "USDT_LENDING_RATE_HISTORY",
+      "method": "GET",
+      "origin": "https://www.okx.com",
+      "path": "/api/v5/finance/savings/lending-rate-history",
+      "query": {"ccy": "USDT", "limit": "1"},
+      "credentials": "NONE",
+      "maximum_probe_rows": 1,
+      "expected_top_level_keys": ["code", "data", "msg"],
+      "expected_data_row_keys": ["ccy", "lendingRate", "rate", "ts"],
+      "required_identity_fields": ["ccy"],
+      "required_timestamp_fields": ["ts"],
+      "identity_rule": "ccy MUST equal USDT; rate and lendingRate MUST both be present under the same accepted schema version or the axis fails closed"
+    }
+  ],
+  "schema_only_probe": {
+    "host": "APPROVED_ISOLATED_CREDENTIAL_FREE_SOURCE_HOST",
+    "network": "HTTPS_GET_ALLOWED_ONLY_ON_PROBE_HOST",
+    "research_worker_network": "DENY",
+    "credentials": "DENY",
+    "private_account_endpoints": "DENY",
+    "persist_market_values": "DENY",
+    "transport_raw_response_bytes": "DENY",
+    "retain_raw_response_hash_only": true,
+    "receipt_publication": "CREATE_ONCE_ONE_WAY_AFTER_ALL_FOUR_ENDPOINTS_MATCH",
+    "retry_or_alternate_provider": "DENY",
+    "pass_condition": "ALL_FOUR_EXACT_REQUESTS_RETURN_HTTP_200_WITH_NO_CREDENTIAL_AND_EXACT_FROZEN_TOP_LEVEL_ROW_IDENTITY_AND_TIMESTAMP_FIELDS",
+    "failure_condition": "ANY_AUTH_REQUIREMENT_SCHEMA_DRIFT_MISSING_ROW_MISSING_IDENTITY_MISSING_TIMESTAMP_OR_PRIVATE_FIELD_DEPENDENCY"
+  },
+  "prospective_eligibility": {
+    "contract_activation": "DENY_UNTIL_ACCEPTED_SCHEMA_ONLY_PROBE_AND_SEPARATE_SOURCE_ACTIVATION_REVIEW",
+    "first_eligible_observation": "STRICTLY_AFTER_ACCEPTED_PROBE_RECEIPT_AND_ACTIVATION_RECEIPT",
+    "reuse_v2_r2_r3_or_precontract_observations": "DENY",
+    "historical_backfill": "DENY",
+    "late_retry": "DENY",
+    "revision_repair": "DENY",
+    "partial_axis_salvage": "DENY"
+  },
+  "transport": {
+    "mode": "EXISTING_CREATE_ONLY_ATOMIC_ONE_WAY_COMPANION_AFTER_SEPARATE_REVIEW",
+    "single_clock": "CLOUD_OPS_SCHEDULE_V10",
+    "second_timer": "DENY",
+    "second_writer": "DENY",
+    "publisher_read_after_publish": "DENY",
+    "research_worker_network_access": "DENY",
+    "canonical_write_before_activation": "DENY"
+  },
+  "atom_semantics": {
+    "futures_open_interest": "Gross expiry-specific derivative participation only; no directional position or alpha interpretation",
+    "swap_open_interest": "Gross perpetual derivative participation only; never interchangeable with expiry-futures open interest",
+    "swap_funding": "Perpetual transfer metadata only; never an expiry basis, borrowing cost or executable return",
+    "usdt_lending_rate": "Public financing-cost proxy only; never account quota, balance-sheet capacity or proof of constrained arbitrage",
+    "values": "Source strings remain unparsed during schema probe; no delta normalization sign threshold score factor or signal is selected"
+  },
+  "forbidden_derived_fields": [
+    "basis",
+    "carry",
+    "annualization",
+    "direction",
+    "delta",
+    "normalization",
+    "threshold",
+    "score",
+    "signal",
+    "return",
+    "pnl",
+    "drawdown",
+    "hypothesis",
+    "candidate"
+  ],
+  "readiness": {
+    "schema_contract_frozen": true,
+    "schema_only_probe_accepted": false,
+    "reuse_terms_reviewed": false,
+    "source_registered": false,
+    "capture_authorized": false,
+    "canonical_integration": false,
+    "factor_formula_authorized": false,
+    "hypothesis_authorized": false,
+    "candidate_authorized": false,
+    "oos_authorized": false,
+    "trading_authorized": false,
+    "immediate_fee_adjusted_total_pnl_effect": "ZERO",
+    "immediate_drawdown_effect": "ZERO"
+  }
+}

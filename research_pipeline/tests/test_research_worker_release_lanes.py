@@ -380,6 +380,70 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn("grep -Fxq 'TimeoutStartSec=30m'", self.verifier)
         self.assertIn("grep -Eq '^RuntimeMaxSec='", self.verifier)
 
+    def test_carry_v3r1_probe_reuses_inactive_oneshot_without_timer_or_raw_transport(self) -> None:
+        launcher = text(WORKER / "run-dra-crypto-carry-phase.sh")
+        request_path = (
+            REPOSITORY
+            / "research_pipeline"
+            / "examples"
+            / "okx-dra-crypto-carry-public-axes-schema-probe-request.v3r1.json"
+        )
+        self.assertEqual(
+            hashlib.sha256(request_path.read_bytes()).hexdigest(),
+            "f0bd0d148cfdc6e5164e51f370300edcb03022879d6c04f1cfbc4c1dc99f0f9e",
+        )
+        self.assertIn(
+            "-m research_pipeline.dra_crypto_carry_public_axes_v3r1_producer",
+            launcher,
+        )
+        self.assertIn('require_sha256 "$V3R1_REQUEST_PATH"', launcher)
+        self.assertIn('"$V3R1_PROBE_OUTPUT"', launcher)
+        self.assertIn("V3R1 probe refuses a simultaneous V2 request root", launcher)
+        self.assertIn("V3R1 probe output already exists", launcher)
+        self.assertIn('if [ "$v3r1_probe_requested" = true ]; then', launcher)
+        self.assertNotIn(
+            'for path in "$BINDING_PATH" "$manifest" "$provenance" "$jar_path"',
+            launcher,
+        )
+        route_start = launcher.index('if [ "$v3r1_probe_requested" = true ]; then')
+        release_hash_gate = launcher.index("installed release differs from its sealed manifest")
+        self.assertLess(route_start, release_hash_gate)
+        route = launcher[route_start:release_hash_gate]
+        self.assertIn("fixed V2 source binding is missing or symlinked", route)
+        self.assertIn("V3R1 probe refuses a pre-existing V2 source binding", route)
+        self.assertNotIn("curl ", launcher)
+        self.assertNotIn("wget ", launcher)
+
+        read_only = {
+            item
+            for line in self.carry_unit.splitlines()
+            if line.startswith("ReadOnlyPaths=")
+            for item in line.removeprefix("ReadOnlyPaths=").split()
+        }
+        self.assertEqual(
+            read_only,
+            {
+                "-/etc/agora-research/okx-dra-crypto-carry-source-v2.json",
+                "-/var/lib/agora-research/dra-crypto-carry-source-request-v2",
+                "-/var/lib/agora-research/dra-crypto-carry-source-request-v3r1",
+            },
+        )
+        writes = {
+            item
+            for line in self.carry_unit.splitlines()
+            if line.startswith("ReadWritePaths=")
+            for item in line.removeprefix("ReadWritePaths=").split()
+        }
+        self.assertIn(
+            "/var/lib/agora-dra-carry-source/dra-crypto-carry-v3r1-probe-drop",
+            writes,
+        )
+        self.assertIn("$CARRY_V3R1_PROBE_DROP", self.installer)
+        self.assertIn("$CARRY_V3R1_PROBE_DROP", self.verifier)
+        self.assertIn("$CARRY_V3R1_REQUEST_ROOT", self.verifier)
+        self.assertFalse(any(WORKER.glob("agora-research-dra-crypto-carry*.timer")))
+        self.assertFalse(any(WORKER.glob("agora-research-dra-crypto-carry*.path")))
+
     def test_preserve_has_exact_post_install_invariants(self) -> None:
         required = (
             'data-current link bytes changed during preserve upgrade',

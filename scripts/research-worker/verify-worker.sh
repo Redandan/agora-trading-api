@@ -41,12 +41,14 @@ CARRY_GROUP=agora-dra-carry-publish
 CARRY_UNIT=agora-research-dra-crypto-carry-source.service
 CARRY_BINDING=/etc/agora-research/okx-dra-crypto-carry-source-v2.json
 CARRY_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v2"
+CARRY_V3R1_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v3r1"
 CARRY_ROOT=/var/lib/agora-dra-carry-source
 CARRY_PRIVATE="$CARRY_ROOT/dra-crypto-carry-v2-private"
 CARRY_INVENTORY_STAGING="$CARRY_ROOT/dra-crypto-carry-v2-inventory-staging"
 CARRY_INVENTORY_DROP="$CARRY_ROOT/dra-crypto-carry-v2-inventory-drop"
 CARRY_DAY_STAGING="$CARRY_ROOT/dra-crypto-carry-v2-day-staging"
 CARRY_DAY_DROP="$CARRY_ROOT/dra-crypto-carry-v2-day-drop"
+CARRY_V3R1_PROBE_DROP="$CARRY_ROOT/dra-crypto-carry-v3r1-probe-drop"
 CARRY_DIST=target/dra-crypto-carry-dist
 CARRY_JAR="$CARRY_DIST/agora-trading-api-1.0-SNAPSHOT-dra-crypto-carry-research.jar"
 
@@ -934,7 +936,9 @@ case "$EXPECT_CARRY_SOURCE" in
     if getent group "$CARRY_GROUP" >/dev/null 2>&1; then
       fail "carry publisher group is present when absence was required"
     fi
-    for absent_path in "$CARRY_ROOT" "$CARRY_BINDING" "$CARRY_REQUEST_ROOT"; do
+    for absent_path in \
+      "$CARRY_ROOT" "$CARRY_BINDING" "$CARRY_REQUEST_ROOT" \
+      "$CARRY_V3R1_REQUEST_ROOT"; do
       [ ! -e "$absent_path" ] && [ ! -L "$absent_path" ] \
         || fail "carry path is present when absence was required: $absent_path"
     done
@@ -1188,7 +1192,8 @@ if set(sys.argv[1].split()) != {"AF_UNIX", "AF_INET", "AF_INET6"}:
     raise SystemExit("carry source address families are not exact")
 PY
   carry_read_only="$(systemctl show "$CARRY_UNIT" --property=ReadOnlyPaths --value)"
-  python3 - "$carry_read_only" "-$CARRY_BINDING" "-$CARRY_REQUEST_ROOT" <<'PY'
+  python3 - "$carry_read_only" \
+    "-$CARRY_BINDING" "-$CARRY_REQUEST_ROOT" "-$CARRY_V3R1_REQUEST_ROOT" <<'PY'
 import sys
 
 if set(sys.argv[1].split()) != set(sys.argv[2:]):
@@ -1197,7 +1202,7 @@ PY
   carry_writes="$(systemctl show "$CARRY_UNIT" --property=ReadWritePaths --value)"
   python3 - "$carry_writes" \
     "$CARRY_PRIVATE" "$CARRY_INVENTORY_STAGING" "$CARRY_INVENTORY_DROP" \
-    "$CARRY_DAY_STAGING" "$CARRY_DAY_DROP" <<'PY'
+    "$CARRY_DAY_STAGING" "$CARRY_DAY_DROP" "$CARRY_V3R1_PROBE_DROP" <<'PY'
 import sys
 
 if set(sys.argv[1].split()) != set(sys.argv[2:]):
@@ -1237,13 +1242,16 @@ PY
     || fail "carry binding exists before a separately authorized registration"
   [ ! -e "$CARRY_REQUEST_ROOT" ] && [ ! -L "$CARRY_REQUEST_ROOT" ] \
     || fail "carry request root exists before a separately authorized registration"
+  [ ! -e "$CARRY_V3R1_REQUEST_ROOT" ] && [ ! -L "$CARRY_V3R1_REQUEST_ROOT" ] \
+    || fail "carry V3R1 probe request root exists before a separately authorized one-shot request"
   [ "$(sudo stat -c '%U:%G:%a' "$CARRY_ROOT")" = "root:$CARRY_GROUP:710" ] \
     || fail "carry root metadata is incorrect"
   for source_root in "$CARRY_PRIVATE" "$CARRY_INVENTORY_STAGING" "$CARRY_DAY_STAGING"; do
     [ "$(sudo stat -c '%U:%G:%a' "$source_root")" = "$CARRY_USER:$CARRY_GROUP:700" ] \
       || fail "carry private/staging metadata is incorrect: $source_root"
   done
-  for drop_root in "$CARRY_INVENTORY_DROP" "$CARRY_DAY_DROP"; do
+  for drop_root in \
+    "$CARRY_INVENTORY_DROP" "$CARRY_DAY_DROP" "$CARRY_V3R1_PROBE_DROP"; do
     [ "$(sudo stat -c '%U:%G:%a' "$drop_root")" = "root:$CARRY_GROUP:1770" ] \
       || fail "carry sticky drop metadata is incorrect: $drop_root"
   done

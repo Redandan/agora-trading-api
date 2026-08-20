@@ -1,0 +1,183 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CRYPTO_CARRY_V3_PUBLIC_SEMANTIC_AXIS_REPRESENTATION_AUDIT_V1",
+  "audit_id": "dra-crypto-carry-v3-public-semantic-axis-representation-audit-v1",
+  "audited_at": "2026-08-19T05:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "CARRY_V3_PUBLIC_SEMANTIC_AXES_READY_FOR_ONE_SOURCE_CONTRACT_FREEZE",
+  "family_id": "dra-crypto-carry-risk-veto",
+  "duplicate_family_key": "dra-crypto-carry-risk-veto",
+  "inputs": [
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
+      "role": "SEALED_PRIMARY_CAUSAL_PRIOR",
+      "sha256": "1120dbcc30bbf6e268daf55e1fb0869e56effb5d1114a7bbfb3827d4b6aae334"
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json",
+      "role": "SEALED_PARAMETER_FREE_FACTOR_BOUNDARY",
+      "sha256": "9656429e3e51c64207c667ee85657d3505ea3c1a4dbff424b2901c45e53a3b18"
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-v2-source-representation-proof.v1.json",
+      "role": "SEALED_V2_MISSING_REPRESENTATION_PROOF",
+      "sha256": "eece925be2ffe06bc922c78b3888d748859875602524d964b356b5b77fd8994d"
+    },
+    {
+      "path": "research_pipeline/examples/okx-microstructure-v3r1-source-integrity-opportunity-cost-closure.v1.json",
+      "role": "SEALED_R3_TERMINAL_REVISIT_GATE",
+      "sha256": "b95271a4f758e1d7a4ef2d1e283ffb7fb4d77cdd77bd2977520393f08e6d0f09"
+    }
+  ],
+  "source_review": {
+    "access_mode": "OFFICIAL_DOCUMENTATION_ONLY_NO_ENDPOINT_CALL_NO_MARKET_VALUE_ACCESS",
+    "reviewed_sources": [
+      {
+        "identity": "OKX API V5 public data documentation",
+        "url": "https://www.okx.com/docs-v5/en/",
+        "relevant_endpoint": "GET /api/v5/public/open-interest",
+        "documented_access": "PUBLIC_NO_AUTHENTICATION_IP_AND_INSTRUMENT_RATE_LIMIT",
+        "documented_fields": [
+          "instType",
+          "instId",
+          "oi",
+          "oiCcy",
+          "oiUsd",
+          "ts"
+        ]
+      },
+      {
+        "identity": "OKX API V5 public funding documentation and changelog",
+        "url": "https://www.okx.com/docs-v5/log_en/",
+        "relevant_endpoint": "GET /api/v5/public/funding-rate-history",
+        "documented_access": "PUBLIC_NO_TRADING_CREDENTIAL",
+        "documented_fields": [
+          "instId",
+          "fundingRate",
+          "fundingTime",
+          "method",
+          "formulaType",
+          "interestRate",
+          "impactMargin"
+        ]
+      },
+      {
+        "identity": "OKX API V5 Simple Earn flexible public borrow documentation and changelog",
+        "url": "https://www.okx.com/docs-v5/log_en/",
+        "relevant_endpoint": "GET /api/v5/finance/savings/lending-rate-history",
+        "documented_access": "PUBLIC_NO_AUTHENTICATION",
+        "documented_fields": [
+          "ccy",
+          "rate",
+          "lendingRate",
+          "ts"
+        ]
+      }
+    ],
+    "explicitly_excluded_private_endpoints": [
+      "GET /api/v5/account/interest-rate-loan-quota",
+      "GET /api/v5/account/interest-limits",
+      "GET /api/v5/account/interest-rate",
+      "GET /api/v5/account/risk-state"
+    ],
+    "endpoint_probe_performed": false,
+    "historical_backfill_performed": false,
+    "market_values_observed": false,
+    "paid_api_used": false
+  },
+  "semantic_axis_matrix": {
+    "derivative_demand": {
+      "status": "REPRESENTABLE_BY_INDEPENDENT_TYPED_PUBLIC_ATOMS",
+      "required_atoms": [
+        "FUTURES open interest with expiry-specific instId and oiUsd",
+        "SWAP open interest with perpetual instId and oiUsd"
+      ],
+      "interpretation_boundary": "Open interest represents gross derivative participation intensity, not long-minus-short direction, leverage, liquidation probability or spot-return alpha. No change, normalization, sign or threshold is selected."
+    },
+    "constrained_arbitrage_capital": {
+      "status": "REPRESENTABLE_BY_INDEPENDENT_TYPED_PUBLIC_COST_PROXY",
+      "required_atoms": [
+        "USDT public annual borrowing rate history",
+        "USDT public annual lending rate when present under the documented schema version"
+      ],
+      "interpretation_boundary": "The public borrowing and lending rates are a separately timestamped market price of financing capacity. They are not account-specific quota, balance-sheet inventory, executable carry return or proof that any arbitrageur is constrained. Missing lendingRate or a schema transition fails closed; no private account endpoint may substitute."
+    },
+    "contract_family_separation": {
+      "status": "REPRESENTABLE_WITHOUT_COLLAPSE",
+      "required_atoms": [
+        "Existing expiry-specific FUTURES inventory and index price atoms remain fixed-maturity only",
+        "SWAP open interest and funding history remain perpetual-only",
+        "Funding transfers never substitute for expiry convergence or borrowing-cost evidence"
+      ]
+    },
+    "point_in_time_provenance": {
+      "status": "DOCUMENTED_FIELDS_EXIST_CONTRACT_NOT_YET_FROZEN",
+      "required_future_controls": [
+        "Seal exact request and raw response bytes with source receipt time before the DRA decision",
+        "Bind instType, instId, expiry, response ts, fundingTime, formulaType and method",
+        "Use only strictly future observations after a versioned V3 source contract activation",
+        "Reject missing, late, revised, duplicate, reordered or schema-drifted atoms without retry or backfill",
+        "Keep producer credential-free and Worker network-denied under the existing one-way transport pattern"
+      ]
+    }
+  },
+  "representation_decision": {
+    "v2_disposition_preserved": "CARRY_V2_SOURCE_REPRESENTATION_MISSING_PROOF",
+    "v2_source_status_preserved": "OFFLINE_DISABLED_NOT_REGISTERED",
+    "v3_decision": "ONE_NEW_VERSIONED_SOURCE_CONTRACT_MAY_BE_FROZEN_BEFORE_ANY_CAPTURE_OR_FACTOR_FORMULA",
+    "why_not_close": "Official public documentation now identifies separately typed gross derivative-demand atoms and a distinct public financing-cost proxy, so both frozen causal axes can be represented without treating the futures-index basis as proof of both.",
+    "why_not_activate": "No exact V3 request inventory, schema, source contract, one-way transport, live schema-only probe, continuity proof, rights review, capture, factor formula, threshold, predictive result or economic runner exists."
+  },
+  "next_gate": {
+    "id": "FREEZE_CARRY_V3_PUBLIC_SOURCE_CONTRACT_ONLY",
+    "maximum_scope": "One bounded source-contract and schema-only validation slice that freezes FUTURES and SWAP open-interest atoms, separately typed perpetual funding metadata, USDT public borrow/lend rate history, point-in-time receipt rules and strict prospective no-backfill transport.",
+    "required_before_pass": [
+      "Fresh schema-only no-value probe proves all named public endpoints need no credential and expose the frozen identities and timestamps",
+      "Exact response schemas and revision fields are frozen",
+      "The source contract starts strictly in the future and cannot reuse V2, R2 or R3 observations",
+      "The existing single clock can carry one bounded companion without adding a timer or writer",
+      "No private account field, market outcome, factor sign, threshold, hypothesis, candidate or economic claim is introduced"
+    ],
+    "failure_disposition": "CLOSE_CARRY_SOURCE_REPRESENTATION_IF_ANY_AXIS_REQUIRES_PRIVATE_ACCOUNT_DATA_ONE_COMPOSITE_BASIS_OR_UNVERSIONED_SCHEMA"
+  },
+  "performance_boundary": {
+    "immediate_fee_adjusted_total_pnl_effect": "ZERO",
+    "immediate_drawdown_effect": "ZERO",
+    "predictive_value": "MISSING_PROOF",
+    "fees": "MISSING_PROOF",
+    "adverse_slippage": "MISSING_PROOF",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "holding_age": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF",
+    "breadth_and_path_risk": "MISSING_PROOF",
+    "candidate": false,
+    "oos_opened": false
+  },
+  "prohibited_actions": [
+    "ENDPOINT_VALUE_CALL",
+    "PRIVATE_API_OR_CREDENTIAL",
+    "HISTORICAL_BACKFILL",
+    "SOURCE_ACTIVATION",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "FACTOR_FORMULA_OR_THRESHOLD",
+    "HYPOTHESIS_OR_EXPERIMENT_REGISTRATION",
+    "OOS_OPEN",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE"
+  ],
+  "claim_boundary": "This audit proves only that a future V3 source contract can independently type derivative participation and a public financing-cost proxy before a decision. It does not prove constrained arbitrage capacity, carry direction, BTC spot predictability, economic value, candidate readiness or deployability.",
+  "scope_note": "No endpoint was called, no market value or outcome was read, no backfill was imported, and no source, schedule, canonical state, hypothesis, experiment, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE state changed."
+}

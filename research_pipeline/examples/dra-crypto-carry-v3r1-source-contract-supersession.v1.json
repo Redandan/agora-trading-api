@@ -1,0 +1,67 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CRYPTO_CARRY_V3R1_SOURCE_CONTRACT_SUPERSESSION_V1",
+  "decision_id": "dra-crypto-carry-v3r1-source-contract-supersession-v1",
+  "decided_at": "2026-08-19T06:24:00Z",
+  "family_id": "dra-crypto-carry-risk-veto",
+  "decision_phase": "PRE_ACCESS_PRE_ACTIVATION_SOURCE_DESIGN",
+  "outcome_data_observed": false,
+  "endpoint_access_performed": false,
+  "market_values_observed": false,
+  "source_registered": false,
+  "capture_authorized": false,
+  "canonical_state_changed": false,
+  "superseded_contract": {
+    "path": "research_pipeline/okx-dra-crypto-carry-public-axes-source-contract.v3.json",
+    "sha256": "d9097fdf4da6b0e7267630bc3fb09da4557ffaceff1c7b2c7f3e524782ab0606",
+    "disposition": "PREACCESS_DESIGN_REJECT_NEVER_PROBE_OR_ACTIVATE",
+    "defects": [
+      {
+        "code": "FUTURE_DATED_FREEZE_CLOCK",
+        "effect": "The recorded 2026-08-19T07:00:00Z freeze was later than the observed host UTC clock during the pre-dispatch audit, so it could not establish a valid prospective boundary."
+      },
+      {
+        "code": "IDENTITY_VALUES_NOT_ATTESTED",
+        "effect": "Field-presence-only evidence could pass without proving that the inspected rows were BTC-USDT expiry futures, BTC-USDT-SWAP and USDT."
+      },
+      {
+        "code": "RESPONSE_COUNT_AND_INSPECTION_COUNT_AMBIGUOUS",
+        "effect": "The FUTURES family request can return multiple expiry rows, but V3 did not distinguish total response rows from the one redacted row inspected."
+      },
+      {
+        "code": "RAW_RESPONSE_RETENTION_SEMANTICS_AMBIGUOUS",
+        "effect": "V3 simultaneously denied raw transport and claimed raw responses were retained on the probe host without explicitly denying persistence."
+      }
+    ]
+  },
+  "replacement_contract": {
+    "path": "research_pipeline/okx-dra-crypto-carry-public-axes-source-contract.v3r1.json",
+    "sha256": "2e44b85a5a3998bf7285adbaba62095f80f0c7fce3fec9c75a0ec26369d90bcd",
+    "schema_path": "research_pipeline/okx-dra-crypto-carry-public-axes-schema-probe.v3r1.schema.json",
+    "schema_sha256": "137eda117cdcecaaccdd5ca03c54f26be5f718d28e5718553dbbd46421f6787a",
+    "validator_path": "research_pipeline/dra_crypto_carry_public_axes_v3r1.py",
+    "validator_sha256": "b1855510810e19f919d22e671bfa6f06da7b2c32b43c4b8bc2c2f7a0ced87d79",
+    "status": "FROZEN_AWAITING_ISOLATED_SCHEMA_ONLY_PROBE_NOT_REGISTERED"
+  },
+  "replacement_properties": [
+    "Attests fixed non-market identity values while redacting every market value.",
+    "Separates total response row count from the single inspected row index.",
+    "Requires exactly one response row for fixed instId and limit=1 requests.",
+    "Bounds each raw response to 262144 bytes.",
+    "Explicitly denies raw response persistence and transport while retaining only SHA-256.",
+    "Binds the conditionally passed internal non-commercial reuse-terms review.",
+    "Keeps source activation, canonical integration, factor selection, OOS and Trading denied."
+  ],
+  "verification": {
+    "test_path": "research_pipeline/tests/test_dra_crypto_carry_public_axes_v3r1.py",
+    "test_sha256": "f0cdf40c4d781656f926da5f2dc90d6008e11b080b9238c3bec56c1908823de4",
+    "tests_run": 9,
+    "tests_passed": 9,
+    "network_used": false
+  },
+  "decision": "SUPERSEDE_UNACTIVATED_V3_WITH_CORRECTED_V3R1_BEFORE_ANY_SOURCE_ACCESS",
+  "next_gate": "COMPLETE_ONE_APPROVED_ISOLATED_V3R1_SCHEMA_ONLY_PROBE",
+  "candidate_created": false,
+  "oos_opened": false,
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

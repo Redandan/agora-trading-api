@@ -450,6 +450,8 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn('INSTALL_CARRY_CAPABILITY="${INSTALL_CARRY_CAPABILITY:-0}"', self.installer)
         self.assertIn('carry-current does not resolve to the new carry release', self.installer)
         self.assertIn('carry-current release id does not match the exact expectation', self.verifier)
+        self.assertIn('sudo test -d "$CARRY_V3R1_REQUEST_ROOT"', self.verifier)
+        self.assertIn('sudo sha256sum "$CARRY_V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json"', self.verifier)
         self.assertFalse(any(WORKER.glob("agora-research-dra-crypto-carry*.timer")))
         self.assertFalse(any(WORKER.glob("agora-research-dra-crypto-carry*.path")))
 

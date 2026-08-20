@@ -1301,7 +1301,8 @@ PY
     || fail "carry binding exists before a separately authorized registration"
   [ ! -e "$CARRY_REQUEST_ROOT" ] && [ ! -L "$CARRY_REQUEST_ROOT" ] \
     || fail "carry request root exists before a separately authorized registration"
-  [ -d "$CARRY_V3R1_REQUEST_ROOT" ] && [ ! -L "$CARRY_V3R1_REQUEST_ROOT" ] \
+  sudo test -d "$CARRY_V3R1_REQUEST_ROOT" \
+    && ! sudo test -L "$CARRY_V3R1_REQUEST_ROOT" \
     || fail "carry V3R1 probe request root is missing, non-directory, or symlinked"
   [ "$(sudo stat -c '%U:%G:%a' "$CARRY_V3R1_REQUEST_ROOT")" = "root:$CARRY_GROUP:750" ] \
     || fail "carry V3R1 probe request root metadata is incorrect"
@@ -1313,8 +1314,12 @@ PY
     1)
       [ "${carry_v3r1_request_entries[0]}" = schema-probe-request.v3r1.json ] \
         || fail "carry V3R1 probe request root contains an unexpected entry"
-      require_sha256 "$CARRY_V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json" \
-        f0bd0d148cfdc6e5164e51f370300edcb03022879d6c04f1cfbc4c1dc99f0f9e
+      sudo test -f "$CARRY_V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json" \
+        && ! sudo test -L "$CARRY_V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json" \
+        || fail "carry V3R1 probe request is missing, non-regular, or symlinked"
+      [ "$(sudo sha256sum "$CARRY_V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json" | awk '{print $1}')" \
+          = f0bd0d148cfdc6e5164e51f370300edcb03022879d6c04f1cfbc4c1dc99f0f9e ] \
+        || fail "carry V3R1 probe request hash changed"
       [ "$(sudo stat -c '%U:%G:%a' "$CARRY_V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json")" = "root:$CARRY_GROUP:440" ] \
         || fail "carry V3R1 probe request metadata is incorrect"
       ;;

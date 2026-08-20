@@ -640,6 +640,20 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn("PACKAGE_ONLY=COMPLETE_NO_NETWORK", section)
         self.assertIn("return", section)
 
+    def test_release_wrapper_handles_detached_head_before_trimming_branch(self) -> None:
+        self.assertNotIn(
+            '$gitBranch = (& git -C $repoRoot branch --show-current).Trim()',
+            self.wrapper,
+        )
+        self.assertIn(
+            '$gitBranchLines = @(& git -C $repoRoot branch --show-current)',
+            self.wrapper,
+        )
+        self.assertIn('if ($gitBranchLines.Count -eq 0)', self.wrapper)
+        self.assertIn('$gitBranch = ([string]$gitBranchLines[0]).Trim()', self.wrapper)
+        self.assertIn('Source Git branch output is ambiguous.', self.wrapper)
+        self.assertIn('$gitBranch = "DETACHED"', self.wrapper)
+
     def test_runbook_freezes_opt_in_dual_distribution_package_only(self) -> None:
         command = (
             ".\\scripts\\deploy_research_worker_upgrade_ssh.ps1 "

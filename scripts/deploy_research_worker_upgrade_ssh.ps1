@@ -63,8 +63,18 @@ $gitCommit = (& git -C $repoRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $gitCommit -notmatch "^[0-9a-f]{40}$") {
     throw "Unable to resolve a valid source Git commit."
 }
-$gitBranch = (& git -C $repoRoot branch --show-current).Trim()
-if ([string]::IsNullOrWhiteSpace($gitBranch)) { $gitBranch = "DETACHED" }
+$gitBranchLines = @(& git -C $repoRoot branch --show-current)
+if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the source Git branch." }
+if ($gitBranchLines.Count -eq 0) {
+    $gitBranch = "DETACHED"
+}
+elseif ($gitBranchLines.Count -eq 1) {
+    $gitBranch = ([string]$gitBranchLines[0]).Trim()
+    if ([string]::IsNullOrWhiteSpace($gitBranch)) { $gitBranch = "DETACHED" }
+}
+else {
+    throw "Source Git branch output is ambiguous."
+}
 if ($gitBranch -notmatch "^[A-Za-z0-9][A-Za-z0-9._/-]*$") {
     throw "Source Git branch contains unsupported characters."
 }

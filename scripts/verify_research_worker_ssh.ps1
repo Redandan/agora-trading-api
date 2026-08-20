@@ -3,6 +3,7 @@ param(
     [string]$SshKey = $env:AGORA_SSH_KEY,
     [string]$ExpectedControlReleaseId = $env:AGORA_RESEARCH_EXPECTED_CONTROL_RELEASE_ID,
     [string]$ExpectedDataReleaseId = $env:AGORA_RESEARCH_EXPECTED_DATA_RELEASE_ID,
+    [string]$ExpectedCarryReleaseId = $env:AGORA_RESEARCH_EXPECTED_CARRY_RELEASE_ID,
     [string]$ExpectMicrostructureSource = $env:AGORA_RESEARCH_EXPECT_MICROSTRUCTURE_SOURCE,
     [string]$ExpectCarrySource = $env:AGORA_RESEARCH_EXPECT_CARRY_SOURCE,
     [ValidateSet("disabled", "active")]
@@ -17,6 +18,11 @@ $ErrorActionPreference = "Stop"
 if ($ExpectCarrySource -notin @("absent", "inactive")) {
     throw "ExpectCarrySource is required and must be exactly absent or inactive."
 }
+if ($ExpectCarrySource -eq "inactive" -and
+        ([string]::IsNullOrWhiteSpace($ExpectedCarryReleaseId) -or
+         $ExpectedCarryReleaseId -notmatch "^[A-Za-z0-9._-]+$")) {
+    throw "ExpectedCarryReleaseId is required for inactive carry verification."
+}
 if ([string]::IsNullOrWhiteSpace($SshHost) -or $SshHost.StartsWith("-") -or $SshHost -notmatch "^[A-Za-z0-9][A-Za-z0-9._@:-]*$") {
     throw "A safe SshHost is required."
 }
@@ -29,8 +35,8 @@ if ([string]::IsNullOrWhiteSpace($ExpectedControlReleaseId) -or $ExpectedControl
 if ([string]::IsNullOrWhiteSpace($ExpectedDataReleaseId) -or $ExpectedDataReleaseId -notmatch "^[A-Za-z0-9._-]+$") {
     throw "ExpectedDataReleaseId is required and must use only A-Z, a-z, 0-9, dot, underscore, or hyphen."
 }
-if ($ExpectMicrostructureSource -notin @("disabled", "active")) {
-    throw "ExpectMicrostructureSource is required and must be exactly disabled or active."
+if ($ExpectMicrostructureSource -notin @("disabled", "active", "failed-preserved")) {
+    throw "ExpectMicrostructureSource is required and must be disabled, active, or failed-preserved."
 }
 
 $localVerifier = Join-Path $PSScriptRoot "research-worker\verify-worker.sh"
@@ -41,7 +47,7 @@ $body = Get-Content -Raw -LiteralPath $localVerifier
 $runFlag = if ($RunHeartbeat) { "1" } else { "0" }
 $probeFlag = if ($RunSourceProbe) { "1" } else { "0" }
 $intakePreflightFlag = if ($ExpectMicrostructureSource -eq "active") { "1" } else { "0" }
-$remote = "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | EXPECTED_CONTROL_RELEASE_ID='$ExpectedControlReleaseId' EXPECTED_DATA_RELEASE_ID='$ExpectedDataReleaseId' EXPECT_MICROSTRUCTURE_SOURCE='$ExpectMicrostructureSource' EXPECT_CARRY_SOURCE='$ExpectCarrySource' MICROSTRUCTURE_INTAKE_PREFLIGHT='$intakePreflightFlag' EXPECT_TIMER='$ExpectTimer' RUN_HEARTBEAT='$runFlag' RUN_SOURCE_PROBE='$probeFlag' bash -s"
+$remote = "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | EXPECTED_CONTROL_RELEASE_ID='$ExpectedControlReleaseId' EXPECTED_DATA_RELEASE_ID='$ExpectedDataReleaseId' EXPECTED_CARRY_RELEASE_ID='$ExpectedCarryReleaseId' EXPECT_MICROSTRUCTURE_SOURCE='$ExpectMicrostructureSource' EXPECT_CARRY_SOURCE='$ExpectCarrySource' MICROSTRUCTURE_INTAKE_PREFLIGHT='$intakePreflightFlag' EXPECT_TIMER='$ExpectTimer' RUN_HEARTBEAT='$runFlag' RUN_SOURCE_PROBE='$probeFlag' bash -s"
 $body | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost $remote
 if ($LASTEXITCODE -ne 0) {
     throw "Research Worker verification failed with exit code $LASTEXITCODE"

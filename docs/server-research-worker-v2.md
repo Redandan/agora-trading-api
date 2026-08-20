@@ -257,15 +257,19 @@ is event recovery, not a second research clock or timer.
 
 ## Immutable dual release lanes
 
-Research Worker upgrades use exactly two fixed symlinks beneath
-`/opt/agora-research-worker`:
+Research Worker upgrades use two mandatory fixed symlinks and one optional,
+isolated carry-capability symlink beneath `/opt/agora-research-worker`:
 
 - `control-current` is the only release used by the OAuth MCP, request dispatch,
   and heartbeat services. Their documentation, working directory, policy,
   launcher, and explicit application directory all resolve through this lane.
 - `current` remains the only release used by the public candle source and
   ingest plus the continuous microstructure source and intake. Those units
-  never reference `control-current`.
+  never reference `control-current` or `carry-current`.
+- `carry-current` exists only when the inactive DRA carry capability has been
+  separately installed. The carry oneshot resolves its launcher, frozen
+  contracts, Python producer, and narrow Java distribution only through this
+  lane. It never references `control-current` or `current`.
 
 The network-denied durable request dispatcher, which is the cloud schedule's
 actual execution path, and the disabled legacy/manual heartbeat oneshot have
@@ -286,28 +290,34 @@ inferred from service state or an environment default, rejects binding creation
 parameters, and is unavailable in package-only mode.
 
 Before preserve mode creates a new release or changes a link, it requires the
-source unit to be disabled and not failed, resolves `current` inside the
+source unit to be disabled and either active, inactive, or explicitly
+fail-closed, resolves `current` inside the
 immutable releases root, and proves that the canonical V3 binding, installed
 manifest and provenance, and unique V3 state all agree on the bound release.
 It seals the literal and resolved data link, binding and state bytes plus
-SHA-256, bound manifest and provenance hashes, active/inactive state, nonzero
+SHA-256, bound manifest and provenance hashes, active/inactive/failed state, nonzero
 MainPID when active, and fixed unit properties. Preserve mode installs only the
 three control service units, atomically switches only `control-current`, and
 restarts only the control MCP. It never relinks or changes `current`, installs a
 data-plane unit, prepares a binding, changes data directories, touches sealed
 state/evidence, or stops, starts, signals, enables, disables, reloads, or clears
-the microstructure source.
+the microstructure source. When and only when the same reviewed deployment
+explicitly includes the carry distribution, preserve mode may also create or
+atomically switch `carry-current`, install the dedicated carry identity,
+isolated request/drop roots, and the disabled carry oneshot. It still does not
+start or enable that oneshot and creates no timer or path.
 
 After the control restart, the installer requires every sealed data-plane byte,
 hash, link, source state, MainPID, and unit property to remain identical and
 requires `control-current` to resolve to the new release. The deployment wrapper
 then runs the installed verifier with exact expected control and data release
-ids, the observed source-state expectation, and explicit intake preflight when
+ids, the exact optional carry release id, the observed source-state expectation, and explicit intake preflight when
 the source is active. Release provenance is printed only after that verifier
-succeeds. The verifier independently validates both symlinks beneath the
+succeeds. The verifier independently validates all present release symlinks beneath the
 immutable release root, checks Worker policy/provenance against
 `control-current`, checks binding/distribution/intake/source evidence against
-`current`, and proves the control/data unit paths are disjoint.
+`current`, checks carry bytes only through `carry-current`, and proves all
+three unit path classes are disjoint.
 
 The canonical data root is fixed at `agora-research:agora-evidence 0710`.
 This grants the unprivileged public-source identity traversal only; canonical

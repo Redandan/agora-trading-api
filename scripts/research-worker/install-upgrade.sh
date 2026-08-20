@@ -15,6 +15,8 @@ EVIDENCE_GROUP="${EVIDENCE_GROUP:-agora-evidence}"
 MICROSTRUCTURE_FORWARD_START_DAY="${MICROSTRUCTURE_FORWARD_START_DAY:-}"
 MICROSTRUCTURE_DIAGNOSTIC_ID="${MICROSTRUCTURE_DIAGNOSTIC_ID:-}"
 PRESERVE_BOUND_DATA_PLANE="${PRESERVE_BOUND_DATA_PLANE:-0}"
+INSTALL_CARRY_CAPABILITY="${INSTALL_CARRY_CAPABILITY:-0}"
+CARRY_CURRENT_LINK="$WORKER_ROOT/carry-current"
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
@@ -39,8 +41,8 @@ CARRY_GROUP=agora-dra-carry-publish
 CARRY_UNIT=agora-research-dra-crypto-carry-source.service
 CARRY_BINDING=/etc/agora-research/okx-dra-crypto-carry-source-v2.json
 CARRY_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v2"
-CARRY_V3R1_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v3r1"
 CARRY_ROOT=/var/lib/agora-dra-carry-source
+CARRY_V3R1_REQUEST_ROOT="$CARRY_ROOT/dra-crypto-carry-v3r1-request"
 CARRY_PRIVATE="$CARRY_ROOT/dra-crypto-carry-v2-private"
 CARRY_INVENTORY_STAGING="$CARRY_ROOT/dra-crypto-carry-v2-inventory-staging"
 CARRY_INVENTORY_DROP="$CARRY_ROOT/dra-crypto-carry-v2-inventory-drop"
@@ -68,6 +70,9 @@ case "$SOURCE_GIT_DIRTY" in true|false) ;; *) fail "source Git dirty flag must b
 [ "$WORKER_ROOT" = "/opt/agora-research-worker" ] || fail "unexpected worker root"
 [ "$DATA_ROOT" = "/var/lib/agora-research" ] || fail "unexpected data root"
 case "$PRESERVE_BOUND_DATA_PLANE" in 0|1) ;; *) fail "preserve-bound-data-plane attestation must be exactly 0 or 1" ;; esac
+case "$INSTALL_CARRY_CAPABILITY" in 0|1) ;; *) fail "install-carry-capability attestation must be exactly 0 or 1" ;; esac
+[ "$INSTALL_CARRY_CAPABILITY" = 0 ] || [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ] \
+  || fail "carry capability installation requires preserve-bound-data-plane mode"
 
 binding_requested=false
 if [ -n "$MICROSTRUCTURE_FORWARD_START_DAY" ] || [ -n "$MICROSTRUCTURE_DIAGNOSTIC_ID" ]; then
@@ -657,8 +662,12 @@ PY
 carry_package=false
 if [ -d "$SOURCE_DIR/target/dra-crypto-carry-dist" ]; then
   carry_package=true
-  [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \
-    || fail "dual carry package is forbidden in preserve-bound-data-plane mode"
+fi
+[ "$INSTALL_CARRY_CAPABILITY" = 0 ] || [ "$carry_package" = true ] \
+  || fail "carry capability installation requires the exact carry distribution"
+if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ] && [ "$carry_package" = true ]; then
+  [ "$INSTALL_CARRY_CAPABILITY" = 1 ] \
+    || fail "preserve mode accepts a carry distribution only through the explicit carry capability lane"
 fi
 [ -f "$SOURCE_DIR/research_pipeline/policy.v3.json" ] || fail "V3 policy missing"
 [ -f "$SOURCE_DIR/scripts/research-worker/research-mcp-requirements.lock" ] || fail "MCP lock missing"
@@ -824,13 +833,14 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
   sudo install -d -o "$WORKER_USER" -g "$WORKER_GROUP" -m 0700 \
     "$MICROSTRUCTURE_STATE" "$MICROSTRUCTURE_HANDOFF_STAGING" \
     "$MICROSTRUCTURE_HANDOFF_FINAL"
-  if [ "$carry_package" = true ]; then
-    sudo install -d -o root -g "$CARRY_GROUP" -m 0710 "$CARRY_ROOT"
-    sudo install -d -o "$CARRY_USER" -g "$CARRY_GROUP" -m 0700 \
-      "$CARRY_PRIVATE" "$CARRY_INVENTORY_STAGING" "$CARRY_DAY_STAGING"
-    sudo install -d -o root -g "$CARRY_GROUP" -m 1770 \
-      "$CARRY_INVENTORY_DROP" "$CARRY_DAY_DROP" "$CARRY_V3R1_PROBE_DROP"
-  fi
+fi
+if [ "$carry_package" = true ]; then
+  sudo install -d -o root -g "$CARRY_GROUP" -m 0710 "$CARRY_ROOT"
+  sudo install -d -o "$CARRY_USER" -g "$CARRY_GROUP" -m 0700 \
+    "$CARRY_PRIVATE" "$CARRY_INVENTORY_STAGING" "$CARRY_DAY_STAGING"
+  sudo install -d -o root -g "$CARRY_GROUP" -m 0750 "$CARRY_V3R1_REQUEST_ROOT"
+  sudo install -d -o root -g "$CARRY_GROUP" -m 1770 \
+    "$CARRY_INVENTORY_DROP" "$CARRY_DAY_DROP" "$CARRY_V3R1_PROBE_DROP"
 fi
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ] \
     && [ ! -f "$DATA_ROOT/auth/enrollment-consumed" ] \
@@ -869,6 +879,11 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
   next_data_link="$WORKER_ROOT/.current-$RELEASE_ID"
   sudo ln -s "$RELEASE_DIR" "$next_data_link"
   sudo mv -Tf "$next_data_link" "$WORKER_ROOT/current"
+fi
+if [ "$carry_package" = true ]; then
+  next_carry_link="$WORKER_ROOT/.carry-current-$RELEASE_ID"
+  sudo ln -s "$RELEASE_DIR" "$next_carry_link"
+  sudo mv -Tf "$next_carry_link" "$CARRY_CURRENT_LINK"
 fi
 
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 0 ]; then
@@ -1150,6 +1165,18 @@ if [ "$install_carry_unit" = true ]; then
     || fail "carry source effective start timeout is not exactly 30 minutes"
   [ "$(systemctl show "$CARRY_UNIT" --property=RuntimeMaxUSec --value)" = infinity ] \
     || fail "carry source retains an effective runtime maximum"
+  [ -L "$CARRY_CURRENT_LINK" ] \
+    || fail "carry-current release symlink is missing"
+  carry_current="$(readlink -f "$CARRY_CURRENT_LINK")" \
+    || fail "carry-current release symlink cannot be resolved"
+  case "$carry_current" in
+    "$WORKER_ROOT"/releases/*) ;;
+    *) fail "carry-current escaped immutable releases" ;;
+  esac
+  if [ "$carry_package" = true ]; then
+    [ "$carry_current" = "$RELEASE_DIR" ] \
+      || fail "carry-current does not resolve to the new carry release"
+  fi
 fi
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
   [ "$(readlink "$WORKER_ROOT/current")" = "$preserve_data_current_link" ] \
@@ -1255,6 +1282,9 @@ fi
 ok "OAuth Research MCP active on loopback"
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
   ok "bound microstructure source lifecycle, binding, state, and release remained unchanged"
+  if [ "$carry_package" = true ]; then
+    ok "isolated carry release installed without changing the bound microstructure data-current lane"
+  fi
 else
   ok "main, public-source, and network-denied ingest paths active; server timer disabled"
   ok "microstructure intake path active; producer source unit disabled and inactive"

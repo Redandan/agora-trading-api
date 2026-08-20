@@ -12,9 +12,6 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-if ($IncludeCarryDistribution -and $PreserveBoundDataPlane) {
-    throw "IncludeCarryDistribution is unavailable in preserve-bound-data-plane mode."
-}
 if (-not $PackageOnly) {
     if ([string]::IsNullOrWhiteSpace($SshHost) -or $SshHost.StartsWith("-") -or $SshHost -notmatch "^[A-Za-z0-9][A-Za-z0-9._@:-]*$") {
         throw "A safe SshHost is required."
@@ -491,6 +488,9 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "upload failed" }
     }
 
+    $installCarryCapability = if ($IncludeCarryDistribution -and $PreserveBoundDataPlane) { "1" } else { "0" }
+    $expectedCarryState = if ($IncludeCarryDistribution) { "inactive" } else { "auto" }
+    $expectedCarryRelease = if ($IncludeCarryDistribution) { $ReleaseId } else { "" }
     $remote = @"
 set -euo pipefail
 cd '$stage'
@@ -512,12 +512,13 @@ if [ "`$preserve_mode" = 1 ]; then
     *) echo 'microstructure source has an unsupported pre-install state' >&2; exit 1 ;;
   esac
 fi
-STAGING_DIR='$stage' RELEASE_ID='$ReleaseId' SOURCE_GIT_COMMIT='$gitCommit' SOURCE_GIT_BRANCH='$gitBranch' SOURCE_GIT_DIRTY='$gitDirty' PRESERVE_BOUND_DATA_PLANE="`$preserve_mode"$(if ($bindingRequested) { " MICROSTRUCTURE_FORWARD_START_DAY='$MicrostructureForwardStartDay' MICROSTRUCTURE_DIAGNOSTIC_ID='$MicrostructureDiagnosticId'" }) bash source/scripts/research-worker/install-upgrade.sh
-EXPECTED_CONTROL_RELEASE_ID='$ReleaseId' EXPECTED_DATA_RELEASE_ID="`$expected_data_release" EXPECT_MICROSTRUCTURE_SOURCE="`$expected_source" MICROSTRUCTURE_INTAKE_PREFLIGHT="`$expected_intake_preflight" bash /opt/agora-research-worker/control-current/scripts/research-worker/verify-worker.sh
+STAGING_DIR='$stage' RELEASE_ID='$ReleaseId' SOURCE_GIT_COMMIT='$gitCommit' SOURCE_GIT_BRANCH='$gitBranch' SOURCE_GIT_DIRTY='$gitDirty' PRESERVE_BOUND_DATA_PLANE="`$preserve_mode" INSTALL_CARRY_CAPABILITY='$installCarryCapability'$(if ($bindingRequested) { " MICROSTRUCTURE_FORWARD_START_DAY='$MicrostructureForwardStartDay' MICROSTRUCTURE_DIAGNOSTIC_ID='$MicrostructureDiagnosticId'" }) bash source/scripts/research-worker/install-upgrade.sh
+EXPECTED_CONTROL_RELEASE_ID='$ReleaseId' EXPECTED_DATA_RELEASE_ID="`$expected_data_release" EXPECTED_CARRY_RELEASE_ID='$expectedCarryRelease' EXPECT_MICROSTRUCTURE_SOURCE="`$expected_source" EXPECT_CARRY_SOURCE='$expectedCarryState' MICROSTRUCTURE_INTAKE_PREFLIGHT="`$expected_intake_preflight" bash /opt/agora-research-worker/control-current/scripts/research-worker/verify-worker.sh
 rm -f -- source.tar.gz source.sha256
 rm -rf -- source
 printf 'RESEARCH_WORKER_CONTROL_RELEASE=%s\n' '$ReleaseId'
 printf 'RESEARCH_WORKER_DATA_RELEASE=%s\n' "`$expected_data_release"
+$(if ($IncludeCarryDistribution) { "printf 'RESEARCH_WORKER_CARRY_RELEASE=%s\n' '$ReleaseId'" })
 printf 'SOURCE_GIT_COMMIT=%s\n' '$gitCommit'
 printf 'SOURCE_GIT_DIRTY=%s\n' '$gitDirty'
 "@

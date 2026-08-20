@@ -425,7 +425,7 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             {
                 "-/etc/agora-research/okx-dra-crypto-carry-source-v2.json",
                 "-/var/lib/agora-research/dra-crypto-carry-source-request-v2",
-                "-/var/lib/agora-research/dra-crypto-carry-source-request-v3r1",
+                "-/var/lib/agora-dra-carry-source/dra-crypto-carry-v3r1-request",
             },
         )
         writes = {
@@ -441,6 +441,15 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn("$CARRY_V3R1_PROBE_DROP", self.installer)
         self.assertIn("$CARRY_V3R1_PROBE_DROP", self.verifier)
         self.assertIn("$CARRY_V3R1_REQUEST_ROOT", self.verifier)
+        self.assertIn('$WORKER_ROOT/carry-current', launcher)
+        self.assertIn('WorkingDirectory=/opt/agora-research-worker/carry-current', self.carry_unit)
+        self.assertIn(
+            'ExecStart=/opt/agora-research-worker/carry-current/scripts/research-worker/run-dra-crypto-carry-phase.sh',
+            self.carry_unit,
+        )
+        self.assertIn('INSTALL_CARRY_CAPABILITY="${INSTALL_CARRY_CAPABILITY:-0}"', self.installer)
+        self.assertIn('carry-current does not resolve to the new carry release', self.installer)
+        self.assertIn('carry-current release id does not match the exact expectation', self.verifier)
         self.assertFalse(any(WORKER.glob("agora-research-dra-crypto-carry*.timer")))
         self.assertFalse(any(WORKER.glob("agora-research-dra-crypto-carry*.path")))
 
@@ -524,12 +533,16 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             wrapper,
         )
         self.assertIn(
+            "[string]$ExpectedCarryReleaseId = $env:AGORA_RESEARCH_EXPECTED_CARRY_RELEASE_ID",
+            wrapper,
+        )
+        self.assertIn(
             "[string]$ExpectMicrostructureSource = $env:AGORA_RESEARCH_EXPECT_MICROSTRUCTURE_SOURCE",
             wrapper,
         )
-        self.assertEqual(wrapper.count("^[A-Za-z0-9._-]+$"), 2)
+        self.assertEqual(wrapper.count("^[A-Za-z0-9._-]+$"), 3)
         self.assertIn(
-            '$ExpectMicrostructureSource -notin @("disabled", "active")', wrapper
+            '$ExpectMicrostructureSource -notin @("disabled", "active", "failed-preserved")', wrapper
         )
         self.assertIn(
             '$intakePreflightFlag = if ($ExpectMicrostructureSource -eq "active") { "1" } else { "0" }',
@@ -538,6 +551,7 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         for assignment in (
             "EXPECTED_CONTROL_RELEASE_ID='$ExpectedControlReleaseId'",
             "EXPECTED_DATA_RELEASE_ID='$ExpectedDataReleaseId'",
+            "EXPECTED_CARRY_RELEASE_ID='$ExpectedCarryReleaseId'",
             "EXPECT_MICROSTRUCTURE_SOURCE='$ExpectMicrostructureSource'",
             "MICROSTRUCTURE_INTAKE_PREFLIGHT='$intakePreflightFlag'",
             "EXPECT_TIMER='$ExpectTimer'",
@@ -565,6 +579,10 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         wrapper = self.standalone_verifier
         self.assertIn(
             "[string]$ExpectCarrySource = $env:AGORA_RESEARCH_EXPECT_CARRY_SOURCE",
+            wrapper,
+        )
+        self.assertIn(
+            "ExpectedCarryReleaseId is required for inactive carry verification.",
             wrapper,
         )
         validation = '$ExpectCarrySource -notin @("absent", "inactive")'
@@ -622,7 +640,8 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
     def test_wrapper_runs_exact_verifier_before_provenance_output(self) -> None:
         invocation = (
             "EXPECTED_CONTROL_RELEASE_ID='$ReleaseId' "
-            'EXPECTED_DATA_RELEASE_ID="`$expected_data_release"'
+            'EXPECTED_DATA_RELEASE_ID="`$expected_data_release" '
+            "EXPECTED_CARRY_RELEASE_ID='$expectedCarryRelease'"
         )
         self.assertIn(invocation, self.wrapper)
         verify_index = self.wrapper.index(invocation)
@@ -673,7 +692,7 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
     def test_documentation_freezes_the_two_lane_boundary(self) -> None:
         self.assertIn("## Immutable dual release lanes", self.documentation)
         self.assertIn("`control-current`", self.documentation)
-        self.assertIn("`current` remains the only release", self.documentation)
+        self.assertIn("`carry-current`", self.documentation)
         self.assertIn("`-PreserveBoundDataPlane`", self.documentation)
         self.assertIn("MainPID, and unit property to remain identical", self.documentation)
         self.assertIn("does not authorize deployment", self.documentation)

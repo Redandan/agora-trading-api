@@ -14,6 +14,8 @@ EXPECT_CARRY_SOURCE="${EXPECT_CARRY_SOURCE:-auto}"
 MICROSTRUCTURE_INTAKE_PREFLIGHT="${MICROSTRUCTURE_INTAKE_PREFLIGHT:-0}"
 EXPECTED_CONTROL_RELEASE_ID="${EXPECTED_CONTROL_RELEASE_ID:?EXPECTED_CONTROL_RELEASE_ID is required}"
 EXPECTED_DATA_RELEASE_ID="${EXPECTED_DATA_RELEASE_ID:?EXPECTED_DATA_RELEASE_ID is required}"
+EXPECTED_CARRY_RELEASE_ID="${EXPECTED_CARRY_RELEASE_ID:-}"
+CARRY_CURRENT_LINK="$WORKER_ROOT/carry-current"
 DISPATCH_UNIT=agora-research-dispatch.service
 HEARTBEAT_UNIT=agora-research-heartbeat.service
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
@@ -41,8 +43,8 @@ CARRY_GROUP=agora-dra-carry-publish
 CARRY_UNIT=agora-research-dra-crypto-carry-source.service
 CARRY_BINDING=/etc/agora-research/okx-dra-crypto-carry-source-v2.json
 CARRY_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v2"
-CARRY_V3R1_REQUEST_ROOT="$DATA_ROOT/dra-crypto-carry-source-request-v3r1"
 CARRY_ROOT=/var/lib/agora-dra-carry-source
+CARRY_V3R1_REQUEST_ROOT="$CARRY_ROOT/dra-crypto-carry-v3r1-request"
 CARRY_PRIVATE="$CARRY_ROOT/dra-crypto-carry-v2-private"
 CARRY_INVENTORY_STAGING="$CARRY_ROOT/dra-crypto-carry-v2-inventory-staging"
 CARRY_INVENTORY_DROP="$CARRY_ROOT/dra-crypto-carry-v2-inventory-drop"
@@ -119,10 +121,16 @@ case "$EXPECT_CARRY_SOURCE" in
   auto|absent|inactive) ;;
   *) fail "unsupported EXPECT_CARRY_SOURCE: $EXPECT_CARRY_SOURCE" ;;
 esac
+case "$EXPECTED_CARRY_RELEASE_ID" in *[!A-Za-z0-9._-]*) fail "invalid expected carry release id" ;; esac
+if [ "$EXPECT_CARRY_SOURCE" = inactive ]; then
+  [ -n "$EXPECTED_CARRY_RELEASE_ID" ] \
+    || fail "EXPECTED_CARRY_RELEASE_ID is required for inactive carry verification"
+fi
 [ -L "$WORKER_ROOT/control-current" ] || fail "control-current release symlink missing"
 [ -L "$WORKER_ROOT/current" ] || fail "data-current release symlink missing"
 control_current="$(readlink -f "$WORKER_ROOT/control-current")"
 data_current="$(readlink -f "$WORKER_ROOT/current")"
+carry_current=""
 case "$control_current" in
   "$WORKER_ROOT"/releases/*) ;;
   *) fail "control-current release escapes worker root: $control_current" ;;
@@ -135,6 +143,35 @@ esac
   || fail "control-current release id does not match the exact expectation"
 [ "$(basename "$data_current")" = "$EXPECTED_DATA_RELEASE_ID" ] \
   || fail "data-current release id does not match the exact expectation"
+case "$EXPECT_CARRY_SOURCE" in
+  absent)
+    [ ! -e "$CARRY_CURRENT_LINK" ] && [ ! -L "$CARRY_CURRENT_LINK" ] \
+      || fail "carry-current release symlink is present when absence was required"
+    ;;
+  inactive)
+    [ -L "$CARRY_CURRENT_LINK" ] || fail "carry-current release symlink missing"
+    carry_current="$(readlink -f "$CARRY_CURRENT_LINK")" \
+      || fail "carry-current release symlink cannot be resolved"
+    case "$carry_current" in
+      "$WORKER_ROOT"/releases/*) ;;
+      *) fail "carry-current release escapes worker root: $carry_current" ;;
+    esac
+    [ "$(basename "$carry_current")" = "$EXPECTED_CARRY_RELEASE_ID" ] \
+      || fail "carry-current release id does not match the exact expectation"
+    ;;
+  auto)
+    if [ -L "$CARRY_CURRENT_LINK" ]; then
+      carry_current="$(readlink -f "$CARRY_CURRENT_LINK")" \
+        || fail "carry-current release symlink cannot be resolved"
+      case "$carry_current" in
+        "$WORKER_ROOT"/releases/*) ;;
+        *) fail "carry-current release escapes worker root: $carry_current" ;;
+      esac
+    elif [ -e "$CARRY_CURRENT_LINK" ]; then
+      fail "carry-current path exists but is not a symlink"
+    fi
+    ;;
+esac
 [ -f "$control_current/research_pipeline/policy.v3.json" ] || fail "control V3 policy missing"
 [ -s "$control_current/.release/source.sha256" ] || fail "control release source manifest missing"
 [ -s "$control_current/.release/provenance.json" ] || fail "control release provenance missing"
@@ -437,7 +474,13 @@ manifest_hash = hashlib.sha256(raw_manifest).hexdigest()
 if provenance["source_manifest_sha256"] != manifest_hash:
     fail("release provenance manifest hash does not match installed bytes")
 PY
-carry_package="$(python3 - "$data_current" "$EXPECTED_DATA_RELEASE_ID" <<'PY'
+carry_package=false
+carry_release=""
+carry_release_id=""
+if [ -n "$carry_current" ]; then
+  carry_release="$carry_current"
+  carry_release_id="$(basename "$carry_current")"
+  carry_package="$(python3 - "$carry_release" "$carry_release_id" <<'PY'
 import hashlib
 import json
 import os
@@ -559,7 +602,8 @@ if dual_package:
 print("true" if dual_package else "false")
 PY
 )"
-ok "hermetic control release and exact data release provenance verified"
+fi
+ok "hermetic control, data, and optional carry release provenance verified"
 
 require_sha256 "$data_current/research_pipeline/okx-microstructure-continuous-source-contract.v3.json" \
   8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422
@@ -650,17 +694,25 @@ PY
 ok "sealed direct-Java-21 microstructure distribution verified"
 
 if [ "$carry_package" = true ]; then
-  require_sha256 "$data_current/research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v2.json" \
+  require_sha256 "$carry_release/research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v2.json" \
     183eeb35dc4729ff91970e4b892f141f58452abfa350591888587ce01035e4ad
-  require_sha256 "$data_current/research_pipeline/okx-dra-crypto-carry-producer-envelope.v2.schema.json" \
+  require_sha256 "$carry_release/research_pipeline/okx-dra-crypto-carry-producer-envelope.v2.schema.json" \
     814fbef9722dcdd2a6dac8c56e159c1a34e7c2db559c306709c0c393e05230ee
-  require_sha256 "$data_current/research_pipeline/okx-dra-crypto-carry-inventory-drop-envelope.v2.schema.json" \
+  require_sha256 "$carry_release/research_pipeline/okx-dra-crypto-carry-inventory-drop-envelope.v2.schema.json" \
     59e85d80aa4d2188af57872b7a2731881c85fd949fd7378c8a75cbff4dcdb196
-  require_sha256 "$data_current/research_pipeline/okx-dra-crypto-carry-drop-envelope.v2.schema.json" \
+  require_sha256 "$carry_release/research_pipeline/okx-dra-crypto-carry-drop-envelope.v2.schema.json" \
     a438ba041e0ac80e3757f842659f2afa14b701c9a94034b1f59dffa5e2aa0563
-  require_sha256 "$data_current/research_pipeline/okx-dra-crypto-carry-intake-state.v2.schema.json" \
+  require_sha256 "$carry_release/research_pipeline/okx-dra-crypto-carry-intake-state.v2.schema.json" \
     2c8af00a076616ffc25b95a2709bde1d4b6b7efb5899240e50d7c9f9322060d8
-  ok "sealed direct-Java-21 carry distribution and frozen V2 hashes verified"
+  require_sha256 "$carry_release/research_pipeline/okx-dra-crypto-carry-public-axes-source-contract.v3r1.json" \
+    2e44b85a5a3998bf7285adbaba62095f80f0c7fce3fec9c75a0ec26369d90bcd
+  require_sha256 "$carry_release/research_pipeline/okx-dra-crypto-carry-public-axes-schema-probe.v3r1.schema.json" \
+    137eda117cdcecaaccdd5ca03c54f26be5f718d28e5718553dbbd46421f6787a
+  require_sha256 "$carry_release/research_pipeline/dra_crypto_carry_public_axes_v3r1.py" \
+    b1855510810e19f919d22e671bfa6f06da7b2c32b43c4b8bc2c2f7a0ced87d79
+  require_sha256 "$carry_release/research_pipeline/dra_crypto_carry_public_axes_v3r1_producer.py" \
+    b5bfb85c2bb1b3fcbcaf454220c89adfbd1dfd9abed336af7274ccfc089c702e
+  ok "sealed isolated carry release and frozen V2/V3R1 hashes verified"
 else
   ok "carry distribution absent; no carry readiness claim"
 fi
@@ -959,9 +1011,11 @@ if [ "$carry_package" = true ] && [ "$carry_unit_present" = false ]; then
   fail "carry distribution is installed without the carry source unit"
 fi
 if [ "$carry_unit_present" = true ]; then
-  [ -f "$data_current/scripts/research-worker/run-dra-crypto-carry-phase.sh" ] \
-    && [ ! -L "$data_current/scripts/research-worker/run-dra-crypto-carry-phase.sh" ] \
-    && [ -x "$data_current/scripts/research-worker/run-dra-crypto-carry-phase.sh" ] \
+  [ -n "$carry_release" ] \
+    || fail "carry source unit exists without a resolved carry release"
+  [ -f "$carry_release/scripts/research-worker/run-dra-crypto-carry-phase.sh" ] \
+    && [ ! -L "$carry_release/scripts/research-worker/run-dra-crypto-carry-phase.sh" ] \
+    && [ -x "$carry_release/scripts/research-worker/run-dra-crypto-carry-phase.sh" ] \
     || fail "fixed carry launcher is missing, symlinked, or non-executable"
 fi
 for control_unit in \
@@ -991,9 +1045,6 @@ data_units=(
   agora-research-microstructure-source.service
   agora-research-microstructure-intake.service
 )
-if [ "$carry_unit_present" = true ]; then
-  data_units+=("$CARRY_UNIT")
-fi
 for data_unit in "${data_units[@]}"; do
   data_unit_text="$(systemctl cat "$data_unit")"
   echo "$data_unit_text" | grep -Fq '/opt/agora-research-worker/current' \
@@ -1002,6 +1053,14 @@ for data_unit in "${data_units[@]}"; do
     fail "$data_unit references the control-current lane"
   fi
 done
+if [ "$carry_unit_present" = true ]; then
+  carry_lane_text="$(systemctl cat "$CARRY_UNIT")"
+  echo "$carry_lane_text" | grep -Fq '/opt/agora-research-worker/carry-current' \
+    || fail "carry source does not use the isolated carry-current lane"
+  if echo "$carry_lane_text" | grep -Eq '/opt/agora-research-worker/(control-)?current'; then
+    fail "carry source references the control-current or data-current lane"
+  fi
+fi
 ok "control and data-plane systemd release lanes are byte-separated"
 
 for binding_reader_unit in "$DISPATCH_UNIT" "$HEARTBEAT_UNIT"; do
@@ -1141,10 +1200,10 @@ if [ "$carry_unit_present" = true ]; then
 
   carry_unit_text="$(systemctl cat "$CARRY_UNIT")"
   echo "$carry_unit_text" \
-    | grep -Fxq 'WorkingDirectory=/opt/agora-research-worker/current' \
+    | grep -Fxq 'WorkingDirectory=/opt/agora-research-worker/carry-current' \
     || fail "carry source working directory is not fixed"
   echo "$carry_unit_text" \
-    | grep -Fxq 'ExecStart=/opt/agora-research-worker/current/scripts/research-worker/run-dra-crypto-carry-phase.sh' \
+    | grep -Fxq 'ExecStart=/opt/agora-research-worker/carry-current/scripts/research-worker/run-dra-crypto-carry-phase.sh' \
     || fail "carry source does not execute the fixed zero-argument launcher"
   echo "$carry_unit_text" \
     | grep -Fxq 'TimeoutStartSec=30m' \
@@ -1242,8 +1301,25 @@ PY
     || fail "carry binding exists before a separately authorized registration"
   [ ! -e "$CARRY_REQUEST_ROOT" ] && [ ! -L "$CARRY_REQUEST_ROOT" ] \
     || fail "carry request root exists before a separately authorized registration"
-  [ ! -e "$CARRY_V3R1_REQUEST_ROOT" ] && [ ! -L "$CARRY_V3R1_REQUEST_ROOT" ] \
-    || fail "carry V3R1 probe request root exists before a separately authorized one-shot request"
+  [ -d "$CARRY_V3R1_REQUEST_ROOT" ] && [ ! -L "$CARRY_V3R1_REQUEST_ROOT" ] \
+    || fail "carry V3R1 probe request root is missing, non-directory, or symlinked"
+  [ "$(sudo stat -c '%U:%G:%a' "$CARRY_V3R1_REQUEST_ROOT")" = "root:$CARRY_GROUP:750" ] \
+    || fail "carry V3R1 probe request root metadata is incorrect"
+  mapfile -t carry_v3r1_request_entries < <(
+    sudo find "$CARRY_V3R1_REQUEST_ROOT" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort
+  )
+  case "${#carry_v3r1_request_entries[@]}" in
+    0) ;;
+    1)
+      [ "${carry_v3r1_request_entries[0]}" = schema-probe-request.v3r1.json ] \
+        || fail "carry V3R1 probe request root contains an unexpected entry"
+      require_sha256 "$CARRY_V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json" \
+        f0bd0d148cfdc6e5164e51f370300edcb03022879d6c04f1cfbc4c1dc99f0f9e
+      [ "$(sudo stat -c '%U:%G:%a' "$CARRY_V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json")" = "root:$CARRY_GROUP:440" ] \
+        || fail "carry V3R1 probe request metadata is incorrect"
+      ;;
+    *) fail "carry V3R1 probe request root inventory is not bounded" ;;
+  esac
   [ "$(sudo stat -c '%U:%G:%a' "$CARRY_ROOT")" = "root:$CARRY_GROUP:710" ] \
     || fail "carry root metadata is incorrect"
   for source_root in "$CARRY_PRIVATE" "$CARRY_INVENTORY_STAGING" "$CARRY_DAY_STAGING"; do

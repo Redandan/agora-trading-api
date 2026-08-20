@@ -1,6 +1,6 @@
 [Unit]
 Description=Inactive forward-only OKX DRA crypto carry research source
-Documentation=file:/opt/agora-research-worker/current/docs/server-research-worker-v2.md
+Documentation=file:/opt/agora-research-worker/carry-current/docs/server-research-worker-v2.md
 After=network-online.target
 Wants=network-online.target
 
@@ -8,8 +8,8 @@ Wants=network-online.target
 Type=oneshot
 User=agora-dra-carry-source
 Group=agora-dra-carry-publish
-WorkingDirectory=/opt/agora-research-worker/current
-ExecStart=/opt/agora-research-worker/current/scripts/research-worker/run-dra-crypto-carry-phase.sh
+WorkingDirectory=/opt/agora-research-worker/carry-current
+ExecStart=/opt/agora-research-worker/carry-current/scripts/research-worker/run-dra-crypto-carry-phase.sh
 Restart=no
 TimeoutStartSec=30m
 TimeoutStopSec=30s
@@ -33,7 +33,7 @@ RestrictNamespaces=true
 LockPersonality=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 InaccessiblePaths=-/var/lib/agora-research/state -/var/lib/agora-research/inbox -/var/lib/agora-research/requests -/var/lib/agora-research/source-requests -/var/lib/agora-research/source-drop -/var/lib/agora-evidence-source -/home/ubuntu/.env.trading.secrets
-ReadOnlyPaths=-/etc/agora-research/okx-dra-crypto-carry-source-v2.json -/var/lib/agora-research/dra-crypto-carry-source-request-v2 -/var/lib/agora-research/dra-crypto-carry-source-request-v3r1
+ReadOnlyPaths=-/etc/agora-research/okx-dra-crypto-carry-source-v2.json -/var/lib/agora-research/dra-crypto-carry-source-request-v2 -/var/lib/agora-dra-carry-source/dra-crypto-carry-v3r1-request
 ReadWritePaths=/var/lib/agora-dra-carry-source/dra-crypto-carry-v2-private /var/lib/agora-dra-carry-source/dra-crypto-carry-v2-inventory-staging /var/lib/agora-dra-carry-source/dra-crypto-carry-v2-inventory-drop /var/lib/agora-dra-carry-source/dra-crypto-carry-v2-day-staging /var/lib/agora-dra-carry-source/dra-crypto-carry-v2-day-drop /var/lib/agora-dra-carry-source/dra-crypto-carry-v3r1-probe-drop
 CapabilityBoundingSet=
 AmbientCapabilities=

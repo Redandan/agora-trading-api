@@ -2,10 +2,10 @@
 set -euo pipefail
 
 WORKER_ROOT=/opt/agora-research-worker
-CURRENT_LINK="$WORKER_ROOT/current"
+CURRENT_LINK="$WORKER_ROOT/carry-current"
 BINDING_PATH=/etc/agora-research/okx-dra-crypto-carry-source-v2.json
 REQUEST_ROOT=/var/lib/agora-research/dra-crypto-carry-source-request-v2
-V3R1_REQUEST_ROOT=/var/lib/agora-research/dra-crypto-carry-source-request-v3r1
+V3R1_REQUEST_ROOT=/var/lib/agora-dra-carry-source/dra-crypto-carry-v3r1-request
 V3R1_REQUEST_PATH="$V3R1_REQUEST_ROOT/schema-probe-request.v3r1.json"
 V3R1_PROBE_DROP=/var/lib/agora-dra-carry-source/dra-crypto-carry-v3r1-probe-drop
 V3R1_PROBE_OUTPUT="$V3R1_PROBE_DROP/okx-dra-crypto-carry-public-axes-schema-probe.v3r1.json"

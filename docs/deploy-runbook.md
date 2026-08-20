@@ -253,15 +253,34 @@ oneshot, change canonical state, or authorize strategy execution. Omitting
 `-IncludeCarryDistribution` deliberately retains the microstructure-only
 package closure.
 
+After that offline gate, install the reviewed carry capability while preserving
+an already-bound active, inactive, or fail-closed microstructure release:
+
+```powershell
+.\scripts\deploy_research_worker_upgrade_ssh.ps1 `
+  -PreserveBoundDataPlane `
+  -IncludeCarryDistribution
+```
+
+This explicit combination seals and preserves `current`, the microstructure
+binding, canonical intake state, release metadata, PID, failure state, and unit
+properties byte-for-byte. It installs the reviewed control release plus a
+separate `carry-current` release lane, dedicated carry identity, empty isolated
+request root, create-only drop, and disabled/inactive carry oneshot. It does not
+reset or restart microstructure, start carry, add a timer/path, change canonical
+research state, or authorize strategy execution.
+
 ### Explicit standalone Research Worker verification
 
-The standalone verifier requires the expected control and data release IDs and
-the expected microstructure-source state plus one explicit carry-source state.
-The two release IDs are independent operator expectations; the wrapper does
-not discover or infer either value on the server. Values may be supplied as
+The standalone verifier requires the expected control and data release IDs and,
+when carry is inactive, the exact expected carry release ID, plus the expected
+microstructure-source state and one explicit carry-source state. These release
+IDs are independent operator expectations; the wrapper does not discover or
+infer any value on the server. Values may be supplied as
 parameters or through the dedicated
 `AGORA_RESEARCH_EXPECTED_CONTROL_RELEASE_ID`,
-`AGORA_RESEARCH_EXPECTED_DATA_RELEASE_ID`, and
+`AGORA_RESEARCH_EXPECTED_DATA_RELEASE_ID`,
+`AGORA_RESEARCH_EXPECTED_CARRY_RELEASE_ID`, and
 `AGORA_RESEARCH_EXPECT_MICROSTRUCTURE_SOURCE` environment variables. The carry
 expectation is supplied by `-ExpectCarrySource` or
 `AGORA_RESEARCH_EXPECT_CARRY_SOURCE` and must be exactly `absent` or
@@ -298,6 +317,7 @@ expectation:
 .\scripts\verify_research_worker_ssh.ps1 `
   -ExpectedControlReleaseId <control-release-id> `
   -ExpectedDataReleaseId <data-release-id> `
+  -ExpectedCarryReleaseId <carry-release-id> `
   -ExpectMicrostructureSource disabled `
   -ExpectCarrySource inactive
 ```

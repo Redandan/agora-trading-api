@@ -14,7 +14,13 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Narrow read-only position and OCO safety surface.
@@ -91,7 +97,7 @@ public class ExecutionSafetyMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
-    @Tool(description = "Read-only open BTC spot position inventory used by execution-safety reconciliation. Does not place, cancel, or modify orders.")
+    @Tool(description = "Read-only open BTC spot position inventory with ownership, current gross mark-to-market PnL, and execution-safety state. Fee-exact net PnL is intentionally not claimed. Does not place, cancel, or modify orders.")
     public String getOpenSpotPositions() {
         List<BtLiveSignal> positions =
                 liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull().stream()
@@ -101,18 +107,57 @@ public class ExecutionSafetyMcpTools {
         if (positions.isEmpty()) {
             return result.append("count=0").toString();
         }
+
+        Map<String, BigDecimal> markPrices = new HashMap<>();
+        Set<String> unavailableMarks = new HashSet<>();
+        BigDecimal totalEntryCost = BigDecimal.ZERO;
+        BigDecimal totalMarkedValue = BigDecimal.ZERO;
+        BigDecimal totalGrossUnrealizedPnl = BigDecimal.ZERO;
+        int pricedCount = 0;
+
         for (BtLiveSignal position : positions) {
+            BigDecimal quantity = position.getTradedQty();
+            BigDecimal entry = entryPrice(position);
+            BigDecimal mark = markPrice(position.getSymbol(), markPrices, unavailableMarks);
+            BigDecimal entryCost = multiply(entry, quantity);
+            BigDecimal markedValue = multiply(mark, quantity);
+            BigDecimal grossUnrealizedPnl = subtract(markedValue, entryCost);
+            BigDecimal grossUnrealizedReturn = divide(grossUnrealizedPnl, entryCost);
+
             result.append("- id=").append(position.getId())
                     .append(" strategyId=").append(position.getStrategyId())
                     .append(" symbol=").append(position.getSymbol())
-                    .append(" qty=").append(decimal(position.getTradedQty()))
-                    .append(" entry=").append(decimal(entryPrice(position)))
+                    .append(" qty=").append(decimal(quantity))
+                    .append(" entry=").append(decimal(entry))
                     .append(" ocoAlgoId=").append(position.getOcoOrderListId())
                     .append(" managementState=")
                     .append(BtcBasePositionStatePolicy.managementState(position))
+                    .append(" automaticExitPolicy=")
+                    .append(BtcBasePositionStatePolicy.automaticExitPolicy(position))
+                    .append(" mark=").append(decimal(mark))
+                    .append(" entryCost=").append(decimal(entryCost))
+                    .append(" markedValue=").append(decimal(markedValue))
+                    .append(" grossUnrealizedPnl=").append(decimal(grossUnrealizedPnl))
+                    .append(" grossUnrealizedReturn=").append(decimal(grossUnrealizedReturn))
                     .append('\n');
+
+            if (entryCost != null && markedValue != null && grossUnrealizedPnl != null) {
+                totalEntryCost = totalEntryCost.add(entryCost);
+                totalMarkedValue = totalMarkedValue.add(markedValue);
+                totalGrossUnrealizedPnl = totalGrossUnrealizedPnl.add(grossUnrealizedPnl);
+                pricedCount++;
+            }
         }
-        result.append("count=").append(positions.size());
+        result.append("count=").append(positions.size())
+                .append(" pricedCount=").append(pricedCount)
+                .append(" valuationComplete=").append(pricedCount == positions.size())
+                .append("\npricedEntryCost=").append(decimal(totalEntryCost))
+                .append(" pricedMarkedValue=").append(decimal(totalMarkedValue))
+                .append(" pricedGrossUnrealizedPnl=").append(decimal(totalGrossUnrealizedPnl))
+                .append(" pricedGrossUnrealizedReturn=")
+                .append(decimal(divide(totalGrossUnrealizedPnl, totalEntryCost)))
+                .append("\nprofitBasis=GROSS_MARK_TO_MARKET_EXCLUDES_ENTRY_AND_EXIT_FEES")
+                .append("\nasOf=").append(Instant.now());
         return result.toString();
     }
 
@@ -150,5 +195,42 @@ public class ExecutionSafetyMcpTools {
         return position.getActualEntryPrice() != null
                 ? position.getActualEntryPrice()
                 : position.getEntryPrice();
+    }
+
+    private BigDecimal markPrice(String symbol, Map<String, BigDecimal> markPrices,
+                                 Set<String> unavailableMarks) {
+        if (symbol == null || unavailableMarks.contains(symbol)) {
+            return null;
+        }
+        if (markPrices.containsKey(symbol)) {
+            return markPrices.get(symbol);
+        }
+        try {
+            BigDecimal mark = okxTradingService.getLastPrice(symbol);
+            if (mark == null || mark.signum() <= 0) {
+                unavailableMarks.add(symbol);
+                return null;
+            }
+            markPrices.put(symbol, mark);
+            return mark;
+        } catch (Exception ignored) {
+            unavailableMarks.add(symbol);
+            return null;
+        }
+    }
+
+    private BigDecimal multiply(BigDecimal left, BigDecimal right) {
+        return left == null || right == null ? null : left.multiply(right);
+    }
+
+    private BigDecimal subtract(BigDecimal left, BigDecimal right) {
+        return left == null || right == null ? null : left.subtract(right);
+    }
+
+    private BigDecimal divide(BigDecimal numerator, BigDecimal denominator) {
+        if (numerator == null || denominator == null || denominator.signum() == 0) {
+            return null;
+        }
+        return numerator.divide(denominator, 8, RoundingMode.HALF_UP);
     }
 }

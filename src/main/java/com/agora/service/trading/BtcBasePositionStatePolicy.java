@@ -12,6 +12,8 @@ public final class BtcBasePositionStatePolicy {
             BTC_BASE_PREFIX + "ADOPTION_PENDING:V1:OCO=";
     public static final String ADOPTED_FROM_OCO_PREFIX =
             BTC_BASE_PREFIX + "ADOPTED_FROM_OCO:V1:OCO=";
+    public static final String TV509_POSITION_PREFIX = BTC_BASE_PREFIX + "TV509:";
+    public static final String DRA_V1_POSITION_PREFIX = BTC_BASE_PREFIX + "DRA_V1:";
     public static final int FILTER_REASON_MAX_LENGTH = 500;
 
     private static final String PREVIOUS_NULL_SUFFIX = "|PREV_NULL";
@@ -42,6 +44,14 @@ public final class BtcBasePositionStatePolicy {
 
     public static boolean isAdoptedFromOcoReason(String filterReason) {
         return filterReason != null && filterReason.startsWith(ADOPTED_FROM_OCO_PREFIX);
+    }
+
+    public static boolean isTv509Position(BtLiveSignal position) {
+        return position != null && startsWith(position.getFilterReason(), TV509_POSITION_PREFIX);
+    }
+
+    public static boolean isDraV1Position(BtLiveSignal position) {
+        return position != null && startsWith(position.getFilterReason(), DRA_V1_POSITION_PREFIX);
     }
 
     public static boolean isIntentionalNoOco(BtLiveSignal position) {
@@ -110,7 +120,23 @@ public final class BtcBasePositionStatePolicy {
     public static String managementState(BtLiveSignal position) {
         if (isAdoptionPending(position)) return "ADOPTION_PENDING";
         if (isAdoptedFromOco(position)) return "ADOPTED_FROM_OCO";
+        if (isTv509Position(position)) return "TV509_OWNED";
+        if (isDraV1Position(position)) return "DRA_V1_OWNED";
         if (isBtcBase(position)) return "NATIVE_BTC_BASE";
         return "NONE";
+    }
+
+    public static String automaticExitPolicy(BtLiveSignal position) {
+        if (isTv509Position(position) || isDraV1Position(position)) {
+            return "PER_LOT_NET_PROFIT_TARGET";
+        }
+        if (isBtcBase(position)) {
+            return "NONE";
+        }
+        return "UNKNOWN";
+    }
+
+    private static boolean startsWith(String value, String prefix) {
+        return value != null && value.startsWith(prefix);
     }
 }

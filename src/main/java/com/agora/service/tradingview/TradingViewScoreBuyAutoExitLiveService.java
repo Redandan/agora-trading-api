@@ -9,6 +9,7 @@ import com.agora.model.MdKline;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.service.backtest.LiveSignalContext;
 import com.agora.service.meta.DecisionAuditWriter;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.TradeResult;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ import java.util.Map;
 @Slf4j
 public class TradingViewScoreBuyAutoExitLiveService {
 
-    private static final String POSITION_PREFIX = "LOCAL_TRADINGVIEW_BTC_BASE:TV509:";
+    private static final String POSITION_PREFIX = BtcBasePositionStatePolicy.TV509_POSITION_PREFIX;
     private static final String SIDE = "LONG";
     private static final BigDecimal ESTIMATED_SELL_FEE_RATE = new BigDecimal("0.0010");
     private static final BigDecimal DUST_QTY = new BigDecimal("0.00000001");

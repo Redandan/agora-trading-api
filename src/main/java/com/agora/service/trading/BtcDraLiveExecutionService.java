@@ -55,8 +55,7 @@ import static com.agora.service.trading.BtcDraPolicy.SYMBOL;
 @Slf4j
 public class BtcDraLiveExecutionService {
 
-    static final String POSITION_PREFIX = BtcBasePositionStatePolicy.BTC_BASE_PREFIX
-            + "DRA_V1:";
+    static final String POSITION_PREFIX = BtcBasePositionStatePolicy.DRA_V1_POSITION_PREFIX;
     static final String EXECUTION_MODE = "OKX_SPOT_LIVE_CANARY";
 
     private static final String SIDE = "LONG";

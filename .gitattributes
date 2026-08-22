@@ -86,6 +86,7 @@ research/binance_btcusdt_funding_carry_corpus_v2.py text eol=lf
 research/binance_btcusdt_funding_carry_corpus_v3.py text eol=lf
 research/btc_binance_usdm_delta_neutral_funding_carry_historical.py text eol=lf
 research/binance_btcusdt_delivery_archive_inventory_probe_v1.py text eol=lf
+research/binance_btcusdt_delivery_archive_inventory_probe_v2.py text eol=lf
 research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-historical.v1.source-ledger-spec.json text eol=lf
 research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-historical.v2.source-integrity-erratum.json text eol=lf
 research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-historical.v3.source-integrity-closure.json text eol=lf
@@ -105,4 +106,6 @@ research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-
 research_pipeline/examples/local-weekly-output-classification.acceptance.btc-binance-usdm-funding-carry-v3.json text eol=lf
 research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-primary-prior.v1.json text eol=lf
 research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.spec.json text eol=lf
+research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.decision.json text eol=lf
+research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.spec.json text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

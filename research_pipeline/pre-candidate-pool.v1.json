@@ -241,6 +241,16 @@
           "sha256": "208dda4305e0da33675e0b3dc3a50196b634f045fdd69103bac752d697fc303f"
         },
         {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.decision.json",
+          "role": "SEALED_V1_IMPLEMENTATION_REJECT_NO_SOURCE_DECISION",
+          "sha256": "972eec8726463764b2920ebe94906aad6c54c01f552491bc6f573c1a8c9e707b"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.spec.json",
+          "role": "FROZEN_CORRECTED_UNCHANGED_THROUGH_EXPIRY_METADATA_GATE",
+          "sha256": "8e435dd6bedc4f74b78a569546b797d9eb1bdadd09569cbf168f75ad98e06503"
+        },
+        {
           "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
           "role": "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
           "sha256": "8ad99ea87046321bae3a7edd94f0d82997e8038c2628787973dfea82bad03cb9"
@@ -274,7 +284,7 @@
         "No point-in-time checksum-bound historical delivery-contract inventory, listing, expiry, settlement-reference and native spot-futures intersection is sealed.",
         "No contract-selection rule, roll clock, maturity band, entry cost floor, collateral and liquidation ledger, hypothesis, manifest, deterministic runner, economics, breadth, candidate, OOS or forward evidence exists."
       ],
-      "next_gate": "EXECUTE_FROZEN_METADATA_ONLY_BINANCE_HISTORICAL_DELIVERY_CONTRACT_INVENTORY_TWICE_BEFORE_PRICE_OR_BASIS_VALUE_ACCESS",
+      "next_gate": "EXECUTE_FROZEN_V2_METADATA_ONLY_BINANCE_HISTORICAL_DELIVERY_CONTRACT_INVENTORY_TWICE_BEFORE_PRICE_OR_BASIS_VALUE_ACCESS",
       "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "runner_id": "DIRECT_FIXED_MATURITY_SPOT_DELIVERY_FUTURES_SETTLEMENT_LEDGER_REQUIRED",
       "title": "BTC Binance fixed-maturity delivery cash-and-carry"

@@ -1,0 +1,120 @@
+{
+  "schema_version": "2",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_SOURCE_INVENTORY_SPEC_V2",
+  "spec_id": "btc-binance-fixed-maturity-delivery-source-inventory-v2",
+  "family_id": "btc-binance-fixed-maturity-delivery-cash-and-carry",
+  "frozen_at": "2026-08-22T13:40:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_METADATA_ONLY_SOURCE_GATE",
+  "objective": "Execute the unchanged V1 through-expiry metadata gate with a corrected implementation: every contract and mark archive must contain a contiguous eligible pre-expiry intersection ending in the expiry-code month, while later object names are reported and excluded rather than incorrectly treated as a source failure.",
+  "source_bindings": {
+    "primary_prior_path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-primary-prior.v1.json",
+    "primary_prior_sha256": "9aae40cad8b7ca57ff58ba82ec0d7d1afbe71c6c5066451df630593a609e8a7f",
+    "v1_spec_path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.spec.json",
+    "v1_spec_sha256": "208dda4305e0da33675e0b3dc3a50196b634f045fdd69103bac752d697fc303f",
+    "v1_decision_path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.decision.json",
+    "v1_decision_sha256": "972eec8726463764b2920ebe94906aad6c54c01f552491bc6f573c1a8c9e707b",
+    "archive_capability_path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+    "archive_capability_sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4",
+    "probe_path": "research/binance_btcusdt_delivery_archive_inventory_probe_v2.py",
+    "probe_sha256": "f7d7b8c892caef7103f0c5977e45541e36d53fdb065d0596799026e0515d5e0c",
+    "bucket_url": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision",
+    "official_archive_documentation": "https://github.com/binance/binance-public-data/blob/master/README.md"
+  },
+  "implementation_correction": {
+    "scientific_gate_changed": false,
+    "v1_defect": "V1 code required each archive series to terminate in the expiry month although the frozen text required coverage through that month.",
+    "v2_predicate": "Require expiry month presence and a contiguous contract/mark intersection from its first eligible month through expiry; report but exclude all later archive object names.",
+    "market_value_opened_before_refreeze": false,
+    "source_decision_reached_before_refreeze": false
+  },
+  "selection_boundary": {
+    "market": "BINANCE_USDM_DELIVERY",
+    "pair": "BTCUSDT",
+    "interval": "1h",
+    "contract_symbol_pattern": "BTCUSDT_YYMMDD",
+    "first_contract_expiry": "2021-03-26",
+    "cutoff_date": "2024-12-31",
+    "reference_first_month": "2021-03",
+    "reference_last_month": "2024-12",
+    "exact_contract_symbols": [
+      "BTCUSDT_210326",
+      "BTCUSDT_210625",
+      "BTCUSDT_210924",
+      "BTCUSDT_211231",
+      "BTCUSDT_220325",
+      "BTCUSDT_220624",
+      "BTCUSDT_220930",
+      "BTCUSDT_221230",
+      "BTCUSDT_230331",
+      "BTCUSDT_230630",
+      "BTCUSDT_230929",
+      "BTCUSDT_231229",
+      "BTCUSDT_240329",
+      "BTCUSDT_240628",
+      "BTCUSDT_240927",
+      "BTCUSDT_241227"
+    ],
+    "futures_contract_kline_root": "data/futures/um/monthly/klines/",
+    "futures_mark_price_root": "data/futures/um/monthly/markPriceKlines/",
+    "spot_reference_prefix": "data/spot/monthly/klines/BTCUSDT/1h/",
+    "index_reference_prefix": "data/futures/um/monthly/indexPriceKlines/BTCUSDT/1h/",
+    "post_expiry_archive_object_names": "REPORT_METADATA_BUT_DENY_FUTURE_VALUE_ACCESS",
+    "post_2024_contract_or_archive_selection": "DENY"
+  },
+  "request_contract": {
+    "method": "GET",
+    "operation": "S3_LIST_OBJECTS_V1_METADATA_ONLY",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "maximum_pages_per_root": 4,
+    "maximum_keys_per_page": 1000,
+    "maximum_response_bytes_per_request": 4194304,
+    "allowed_response_fields": [
+      "Prefix",
+      "Marker",
+      "IsTruncated",
+      "NextMarker",
+      "CommonPrefixes/Prefix",
+      "Contents/Key"
+    ]
+  },
+  "explicitly_denied_access": [
+    "ARCHIVE_ZIP_BODY",
+    "CHECKSUM_BODY",
+    "KLINE_ROW",
+    "MARK_PRICE_ROW",
+    "INDEX_PRICE_ROW",
+    "SPOT_PRICE_ROW",
+    "DELIVERY_PRICE_RESPONSE",
+    "BASIS_VALUE",
+    "RETURN",
+    "PNL",
+    "CURRENT_EXCHANGE_INFO",
+    "PAID_API",
+    "POST_2024_OUTCOME",
+    "OOS"
+  ],
+  "all_pass_gates": [
+    "The contract-kline and mark-price roots each contain the exact 16 frozen BTCUSDT delivery symbols.",
+    "Every selected contract has one sibling CHECKSUM object per monthly 1h contract-kline ZIP and contains its expiry-code month.",
+    "Every selected contract has one sibling CHECKSUM object per monthly 1h mark-price ZIP and contains its expiry-code month.",
+    "Each contract has a contiguous eligible contract/mark intersection ending in the expiry-code month; post-expiry object names are reported but ineligible.",
+    "BTCUSDT spot and BTCUSDT USD-M index 1h monthly archives each cover every month from 2021-03 through 2024-12 with one sibling CHECKSUM object per ZIP.",
+    "The output records raw S3 XML hashes, opens no object body and reports market_data_rows_opened=false and price_or_basis_values_opened=false."
+  ],
+  "decision_contract": {
+    "pass": "SOURCE_METADATA_GATE_PASS_VALUE_ACCESS_STILL_DENIED",
+    "fail": "DATA_REJECT_CLOSE_FIXED_MATURITY_DELIVERY_SOURCE_PATH_BEFORE_VALUE_ACCESS",
+    "pass_next_gate": "FREEZE_ONE_CHECKSUM_BOUND_VALUE_ACCESS_SETTLEMENT_AND_MARGIN_LEDGER_CONTRACT_BEFORE_ANY_ZIP_OR_DELIVERY_PRICE_RESPONSE",
+    "post_fail_rescue": "DENY_CURRENT_EXCHANGE_INFO_THIRD_PARTY_BACKFILL_CONTRACT_SUBSTITUTION_OR_THRESHOLD_TUNING"
+  },
+  "determinism": {
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "required_runs": 2,
+    "output": "TWO_CREATE_ONCE_RESEARCH_STATE_JSONS",
+    "acceptance": "BYTE_IDENTICAL_OUTPUTS_WITH_IDENTICAL_SHA256"
+  },
+  "scope_note": "The frozen task is source metadata only. It cannot create a hypothesis, manifest, experiment or candidate and cannot open market values, OOS or any Trading path."
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_SOURCE_INVENTORY_DECISION_V1",
+  "family_id": "btc-binance-fixed-maturity-delivery-cash-and-carry",
+  "decided_at": "2026-08-22T13:35:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "IMPLEMENTATION_REJECT_SPEC_CODE_MISMATCH_NO_SOURCE_DECISION",
+  "frozen_source_git_commit": "8cb7b3ea4ada7801a7706772bef07a87f388e0ad",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.spec.json",
+      "sha256": "208dda4305e0da33675e0b3dc3a50196b634f045fdd69103bac752d697fc303f",
+      "role": "FROZEN_TEXTUAL_GATE"
+    },
+    {
+      "path": "research/binance_btcusdt_delivery_archive_inventory_probe_v1.py",
+      "sha256": "54021b9862e6dec49faf1ca94fc12a072c37e9b9369d8ea83ac45ad242aaccbe",
+      "role": "FROZEN_DEFECTIVE_IMPLEMENTATION"
+    }
+  ],
+  "observed_failure": "The first create-once execution stopped before writing an output at SOURCE_REJECT:EXPIRY_MONTH_COVERAGE:BTCUSDT_210326. Metadata-only inspection showed that the contract archive included the expiry month while the mark-price archive continued beyond it.",
+  "spec_code_mismatch": {
+    "frozen_spec_requirement": "Each selected contract must have contiguous contract and mark-price monthly archives through its expiry-code month.",
+    "implemented_requirement": "Both archive series had to terminate exactly in the expiry-code month.",
+    "classification": "IMPLEMENTATION_STRICTER_THAN_FROZEN_GATE",
+    "scientific_gate_changed": false,
+    "market_value_opened": false,
+    "source_decision_reached": false
+  },
+  "admissible_correction": "Preserve V1 bytes and create V2. V2 may change only the implementation predicate from last_month == expiry_month to expiry_month present in a contiguous pre-expiry intersection. It must expose and exclude post-expiry object months and preserve every other source, contract, checksum, cutoff, no-value and decision gate.",
+  "prohibited_corrections": [
+    "Do not remove a contract, checksum, mark-price, spot, index or reference-coverage gate.",
+    "Do not inspect ZIP or CHECKSUM bodies, delivery-price responses, prices, basis, returns or PnL before V2 is frozen.",
+    "Do not reinterpret post-expiry archive object presence as eligible post-expiry market data.",
+    "Do not relabel this implementation reject as DATA_REJECT, source pass or economic evidence."
+  ],
+  "next_action": "FREEZE_V2_CODE_ALIGNED_TO_UNCHANGED_THROUGH_EXPIRY_TEXTUAL_GATE_AND_RERUN_TWICE",
+  "scope_note": "Metadata-only implementation diagnosis. No output artifact, ZIP body, CHECKSUM body, market-data row, price, basis, delivery-price response, return, PnL, hypothesis, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

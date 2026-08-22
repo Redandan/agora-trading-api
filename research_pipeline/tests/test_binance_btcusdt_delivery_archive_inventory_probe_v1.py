@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from research import binance_btcusdt_delivery_archive_inventory_probe_v1 as probe
+from research import binance_btcusdt_delivery_archive_inventory_probe_v2 as probe_v2
 import unittest
 
 
@@ -118,6 +119,29 @@ class BinanceBtcusdtDeliveryArchiveInventoryProbeV1Test(unittest.TestCase):
             probe.InventoryReject, "SOURCE_REJECT:MISSING_CHECKSUM"
         ):
             probe.build_inventory(self.spec, missing_checksum_fetcher)
+
+    def test_v2_accepts_post_expiry_objects_but_excludes_them_from_eligibility(
+        self,
+    ) -> None:
+        prefix = f"{probe.FUTURES_MARK_ROOT}{self.symbol}/1h/"
+
+        def post_expiry_fetcher(query: dict[str, str]) -> bytes:
+            if query["prefix"] == prefix:
+                return bucket_xml(
+                    prefix=prefix,
+                    keys=archive_keys(
+                        prefix,
+                        self.symbol,
+                        ("2021-02", "2021-03", "2021-04"),
+                    ),
+                )
+            return self.fetcher(query)
+
+        result = probe_v2.build_inventory(self.spec, post_expiry_fetcher)
+        contract = result["contracts"][0]
+        self.assertTrue(contract["expiry_month_present_in_both_archives"])
+        self.assertEqual(1, contract["post_expiry_mark_archive_month_count"])
+        self.assertFalse(contract["post_expiry_archive_values_eligible"])
 
 
 if __name__ == "__main__":

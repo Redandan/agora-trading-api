@@ -1,0 +1,177 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_SOURCE_INTEGRITY_CLOSURE_V3",
+  "spec_id": "btc-binance-usdm-delta-neutral-funding-carry-historical-v3",
+  "frozen_at": "2026-08-22T11:50:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_COMPLETE_TIMESTAMP_AUDIT_AND_FINAL_SOURCE_CLOSURE",
+  "predecessors": [
+    {
+      "path": "research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-historical.v1.source-ledger-spec.json",
+      "sha256": "41745a4c173714534f4bdeb63ca594a0250c056143b356cc22b2344212dfad79",
+      "disposition": "PRESERVE_ALL_ECONOMIC_ACCOUNTING_WINDOWS_COSTS_GATES_AND_STOP_CONDITIONS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-historical.v2.source-integrity-erratum.json",
+      "sha256": "63b1de3d0e89338bbccc781f1f707c9f1dc1d7b7e16f70d9299e106a6d68a722",
+      "disposition": "SUPERSEDE_INCOMPLETE_SINGLE_GAP_INVENTORY_WITH_COMPLETE_PRE_OUTCOME_TIMESTAMP_AUDIT"
+    }
+  ],
+  "complete_timestamp_audit": {
+    "market_values_accessed": false,
+    "strategy_outcome_accessed": false,
+    "return_or_pnl_computed": false,
+    "monthly_archive_count": 300,
+    "monthly_archive_checksums_required": true,
+    "spot": {
+      "native_complete_hours": 43809,
+      "missing_complete_hours": 31,
+      "incomplete_hours": 8,
+      "proxy_hours": 39,
+      "proxy_open_times_ms": [
+        "1581213600000",
+        "1582110000000",
+        "1582113600000",
+        "1582117200000",
+        "1582120800000",
+        "1582124400000",
+        "1582128000000",
+        "1583312400000",
+        "1583316000000",
+        "1587780000000",
+        "1587783600000",
+        "1593309600000",
+        "1593313200000",
+        "1593316800000",
+        "1606716000000",
+        "1608559200000",
+        "1608562800000",
+        "1608566400000",
+        "1608570000000",
+        "1608861600000",
+        "1613012400000",
+        "1613016000000",
+        "1614996000000",
+        "1618884000000",
+        "1618887600000",
+        "1619323200000",
+        "1619326800000",
+        "1619330400000",
+        "1619334000000",
+        "1628816400000",
+        "1628820000000",
+        "1628823600000",
+        "1628827200000",
+        "1628830800000",
+        "1632898800000",
+        "1632902400000",
+        "1640318400000",
+        "1679659200000",
+        "1679662800000"
+      ],
+      "proxy_source": "CHECKSUM_VERIFIED_BINANCE_USDM_INDEX_PRICE_SAME_HOUR_OPEN_AND_CLOSE",
+      "proxy_use": "VALUATION_ONLY_NEVER_ENTRY_EXIT_MARK_FUNDING_OR_EXECUTION",
+      "execution_boundary_proxy_count": 0
+    },
+    "usdm_contract": {
+      "complete_hours": 43848,
+      "missing_hours": 0,
+      "exact_header_allowed": [
+        "open_time",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "close_time",
+        "quote_volume",
+        "count",
+        "taker_buy_volume",
+        "taker_buy_quote_volume",
+        "ignore"
+      ]
+    },
+    "usdm_mark_price": {
+      "monthly_complete_hours": 43656,
+      "monthly_missing_hours": 192,
+      "daily_fallback_days": [
+        "2021-07-01",
+        "2021-07-24",
+        "2021-07-25",
+        "2021-07-26",
+        "2021-07-27",
+        "2022-07-31",
+        "2022-10-02",
+        "2023-02-24"
+      ],
+      "daily_fallback_template": "data/futures/um/daily/markPriceKlines/BTCUSDT/1h/BTCUSDT-1h-{YYYY-MM-DD}.zip",
+      "daily_fallback_all_24_hours_preverified": true
+    },
+    "usdm_index_price": {
+      "monthly_complete_hours": 43560,
+      "monthly_missing_hours": 288,
+      "daily_fallback_days": [
+        "2022-04-27",
+        "2022-07-24",
+        "2022-07-25",
+        "2022-07-27",
+        "2022-07-28",
+        "2022-07-30",
+        "2022-07-31",
+        "2022-10-02",
+        "2023-02-13",
+        "2023-02-24",
+        "2023-04-07",
+        "2023-04-08"
+      ],
+      "daily_fallback_template": "data/futures/um/daily/indexPriceKlines/BTCUSDT/1h/BTCUSDT-1h-{YYYY-MM-DD}.zip",
+      "daily_fallback_all_24_hours_preverified": true
+    },
+    "usdm_funding": {
+      "events": 5481,
+      "unique_expected_eight_hour_slots": 5481,
+      "interval_hours": 8,
+      "minimum_actual_calc_time_offset_ms": 0,
+      "maximum_actual_calc_time_offset_ms": 47,
+      "normalization": "MAP_EACH_UNIQUE_ACTUAL_CALC_TIME_TO_NEAREST_EXPECTED_00_08_16_UTC_SLOT_ONLY_WHEN_NONNEGATIVE_OFFSET_IS_AT_MOST_1000MS; PRESERVE_ACTUAL_TIME_AND_OFFSET",
+      "duplicate_slot_count": 0
+    }
+  },
+  "final_acquisition_contract": {
+    "monthly_archives": 300,
+    "daily_fallback_archives": 20,
+    "total_archives": 320,
+    "publisher_checksum_required_for_every_archive": true,
+    "automatic_retry": "DENY",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "post_2024_data": "DENY",
+    "normalized_hourly_rows": 43848,
+    "normalized_funding_events": 5481,
+    "create_once": true,
+    "unexpected_source_anomaly": "DATA_REJECT_NO_FURTHER_ERRATUM"
+  },
+  "normalized_columns": [
+    "open_time_ms",
+    "spot_open",
+    "spot_close",
+    "spot_price_source",
+    "perp_open",
+    "perp_close",
+    "mark_open",
+    "mark_close",
+    "funding_calc_time_ms",
+    "funding_offset_ms",
+    "funding_rate"
+  ],
+  "stop_conditions": [
+    "Preserve every V1 economic, cost, capital, margin, window, gate and no-tuning byte-semantic without relaxation.",
+    "Accept only the exact 39 Spot proxy identities, exact 8 Mark daily fallback identities, exact 12 Index daily fallback identities and 0-to-1000ms nonnegative funding offset rule frozen here.",
+    "Reject before economics on any additional missing, incomplete, duplicate, conflicting, non-checksummed or execution-boundary proxy observation.",
+    "Do not create V4 for another source anomaly; close this archive path DATA_REJECT.",
+    "After the V3 corpus is sealed, bind the exact corpus and runner hashes in one preregistered manifest before any economic output."
+  ],
+  "claim_boundary": "V3 is the final pre-outcome source-integrity closure. It proves neither profitability nor candidate readiness and authorizes no OOS or Trading action.",
+  "scope_note": "Timestamp and checksum feasibility only. No normalized corpus, return, PnL, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

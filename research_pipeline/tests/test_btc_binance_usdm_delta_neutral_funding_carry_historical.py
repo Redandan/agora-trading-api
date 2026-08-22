@@ -30,6 +30,8 @@ class FundingCarryRunnerTest(unittest.TestCase):
             "BINANCE_SPOT_ARCHIVE",
             *(Decimal("100") for _ in range(4)),
             None,
+            None,
+            None,
         )
         position, fees, slippage = open_position(INITIAL_EQUITY, row, COSTS["NORMAL"])
         self.assertGreater(position.quantity, Decimal("24"))
@@ -58,6 +60,8 @@ class FundingCarryRunnerTest(unittest.TestCase):
                         Decimal("100"),
                         "BINANCE_SPOT_ARCHIVE",
                         *(Decimal("100") for _ in range(4)),
+                        None if hour != 2 else int(moment.timestamp() * 1000),
+                        None if hour != 2 else 0,
                         rate if hour == 2 else None,
                     )
                 )

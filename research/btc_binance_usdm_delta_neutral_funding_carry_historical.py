@@ -21,23 +21,56 @@ D = Decimal
 ZERO = D("0")
 ONE = D("1")
 REPO_ROOT = Path(__file__).resolve().parents[1]
-EXPERIMENT_ID = "btc-binance-usdm-delta-neutral-funding-carry-historical-v2"
+EXPERIMENT_ID = "btc-binance-usdm-delta-neutral-funding-carry-historical-v3"
 EXPECTED_MANIFEST_TYPE = (
-    "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_HISTORICAL_MANIFEST_V2"
+    "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_HISTORICAL_MANIFEST_V3"
 )
 EXPECTED_SPEC_SHA256 = (
     "41745a4c173714534f4bdeb63ca594a0250c056143b356cc22b2344212dfad79"
 )
-EXPECTED_ERRATUM_SHA256 = (
-    "63b1de3d0e89338bbccc781f1f707c9f1dc1d7b7e16f70d9299e106a6d68a722"
+EXPECTED_CLOSURE_SHA256 = (
+    "35e048656e72dd1e273f67fa8149c25a43e62f62e25202132fa4f96ebb9f04a0"
 )
 EXPECTED_PROXY_TIMES = {
+    1_581_213_600_000,
     1_582_110_000_000,
     1_582_113_600_000,
     1_582_117_200_000,
     1_582_120_800_000,
     1_582_124_400_000,
     1_582_128_000_000,
+    1_583_312_400_000,
+    1_583_316_000_000,
+    1_587_780_000_000,
+    1_587_783_600_000,
+    1_593_309_600_000,
+    1_593_313_200_000,
+    1_593_316_800_000,
+    1_606_716_000_000,
+    1_608_559_200_000,
+    1_608_562_800_000,
+    1_608_566_400_000,
+    1_608_570_000_000,
+    1_608_861_600_000,
+    1_613_012_400_000,
+    1_613_016_000_000,
+    1_614_996_000_000,
+    1_618_884_000_000,
+    1_618_887_600_000,
+    1_619_323_200_000,
+    1_619_326_800_000,
+    1_619_330_400_000,
+    1_619_334_000_000,
+    1_628_816_400_000,
+    1_628_820_000_000,
+    1_628_823_600_000,
+    1_628_827_200_000,
+    1_628_830_800_000,
+    1_632_898_800_000,
+    1_632_902_400_000,
+    1_640_318_400_000,
+    1_679_659_200_000,
+    1_679_662_800_000,
 }
 EXPECTED_ROWS = 43_848
 HOUR_MS = 3_600_000
@@ -98,6 +131,8 @@ class Row:
     perp_close: D
     mark_open: D
     mark_close: D
+    funding_calc_time_ms: int | None
+    funding_offset_ms: int | None
     funding_rate: D | None
 
     @property
@@ -151,13 +186,15 @@ def parse_normalized_gzip(raw: bytes) -> tuple[list[Row], bytes]:
         "perp_close",
         "mark_open",
         "mark_close",
+        "funding_calc_time_ms",
+        "funding_offset_ms",
         "funding_rate",
     ]
     if not rows or rows[0] != expected_header:
         raise ResearchReject("DATA_REJECT:HEADER")
     parsed: list[Row] = []
     for index, values in enumerate(rows[1:], start=1):
-        if len(values) != 9:
+        if len(values) != 11:
             raise ResearchReject(f"DATA_REJECT:WIDTH:{index}")
         try:
             timestamp = int(values[0])
@@ -172,7 +209,23 @@ def parse_normalized_gzip(raw: bytes) -> tuple[list[Row], bytes]:
             "BINANCE_USDM_INDEX_PROXY_FOR_PUBLISHER_GAP",
         }:
             raise ResearchReject(f"DATA_REJECT:SPOT_SOURCE:{index}:{source}")
-        funding = None if values[8] == "" else _decimal(values[8], context=f"funding:{index}")
+        funding_fields = values[8:11]
+        if funding_fields == ["", "", ""]:
+            funding_calc_time = None
+            funding_offset = None
+            funding = None
+        else:
+            try:
+                funding_calc_time = int(values[8])
+                funding_offset = int(values[9])
+            except ValueError as error:
+                raise ResearchReject(f"DATA_REJECT:FUNDING_CLOCK_FIELDS:{index}") from error
+            funding = _decimal(values[10], context=f"funding:{index}")
+            if (
+                funding_calc_time - timestamp != funding_offset
+                or not 0 <= funding_offset <= 1000
+            ):
+                raise ResearchReject(f"DATA_REJECT:FUNDING_CLOCK_BINDING:{index}")
         parsed.append(
             Row(
                 timestamp,
@@ -183,6 +236,8 @@ def parse_normalized_gzip(raw: bytes) -> tuple[list[Row], bytes]:
                 prices[3],
                 prices[4],
                 prices[5],
+                funding_calc_time,
+                funding_offset,
                 funding,
             )
         )
@@ -258,9 +313,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     spec = by_role.get("FROZEN_PRE_OUTCOME_SOURCE_AND_LEDGER_SPEC", {})
     if spec.get("sha256") != EXPECTED_SPEC_SHA256:
         raise ResearchReject("MANIFEST_REJECT:SPEC_BINDING")
-    erratum = by_role.get("FROZEN_PRE_OUTCOME_SOURCE_INTEGRITY_ERRATUM", {})
-    if erratum.get("sha256") != EXPECTED_ERRATUM_SHA256:
-        raise ResearchReject("MANIFEST_REJECT:ERRATUM_BINDING")
+    closure = by_role.get("FROZEN_PRE_OUTCOME_FINAL_SOURCE_INTEGRITY_CLOSURE", {})
+    if closure.get("sha256") != EXPECTED_CLOSURE_SHA256:
+        raise ResearchReject("MANIFEST_REJECT:CLOSURE_BINDING")
 
 
 def is_quarter_reset(moment: datetime) -> bool:
@@ -485,15 +540,15 @@ def build_output(input_path: Path, manifest_path: Path) -> dict[str, Any]:
     bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
     if (
         bundle.get("status")
-        != "SEALED_CHECKSUM_VERIFIED_PRE_2025_CORPUS_WITH_EXACT_BOUNDED_SPOT_INDEX_PROXY_NO_STRATEGY_OUTCOME"
+        != "SEALED_CHECKSUM_VERIFIED_PRE_2025_FINAL_SOURCE_CLOSURE_NO_STRATEGY_OUTCOME"
         or bundle.get("corpus", {}).get("normalized_gzip_sha256")
         != dataset["normalized_gzip_sha256"]
         or bundle.get("corpus", {}).get("normalized_csv_sha256")
         != dataset["normalized_csv_sha256"]
         or bundle.get("predecessor_source_and_ledger_spec", {}).get("sha256")
         != EXPECTED_SPEC_SHA256
-        or bundle.get("source_integrity_erratum", {}).get("sha256")
-        != EXPECTED_ERRATUM_SHA256
+        or bundle.get("source_integrity_closure", {}).get("sha256")
+        != EXPECTED_CLOSURE_SHA256
     ):
         raise ResearchReject("DATA_REJECT:BUNDLE_BINDING")
     rows, csv_raw = parse_normalized_gzip(input_path.read_bytes())
@@ -623,6 +678,16 @@ def build_output(input_path: Path, manifest_path: Path) -> dict[str, Any]:
                 if row.spot_price_source
                 == "BINANCE_USDM_INDEX_PROXY_FOR_PUBLISHER_GAP"
             ],
+            "funding_offset_min_ms": min(
+                row.funding_offset_ms
+                for row in rows
+                if row.funding_offset_ms is not None
+            ),
+            "funding_offset_max_ms": max(
+                row.funding_offset_ms
+                for row in rows
+                if row.funding_offset_ms is not None
+            ),
             "selection_cutoff": "2025-01-01T00:00:00Z",
         },
         "comparator": {

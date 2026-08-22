@@ -1,0 +1,53 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-money-flow-index-14-midline-long-cash-v1",
+  "title": "Daily MFI14 midline price-volume state long/cash timing",
+  "thesis": "When the prior fourteen complete daily BTC typical-price money flows remain net positive enough to keep MFI above its equal-flow midline, price movement may be supported by volume strongly enough that a causal next-open long/cash policy preserves material upside while avoiding enough adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "mechanism": "For each complete UTC day, compute typical price from daily high, low and close, multiply by daily base volume, classify the latest fourteen raw money flows by typical-price direction using the immediately preceding day, and calculate MFI as 100 times positive flow divided by positive plus negative flow. The strategy is fully long BTC when completed-day MFI14 is strictly above a frozen threshold and otherwise holds zero-yield cash, with state changes executed at the next H1 open.",
+  "economic_rationale": "MFI14 combines direction and traded volume in a bounded rolling ratio rather than using close-only RSI, cumulative OBV or close-location CMF. The mechanism is useful only if the fixed 50 equal-flow boundary retains material upside after costs while reducing drawdown and improving Calmar with broad annual and threshold-neighbor support.",
+  "source": "BTC_DAILY_MONEY_FLOW_INDEX_14_MIDLINE_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-money-flow-index-14-midline-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "mfi_complete_days": 14,
+      "long_threshold": "50"
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "mfi_complete_days": 14,
+      "long_threshold": "45"
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "mfi_complete_days": 14,
+      "long_threshold": "55"
+    }
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-22-candidate-factory-cycle-mfi14",
+  "created_at": "2026-08-22T08:37:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

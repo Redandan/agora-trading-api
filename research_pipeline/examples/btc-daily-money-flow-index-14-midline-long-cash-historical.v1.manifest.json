@@ -1,0 +1,210 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_MONEY_FLOW_INDEX_14_MIDLINE_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-money-flow-index-14-midline-long-cash-historical-v1",
+  "created_at": "2026-08-22T08:40:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "When the prior fourteen complete daily BTC typical-price money flows remain net positive enough to keep MFI above its equal-flow midline, price movement may be supported by volume strongly enough that a causal next-open long/cash policy preserves material upside while avoiding enough adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "economic_rationale": "MFI14 combines typical-price direction and base volume in a bounded rolling ratio. It is valuable only if the fixed 50 equal-flow boundary retains material upside after costs, lowers drawdown, improves Calmar, survives annual breadth and remains stable at frozen thresholds 45 and 55. Reduced exposure alone cannot pass.",
+  "opportunity_cost": "One exact historical decision is cheaper and more informative than waiting ninety days or building another data adapter. A failure permanently closes this MFI14 midline family without threshold, length, smoothing, band, divergence or parent changes.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-money-flow-index-14-midline-long-cash",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_CAUSAL_NEXT_H1_OPEN_POLICY",
+    "distinct_from_closed_families": [
+      "Unlike RSI14, MFI14 weights direction by typical-price-times-base-volume rather than close-change magnitude.",
+      "Unlike OBV, MFI14 is a bounded rolling ratio and is not a cumulative signed-volume moving average.",
+      "Unlike Chaikin Money Flow, MFI14 signs raw money flow by interday typical-price direction rather than within-day close location."
+    ],
+    "excluded_reinterpretations": [
+      "MFI14 strictly above 50 is primary; 45 and 55 are rejection-only neighbors and cannot replace it.",
+      "No alternate length, smoothing, threshold, band, overbought or oversold reversal, divergence, confirmation, delay, hold, stop, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and still requires one independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_money_flow_index_14_midline_long_cash_historical.py",
+      "sha256": "80878e384a381bcaf2d1d6678776e02b42f10c52f1d60bab0a4a40757dcd5728",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd",
+      "role": "FROZEN_DAILY_AGGREGATION_AND_LONG_CASH_LEDGER_SUPPORT"
+    },
+    {
+      "path": "research/btc_daily_rsi14_midline_long_cash_historical.py",
+      "sha256": "2fd30293af8b7100da901808e462216249536f90d0e7ae05ddb976d575d7fd05",
+      "role": "FROZEN_MATCHED_CAPITAL_GATE_LOGIC_SUPPORT"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "b4ad002a721c022a958c09f931361c897d283fb745adae286d1e9a74114e1534",
+      "role": "FROZEN_PASSIVE_REFERENCE_AND_ECONOMIC_PRIMITIVES"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "ec3e2d6712f7348618e3969cfb8b8d035dcb4d01deb396d8154f83a1185b1d2a",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-money-flow-index-14-midline-long-cash-primary-prior.v1.json",
+      "sha256": "41d7e49ccdbdcc3b62e8bd4a9d4d5c239babf384443cf79c2e235dab2c49bbb1",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-money-flow-index-14-midline-long-cash-eligibility-erratum.v1.json",
+      "sha256": "b681056fe496f331b84a98b6f2cc363e6f46c0087285c895df4ffb3b521709b4",
+      "role": "FROZEN_PREOUTCOME_LOCAL_EXECUTION_ELIGIBILITY_CLARIFICATION"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-money-flow-index-14-midline-long-cash-v1.hypothesis.json",
+      "sha256": "fface73c36168295592380c679b2f6049b383742b2dcaea47a242d8a24ca87aa",
+      "role": "FROZEN_HYPOTHESIS"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_MONEY_FLOW_INDEX_14_MIDLINE_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_aggregation": "COMPLETE_UTC_DAY_24_CONTIGUOUS_H1_BARS",
+    "typical_price": "DAILY_HIGH_PLUS_DAILY_LOW_PLUS_DAILY_CLOSE_DIVIDED_BY_3",
+    "raw_money_flow": "TYPICAL_PRICE_TIMES_DAILY_BASE_VOLUME",
+    "direction": "POSITIVE_IF_CURRENT_TYPICAL_PRICE_GT_PREVIOUS_NEGATIVE_IF_LT_NEITHER_IF_EQUAL",
+    "mfi_definition": "100_TIMES_POSITIVE_FLOW_DIVIDED_BY_POSITIVE_PLUS_NEGATIVE_FLOW",
+    "zero_denominator_value": "0",
+    "primary": {
+      "mfi_complete_days": 14,
+      "long_threshold": "50"
+    },
+    "rejection_only_neighbors": [
+      {
+        "mfi_complete_days": 14,
+        "long_threshold": "45"
+      },
+      {
+        "mfi_complete_days": 14,
+        "long_threshold": "55"
+      }
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "long_condition": "COMPLETED_DAY_MFI_STRICTLY_GREATER_THAN_THRESHOLD",
+    "cash_condition": "COMPLETED_DAY_MFI_LESS_THAN_OR_EQUAL_TO_THRESHOLD",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2020-01-01T00:00:00",
+      "2023-01-01T00:00:00"
+    ],
+    "validation": [
+      "2023-01-01T00:00:00",
+      "2025-01-01T00:00:00"
+    ],
+    "annual_fair_reset_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "state": "FAIR_RESET_EACH_WINDOW_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "gate_set": {
+    "id": "BTC_DAILY_MFI14_MIDLINE_LONG_CASH_MATCHED_CAPITAL_GATES_V1",
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_95pct_of_buy_hold",
+      "normal_calmar_at_least_buy_hold"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_90pct_of_buy_hold",
+      "normal_upside_capture_at_least_60pct",
+      "normal_calmar_at_least_buy_hold",
+      "position_changes_between_2_and_250",
+      "stress_drawdown_no_more_than_normal_plus_3pp",
+      "terminal_liquidation_adjusted_return_pct_gt_0",
+      "terminal_liquidation_cost_at_most_1pp"
+    ],
+    "neighbor_stability": [
+      "both_neighbors_positive_normal_and_stress_validation_return",
+      "both_neighbors_validation_drawdown_non_worse_than_buy_hold",
+      "both_neighbors_validation_calmar_at_least_75pct_buy_hold",
+      "both_neighbors_validation_upside_capture_at_least_50pct"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_at_least_4_of_5_years",
+      "normal_primary_calmar_at_least_75pct_buy_hold_at_least_3_of_5_years",
+      "normal_primary_upside_capture_at_least_50pct_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_MFI14_GT45_50_55_LONG_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any source hash, dataset hash, hourly lattice, OHLCV or complete UTC-day gate fails.",
+    "Stop and permanently close the exact MFI14 thresholds 45, 50 and 55 family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Do not scan another MFI length, smoothing convention, threshold, band, divergence, delay, holding period, confirmation, DRA combination or cost model after results.",
+    "Do not use post-2024 data; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

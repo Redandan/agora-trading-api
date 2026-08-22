@@ -1,0 +1,49 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_MONEY_FLOW_INDEX_14_MIDLINE_LONG_CASH_ELIGIBILITY_ERRATUM_V1",
+  "family_id": "btc-daily-money-flow-index-14-midline-long-cash",
+  "issued_at": "2026-08-22T08:36:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "superseded_text": "Do not create a hypothesis, manifest or runner while canonical preview remains WAITING_FOR_EVIDENCE or any active evidence-integrity alert is unresolved.",
+  "corrected_eligibility_rule": "Top-level WAITING_FOR_EVIDENCE alone is the normal idle research state and does not block one isolated Local historical direct screen. Eligibility instead requires queue IDLE, zero active experiment, zero candidate OOS, zero candidate-funnel integrity-blocked family, no constraint violation, a clean exact Local source, and successful manager, strategy-path and allocation preflights before any outcome access.",
+  "reason": "The prior wording conflated normal evidence waiting with a candidate-funnel integrity blocker and would make a preregistration-ready Local historical family permanently ineligible even though the create-only direct-screen contract expressly supports isolated historical screens. Correcting workflow eligibility before any MFI outcome is opened removes a circular control-plane stall; it does not alter research economics.",
+  "canonical_read_only_observation": {
+    "observed_at": "2026-08-22T08:35:41Z",
+    "policy_status": "READY",
+    "worker_release_status": "READY",
+    "queue_status": "IDLE",
+    "candidate_registration_recovery_status": "IDLE",
+    "evidence_capture_queue_status": "IDLE",
+    "evidence_ingest_queue_status": "IDLE",
+    "candidate_funnel_status": "READY",
+    "candidate_funnel_constraint_violation_count": 0,
+    "candidate_funnel_integrity_blocked_family_count": 0,
+    "active_experiment_count": 0,
+    "candidate_oos_count": 0,
+    "formal_candidate_count": 0,
+    "microstructure_diagnostic_status": "CAPTURE_OVERDUE_RETIRED_SOURCE_ALERT_NOT_A_CANDIDATE_FUNNEL_BLOCKER"
+  },
+  "unchanged_frozen_research_contract": {
+    "lookback_complete_days": 14,
+    "primary_long_threshold": "50",
+    "rejection_only_neighbors": [
+      "45",
+      "55"
+    ],
+    "maximum_variants": 3,
+    "outcome_tuning": "DENY",
+    "post_2024_access": "DENY",
+    "oos_access": "DENY_UNLESS_ALL_DESIGN_AND_VALIDATION_GATES_PASS",
+    "economic_and_path_risk_gates_changed": false
+  },
+  "decision": "LOCAL_HISTORICAL_DIRECT_SCREEN_ELIGIBLE_SUBJECT_TO_ALL_FORMAL_PREFLIGHTS",
+  "claim_boundary": "This fixes only workflow eligibility. It creates no hypothesis, runner result, strategy, candidate, OOS or performance claim and grants no Trading authority.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "candidate_created": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false
+  }
+}

@@ -207,62 +207,52 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-daily-money-flow-index-14-midline-long-cash",
-      "title": "BTC daily Money Flow Index 14 midline long-or-cash",
-      "decision_feature": "LATEST_COMPLETE_UTC_DAY_MFI14_FROM_TYPICAL_PRICE_AND_BASE_VOLUME_STRICTLY_ABOVE_45_50_55_WITH_50_PRIMARY_AND_45_55_REJECTION_ONLY",
-      "causal_hypothesis": "A complete-day price-volume oscillator that separates positive and negative typical-price money flow may identify demand regimes that are not captured by close-only RSI, cumulative OBV or close-location-based Chaikin Money Flow.",
-      "economic_hypothesis": "Holding unlevered BTC only when lagged daily MFI14 is above one preregistered midline may improve after-cost drawdown and Calmar while retaining enough upside and annual breadth relative to matched buy-and-hold.",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "runner_id": "BTC_DAILY_MFI14_MIDLINE_LONG_CASH_RUNNER_NOT_YET_AUTHORIZED_OR_IMPLEMENTED",
+      "family_id": "btc-search-attention-volume-interaction",
+      "title": "BTC lagged search-attention and predecision volume-innovation DRA admission",
+      "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_VOLUME_INNOVATION_DRA_ADMISSION_V1",
+      "causal_hypothesis": "A positive change in finalized weekly BTC search attention that precedes a separately positive complete-day volume innovation may identify broadening demand before an otherwise eligible DRA entry.",
+      "economic_hypothesis": "Admitting the frozen DRA V1 parent only when both lagged search attention and predecision volume innovation are positive may improve fee-adjusted total PnL without worsening maximum drawdown or inventory path.",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+      "runner_id": "MISSING_PROOF_NOT_IMPLEMENTED",
       "base_stage": "PREREGISTRATION_READY",
       "estimated_days_to_next_gate": 1,
-      "compute_cost_class": "LOW",
-      "independence_key": "btc-complete-day-mfi14-price-volume-oscillator-long-cash",
-      "next_gate": "WAIT_FOR_NEXT_HYPOTHESIS_ELIGIBILITY_THEN_FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_MFI14_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
+      "compute_cost_class": "MEDIUM",
+      "independence_key": "btc-search-attention-volume-interaction",
+      "next_gate": "FREEZE_POINT_IN_TIME_SEARCH_VINTAGE_AND_VOLUME_RESIDUAL_SOURCE_CONTRACT_OR_DATA_REJECT",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-daily-chaikin-money-flow-long-cash-historical.v1.decision.json",
-          "role": "SEALED_ADVERSARIAL_CHAIKIN_MONEY_FLOW_DECISION",
-          "sha256": "5cfba79d03d867ac63e66bd69f9d6d1221d6c96928560a8812e0011c0f57b0e4"
+          "path": "research_pipeline/examples/local-research-result.btc-search-attention-volume-preregistration-discovery.v2.json",
+          "role": "SEALED_PREREGISTRATION_DISCOVERY_RESULT",
+          "sha256": "40427b69a0ff2cc6776bf14d7b548c82064cfc9ed48855b46e1425a27884dd27"
         },
         {
-          "path": "research_pipeline/examples/btc-daily-obv-ma-long-cash-historical.v1.decision.json",
-          "role": "SEALED_ADVERSARIAL_OBV_MOVING_AVERAGE_DECISION",
-          "sha256": "66a165857032233a29b9e59b8fe077f82235b4607bf7e91126343e83dce930ce"
-        },
-        {
-          "path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json",
-          "role": "SEALED_ADVERSARIAL_RSI14_MIDLINE_DECISION",
-          "sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc"
-        },
-        {
-          "path": "research_pipeline/examples/btc-daily-money-flow-index-14-midline-long-cash-primary-prior.v1.json",
-          "role": "SEALED_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR",
-          "sha256": "41d7e49ccdbdcc3b62e8bd4a9d4d5c239babf384443cf79c2e235dab2c49bbb1"
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-search-attention-volume-preregistration-discovery.v2.json",
+          "role": "MANAGER_ACCEPTED_PREREGISTRATION_DISCOVERY",
+          "sha256": "75c8192f8d5bb5a5662b128c94e8b0887dc6a00ea969c1afbcdf862d7c8dd16f"
         }
       ],
       "economic_evidence_status": {
-        "fees": "REQUIRED_NOT_MEASURED",
-        "adverse_slippage": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+        "fees": "MISSING_PROOF",
+        "adverse_slippage": "MISSING_PROOF",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "MISSING_PROOF"
       },
       "missing_proof": [
-        "No primary source establishes standalone BTC MFI14 above 50 long/cash economic value; the sealed prior grants only one later preregistration opportunity and no performance credit from closed CMF, OBV or RSI14.",
-        "The zero-denominator rule and exact schema-valid hypothesis, manifest, deterministic runner and economic gates are not frozen.",
-        "No MFI outcome, matched buy-and-hold economics, candidate, OOS or forward evidence exists."
+        "Point-in-time historical search vintages, availability timestamps and revision identities are not proven.",
+        "The exact source contract, expanding volume-residual model and numeric support and concentration gates are not frozen.",
+        "No matched-capital Design or Validation economics, candidate, OOS or forward evidence exists."
       ],
-      "duplicate_family_key": "btc-daily-money-flow-index-14-midline-long-cash"
+      "duplicate_family_key": "btc-search-attention-volume-interaction"
     }
   ],
   "closed_families": [
@@ -3737,6 +3727,27 @@
           "path": ".research-state/experiments/btc-first-six-hour-direction-24h-state-long-cash-historical-v1/artifacts/run1.json",
           "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
           "sha256": "5dee9dd1d8b25afafbabdc1338ea508fa6dc7c6d76d9934119721322c61e7e5f"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-daily-money-flow-index-14-midline-long-cash-v1",
+      "title": "BTC daily Money Flow Index 14 midline long-or-cash",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_MFI14_FROM_TYPICAL_PRICE_AND_BASE_VOLUME_STRICTLY_ABOVE_45_50_55_WITH_50_PRIMARY_AND_45_55_REJECTION_ONLY",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "disposition": "BTC_DAILY_MFI14_FAMILY_CLOSE",
+      "duplicate_family_key": "btc-daily-money-flow-index-14-midline-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-daily-money-flow-index-14-midline-long-cash-v1.json",
+          "role": "SEALED_LOCAL_HISTORICAL_ECONOMIC_RESULT",
+          "sha256": "627bdd2eeba05c4d3cb475154a8372a2e85b26dee67412d0e85319284c6f561a"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-money-flow-index-14-midline-long-cash-v1.json",
+          "role": "MANAGER_ACCEPTED_FAMILY_CLOSURE",
+          "sha256": "74e55a04f0f0ef8bfc9926db2fcd583fca0db4633646bc8918f469dc01c13654"
         }
       ],
       "prohibited_reopen": true

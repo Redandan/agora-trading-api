@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 137)
+        self.assertEqual(len(catalog["closed_families"]), 138)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,22 +101,31 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        mfi14 = next(
+        search_attention = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-daily-money-flow-index-14-midline-long-cash"
+            == "btc-search-attention-volume-interaction"
         )
-        self.assertEqual(mfi14["base_stage"], "PREREGISTRATION_READY")
+        self.assertEqual(search_attention["base_stage"], "PREREGISTRATION_READY")
         self.assertEqual(
-            [binding["role"] for binding in mfi14["evidence_bindings"]],
+            [binding["role"] for binding in search_attention["evidence_bindings"]],
             [
-                "SEALED_ADVERSARIAL_CHAIKIN_MONEY_FLOW_DECISION",
-                "SEALED_ADVERSARIAL_OBV_MOVING_AVERAGE_DECISION",
-                "SEALED_ADVERSARIAL_RSI14_MIDLINE_DECISION",
-                "SEALED_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR",
+                "SEALED_PREREGISTRATION_DISCOVERY_RESULT",
+                "MANAGER_ACCEPTED_PREREGISTRATION_DISCOVERY",
             ],
         )
+        closed_mfi14 = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-daily-money-flow-index-14-midline-long-cash-v1"
+        )
+        self.assertEqual(
+            closed_mfi14["disposition"],
+            "BTC_DAILY_MFI14_FAMILY_CLOSE",
+        )
+        self.assertTrue(closed_mfi14["prohibited_reopen"])
         closed_positive_hour_breadth = next(
             family
             for family in catalog["closed_families"]
@@ -1982,7 +1991,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 138)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 139)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

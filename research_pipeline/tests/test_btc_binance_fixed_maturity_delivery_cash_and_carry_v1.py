@@ -6,6 +6,7 @@ import json
 import unittest
 
 from research import binance_btcusdt_fixed_maturity_delivery_carry_corpus_v1 as corpus
+from research import binance_btcusdt_fixed_maturity_delivery_carry_corpus_v2 as corpus_v2
 from research import btc_binance_fixed_maturity_delivery_cash_and_carry_v1 as runner
 
 
@@ -33,6 +34,17 @@ class BtcBinanceFixedMaturityDeliveryCashAndCarryV1Test(unittest.TestCase):
         self.assertEqual("BTCUSDT_210625", schedule[0]["symbol"])
         self.assertEqual("2021-03", schedule[0]["months"][0])
         self.assertEqual("2021-06", schedule[0]["months"][-1])
+
+    def test_v2_validates_then_sorts_unordered_delivery_rows(self) -> None:
+        raw = json.dumps(
+            [
+                {"deliveryTime": 7_200_000, "deliveryPrice": "101"},
+                {"deliveryTime": 3_600_000, "deliveryPrice": "100"},
+            ],
+            separators=(",", ":"),
+        ).encode("ascii")
+        values = corpus_v2.parse_delivery_prices(raw)
+        self.assertEqual([3_600_000, 7_200_000], [value.delivery_time_ms for value in values])
 
     @staticmethod
     def cycle(future_open: D) -> list[runner.Row]:

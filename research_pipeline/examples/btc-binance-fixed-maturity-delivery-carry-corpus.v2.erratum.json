@@ -1,0 +1,30 @@
+{
+  "schema_version": "2",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_CARRY_CORPUS_IMPLEMENTATION_ERRATUM_V2",
+  "experiment_id": "btc-binance-fixed-maturity-delivery-carry-historical-v1",
+  "frozen_at": "2026-08-22T14:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "scientific_gate_changed": false,
+  "scientific_spec": {
+    "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-historical.v1.source-ledger-spec.json",
+    "sha256": "49ba9f88f72f4d4be875bdc90355cacf1f7742f596fbce35a6dc73b6961df10a"
+  },
+  "v1_decision": {
+    "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v1.decision.json",
+    "sha256": "170ffbe83f5f9d1b0ea35a8ee3f5f45b29ef64a36658afd17ed8e36661cfe0f0"
+  },
+  "corpus_adapter_path": "research/binance_btcusdt_fixed_maturity_delivery_carry_corpus_v2.py",
+  "corpus_adapter_sha256": "da4703dc61d8c08dd0584e5f05438ce03441ce38151c07dc04ecc02ed4bf3bd7",
+  "single_correction": "Validate every delivery response row with the unchanged V1 schema, positivity, hourly timestamp and uniqueness rules, then sort the validated rows by deliveryTime before the unchanged exact expiry-code-date mapping.",
+  "unchanged_contract": [
+    "The official delivery-price URL, exact contracts, dates and unique-date matching are unchanged.",
+    "Every archive, checksum, hourly lattice, index reconciliation and pre-2025 cutoff is unchanged.",
+    "The entry clock, 55bps raw basis floor, 25/75 allocation, margin model, costs, windows and all-pass gates are unchanged.",
+    "No delivery price, archive row or strategy outcome may be filtered or selected by value during sorting."
+  ],
+  "determinism": {
+    "corpus_runs": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS_WITH_IDENTICAL_SHA256"
+  },
+  "scope_note": "Transport ordering erratum only. It does not authorize any source, strategy, economic, OOS or Trading change beyond the frozen V1 scientific contract."
+}

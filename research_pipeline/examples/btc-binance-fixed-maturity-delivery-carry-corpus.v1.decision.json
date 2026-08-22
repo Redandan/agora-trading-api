@@ -1,0 +1,41 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_CARRY_CORPUS_DECISION_V1",
+  "experiment_id": "btc-binance-fixed-maturity-delivery-carry-historical-v1",
+  "decided_at": "2026-08-22T14:10:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "IMPLEMENTATION_REJECT_UNFROZEN_RESPONSE_ORDER_ASSUMPTION_NO_SOURCE_DECISION",
+  "frozen_source_git_commit": "ddd1dd13",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-historical.v1.source-ledger-spec.json",
+      "sha256": "49ba9f88f72f4d4be875bdc90355cacf1f7742f596fbce35a6dc73b6961df10a",
+      "role": "FROZEN_SCIENTIFIC_SOURCE_ACCOUNTING_AND_GATE_CONTRACT"
+    },
+    {
+      "path": "research/binance_btcusdt_fixed_maturity_delivery_carry_corpus_v1.py",
+      "sha256": "c49d72e1c0f8a3f55d564d4bc1d95d2ff102d74d07841aa764ae83aef0da17d1",
+      "role": "FROZEN_DEFECTIVE_CORPUS_IMPLEMENTATION"
+    }
+  ],
+  "observed_failure": "The first execution stopped before any archive ZIP download or output write at SOURCE_REJECT:DELIVERY_ORDER.",
+  "response_diagnostic": {
+    "delivery_price_response_rows": 18,
+    "delivery_price_response_sha256": "4c11fe09afdd8a46e6496440d1c99ba7ac325326732b3dc0fda327044f02d8c4",
+    "ascending": false,
+    "descending": false,
+    "prices_printed_or_used_for_strategy_outcome": false
+  },
+  "spec_code_mismatch": {
+    "frozen_spec_requirement": "Exactly one valid public delivery-price row must match each traded symbol expiry-code date.",
+    "implemented_extra_requirement": "The API response rows had to arrive in ascending timestamp order.",
+    "classification": "UNFROZEN_TRANSPORT_ORDER_ASSUMPTION",
+    "scientific_gate_changed": false,
+    "archive_body_opened": false,
+    "economic_outcome_computed": false,
+    "source_decision_reached": false
+  },
+  "admissible_correction": "Preserve the V1 source-ledger spec and V1 corpus bytes. A thin V2 transport erratum may validate every row exactly as V1, reject duplicate timestamps, then sort validated rows by deliveryTime before the unchanged exact-date mapping. No field, date, price, contract, source, strategy, cost, margin, window or gate may change.",
+  "next_action": "FREEZE_THIN_V2_DELIVERY_RESPONSE_ORDER_ERRATUM_AND_RERUN_THE_UNCHANGED_CORPUS_TWICE",
+  "scope_note": "Public delivery response and order diagnostic only. No archive ZIP or CHECKSUM body, normalized corpus, PnL, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

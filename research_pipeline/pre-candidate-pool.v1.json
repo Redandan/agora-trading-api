@@ -261,6 +261,16 @@
           "sha256": "49ba9f88f72f4d4be875bdc90355cacf1f7742f596fbce35a6dc73b6961df10a"
         },
         {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v1.decision.json",
+          "role": "SEALED_CORPUS_V1_TRANSPORT_ORDER_IMPLEMENTATION_REJECT_NO_SOURCE_DECISION",
+          "sha256": "170ffbe83f5f9d1b0ea35a8ee3f5f45b29ef64a36658afd17ed8e36661cfe0f0"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v2.erratum.json",
+          "role": "FROZEN_UNCHANGED_SCIENTIFIC_GATE_DELIVERY_RESPONSE_ORDER_ERRATUM",
+          "sha256": "063d5693aeac7307fbcdf046b29ee9e92a6067a377f6d2622582ba387cc0c9d2"
+        },
+        {
           "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
           "role": "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
           "sha256": "8ad99ea87046321bae3a7edd94f0d82997e8038c2628787973dfea82bad03cb9"
@@ -294,7 +304,7 @@
         "The metadata inventory proves 16 contract, mark, spot and index archive paths through expiry, but ZIP checksums, eligible rows, historical listing semantics and settlement responses remain unopened.",
         "One exact entry clock, 55bps cost floor, 25/75 collateral ledger, settlement rule, runner and all-pass gates are frozen, but their checksum-bound corpus and all economics remain unopened."
       ],
-      "next_gate": "EXECUTE_FROZEN_CHECKSUM_BOUND_PRE2025_DELIVERY_CORPUS_TWICE_THEN_FREEZE_HASH_ONLY_MANIFEST_WITHOUT_CHANGING_POLICY_OR_GATES",
+      "next_gate": "EXECUTE_FROZEN_V2_CHECKSUM_BOUND_PRE2025_DELIVERY_CORPUS_TWICE_THEN_FREEZE_HASH_ONLY_MANIFEST_WITHOUT_CHANGING_POLICY_OR_GATES",
       "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "runner_id": "btc-binance-fixed-maturity-delivery-cash-and-carry-v1",
       "title": "BTC Binance fixed-maturity delivery cash-and-carry"

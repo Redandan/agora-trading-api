@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 144)
+        self.assertEqual(len(catalog["closed_families"]), 145)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,20 +101,32 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        funding_carry = next(
+        basis_instability = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-binance-usdm-delta-neutral-funding-carry"
+            == "btc-binance-usdm-basis-instability-passive-core-risk-overlay"
         )
-        self.assertEqual(funding_carry["base_stage"], "HISTORICAL_PRIOR")
+        self.assertEqual(basis_instability["base_stage"], "HISTORICAL_PRIOR")
         self.assertEqual(
-            [binding["role"] for binding in funding_carry["evidence_bindings"]],
+            [binding["role"] for binding in basis_instability["evidence_bindings"]],
             [
-                "SEALED_PRIMARY_CASHFLOW_MECHANISM_SOURCE_AND_DEDUP_PRIOR",
-                "OFFICIAL_PUBLIC_ARCHIVE_FUNDING_SOURCE_CAPABILITY",
+                "OFFICIAL_PUBLIC_BINANCE_DERIVATIVES_SOURCE_CAPABILITY",
+                "SEALED_CHECKSUM_VERIFIED_SPOT_PERPETUAL_MARK_AND_INDEX_CORPUS_BUNDLE",
+                "SEALED_CARRY_CASHFLOW_FAMILY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
             ],
         )
+        closed_funding_carry = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-binance-usdm-delta-neutral-funding-carry-v3"
+        )
+        self.assertEqual(
+            closed_funding_carry["disposition"],
+            "BTC_BINANCE_USDM_FUNDING_CARRY_FAMILY_CLOSE",
+        )
+        self.assertTrue(closed_funding_carry["prohibited_reopen"])
         closed_ulcer28 = next(
             family
             for family in catalog["closed_families"]
@@ -2057,7 +2069,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 145)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 146)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

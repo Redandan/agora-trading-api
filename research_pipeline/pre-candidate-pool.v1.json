@@ -212,47 +212,52 @@
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
       },
-      "causal_hypothesis": "Positive USD-M perpetual funding transfers cash from long holders to short holders. A matched long BTC spot and short equal-BTC perpetual book may remove most first-order BTC direction and harvest that funding if basis, trading friction, collateral drag and liquidation risk remain bounded.",
-      "compute_cost_class": "MEDIUM",
-      "decision_feature": "ACTUAL_BINANCE_BTCUSDT_USDM_PERPETUAL_FUNDING_CASHFLOW_WITH_MATCHED_LONG_SPOT_SHORT_PERPETUAL_NOTIONAL_AND_FULL_BASIS_MARGIN_ACCOUNTING",
-      "duplicate_family_key": "btc-binance-usdm-delta-neutral-funding-carry",
+      "causal_hypothesis": "Unusually unstable divergence between BTC spot and perpetual prices may reveal stressed leverage, fragmented liquidity and forced hedge demand before those conditions fully transfer into the directional spot path. A strictly lagged basis-dispersion state could therefore identify periods when retaining only a passive BTC core has better downside opportunity cost than full exposure.",
+      "compute_cost_class": "LOW",
+      "decision_feature": "LAGGED_ROLLING_ABSOLUTE_BINANCE_BTCUSDT_SPOT_PERPETUAL_BASIS_DISPERSION_RELATIVE_TO_ITS_PRIOR_DISTRIBUTION",
+      "duplicate_family_key": "btc-binance-usdm-basis-instability-passive-core-risk-overlay",
       "economic_evidence_status": {
-        "adverse_slippage": "MISSING_PROOF",
+        "adverse_slippage": "REQUIRED_NOT_MEASURED",
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY",
-        "fees": "MISSING_PROOF",
-        "holding_age": "MISSING_PROOF",
-        "maximum_drawdown": "MISSING_PROOF",
-        "realized_pnl": "MISSING_PROOF",
-        "terminal_inventory": "MISSING_PROOF",
-        "total_pnl": "MISSING_PROOF",
-        "unrealized_pnl": "MISSING_PROOF"
+        "fees": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
       },
-      "economic_hypothesis": "A fully specified long-spot short-perpetual BTCUSDT carry book may earn positive fee-, slippage-, basis- and funding-adjusted returns with materially lower drawdown than directional BTC, broad annual support and no liquidation under adverse funding and basis stress.",
-      "estimated_days_to_next_gate": 2,
+      "economic_hypothesis": "A full-capital versus passive-core BTC exposure policy driven only by a causally lagged spot-perpetual basis-instability state may reduce matched-capital drawdown and improve Calmar after costs while preserving enough upside and broad annual support.",
+      "estimated_days_to_next_gate": 1,
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-primary-prior.v1.json",
-          "role": "SEALED_PRIMARY_CASHFLOW_MECHANISM_SOURCE_AND_DEDUP_PRIOR",
-          "sha256": "40adff8c29f5e5da386a00363b607d5af6185bab0b4de6792d3d02846b2620ed"
+          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+          "role": "OFFICIAL_PUBLIC_BINANCE_DERIVATIVES_SOURCE_CAPABILITY",
+          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
         },
         {
-          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
-          "role": "OFFICIAL_PUBLIC_ARCHIVE_FUNDING_SOURCE_CAPABILITY",
-          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
+          "path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
+          "role": "SEALED_CHECKSUM_VERIFIED_SPOT_PERPETUAL_MARK_AND_INDEX_CORPUS_BUNDLE",
+          "sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
+          "role": "SEALED_CARRY_CASHFLOW_FAMILY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
+          "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
         }
       ],
-      "family_id": "btc-binance-usdm-delta-neutral-funding-carry",
-      "independence_key": "btc-realized-funding-cashflow-delta-neutral-spot-perpetual-carry-ledger",
-      "matched_comparator_id": "ZERO_YIELD_USDT_CASH_SAME_INITIAL_EQUITY_AND_WINDOW",
+      "family_id": "btc-binance-usdm-basis-instability-passive-core-risk-overlay",
+      "independence_key": "btc-directional-passive-core-risk-transfer-from-lagged-cross-market-basis-path-instability",
+      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "missing_proof": [
-        "The full 2020-2024 funding, Binance spot and perpetual price archives are not checksum-verified, normalized or sealed.",
-        "No frozen capital, collateral, notional, rebalance, margin, liquidation, fee, slippage, funding timestamp or basis ledger exists.",
-        "No schema-valid hypothesis, manifest, deterministic runner, Design or Validation economics, annual breadth, candidate, independent OOS or forward evidence exists."
+        "No frozen primary and adversarial research prior yet proves that basis-path instability transfers to later directional BTC downside rather than contemporaneous noise.",
+        "The rolling basis-dispersion formula, lag, reference distribution, state boundary, passive-core exposure and rejection-only neighbors are not preregistered.",
+        "No bound fractional execution runner, hypothesis, manifest, Design or Validation economics, breadth, candidate, independent OOS or forward evidence exists."
       ],
-      "next_gate": "SEAL_ONE_CHECKSUM_BOUND_PRE2025_MATCHED_SPOT_PERPETUAL_FUNDING_CORPUS_AND_FREEZE_LEDGER_SEMANTICS_BEFORE_OUTCOME_ACCESS",
-      "parent_strategy_id": "BINANCE_BTCUSDT_DELTA_NEUTRAL_SPOT_PERPETUAL_CARRY_LEDGER_NOT_YET_FROZEN",
-      "runner_id": "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_RUNNER_NOT_YET_IMPLEMENTED",
-      "title": "BTCUSDT delta-neutral spot-perpetual funding carry"
+      "next_gate": "FREEZE_ONE_PRIMARY_AND_ADVERSARIAL_PRIOR_PLUS_EXACT_CAUSAL_NONREOPEN_BOUNDARY_BEFORE_FORMULA_OR_OUTCOME_ACCESS",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_FOR_DE_RISKED_CORE",
+      "runner_id": "DIRECT_FRACTIONAL_BASIS_INSTABILITY_PASSIVE_CORE_RUNNER_REQUIRED",
+      "title": "BTC spot-perpetual basis-instability passive-core risk overlay"
     }
   ],
   "closed_families": [
@@ -3892,6 +3897,32 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "prohibited_reopen": true,
       "title": "BTC daily Ulcer28 lagged-median passive-core risk overlay"
+    },
+    {
+      "decision_feature": "ACTUAL_BINANCE_BTCUSDT_USDM_PERPETUAL_FUNDING_CASHFLOW_WITH_QUARTERLY_RESET_25_PERCENT_SPOT_75_PERCENT_FUTURES_COLLATERAL_EQUAL_BTC_QUANTITY",
+      "disposition": "BTC_BINANCE_USDM_FUNDING_CARRY_FAMILY_CLOSE",
+      "duplicate_family_key": "btc-binance-usdm-delta-neutral-funding-carry",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
+          "role": "SEALED_LOCAL_HISTORICAL_ECONOMIC_RESULT",
+          "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-binance-usdm-funding-carry-v3.json",
+          "role": "MANAGER_ACCEPTED_FAMILY_CLOSURE",
+          "sha256": "e7b6dc0add89a356346b310525c036808dea08ecefacbc4feac8fb2a7d513a72"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-historical.v3.manifest.json",
+          "role": "FROZEN_PREREGISTRATION_MANIFEST",
+          "sha256": "80875ee81027a9c6794319a0acf3648d4ce94c4cf5307e923834f72c20a1fcb6"
+        }
+      ],
+      "family_id": "closed-btc-binance-usdm-delta-neutral-funding-carry-v3",
+      "parent_strategy_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_AND_WINDOW",
+      "prohibited_reopen": true,
+      "title": "Binance BTCUSDT quarterly delta-neutral funding carry"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

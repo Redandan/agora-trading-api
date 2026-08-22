@@ -1,0 +1,204 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_CARRY_SOURCE_LEDGER_SPEC_V1",
+  "experiment_id": "btc-binance-fixed-maturity-delivery-carry-historical-v1",
+  "frozen_at": "2026-08-22T14:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_SOURCE_ACCOUNTING_AND_GATE_FREEZE",
+  "thesis": "After the previous quarterly contract expires, a long BTC spot and equal-BTC short position in the next fixed-maturity BTCUSDT delivery future may harvest a positive term basis through cash settlement with lower directional risk than BTC, but only when the raw entry basis covers one frozen all-in cost floor and the segregated futures collateral survives the complete mark-price path.",
+  "opportunity_cost": "One exact 15-cycle Design and Validation screen either produces a historically credible, separately OOS-eligible carry candidate or permanently closes this fixed entry-clock, 25/75 capital-allocation family before leverage, maturity, roll, threshold or venue engineering consumes more research capacity.",
+  "source_bindings": {
+    "corpus_adapter_path": "research/binance_btcusdt_fixed_maturity_delivery_carry_corpus_v1.py",
+    "corpus_adapter_sha256": "c49d72e1c0f8a3f55d564d4bc1d95d2ff102d74d07841aa764ae83aef0da17d1",
+    "economic_runner_path": "research/btc_binance_fixed_maturity_delivery_cash_and_carry_v1.py",
+    "economic_runner_sha256": "444adb0950884ce72efa1c503b83f6d8a6b73554958a476dbf98519c22c68e58",
+    "repository_files": [
+      {
+        "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-primary-prior.v1.json",
+        "sha256": "9aae40cad8b7ca57ff58ba82ec0d7d1afbe71c6c5066451df630593a609e8a7f",
+        "role": "FROZEN_PRIMARY_AND_ADVERSARIAL_PRIOR"
+      },
+      {
+        "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.decision.json",
+        "sha256": "0993300f312ee7bebff26de23606c95363a76a49df21c8dac7c61ffea2cb57af",
+        "role": "SEALED_METADATA_SOURCE_GATE_PASS"
+      },
+      {
+        "path": "research/binance_btcusdt_funding_carry_corpus_v1.py",
+        "sha256": "58c7f517ee3696c81b800893c5376ff6f02845ff071653ba064b8ce85f8a4493",
+        "role": "REUSED_CHECKSUM_ZIP_AND_HOURLY_KLINE_PARSER"
+      }
+    ]
+  },
+  "source_contract": {
+    "archive_origin": "https://data.binance.vision",
+    "delivery_price_url": "https://fapi.binance.com/futures/data/delivery-price?pair=BTCUSDT",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "reference_first_month": "2021-03",
+    "reference_last_month": "2024-12",
+    "latest_permitted_observation": "2024-12-31T23:59:59.999Z",
+    "exact_contract_symbols": [
+      "BTCUSDT_210326",
+      "BTCUSDT_210625",
+      "BTCUSDT_210924",
+      "BTCUSDT_211231",
+      "BTCUSDT_220325",
+      "BTCUSDT_220624",
+      "BTCUSDT_220930",
+      "BTCUSDT_221230",
+      "BTCUSDT_230331",
+      "BTCUSDT_230630",
+      "BTCUSDT_230929",
+      "BTCUSDT_231229",
+      "BTCUSDT_240329",
+      "BTCUSDT_240628",
+      "BTCUSDT_240927",
+      "BTCUSDT_241227"
+    ],
+    "bootstrap_contract": "BTCUSDT_210326_USED_ONLY_TO_DEFINE_FIRST_ENTRY_CLOCK_NOT_TRADED",
+    "traded_contract_count": 15,
+    "archive_count": 204,
+    "archive_datasets": [
+      "BINANCE_SPOT_BTCUSDT_1H_2021_03_THROUGH_2024_12",
+      "BINANCE_USDM_INDEX_BTCUSDT_1H_2021_03_THROUGH_2024_12",
+      "EACH_TRADED_DELIVERY_CONTRACT_1H_FROM_ENTRY_MONTH_THROUGH_EXPIRY_MONTH",
+      "EACH_TRADED_DELIVERY_MARK_PRICE_1H_FROM_ENTRY_MONTH_THROUGH_EXPIRY_MONTH"
+    ],
+    "archive_integrity": "EVERY_ZIP_MUST_MATCH_ITS_OFFICIAL_CHECKSUM_SIDECAR_AND_CONTAIN_EXACTLY_ONE_EXPECTED_CSV_MEMBER",
+    "hourly_integrity": "EVERY_SPOT_INDEX_CONTRACT_AND_MARK_ROW_FROM_ENTRY_THROUGH_THE_HOUR_BEFORE_DELIVERY_MUST_EXIST_ON_ONE_CONTIGUOUS_3600000MS_LATTICE",
+    "delivery_integrity": "EXACTLY_ONE_PUBLIC_DELIVERY_PRICE_ROW_MUST_MATCH_EACH_TRADED_SYMBOL_EXPIRY_CODE_DATE_AND_LIE_WITHIN_THE_PRECEDING_BINANCE_INDEX_1H_HIGH_LOW_RANGE",
+    "post_expiry_rows": "DENY",
+    "post_2024_rows": "DENY",
+    "oos": "DENY"
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_BINANCE_USDM_FIXED_MATURITY_DAY_AFTER_PREVIOUS_EXPIRY_25_75_CASH_AND_CARRY_V1",
+    "variants": 1,
+    "initial_equity_usdt": "10000",
+    "entry_clock": "00:00_UTC_ON_THE_CALENDAR_DAY_AFTER_THE_PREVIOUS_CONTRACT_EXPIRY_CODE_DATE",
+    "entry_price_references": "SAME_HOUR_BINANCE_SPOT_BTCUSDT_OPEN_AND_SELECTED_DELIVERY_CONTRACT_OPEN",
+    "raw_entry_basis_floor_bps": "55",
+    "raw_entry_basis_floor_derivation": "10BPS_SPOT_ENTRY_SLIPPAGE_PLUS_FUTURE_ENTRY_SLIPPAGE_COMBINED_AND_45BPS_REMAINING_NORMAL_TWO_LEG_FEES_PLUS_SPOT_EXIT_SLIPPAGE",
+    "below_floor_action": "HOLD_ZERO_YIELD_CASH_FOR_THE_COMPLETE_CYCLE",
+    "spot_budget_fraction_including_entry_fee": "0.25",
+    "futures_collateral_fraction_before_future_entry_fee": "0.75",
+    "spot_position": "LONG_BTC",
+    "future_position": "SHORT_EQUAL_BTC_QUANTITY",
+    "quantity": "SPOT_BUDGET_DIVIDED_BY_ADVERSE_SPOT_ENTRY_FILL_TIMES_ONE_PLUS_SPOT_FEE",
+    "margin_mode_model": "SEGREGATED_FUTURES_COLLATERAL_NO_CROSS_MARGIN_NO_SPOT_GAIN_TOPUP",
+    "maintenance_margin_rate": "0.10",
+    "minimum_margin_buffer_gate": "2.0",
+    "liquidation_condition": "FUTURES_COLLATERAL_AFTER_ENTRY_FEE_PLUS_SHORT_MARK_TO_MARKET_PNL_AT_OR_BELOW_10_PERCENT_OF_CURRENT_MARK_NOTIONAL",
+    "settlement": "SHORT_FUTURE_CASH_SETTLES_AT_OFFICIAL_DELIVERY_PRICE_AND_PAYS_FUTURE_FEE",
+    "spot_exit": "SELL_THE_EQUAL_BTC_QUANTITY_AT_THE_BINANCE_SPOT_OPEN_WITH_THE_SAME_TIMESTAMP_AS_DELIVERY_USING_ADVERSE_SLIPPAGE_AND_FEE",
+    "terminal_position": "ZERO_SPOT_ZERO_FUTURE_ZERO_UNREALIZED_PNL",
+    "compounding": "WITHIN_EACH_DESIGN_OR_VALIDATION_WINDOW_ONLY",
+    "annual_and_cycle_breadth": "FAIR_RESET_TO_10000_USDT_PER_YEAR_OR_PER_EXPIRY_CYCLE"
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "spot_fee": "0.0010",
+      "spot_slippage": "0.0005",
+      "future_entry_and_settlement_fee": "0.0010",
+      "future_entry_slippage": "0.0005",
+      "future_settlement_slippage": "0"
+    },
+    "STRESS": {
+      "spot_fee": "0.0020",
+      "spot_slippage": "0.0010",
+      "future_entry_and_settlement_fee": "0.0020",
+      "future_entry_slippage": "0.0010",
+      "future_settlement_slippage": "0"
+    }
+  },
+  "accounting_identities": [
+    "TOTAL_PNL_EQUALS_INITIAL_RAW_BASIS_PNL_PLUS_SPOT_MINUS_DELIVERY_SETTLEMENT_REFERENCE_MISMATCH_MINUS_ALL_FEES_MINUS_ALL_ADVERSE_SLIPPAGE",
+    "REALIZED_PNL_EQUALS_TOTAL_PNL_AT_EVERY_CYCLE_AND_WINDOW_TERMINAL_BOUNDARY",
+    "UNREALIZED_PNL_AND_TERMINAL_POSITION_QUANTITY_EQUAL_ZERO",
+    "SPOT_AND_FUTURE_BTC_QUANTITIES_ARE_EXACTLY_EQUAL",
+    "FUTURES_MARGIN_SURVIVAL_USES_MARK_PRICE_ONLY_AND_CANNOT_USE_SPOT_GAINS_AS_COLLATERAL",
+    "ZERO_YIELD_CASH_WITH_THE_SAME_INITIAL_EQUITY_AND_WINDOW_IS_THE_MATCHED_COMPARATOR"
+  ],
+  "windows": {
+    "Design": {
+      "delivery_time_start": "2021-06-01T00:00:00Z",
+      "delivery_time_end_exclusive": "2023-01-01T00:00:00Z",
+      "eligible_cycles": 7
+    },
+    "Validation": {
+      "delivery_time_start": "2023-01-01T00:00:00Z",
+      "delivery_time_end_exclusive": "2025-01-01T00:00:00Z",
+      "eligible_cycles": 8
+    },
+    "annual_fair_reset_years": [2021, 2022, 2023, 2024],
+    "cycle_fair_reset_count": 15,
+    "oos": "UNOPENED_DENY"
+  },
+  "gate_set": {
+    "each_window_normal": [
+      "eligible_cycle_count_exact",
+      "entered_cycles_at_least_5_design_or_6_validation",
+      "positive_cycles_at_least_5_design_or_6_validation",
+      "total_return_positive",
+      "annualized_return_at_least_1_percent",
+      "maximum_drawdown_at_most_5_percent",
+      "calmar_at_least_0_5",
+      "no_liquidation",
+      "minimum_conservative_margin_buffer_at_least_2",
+      "terminal_position_and_unrealized_pnl_zero"
+    ],
+    "each_window_stress": [
+      "eligible_cycle_count_exact",
+      "entered_cycles_at_least_5_design_or_6_validation",
+      "positive_cycles_at_least_4_design_or_5_validation",
+      "total_return_positive",
+      "annualized_return_at_least_0_5_percent",
+      "maximum_drawdown_at_most_7_5_percent",
+      "calmar_at_least_0_5",
+      "no_liquidation",
+      "minimum_conservative_margin_buffer_at_least_2",
+      "terminal_position_and_unrealized_pnl_zero"
+    ],
+    "annual_and_cycle_breadth": [
+      "normal_positive_years_at_least_3_of_4",
+      "stress_positive_years_at_least_3_of_4",
+      "normal_top_positive_year_contribution_at_most_45_percent",
+      "normal_and_stress_entered_cycles_at_least_11_of_15",
+      "normal_positive_cycles_at_least_11_of_15",
+      "stress_positive_cycles_at_least_9_of_15",
+      "normal_top_positive_cycle_contribution_at_most_25_percent"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_THE_EXACT_FIXED_ENTRY_CLOCK_25_75_FIXED_MATURITY_DELIVERY_CASH_AND_CARRY_FAMILY"
+  },
+  "determinism": {
+    "corpus_runs": 2,
+    "economic_runs": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS_WITH_IDENTICAL_SHA256",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any checksum, ZIP member, row schema, hourly lattice, contract identity, delivery row, expiry mapping, index reconciliation, cutoff or bound source hash differs.",
+    "Do not replace the 55bps raw basis floor, 25/75 allocation, day-after-previous-expiry clock, 10 percent maintenance model, costs, windows or gates after any archive body or delivery price is opened.",
+    "Stop and permanently close the exact family if Design, Validation, annual breadth or cycle breadth fails any gate; do not tune a maturity, threshold, entry day, collateral ratio, leverage, margin rate, cost, venue or settlement mapping.",
+    "Do not access any post-2024 or independent OOS value unless every frozen historical gate passes. A historical pass ends at REPORTED_NOT_ACTIVATED."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

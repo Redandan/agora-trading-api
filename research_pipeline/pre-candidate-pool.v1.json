@@ -214,12 +214,12 @@
       "economic_hypothesis": "Holding BTC only during the fixed elevated relative-volume-share state may improve after-cost matched-capital Calmar versus BTC buy-and-hold with broad Design and Validation support.",
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
       "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_RELATIVE_VOLUME_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
-      "runner_id": "NOT_BUILT_SOURCE_AND_PREDICTIVE_GATE_FIRST",
-      "base_stage": "HISTORICAL_PRIOR",
-      "estimated_days_to_next_gate": 2,
+      "runner_id": "PREDICTIVE_RUNNER_NOT_BUILT_SOURCE_PASSED",
+      "base_stage": "PREREGISTRATION_READY",
+      "estimated_days_to_next_gate": 1,
       "compute_cost_class": "LOW",
       "independence_key": "cross-venue-btc-base-volume-share-not-price-trend-volatility-single-venue-flow-stablecoin-peg-carry-or-gold",
-      "next_gate": "FREEZE_ONE_HASH_BOUND_COINBASE_REQUEST_PARTITION_BINANCE_CHECKSUM_COMMON_DAY_AND_PREDICTIVE_GATE_SPEC_BEFORE_ANY_CANDLE_ACCESS",
+      "next_gate": "BIND_THE_SEALED_VOLUME_ONLY_CORPUS_AND_EXISTING_BTC_H1_OUTCOME_CORPUS_TO_ONE_PREDICTIVE_ONLY_RUNNER_WITHOUT_CHANGING_THE_FROZEN_CONTRACT",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
@@ -229,6 +229,16 @@
           "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
           "sha256": "5fb74860ff67398b0a5fde73a2d4370b79c87fff82d1406e7d2d07597ac96eab"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.manifest.json",
+          "role": "FROZEN_FREE_SOURCE_AND_DOWNSTREAM_PREDICTIVE_PREREGISTRATION",
+          "sha256": "af465de46b6d4838db20fed3be8e7dcefbc941fd2d4a1aa92834b6b1db7e17ac"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_SOURCE_GATE_PASS",
+          "sha256": "fb2e7afd0e8cd4a09ce219b665c0380248ca7e47f1e929c04d88bec49f9f9de5"
         }
       ],
       "economic_evidence_status": {
@@ -243,7 +253,7 @@
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
       },
       "missing_proof": [
-        "Exact Coinbase BTC-USD daily response continuity and common-day alignment with checksum-bound Binance BTCUSDT are unopened.",
+        "The source is complete and deterministic, but the fixed relative-volume-share state has not been computed.",
         "No comparable volume-share state, independent future BTC relation or causal direction has been measured.",
         "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."
       ],

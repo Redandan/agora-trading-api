@@ -139,4 +139,8 @@ research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-source-invento
 research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-source-inventory.v1.decision.json text eol=lf
 research_pipeline/tests/test_binance_exact_spot_pair_archive_inventory_probe_v1.py text eol=lf
 research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-primary-prior.v1.json text eol=lf
+research/coinbase_binance_btc_base_volume_source_v1.py text eol=lf
+research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.manifest.json text eol=lf
+research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.decision.json text eol=lf
+research_pipeline/tests/test_coinbase_binance_btc_base_volume_source_v1.py text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

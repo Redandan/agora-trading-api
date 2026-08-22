@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_RELATIVE_VOLUME_SOURCE_DECISION_V1",
+  "family_id": "btc-coinbase-binance-relative-volume-share-long-cash",
+  "decided_at": "2026-08-22T18:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SOURCE_GATE_PASS_PREDICTIVE_PREREGISTRATION_FROZEN",
+  "decision": "ADVANCE_TO_ONE_PREDICTIVE_ONLY_EVALUATION_WITHOUT_GATE_OR_FEATURE_CHANGE",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.manifest.json",
+      "sha256": "af465de46b6d4838db20fed3be8e7dcefbc941fd2d4a1aa92834b6b1db7e17ac",
+      "role": "FROZEN_FREE_SOURCE_AND_DOWNSTREAM_PREDICTIVE_PREREGISTRATION"
+    },
+    {
+      "path": "research/coinbase_binance_btc_base_volume_source_v1.py",
+      "sha256": "8cf8769d4cadfa44f59e0622dcd0b168773edba7d7e8115e85de95dedf2feae2",
+      "role": "FROZEN_CREATE_ONLY_FREE_SOURCE_ADAPTER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-primary-prior.v1.json",
+      "sha256": "5fb74860ff67398b0a5fde73a2d4370b79c87fff82d1406e7d2d07597ac96eab",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR"
+    }
+  ],
+  "determinism": {
+    "run1_bundle_path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-source-v1/inputs/source.v1.run1.bundle.json",
+    "run2_bundle_path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-source-v1/inputs/source.v1.run2.bundle.json",
+    "bundle_sha256": "6a7ba2abb628b50aad48199d0e1eded0c8ea5a82d0a99d3d832c0aa8baa61981",
+    "run1_normalized_gzip_path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-source-v1/inputs/btc-cross-venue-base-volume-2020-2024.v1.run1.csv.gz",
+    "run2_normalized_gzip_path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-source-v1/inputs/btc-cross-venue-base-volume-2020-2024.v1.run2.csv.gz",
+    "normalized_gzip_sha256": "485333af3944f29df859b85627ec9aa7d85a4e871df87086f53724e285835719",
+    "normalized_csv_sha256": "12245efc431cc904c74dd412cce6828f2ae8f02c6c7cd2f151b5f5b7f9f10161",
+    "byte_identical": true
+  },
+  "source_evidence": {
+    "first_day": "2020-01-01",
+    "last_day": "2024-12-31",
+    "common_complete_utc_days": 1827,
+    "rows": 3654,
+    "coinbase_request_partitions": 10,
+    "binance_publisher_checksum_verified_archives": 60,
+    "annual_rows_per_venue": {
+      "2020": 366,
+      "2021": 365,
+      "2022": 365,
+      "2023": 365,
+      "2024": 366
+    },
+    "duplicate_venue_days": 0,
+    "nonpositive_base_volume_rows": 0,
+    "repaired_or_imputed_days": 0
+  },
+  "material_conclusion": "A complete, deterministic, no-credential and no-paid-API common-day corpus exists for native BTC base volume on Coinbase BTC-USD and Binance BTCUSDT. Source feasibility no longer blocks the fixed cross-venue relative-volume-share mechanism. This is data-quality evidence only and says nothing yet about prediction or strategy value.",
+  "missing_proof": [
+    "The fixed 28-day relative-volume-share state and prior-365-day median reference have not been calculated.",
+    "No Design or Validation next-day relation, state support, downside semideviation, annual breadth or contribution concentration has been measured.",
+    "No matched-capital fees, slippage, PnL, drawdown, Calmar, holding path, candidate or OOS evidence exists."
+  ],
+  "next_action": "BIND_THE_SEALED_VOLUME_ONLY_CORPUS_AND_EXISTING_BTC_H1_OUTCOME_CORPUS_TO_ONE_PREDICTIVE_ONLY_RUNNER_WITHOUT_CHANGING_THE_FROZEN_CONTRACT",
+  "scope_note": "Free historical source acquisition only. Source responses transported OHLC fields but discarded them without output or use. No relative-volume factor, return, strategy path, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

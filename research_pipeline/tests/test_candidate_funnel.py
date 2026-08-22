@@ -108,7 +108,7 @@ class CandidateFunnelTest(unittest.TestCase):
             == "btc-coinbase-binance-relative-volume-share-long-cash"
         )
         self.assertEqual(
-            cross_venue_volume_share["base_stage"], "HISTORICAL_PRIOR"
+            cross_venue_volume_share["base_stage"], "PREREGISTRATION_READY"
         )
         self.assertEqual(
             [
@@ -117,6 +117,8 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
             [
                 "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+                "FROZEN_FREE_SOURCE_AND_DOWNSTREAM_PREDICTIVE_PREREGISTRATION",
+                "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_SOURCE_GATE_PASS",
             ],
         )
         closed_peg_dislocation = next(

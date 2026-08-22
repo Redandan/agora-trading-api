@@ -1,0 +1,97 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_RELATIVE_VOLUME_SOURCE_MANIFEST_V1",
+  "family_id": "btc-coinbase-binance-relative-volume-share-long-cash",
+  "created_at": "2026-08-22T18:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_SOURCE_AND_PREDICTIVE_PREREGISTRATION",
+  "source_bindings": [
+    {
+      "path": "research/coinbase_binance_btc_base_volume_source_v1.py",
+      "sha256": "8cf8769d4cadfa44f59e0622dcd0b168773edba7d7e8115e85de95dedf2feae2",
+      "role": "FROZEN_CREATE_ONLY_FREE_SOURCE_ADAPTER"
+    },
+    {
+      "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+      "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c",
+      "role": "FROZEN_REUSED_BINANCE_FETCH_CHECKSUM_AND_DETERMINISTIC_OUTPUT_CAPABILITY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-primary-prior.v1.json",
+      "sha256": "5fb74860ff67398b0a5fde73a2d4370b79c87fff82d1406e7d2d07597ac96eab",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR"
+    }
+  ],
+  "acquisition_policy": {
+    "coinbase_source": "PUBLIC_EXCHANGE_BTC_USD_PRODUCT_CANDLES",
+    "coinbase_granularity_seconds": 86400,
+    "coinbase_partitions": "FIXED_CALENDAR_HALF_YEARS_2020_THROUGH_2024",
+    "coinbase_out_of_partition_rows": "EXCLUDE_AND_RECORD_ONLY",
+    "binance_source": "PUBLIC_DATA_BTCUSDT_SPOT_MONTHLY_1D_ARCHIVES",
+    "binance_archive_checksum": "REQUIRE_EXACT_PUBLISHER_SHA256_FOR_EVERY_ZIP",
+    "first_day": "2020-01-01",
+    "last_day": "2024-12-31",
+    "common_day_policy": "REQUIRE_EVERY_COMPLETE_UTC_DAY_ON_BOTH_VENUES",
+    "output_fields": [
+      "venue",
+      "symbol",
+      "date",
+      "base_volume_btc"
+    ],
+    "price_fields": "TRANSPORTED_BY_SOURCE_RESPONSE_BUT_DISCARDED_WITHOUT_OUTPUT_OR_USE",
+    "credentials": "DENY",
+    "automatic_retry": "DENY",
+    "strategy_outcome": "DENY"
+  },
+  "source_all_pass_gate": [
+    "Every one of the ten frozen Coinbase half-year requests returns no more than 300 rows and contains every complete UTC day inside its exact partition.",
+    "Every Binance BTCUSDT monthly ZIP from 2020-01 through 2024-12 exists, matches its publisher checksum and contains one exact complete-day CSV member.",
+    "Both venues contain one positive native-BTC base-volume observation for every UTC day from 2020-01-01 through 2024-12-31, with no duplicate or repaired day.",
+    "Two create-only source executions must produce byte-identical bundle and normalized-gzip hashes."
+  ],
+  "frozen_downstream_predictive_contract": {
+    "daily_share": "COINBASE_BTCUSD_BASE_VOLUME_DIVIDED_BY_COINBASE_BTCUSD_PLUS_BINANCE_BTCUSDT_BASE_VOLUME_FOR_THE_SAME_COMPLETE_UTC_DAY",
+    "smoothed_feature": "MEAN_OF_THE_LATEST_28_COMPLETE_DAILY_SHARES_INCLUDING_SIGNAL_DAY",
+    "reference": "MEDIAN_OF_THE_PRIOR_365_AVAILABLE_28_DAY_MEANS_STRICTLY_EXCLUDING_SIGNAL_DAY",
+    "high_state": "SMOOTHED_FEATURE_STRICTLY_GREATER_THAN_REFERENCE",
+    "mapping": "AFTER_SIGNAL_DAY_COMPLETES_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_NEXT_UTC_DAY_OPEN_TO_FOLLOWING_UTC_DAY_OPEN_WHEN_HIGH_STATE_OTHERWISE_ZERO_YIELD_CASH",
+    "variants": 1,
+    "design_outcome_window": "2021-02-01_THROUGH_2022-12-31",
+    "validation_outcome_window": "2023-01-01_THROUGH_2024-12-31",
+    "btc_outcome_source": "EXISTING_CHECKSUM_BOUND_PRE2025_BTCUSDT_COMPLETE_H1_CORPUS_SEPARATELY_HASH_BOUND_BEFORE_EVALUATION",
+    "all_pass_predictive_gates": [
+      "Design and Validation each contain at least 120 high-state and 120 low-state next-day outcomes.",
+      "High-state mean next-day BTC open-to-open return exceeds low-state mean in both Design and Validation.",
+      "Validation high-state downside semideviation is no worse than low-state downside semideviation.",
+      "High-minus-low annual mean next-day return is positive in at least three of 2021, 2022, 2023 and 2024.",
+      "No single positive annual high-minus-low contribution supplies more than 60 percent of total positive annual contribution."
+    ]
+  },
+  "economic_contract_if_predictive_passes": {
+    "candidate": "FULL_CAPITAL_BTC_IN_HIGH_STATE_ZERO_YIELD_CASH_IN_LOW_STATE",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_WINDOW_COST_AND_MARKING",
+    "normal_cost_per_side": "10_BPS_FEE_PLUS_5_BPS_ADVERSE_SLIPPAGE",
+    "stress_cost_per_side": "20_BPS_FEE_PLUS_10_BPS_ADVERSE_SLIPPAGE",
+    "required_visibility": [
+      "realized_return",
+      "unrealized_return",
+      "total_return",
+      "maximum_drawdown",
+      "Calmar",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "state_concentration",
+      "buy_and_hold_opportunity_cost"
+    ],
+    "oos_access": "DENY_UNTIL_ALL_DESIGN_VALIDATION_ECONOMIC_AND_PATH_RISK_GATES_PASS"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before factor computation on any source transport, schema, timestamp, partition, checksum, common-day, duplicate, nonpositive-volume or determinism failure.",
+    "Do not repair a day, poll an authenticated endpoint, add retries, change venue, change pair, change date range or infer a missing volume.",
+    "After source value access, do not change 28 days, 365 days, strict median state, next-day mapping, window, gate, cost or comparator.",
+    "If any frozen predictive gate fails, close before matched-capital economics and keep OOS sealed."
+  ],
+  "next_action_on_source_pass": "BIND_THE_SEALED_VOLUME_ONLY_CORPUS_AND_EXISTING_BTC_H1_OUTCOME_CORPUS_TO_ONE_PREDICTIVE_ONLY_RUNNER_WITHOUT_CHANGING_THE_FROZEN_CONTRACT",
+  "scope_note": "Frozen free-source and downstream predictive preregistration before any Coinbase or Binance value access. No candle response, price, volume, return, factor, strategy, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

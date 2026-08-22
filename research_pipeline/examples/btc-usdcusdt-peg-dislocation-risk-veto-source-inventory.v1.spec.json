@@ -1,0 +1,49 @@
+{
+  "schema_version": "1",
+  "document_type": "BINANCE_EXACT_SPOT_PAIR_ARCHIVE_INVENTORY_SPEC_V1",
+  "family_id": "btc-usdcusdt-peg-dislocation-risk-veto",
+  "frozen_at": "2026-08-22T17:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_VALUE_METADATA_ONLY_SOURCE_FEASIBILITY",
+  "source_bindings": {
+    "probe_path": "research/binance_exact_spot_pair_archive_inventory_probe_v1.py",
+    "probe_sha256": "8bf8b8ae69cb4b198a42ff8297f908cdd7bffe7e337242b10e6aeea4f5c6969d",
+    "primary_prior_path": "research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-primary-prior.v1.json",
+    "primary_prior_sha256": "9ea58e1e7261aa9285bfe8133070eda8d9b3db867e44b31326a94b98a63f30d8"
+  },
+  "source_contract": {
+    "publisher": "Binance public market-data archive",
+    "bucket_url": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision",
+    "root_prefix": "data/spot/monthly/klines/",
+    "required_symbols": [
+      "BTCUSDT",
+      "USDCUSDT"
+    ],
+    "interval": "1d",
+    "required_first_month": "2020-01",
+    "required_last_month": "2024-12",
+    "required_month_count_per_symbol": 60,
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "zip_body_access": "DENY",
+    "checksum_body_access": "DENY",
+    "price_value_access": "DENY",
+    "volume_value_access": "DENY",
+    "oos_access": "DENY"
+  },
+  "all_pass_gate": [
+    "Both exact symbol prefixes return one complete untruncated object-list page.",
+    "Every monthly 1d ZIP from 2020-01 through 2024-12 exists for both symbols.",
+    "Every ZIP has one sibling CHECKSUM object and neither exact prefix contains an orphan checksum.",
+    "No alternate stablecoin pair, source, venue, start month, gap repair or body access is permitted."
+  ],
+  "decision": "ALL_METADATA_GATES_PASS_OR_CLOSE_THE_EXACT_USDCUSDT_RELATIVE_PEG_DISLOCATION_BTC_RISK_VETO_FAMILY_AT_DATA_REJECT",
+  "next_action_on_pass": "FREEZE_ONE_CHECKSUM_BOUND_ROW_INTEGRITY_AND_INDEPENDENT_LEAD_LAG_PREDICTIVE_GATE_SPEC_BEFORE_STABLECOIN_OR_BTC_VALUE_ACCESS",
+  "stop_conditions": [
+    "Stop before ZIP or checksum-body access on any missing month, missing checksum, orphan checksum, truncation, transport, XML, symbol or naming failure.",
+    "Do not move the start month, shorten the intended Design or Validation history, substitute another stablecoin or use another venue after inspection.",
+    "A pass authorizes only a separately frozen row-integrity and predictive manifest; it does not authorize price access, economics, candidate, OOS or Trading."
+  ],
+  "scope_note": "Frozen metadata-only source contract. No archive listing, ZIP body, checksum body, stablecoin price, BTC price, return, PnL, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

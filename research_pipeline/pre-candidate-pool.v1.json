@@ -207,28 +207,28 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-usdcusdt-peg-dislocation-risk-veto",
-      "title": "Lagged USDCUSDT relative-peg dislocation BTC risk veto",
-      "decision_feature": "LAGGED_SEVEN_COMPLETE_UTC_DAY_MAXIMUM_ABSOLUTE_USDCUSDT_CLOSE_DEVIATION_FROM_ONE_AT_OR_ABOVE_50_BASIS_POINTS",
-      "causal_hypothesis": "A large USDC-versus-USDT secondary-market dislocation may reveal acute settlement or crypto-liquidity stress before the next complete BTC day, while an adversarial design must reject the family if the dislocation is merely a downstream symptom.",
-      "economic_hypothesis": "Vetoing only the next complete BTC day after a lagged relative-peg stress signal may reduce jump loss and matched-capital drawdown enough to improve after-cost Calmar versus BTC buy-and-hold with broad independent event support.",
+      "family_id": "btc-coinbase-binance-relative-volume-share-long-cash",
+      "title": "Lagged Coinbase share of BTC cross-venue base volume long-or-cash",
+      "decision_feature": "LAGGED_28_COMPLETE_UTC_DAY_MEAN_COINBASE_BTCUSD_BASE_VOLUME_SHARE_STRICTLY_ABOVE_PRIOR_365_AVAILABLE_COMPLETE_DAY_MEDIAN",
+      "causal_hypothesis": "A persistently elevated Coinbase share of comparable BTC base volume may identify a more informative or durable U.S. spot-participation regime, but the family must fail if venue operations or quote-market structure explain the state.",
+      "economic_hypothesis": "Holding BTC only during the fixed elevated relative-volume-share state may improve after-cost matched-capital Calmar versus BTC buy-and-hold with broad Design and Validation support.",
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
-      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_PEG_VETO_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
-      "runner_id": "NOT_BUILT_METADATA_SOURCE_GATE_FIRST",
+      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_RELATIVE_VOLUME_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
+      "runner_id": "NOT_BUILT_SOURCE_AND_PREDICTIVE_GATE_FIRST",
       "base_stage": "HISTORICAL_PRIOR",
-      "estimated_days_to_next_gate": 1,
+      "estimated_days_to_next_gate": 2,
       "compute_cost_class": "LOW",
-      "independence_key": "stablecoin-relative-peg-settlement-stress-not-supply-growth-btc-price-volatility-carry-basis-or-gold",
-      "next_gate": "FREEZE_AND_RUN_ONE_METADATA_ONLY_BTCUSDT_USDCUSDT_PRE2025_COMMON_ARCHIVE_COVERAGE_PROBE_WITHOUT_OPENING_ZIP_OR_CHECKSUM_BODIES",
+      "independence_key": "cross-venue-btc-base-volume-share-not-price-trend-volatility-single-venue-flow-stablecoin-peg-carry-or-gold",
+      "next_gate": "FREEZE_ONE_HASH_BOUND_COINBASE_REQUEST_PARTITION_BINANCE_CHECKSUM_COMMON_DAY_AND_PREDICTIVE_GATE_SPEC_BEFORE_ANY_CANDLE_ACCESS",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-primary-prior.v1.json",
+          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
-          "sha256": "9ea58e1e7261aa9285bfe8133070eda8d9b3db867e44b31326a94b98a63f30d8"
+          "sha256": "5fb74860ff67398b0a5fde73a2d4370b79c87fff82d1406e7d2d07597ac96eab"
         }
       ],
       "economic_evidence_status": {
@@ -243,11 +243,11 @@
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
       },
       "missing_proof": [
-        "Exact USDCUSDT monthly archive and checksum continuity is unopened.",
-        "No independent relative-peg stress event, leading BTC jump-risk relation or causal direction has been measured.",
+        "Exact Coinbase BTC-USD daily response continuity and common-day alignment with checksum-bound Binance BTCUSDT are unopened.",
+        "No comparable volume-share state, independent future BTC relation or causal direction has been measured.",
         "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."
       ],
-      "duplicate_family_key": "btc-usdcusdt-seven-day-50bps-relative-peg-dislocation-risk-veto"
+      "duplicate_family_key": "btc-coinbase-binance-28d-relative-base-volume-share-above-prior-365d-median-long-cash"
     }
   ],
   "closed_families": [
@@ -4058,6 +4058,32 @@
       "parent_strategy_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_AND_WINDOW",
       "prohibited_reopen": true,
       "title": "Binance BTCUSDT quarterly delta-neutral funding carry"
+    },
+    {
+      "decision_feature": "LAGGED_SEVEN_COMPLETE_UTC_DAY_MAXIMUM_ABSOLUTE_USDCUSDT_CLOSE_DEVIATION_FROM_ONE_AT_OR_ABOVE_50_BASIS_POINTS",
+      "disposition": "DATA_REJECT_CLOSE_BTC_USDCUSDT_PEG_DISLOCATION_RISK_VETO_FAMILY",
+      "duplicate_family_key": "btc-usdcusdt-seven-day-50bps-relative-peg-dislocation-risk-veto",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-source-inventory.v1.decision.json",
+          "role": "SEALED_TERMINAL_EXACT_COMMON_MONTH_SOURCE_DECISION",
+          "sha256": "5a5ad65540b5ee9a520f09b12514debf15c14b4030744b67b5b5c7b4e0ee6424"
+        },
+        {
+          "path": "research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-source-inventory.v1.spec.json",
+          "role": "FROZEN_EXACT_COMMON_MONTH_METADATA_SOURCE_CONTRACT",
+          "sha256": "16edaeeeb0cb916175d318764bd540853ecec8fc0b4b5243b577b6aae8ae9883"
+        },
+        {
+          "path": "research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "9ea58e1e7261aa9285bfe8133070eda8d9b3db867e44b31326a94b98a63f30d8"
+        }
+      ],
+      "family_id": "closed-btc-usdcusdt-peg-dislocation-risk-veto",
+      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
+      "prohibited_reopen": true,
+      "title": "Lagged USDCUSDT relative-peg dislocation BTC risk veto"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

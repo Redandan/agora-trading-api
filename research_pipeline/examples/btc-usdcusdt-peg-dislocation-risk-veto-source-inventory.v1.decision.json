@@ -1,0 +1,56 @@
+{
+  "schema_version": "1",
+  "document_type": "BINANCE_EXACT_SPOT_PAIR_ARCHIVE_INVENTORY_DECISION_V1",
+  "family_id": "btc-usdcusdt-peg-dislocation-risk-veto",
+  "decided_at": "2026-08-22T17:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DATA_REJECT_EXACT_COMMON_SOURCE_INCOMPLETE",
+  "disposition": "DATA_REJECT_CLOSE_BTC_USDCUSDT_PEG_DISLOCATION_RISK_VETO_FAMILY",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-source-inventory.v1.spec.json",
+      "sha256": "16edaeeeb0cb916175d318764bd540853ecec8fc0b4b5243b577b6aae8ae9883",
+      "role": "FROZEN_EXACT_COMMON_MONTH_METADATA_SOURCE_CONTRACT"
+    },
+    {
+      "path": "research/binance_exact_spot_pair_archive_inventory_probe_v1.py",
+      "sha256": "8bf8b8ae69cb4b198a42ff8297f908cdd7bffe7e337242b10e6aeea4f5c6969d",
+      "role": "HASH_BOUND_METADATA_ONLY_EXACT_PAIR_PROBE"
+    },
+    {
+      "path": "research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-primary-prior.v1.json",
+      "sha256": "9ea58e1e7261aa9285bfe8133070eda8d9b3db867e44b31326a94b98a63f30d8",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR"
+    }
+  ],
+  "terminal_attempt": {
+    "requested_first_month": "2020-01",
+    "requested_last_month": "2024-12",
+    "required_month_count_per_symbol": 60,
+    "terminal_error": "SOURCE_REJECT:REQUIRED_MONTHS:USDCUSDT:2022-10,2022-11,2022-12,2023-01,2023-02",
+    "missing_symbol": "USDCUSDT",
+    "missing_months": [
+      "2022-10",
+      "2022-11",
+      "2022-12",
+      "2023-01",
+      "2023-02"
+    ],
+    "output_artifact_created": false,
+    "zip_bodies_opened": 0,
+    "checksum_bodies_opened": 0,
+    "price_rows_opened": 0
+  },
+  "material_conclusion": "The exact free Binance USDCUSDT daily archive is not continuous across the frozen common 2020-2024 history. The five-month gap crosses a major crypto-stress interval, so deleting, shortening or imputing it would make event support and risk attribution structurally biased. The exact family is closed before value, prediction or economics.",
+  "prohibited_reopen": [
+    "Do not move the start month or delete the five missing months.",
+    "Do not substitute USDCUSD, USDTUSD, DAI, BUSD, another venue, an aggregator, current exchangeInfo or imputation.",
+    "Do not open archive bodies, calculate peg events, fit a threshold, run economics or open OOS for this exact family."
+  ],
+  "missing_proof": [
+    "No stablecoin or BTC value was opened, so event support and lead-lag predictability remain MISSING_PROOF.",
+    "No matched-capital return, drawdown, Calmar, breadth, candidate or OOS evidence exists."
+  ],
+  "next_action": "PERMANENTLY_TOMBSTONE_THE_EXACT_FAMILY_AND_ADVANCE_A_DIFFERENT_FREE_SOURCE_MECHANISM",
+  "scope_note": "One official archive object-list request path failed before output creation. No ZIP body, CHECKSUM body, stablecoin price, BTC price, return, PnL, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

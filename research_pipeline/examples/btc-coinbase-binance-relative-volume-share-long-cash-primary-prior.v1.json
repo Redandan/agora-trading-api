@@ -1,0 +1,79 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_RELATIVE_VOLUME_SHARE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "family_id": "btc-coinbase-binance-relative-volume-share-long-cash",
+  "reviewed_at": "2026-08-22T17:35:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PRIMARY_AND_ADVERSARIAL_PRIOR_SOURCE_NOT_YET_OPENED",
+  "decision": "PRIOR_SUPPORTS_ONE_FAIL_CLOSED_FREE_SOURCE_AND_PREDICTIVE_GATE_FOR_LAGGED_COINBASE_RELATIVE_BTC_VOLUME_SHARE",
+  "claim_boundary": "Research supports time-varying price discovery across fragmented Bitcoin venues and identifies transaction activity as relevant to market leadership. It does not establish that Coinbase BTC-USD base-volume share is institutional demand, predicts BTC returns, or survives venue, quote-currency, outage and fee-regime changes. The prior authorizes one source-integrity and independent predictive audit only.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Price Discovery in Cryptocurrency Markets, AEA Papers and Proceedings 109, 2019, DOI 10.1257/pandp.20191020",
+      "url": "https://www.aeaweb.org/articles?id=10.1257%2Fpandp.20191020",
+      "role": "PRIMARY_CROSS_VENUE_PRICE_DISCOVERY_AND_SEGMENTATION_PRIOR",
+      "finding": "The study documents material variation in which exchanges contribute to Bitcoin price discovery and finds that contribution changes when markets become segmented.",
+      "transfer_boundary": "It does not define Coinbase-to-Binance daily base-volume share, a 28-day average, a 365-day median state or a long-cash policy."
+    },
+    {
+      "identity": "Price discovery in bitcoin spot and futures markets, Journal of International Money and Finance 159, 2025, DOI 10.1016/j.jimonfin.2025.103415",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0261560625001500",
+      "role": "PRIMARY_ADVERSARIAL_MICROSTRUCTURE_AND_MARKET_LEADERSHIP_PRIOR",
+      "finding": "The study analyzes fragmented Bitcoin markets and reports that transaction size is relevant to price leadership under asynchronous trading.",
+      "transfer_boundary": "Trade size and high-frequency leadership are not the same as total daily base volume or directional return predictability; this is a reason to require predictive gates, not evidence of alpha."
+    },
+    {
+      "identity": "Coinbase Exchange API Get Product Candles documentation",
+      "url": "https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/products/get-product-candles",
+      "role": "PRIMARY_FREE_COINBASE_SOURCE_AND_INCOMPLETENESS_BOUNDARY",
+      "finding": "The public Exchange endpoint exposes daily BTC-USD candles including base volume, limits a response to 300 candles and warns that historical rates may be incomplete.",
+      "transfer_boundary": "Public access does not prove continuous pre-2025 days, stable candle semantics, point-in-time availability or deterministic pagination."
+    },
+    {
+      "identity": "Binance Public Data repository",
+      "url": "https://github.com/binance/binance-public-data/blob/master/README.md",
+      "role": "PRIMARY_FREE_BINANCE_ARCHIVE_FORMAT_AND_CHECKSUM_PRIOR",
+      "finding": "Binance documents free monthly spot kline archives and per-file checksum sidecars.",
+      "transfer_boundary": "Archive capability does not make Coinbase and Binance volume economically comparable or establish predictive value."
+    }
+  ],
+  "single_family_boundary": {
+    "decision_feature": "LAGGED_28_COMPLETE_UTC_DAY_MEAN_OF_COINBASE_BTCUSD_BASE_VOLUME_DIVIDED_BY_COINBASE_BTCUSD_PLUS_BINANCE_BTCUSDT_BASE_VOLUME_STRICTLY_ABOVE_ITS_PRIOR_365_AVAILABLE_COMPLETE_DAY_MEDIAN",
+    "mapping": "HOLD_FULL_CAPITAL_UNLEVERED_BTC_DURING_THE_NEXT_COMPLETE_UTC_DAY_WHEN_TRUE_OTHERWISE_HOLD_ZERO_YIELD_CASH",
+    "coinbase_product": "BTC-USD",
+    "binance_symbol": "BTCUSDT",
+    "volume_unit": "NATIVE_BTC_BASE_VOLUME_ON_BOTH_VENUES",
+    "variants": 1
+  },
+  "economic_hypothesis": "If an elevated lagged Coinbase share of comparable BTC base volume reflects a more informative or durable U.S. spot-participation regime, the fixed long-cash policy may improve after-cost matched-capital Calmar versus BTC buy-and-hold with broad Design and Validation support.",
+  "source_path": {
+    "coinbase_origin": "https://api.exchange.coinbase.com/products/BTC-USD/candles",
+    "coinbase_granularity_seconds": 86400,
+    "binance_origin": "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1d/",
+    "required_first_day": "2020-01-01",
+    "latest_permitted_observation": "2024-12-31T23:59:59.999Z",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "status": "DOCUMENTED_GENERIC_CAPABILITY_ONLY_EXACT_COMMON_DAY_COVERAGE_UNPROVEN"
+  },
+  "independence_assessment": {
+    "distinct_from_single_venue_volume_indicators": "The feature is a cross-venue share of the same BTC base-volume unit and contains no price direction, MFI, Chaikin flow, taker-buy field or intraday concentration.",
+    "distinct_from_stablecoin_peg_dislocation": "It measures where BTC trades rather than the price of one stablecoin against another; quote-currency effects remain an adversarial confound rather than the feature.",
+    "distinct_from_momentum_and_volatility": "The decision feature contains no BTC return, trend, range or realized-volatility input.",
+    "residual_risk": "Coinbase volume share can change because of exchange outages, fee schedules, reporting semantics, U.S. access rules or Binance market structure rather than informed demand. Any common-day or semantic failure closes the exact family."
+  },
+  "stop_conditions": [
+    "Before opening any candle response, freeze exact Coinbase request partitions, Binance checksum bindings, UTC-day alignment, duplicate handling, base-volume semantics and create-only outputs.",
+    "Stop DATA_REJECT on any missing common complete day, nonpositive volume, duplicate timestamp, pagination ambiguity, response truncation, schema drift or unit mismatch; do not repair or substitute a venue or pair.",
+    "Before economics, require independent Design and Validation support for future BTC return or drawdown state, minimum regime counts, annual breadth and concentration under the exact lagged feature.",
+    "Do not change 28 days, 365 days, strict-above-median state, next-day timing, source pair, volume-share formula or mapping after any value is opened.",
+    "Close before OOS if source, prediction, matched-capital return, drawdown, Calmar, annual breadth, concentration or opportunity-cost gates fail."
+  ],
+  "missing_proof": [
+    "Exact Coinbase BTC-USD daily response continuity and common-day alignment with checksum-bound Binance BTCUSDT are unopened.",
+    "No comparable volume-share observation, independent regime, BTC response or causal direction has been measured.",
+    "No source corpus, runner, Design, Validation, PnL, drawdown, candidate or OOS exists."
+  ],
+  "next_gate": "FREEZE_ONE_HASH_BOUND_COINBASE_REQUEST_PARTITION_BINANCE_CHECKSUM_COMMON_DAY_AND_PREDICTIVE_GATE_SPEC_BEFORE_ANY_CANDLE_ACCESS",
+  "scope_note": "Primary and adversarial prior only. No Coinbase or Binance candle response, price, volume, return, outcome, hypothesis, manifest, runner, experiment, candidate or OOS was accessed or created; no paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

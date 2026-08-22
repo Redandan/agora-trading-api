@@ -99,4 +99,5 @@ research_pipeline/examples/local-research-dispatch.btc-binance-usdm-funding-carr
 research_pipeline/examples/local-research-strategy-path.btc-binance-usdm-funding-carry-v3.json text eol=lf
 research_pipeline/examples/local-research-task.btc-binance-usdm-funding-carry-v3.json text eol=lf
 research_pipeline/examples/local-weekly-output-classification.intent.btc-binance-usdm-funding-carry-v3.json text eol=lf
+research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

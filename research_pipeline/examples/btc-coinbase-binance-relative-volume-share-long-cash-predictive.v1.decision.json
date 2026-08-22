@@ -1,0 +1,102 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_RELATIVE_VOLUME_PREDICTIVE_DECISION_V1",
+  "family_id": "btc-coinbase-binance-relative-volume-share-long-cash",
+  "decided_at": "2026-08-22T19:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREDICTIVE_ONLY_NO_ECONOMICS_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_COINBASE_BINANCE_RELATIVE_VOLUME_SHARE_PRE_ECONOMIC",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_28D_365D_CROSS_VENUE_RELATIVE_VOLUME_SHARE_FAMILY_WITHOUT_TUNING",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-predictive.v1.manifest.json",
+      "sha256": "9461451f2a4550d224283ec12461bbe7016e2c43c7fdcd545e37b85596452e79",
+      "role": "FROZEN_SINGLE_VARIANT_PREDICTIVE_MANIFEST"
+    },
+    {
+      "path": "research/btc_coinbase_binance_relative_volume_predictive_v1.py",
+      "sha256": "9f368afd77c13da06896556fca838e7b57784a7836c6db6765caae1aa13677bd",
+      "role": "FROZEN_SINGLE_VARIANT_PREDICTIVE_RUNNER"
+    },
+    {
+      "path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-predictive-v1/artifacts/run1.json",
+      "sha256": "ccb4eefbd2b8e78f787650ecb58589c381f662941520c59f657ca328a283b18a",
+      "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PREDICTIVE_RESULT"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.decision.json",
+      "sha256": "fb2e7afd0e8cd4a09ce219b665c0380248ca7e47f1e929c04d88bec49f9f9de5",
+      "role": "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_SOURCE_GATE_PASS"
+    }
+  ],
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-predictive-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-predictive-v1/artifacts/run2.json",
+    "sha256": "ccb4eefbd2b8e78f787650ecb58589c381f662941520c59f657ca328a283b18a",
+    "byte_identical": true
+  },
+  "feature_evidence": {
+    "first_signal_day": "2021-01-27",
+    "last_signal_day": "2024-12-31",
+    "state_days": 1435,
+    "smoothed_coinbase_share_minimum": "0.03814869",
+    "smoothed_coinbase_share_median": "0.22677125",
+    "smoothed_coinbase_share_maximum": "0.31486683"
+  },
+  "predictive_evidence": {
+    "design": {
+      "outcomes": 699,
+      "high_state": 434,
+      "low_state": 265,
+      "high_mean_next_day_return": "-0.00013897",
+      "low_mean_next_day_return": "-0.00054702",
+      "high_minus_low": "0.00040805",
+      "high_downside_semideviation": "0.02774563",
+      "low_downside_semideviation": "0.02414441"
+    },
+    "validation": {
+      "outcomes": 731,
+      "high_state": 574,
+      "low_state": 157,
+      "high_mean_next_day_return": "0.00194267",
+      "low_mean_next_day_return": "0.00544516",
+      "high_minus_low": "-0.00350249",
+      "high_downside_semideviation": "0.01593173",
+      "low_downside_semideviation": "0.01292180"
+    },
+    "annual_high_minus_low_mean_return": {
+      "2021": "0.00129199",
+      "2022": "-0.00279321",
+      "2023": "-0.00425813",
+      "2024": "-0.00251041"
+    },
+    "positive_annual_years": "1_OF_4",
+    "top_positive_annual_delta_concentration": "1.00000000"
+  },
+  "gate_result": {
+    "passed": [
+      "DESIGN_BOTH_STATE_COUNTS_AT_LEAST_120",
+      "VALIDATION_BOTH_STATE_COUNTS_AT_LEAST_120",
+      "DESIGN_HIGH_MEAN_RETURN_EXCEEDS_LOW"
+    ],
+    "failed": [
+      "VALIDATION_HIGH_MEAN_RETURN_EXCEEDS_LOW",
+      "VALIDATION_HIGH_DOWNSIDE_SEMIDEVIATION_NONWORSE",
+      "POSITIVE_ANNUAL_HIGH_MINUS_LOW_MEAN_RETURN_AT_LEAST_3_OF_4",
+      "TOP_POSITIVE_ANNUAL_DELTA_CONCENTRATION_AT_MOST_60_PERCENT"
+    ]
+  },
+  "material_conclusion": "The source was complete, the states were sufficiently populated and the high-share state had a 4.0805-basis-point mean advantage in Design, although both Design state means were negative. The relation reversed materially in Validation: high-share days earned 19.4267 basis points on average versus 54.4516 basis points for low-share days, while high-state downside semideviation was also worse. Only 2021 had a positive annual delta and supplied all positive contribution. Relative Coinbase volume share is therefore a time-varying venue-participation descriptor, not independent predictive support for the exact long-cash mapping.",
+  "prohibited_reopen": [
+    "Do not reverse the high and low state mapping after observing Validation.",
+    "Do not change 28 days, 365 days, median relation, lag, window, venue, pair or volume unit.",
+    "Do not add price, trend, volatility, stablecoin, funding, session or macro interactions to rescue this exact family.",
+    "Do not calculate matched-capital economics or open OOS for this exact family."
+  ],
+  "missing_proof": [
+    "No matched-capital fees, slippage, realized or unrealized PnL, drawdown, Calmar, holding path, candidate or OOS evidence was opened.",
+    "The present historical source is deterministic but does not prove original daily publication vintages or causal U.S. institutional participation."
+  ],
+  "next_action": "PERMANENTLY_TOMBSTONE_THE_EXACT_FAMILY_AND_ADVANCE_A_DIFFERENT_FREE_SOURCE_MECHANISM",
+  "scope_note": "Historical predictive evidence only. No matched-capital strategy ledger, economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

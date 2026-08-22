@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_GPR_HIGH_RISK_SAFE_HAVEN_LONG_CASH_PRIMARY_PRIOR_V1",
+  "family_id": "btc-gpr-high-risk-safe-haven-long-cash",
+  "reviewed_at": "2026-08-22T19:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PRIMARY_AND_ADVERSARIAL_PRIOR_SOURCE_VINTAGE_NOT_YET_OPENED",
+  "decision": "PRIOR_SUPPORTS_ONE_FAIL_CLOSED_POINT_IN_TIME_FREE_GPR_SOURCE_AND_PREDICTIVE_AUDIT",
+  "claim_boundary": "Primary research establishes a measurable geopolitical-risk index and reports that Bitcoin can co-jump with geopolitical-risk shocks or behave as a conditional safe haven in some regimes. Other evidence stresses time variation and conditionality. These findings do not establish that a lagged high daily GPR state predicts positive next-day BTC return or beats buy-and-hold; they authorize one point-in-time source and predictive audit only.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Measuring Geopolitical Risk, American Economic Review 112(4), 2022",
+      "url": "https://www.matteoiacoviello.com/gpr.htm",
+      "role": "PRIMARY_GPR_DEFINITION_FREE_DATA_AND_VINTAGE_BOUNDARY",
+      "finding": "Caldara and Iacoviello construct the GPR index from the share of newspaper articles about geopolitical threats and acts and publish daily data, older vintages and revision notes under an open license.",
+      "transfer_boundary": "The index is revised as newspaper coverage is completed; only one explicitly dated pre-2025-complete vintage may be used, with no latest-vintage substitution after access."
+    },
+    {
+      "identity": "Jumps in Geopolitical Risk and the Cryptocurrency Market: The Singularity of Bitcoin, Defence and Peace Economics 33(2), 2022, DOI 10.1080/10242694.2020.1848285",
+      "url": "https://ideas.repec.org/a/taf/defpea/v33y2022i2p150-161.html",
+      "role": "PRIMARY_BITCOIN_GPR_JUMP_PRIOR",
+      "finding": "The study reports that among the cryptocurrencies examined, only Bitcoin price jumps were statistically related to jumps in the geopolitical-risk index during its sample.",
+      "transfer_boundary": "Co-jumps are not proof that a completed-day GPR state leads the next BTC day, nor that a long-cash policy has positive risk-adjusted economics."
+    },
+    {
+      "identity": "Is Bitcoin the best safe haven against geopolitical risk?, Finance Research Letters 74, 2025, DOI 10.1016/j.frl.2024.106543",
+      "url": "https://www.sciencedirect.com/science/article/pii/S1544612324015721",
+      "role": "PRIMARY_POSITIVE_SAFE_HAVEN_PRIOR",
+      "finding": "The paper finds Bitcoin can act as a strong safe haven against geopolitically driven U.S. equity crash risk, primarily through large-move rather than moderate-move channels.",
+      "transfer_boundary": "Its equity-crash model and weekly relationship do not define a standalone daily GPR timing strategy."
+    },
+    {
+      "identity": "Digital Gold and geopolitics, Research in International Business and Finance 59, 2022, DOI 10.1016/j.ribaf.2021.101512",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0275531921001331",
+      "role": "PRIMARY_ADVERSARIAL_REGIME_DEPENDENCE_PRIOR",
+      "finding": "The study reports that Bitcoin and gold responses to geopolitical risk depend on market conditions and risk sources.",
+      "transfer_boundary": "Regime dependence is a reason to demand Design, Validation and annual breadth; it does not permit adding post-result interactions or selecting a favorable conflict episode."
+    }
+  ],
+  "single_family_boundary": {
+    "decision_feature": "LATEST_COMPLETE_DAILY_GPR_STRICTLY_ABOVE_THE_PRIOR_252_AVAILABLE_DAILY_GPR_90TH_PERCENTILE",
+    "mapping": "AFTER_THE_GPR_DAY_IS_COMPLETE_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_NEXT_UTC_DAY_OPEN_TO_FOLLOWING_UTC_DAY_OPEN_WHEN_HIGH_GPR_OTHERWISE_ZERO_YIELD_CASH",
+    "source_series": "CALDARA_IACOVIELLO_RECENT_DAILY_GPR",
+    "source_vintage_target": "DATA_GPR_DAILY_RECENT_20250113_XLS",
+    "variants": 1
+  },
+  "economic_hypothesis": "If Bitcoin provides a repeatable short-horizon refuge during unusually high geopolitical-news risk, the fixed lagged high-GPR long-cash state should show positive next-day return and no-worse downside risk across Design, Validation and multiple years before matched-capital economics are opened.",
+  "independence_assessment": {
+    "distinct_from_closed_us_epu": "GPR counts geopolitical threats and acts, while the closed U.S. EPU family measured economic-policy uncertainty and conditioned DRA entries; the source, event taxonomy, parent and mapping differ.",
+    "distinct_from_price_and_market_microstructure": "The decision feature contains no BTC price, return, volume, trend, volatility, exchange, stablecoin, derivative or order-flow input.",
+    "distinct_from_calendar_event_vetoes": "The state is produced by observed dated geopolitical-news intensity rather than a predefined release or expiry calendar.",
+    "residual_risk": "The index is newspaper-based, revised, non-investable and may describe contemporaneous shocks rather than lead Bitcoin. A missing dated vintage or failed lead-lag breadth gate closes the exact family."
+  },
+  "source_contract_intent": {
+    "official_vintage_url": "https://www.matteoiacoviello.com/gpr_files/data_gpr_daily_recent_20250113.xls",
+    "required_first_day": "2018-01-01",
+    "required_last_day": "2024-12-31",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "latest_or_current_vintage_substitution": "DENY",
+    "status": "EXACT_DATED_VINTAGE_EXISTENCE_SCHEMA_AND_COVERAGE_UNPROVEN"
+  },
+  "stop_conditions": [
+    "Before opening any GPR cell, freeze and run one exact-URL transport, workbook-schema, date-coverage and vintage-identity gate for the 2025-01-13 file.",
+    "Stop DATA_REJECT on HTTP, redirect, workbook, field, date, duplicate, missing-day, nonfinite-value or vintage failure; do not use the latest file, another vintage, monthly data, AI-GPR, another provider or imputation.",
+    "Before BTC outcomes, freeze exact 252-day empirical 90th-percentile semantics, one-day lag, Design and Validation splits, minimum high-state counts, next-day return, downside, annual breadth and concentration gates.",
+    "Do not change percentile, lookback, direction, lag, mapping, source or add equity-crash, oil, gold, EPU, VIX or conflict-name interactions after any source value is opened.",
+    "Close before economics and OOS on any source or predictive failure."
+  ],
+  "missing_proof": [
+    "The exact dated 2025-01-13 GPR workbook has not been requested and its schema, hash, last observation and complete 2018-2024 daily coverage are MISSING_PROOF.",
+    "No high-GPR state, independent next-day BTC relation, annual breadth, matched-capital economics, candidate or OOS evidence exists."
+  ],
+  "next_gate": "FREEZE_AND_RUN_ONE_EXACT_DATED_GPR_VINTAGE_TRANSPORT_SCHEMA_AND_PRE2025_DAILY_COVERAGE_GATE_BEFORE_GPR_CELL_OR_BTC_OUTCOME_ACCESS",
+  "scope_note": "Primary and adversarial prior only. No GPR workbook, cell, BTC outcome, factor, hypothesis, manifest, runner, experiment, candidate or OOS was accessed or created; no paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

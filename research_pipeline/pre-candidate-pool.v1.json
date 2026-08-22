@@ -207,38 +207,28 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-coinbase-binance-relative-volume-share-long-cash",
-      "title": "Lagged Coinbase share of BTC cross-venue base volume long-or-cash",
-      "decision_feature": "LAGGED_28_COMPLETE_UTC_DAY_MEAN_COINBASE_BTCUSD_BASE_VOLUME_SHARE_STRICTLY_ABOVE_PRIOR_365_AVAILABLE_COMPLETE_DAY_MEDIAN",
-      "causal_hypothesis": "A persistently elevated Coinbase share of comparable BTC base volume may identify a more informative or durable U.S. spot-participation regime, but the family must fail if venue operations or quote-market structure explain the state.",
-      "economic_hypothesis": "Holding BTC only during the fixed elevated relative-volume-share state may improve after-cost matched-capital Calmar versus BTC buy-and-hold with broad Design and Validation support.",
+      "family_id": "btc-gpr-high-risk-safe-haven-long-cash",
+      "title": "Lagged high geopolitical-risk Bitcoin safe-haven long-or-cash",
+      "decision_feature": "LATEST_COMPLETE_DAILY_GPR_STRICTLY_ABOVE_PRIOR_252_AVAILABLE_DAILY_GPR_90TH_PERCENTILE",
+      "causal_hypothesis": "Unusually high geopolitical-news risk may increase short-horizon demand for globally transferable Bitcoin, while the audit must reject the family if the relation is contemporaneous, conditional on omitted equity crashes or unstable across regimes.",
+      "economic_hypothesis": "Holding BTC only after a completed high-GPR day may produce positive next-day return with no-worse downside risk and broad annual support before matched-capital economics are opened.",
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
-      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_RELATIVE_VOLUME_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
-      "runner_id": "PREDICTIVE_RUNNER_NOT_BUILT_SOURCE_PASSED",
-      "base_stage": "PREREGISTRATION_READY",
+      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_GPR_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
+      "runner_id": "NOT_BUILT_EXACT_DATED_SOURCE_GATE_FIRST",
+      "base_stage": "HISTORICAL_PRIOR",
       "estimated_days_to_next_gate": 1,
       "compute_cost_class": "LOW",
-      "independence_key": "cross-venue-btc-base-volume-share-not-price-trend-volatility-single-venue-flow-stablecoin-peg-carry-or-gold",
-      "next_gate": "BIND_THE_SEALED_VOLUME_ONLY_CORPUS_AND_EXISTING_BTC_H1_OUTCOME_CORPUS_TO_ONE_PREDICTIVE_ONLY_RUNNER_WITHOUT_CHANGING_THE_FROZEN_CONTRACT",
+      "independence_key": "newspaper-geopolitical-threat-and-act-risk-not-epu-price-volume-volatility-exchange-stablecoin-derivative-or-calendar",
+      "next_gate": "FREEZE_AND_RUN_ONE_EXACT_DATED_GPR_VINTAGE_TRANSPORT_SCHEMA_AND_PRE2025_DAILY_COVERAGE_GATE_BEFORE_GPR_CELL_OR_BTC_OUTCOME_ACCESS",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-primary-prior.v1.json",
-          "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
-          "sha256": "5fb74860ff67398b0a5fde73a2d4370b79c87fff82d1406e7d2d07597ac96eab"
-        },
-        {
-          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.manifest.json",
-          "role": "FROZEN_FREE_SOURCE_AND_DOWNSTREAM_PREDICTIVE_PREREGISTRATION",
-          "sha256": "af465de46b6d4838db20fed3be8e7dcefbc941fd2d4a1aa92834b6b1db7e17ac"
-        },
-        {
-          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.decision.json",
-          "role": "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_SOURCE_GATE_PASS",
-          "sha256": "fb2e7afd0e8cd4a09ce219b665c0380248ca7e47f1e929c04d88bec49f9f9de5"
+          "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_VINTAGE_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "4a6d7c8a08a66e371e0f613b31c191effa8df9c7fb35f384c1171a1d852dfed8"
         }
       ],
       "economic_evidence_status": {
@@ -253,11 +243,11 @@
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
       },
       "missing_proof": [
-        "The source is complete and deterministic, but the fixed relative-volume-share state has not been computed.",
-        "No comparable volume-share state, independent future BTC relation or causal direction has been measured.",
+        "The exact dated 2025-01-13 daily GPR workbook transport, schema, hash and 2018-2024 coverage are unopened.",
+        "No high-GPR state, independent next-day BTC relation or causal safe-haven direction has been measured.",
         "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."
       ],
-      "duplicate_family_key": "btc-coinbase-binance-28d-relative-base-volume-share-above-prior-365d-median-long-cash"
+      "duplicate_family_key": "btc-daily-gpr-above-prior-252d-90th-percentile-next-day-safe-haven-long-cash"
     }
   ],
   "closed_families": [
@@ -4094,6 +4084,32 @@
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
       "prohibited_reopen": true,
       "title": "Lagged USDCUSDT relative-peg dislocation BTC risk veto"
+    },
+    {
+      "decision_feature": "LAGGED_28_COMPLETE_UTC_DAY_MEAN_COINBASE_BTCUSD_BASE_VOLUME_SHARE_STRICTLY_ABOVE_PRIOR_365_AVAILABLE_COMPLETE_DAY_MEDIAN",
+      "disposition": "NO_CANDIDATE_CLOSE_COINBASE_BINANCE_RELATIVE_VOLUME_SHARE_PRE_ECONOMIC",
+      "duplicate_family_key": "btc-coinbase-binance-28d-relative-base-volume-share-above-prior-365d-median-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-predictive.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_PREDICTIVE_FAMILY_CLOSURE",
+          "sha256": "80d5045a51708f5fe5cba892012365413d28178be66994d97ed5096b37eab91e"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-predictive.v1.manifest.json",
+          "role": "FROZEN_SINGLE_VARIANT_PREDICTIVE_MANIFEST",
+          "sha256": "9461451f2a4550d224283ec12461bbe7016e2c43c7fdcd545e37b85596452e79"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_SOURCE_GATE_PASS",
+          "sha256": "fb2e7afd0e8cd4a09ce219b665c0380248ca7e47f1e929c04d88bec49f9f9de5"
+        }
+      ],
+      "family_id": "closed-btc-coinbase-binance-relative-volume-share-long-cash",
+      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
+      "prohibited_reopen": true,
+      "title": "Lagged Coinbase share of BTC cross-venue base volume long-or-cash"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

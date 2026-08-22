@@ -1,0 +1,93 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_RELATIVE_VOLUME_PREDICTIVE_MANIFEST_V1",
+  "family_id": "btc-coinbase-binance-relative-volume-share-long-cash",
+  "created_at": "2026-08-22T18:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREDICTIVE_ONLY_NO_ECONOMICS_NO_OOS",
+  "bindings": [
+    {
+      "path": "research/btc_coinbase_binance_relative_volume_predictive_v1.py",
+      "sha256": "9f368afd77c13da06896556fca838e7b57784a7836c6db6765caae1aa13677bd",
+      "role": "FROZEN_SINGLE_VARIANT_PREDICTIVE_RUNNER"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_CANONICAL_HASH_CAPABILITY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.manifest.json",
+      "sha256": "af465de46b6d4838db20fed3be8e7dcefbc941fd2d4a1aa92834b6b1db7e17ac",
+      "role": "FROZEN_FREE_SOURCE_AND_DOWNSTREAM_PREDICTIVE_PREREGISTRATION"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-source.v1.decision.json",
+      "sha256": "fb2e7afd0e8cd4a09ce219b665c0380248ca7e47f1e929c04d88bec49f9f9de5",
+      "role": "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_SOURCE_GATE_PASS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-relative-volume-share-long-cash-primary-prior.v1.json",
+      "sha256": "5fb74860ff67398b0a5fde73a2d4370b79c87fff82d1406e7d2d07597ac96eab",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUP_BOUNDARY_PRIOR"
+    }
+  ],
+  "data_bindings": {
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-source-v1/inputs/source.v1.run1.bundle.json",
+      "sha256": "6a7ba2abb628b50aad48199d0e1eded0c8ea5a82d0a99d3d832c0aa8baa61981"
+    },
+    "volume_corpus": {
+      "path": ".research-state/experiments/btc-coinbase-binance-relative-volume-share-source-v1/inputs/btc-cross-venue-base-volume-2020-2024.v1.run1.csv.gz",
+      "sha256": "485333af3944f29df859b85627ec9aa7d85a4e871df87086f53724e285835719",
+      "rows": 3654,
+      "common_complete_utc_days": 1827
+    },
+    "btc_h1_outcomes": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    }
+  },
+  "predictive_contract": {
+    "daily_share": "COINBASE_BASE_VOLUME_DIVIDED_BY_COINBASE_PLUS_BINANCE_BASE_VOLUME_SAME_COMPLETE_UTC_DAY",
+    "smooth_days": 28,
+    "reference_available_smoothed_days": 365,
+    "state": "SMOOTHED_SHARE_STRICTLY_GREATER_THAN_PRIOR_REFERENCE_MEDIAN",
+    "signal_lag": "ONE_COMPLETE_UTC_DAY",
+    "outcome": "NEXT_COMPLETE_UTC_DAY_BTCUSDT_OPEN_TO_NEXT_OPEN_RETURN",
+    "downside_semideviation": "SQUARE_ROOT_OF_MEAN_SQUARED_MINIMUM_RETURN_AND_ZERO_OVER_ALL_STATE_OBSERVATIONS",
+    "design_outcome_first_day": "2021-02-01",
+    "design_outcome_last_day": "2022-12-31",
+    "validation_outcome_first_day": "2023-01-01",
+    "validation_outcome_last_day": "2024-12-31",
+    "annual_years": [
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "minimum_state_count_per_window": 120,
+    "minimum_positive_annual_delta_years": 3,
+    "maximum_top_positive_annual_delta_concentration": "0.60",
+    "variants": 1,
+    "economics": "DENY_UNTIL_ALL_PREDICTIVE_GATES_PASS",
+    "oos": "DENY"
+  },
+  "all_pass_gates": [
+    "Design and Validation each contain at least 120 high-state and 120 low-state next-day outcomes.",
+    "High-state mean next-day BTC open-to-open return strictly exceeds low-state mean in both Design and Validation.",
+    "Validation high-state downside semideviation is no worse than low-state downside semideviation.",
+    "Annual high-minus-low mean next-day return is positive in at least three of 2021, 2022, 2023 and 2024.",
+    "The largest positive annual high-minus-low mean-return delta is at most 60 percent of total positive annual deltas."
+  ],
+  "decision": "ALL_PREDICTIVE_GATES_PASS_TO_AUTHORIZE_ONE_SEPARATELY_FROZEN_MATCHED_CAPITAL_ECONOMIC_SCREEN_OTHERWISE_PERMANENTLY_CLOSE_EXACT_FAMILY_PRE_ECONOMIC",
+  "stop_conditions": [
+    "Require all tracked and data hashes, exactly 3,654 volume rows, 1,827 common days and 52,608 canonical H1 rows before feature or outcome computation.",
+    "Do not change source, unit, 28-day smooth, prior-365 reference, strict state, one-day lag, split, outcome, gate or concentration formula.",
+    "Run exactly one variant twice to create-only result paths and require byte-identical output.",
+    "On any predictive gate failure, close without economics, alternative threshold, neighbor, interaction, resampling, OOS or Trading action."
+  ],
+  "scope_note": "Frozen predictive-only manifest. No predictive result, matched-capital economics, fees, slippage, PnL, drawdown, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

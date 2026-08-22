@@ -207,7 +207,7 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "base_stage": "PREREGISTRATION_READY",
+      "base_stage": "REGISTERED_EXPERIMENT",
       "canonical_binding": {
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
@@ -241,6 +241,26 @@
           "sha256": "933208658c8a3e58e15c999abccb632b6aab544d7d8cc9ef8797d503d8c1fa07"
         },
         {
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_COMPLETE_SOURCE_GATE_PASS",
+          "sha256": "8dc227dabcebea43c7a22d286fe70d7353d454563649038109a6247c69755e14"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-adjacent-closure-prior.v1.json",
+          "role": "SEALED_BTC_CASH_CONSTANT_MIX_ADJACENT_CLOSURE_PRIOR",
+          "sha256": "dd35202f848e24370cb391f79461cc98fb0894889b57b7f643b5e64c952c3504"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-v1.hypothesis.json",
+          "role": "FROZEN_SCHEMA_VALID_SINGLE_VARIANT_HYPOTHESIS",
+          "sha256": "3cb356707bee5fd88a8645b0ba27015d36e861873f3f8e998b53c2ecd157a249"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.manifest.json",
+          "role": "FROZEN_MATCHED_CAPITAL_ACCOUNTING_COST_AND_GATE_MANIFEST",
+          "sha256": "2e155aaa24a33b386f1653e62f8feb5cae3e03b2cd46e6456462cc3465d7db97"
+        },
+        {
           "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-primary-prior.v1.json",
           "role": "SEALED_FIXED_BTC_ETH_UNIVERSE_SOURCE_AND_ADVERSARIAL_PRIOR",
           "sha256": "722523426b3a5b64412924962c07f745bef4315a72197d0343ccfa4f5f8cd86a"
@@ -260,11 +280,11 @@
       "independence_key": "fixed-two-asset-equal-weight-monthly-rebalancing-premium-not-asset-selection-timing-or-cash-filter",
       "matched_comparator_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING_SAME_WINDOW_COST_AND_VALUATION",
       "missing_proof": [
-        "The frozen checksum-bound official Binance BTCUSDT and ETHUSDT daily source contract has not produced two byte-identical complete 2020-2024 source bundles.",
-        "No source evidence yet proves that both symbols have an exact complete native 1827-day intersection with every publisher archive checksum valid.",
-        "No exact monthly execution clock, two-asset accounting, costs, hypothesis, manifest, deterministic runner, Design or Validation economics, annual breadth, concentration, candidate, independent OOS or forward evidence exists."
+        "The frozen matched-capital economic runner has not produced two byte-identical results.",
+        "No Design or Validation incremental return, drawdown, Calmar, annual breadth, concentration or terminal-liquidation result has been opened.",
+        "No historical candidate, independent OOS or forward evidence exists."
       ],
-      "next_gate": "EXECUTE_THE_FROZEN_CHECKSUM_BOUND_BTC_ETH_DAILY_SOURCE_CONTRACT_TWICE_WITHOUT_RETURN_OR_STRATEGY_OUTCOME_ACCESS",
+      "next_gate": "EXECUTE_THE_FROZEN_SINGLE_VARIANT_MATCHED_CAPITAL_ECONOMIC_RUNNER_TWICE_AND_APPLY_ALL_FAIL_CLOSED_GATES_WITHOUT_OOS_ACCESS",
       "parent_strategy_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING",
       "runner_id": "DIRECT_TWO_ASSET_MONTHLY_CONSTANT_MIX_LEDGER_REQUIRED",
       "title": "BTC-ETH monthly equal-weight rebalancing premium"

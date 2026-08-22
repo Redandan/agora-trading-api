@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_ADJACENT_CLOSURE_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-eth-monthly-equal-weight-rebalancing-premium",
+  "created_at": "2026-08-22T12:58:32Z",
+  "status": "COMPLETED_PRE_ECONOMIC_DEDUP_AND_ADVERSARIAL_BOUNDARY",
+  "adjacent_closed_family": {
+    "family_id": "closed-btc-monthly-constant-mix",
+    "decision_path": "research_pipeline/examples/btc-monthly-constant-mix-v1-historical.v1.decision.json",
+    "decision_sha256": "1118e89230b6fe40871fd1c4a4faebf4553d43275bc517d8a0609b7dbf818446",
+    "manifest_path": "research_pipeline/examples/btc-monthly-constant-mix-v1-historical.v1.manifest.json",
+    "manifest_sha256": "a9938e9d8f533a021f44b8c95c4d7f667a09ad4c9bc448f2f027536e1148926b",
+    "material_learning": "Monthly BTC and zero-yield-cash constant mix reduced allocation drift and drawdown but failed incremental total return in 2023-2024, both fixed neighbors and four-of-five-year breadth. Only 2021 beat its matched static comparator, so the exact BTC-cash family was permanently closed as path-dependent risk control rather than robust alpha."
+  },
+  "distinct_mechanism_boundary": {
+    "new_assets": "BTC_AND_ETH_ALWAYS_HELD_WITH_NO_ZERO_YIELD_CASH_TARGET",
+    "new_comparator": "IDENTICAL_INITIAL_EQUAL_VALUE_BTC_ETH_HOLDINGS_WITHOUT_REBALANCING",
+    "isolated_effect": "CROSS_ASSET_RELATIVE_VARIANCE_AND_LEADERSHIP_ROTATION_ONLY",
+    "not_a_rescue": "No BTC target weight, cash allocation, neighboring weight, frequency, trend rule or cost assumption from the closed BTC-cash experiment is changed or rerun."
+  },
+  "adversarial_gate_implications": [
+    "The new family must pass positive incremental total return against its identical two-asset drift comparator in both Design and Validation under normal and stress costs.",
+    "The new family must not pass solely by lowering drawdown or keeping weights near fifty percent.",
+    "At least four of five fair-reset years must have positive incremental total return and no single year may contribute more than sixty percent of total positive annual increment.",
+    "Persistent BTC or ETH leadership that makes rebalancing sell the long-run winner is a falsification result, not permission to add momentum, a band, another frequency or a cash leg."
+  ],
+  "new_family_outcome_access": {
+    "price_values_opened_for_economic_design": false,
+    "returns_computed": false,
+    "strategy_path_computed": false,
+    "candidate_created": false,
+    "oos_opened": false
+  },
+  "next_action": "BIND_THIS_CLOSURE_PRIOR_IN_THE_SINGLE_VARIANT_ECONOMIC_MANIFEST_BEFORE_OUTCOME_ACCESS",
+  "scope_note": "Historical adjacent-family evidence reuse and dedup only. No new-family price value, return, strategy outcome, candidate, OOS or Trading action occurred."
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-eth-monthly-equal-weight-rebalancing-v1",
+  "title": "BTC-ETH monthly equal-weight rebalancing premium",
+  "thesis": "Resetting a fixed unlevered BTC and ETH spot portfolio to equal market value at each UTC month boundary improves fee-adjusted total return and Calmar versus the identical initially equal-value BTC-ETH holdings allowed to drift, with non-worse drawdown and broad annual support in both Design and historical Validation.",
+  "mechanism": "Monthly equal-weight rebalancing sells part of the relative outperformer and buys the relative underperformer. The mechanism can monetize relative variance only when leadership reverses broadly enough to overcome two-asset execution costs; persistent leadership must make the hypothesis fail.",
+  "economic_rationale": "The identical two-asset comparator isolates rebalancing from simple ETH inclusion, market direction and initial asset weights. The mechanism is useful only if incremental marked and terminal-liquidation return, drawdown, Calmar, annual breadth and concentration all pass under normal and doubled friction; weight control alone has no candidate value.",
+  "source": "CHECKSUM_BOUND_OFFICIAL_BINANCE_BTCUSDT_ETHUSDT_DAILY_2020_2024_INTERSECTION",
+  "parent": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "btc-eth-monthly-equal-weight-rebalancing-v1-direct-two-asset-ledger",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "fee_and_slippage_adjusted_total_return",
+    "incremental_total_return_vs_identical_initial_holdings",
+    "terminal_liquidation_adjusted_incremental_return",
+    "realized_pnl",
+    "unrealized_pnl",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "turnover",
+    "fees",
+    "daily_weight_drift",
+    "annual_breadth",
+    "top_year_incremental_concentration",
+    "terminal_inventory"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-22-candidate-factory-cycle-btc-eth-rebalancing",
+  "created_at": "2026-08-22T12:58:32Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

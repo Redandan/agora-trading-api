@@ -1,0 +1,215 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-eth-monthly-equal-weight-rebalancing-historical-v1",
+  "created_at": "2026-08-22T12:58:32Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "Resetting a fixed unlevered BTC and ETH spot portfolio to equal market value at each UTC month boundary improves fee-adjusted total return and Calmar versus the identical initially equal-value BTC-ETH holdings allowed to drift, with non-worse drawdown and broad annual support in both Design and historical Validation.",
+  "economic_rationale": "The matched comparator starts with the same BTC and ETH quantities and differs only by subsequent monthly rebalancing. The policy is valuable only if relative-variance harvesting beats both-leg fees and adverse slippage while improving incremental marked and terminal-liquidation return, drawdown, Calmar and annual breadth. Weight control alone cannot pass.",
+  "opportunity_cost": "One frozen low-cost screen either establishes that a fixed two-major-asset relative-variance mechanism deserves untouched OOS or permanently closes the exact monthly equal-weight family before scheduling, runtime integration or neighboring parameter work consumes capacity.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-eth-monthly-equal-weight-rebalancing-premium",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_FIXED_BTC_ETH_EQUAL_WEIGHT_POLICY_ON_THIS_SOURCE",
+    "distinct_from_closed_families": [
+      "The closed BTC and zero-yield-cash monthly constant-mix family traded one risk asset against cash and failed Validation return plus annual breadth. This experiment always holds two risk assets and isolates only cross-asset relative variance against identical initial BTC-ETH holdings.",
+      "The closed BTC-ETH low-volatility rotation selected one asset using trailing volatility. This experiment holds both assets at fixed equal target weights and has no volatility, ranking, selection or cash rule.",
+      "The closed many-asset momentum family selected a historical cohort and ranked past returns. This experiment fixes exactly BTC and ETH before outcomes and never ranks or changes the universe."
+    ],
+    "excluded_reinterpretations": [
+      "No alternate weight, frequency, drift band, threshold, momentum, volatility, trend, cash, yield, leverage, short leg, venue, source or cost assumption may be scanned after outcome access.",
+      "No positive drawdown or weight-control result may replace failed incremental total-return, terminal-liquidation, Calmar, annual-breadth or concentration gates.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires a separately sealed independent OOS experiment."
+    ]
+  },
+  "dataset": {
+    "bundle_path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/source.v1.run1.bundle.json",
+    "bundle_sha256": "944f07771b5f743463f6614efd6b08164691aadd091b0808c309e4cbbbbf3769",
+    "normalized_gzip_path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/btc-eth-daily-2020-2024.v1.run1.csv.gz",
+    "normalized_gzip_sha256": "1896e9af2c01ce61555905cfc6a830e5e84c0a68c69c963be15a0b5ef26fd591",
+    "rows": 3654,
+    "intersection_days_per_symbol": 1827,
+    "first_day": "2020-01-01",
+    "last_day": "2024-12-31",
+    "selection_cutoff": "2025-01-01T00:00:00Z"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_eth_monthly_equal_weight_rebalancing_v1.py",
+      "sha256": "334f5cad0235b76bfe1d3a910569e8229b0a61b18c8ecd8862f2fb9018bacbe9",
+      "role": "FROZEN_DIRECT_TWO_ASSET_FIFO_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-v1.hypothesis.json",
+      "sha256": "3cb356707bee5fd88a8645b0ba27015d36e861873f3f8e998b53c2ecd157a249",
+      "role": "FROZEN_SCHEMA_VALID_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-primary-prior.v1.json",
+      "sha256": "f7ccd67a76491701c0ea1134061d6a803425d1438f8d9adb7b803d2960c0d490",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_REBALANCING_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-adjacent-closure-prior.v1.json",
+      "sha256": "dd35202f848e24370cb391f79461cc98fb0894889b57b7f643b5e64c952c3504",
+      "role": "SEALED_BTC_CASH_CONSTANT_MIX_ADJACENT_CLOSURE_AND_DEDUP_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.decision.json",
+      "sha256": "8dc227dabcebea43c7a22d286fe70d7353d454563649038109a6247c69755e14",
+      "role": "SEALED_BYTE_IDENTICAL_SOURCE_GATE_PASS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.manifest.json",
+      "sha256": "933208658c8a3e58e15c999abccb632b6aab544d7d8cc9ef8797d503d8c1fa07",
+      "role": "FROZEN_CHECKSUM_BOUND_SOURCE_CONTRACT"
+    },
+    {
+      "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/source.v1.run1.bundle.json",
+      "sha256": "944f07771b5f743463f6614efd6b08164691aadd091b0808c309e4cbbbbf3769",
+      "role": "SEALED_SOURCE_BUNDLE"
+    },
+    {
+      "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/btc-eth-daily-2020-2024.v1.run1.csv.gz",
+      "sha256": "1896e9af2c01ce61555905cfc6a830e5e84c0a68c69c963be15a0b5ef26fd591",
+      "role": "SEALED_NORMALIZED_DAILY_SOURCE"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_V1",
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "bar_interval": "1d",
+    "initial_equity_usdt": "10000",
+    "initial_allocation": "FIRST_WINDOW_DAY_NATIVE_OPEN_EQUAL_CASH_BUDGET_AFTER_EXECUTION_COSTS",
+    "target_weights": {
+      "BTCUSDT": "0.50",
+      "ETHUSDT": "0.50"
+    },
+    "decision_feature": "PREDETERMINED_UTC_MONTH_BOUNDARY_ONLY",
+    "rebalance": "FIRST_NATIVE_DAILY_OPEN_OF_EACH_UTC_MONTH",
+    "execution": "SELL_RELATIVE_OVERWEIGHT_AND_BUY_RELATIVE_UNDERWEIGHT_AT_SAME_NATIVE_DAILY_OPEN_WITH_FROZEN_ADVERSE_PRICES",
+    "trade_solver": "EXACT_EQUAL_POST_TRADE_MARKET_VALUES_AFTER_BOTH_LEG_COSTS_WITH_ZERO_EXTERNAL_CASH",
+    "cost_basis": "FIFO_PER_ASSET",
+    "cash_return": "0",
+    "leverage": "DENY",
+    "short": "DENY",
+    "external_cash_flow": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2020-01-01",
+      "2023-01-01"
+    ],
+    "validation": [
+      "2023-01-01",
+      "2025-01-01"
+    ],
+    "annual_fair_reset_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "state": "FAIR_RESET_IDENTICAL_INITIAL_EQUITY_AND_ALLOCATION_EACH_WINDOW"
+  },
+  "comparators": {
+    "primary": "BUY_IDENTICAL_INITIAL_EQUAL_CASH_BUDGET_BTC_AND_ETH_AT_FIRST_NATIVE_OPEN_THEN_NEVER_REBALANCE",
+    "capital_matching": "SAME_INITIAL_EQUITY_SOURCE_WINDOW_INITIAL_EXECUTION_COSTS_DAILY_CLOSE_VALUATION_AND_TERMINAL_LIQUIDATION_SENSITIVITY"
+  },
+  "valuation": {
+    "primary": "DAILY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_BOTH_ASSET_LAST_CLOSE_LIQUIDATION_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "FIFO_NET_SALE_REALIZED_PLUS_MARK_TO_MARKET_RESIDUAL",
+    "terminal_inventory": "REPORT_BOTH_ASSET_QUANTITY_MARKET_VALUE_FIFO_COST_AND_OLDEST_AGE"
+  },
+  "metrics": [
+    "total_return_pct",
+    "annualized_return_pct",
+    "candidate_minus_parent_total_return_pp",
+    "terminal_liquidation_adjusted_return_pct",
+    "candidate_minus_parent_terminal_liquidation_return_pp",
+    "realized_pnl_usdt",
+    "unrealized_pnl_usdt",
+    "maximum_drawdown_pct",
+    "candidate_minus_parent_maximum_drawdown_pp",
+    "maximum_underwater_duration_days",
+    "calmar_ratio",
+    "candidate_minus_parent_calmar_ratio",
+    "fees_usdt",
+    "turnover_usdt",
+    "monthly_rebalance_signal_count",
+    "trade_count",
+    "average_and_maximum_weight_error",
+    "holding_age",
+    "terminal_inventory",
+    "annual_breadth",
+    "top_year_positive_incremental_contribution"
+  ],
+  "gate_set": {
+    "id": "BTC_ETH_MONTHLY_EQUAL_WEIGHT_MATCHED_CAPITAL_GATES_V1",
+    "design_and_validation_each_cost_scenario": [
+      "candidate_total_return_positive",
+      "candidate_minus_parent_total_return_positive",
+      "candidate_minus_parent_terminal_liquidation_return_positive",
+      "candidate_maximum_drawdown_non_worse_than_parent",
+      "candidate_calmar_non_worse_than_parent"
+    ],
+    "clock_integrity": [
+      "design_monthly_rebalance_signal_count_exactly_35",
+      "validation_monthly_rebalance_signal_count_exactly_23"
+    ],
+    "annual_breadth_each_cost_scenario": [
+      "candidate_positive_return_at_least_4_of_5_years",
+      "positive_incremental_return_at_least_4_of_5_years",
+      "drawdown_non_worse_at_least_4_of_5_years",
+      "calmar_non_worse_at_least_4_of_5_years",
+      "top_year_positive_incremental_contribution_at_most_60_percent"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "oos_access": "DENY",
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics if any manifest binding, source bundle, normalized gzip, normalized CSV, symbol, row, UTC-day intersection or OHLC gate differs.",
+    "Use exactly one fixed 50-50 monthly BTC-ETH policy under the two frozen cost scenarios; do not scan weights, frequencies, thresholds, trend, volatility, cash, leverage, shorting, venue, source or costs after outcome access.",
+    "Stop and permanently close the exact family if Design, Validation, annual breadth or concentration fails any frozen gate; drawdown or weight-control improvement cannot rescue failed incremental return.",
+    "Do not access post-2024 evidence or OOS. A full historical pass may only become CANDIDATE_ELIGIBLE_REPORTED_NOT_ACTIVATED with independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

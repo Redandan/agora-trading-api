@@ -108,7 +108,7 @@ class CandidateFunnelTest(unittest.TestCase):
             == "btc-eth-monthly-equal-weight-rebalancing-premium"
         )
         self.assertEqual(
-            equal_weight_rebalancing["base_stage"], "PREREGISTRATION_READY"
+            equal_weight_rebalancing["base_stage"], "REGISTERED_EXPERIMENT"
         )
         self.assertEqual(
             [
@@ -118,6 +118,10 @@ class CandidateFunnelTest(unittest.TestCase):
             [
                 "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
                 "FROZEN_CHECKSUM_BOUND_FIXED_TWO_SYMBOL_SOURCE_CONTRACT",
+                "SEALED_BYTE_IDENTICAL_COMPLETE_SOURCE_GATE_PASS",
+                "SEALED_BTC_CASH_CONSTANT_MIX_ADJACENT_CLOSURE_PRIOR",
+                "FROZEN_SCHEMA_VALID_SINGLE_VARIANT_HYPOTHESIS",
+                "FROZEN_MATCHED_CAPITAL_ACCOUNTING_COST_AND_GATE_MANIFEST",
                 "SEALED_FIXED_BTC_ETH_UNIVERSE_SOURCE_AND_ADVERSARIAL_PRIOR",
                 "SEALED_LOW_VOLATILITY_ROTATION_NON_REOPEN_AND_SOURCE_BOUNDARY",
                 "SEALED_MANY_ASSET_MOMENTUM_SOURCE_REJECT_AND_FIXED_TWO_ASSET_BOUNDARY",

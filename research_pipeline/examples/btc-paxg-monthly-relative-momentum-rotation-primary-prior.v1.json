@@ -1,0 +1,93 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_PRIMARY_PRIOR_V1",
+  "family_id": "btc-paxg-monthly-relative-momentum-rotation",
+  "reviewed_at": "2026-08-22T15:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PRIMARY_AND_ADVERSARIAL_PRIOR_SOURCE_NOT_YET_OPENED",
+  "decision": "PRIOR_SUPPORTS_ONE_METADATA_FIRST_FREE_SOURCE_FEASIBILITY_GATE_BEFORE_ANY_PAXG_OR_BTC_PRICE_ACCESS",
+  "claim_boundary": "Published evidence supports momentum across asset classes and potentially different diversification roles for Bitcoin and gold. Paxos documents PAXG as tokenized allocated gold, and Binance documents a checksum-protected public spot archive. None of these sources establishes that a six-month BTC-versus-PAXG rotation is profitable, that PAXGUSDT has complete pre-2025 archive coverage, or that the token is interchangeable with direct bullion exposure. Exactly one metadata-first source gate may be attempted before price or outcome access.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Asness, Moskowitz and Pedersen, Value and Momentum Everywhere, Journal of Finance 68(3), 2013, DOI 10.1111/jofi.12021",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1111/jofi.12021",
+      "role": "PRIMARY_CROSS_ASSET_MOMENTUM_PRIOR",
+      "finding": "The study reports consistent value and momentum premia across eight diverse markets and asset classes and a common factor structure.",
+      "transfer_boundary": "It does not study Bitcoin, PAXG, a two-asset universe, a six-month horizon, Binance execution or this comparator."
+    },
+    {
+      "identity": "Pho, Ly, Lu, Hoang and Wong, Is Bitcoin a better portfolio diversifier than gold?, International Review of Financial Analysis 74, 2021, DOI 10.1016/j.irfa.2021.101674",
+      "url": "https://www.sciencedirect.com/science/article/pii/S105752192100017X",
+      "role": "PRIMARY_BITCOIN_GOLD_DIVERSIFICATION_AND_ADVERSARIAL_PRIOR",
+      "finding": "The study reports different risk and diversification roles for Bitcoin and gold in its tested portfolios, with gold reducing risk more strongly in that setting.",
+      "transfer_boundary": "It studies gold rather than PAXG and Chinese portfolio diversification rather than relative-momentum rotation; it supports asset distinction and an adversarial risk rationale, not alpha."
+    },
+    {
+      "identity": "Paxos PAX Gold product and issuer documentation",
+      "url": "https://docs.paxos.com/guides/stablecoin/paxg",
+      "role": "PRIMARY_TOKEN_IDENTITY_AND_BACKING_PRIOR",
+      "finding": "Paxos states that each PAXG token represents one fine troy ounce of London Good Delivery gold held in LBMA-accredited vaults and publishes reserve information.",
+      "transfer_boundary": "Issuer backing does not eliminate custody, redemption, secondary-market tracking, venue, liquidity, spread or delisting risk."
+    },
+    {
+      "identity": "Binance Public Data repository",
+      "url": "https://github.com/binance/binance-public-data/blob/master/README.md",
+      "role": "PRIMARY_FREE_ARCHIVE_FORMAT_AND_CHECKSUM_PRIOR",
+      "finding": "Binance documents free daily and monthly spot kline archives and per-file checksum sidecars.",
+      "transfer_boundary": "Generic archive documentation does not prove that every required BTCUSDT or PAXGUSDT monthly object exists, is continuous or has an acceptable point-in-time listing history."
+    }
+  ],
+  "single_family_boundary": {
+    "decision_feature": "FIRST_NATIVE_BINANCE_SPOT_DAILY_OPEN_OF_EACH_UTC_MONTH_SELECT_BTCUSDT_OR_PAXGUSDT_BY_HIGHER_LAGGED_SIX_COMPLETE_CALENDAR_MONTH_TOTAL_RETURN",
+    "selection_universe": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "formation_horizon": "SIX_COMPLETE_CALENDAR_MONTHS_ENDING_BEFORE_THE_DECISION_MONTH",
+    "execution_clock": "FIRST_NATIVE_DAILY_OPEN_OF_THE_NEXT_UTC_MONTH_AFTER_BOTH_ASSET_RETURNS_ARE_OBSERVABLE",
+    "position": "ONE_HUNDRED_PERCENT_LONG_THE_HIGHER_RETURN_ASSET_NO_CASH_NO_SHORT_NO_LEVERAGE",
+    "matched_comparator": "STATIC_FIFTY_FIFTY_BTC_PAXG_BUY_AND_HOLD_WITH_IDENTICAL_INITIAL_CAPITAL_WINDOW_AND_COST_ACCOUNTING",
+    "variants": 1
+  },
+  "economic_hypothesis": "If medium-horizon persistence transfers across the distinct BTC and tokenized-gold return streams, a single monthly relative-momentum switch may improve after-cost matched-capital Calmar and maximum drawdown versus static 50/50 BTC-PAXG while retaining broad annual support and ending with fully marked inventory.",
+  "source_path": {
+    "origin": "https://data.binance.vision/data/spot/monthly/klines",
+    "required_symbols": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "interval": "1d",
+    "latest_permitted_observation": "2024-12-31T23:59:59.999Z",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "status": "DOCUMENTED_GENERIC_CAPABILITY_ONLY_SYMBOL_COVERAGE_UNPROVEN"
+  },
+  "independence_assessment": {
+    "distinct_from_closed_equal_weight_rebalancing": "The decision is a lagged cross-asset return ranking and holds only one asset; the closed BTC-ETH family reset a fixed equal weight and tested rebalancing premium.",
+    "distinct_from_closed_btc_eth_low_volatility_rotation": "The decision input is six-month relative return between BTC and tokenized gold, not trailing volatility between two cryptocurrencies.",
+    "distinct_from_closed_btc_nasdaq_relative_strength": "The investable choice and comparator contain PAXG and BTC on one 24/7 venue; the closed family used Nasdaq relative strength as a BTC long-or-cash timing signal with business-day alignment.",
+    "distinct_from_closed_gold_implied_volatility_filter": "The decision input is investable PAXG price momentum, not GVZ or a DRA entry-admission filter.",
+    "residual_duplication_risk": "Momentum is already a heavily tested family. The two-asset cross-asset allocation mechanism is retained only if the exact PAXG source is complete and later nonredundancy gates show that results are not merely BTC time-series momentum or static gold diversification."
+  },
+  "adversarial_risks": [
+    "A two-asset rank has minimal cross-sectional breadth and can be dominated by one BTC cycle or one gold shock.",
+    "PAXG secondary-market prices may diverge from bullion because of custody, redemption, venue liquidity, stablecoin quote, spread or delisting effects.",
+    "The PAXGUSDT archive may be too short, incomplete or altered to support separate Design and Validation windows.",
+    "Monthly switching can realize trend whipsaw and materially underperform a static diversified allocation after costs.",
+    "Any apparent drawdown reduction can be paid for by missing BTC upside rather than by independent risk-adjusted alpha."
+  ],
+  "stop_conditions": [
+    "Before any price access, freeze a metadata-only source inventory requiring explicit BTCUSDT and PAXGUSDT monthly object and checksum coverage through 2024-12.",
+    "Stop with DATA_REJECT if a common point-in-time history cannot support separately frozen Design and Validation windows plus the six-month formation bootstrap without imputation or another venue.",
+    "Freeze one exact cost, ledger, window and all-pass gate manifest before opening price values; no formation-horizon, direction, threshold, cash sleeve, volatility filter or third asset may be added after access.",
+    "Close before OOS if matched-capital Design or Validation economics, drawdown, annual breadth, turnover, concentration or terminal inventory fails any frozen gate.",
+    "A historical pass may create at most one REPORTED_NOT_ACTIVATED candidate and one independent sealed OOS gate; it never authorizes Trading."
+  ],
+  "missing_proof": [
+    "Exact PAXGUSDT archive object and checksum coverage has not been inspected.",
+    "No PAXG or BTC price value, return, common window, liquidity, spread or tracking error has been accessed for this family.",
+    "No frozen hypothesis, source manifest, ledger, cost schedule, deterministic runner, Design, Validation, candidate or OOS exists."
+  ],
+  "next_gate": "FREEZE_AND_RUN_ONE_METADATA_ONLY_BTCUSDT_PAXGUSDT_PRE2025_ARCHIVE_COVERAGE_PROBE_WITHOUT_OPENING_ZIP_BODIES_OR_PRICE_VALUES",
+  "scope_note": "Primary and adversarial prior only. No PAXG or BTC price, archive object, checksum, strategy outcome, hypothesis, manifest, runner, experiment, candidate or OOS was accessed or created; no paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

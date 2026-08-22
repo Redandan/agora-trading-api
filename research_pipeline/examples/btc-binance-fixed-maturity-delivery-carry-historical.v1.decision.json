@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_CARRY_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-binance-fixed-maturity-delivery-carry-historical-v1",
+  "family_id": "btc-binance-fixed-maturity-delivery-cash-and-carry",
+  "decided_at": "2026-08-22T14:35:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DATA_REJECT_CLOSE_FIXED_MATURITY_DELIVERY_CASH_AND_CARRY_FAMILY_BEFORE_ARCHIVE_OR_ECONOMIC_ACCESS",
+  "disposition": "DATA_REJECT_CLOSE_FIXED_MATURITY_DELIVERY_CASH_AND_CARRY_FAMILY_BEFORE_ARCHIVE_OR_ECONOMIC_ACCESS",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-historical.v1.source-ledger-spec.json",
+      "sha256": "49ba9f88f72f4d4be875bdc90355cacf1f7742f596fbce35a6dc73b6961df10a",
+      "role": "FROZEN_PRE_OUTCOME_SOURCE_LEDGER_AND_ALL_PASS_GATE_SPEC"
+    },
+    {
+      "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v3.erratum.json",
+      "sha256": "b2a78bcebf8173ab0017a2546aa0be309b82ce9cef4625305ec9622400c831ac",
+      "role": "FROZEN_SCIENTIFICALLY_UNCHANGED_V3_CORPUS_ADAPTER_ERRATUM"
+    },
+    {
+      "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-primary-prior.v1.json",
+      "sha256": "9aae40cad8b7ca57ff58ba82ec0d7d1afbe71c6c5066451df630593a609e8a7f",
+      "role": "FROZEN_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    }
+  ],
+  "official_delivery_response": {
+    "url": "https://fapi.binance.com/futures/data/delivery-price?pair=BTCUSDT",
+    "raw_response_sha256": "4c11fe09afdd8a46e6496440d1c99ba7ac325326732b3dc0fda327044f02d8c4",
+    "row_count": 18,
+    "ordering": "VALIDATED_THEN_SORTED_BY_DELIVERY_TIMESTAMP",
+    "required_pre2025_traded_settlements": 15,
+    "available_required_settlements": 12,
+    "missing_required_settlements": [
+      {
+        "symbol": "BTCUSDT_210625",
+        "expiry_code_date": "2021-06-25"
+      },
+      {
+        "symbol": "BTCUSDT_210924",
+        "expiry_code_date": "2021-09-24"
+      },
+      {
+        "symbol": "BTCUSDT_211231",
+        "expiry_code_date": "2021-12-31"
+      }
+    ],
+    "available_required_date_range": {
+      "first": "2022-03-25",
+      "last": "2024-12-27"
+    }
+  },
+  "source_gate": {
+    "required": "EXACTLY_ONE_PUBLIC_DELIVERY_PRICE_ROW_MATCHES_EACH_OF_15_FROZEN_TRADED_CONTRACT_EXPIRY_DATES",
+    "observed": "THE_CURRENT_OFFICIAL_RESPONSE_CONTAINS_ZERO_MATCHES_FOR_THE_FIRST_THREE_FROZEN_2021_TRADED_SETTLEMENTS",
+    "decision": "FAIL_CLOSED_BEFORE_ANY_ARCHIVE_ZIP_DOWNLOAD_OR_ECONOMIC_RUN",
+    "archive_zip_download_count": 0,
+    "archive_checksum_download_count": 0,
+    "economic_runner_started": false,
+    "independent_oos_opened": false
+  },
+  "performance_evidence": {
+    "fees": "MISSING_PROOF",
+    "adverse_slippage": "MISSING_PROOF",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "holding_age": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF",
+    "annual_and_cycle_breadth": "MISSING_PROOF"
+  },
+  "material_learning": "The free official archive exposes contract and mark-price files through expiry, but the current official delivery-price response no longer exposes the first three settlement records required by the frozen 2021-2024 Design and Validation contract. Without the official settlement reference, the source identity and settlement reconciliation gate cannot be satisfied, so no credible PnL or drawdown claim is permitted.",
+  "prohibited_reopen": [
+    "Do not shorten the frozen history to begin in 2022 or move the Design and Validation windows.",
+    "Do not infer the missing official settlement from an index candle, contract candle, mark-price candle, last traded price or post-expiry archive object.",
+    "Do not substitute COIN-M delivery contracts, another venue, a third-party backfill or a manually supplied value.",
+    "Do not change the 55-basis-point entry floor, entry clock, 25/75 allocation, margin model, costs, maturity set, accounting or gates.",
+    "Do not open independent OOS or execute an economic runner for this exact family."
+  ],
+  "next_action": "PERMANENTLY_TOMBSTONE_THIS_EXACT_FAMILY_AND_ROTATE_THE_FIFTH_OPEN_POOL_SLOT_TO_AN_INDEPENDENT_FREE_DATA_FAMILY",
+  "scope_note": "The official delivery response was hash-bound and its dates were inspected only to apply the frozen source gate. No archive ZIP, historical basis, strategy return, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

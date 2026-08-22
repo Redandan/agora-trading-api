@@ -207,120 +207,76 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
+      "family_id": "btc-paxg-monthly-relative-momentum-rotation",
+      "title": "BTC-PAXG monthly six-month relative-momentum rotation",
+      "decision_feature": "FIRST_NATIVE_BINANCE_SPOT_DAILY_OPEN_OF_EACH_UTC_MONTH_SELECT_BTCUSDT_OR_PAXGUSDT_BY_HIGHER_LAGGED_SIX_COMPLETE_CALENDAR_MONTH_TOTAL_RETURN",
+      "causal_hypothesis": "Medium-horizon return persistence may transfer across the distinct Bitcoin and tokenized-gold return streams, allowing a fixed monthly rank to shift capital toward the asset with more persistent demand without using future prices.",
+      "economic_hypothesis": "A one-asset monthly BTC-PAXG relative-momentum allocation may improve after-cost matched-capital Calmar and maximum drawdown versus static 50/50 BTC-PAXG while retaining broad annual support and fully marked terminal inventory.",
+      "parent_strategy_id": "STATIC_FIFTY_FIFTY_BTC_PAXG_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_AND_WINDOW",
+      "matched_comparator_id": "STATIC_FIFTY_FIFTY_BTC_PAXG_BUY_AND_HOLD_WITH_IDENTICAL_COST_AND_MARKING_ACCOUNTING",
+      "runner_id": "NOT_BUILT_METADATA_SOURCE_GATE_FIRST",
       "base_stage": "HISTORICAL_PRIOR",
-      "canonical_binding": {
-        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
-        "kind": "NONE"
-      },
-      "causal_hypothesis": "A fixed-maturity BTC delivery future converges to its settlement reference at expiry. Buying BTC spot and shorting the matched delivery future at a positive, causally executable premium may lock a market-neutral convergence cash flow whose source is the initial term basis rather than perpetual funding or directional BTC timing.",
-      "compute_cost_class": "MEDIUM",
-      "decision_feature": "POINT_IN_TIME_ELIGIBLE_BINANCE_BTCUSDT_FIXED_MATURITY_DELIVERY_FUTURE_PREMIUM_AT_ONE_FROZEN_ROLL_CLOCK",
-      "duplicate_family_key": "btc-binance-fixed-maturity-delivery-cash-and-carry",
-      "economic_evidence_status": {
-        "adverse_slippage": "REQUIRED_NOT_MEASURED",
-        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY",
-        "fees": "REQUIRED_NOT_MEASURED",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
-      },
-      "economic_hypothesis": "One point-in-time fixed-maturity BTC spot-delivery-future cash-and-carry policy may earn positive after-cost annualized return with low basis-path drawdown, full settlement reconciliation, broad expiry-cycle and annual support, and no directional or terminal inventory uplift versus zero-yield cash.",
       "estimated_days_to_next_gate": 1,
+      "compute_cost_class": "LOW",
+      "independence_key": "btc-tokenized-gold-cross-asset-relative-momentum-not-fixed-weight-rebalancing-volatility-selection-or-external-market-timing",
+      "next_gate": "FREEZE_AND_RUN_ONE_METADATA_ONLY_BTCUSDT_PAXGUSDT_PRE2025_ARCHIVE_COVERAGE_PROBE_WITHOUT_OPENING_ZIP_BODIES_OR_PRICE_VALUES",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
+      },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-primary-prior.v1.json",
-          "role": "FROZEN_PRIMARY_AND_ADVERSARIAL_FIXED_MATURITY_CARRY_PRIOR",
-          "sha256": "9aae40cad8b7ca57ff58ba82ec0d7d1afbe71c6c5066451df630593a609e8a7f"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.spec.json",
-          "role": "FROZEN_PRE_VALUE_METADATA_ONLY_SOURCE_INVENTORY_SPEC",
-          "sha256": "208dda4305e0da33675e0b3dc3a50196b634f045fdd69103bac752d697fc303f"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.decision.json",
-          "role": "SEALED_V1_IMPLEMENTATION_REJECT_NO_SOURCE_DECISION",
-          "sha256": "972eec8726463764b2920ebe94906aad6c54c01f552491bc6f573c1a8c9e707b"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.spec.json",
-          "role": "FROZEN_CORRECTED_UNCHANGED_THROUGH_EXPIRY_METADATA_GATE",
-          "sha256": "8e435dd6bedc4f74b78a569546b797d9eb1bdadd09569cbf168f75ad98e06503"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.decision.json",
-          "role": "SEALED_METADATA_SOURCE_GATE_PASS_VALUE_ACCESS_STILL_DENIED",
-          "sha256": "0993300f312ee7bebff26de23606c95363a76a49df21c8dac7c61ffea2cb57af"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-historical.v1.source-ledger-spec.json",
-          "role": "FROZEN_PRE_OUTCOME_VALUE_ACCESS_SETTLEMENT_MARGIN_AND_ECONOMIC_GATE_SPEC",
-          "sha256": "49ba9f88f72f4d4be875bdc90355cacf1f7742f596fbce35a6dc73b6961df10a"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v1.decision.json",
-          "role": "SEALED_CORPUS_V1_TRANSPORT_ORDER_IMPLEMENTATION_REJECT_NO_SOURCE_DECISION",
-          "sha256": "170ffbe83f5f9d1b0ea35a8ee3f5f45b29ef64a36658afd17ed8e36661cfe0f0"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v2.erratum.json",
-          "role": "FROZEN_UNCHANGED_SCIENTIFIC_GATE_DELIVERY_RESPONSE_ORDER_ERRATUM",
-          "sha256": "063d5693aeac7307fbcdf046b29ee9e92a6067a377f6d2622582ba387cc0c9d2"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v2.decision.json",
-          "role": "SEALED_CORPUS_V2_LOCAL_VALIDATOR_WRAPPER_REJECT_NO_SOURCE_ACCESS",
-          "sha256": "cede18e88cc66ffea9c5e6567b51ae8678229e89f81d399b3d5403adeae1526e"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v3.erratum.json",
-          "role": "FROZEN_ORIGINAL_V1_VALIDATOR_REFERENCE_ERRATUM",
-          "sha256": "b2a78bcebf8173ab0017a2546aa0be309b82ce9cef4625305ec9622400c831ac"
-        },
-        {
-          "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
-          "role": "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
-          "sha256": "8ad99ea87046321bae3a7edd94f0d82997e8038c2628787973dfea82bad03cb9"
-        },
-        {
-          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
-          "role": "OFFICIAL_PUBLIC_BINANCE_DERIVATIVES_ARCHIVE_CAPABILITY",
-          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
-        },
-        {
-          "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
-          "role": "SEALED_PERPETUAL_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
-          "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
-        },
-        {
-          "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-preoutcome.v1.decision.json",
-          "role": "SEALED_HOURLY_PERPETUAL_BASIS_CONVERGENCE_CLOSURE_BOUNDARY",
-          "sha256": "8aa28407ce60f4a9328b4804a8c17c929fb665b2d688204f3662f3d4e8337f98"
-        },
-        {
-          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.decision.json",
-          "role": "SEALED_TWO_ASSET_REBALANCING_CLOSURE_AND_ROTATION_ORIGIN",
-          "sha256": "c606609f9dfe5022927e773f133243998c89922fb4e8444c657cc3435a9d7a4c"
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "49bfcf8a65abb1d973556796dd408d02ff08e79c0d8204466000b2fa5737f3bb"
         }
       ],
-      "family_id": "btc-binance-fixed-maturity-delivery-cash-and-carry",
-      "independence_key": "fixed-maturity-delivery-settlement-convergence-not-perpetual-funding-hourly-dislocation-or-directional-timing",
-      "matched_comparator_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
+      "economic_evidence_status": {
+        "fees": "MISSING_PROOF",
+        "adverse_slippage": "MISSING_PROOF",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
+      },
       "missing_proof": [
-        "The fixed-maturity settlement-convergence prior and adversarial path-risk boundary are frozen, but their economic claims remain untested.",
-        "The metadata inventory proves 16 contract, mark, spot and index archive paths through expiry, but ZIP checksums, eligible rows, historical listing semantics and settlement responses remain unopened.",
-        "One exact entry clock, 55bps cost floor, 25/75 collateral ledger, settlement rule, runner and all-pass gates are frozen, but their checksum-bound corpus and all economics remain unopened."
+        "Exact PAXGUSDT archive object and checksum coverage has not been inspected.",
+        "No common point-in-time source window, liquidity, spread, tracking error, cost ledger or matched-capital runner is frozen.",
+        "All Design, Validation, annual breadth, concentration, drawdown, candidate and OOS evidence remains missing."
       ],
-      "next_gate": "EXECUTE_FROZEN_V3_CHECKSUM_BOUND_PRE2025_DELIVERY_CORPUS_TWICE_THEN_FREEZE_HASH_ONLY_MANIFEST_WITHOUT_CHANGING_POLICY_OR_GATES",
-      "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
-      "runner_id": "btc-binance-fixed-maturity-delivery-cash-and-carry-v1",
-      "title": "BTC Binance fixed-maturity delivery cash-and-carry"
+      "duplicate_family_key": "btc-paxg-monthly-six-month-relative-momentum-rotation"
     }
   ],
   "closed_families": [
+    {
+      "family_id": "closed-btc-binance-fixed-maturity-delivery-cash-and-carry",
+      "title": "BTC Binance fixed-maturity delivery cash-and-carry",
+      "decision_feature": "POINT_IN_TIME_ELIGIBLE_BINANCE_BTCUSDT_FIXED_MATURITY_DELIVERY_FUTURE_PREMIUM_AT_ONE_FROZEN_ROLL_CLOCK",
+      "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
+      "disposition": "DATA_REJECT_CLOSE_FIXED_MATURITY_DELIVERY_CASH_AND_CARRY_FAMILY_BEFORE_ARCHIVE_OR_ECONOMIC_ACCESS",
+      "duplicate_family_key": "btc-binance-fixed-maturity-delivery-cash-and-carry",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-historical.v1.decision.json",
+          "role": "SEALED_PRE_ECONOMIC_OFFICIAL_SETTLEMENT_SOURCE_DATA_REJECT",
+          "sha256": "95c2d4fc957a078c49b90317fe79250350ae5b774fb66951b0022258d553bf22"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-historical.v1.source-ledger-spec.json",
+          "role": "FROZEN_PRE_OUTCOME_SOURCE_LEDGER_AND_ALL_PASS_GATE_SPEC",
+          "sha256": "49ba9f88f72f4d4be875bdc90355cacf1f7742f596fbce35a6dc73b6961df10a"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_AND_ADVERSARIAL_PRIOR",
+          "sha256": "9aae40cad8b7ca57ff58ba82ec0d7d1afbe71c6c5066451df630593a609e8a7f"
+        }
+      ],
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-btc-eth-monthly-equal-weight-rebalancing-premium",
       "title": "BTC-ETH monthly equal-weight rebalancing premium",

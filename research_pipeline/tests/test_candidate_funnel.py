@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 148)
+        self.assertEqual(len(catalog["closed_families"]), 149)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,38 +101,35 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        fixed_maturity_carry = next(
+        paxg_rotation = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-binance-fixed-maturity-delivery-cash-and-carry"
+            == "btc-paxg-monthly-relative-momentum-rotation"
         )
         self.assertEqual(
-            fixed_maturity_carry["base_stage"], "HISTORICAL_PRIOR"
+            paxg_rotation["base_stage"], "HISTORICAL_PRIOR"
         )
         self.assertEqual(
             [
                 binding["role"]
-                for binding in fixed_maturity_carry["evidence_bindings"]
+                for binding in paxg_rotation["evidence_bindings"]
             ],
             [
-                "FROZEN_PRIMARY_AND_ADVERSARIAL_FIXED_MATURITY_CARRY_PRIOR",
-                "FROZEN_PRE_VALUE_METADATA_ONLY_SOURCE_INVENTORY_SPEC",
-                "SEALED_V1_IMPLEMENTATION_REJECT_NO_SOURCE_DECISION",
-                "FROZEN_CORRECTED_UNCHANGED_THROUGH_EXPIRY_METADATA_GATE",
-                "SEALED_METADATA_SOURCE_GATE_PASS_VALUE_ACCESS_STILL_DENIED",
-                "FROZEN_PRE_OUTCOME_VALUE_ACCESS_SETTLEMENT_MARGIN_AND_ECONOMIC_GATE_SPEC",
-                "SEALED_CORPUS_V1_TRANSPORT_ORDER_IMPLEMENTATION_REJECT_NO_SOURCE_DECISION",
-                "FROZEN_UNCHANGED_SCIENTIFIC_GATE_DELIVERY_RESPONSE_ORDER_ERRATUM",
-                "SEALED_CORPUS_V2_LOCAL_VALIDATOR_WRAPPER_REJECT_NO_SOURCE_ACCESS",
-                "FROZEN_ORIGINAL_V1_VALIDATOR_REFERENCE_ERRATUM",
-                "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
-                "OFFICIAL_PUBLIC_BINANCE_DERIVATIVES_ARCHIVE_CAPABILITY",
-                "SEALED_PERPETUAL_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
-                "SEALED_HOURLY_PERPETUAL_BASIS_CONVERGENCE_CLOSURE_BOUNDARY",
-                "SEALED_TWO_ASSET_REBALANCING_CLOSURE_AND_ROTATION_ORIGIN",
+                "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
             ],
         )
+        closed_fixed_maturity_carry = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-binance-fixed-maturity-delivery-cash-and-carry"
+        )
+        self.assertEqual(
+            closed_fixed_maturity_carry["disposition"],
+            "DATA_REJECT_CLOSE_FIXED_MATURITY_DELIVERY_CASH_AND_CARRY_FAMILY_BEFORE_ARCHIVE_OR_ECONOMIC_ACCESS",
+        )
+        self.assertTrue(closed_fixed_maturity_carry["prohibited_reopen"])
         closed_equal_weight_rebalancing = next(
             family
             for family in catalog["closed_families"]
@@ -2119,7 +2116,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 149)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 150)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

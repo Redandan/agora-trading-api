@@ -1,0 +1,93 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_STOCHASTIC_5_3_3_KD_CROSS_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED_PREREGISTRATION_READY_NO_OUTCOME_ACCESS",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-daily-stochastic-5-3-3-kd-cross-long-cash",
+  "reviewed_at": "2026-08-22T09:39:00Z",
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_TALIB_DEFAULT_STOCHASTIC_5_3_3_KD_CROSS_EXPERIMENT",
+  "causal_hypothesis": "A completed-day close that is rising within its recent five-day high-low range faster than its own three-day signal line may identify short-horizon range-position acceleration before the next hourly fill.",
+  "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using the completed-day default stochastic SlowK minus SlowD sign may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold only if it retains frozen upside, annual breadth and symmetric gap-neighbor stability.",
+  "primary_prior_matrix": [
+    {
+      "identity": "TA-Lib Core C STOCH implementation",
+      "source": "https://github.com/TA-Lib/ta-lib/blob/main/src/ta_func/ta_STOCH.c",
+      "role": "OFFICIAL_EXECUTABLE_FORMULA_AND_DEFAULT_PARAMETER_PRIOR",
+      "finding": "The official implementation defaults to FastK period five, SlowK period three with simple moving-average type zero, and SlowD period three with simple moving-average type zero. FastK is one hundred times close minus the rolling lowest low divided by rolling highest high minus lowest low; a machine-flat range maps to zero. SlowK smooths FastK and SlowD smooths SlowK.",
+      "parameter_boundary": "This fixes exact 5-3-3 calculation behavior and a zero primary K-minus-D crossover. It does not prove a BTC trading rule or any economic value."
+    },
+    {
+      "identity": "Evens, Stochastics, Technical Analysis of Stocks and Commodities 17(9), 1999, publisher record of Lane's indicator",
+      "source": "https://store.traders.com/v139stocbyst.html?viewfullsite=1",
+      "role": "CREATOR_IDENTITY_AND_RANGE_POSITION_MECHANISM",
+      "finding": "The publisher record attributes the classic stochastic oscillator to George Lane and distinguishes its closing-price range-position calculation from normalized relative-strength indicators.",
+      "transfer_boundary": "The historical indicator identity supplies no matched-capital Bitcoin evidence and no permission to scan periods, smoothing or gap thresholds."
+    },
+    {
+      "identity": "Hudson and Urquhart, Technical trading and cryptocurrencies, Annals of Operations Research 297, 2021, DOI 10.1007/s10479-019-03357-1",
+      "source": "https://doi.org/10.1007/s10479-019-03357-1",
+      "role": "CRYPTO_OSCILLATOR_RULE_SUPPORT_AND_ADVERSARIAL_OOS_PRIOR",
+      "finding": "The study evaluates oscillator rules within almost fifteen thousand cryptocurrency technical rules and reports no Bitcoin predictability in its out-of-sample period despite broader in-sample and cross-crypto findings.",
+      "transfer_boundary": "This permits one tightly frozen Bitcoin oscillator screen while treating absent Bitcoin OOS persistence as strong counterevidence. It provides no support for selecting a stochastic winner after observing outcomes."
+    },
+    {
+      "identity": "Gerritsen et al., The profitability of technical trading rules in the Bitcoin market, Finance Research Letters 34, 2020, DOI 10.1016/j.frl.2019.08.011",
+      "source": "https://doi.org/10.1016/j.frl.2019.08.011",
+      "role": "BITCOIN_RULE_CLASS_AND_BUY_HOLD_COMPARATOR_PRIOR",
+      "finding": "The study reports that specific range-breakout rules can improve Bitcoin risk-adjusted performance while other tested technical rules do not outperform buy-and-hold.",
+      "transfer_boundary": "A smoothed stochastic K-D state is not a range-breakout execution rule. This result supports strict buy-and-hold comparison and branch closure rather than inferring value from general technical-rule evidence."
+    }
+  ],
+  "independence_assessment": {
+    "mathematically_distinct": true,
+    "not_rsi_or_mfi": "Stochastic uses close location inside a five-day high-low range and two nested simple averages; it does not ratio positive and negative close changes or money flows.",
+    "not_single_day_close_location": "The closed DRA close-location family uses one complete day's within-bar close position. This family uses a rolling five-day range and the difference between two separately smoothed range-position lines.",
+    "not_donchian": "The strategy does not require price to cross a rolling extreme; SlowK can cross SlowD while price stays inside the same high-low range.",
+    "not_aroon": "The closed Aroon family uses only the ages of extrema. Stochastic uses closing-price distance within the extreme range and nested smoothing.",
+    "residual_risk": "It remains a short-horizon price-range oscillator and may share economic exposure with already closed trend and range-state families, so mathematical distinction does not establish independent alpha."
+  },
+  "frozen_pre_outcome_contract": {
+    "daily_aggregation": "EXACTLY_24_CONTIGUOUS_H1_BARS_PER_COMPLETE_UTC_DAY",
+    "fast_k_period": 5,
+    "slow_k_period": 3,
+    "slow_k_average": "SIMPLE",
+    "slow_d_period": 3,
+    "slow_d_average": "SIMPLE",
+    "fast_k": "100_TIMES_CLOSE_MINUS_5D_LOW_DIVIDED_BY_5D_HIGH_MINUS_5D_LOW",
+    "flat_range_value": "0",
+    "primary_long_condition": "SLOWK_MINUS_SLOWD_STRICTLY_GREATER_THAN_0",
+    "primary_cash_condition": "SLOWK_MINUS_SLOWD_LESS_THAN_OR_EQUAL_TO_0",
+    "rejection_only_neighbors": [
+      "SLOWK_MINUS_SLOWD_STRICTLY_GREATER_THAN_NEGATIVE_10",
+      "SLOWK_MINUS_SLOWD_STRICTLY_GREATER_THAN_POSITIVE_10"
+    ],
+    "neighbor_rationale": "A symmetric ten-point displacement is frozen before outcome access solely to reject a boundary-fragile primary; neither neighbor may replace it.",
+    "execution": "NEXT_H1_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT_ZERO_CASH_YIELD",
+    "maximum_variants": 3,
+    "outcome_tuning": "DENY",
+    "neighbor_substitution": "DENY"
+  },
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPUS_NO_STOCHASTIC_OUTCOME_OPENED",
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "source_cost": "FREE_ALREADY_SEALED"
+  },
+  "admission_and_stop_conditions": [
+    "Freeze an exact hypothesis, manifest, runner, costs, windows and all-pass gate set before opening any stochastic outcome.",
+    "Run only TA-Lib default 5-3-3 simple-average SlowK minus SlowD with zero primary and symmetric negative-10 and positive-10 rejection-only neighbors.",
+    "Do not test period fourteen, fast stochastic, alternate averages, overbought or oversold levels, crossing events, another gap, confirmation, stop, short, leverage, DRA interaction or ensemble after outcome access.",
+    "Require positive normal and stress returns, materially better Validation drawdown and Calmar, frozen upside capture, annual breadth, bounded turnover and holding, low episode and year concentration and no terminal-inventory uplift; otherwise permanently close the family.",
+    "A positive historical result may create at most one REPORTED_NOT_ACTIVATED candidate and one independent sealed OOS gate; it authorizes no Trading action."
+  ],
+  "missing_proof": [
+    "No primary source establishes standalone BTC default stochastic SlowK above SlowD long/cash economic value.",
+    "No schema-valid hypothesis, manifest or deterministic runner is frozen yet.",
+    "No stochastic feature support, matched-capital Design or Validation economics, fees, slippage, realized or unrealized PnL, drawdown, Calmar, holding, inventory, breadth, concentration, candidate, OOS or forward evidence has been observed."
+  ],
+  "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_TALIB_DEFAULT_STOCHASTIC_5_3_3_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
+  "claim_boundary": "This prior makes one exact default stochastic 5-3-3 K-D threshold family preregistration-ready only. It establishes formula identity and an executable data path, not alpha, a candidate, OOS value, deployability or Trading authority.",
+  "scope_note": "No stochastic outcome, backtest, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

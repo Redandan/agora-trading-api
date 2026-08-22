@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 139)
+        self.assertEqual(len(catalog["closed_families"]), 140)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,15 +101,15 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        aroon14 = next(
+        stochastic = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-daily-aroon14-oscillator-long-cash"
+            == "btc-daily-stochastic-5-3-3-kd-cross-long-cash"
         )
-        self.assertEqual(aroon14["base_stage"], "PREREGISTRATION_READY")
+        self.assertEqual(stochastic["base_stage"], "PREREGISTRATION_READY")
         self.assertEqual(
-            [binding["role"] for binding in aroon14["evidence_bindings"]],
+            [binding["role"] for binding in stochastic["evidence_bindings"]],
             [
                 "SEALED_PRIMARY_FORMULA_ACADEMIC_AND_ADVERSARIAL_PRIOR",
             ],
@@ -125,6 +125,17 @@ class CandidateFunnelTest(unittest.TestCase):
             "DATA_REJECT_POINT_IN_TIME_SEARCH_VINTAGE_SOURCE_NOT_EXECUTABLE",
         )
         self.assertTrue(closed_search_attention["prohibited_reopen"])
+        closed_aroon14 = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-daily-aroon14-oscillator-long-cash-v1"
+        )
+        self.assertEqual(
+            closed_aroon14["disposition"],
+            "BTC_DAILY_AROON14_FAMILY_CLOSE",
+        )
+        self.assertTrue(closed_aroon14["prohibited_reopen"])
         closed_mfi14 = next(
             family
             for family in catalog["closed_families"]
@@ -2001,7 +2012,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 140)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 141)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

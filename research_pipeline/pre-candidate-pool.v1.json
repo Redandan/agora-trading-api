@@ -207,28 +207,28 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-daily-aroon14-oscillator-long-cash",
-      "title": "BTC daily Aroon14 oscillator long-or-cash",
-      "decision_feature": "LATEST_COMPLETE_UTC_DAY_AROON14_OSCILLATOR_STRICTLY_ABOVE_NEGATIVE25_ZERO_POSITIVE25_WITH_ZERO_PRIMARY_AND_NEIGHBORS_REJECTION_ONLY",
-      "causal_hypothesis": "The relative recency of a complete-day fourteen-period high and low may identify whether bullish price discovery is more recent than bearish price discovery before the next hourly fill.",
-      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using the completed-day Aroon14 oscillator may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
+      "family_id": "btc-daily-stochastic-5-3-3-kd-cross-long-cash",
+      "title": "BTC daily default stochastic 5-3-3 K-D cross long-or-cash",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_DEFAULT_STOCHASTIC_5_3_3_SLOWK_MINUS_SLOWD_STRICTLY_ABOVE_NEGATIVE10_ZERO_POSITIVE10_WITH_ZERO_PRIMARY_AND_NEIGHBORS_REJECTION_ONLY",
+      "causal_hypothesis": "A completed-day close that is rising within its recent five-day high-low range faster than its own three-day signal line may identify short-horizon range-position acceleration before the next hourly fill.",
+      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using completed-day default stochastic SlowK minus SlowD may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "runner_id": "BTC_DAILY_AROON14_OSCILLATOR_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
+      "runner_id": "BTC_DAILY_STOCHASTIC_5_3_3_KD_CROSS_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
       "base_stage": "PREREGISTRATION_READY",
       "estimated_days_to_next_gate": 1,
       "compute_cost_class": "LOW",
-      "independence_key": "btc-complete-day-aroon14-extreme-recency-oscillator-long-cash",
-      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_AROON14_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
+      "independence_key": "btc-complete-day-default-stochastic-range-position-acceleration-long-cash",
+      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_TALIB_DEFAULT_STOCHASTIC_5_3_3_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-primary-prior.v1.json",
+          "path": "research_pipeline/examples/btc-daily-stochastic-5-3-3-kd-cross-long-cash-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_FORMULA_ACADEMIC_AND_ADVERSARIAL_PRIOR",
-          "sha256": "06ede606b1d8a635127fae47609aaef6578135b21cb383b032af0e9ad9ba37f8"
+          "sha256": "368c8fd16b1cd5e0239ed4e5af832762da145474393fb9d1f6fab2da6a098fb3"
         }
       ],
       "economic_evidence_status": {
@@ -244,10 +244,10 @@
       },
       "missing_proof": [
         "The exact schema-valid hypothesis, manifest and deterministic runner are not frozen yet.",
-        "No Aroon feature support or matched-capital Design and Validation economics have been opened.",
+        "No stochastic feature support or matched-capital Design and Validation economics have been opened.",
         "No candidate, independent OOS or forward evidence exists."
       ],
-      "duplicate_family_key": "btc-daily-aroon14-oscillator-long-cash"
+      "duplicate_family_key": "btc-daily-stochastic-5-3-3-kd-cross-long-cash"
     }
   ],
   "closed_families": [
@@ -3769,6 +3769,27 @@
           "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-search-attention-volume-preregistration-discovery.v2.json",
           "role": "MANAGER_ACCEPTED_PREREGISTRATION_DISCOVERY",
           "sha256": "75c8192f8d5bb5a5662b128c94e8b0887dc6a00ea969c1afbcdf862d7c8dd16f"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-daily-aroon14-oscillator-long-cash-v1",
+      "title": "BTC daily Aroon14 oscillator long-or-cash",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_AROON14_OSCILLATOR_STRICTLY_ABOVE_NEGATIVE25_ZERO_POSITIVE25_WITH_ZERO_PRIMARY_AND_NEIGHBORS_REJECTION_ONLY",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "disposition": "BTC_DAILY_AROON14_FAMILY_CLOSE",
+      "duplicate_family_key": "btc-daily-aroon14-oscillator-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-daily-aroon14-oscillator-long-cash-v1.json",
+          "role": "SEALED_LOCAL_HISTORICAL_ECONOMIC_RESULT",
+          "sha256": "06ecdf06bfd8c14bcbc16d2eb6b45468764907f43676625ed4daf0711c919a0b"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-aroon14-oscillator-long-cash-v1.json",
+          "role": "MANAGER_ACCEPTED_FAMILY_CLOSURE",
+          "sha256": "3c13b2e6f8a7736cd3f1450d911d2bff9c26772589d3482ceaf501e38191ae1c"
         }
       ],
       "prohibited_reopen": true

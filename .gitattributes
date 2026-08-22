@@ -60,4 +60,5 @@ research_pipeline/examples/local-research-task.btc-daily-aroon14-oscillator-long
 research_pipeline/examples/local-weekly-output-classification.intent.btc-daily-aroon14-oscillator-long-cash-v1.json text eol=lf
 research_pipeline/examples/local-research-result.btc-daily-aroon14-oscillator-long-cash-v1.json text eol=lf
 research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-aroon14-oscillator-long-cash-v1.json text eol=lf
+research_pipeline/examples/btc-daily-stochastic-5-3-3-kd-cross-long-cash-primary-prior.v1.json text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

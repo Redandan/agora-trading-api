@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_SOURCE_INVENTORY_SPEC_V1",
+  "family_id": "btc-paxg-monthly-relative-momentum-rotation",
+  "frozen_at": "2026-08-22T15:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_VALUE_METADATA_ONLY_SOURCE_FEASIBILITY",
+  "source_bindings": {
+    "probe_path": "research/binance_btc_paxg_archive_inventory_probe_v1.py",
+    "probe_sha256": "cffea2da010e7ae3f21f13a7fbeefbd29dd71b90870cfd5b4d90df80c0358ede",
+    "primary_prior_path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-primary-prior.v1.json",
+    "primary_prior_sha256": "49bfcf8a65abb1d973556796dd408d02ff08e79c0d8204466000b2fa5737f3bb"
+  },
+  "source_contract": {
+    "publisher": "Binance public market-data archive",
+    "bucket_url": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision",
+    "root_prefix": "data/spot/monthly/klines/",
+    "required_symbols": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "interval": "1d",
+    "required_first_month": "2020-09",
+    "required_last_month": "2024-12",
+    "required_month_count_per_symbol": 52,
+    "required_objects_per_month": [
+      "SYMBOL-1d-YYYY-MM.zip",
+      "SYMBOL-1d-YYYY-MM.zip.CHECKSUM"
+    ],
+    "latest_permitted_observation": "2024-12-31T23:59:59.999Z",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "zip_body_access": "DENY",
+    "checksum_body_access": "DENY",
+    "price_value_access": "DENY",
+    "volume_value_access": "DENY",
+    "oos_access": "DENY"
+  },
+  "future_window_intent": {
+    "formation_bootstrap": "2020-09_THROUGH_2021-02_METADATA_REQUIRED_NO_VALUE_ACCESS_YET",
+    "design": "2021-03_THROUGH_2022-12_INTENT_ONLY_NOT_YET_A_MANIFEST",
+    "validation": "2023-01_THROUGH_2024-12_INTENT_ONLY_NOT_YET_A_MANIFEST",
+    "reason": "The common metadata window must support six complete formation months before the first possible Design decision and a separately labeled 24-month Validation window. Exact daily row and execution boundaries remain for a later pre-value ledger manifest."
+  },
+  "all_pass_gate": [
+    "Both exact symbol prefixes return one complete untruncated object-list page.",
+    "Every monthly 1d ZIP from 2020-09 through 2024-12 exists for both symbols.",
+    "Every required ZIP has exactly one sibling CHECKSUM object and no orphan checksum exists in either exact symbol prefix.",
+    "Object names parse without repair, imputation, alternate venue, symbol substitution or price-body access."
+  ],
+  "decision": "ALL_METADATA_GATES_PASS_OR_CLOSE_THE_EXACT_BINANCE_BTCUSDT_PAXGUSDT_SIX_MONTH_RELATIVE_MOMENTUM_FAMILY_AT_DATA_REJECT",
+  "stop_conditions": [
+    "Stop before ZIP or checksum-body access on any missing month, missing checksum, orphan checksum, truncation, transport, XML, symbol or naming failure.",
+    "Do not move the start month, shorten the Design or Validation intent, substitute another gold token, use a second venue, or infer missing objects after inspection.",
+    "A pass authorizes only a separately frozen checksum-bound row-integrity and economic-ledger manifest; it does not authorize price access, a runner, candidate, OOS or Trading."
+  ],
+  "scope_note": "Frozen metadata-only source contract. No archive listing, ZIP body, checksum body, price, volume, return, PnL, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

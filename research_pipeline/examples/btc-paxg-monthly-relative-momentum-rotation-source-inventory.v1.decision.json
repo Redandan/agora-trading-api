@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_SOURCE_INVENTORY_DECISION_V1",
+  "family_id": "btc-paxg-monthly-relative-momentum-rotation",
+  "decided_at": "2026-08-22T15:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SOURCE_METADATA_GATE_PASS_PRICE_ACCESS_STILL_DENIED",
+  "decision": "ALLOW_ONE_SEPARATELY_FROZEN_CHECKSUM_BOUND_ROW_INTEGRITY_LEDGER_AND_ECONOMIC_GATE_SPEC_BEFORE_ANY_PRICE_ACCESS",
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source-inventory.v1.spec.json",
+      "sha256": "a13830f3bc44d8fbbcb4a9c655f32060ab2bc4597f845bbd649261cfb091a7f0",
+      "role": "FROZEN_METADATA_ONLY_SOURCE_INVENTORY_SPEC"
+    },
+    {
+      "path": "research/binance_btc_paxg_archive_inventory_probe_v1.py",
+      "sha256": "cffea2da010e7ae3f21f13a7fbeefbd29dd71b90870cfd5b4d90df80c0358ede",
+      "role": "FROZEN_METADATA_ONLY_SOURCE_PROBE"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-primary-prior.v1.json",
+      "sha256": "49bfcf8a65abb1d973556796dd408d02ff08e79c0d8204466000b2fa5737f3bb",
+      "role": "FROZEN_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    }
+  ],
+  "sealed_runs": [
+    {
+      "path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-inventory-v1/artifacts/run1.json",
+      "sha256": "c79e5283390c09ba9d886a87f443335b4109f7165fff4cd4325a06f95411c1fe"
+    },
+    {
+      "path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-inventory-v1/artifacts/run2.json",
+      "sha256": "c79e5283390c09ba9d886a87f443335b4109f7165fff4cd4325a06f95411c1fe"
+    }
+  ],
+  "determinism": {
+    "run_count": 2,
+    "byte_identical": true,
+    "result_sha256": "c79e5283390c09ba9d886a87f443335b4109f7165fff4cd4325a06f95411c1fe"
+  },
+  "inventory_evidence": {
+    "required_symbols": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "required_first_month": "2020-09",
+    "required_last_month": "2024-12",
+    "required_month_count_per_symbol": 52,
+    "required_zip_count": 104,
+    "required_checksum_count": 104,
+    "btc_listing_page_sha256": "9f210b6845d2b38912849a41e4be7fb497c3ff371ff1271fb45d9e25e134b942",
+    "paxg_listing_page_sha256": "96456c6ff78ec6f6d20aa5803d7ae8bb7a7f8622986288601a0c21e29ad0c4f8",
+    "zip_bodies_opened": 0,
+    "checksum_bodies_opened": 0,
+    "price_rows_opened": 0
+  },
+  "claim_boundary": "The current official public bucket metadata supplies all frozen monthly ZIP and checksum objects needed for the proposed bootstrap, Design and Validation periods. This proves only object-level source feasibility. Row integrity, common daily lattice, PAXG tracking and liquidity, all returns, costs, PnL, drawdown, concentration, candidate status and OOS remain unproved.",
+  "performance_evidence": {
+    "fees": "MISSING_PROOF",
+    "adverse_slippage": "MISSING_PROOF",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "holding_age": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF",
+    "annual_breadth_and_concentration": "MISSING_PROOF"
+  },
+  "next_action": "FREEZE_ONE_CHECKSUM_BOUND_PRE2025_CORPUS_ROW_INTEGRITY_SIX_MONTH_FORMATION_STATIC_50_50_COMPARATOR_COST_AND_ALL_PASS_ECONOMIC_GATE_SPEC_BEFORE_DOWNLOADING_ANY_ZIP_BODY",
+  "scope_note": "Metadata-only source gate. No ZIP body, checksum body, kline row, price, volume, return, PnL, hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

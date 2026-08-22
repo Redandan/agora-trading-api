@@ -117,6 +117,8 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
             [
                 "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+                "FROZEN_METADATA_ONLY_SOURCE_INVENTORY_SPEC",
+                "SEALED_BYTE_IDENTICAL_METADATA_SOURCE_GATE_PASS_PRICE_ACCESS_STILL_DENIED",
             ],
         )
         closed_fixed_maturity_carry = next(

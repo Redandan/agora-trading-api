@@ -121,4 +121,8 @@ research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v2.d
 research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v3.erratum.json text eol=lf
 research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-historical.v1.decision.json text eol=lf
 research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-primary-prior.v1.json text eol=lf
+research/binance_btc_paxg_archive_inventory_probe_v1.py text eol=lf
+research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source-inventory.v1.spec.json text eol=lf
+research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source-inventory.v1.decision.json text eol=lf
+research_pipeline/tests/test_binance_btc_paxg_archive_inventory_probe_v1.py text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

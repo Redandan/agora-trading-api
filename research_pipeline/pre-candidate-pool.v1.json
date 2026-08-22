@@ -207,15 +207,15 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "base_stage": "PREREGISTRATION_READY",
+      "base_stage": "HISTORICAL_PRIOR",
       "canonical_binding": {
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
       },
-      "causal_hypothesis": "Perpetual funding is designed to pull the contract toward its spot reference, while limits to arbitrage can permit temporary deviations. A delta-neutral long-cheap-leg and short-expensive-leg position opened only from a causally prior basis state may monetize subsequent convergence without requiring a directional BTC forecast.",
+      "causal_hypothesis": "BTC and ETH are distinct but correlated crypto risk assets. Resetting a fixed two-asset portfolio to equal market value at a predetermined monthly clock systematically sells the relative outperformer and buys the relative underperformer, which may capture cross-asset relative variance while limiting permanent concentration in either asset.",
       "compute_cost_class": "LOW",
-      "decision_feature": "CAUSALLY_LAGGED_BINANCE_BTCUSDT_PERPETUAL_MARK_MINUS_SPOT_BASIS_OUTSIDE_ONE_PREDECLARED_COST_AND_NO_ARBITRAGE_BAND",
-      "duplicate_family_key": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
+      "decision_feature": "FIRST_NATIVE_BINANCE_SPOT_DAILY_OPEN_OF_EACH_UTC_MONTH_RESET_BTCUSDT_AND_ETHUSDT_TO_EQUAL_MARKET_VALUE",
+      "duplicate_family_key": "btc-eth-monthly-equal-weight-rebalancing-premium",
       "economic_evidence_status": {
         "adverse_slippage": "REQUIRED_NOT_MEASURED",
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY",
@@ -227,55 +227,71 @@
         "total_pnl": "REQUIRED_NOT_MEASURED",
         "unrealized_pnl": "REQUIRED_NOT_MEASURED"
       },
-      "economic_hypothesis": "A fully specified market-neutral spot-perpetual convergence policy may earn positive realized basis PnL after both-leg fees, adverse slippage, funding and collateral opportunity cost, with bounded drawdown, broad annual support and zero terminal inventory.",
-      "estimated_days_to_next_gate": 0,
+      "economic_hypothesis": "A monthly rebalanced equal-value BTC-ETH portfolio may improve after-cost Calmar and concentration-adjusted total return versus an initially equal-value buy-and-hold BTC-ETH portfolio, with broad annual support, bounded turnover and zero terminal inventory uplift.",
+      "estimated_days_to_next_gate": 1,
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
-          "role": "OFFICIAL_PUBLIC_BINANCE_DERIVATIVES_SOURCE_CAPABILITY",
-          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
+          "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-primary-prior.v1.json",
+          "role": "SEALED_FIXED_BTC_ETH_UNIVERSE_SOURCE_AND_ADVERSARIAL_PRIOR",
+          "sha256": "722523426b3a5b64412924962c07f745bef4315a72197d0343ccfa4f5f8cd86a"
         },
         {
-          "path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
-          "role": "SEALED_CHECKSUM_VERIFIED_SPOT_PERPETUAL_MARK_AND_INDEX_CORPUS_BUNDLE",
-          "sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74"
+          "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-source-boundary.v1.decision.json",
+          "role": "SEALED_LOW_VOLATILITY_ROTATION_NON_REOPEN_AND_SOURCE_BOUNDARY",
+          "sha256": "3f3e7e79f051a448baba96863cf1ae473e103efdc5fd15ac806925947cdff256"
         },
         {
-          "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
-          "role": "SEALED_CONSTANT_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
-          "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
+          "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-source-gate.v1.decision.json",
+          "role": "SEALED_MANY_ASSET_MOMENTUM_SOURCE_REJECT_AND_FIXED_TWO_ASSET_BOUNDARY",
+          "sha256": "af94de6fd54a0752966aad4faeccfab55826fce9cb35bb17b5ac8375fcfa1dbb"
+        }
+      ],
+      "family_id": "btc-eth-monthly-equal-weight-rebalancing-premium",
+      "independence_key": "fixed-two-asset-equal-weight-monthly-rebalancing-premium-not-asset-selection-timing-or-cash-filter",
+      "matched_comparator_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING_SAME_WINDOW_COST_AND_VALUATION",
+      "missing_proof": [
+        "No primary and adversarial prior yet freezes the exact monthly constant-mix mechanism and separates rebalancing premium from simple ETH inclusion or volatility timing.",
+        "No checksum-bound official Binance BTCUSDT and ETHUSDT daily 2020-2024 intersection is sealed; any incomplete, conflicting or non-native day remains a source gate.",
+        "No exact monthly execution clock, two-asset accounting, costs, hypothesis, manifest, deterministic runner, Design or Validation economics, annual breadth, concentration, candidate, independent OOS or forward evidence exists."
+      ],
+      "next_gate": "FREEZE_PRIMARY_ADVERSARIAL_CONSTANT_MIX_PRIOR_AND_CHECKSUM_BOUND_OFFICIAL_BINANCE_BTC_ETH_DAILY_SOURCE_CONTRACT_BEFORE_OUTCOME_ACCESS",
+      "parent_strategy_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING",
+      "runner_id": "DIRECT_TWO_ASSET_MONTHLY_CONSTANT_MIX_LEDGER_REQUIRED",
+      "title": "BTC-ETH monthly equal-weight rebalancing premium"
+    }
+  ],
+  "closed_families": [
+    {
+      "family_id": "closed-btc-binance-usdm-perpetual-basis-convergence-market-neutral",
+      "title": "BTC spot-perpetual basis-convergence market-neutral arbitrage",
+      "decision_feature": "COMPLETED_HOUR_POSITIVE_BINANCE_BTCUSDT_PERPETUAL_MINUS_SPOT_BASIS_AT_60_AND_120_BPS_COST_FLOORS_SURVIVING_TO_NEXT_NATIVE_OPEN",
+      "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
+      "disposition": "NO_HYPOTHESIS_CLOSE_BTC_BINANCE_USDM_BASIS_CONVERGENCE_AT_EXECUTION_SURVIVAL_GATE",
+      "duplicate_family_key": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-preoutcome.v1.decision.json",
+          "role": "SEALED_PREOUTCOME_EXECUTION_SURVIVAL_CLOSURE",
+          "sha256": "8aa28407ce60f4a9328b4804a8c17c929fb665b2d688204f3662f3d4e8337f98"
         },
         {
-          "path": "research_pipeline/examples/btc-binance-usdm-basis-instability-passive-core-primary-prior-reject.v1.json",
-          "role": "SEALED_DIRECTIONAL_BASIS_TRANSFER_REJECT_AND_DISTINCT_CONVERGENCE_ROUTE_BOUNDARY",
-          "sha256": "5dec30b358286aa5981e27dabd8f0b76a567b5d857d8c2251338176d390fcbe6"
+          "path": ".research-state/experiments/btc-binance-usdm-perpetual-basis-convergence-support-v1/inputs/preoutcome-support.v1.run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PREOUTCOME_SUPPORT_EVIDENCE",
+          "sha256": "515ddde4aed1e9b24a7a547dedf94c0f2de045076a0944321ba7c307a95deba1"
         },
         {
           "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-primary-prior.v1.json",
-          "role": "SEALED_PRIMARY_ADVERSARIAL_CONVERGENCE_AND_EXECUTION_RESOLUTION_PRIOR",
+          "role": "SEALED_PRIMARY_AND_ADVERSARIAL_CONVERGENCE_PRIOR",
           "sha256": "2c5e76072ea76dfcac56b012ea62ec7c568f7a32d1e6c43bb18917bf526b6872"
         },
         {
           "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-preoutcome-support.v1.spec.json",
-          "role": "FROZEN_PREOUTCOME_COST_FLOOR_EXECUTION_SURVIVAL_SPEC",
+          "role": "FROZEN_COST_DERIVED_EXECUTION_SURVIVAL_SPEC",
           "sha256": "e2c73c3a338508269c268d58eaa42a238235ec7e6ec3f065b0aa94cd4c40844d"
         }
       ],
-      "family_id": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
-      "independence_key": "btc-market-neutral-spot-perpetual-price-convergence-cashflow-not-directional-timing-or-constant-funding-carry",
-      "matched_comparator_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
-      "missing_proof": [
-        "The frozen 60 and 120 basis-point cost-floor support probe has not produced two byte-identical results.",
-        "The one-hour corpus may be too coarse to retain enough positive-basis episodes from completed-hour decision to next-open execution with annual breadth.",
-        "No entry band, exit rule, maximum holding time, collateral allocation, funding treatment, two-leg cost ledger, hypothesis, manifest, deterministic runner, Design or Validation economics, breadth, candidate, independent OOS or forward evidence exists."
-      ],
-      "next_gate": "EXECUTE_FROZEN_TWO_COST_FLOOR_HOURLY_DECISION_TO_NEXT_OPEN_SURVIVAL_PROBE_TWICE_WITHOUT_STRATEGY_OUTCOME_ACCESS",
-      "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
-      "runner_id": "DIRECT_STATE_DEPENDENT_SPOT_PERPETUAL_BASIS_CONVERGENCE_LEDGER_REQUIRED",
-      "title": "BTC spot-perpetual basis-convergence market-neutral arbitrage"
-    }
-  ],
-  "closed_families": [
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-btc-binance-usdm-basis-instability-passive-core-risk-overlay",
       "title": "BTC spot-perpetual basis-instability passive-core risk overlay",

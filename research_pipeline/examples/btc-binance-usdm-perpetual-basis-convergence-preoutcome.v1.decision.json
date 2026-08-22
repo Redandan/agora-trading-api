@@ -1,0 +1,100 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_USDM_PERPETUAL_BASIS_CONVERGENCE_PREOUTCOME_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
+  "decided_at": "2026-08-22T12:43:21Z",
+  "status": "NO_HYPOTHESIS_CLOSE_BTC_BINANCE_USDM_BASIS_CONVERGENCE_AT_EXECUTION_SURVIVAL_GATE",
+  "decision": "PERMANENTLY_CLOSE_EXACT_POSITIVE_BASIS_HOURLY_MARKET_NEUTRAL_CONVERGENCE_FAMILY_WITHOUT_THRESHOLD_CLOCK_DIRECTION_SOURCE_INTERVAL_OR_COST_RESCUE",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-primary-prior.v1.json",
+      "sha256": "2c5e76072ea76dfcac56b012ea62ec7c568f7a32d1e6c43bb18917bf526b6872"
+    },
+    "preoutcome_support_spec": {
+      "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-preoutcome-support.v1.spec.json",
+      "sha256": "e2c73c3a338508269c268d58eaa42a238235ec7e6ec3f065b0aa94cd4c40844d"
+    },
+    "support_runner": {
+      "path": "research/btc_binance_usdm_perpetual_basis_convergence_support_v1.py",
+      "sha256": "5f2c4c4d7d67c96dd58da9710b5d6e9800e48e3104d674f35024506e0d51a861"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/btc-binance-usdm-perpetual-basis-convergence-support-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "515ddde4aed1e9b24a7a547dedf94c0f2de045076a0944321ba7c307a95deba1"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/btc-binance-usdm-perpetual-basis-convergence-support-v1/inputs/preoutcome-support.v1.run2.json",
+      "sha256": "515ddde4aed1e9b24a7a547dedf94c0f2de045076a0944321ba7c307a95deba1"
+    },
+    "determinism": "SUPPORT_RUNS_BYTE_IDENTICAL"
+  },
+  "source_integrity": {
+    "hourly_rows": 43848,
+    "native_spot_rows": 43809,
+    "proxy_spot_rows": 39,
+    "native_spot_share": "0.99911056",
+    "publisher_checksum_verified_corpus": true,
+    "post_2024_accessed": false
+  },
+  "support_summary": {
+    "normal_60_bps_cost_floor": {
+      "design_decision_episodes": 3,
+      "validation_decision_episodes": 0
+    },
+    "primary_stress_120_bps_cost_floor": {
+      "design_decision_episodes": 1,
+      "validation_decision_episodes": 0,
+      "design_next_open_survived_episodes": 1,
+      "validation_next_open_survived_episodes": 0,
+      "design_survival_share": "1.00000000",
+      "validation_survival_share": "0.00000000",
+      "active_years": 1,
+      "top_year_survived_share": "1.00000000",
+      "annual_survived_episodes": {
+        "2020": 0,
+        "2021": 1,
+        "2022": 0,
+        "2023": 0,
+        "2024": 0
+      }
+    }
+  },
+  "failed_gates": [
+    "normal_design_minimum_decision_episodes",
+    "normal_validation_minimum_decision_episodes",
+    "primary_design_minimum_decision_episodes",
+    "primary_validation_minimum_decision_episodes",
+    "primary_design_minimum_survived_episodes",
+    "primary_validation_minimum_survived_episodes",
+    "primary_validation_minimum_survival_share",
+    "primary_minimum_active_years",
+    "primary_maximum_top_year_survived_share"
+  ],
+  "material_learning": "The hourly source is complete enough, but economically meaningful positive BTCUSDT spot-perpetual dislocations are nearly absent. Even the lower 60-basis-point normal-cost diagnostic has only three Design episodes and no Validation episode. At the 120-basis-point stress round-trip cost floor, exactly one 2021 episode survives to the next hourly open and no 2023-2024 Validation event exists. The mechanism may converge in theory, but this free hourly route contains no broad cost-covering opportunity set for an economic strategy.",
+  "prohibited_reopen": [
+    "Do not reduce the 120-basis-point primary cost floor or promote the 60-basis-point diagnostic after seeing the counts.",
+    "Do not remove fees, adverse slippage, next-open execution, native-spot-only handling, annual breadth or concentration gates.",
+    "Do not change to same-hour execution, a shorter interval, mark-versus-index, a different venue or a post-2024 sample to rescue this exact positive-basis convergence family.",
+    "Do not add negative-basis spot borrowing, funding-level timing, leverage or directional BTC exposure as a neighbor.",
+    "Do not create a hypothesis, economic manifest, candidate or OOS from this result."
+  ],
+  "strategy_economics": {
+    "holding_return": "NOT_ACCESSED",
+    "funding_pnl": "NOT_ACCESSED",
+    "fees": "NOT_ACCESSED",
+    "adverse_slippage": "NOT_ACCESSED",
+    "realized_pnl": "NOT_ACCESSED",
+    "unrealized_pnl": "NOT_ACCESSED",
+    "total_pnl": "NOT_ACCESSED",
+    "maximum_drawdown": "NOT_ACCESSED",
+    "holding_age": "NOT_ACCESSED",
+    "terminal_inventory": "NOT_ACCESSED"
+  },
+  "hypothesis_created": false,
+  "manifest_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "next_action": "ROTATE_TO_ONE_DISTINCT_FREE_SOURCE_FAMILY_WITHOUT_REOPENING_BASIS_CARRY_OR_DIRECTIONAL_DERIVATIVES_TIMING",
+  "scope_note": "Preoutcome source and execution-survival evidence only. No holding return, exit policy, strategy PnL, drawdown, hypothesis, economic manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

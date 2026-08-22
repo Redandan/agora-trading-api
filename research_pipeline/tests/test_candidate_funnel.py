@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 146)
+        self.assertEqual(len(catalog["closed_families"]), 147)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,24 +101,35 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        basis_convergence = next(
+        equal_weight_rebalancing = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-binance-usdm-perpetual-basis-convergence-market-neutral"
+            == "btc-eth-monthly-equal-weight-rebalancing-premium"
         )
-        self.assertEqual(basis_convergence["base_stage"], "PREREGISTRATION_READY")
+        self.assertEqual(equal_weight_rebalancing["base_stage"], "HISTORICAL_PRIOR")
         self.assertEqual(
-            [binding["role"] for binding in basis_convergence["evidence_bindings"]],
             [
-                "OFFICIAL_PUBLIC_BINANCE_DERIVATIVES_SOURCE_CAPABILITY",
-                "SEALED_CHECKSUM_VERIFIED_SPOT_PERPETUAL_MARK_AND_INDEX_CORPUS_BUNDLE",
-                "SEALED_CONSTANT_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
-                "SEALED_DIRECTIONAL_BASIS_TRANSFER_REJECT_AND_DISTINCT_CONVERGENCE_ROUTE_BOUNDARY",
-                "SEALED_PRIMARY_ADVERSARIAL_CONVERGENCE_AND_EXECUTION_RESOLUTION_PRIOR",
-                "FROZEN_PREOUTCOME_COST_FLOOR_EXECUTION_SURVIVAL_SPEC",
+                binding["role"]
+                for binding in equal_weight_rebalancing["evidence_bindings"]
+            ],
+            [
+                "SEALED_FIXED_BTC_ETH_UNIVERSE_SOURCE_AND_ADVERSARIAL_PRIOR",
+                "SEALED_LOW_VOLATILITY_ROTATION_NON_REOPEN_AND_SOURCE_BOUNDARY",
+                "SEALED_MANY_ASSET_MOMENTUM_SOURCE_REJECT_AND_FIXED_TWO_ASSET_BOUNDARY",
             ],
         )
+        closed_basis_convergence = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-binance-usdm-perpetual-basis-convergence-market-neutral"
+        )
+        self.assertEqual(
+            closed_basis_convergence["disposition"],
+            "NO_HYPOTHESIS_CLOSE_BTC_BINANCE_USDM_BASIS_CONVERGENCE_AT_EXECUTION_SURVIVAL_GATE",
+        )
+        self.assertTrue(closed_basis_convergence["prohibited_reopen"])
         closed_basis_instability = next(
             family
             for family in catalog["closed_families"]
@@ -2083,7 +2094,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 147)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 148)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

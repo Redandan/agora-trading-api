@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 143)
+        self.assertEqual(len(catalog["closed_families"]), 144)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,19 +101,31 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        ulcer28 = next(
+        funding_carry = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-daily-ulcer28-passive-core-risk-overlay"
+            == "btc-binance-usdm-delta-neutral-funding-carry"
         )
-        self.assertEqual(ulcer28["base_stage"], "PREREGISTRATION_READY")
+        self.assertEqual(funding_carry["base_stage"], "HISTORICAL_PRIOR")
         self.assertEqual(
-            [binding["role"] for binding in ulcer28["evidence_bindings"]],
+            [binding["role"] for binding in funding_carry["evidence_bindings"]],
             [
-                "SEALED_PRIMARY_DRAWDOWN_DEPTH_DURATION_AND_ADVERSARIAL_PRIOR",
+                "SEALED_PRIMARY_CASHFLOW_MECHANISM_SOURCE_AND_DEDUP_PRIOR",
+                "OFFICIAL_PUBLIC_ARCHIVE_FUNDING_SOURCE_CAPABILITY",
             ],
         )
+        closed_ulcer28 = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-daily-ulcer28-passive-core-risk-overlay-v1"
+        )
+        self.assertEqual(
+            closed_ulcer28["disposition"],
+            "BTC_DAILY_ULCER_PASSIVE_CORE_FAMILY_CLOSE",
+        )
+        self.assertTrue(closed_ulcer28["prohibited_reopen"])
         closed_cci14 = next(
             family
             for family in catalog["closed_families"]
@@ -2045,7 +2057,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 144)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 145)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

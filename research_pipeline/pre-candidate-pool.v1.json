@@ -207,47 +207,52 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "base_stage": "PREREGISTRATION_READY",
+      "base_stage": "HISTORICAL_PRIOR",
       "canonical_binding": {
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
       },
-      "causal_hypothesis": "The Ulcer Index accumulates both depth and persistence of recent underwater prices. Reducing only half the exposure when that downside burden is high relative to its lagged annual distribution may limit persistent bear-path losses while preserving a passive BTC core during recoveries.",
-      "compute_cost_class": "LOW",
-      "decision_feature": "LATEST_COMPLETE_UTC_DAY_ULCER21_28_35_ABOVE_PRIOR_252_AVAILABLE_VALUE_MEDIAN_HALF_RISK_WITH_ULCER28_PRIMARY_AND_21_35_REJECTION_ONLY",
-      "duplicate_family_key": "btc-daily-ulcer28-passive-core-risk-overlay",
+      "causal_hypothesis": "Positive USD-M perpetual funding transfers cash from long holders to short holders. A matched long BTC spot and short equal-BTC perpetual book may remove most first-order BTC direction and harvest that funding if basis, trading friction, collateral drag and liquidation risk remain bounded.",
+      "compute_cost_class": "MEDIUM",
+      "decision_feature": "ACTUAL_BINANCE_BTCUSDT_USDM_PERPETUAL_FUNDING_CASHFLOW_WITH_MATCHED_LONG_SPOT_SHORT_PERPETUAL_NOTIONAL_AND_FULL_BASIS_MARGIN_ACCOUNTING",
+      "duplicate_family_key": "btc-binance-usdm-delta-neutral-funding-carry",
       "economic_evidence_status": {
-        "adverse_slippage": "MATCHED_CAPITAL_READY",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED",
-        "fees": "MATCHED_CAPITAL_READY",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
+        "adverse_slippage": "MISSING_PROOF",
+        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY",
+        "fees": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "realized_pnl": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF"
       },
-      "economic_hypothesis": "A daily 100-or-50-percent BTC exposure policy using lagged relative Ulcer stress may preserve at least 70 percent of buy-and-hold upside while reducing drawdown enough to improve fee- and slippage-adjusted Calmar with annual and 21/35-day neighbor breadth.",
-      "estimated_days_to_next_gate": 1,
+      "economic_hypothesis": "A fully specified long-spot short-perpetual BTCUSDT carry book may earn positive fee-, slippage-, basis- and funding-adjusted returns with materially lower drawdown than directional BTC, broad annual support and no liquidation under adverse funding and basis stress.",
+      "estimated_days_to_next_gate": 2,
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-daily-ulcer28-passive-core-risk-overlay-primary-prior.v1.json",
-          "role": "SEALED_PRIMARY_DRAWDOWN_DEPTH_DURATION_AND_ADVERSARIAL_PRIOR",
-          "sha256": "3fa18b1a16d63cc000cb9344bd2dd706f544eff0282a635aa3092fe3ea892b23"
+          "path": "research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_CASHFLOW_MECHANISM_SOURCE_AND_DEDUP_PRIOR",
+          "sha256": "40adff8c29f5e5da386a00363b607d5af6185bab0b4de6792d3d02846b2620ed"
+        },
+        {
+          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+          "role": "OFFICIAL_PUBLIC_ARCHIVE_FUNDING_SOURCE_CAPABILITY",
+          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
         }
       ],
-      "family_id": "btc-daily-ulcer28-passive-core-risk-overlay",
-      "independence_key": "btc-complete-day-drawdown-depth-duration-lagged-regime-passive-core-fractional-exposure",
-      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "family_id": "btc-binance-usdm-delta-neutral-funding-carry",
+      "independence_key": "btc-realized-funding-cashflow-delta-neutral-spot-perpetual-carry-ledger",
+      "matched_comparator_id": "ZERO_YIELD_USDT_CASH_SAME_INITIAL_EQUITY_AND_WINDOW",
       "missing_proof": [
-        "The exact schema-valid hypothesis, manifest and deterministic fractional-exposure runner are not frozen yet.",
-        "No Ulcer-overlay feature support or matched-capital Design and Validation economics have been opened.",
-        "No candidate, independent OOS or forward evidence exists."
+        "The full 2020-2024 funding, Binance spot and perpetual price archives are not checksum-verified, normalized or sealed.",
+        "No frozen capital, collateral, notional, rebalance, margin, liquidation, fee, slippage, funding timestamp or basis ledger exists.",
+        "No schema-valid hypothesis, manifest, deterministic runner, Design or Validation economics, annual breadth, candidate, independent OOS or forward evidence exists."
       ],
-      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_DAILY_ULCER_PASSIVE_CORE_OVERLAY_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "runner_id": "BTC_DAILY_ULCER28_PASSIVE_CORE_RISK_OVERLAY_RUNNER_NOT_YET_IMPLEMENTED",
-      "title": "BTC daily Ulcer28 passive-core half-risk overlay"
+      "next_gate": "SEAL_ONE_CHECKSUM_BOUND_PRE2025_MATCHED_SPOT_PERPETUAL_FUNDING_CORPUS_AND_FREEZE_LEDGER_SEMANTICS_BEFORE_OUTCOME_ACCESS",
+      "parent_strategy_id": "BINANCE_BTCUSDT_DELTA_NEUTRAL_SPOT_PERPETUAL_CARRY_LEDGER_NOT_YET_FROZEN",
+      "runner_id": "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_RUNNER_NOT_YET_IMPLEMENTED",
+      "title": "BTCUSDT delta-neutral spot-perpetual funding carry"
     }
   ],
   "closed_families": [
@@ -3866,6 +3871,27 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "prohibited_reopen": true,
       "title": "BTC daily TA-Lib-formula CCI14 symmetric-hysteresis long-or-cash"
+    },
+    {
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_ULCER21_28_35_ABOVE_PRIOR_252_AVAILABLE_VALUE_MEDIAN_STATE_CHANGE_ONLY_100_50_PASSIVE_CORE_WITH_ULCER28_PRIMARY",
+      "disposition": "BTC_DAILY_ULCER_PASSIVE_CORE_FAMILY_CLOSE",
+      "duplicate_family_key": "btc-daily-ulcer28-passive-core-risk-overlay",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-daily-ulcer28-passive-core-risk-overlay-v2.json",
+          "role": "SEALED_LOCAL_HISTORICAL_ECONOMIC_RESULT",
+          "sha256": "975279306daf8da73083259c58ce0c3076d21d6def8811cb5120da0eb7556c31"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-ulcer28-passive-core-risk-overlay-v2.json",
+          "role": "MANAGER_ACCEPTED_FAMILY_CLOSURE",
+          "sha256": "613810133bd25aae2490577b57eb425e639d1b4623c2d86a3a2cca63dc05a031"
+        }
+      ],
+      "family_id": "closed-btc-daily-ulcer28-passive-core-risk-overlay-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "prohibited_reopen": true,
+      "title": "BTC daily Ulcer28 lagged-median passive-core risk overlay"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

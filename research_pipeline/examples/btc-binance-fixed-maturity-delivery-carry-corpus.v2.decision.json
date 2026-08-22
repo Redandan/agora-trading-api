@@ -1,0 +1,31 @@
+{
+  "schema_version": "2",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_CARRY_CORPUS_DECISION_V2",
+  "experiment_id": "btc-binance-fixed-maturity-delivery-carry-historical-v1",
+  "decided_at": "2026-08-22T14:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "IMPLEMENTATION_REJECT_WRAPPER_VALIDATOR_RECURSION_NO_SOURCE_ACCESS",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v2.erratum.json",
+      "sha256": "063d5693aeac7307fbcdf046b29ee9e92a6067a377f6d2622582ba387cc0c9d2",
+      "role": "FROZEN_V2_TRANSPORT_ORDER_ERRATUM"
+    },
+    {
+      "path": "research/binance_btcusdt_fixed_maturity_delivery_carry_corpus_v2.py",
+      "sha256": "da4703dc61d8c08dd0584e5f05438ce03441ce38151c07dc04ecc02ed4bf3bd7",
+      "role": "FROZEN_DEFECTIVE_V2_WRAPPER"
+    }
+  ],
+  "observed_failure": "V2 stopped during local erratum validation at SPEC_REJECT:ERRATUM_IDENTITY because monkey-patching v1.load_spec made the V2 validator call itself when it intended to verify the immutable V1 scientific spec.",
+  "classification": {
+    "scientific_gate_changed": false,
+    "external_source_called": false,
+    "archive_body_opened": false,
+    "economic_outcome_computed": false,
+    "source_decision_reached": false
+  },
+  "admissible_correction": "V3 may capture the original immutable V1 load_spec reference before installing the V2 transport-order validator and use only that preserved reference to verify the V1 scientific spec. The validated delivery-row sorting correction and every scientific byte remain unchanged.",
+  "next_action": "FREEZE_V3_ORIGINAL_VALIDATOR_REFERENCE_ERRATUM_AND_RERUN_THE_UNCHANGED_CORPUS_TWICE",
+  "scope_note": "Local wrapper validation failure only. No network value, archive, result, OOS or Trading action occurred."
+}

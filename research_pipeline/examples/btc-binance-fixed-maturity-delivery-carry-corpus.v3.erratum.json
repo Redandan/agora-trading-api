@@ -1,0 +1,29 @@
+{
+  "schema_version": "3",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_CARRY_CORPUS_IMPLEMENTATION_ERRATUM_V3",
+  "experiment_id": "btc-binance-fixed-maturity-delivery-carry-historical-v1",
+  "frozen_at": "2026-08-22T14:25:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "scientific_gate_changed": false,
+  "scientific_spec": {
+    "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-historical.v1.source-ledger-spec.json",
+    "sha256": "49ba9f88f72f4d4be875bdc90355cacf1f7742f596fbce35a6dc73b6961df10a"
+  },
+  "v2_decision": {
+    "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v2.decision.json",
+    "sha256": "cede18e88cc66ffea9c5e6567b51ae8678229e89f81d399b3d5403adeae1526e"
+  },
+  "corpus_adapter_path": "research/binance_btcusdt_fixed_maturity_delivery_carry_corpus_v3.py",
+  "corpus_adapter_sha256": "112e6438d29a87dcfcc20bcc2d1469c86d2a0d973607e474b046bc5f6f5c8fc1",
+  "single_correction": "Capture the immutable V1 load_spec function reference before monkey-patching and use only that preserved function to verify the V1 scientific source-ledger spec. Continue using the already frozen V2 validate-then-sort delivery response parser.",
+  "unchanged_contract": [
+    "The V1 scientific source, strategy, accounting, costs, windows and gates are byte-identical.",
+    "The V2 delivery-row validation and value-independent sorting behavior are byte-identical.",
+    "No external source request, archive read or economic result occurred before this refreeze."
+  ],
+  "determinism": {
+    "corpus_runs": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS_WITH_IDENTICAL_SHA256"
+  },
+  "scope_note": "Local validator-reference erratum only. It adds no source, value filter, strategy discretion, OOS or Trading authority."
+}

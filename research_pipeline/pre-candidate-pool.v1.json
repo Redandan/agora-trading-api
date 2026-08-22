@@ -271,6 +271,16 @@
           "sha256": "063d5693aeac7307fbcdf046b29ee9e92a6067a377f6d2622582ba387cc0c9d2"
         },
         {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v2.decision.json",
+          "role": "SEALED_CORPUS_V2_LOCAL_VALIDATOR_WRAPPER_REJECT_NO_SOURCE_ACCESS",
+          "sha256": "cede18e88cc66ffea9c5e6567b51ae8678229e89f81d399b3d5403adeae1526e"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-carry-corpus.v3.erratum.json",
+          "role": "FROZEN_ORIGINAL_V1_VALIDATOR_REFERENCE_ERRATUM",
+          "sha256": "b2a78bcebf8173ab0017a2546aa0be309b82ce9cef4625305ec9622400c831ac"
+        },
+        {
           "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
           "role": "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
           "sha256": "8ad99ea87046321bae3a7edd94f0d82997e8038c2628787973dfea82bad03cb9"
@@ -304,7 +314,7 @@
         "The metadata inventory proves 16 contract, mark, spot and index archive paths through expiry, but ZIP checksums, eligible rows, historical listing semantics and settlement responses remain unopened.",
         "One exact entry clock, 55bps cost floor, 25/75 collateral ledger, settlement rule, runner and all-pass gates are frozen, but their checksum-bound corpus and all economics remain unopened."
       ],
-      "next_gate": "EXECUTE_FROZEN_V2_CHECKSUM_BOUND_PRE2025_DELIVERY_CORPUS_TWICE_THEN_FREEZE_HASH_ONLY_MANIFEST_WITHOUT_CHANGING_POLICY_OR_GATES",
+      "next_gate": "EXECUTE_FROZEN_V3_CHECKSUM_BOUND_PRE2025_DELIVERY_CORPUS_TWICE_THEN_FREEZE_HASH_ONLY_MANIFEST_WITHOUT_CHANGING_POLICY_OR_GATES",
       "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "runner_id": "btc-binance-fixed-maturity-delivery-cash-and-carry-v1",
       "title": "BTC Binance fixed-maturity delivery cash-and-carry"

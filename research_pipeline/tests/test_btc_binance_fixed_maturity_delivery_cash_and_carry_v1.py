@@ -7,6 +7,7 @@ import unittest
 
 from research import binance_btcusdt_fixed_maturity_delivery_carry_corpus_v1 as corpus
 from research import binance_btcusdt_fixed_maturity_delivery_carry_corpus_v2 as corpus_v2
+from research import binance_btcusdt_fixed_maturity_delivery_carry_corpus_v3 as corpus_v3
 from research import btc_binance_fixed_maturity_delivery_cash_and_carry_v1 as runner
 
 
@@ -45,6 +46,9 @@ class BtcBinanceFixedMaturityDeliveryCashAndCarryV1Test(unittest.TestCase):
         ).encode("ascii")
         values = corpus_v2.parse_delivery_prices(raw)
         self.assertEqual([3_600_000, 7_200_000], [value.delivery_time_ms for value in values])
+
+    def test_v3_preserves_original_v1_validator_before_monkey_patch(self) -> None:
+        self.assertIs(corpus.load_spec, corpus_v3.ORIGINAL_V1_LOAD_SPEC)
 
     @staticmethod
     def cycle(future_open: D) -> list[runner.Row]:

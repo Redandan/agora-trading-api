@@ -228,8 +228,18 @@
         "unrealized_pnl": "REQUIRED_NOT_MEASURED"
       },
       "economic_hypothesis": "One point-in-time fixed-maturity BTC spot-delivery-future cash-and-carry policy may earn positive after-cost annualized return with low basis-path drawdown, full settlement reconciliation, broad expiry-cycle and annual support, and no directional or terminal inventory uplift versus zero-yield cash.",
-      "estimated_days_to_next_gate": 2,
+      "estimated_days_to_next_gate": 1,
       "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_AND_ADVERSARIAL_FIXED_MATURITY_CARRY_PRIOR",
+          "sha256": "9aae40cad8b7ca57ff58ba82ec0d7d1afbe71c6c5066451df630593a609e8a7f"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.spec.json",
+          "role": "FROZEN_PRE_VALUE_METADATA_ONLY_SOURCE_INVENTORY_SPEC",
+          "sha256": "208dda4305e0da33675e0b3dc3a50196b634f045fdd69103bac752d697fc303f"
+        },
         {
           "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
           "role": "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
@@ -260,11 +270,11 @@
       "independence_key": "fixed-maturity-delivery-settlement-convergence-not-perpetual-funding-hourly-dislocation-or-directional-timing",
       "matched_comparator_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "missing_proof": [
-        "No complete primary and adversarial prior yet freezes the exact fixed-maturity settlement-convergence mechanism, collateral opportunity cost and transfer boundary.",
+        "The fixed-maturity settlement-convergence prior and adversarial path-risk boundary are frozen, but their economic claims remain untested.",
         "No point-in-time checksum-bound historical delivery-contract inventory, listing, expiry, settlement-reference and native spot-futures intersection is sealed.",
         "No contract-selection rule, roll clock, maturity band, entry cost floor, collateral and liquidation ledger, hypothesis, manifest, deterministic runner, economics, breadth, candidate, OOS or forward evidence exists."
       ],
-      "next_gate": "FREEZE_PRIMARY_ADVERSARIAL_FIXED_MATURITY_CARRY_PRIOR_AND_PROBE_OFFICIAL_BINANCE_HISTORICAL_DELIVERY_CONTRACT_INVENTORY_BEFORE_PRICE_OR_BASIS_VALUE_ACCESS",
+      "next_gate": "EXECUTE_FROZEN_METADATA_ONLY_BINANCE_HISTORICAL_DELIVERY_CONTRACT_INVENTORY_TWICE_BEFORE_PRICE_OR_BASIS_VALUE_ACCESS",
       "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "runner_id": "DIRECT_FIXED_MATURITY_SPOT_DELIVERY_FUTURES_SETTLEMENT_LEDGER_REQUIRED",
       "title": "BTC Binance fixed-maturity delivery cash-and-carry"

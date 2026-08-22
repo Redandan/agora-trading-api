@@ -1,0 +1,108 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_SOURCE_INVENTORY_SPEC_V1",
+  "spec_id": "btc-binance-fixed-maturity-delivery-source-inventory-v1",
+  "family_id": "btc-binance-fixed-maturity-delivery-cash-and-carry",
+  "frozen_at": "2026-08-22T13:25:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_METADATA_ONLY_SOURCE_GATE",
+  "objective": "Determine whether the official Binance public archive exposes one exact pre-2025 BTCUSDT USD-M fixed-maturity contract inventory with checksum-sidecar coverage for contract and mark-price 1h archives plus overlapping BTCUSDT spot and index 1h archives, without opening any market-data value.",
+  "source_bindings": {
+    "primary_prior_path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-primary-prior.v1.json",
+    "primary_prior_sha256": "9aae40cad8b7ca57ff58ba82ec0d7d1afbe71c6c5066451df630593a609e8a7f",
+    "archive_capability_path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+    "archive_capability_sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4",
+    "probe_path": "research/binance_btcusdt_delivery_archive_inventory_probe_v1.py",
+    "probe_sha256": "54021b9862e6dec49faf1ca94fc12a072c37e9b9369d8ea83ac45ad242aaccbe",
+    "bucket_url": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision",
+    "official_archive_documentation": "https://github.com/binance/binance-public-data/blob/master/README.md"
+  },
+  "selection_boundary": {
+    "market": "BINANCE_USDM_DELIVERY",
+    "pair": "BTCUSDT",
+    "interval": "1h",
+    "contract_symbol_pattern": "BTCUSDT_YYMMDD",
+    "first_contract_expiry": "2021-03-26",
+    "cutoff_date": "2024-12-31",
+    "reference_first_month": "2021-03",
+    "reference_last_month": "2024-12",
+    "exact_contract_symbols": [
+      "BTCUSDT_210326",
+      "BTCUSDT_210625",
+      "BTCUSDT_210924",
+      "BTCUSDT_211231",
+      "BTCUSDT_220325",
+      "BTCUSDT_220624",
+      "BTCUSDT_220930",
+      "BTCUSDT_221230",
+      "BTCUSDT_230331",
+      "BTCUSDT_230630",
+      "BTCUSDT_230929",
+      "BTCUSDT_231229",
+      "BTCUSDT_240329",
+      "BTCUSDT_240628",
+      "BTCUSDT_240927",
+      "BTCUSDT_241227"
+    ],
+    "futures_contract_kline_root": "data/futures/um/monthly/klines/",
+    "futures_mark_price_root": "data/futures/um/monthly/markPriceKlines/",
+    "spot_reference_prefix": "data/spot/monthly/klines/BTCUSDT/1h/",
+    "index_reference_prefix": "data/futures/um/monthly/indexPriceKlines/BTCUSDT/1h/",
+    "post_2024_contract_or_archive_selection": "DENY"
+  },
+  "request_contract": {
+    "method": "GET",
+    "operation": "S3_LIST_OBJECTS_V1_METADATA_ONLY",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "maximum_pages_per_root": 4,
+    "maximum_keys_per_page": 1000,
+    "maximum_response_bytes_per_request": 4194304,
+    "allowed_response_fields": [
+      "Prefix",
+      "Marker",
+      "IsTruncated",
+      "NextMarker",
+      "CommonPrefixes/Prefix",
+      "Contents/Key"
+    ]
+  },
+  "explicitly_denied_access": [
+    "ARCHIVE_ZIP_BODY",
+    "CHECKSUM_BODY",
+    "KLINE_ROW",
+    "MARK_PRICE_ROW",
+    "INDEX_PRICE_ROW",
+    "SPOT_PRICE_ROW",
+    "DELIVERY_PRICE_RESPONSE",
+    "BASIS_VALUE",
+    "RETURN",
+    "PNL",
+    "CURRENT_EXCHANGE_INFO",
+    "PAID_API",
+    "POST_2024_OUTCOME",
+    "OOS"
+  ],
+  "all_pass_gates": [
+    "The contract-kline and mark-price roots each contain the exact 16 frozen BTCUSDT delivery symbols; missing symbols fail closed and newly visible symbols do not alter the frozen pre-2025 selection.",
+    "Every selected contract has a contiguous monthly 1h contract-kline archive through its expiry-code month with exactly one sibling CHECKSUM object per ZIP.",
+    "Every selected contract has a contiguous monthly 1h mark-price archive through its expiry-code month with exactly one sibling CHECKSUM object per ZIP.",
+    "Each contract has at least one contiguous month where contract and mark-price archives overlap through the expiry-code month.",
+    "BTCUSDT spot and BTCUSDT USD-M index 1h monthly archives each cover every month from 2021-03 through 2024-12 with exactly one sibling CHECKSUM object per ZIP.",
+    "The output records raw S3 XML hashes, opens no object body and reports market_data_rows_opened=false and price_or_basis_values_opened=false."
+  ],
+  "decision_contract": {
+    "pass": "SOURCE_METADATA_GATE_PASS_VALUE_ACCESS_STILL_DENIED",
+    "fail": "DATA_REJECT_CLOSE_FIXED_MATURITY_DELIVERY_SOURCE_PATH_BEFORE_VALUE_ACCESS",
+    "pass_next_gate": "FREEZE_ONE_CHECKSUM_BOUND_VALUE_ACCESS_SETTLEMENT_AND_MARGIN_LEDGER_CONTRACT_BEFORE_ANY_ZIP_OR_DELIVERY_PRICE_RESPONSE",
+    "post_fail_rescue": "DENY_CURRENT_EXCHANGE_INFO_THIRD_PARTY_BACKFILL_CONTRACT_SUBSTITUTION_OR_THRESHOLD_TUNING"
+  },
+  "determinism": {
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "required_runs": 2,
+    "output": "TWO_CREATE_ONCE_RESEARCH_STATE_JSONS",
+    "acceptance": "BYTE_IDENTICAL_OUTPUTS_WITH_IDENTICAL_SHA256"
+  },
+  "scope_note": "The frozen task is source metadata only. It cannot create a hypothesis, manifest, experiment or candidate and cannot open market values, OOS or any Trading path."
+}

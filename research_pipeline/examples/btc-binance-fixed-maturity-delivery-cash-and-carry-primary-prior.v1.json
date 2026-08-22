@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_CASH_AND_CARRY_PRIMARY_PRIOR_V1",
+  "family_id": "btc-binance-fixed-maturity-delivery-cash-and-carry",
+  "reviewed_at": "2026-08-22T13:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIMARY_AND_ADVERSARIAL_PRIOR_PASS_METADATA_ONLY_SOURCE_GATE_ALLOWED",
+  "causal_hypothesis": "A fixed-maturity BTC delivery future has a defined expiry and settlement path. Buying BTC spot and shorting an equal BTC quantity of the matched delivery future when that future trades above spot can isolate the initial term basis from first-order BTC direction, but only if both legs survive to a fully reconciled settlement.",
+  "economic_hypothesis": "One later preregistered, unlevered-or-conservatively-collateralized spot-long and fixed-maturity-future-short policy may earn positive fee- and adverse-slippage-adjusted annualized carry versus zero-yield cash under equal total capital, without liquidation, hidden terminal inventory, settlement mismatch or concentration in one expiry cycle or year.",
+  "claim_boundary": "The primary sources support the fixed-maturity cash-and-carry mechanism, official contract-type and settlement surfaces, and severe path-risk objections. They do not prove historical Binance contract coverage, a valid point-in-time selection rule, settlement reconciliation, executable entry prices, fees, margin survival, profitability, a candidate, OOS value or Trading authority.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Schmeling, Schrimpf and Todorov, Crypto carry, BIS Working Papers No 1087, April 2023 revised October 2025",
+      "source": "https://www.bis.org/publ/work1087.htm",
+      "full_text": "https://www.bis.org/publ/work1087.pdf",
+      "role": "PRIMARY_FIXED_MATURITY_CASH_AND_CARRY_MECHANISM_AND_ADVERSARIAL_PATH_RISK",
+      "supporting_finding": "The paper defines crypto cash-and-carry as long spot and short futures and explicitly constructs one- and three-month fixed-maturity BTC and ETH futures prices against their expiration dates.",
+      "adversarial_finding": "The same paper attributes limits to arbitrage to regulatory, balance-sheet and margin frictions and documents severe futures-leg drawdown and liquidation hazards. A nominally convergent terminal payoff therefore does not establish survivable realized carry.",
+      "transfer_boundary": "The paper supports the mechanism and mandatory path-risk accounting, not this exact Binance USD-M contract inventory, policy or net return. Its reported carry levels and returns cannot be imported as Agora performance evidence."
+    },
+    {
+      "identity": "Binance USD-M Futures common definitions",
+      "source": "https://developers.binance.com/zh-CN/docs/products/derivatives-trading-usds-futures/common-definition",
+      "role": "OFFICIAL_CONTRACT_TYPE_AND_LIFECYCLE_SEMANTICS",
+      "supporting_finding": "The official enum distinguishes PERPETUAL from CURRENT_QUARTER and NEXT_QUARTER delivery contracts and separately exposes pre-delivery, delivering and delivered lifecycle states.",
+      "adversarial_finding": "A symbol-shaped archive prefix alone does not prove its historical lifecycle, listing boundary, contract specification or settlement completion.",
+      "transfer_boundary": "The enum proves semantic categories only. Historical contract identity and coverage must be established from a separately frozen source inventory."
+    },
+    {
+      "identity": "Binance public market-data archive",
+      "source": "https://github.com/binance/binance-public-data/blob/master/README.md",
+      "role": "OFFICIAL_FREE_ARCHIVE_AND_CHECKSUM_CAPABILITY",
+      "supporting_finding": "Binance publishes public daily and monthly spot and futures kline archives and states that every ZIP has a sibling CHECKSUM file for integrity verification.",
+      "adversarial_finding": "The archive documentation also permits later archive corrections. Object presence is not proof of complete timestamps, immutable historical specifications or economically valid settlement accounting.",
+      "transfer_boundary": "The next step may inspect S3 object names and checksum-sidecar presence only. ZIP bodies, prices, basis values, returns and PnL remain unopened."
+    },
+    {
+      "identity": "Binance official CLI USD-M Futures endpoint catalog",
+      "source": "https://github.com/binance/binance-cli/blob/master/examples/derivatives-trading-usds-futures.md",
+      "role": "OFFICIAL_QUARTERLY_SETTLEMENT_ENDPOINT_EXISTENCE",
+      "supporting_finding": "The official endpoint catalog identifies GET /futures/data/delivery-price as Quarterly Contract Settlement Price.",
+      "adversarial_finding": "Endpoint existence does not prove complete pre-2025 response coverage, point-in-time availability, field stability or agreement with archived contract and index observations.",
+      "transfer_boundary": "No delivery-price response may be requested until a later value-access contract freezes exact identities, response schema, expected coverage and reconciliation rules."
+    },
+    {
+      "identity": "Agora sealed crypto-carry primary-prior audit V4",
+      "source": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
+      "sha256": "8ad99ea87046321bae3a7edd94f0d82997e8038c2628787973dfea82bad03cb9",
+      "role": "SEALED_FULL_TEXT_TRANSFER_AND_FALSIFICATION_BOUNDARY",
+      "supporting_finding": "The sealed audit independently verified the complete BIS paper and preserved the distinction between fixed-maturity basis, perpetual funding, executable arbitrage return, liquidation risk and spot prediction.",
+      "adversarial_finding": "That audit authorized only a different pre-entry DRA carry-risk question and proved no executable carry return.",
+      "transfer_boundary": "This family reuses only the verified fixed-maturity mechanism and path-risk warnings. It does not reuse the closed DRA veto or claim that derivative carry predicts spot returns."
+    }
+  ],
+  "independence_assessment": {
+    "not_perpetual_funding_carry": "The closed Binance USD-M perpetual family earned recurring funding transfers and had no fixed terminal convergence. This family may use neither funding receipts nor a perpetual contract.",
+    "not_hourly_basis_convergence": "The closed hourly basis-convergence family repeatedly entered short-lived spot-perpetual dislocations. This family must select one fixed-maturity contract before value access and reconcile it through expiry or an explicitly frozen pre-expiry liquidation rule.",
+    "not_directional_timing": "Spot and future BTC quantities must match. Directional BTC exposure, long-cash switching and terminal spot inventory cannot generate the result.",
+    "not_parameter_rescue": "A later experiment may contain only one frozen contract-selection and roll policy. Entry thresholds, maturity bands, leverage, collateral fractions, fee assumptions and exit clocks cannot be scanned after outcomes are opened."
+  },
+  "mandatory_future_accounting": [
+    "Use the same total initial capital and valuation window for the cash comparator and the two-leg book.",
+    "Allocate and report spot capital, futures collateral and idle cash separately; treat locked collateral and additional margin as capital consumed rather than free leverage.",
+    "Use equal BTC quantities on the spot-long and delivery-future-short legs and report residual delta at every entry, roll, settlement and terminal boundary.",
+    "Charge both legs' entry and exit or settlement fees plus frozen adverse slippage; expose turnover and any delivery or liquidation fee separately.",
+    "Mark the futures leg on a source-bound mark-price path and fail before economics if liquidation or maintenance-margin semantics cannot be represented conservatively.",
+    "Reconcile the final future settlement to the official delivery-price surface and the spot or index reference under one frozen rule; unexplained mismatch is DATA_REJECT.",
+    "End every fair-reset window with zero spot and futures position, zero unrealized PnL and no terminal inventory uplift.",
+    "Report expiry-cycle, annual and regime breadth, top-cycle concentration, maximum drawdown, underwater duration, minimum margin buffer and holding duration."
+  ],
+  "admission_and_stop_conditions": [
+    "First run only the separately frozen metadata-only inventory gate. Do not download ZIP bodies or request delivery-price, kline, mark, index, basis, return or PnL values in that gate.",
+    "Require an exact pre-2025 BTCUSDT USD-M fixed-maturity contract-prefix inventory with sibling CHECKSUM objects for contract 1h klines and mark-price klines, plus overlapping BTCUSDT spot and index 1h archive coverage.",
+    "Stop with DATA_REJECT if contract identifiers, archive coverage, checksum-sidecar presence or the spot, contract, mark and index intersection cannot be established without current-list survivorship or post-2024 outcome access.",
+    "After metadata passes, freeze one corpus/value-access contract, contract-selection rule, roll clock, maturity band, settlement reconciliation, margin ledger, costs, windows and all-pass gates before opening any archive body or settlement response.",
+    "Do not use current exchangeInfo as historical listing proof and do not infer missing delivery prices, contract specifications, timestamps or mark paths.",
+    "Any future historical pass may create at most one REPORTED_NOT_ACTIVATED candidate and one separately sealed independent OOS gate; it authorizes no Trading action."
+  ],
+  "decision": "PRIMARY_PRIOR_SUPPORTS_ONE_FROZEN_METADATA_ONLY_BINANCE_DELIVERY_INVENTORY_GATE",
+  "missing_proof": [
+    "No exact historical Binance USD-M BTCUSDT delivery-contract, mark-price, index-price and spot intersection has been sealed.",
+    "No historical listing time, contract specification, settlement response, delivery-price reconciliation or maintenance-margin schedule is bound.",
+    "No contract-selection rule, roll clock, maturity band, entry premium floor, collateral policy, ledger, hypothesis, manifest, runner or matched-capital economics exists.",
+    "Profitability, drawdown, margin survival, breadth, concentration, candidate status, OOS and forward value remain MISSING_PROOF."
+  ],
+  "scope_note": "Primary and adversarial prior only. No ZIP body, market-data row, price, basis, delivery-price response, return, PnL, hypothesis, manifest, candidate, runner, experiment, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -116,6 +116,8 @@ class CandidateFunnelTest(unittest.TestCase):
                 for binding in fixed_maturity_carry["evidence_bindings"]
             ],
             [
+                "FROZEN_PRIMARY_AND_ADVERSARIAL_FIXED_MATURITY_CARRY_PRIOR",
+                "FROZEN_PRE_VALUE_METADATA_ONLY_SOURCE_INVENTORY_SPEC",
                 "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
                 "OFFICIAL_PUBLIC_BINANCE_DERIVATIVES_ARCHIVE_CAPABILITY",
                 "SEALED_PERPETUAL_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",

@@ -63,6 +63,24 @@ ok() {
   echo "[research-worker-verify] OK: $*"
 }
 
+contains_fixed() {
+  local value="$1"
+  local needle="$2"
+  [[ "$value" == *"$needle"* ]]
+}
+
+contains_exact_line() {
+  local value="$1"
+  local needle="$2"
+  grep -Fxq -- "$needle" <<<"$value"
+}
+
+contains_regex() {
+  local value="$1"
+  local pattern="$2"
+  [[ "$value" =~ $pattern ]]
+}
+
 require_sha256() {
   local path="$1"
   local expected="$2"
@@ -1023,21 +1041,21 @@ for control_unit in \
   agora-research-dispatch.service \
   agora-research-heartbeat.service; do
   control_unit_text="$(systemctl cat "$control_unit")"
-  echo "$control_unit_text" | grep -Fq '/opt/agora-research-worker/control-current' \
+  contains_fixed "$control_unit_text" '/opt/agora-research-worker/control-current' \
     || fail "$control_unit does not use the fixed control-current lane"
-  if echo "$control_unit_text" | grep -Fq '/opt/agora-research-worker/current'; then
+  if contains_fixed "$control_unit_text" '/opt/agora-research-worker/current'; then
     fail "$control_unit still references the data-current lane"
   fi
 done
 export_unit_text="$(systemctl cat "$MICROSTRUCTURE_EXPORT_UNIT")"
-echo "$export_unit_text" \
-  | grep -Fxq 'Documentation=file:/opt/agora-research-worker/control-current/docs/server-research-worker-v2.md' \
+contains_exact_line "$export_unit_text" \
+  'Documentation=file:/opt/agora-research-worker/control-current/docs/server-research-worker-v2.md' \
   || fail "microstructure handoff exporter documentation does not use control-current"
-echo "$export_unit_text" \
-  | grep -Fxq 'WorkingDirectory=/opt/agora-research-worker/control-current' \
+contains_exact_line "$export_unit_text" \
+  'WorkingDirectory=/opt/agora-research-worker/control-current' \
   || fail "microstructure handoff exporter working directory does not use control-current"
-echo "$export_unit_text" \
-  | grep -Fxq 'ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_handoff_export' \
+contains_exact_line "$export_unit_text" \
+  'ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_handoff_export' \
   || fail "microstructure handoff exporter does not execute the fixed zero-argument module"
 data_units=(
   agora-research-source.service
@@ -1047,17 +1065,17 @@ data_units=(
 )
 for data_unit in "${data_units[@]}"; do
   data_unit_text="$(systemctl cat "$data_unit")"
-  echo "$data_unit_text" | grep -Fq '/opt/agora-research-worker/current' \
+  contains_fixed "$data_unit_text" '/opt/agora-research-worker/current' \
     || fail "$data_unit does not use the fixed data-current lane"
-  if echo "$data_unit_text" | grep -Fq '/opt/agora-research-worker/control-current'; then
+  if contains_fixed "$data_unit_text" '/opt/agora-research-worker/control-current'; then
     fail "$data_unit references the control-current lane"
   fi
 done
 if [ "$carry_unit_present" = true ]; then
   carry_lane_text="$(systemctl cat "$CARRY_UNIT")"
-  echo "$carry_lane_text" | grep -Fq '/opt/agora-research-worker/carry-current' \
+  contains_fixed "$carry_lane_text" '/opt/agora-research-worker/carry-current' \
     || fail "carry source does not use the isolated carry-current lane"
-  if echo "$carry_lane_text" | grep -Eq '/opt/agora-research-worker/(control-)?current'; then
+  if contains_regex "$carry_lane_text" '/opt/agora-research-worker/(control-)?current'; then
     fail "carry source references the control-current or data-current lane"
   fi
 fi
@@ -1199,19 +1217,18 @@ if [ "$carry_unit_present" = true ]; then
     || fail "carry source identity has unexpected supplementary groups"
 
   carry_unit_text="$(systemctl cat "$CARRY_UNIT")"
-  echo "$carry_unit_text" \
-    | grep -Fxq 'WorkingDirectory=/opt/agora-research-worker/carry-current' \
+  contains_exact_line "$carry_unit_text" \
+    'WorkingDirectory=/opt/agora-research-worker/carry-current' \
     || fail "carry source working directory is not fixed"
-  echo "$carry_unit_text" \
-    | grep -Fxq 'ExecStart=/opt/agora-research-worker/carry-current/scripts/research-worker/run-dra-crypto-carry-phase.sh' \
+  contains_exact_line "$carry_unit_text" \
+    'ExecStart=/opt/agora-research-worker/carry-current/scripts/research-worker/run-dra-crypto-carry-phase.sh' \
     || fail "carry source does not execute the fixed zero-argument launcher"
-  echo "$carry_unit_text" \
-    | grep -Fxq 'TimeoutStartSec=30m' \
+  contains_exact_line "$carry_unit_text" 'TimeoutStartSec=30m' \
     || fail "carry source unit text does not freeze the 30-minute start timeout"
-  if echo "$carry_unit_text" | grep -Eq '^RuntimeMaxSec='; then
+  if grep -Eq -- '^RuntimeMaxSec=' <<<"$carry_unit_text"; then
     fail "carry source unit retains an ineffective oneshot runtime maximum"
   fi
-  if echo "$carry_unit_text" | grep -Fxq '[Install]'; then
+  if contains_exact_line "$carry_unit_text" '[Install]'; then
     fail "carry source unit has an Install section"
   fi
   [ "$(systemctl show "$CARRY_UNIT" --property=User --value)" = "$CARRY_USER" ] \
@@ -1359,10 +1376,10 @@ fi
 [ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=RestartPreventExitStatus --value)" = "2" ] \
   || fail "microstructure source does not prevent restart after a fail-closed exit"
 source_unit_text="$(systemctl cat "$MICROSTRUCTURE_UNIT")"
-echo "$source_unit_text" \
-  | grep -Fxq 'ExecStart=/opt/agora-research-worker/current/scripts/research-worker/run-microstructure-continuous-source.sh' \
+contains_exact_line "$source_unit_text" \
+  'ExecStart=/opt/agora-research-worker/current/scripts/research-worker/run-microstructure-continuous-source.sh' \
   || fail "microstructure source does not execute the fixed V3R1 wrapper"
-echo "$source_unit_text" | grep -Fxq 'RuntimeMaxSec=45d' \
+contains_exact_line "$source_unit_text" 'RuntimeMaxSec=45d' \
   || fail "microstructure source does not retain the bounded 42-day recovery lifetime"
 [ -f "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN" ] \
   && [ ! -L "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN" ] \
@@ -1374,7 +1391,7 @@ cmp -s \
   || fail "microstructure host-context drop-in differs from the control release"
 [ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=DropInPaths --value)" = "$MICROSTRUCTURE_HOST_CONTEXT_DROPIN" ] \
   || fail "microstructure source drop-in inventory is not exact"
-echo "$source_unit_text" | grep -Fxq 'ProcSubset=pid' \
+contains_exact_line "$source_unit_text" 'ProcSubset=pid' \
   || fail "microstructure source base unit no longer defaults to PID-only proc"
 [ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ProcSubset --value)" = "all" ] \
   || fail "microstructure source cannot read the frozen host boot context"
@@ -1384,10 +1401,10 @@ if systemctl show "$MICROSTRUCTURE_UNIT" --property=EnvironmentFiles --value | g
   fail "microstructure source must not load an environment file"
 fi
 source_read_only="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ReadOnlyPaths --value)"
-echo "$source_read_only" | grep -Fq "$MICROSTRUCTURE_BINDING" \
+contains_fixed "$source_read_only" "$MICROSTRUCTURE_BINDING" \
   || fail "microstructure source does not read only the fixed V3R1 binding"
-if echo "$source_read_only" | grep -Fq "$R2_MICROSTRUCTURE_BINDING" \
-    || echo "$source_read_only" | grep -Fq "$LEGACY_MICROSTRUCTURE_BINDING"; then
+if contains_fixed "$source_read_only" "$R2_MICROSTRUCTURE_BINDING" \
+    || contains_fixed "$source_read_only" "$LEGACY_MICROSTRUCTURE_BINDING"; then
   fail "microstructure source can select a historical binding"
 fi
 if systemctl list-unit-files 'agora-research-microstructure*.timer' --no-legend | grep -q .; then
@@ -1401,7 +1418,7 @@ mapfile -t microstructure_paths < <(
   && [ "${microstructure_paths[0]}" = "$MICROSTRUCTURE_INTAKE_PATH" ] \
   || fail "microstructure lifecycle has more than the one existing intake path"
 microstructure_writes="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ReadWritePaths --value)"
-if echo "$microstructure_writes" | grep -Fq '/var/lib/agora-research/source-drop'; then
+if contains_fixed "$microstructure_writes" '/var/lib/agora-research/source-drop'; then
   fail "microstructure source can write the candle drop"
 fi
 [ "$microstructure_writes" = "/var/lib/agora-evidence-source" ] \
@@ -1438,10 +1455,10 @@ if actual != expected:
 PY
 done
 intake_read_only="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=ReadOnlyPaths --value)"
-echo "$intake_read_only" | grep -Fq "$MICROSTRUCTURE_BINDING" \
+contains_fixed "$intake_read_only" "$MICROSTRUCTURE_BINDING" \
   || fail "microstructure binding is not read-only to intake"
-if echo "$intake_read_only" | grep -Fq "$R2_MICROSTRUCTURE_BINDING" \
-    || echo "$intake_read_only" | grep -Fq "$LEGACY_MICROSTRUCTURE_BINDING"; then
+if contains_fixed "$intake_read_only" "$R2_MICROSTRUCTURE_BINDING" \
+    || contains_fixed "$intake_read_only" "$LEGACY_MICROSTRUCTURE_BINDING"; then
   fail "microstructure intake can select a historical binding"
 fi
 systemctl cat "$MICROSTRUCTURE_INTAKE_UNIT" \
@@ -1457,9 +1474,9 @@ if actual != expected:
     raise SystemExit(f"intake writable paths are not exact: {sorted(actual)}")
 PY
 intake_inaccessible="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=InaccessiblePaths --value)"
-echo "$intake_inaccessible" | grep -Fq "$LEGACY_MICROSTRUCTURE_STATE" \
+contains_fixed "$intake_inaccessible" "$LEGACY_MICROSTRUCTURE_STATE" \
   || fail "microstructure intake can access the legacy V2 state namespace"
-echo "$intake_inaccessible" | grep -Fq "$R2_MICROSTRUCTURE_STATE" \
+contains_fixed "$intake_inaccessible" "$R2_MICROSTRUCTURE_STATE" \
   || fail "microstructure intake can access the historical R2 state namespace"
 systemctl cat "$MICROSTRUCTURE_INTAKE_PATH" \
   | grep -Fxq "PathChanged=$MICROSTRUCTURE_DROP" \

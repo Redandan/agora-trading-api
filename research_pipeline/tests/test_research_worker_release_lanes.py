@@ -377,8 +377,11 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
                         f'systemctl {command} "$CARRY_UNIT"', script
                     )
 
-        self.assertIn("grep -Fxq 'TimeoutStartSec=30m'", self.verifier)
-        self.assertIn("grep -Eq '^RuntimeMaxSec='", self.verifier)
+        self.assertIn(
+            "contains_exact_line \"$carry_unit_text\" 'TimeoutStartSec=30m'",
+            self.verifier,
+        )
+        self.assertIn("grep -Eq -- '^RuntimeMaxSec='", self.verifier)
 
     def test_carry_v3r1_probe_reuses_inactive_oneshot_without_timer_or_raw_transport(self) -> None:
         launcher = text(WORKER / "run-dra-crypto-carry-phase.sh")
@@ -511,6 +514,30 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         for value in required:
             with self.subTest(value=value):
                 self.assertIn(value, self.verifier)
+
+    def test_verifier_avoids_pipefail_false_negatives_for_captured_unit_text(self) -> None:
+        for variable in (
+            "control_unit_text",
+            "data_unit_text",
+            "carry_lane_text",
+            "export_unit_text",
+            "source_unit_text",
+            "carry_unit_text",
+        ):
+            with self.subTest(variable=variable):
+                self.assertNotIn(
+                    f'echo "${variable}" | grep',
+                    self.verifier,
+                )
+        self.assertIn(
+            "contains_fixed \"$data_unit_text\" "
+            "'/opt/agora-research-worker/current'",
+            self.verifier,
+        )
+        self.assertIn(
+            "contains_exact_line \"$export_unit_text\"",
+            self.verifier,
+        )
 
     def test_active_bound_source_can_be_verified_after_its_start_day(self) -> None:
         self.assertIn(

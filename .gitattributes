@@ -71,5 +71,4 @@ research_pipeline/examples/local-research-strategy-path.btc-daily-stochastic-5-3
 research_pipeline/examples/local-research-task.btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.json text eol=lf
 research_pipeline/examples/local-weekly-output-classification.intent.btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.json text eol=lf
 research_pipeline/examples/local-research-result.btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.json text eol=lf
-research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.json text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 import hashlib
 import io
 import zipfile
@@ -134,6 +135,44 @@ class BinanceUsdmArchiveTest(unittest.TestCase):
         with self.assertRaisesRegex(archive.ArchiveReject, "not BTCUSDT"):
             archive.load_daily_metrics_archive(
                 "BTCUSDT-metrics-2024-01-02.zip", raw, checksum
+            )
+
+    def test_exact_scientific_zero_ratio_is_preserved(self) -> None:
+        rows = metrics_rows()
+        rows[1] = rows[1].removesuffix(",1.05") + ",0E-8"
+        raw, checksum = zipped(rows)
+        bundle = archive.load_daily_metrics_archive(
+            "BTCUSDT-metrics-2024-01-02.zip", raw, checksum
+        )
+        self.assertEqual(bundle.observations[0].sum_taker_long_short_vol_ratio, "0E-8")
+        self.assertEqual(
+            bundle.observations[0].decimal("sum_taker_long_short_vol_ratio"),
+            Decimal("0"),
+        )
+
+    def test_unused_missing_ratio_is_allowed_only_for_bound_flush_family(self) -> None:
+        rows = metrics_rows()
+        rows[1] = rows[1].removesuffix(",1.05") + ","
+        raw, checksum = zipped(rows)
+        with self.assertRaisesRegex(archive.ArchiveReject, "exact unsigned decimal"):
+            archive.load_daily_metrics_archive(
+                "BTCUSDT-metrics-2024-01-02.zip", raw, checksum
+            )
+        bundle = archive.load_daily_metrics_archive(
+            "BTCUSDT-metrics-2024-01-02.zip",
+            raw,
+            checksum,
+            feature_family="joint-price-open-interest-deleveraging-flush",
+        )
+        self.assertEqual(bundle.feature_family, "joint-price-open-interest-deleveraging-flush")
+        self.assertEqual(bundle.observations[0].sum_taker_long_short_vol_ratio, "")
+
+        with self.assertRaisesRegex(archive.ArchiveReject, "exact unsigned decimal"):
+            archive.load_daily_metrics_archive(
+                "BTCUSDT-metrics-2024-01-02.zip",
+                raw,
+                checksum,
+                feature_family="joint-perpetual-taker-flow-open-interest-confirmation",
             )
 
 

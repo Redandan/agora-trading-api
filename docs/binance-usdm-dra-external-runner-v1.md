@@ -33,8 +33,11 @@ For every archive, `research_pipeline/binance_usdm_archive.py`:
    excessive-compression ZIPs;
 3. requires the frozen metrics header and one gap-free UTC day containing all
    288 five-minute observations;
-4. retains exact decimal text, accepts only byte-identical duplicate timestamp
-   rows, and rejects conflicting duplicates or invalid ratios; and
+4. retains exact Decimal text (including scientific zero), accepts only
+   byte-identical duplicate timestamp rows, and rejects conflicting duplicates
+   or any missing/invalid ratio required by the selected joint family; unused
+   blank ratio fields remain explicit missing values rather than imputations;
+   and
 5. returns both the raw archive hash and the normalized payload hash without
    writing either payload.
 

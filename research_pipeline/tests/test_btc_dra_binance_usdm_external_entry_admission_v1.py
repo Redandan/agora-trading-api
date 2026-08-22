@@ -197,13 +197,17 @@ class BinanceUsdmExternalDraRunnerTest(unittest.TestCase):
             )
             for hour in range(24)
         ]
-        observation = runner.external_day_from_bundle(bundle(day), bars)
+        observation = runner.external_day_from_bundle(
+            bundle(day),
+            bars,
+            family_key="dra-binance-usdm-positioning-divergence-entry-admission",
+        )
         self.assertEqual(observation.day, day)
         self.assertEqual(observation.available_at, datetime(2024, 1, 3))
         self.assertEqual(observation.price_return, D("-0.04"))
         self.assertEqual(observation.oi_value_return, D("-0.1"))
         self.assertEqual(observation.positioning_gap, D("0.40"))
-        self.assertEqual(observation.taker_long_short_ratio, D("1.20"))
+        self.assertIsNone(observation.taker_long_short_ratio)
 
     def test_decision_time_rejects_same_fill_day_or_later_observation(self) -> None:
         signal = hourly_bar(datetime(2024, 1, 2, 23))

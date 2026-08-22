@@ -40,10 +40,23 @@ EXPECTED_HEADER = (
     "count_long_short_ratio",
     "sum_taker_long_short_vol_ratio",
 )
+ALL_FIELDS = "ALL_FIELDS"
+REQUIRED_RATIO_FIELDS_BY_FEATURE_FAMILY = {
+    "joint-price-open-interest-deleveraging-flush": frozenset(),
+    "top-trader-versus-global-positioning-divergence": frozenset(
+        {"sum_toptrader_long_short_ratio", "count_long_short_ratio"}
+    ),
+    "joint-perpetual-taker-flow-open-interest-confirmation": frozenset(
+        {"sum_taker_long_short_vol_ratio"}
+    ),
+}
+RATIO_FIELDS = frozenset(EXPECTED_HEADER[4:])
 
 _ARCHIVE_NAME = re.compile(r"^BTCUSDT-metrics-(\d{4}-\d{2}-\d{2})\.zip$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
-_DECIMAL_TEXT = re.compile(r"^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$")
+_DECIMAL_TEXT = re.compile(
+    r"^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[Ee][+-]?[0-9]+)?$"
+)
 
 
 class ArchiveReject(RuntimeError):
@@ -119,6 +132,7 @@ class DailyMetricsBundle:
     day: date
     normalized_payload_sha256: str
     observations: tuple[MetricsObservation, ...]
+    feature_family: str = ALL_FIELDS
 
     def evidence(self) -> dict[str, Any]:
         return {
@@ -127,6 +141,7 @@ class DailyMetricsBundle:
             "checksum_sidecar_sha256": self.checksum_sidecar_sha256,
             "complete_utc_day": self.day.isoformat(),
             "dataset": DATASET,
+            "feature_family": self.feature_family,
             "instrument": SYMBOL,
             "market": MARKET,
             "normalized_payload_sha256": self.normalized_payload_sha256,
@@ -210,19 +225,24 @@ def _safe_csv_member(
     return archive, member
 
 
-def _positive_decimal_text(value: str, label: str) -> str:
+def _decimal_text(value: str, label: str, *, allow_zero: bool) -> str:
     if _DECIMAL_TEXT.fullmatch(value) is None:
         raise ArchiveReject(f"{label} must use exact unsigned decimal text")
     try:
         parsed = Decimal(value)
     except InvalidOperation as error:
         raise ArchiveReject(f"{label} is not a finite decimal") from error
-    if not parsed.is_finite() or parsed <= 0:
-        raise ArchiveReject(f"{label} must be positive")
+    if not parsed.is_finite() or parsed < 0 or (parsed == 0 and not allow_zero):
+        boundary = "nonnegative" if allow_zero else "positive"
+        raise ArchiveReject(f"{label} must be {boundary}")
     return value
 
 
-def _parse_row(raw_line: bytes, row_number: int) -> tuple[MetricsObservation, bytes]:
+def _parse_row(
+    raw_line: bytes,
+    row_number: int,
+    required_ratio_fields: frozenset[str],
+) -> tuple[MetricsObservation, bytes]:
     try:
         text = raw_line.decode("utf-8")
         values = next(csv.reader([text], strict=True))
@@ -238,10 +258,15 @@ def _parse_row(raw_line: bytes, row_number: int) -> tuple[MetricsObservation, by
         raise ArchiveReject(f"metrics row {row_number} is not on a five-minute boundary")
     if values[1] != SYMBOL:
         raise ArchiveReject(f"metrics row {row_number} is not BTCUSDT")
-    decimal_values = [
-        _positive_decimal_text(value, EXPECTED_HEADER[index])
-        for index, value in enumerate(values[2:], start=2)
-    ]
+    decimal_values: list[str] = []
+    for index, value in enumerate(values[2:], start=2):
+        field = EXPECTED_HEADER[index]
+        if value == "" and field in RATIO_FIELDS - required_ratio_fields:
+            decimal_values.append(value)
+            continue
+        decimal_values.append(
+            _decimal_text(value, field, allow_zero=field in RATIO_FIELDS)
+        )
     return (
         MetricsObservation(timestamp, values[1], *decimal_values),
         raw_line,
@@ -254,11 +279,20 @@ def load_daily_metrics_archive(
     checksum_bytes: bytes,
     *,
     limits: ArchiveLimits | None = None,
+    feature_family: str = ALL_FIELDS,
 ) -> DailyMetricsBundle:
     """Verify and normalize exactly one complete pre-2025 BTCUSDT UTC day."""
 
     active_limits = limits or ArchiveLimits()
     active_limits.validate()
+    if feature_family == ALL_FIELDS:
+        required_ratio_fields = RATIO_FIELDS
+    else:
+        required_ratio_fields = REQUIRED_RATIO_FIELDS_BY_FEATURE_FAMILY.get(
+            feature_family
+        )
+        if required_ratio_fields is None:
+            raise ArchiveReject("feature family is not supported by the archive contract")
     day = _archive_day(archive_name)
     archive_sha = verify_official_checksum(archive_name, archive_bytes, checksum_bytes)
     archive, member = _safe_csv_member(archive_name, archive_bytes, active_limits)
@@ -287,7 +321,9 @@ def load_daily_metrics_archive(
     for row_number, raw_line in enumerate(lines[1:], start=2):
         if not raw_line:
             raise ArchiveReject(f"metrics row {row_number} is blank")
-        observation, exact_row = _parse_row(raw_line, row_number)
+        observation, exact_row = _parse_row(
+            raw_line, row_number, required_ratio_fields
+        )
         prior = by_timestamp.get(observation.timestamp)
         if prior is not None:
             if prior[1] != exact_row:
@@ -308,6 +344,7 @@ def load_daily_metrics_archive(
         {
             "complete_utc_day": day.isoformat(),
             "dataset": DATASET,
+            "feature_family": feature_family,
             "instrument": SYMBOL,
             "market": MARKET,
             "observations": [item.canonical() for item in observations],
@@ -321,4 +358,5 @@ def load_daily_metrics_archive(
         day=day,
         normalized_payload_sha256=sha256_bytes(normalized_bytes),
         observations=observations,
+        feature_family=feature_family,
     )

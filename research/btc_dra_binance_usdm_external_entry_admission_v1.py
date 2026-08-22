@@ -289,26 +289,36 @@ class ExternalDay:
     available_at: datetime
     price_return: D
     oi_value_return: D
-    top_trader_long_short_ratio: D
-    global_long_short_ratio: D
-    taker_long_short_ratio: D
+    top_trader_long_short_ratio: D | None
+    global_long_short_ratio: D | None
+    taker_long_short_ratio: D | None
     source_normalized_sha256: str
 
     @property
     def positioning_gap(self) -> D:
+        if self.top_trader_long_short_ratio is None or self.global_long_short_ratio is None:
+            raise ScreenReject("DATA_REJECT", "positioning divergence inputs are unavailable")
         return self.top_trader_long_short_ratio - self.global_long_short_ratio
 
     def canonical(self) -> dict[str, str]:
         return {
             "available_at": self.available_at.isoformat(timespec="seconds") + "Z",
             "day": self.day.isoformat(),
-            "global_long_short_ratio": str(self.global_long_short_ratio),
+            "global_long_short_ratio": (
+                None if self.global_long_short_ratio is None else str(self.global_long_short_ratio)
+            ),
             "oi_value_return": str(self.oi_value_return),
             "positioning_gap": str(self.positioning_gap),
             "price_return": str(self.price_return),
             "source_normalized_sha256": self.source_normalized_sha256,
-            "taker_long_short_ratio": str(self.taker_long_short_ratio),
-            "top_trader_long_short_ratio": str(self.top_trader_long_short_ratio),
+            "taker_long_short_ratio": (
+                None if self.taker_long_short_ratio is None else str(self.taker_long_short_ratio)
+            ),
+            "top_trader_long_short_ratio": (
+                None
+                if self.top_trader_long_short_ratio is None
+                else str(self.top_trader_long_short_ratio)
+            ),
         }
 
 
@@ -325,7 +335,14 @@ def _median(values: list[D]) -> D:
 def external_day_from_bundle(
     bundle: archive.DailyMetricsBundle,
     bars: Iterable[base.Bar],
+    *,
+    family_key: str,
 ) -> ExternalDay:
+    family = FEATURES.get(family_key)
+    if family is None:
+        raise ScreenReject("CONTRACT_REJECT", "unsupported or closed feature family")
+    if bundle.feature_family not in {archive.ALL_FIELDS, family["feature_family"]}:
+        raise ScreenReject("DATA_REJECT", "archive bundle does not bind the requested feature family")
     expected_metrics_times = [
         datetime.combine(bundle.day, datetime.min.time())
         + timedelta(minutes=archive.EXPECTED_INTERVAL_MINUTES * index)
@@ -362,15 +379,31 @@ def external_day_from_bundle(
     last = bundle.observations[-1]
     first_oi_value = first.decimal("sum_open_interest_value")
     last_oi_value = last.decimal("sum_open_interest_value")
+    positioning = family_key == "dra-binance-usdm-positioning-divergence-entry-admission"
+    taker_confirmation = (
+        family_key
+        == "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission"
+    )
     return ExternalDay(
         day=bundle.day,
         available_at=datetime.combine(bundle.day + timedelta(days=1), datetime.min.time()),
         price_return=(selected[-1].close / selected[0].open) - D("1"),
         oi_value_return=(last_oi_value / first_oi_value) - D("1"),
-        top_trader_long_short_ratio=last.decimal("sum_toptrader_long_short_ratio"),
-        global_long_short_ratio=last.decimal("count_long_short_ratio"),
-        taker_long_short_ratio=_median(
-            [item.decimal("sum_taker_long_short_vol_ratio") for item in bundle.observations]
+        top_trader_long_short_ratio=(
+            last.decimal("sum_toptrader_long_short_ratio") if positioning else None
+        ),
+        global_long_short_ratio=(
+            last.decimal("count_long_short_ratio") if positioning else None
+        ),
+        taker_long_short_ratio=(
+            _median(
+                [
+                    item.decimal("sum_taker_long_short_vol_ratio")
+                    for item in bundle.observations
+                ]
+            )
+            if taker_confirmation
+            else None
         ),
         source_normalized_sha256=bundle.normalized_payload_sha256,
     )
@@ -379,6 +412,8 @@ def external_day_from_bundle(
 def consolidate_external_days(
     bundles: Iterable[archive.DailyMetricsBundle],
     bars: Iterable[base.Bar],
+    *,
+    family_key: str,
 ) -> tuple[list[ExternalDay], dict[str, Any]]:
     ordered = sorted(bundles, key=lambda item: item.day)
     if not ordered:
@@ -389,7 +424,10 @@ def consolidate_external_days(
     if any(right != left + timedelta(days=1) for left, right in zip(days, days[1:])):
         raise ScreenReject("DATA_REJECT", "external archive sequence contains a UTC-day gap")
     bar_list = list(bars)
-    observations = [external_day_from_bundle(bundle, bar_list) for bundle in ordered]
+    observations = [
+        external_day_from_bundle(bundle, bar_list, family_key=family_key)
+        for bundle in ordered
+    ]
     archive_inventory = [bundle.evidence() for bundle in ordered]
     evidence = {
         "archive_inventory_sha256": sha256_bytes(canonical_document_bytes(archive_inventory)),
@@ -725,7 +763,9 @@ def run_manifest(
         raise ScreenReject("OOS_REJECT", "price selection crosses the frozen pre-2025 boundary")
     if len(bars) != manifest["dataset"]["rows"] or base.data_hash(bars) != manifest["dataset"]["canonical_sha256"]:
         raise ScreenReject("DATA_REJECT", "price selection does not match its frozen hash and row count")
-    external_days, evidence = consolidate_external_days(bundles, bars)
+    external_days, evidence = consolidate_external_days(
+        bundles, bars, family_key=manifest["feature"]["family_key"]
+    )
     if evidence != manifest["external_dataset"]:
         raise ScreenReject("DATA_REJECT", "external dataset does not match its frozen evidence hashes")
     baseline = parent_baseline(bars)

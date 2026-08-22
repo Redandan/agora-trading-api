@@ -1,0 +1,109 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "btc-eth-monthly-equal-weight-rebalancing-historical-v1",
+  "family_id": "btc-eth-monthly-equal-weight-rebalancing-premium",
+  "decided_at": "2026-08-22T13:08:36Z",
+  "status": "NO_CANDIDATE_CLOSE_BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_FIXED_50_50_MONTHLY_BTC_ETH_REBALANCING_FAMILY_WITHOUT_WEIGHT_FREQUENCY_BAND_SOURCE_OR_COST_RESCUE",
+  "manifest": {
+    "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.manifest.json",
+    "sha256": "2e155aaa24a33b386f1653e62f8feb5cae3e03b2cd46e6456462cc3465d7db97"
+  },
+  "runner": {
+    "path": "research/btc_eth_monthly_equal_weight_rebalancing_v1.py",
+    "sha256": "334f5cad0235b76bfe1d3a910569e8229b0a61b18c8ecd8862f2fb9018bacbe9",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-historical-v1/artifacts/run1.json",
+      "sha256": "6300985948bf4abf0cd6584a703877a73843c25fc65225c601c12e041c118361"
+    },
+    {
+      "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-historical-v1/artifacts/run2.json",
+      "sha256": "6300985948bf4abf0cd6584a703877a73843c25fc65225c601c12e041c118361"
+    }
+  ],
+  "determinism": "RUN1_AND_RUN2_BYTE_IDENTICAL",
+  "economic_summary": {
+    "design": {
+      "normal": {
+        "candidate_total_return_pct": "430.80862613",
+        "parent_total_return_pct": "477.12975525",
+        "incremental_total_return_pp": "-46.32112912",
+        "candidate_maximum_drawdown_pct": "76.18031867",
+        "parent_maximum_drawdown_pct": "77.81323145",
+        "candidate_calmar_ratio": "0.97686421",
+        "parent_calmar_ratio": "1.01974180",
+        "terminal_liquidation_incremental_return_pp": "-46.25167059",
+        "turnover_to_initial_equity": "20.10010486",
+        "fees_usdt": "201.00104861"
+      },
+      "stress_incremental_total_return_pp": "-48.23305130"
+    },
+    "validation": {
+      "normal": {
+        "candidate_total_return_pct": "303.08478846",
+        "parent_total_return_pct": "321.73891612",
+        "incremental_total_return_pp": "-18.65412765",
+        "candidate_maximum_drawdown_pct": "35.58107682",
+        "parent_maximum_drawdown_pct": "34.03469236",
+        "candidate_calmar_ratio": "2.82942602",
+        "parent_calmar_ratio": "3.09277874",
+        "terminal_liquidation_incremental_return_pp": "-18.62615579",
+        "turnover_to_initial_equity": "2.67004045",
+        "fees_usdt": "26.70040453",
+        "realized_pnl_usdt": "5385.39731544",
+        "unrealized_pnl_usdt": "24923.08153103"
+      },
+      "stress_incremental_total_return_pp": "-19.01369328"
+    },
+    "annual_normal_incremental_return_pp": {
+      "2020": "12.26686217",
+      "2021": "-23.89352695",
+      "2022": "0.74932566",
+      "2023": "-1.02059603",
+      "2024": "-2.08416483"
+    },
+    "annual_breadth": {
+      "normal_candidate_positive_years": "4_of_5",
+      "normal_incremental_positive_years": "2_of_5",
+      "normal_drawdown_non_worse_years": "3_of_5",
+      "normal_calmar_non_worse_years": "2_of_5",
+      "normal_top_year_positive_incremental_contribution_pct": "94.24312502",
+      "stress_incremental_positive_years": "2_of_5",
+      "stress_top_year_positive_incremental_contribution_pct": "94.20564050"
+    }
+  },
+  "gate_summary": {
+    "passed_gate_count": 10,
+    "failed_gate_count": 22,
+    "material_failed_gates": [
+      "design_normal_and_stress_incremental_total_return_positive",
+      "design_normal_and_stress_terminal_liquidation_incremental_positive",
+      "design_normal_and_stress_calmar_non_worse",
+      "validation_normal_and_stress_incremental_total_return_positive",
+      "validation_normal_and_stress_terminal_liquidation_incremental_positive",
+      "validation_normal_and_stress_drawdown_non_worse",
+      "validation_normal_and_stress_calmar_non_worse",
+      "annual_normal_and_stress_incremental_positive_at_least_4_of_5",
+      "annual_normal_and_stress_drawdown_non_worse_at_least_4_of_5",
+      "annual_normal_and_stress_calmar_non_worse_at_least_4_of_5",
+      "annual_normal_and_stress_top_year_contribution_at_most_60_percent"
+    ]
+  },
+  "material_learning": "The fixed BTC-ETH portfolio itself earned large positive returns, but monthly equal-weight rebalancing did not create independent alpha. It lagged identical initial holdings by 46.32112912 percentage points in Design and 18.65412765 points in Validation under normal costs. Validation drawdown and Calmar were also worse, only two of five annual fair-reset windows had positive incremental return, and 94.24312502 percent of positive annual increment came from 2020. The result is a negative rebalancing-premium finding, not a profitable strategy candidate.",
+  "scientific_claim": "High asset volatility and positive aggregate portfolio return are insufficient for a rebalancing premium. On this fixed source and cost ledger, persistent relative leadership dominated the contrarian transfer often enough that monthly rebalancing reduced matched-capital return and failed path-risk breadth.",
+  "prohibited_reopen": [
+    "Do not change the 50-50 weights, monthly frequency, execution clock, drift band, threshold, source window, venue, fee or adverse-slippage assumptions to rescue this result.",
+    "Do not add momentum, volatility, trend, cash, yield, leverage, shorting or a third asset as a post-outcome neighbor of this family.",
+    "Do not promote drawdown reduction, weight control, realized PnL or positive absolute return when incremental total return, terminal liquidation, Calmar and annual breadth fail.",
+    "Do not create a candidate or open OOS from this result."
+  ],
+  "candidate_created": false,
+  "oos_opened": false,
+  "next_action": "ROTATE_TO_ONE_MATHEMATICALLY_DISTINCT_FREE_SOURCE_MECHANISM_WITH_PREOUTCOME_PRIOR_SOURCE_AND_ACCOUNTING_GATES",
+  "scope_note": "Offline historical Design and Validation only. No paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER, LIVE or OOS action occurred."
+}

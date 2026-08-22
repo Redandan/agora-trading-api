@@ -207,15 +207,15 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "base_stage": "REGISTERED_EXPERIMENT",
+      "base_stage": "HISTORICAL_PRIOR",
       "canonical_binding": {
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
       },
-      "causal_hypothesis": "BTC and ETH are distinct but correlated crypto risk assets. Resetting a fixed two-asset portfolio to equal market value at a predetermined monthly clock systematically sells the relative outperformer and buys the relative underperformer, which may capture cross-asset relative variance while limiting permanent concentration in either asset.",
-      "compute_cost_class": "LOW",
-      "decision_feature": "FIRST_NATIVE_BINANCE_SPOT_DAILY_OPEN_OF_EACH_UTC_MONTH_RESET_BTCUSDT_AND_ETHUSDT_TO_EQUAL_MARKET_VALUE",
-      "duplicate_family_key": "btc-eth-monthly-equal-weight-rebalancing-premium",
+      "causal_hypothesis": "A fixed-maturity BTC delivery future converges to its settlement reference at expiry. Buying BTC spot and shorting the matched delivery future at a positive, causally executable premium may lock a market-neutral convergence cash flow whose source is the initial term basis rather than perpetual funding or directional BTC timing.",
+      "compute_cost_class": "MEDIUM",
+      "decision_feature": "POINT_IN_TIME_ELIGIBLE_BINANCE_BTCUSDT_FIXED_MATURITY_DELIVERY_FUTURE_PREMIUM_AT_ONE_FROZEN_ROLL_CLOCK",
+      "duplicate_family_key": "btc-binance-fixed-maturity-delivery-cash-and-carry",
       "economic_evidence_status": {
         "adverse_slippage": "REQUIRED_NOT_MEASURED",
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY",
@@ -227,33 +227,67 @@
         "total_pnl": "REQUIRED_NOT_MEASURED",
         "unrealized_pnl": "REQUIRED_NOT_MEASURED"
       },
-      "economic_hypothesis": "A monthly rebalanced equal-value BTC-ETH portfolio may improve after-cost Calmar and concentration-adjusted total return versus an initially equal-value buy-and-hold BTC-ETH portfolio, with broad annual support, bounded turnover and zero terminal inventory uplift.",
-      "estimated_days_to_next_gate": 0,
+      "economic_hypothesis": "One point-in-time fixed-maturity BTC spot-delivery-future cash-and-carry policy may earn positive after-cost annualized return with low basis-path drawdown, full settlement reconciliation, broad expiry-cycle and annual support, and no directional or terminal inventory uplift versus zero-yield cash.",
+      "estimated_days_to_next_gate": 2,
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-primary-prior.v1.json",
-          "role": "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
-          "sha256": "f7ccd67a76491701c0ea1134061d6a803425d1438f8d9adb7b803d2960c0d490"
+          "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
+          "role": "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
+          "sha256": "8ad99ea87046321bae3a7edd94f0d82997e8038c2628787973dfea82bad03cb9"
         },
         {
-          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.manifest.json",
-          "role": "FROZEN_CHECKSUM_BOUND_FIXED_TWO_SYMBOL_SOURCE_CONTRACT",
-          "sha256": "933208658c8a3e58e15c999abccb632b6aab544d7d8cc9ef8797d503d8c1fa07"
+          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+          "role": "OFFICIAL_PUBLIC_BINANCE_DERIVATIVES_ARCHIVE_CAPABILITY",
+          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
         },
         {
-          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.decision.json",
-          "role": "SEALED_BYTE_IDENTICAL_COMPLETE_SOURCE_GATE_PASS",
-          "sha256": "8dc227dabcebea43c7a22d286fe70d7353d454563649038109a6247c69755e14"
+          "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
+          "role": "SEALED_PERPETUAL_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
+          "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
         },
         {
-          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-adjacent-closure-prior.v1.json",
-          "role": "SEALED_BTC_CASH_CONSTANT_MIX_ADJACENT_CLOSURE_PRIOR",
-          "sha256": "dd35202f848e24370cb391f79461cc98fb0894889b57b7f643b5e64c952c3504"
+          "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-preoutcome.v1.decision.json",
+          "role": "SEALED_HOURLY_PERPETUAL_BASIS_CONVERGENCE_CLOSURE_BOUNDARY",
+          "sha256": "8aa28407ce60f4a9328b4804a8c17c929fb665b2d688204f3662f3d4e8337f98"
         },
         {
-          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-v1.hypothesis.json",
-          "role": "FROZEN_SCHEMA_VALID_SINGLE_VARIANT_HYPOTHESIS",
-          "sha256": "3cb356707bee5fd88a8645b0ba27015d36e861873f3f8e998b53c2ecd157a249"
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.decision.json",
+          "role": "SEALED_TWO_ASSET_REBALANCING_CLOSURE_AND_ROTATION_ORIGIN",
+          "sha256": "c606609f9dfe5022927e773f133243998c89922fb4e8444c657cc3435a9d7a4c"
+        }
+      ],
+      "family_id": "btc-binance-fixed-maturity-delivery-cash-and-carry",
+      "independence_key": "fixed-maturity-delivery-settlement-convergence-not-perpetual-funding-hourly-dislocation-or-directional-timing",
+      "matched_comparator_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
+      "missing_proof": [
+        "No complete primary and adversarial prior yet freezes the exact fixed-maturity settlement-convergence mechanism, collateral opportunity cost and transfer boundary.",
+        "No point-in-time checksum-bound historical delivery-contract inventory, listing, expiry, settlement-reference and native spot-futures intersection is sealed.",
+        "No contract-selection rule, roll clock, maturity band, entry cost floor, collateral and liquidation ledger, hypothesis, manifest, deterministic runner, economics, breadth, candidate, OOS or forward evidence exists."
+      ],
+      "next_gate": "FREEZE_PRIMARY_ADVERSARIAL_FIXED_MATURITY_CARRY_PRIOR_AND_PROBE_OFFICIAL_BINANCE_HISTORICAL_DELIVERY_CONTRACT_INVENTORY_BEFORE_PRICE_OR_BASIS_VALUE_ACCESS",
+      "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
+      "runner_id": "DIRECT_FIXED_MATURITY_SPOT_DELIVERY_FUTURES_SETTLEMENT_LEDGER_REQUIRED",
+      "title": "BTC Binance fixed-maturity delivery cash-and-carry"
+    }
+  ],
+  "closed_families": [
+    {
+      "family_id": "closed-btc-eth-monthly-equal-weight-rebalancing-premium",
+      "title": "BTC-ETH monthly equal-weight rebalancing premium",
+      "decision_feature": "FIRST_NATIVE_BINANCE_SPOT_DAILY_OPEN_OF_EACH_UTC_MONTH_RESET_BTCUSDT_AND_ETHUSDT_TO_EQUAL_MARKET_VALUE",
+      "parent_strategy_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_FAMILY",
+      "duplicate_family_key": "btc-eth-monthly-equal-weight-rebalancing-premium",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "c606609f9dfe5022927e773f133243998c89922fb4e8444c657cc3435a9d7a4c"
+        },
+        {
+          "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-historical-v1/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+          "sha256": "6300985948bf4abf0cd6584a703877a73843c25fc65225c601c12e041c118361"
         },
         {
           "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.manifest.json",
@@ -261,36 +295,18 @@
           "sha256": "2e155aaa24a33b386f1653e62f8feb5cae3e03b2cd46e6456462cc3465d7db97"
         },
         {
-          "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-primary-prior.v1.json",
-          "role": "SEALED_FIXED_BTC_ETH_UNIVERSE_SOURCE_AND_ADVERSARIAL_PRIOR",
-          "sha256": "722523426b3a5b64412924962c07f745bef4315a72197d0343ccfa4f5f8cd86a"
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_SOURCE_GATE_PASS",
+          "sha256": "8dc227dabcebea43c7a22d286fe70d7353d454563649038109a6247c69755e14"
         },
         {
-          "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-source-boundary.v1.decision.json",
-          "role": "SEALED_LOW_VOLATILITY_ROTATION_NON_REOPEN_AND_SOURCE_BOUNDARY",
-          "sha256": "3f3e7e79f051a448baba96863cf1ae473e103efdc5fd15ac806925947cdff256"
-        },
-        {
-          "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-source-gate.v1.decision.json",
-          "role": "SEALED_MANY_ASSET_MOMENTUM_SOURCE_REJECT_AND_FIXED_TWO_ASSET_BOUNDARY",
-          "sha256": "af94de6fd54a0752966aad4faeccfab55826fce9cb35bb17b5ac8375fcfa1dbb"
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+          "sha256": "f7ccd67a76491701c0ea1134061d6a803425d1438f8d9adb7b803d2960c0d490"
         }
       ],
-      "family_id": "btc-eth-monthly-equal-weight-rebalancing-premium",
-      "independence_key": "fixed-two-asset-equal-weight-monthly-rebalancing-premium-not-asset-selection-timing-or-cash-filter",
-      "matched_comparator_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING_SAME_WINDOW_COST_AND_VALUATION",
-      "missing_proof": [
-        "The frozen matched-capital economic runner has not produced two byte-identical results.",
-        "No Design or Validation incremental return, drawdown, Calmar, annual breadth, concentration or terminal-liquidation result has been opened.",
-        "No historical candidate, independent OOS or forward evidence exists."
-      ],
-      "next_gate": "EXECUTE_THE_FROZEN_SINGLE_VARIANT_MATCHED_CAPITAL_ECONOMIC_RUNNER_TWICE_AND_APPLY_ALL_FAIL_CLOSED_GATES_WITHOUT_OOS_ACCESS",
-      "parent_strategy_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING",
-      "runner_id": "DIRECT_TWO_ASSET_MONTHLY_CONSTANT_MIX_LEDGER_REQUIRED",
-      "title": "BTC-ETH monthly equal-weight rebalancing premium"
-    }
-  ],
-  "closed_families": [
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-btc-binance-usdm-perpetual-basis-convergence-market-neutral",
       "title": "BTC spot-perpetual basis-convergence market-neutral arbitrage",

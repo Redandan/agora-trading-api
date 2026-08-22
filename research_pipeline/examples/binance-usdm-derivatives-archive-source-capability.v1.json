@@ -1,0 +1,159 @@
+{
+  "schema_version": "1",
+  "document_type": "BINANCE_USDM_DERIVATIVES_ARCHIVE_SOURCE_CAPABILITY_V1",
+  "audit_id": "binance-usdm-derivatives-archive-source-capability-v1",
+  "observed_at": "2026-08-22T07:34:36Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "source_authority": {
+    "archive_repository": "https://github.com/binance/binance-public-data",
+    "archive_bucket": "https://data.binance.vision",
+    "funding_rate_api_documentation": "https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#get-funding-rate-history",
+    "open_interest_api_documentation": "https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#open-interest-statistics"
+  },
+  "selection_boundary": {
+    "instrument": "BTCUSDT",
+    "market": "BINANCE_USDM_PERPETUAL",
+    "latest_permitted_observation": "2024-12-31T23:59:59Z",
+    "post_2024_archive_contents_accessed": false,
+    "api_key_required": false,
+    "paid_api_required": false
+  },
+  "archive_inventory": [
+    {
+      "dataset": "daily_metrics",
+      "prefix": "data/futures/um/daily/metrics/BTCUSDT/",
+      "first_archive": "BTCUSDT-metrics-2020-09-01.zip",
+      "latest_visible_archive": "BTCUSDT-metrics-2026-08-21.zip",
+      "archive_zip_count": 2181,
+      "archive_object_count_including_checksums": 4362,
+      "sample_archive": "BTCUSDT-metrics-2020-09-01.zip",
+      "sample_sha256": "9a9c0518bfb939032afe97a6b1708668ec833457743b1ba6ef448fb157722ae3",
+      "sample_checksum_match": true,
+      "sample_columns": [
+        "create_time",
+        "symbol",
+        "sum_open_interest",
+        "sum_open_interest_value",
+        "count_toptrader_long_short_ratio",
+        "sum_toptrader_long_short_ratio",
+        "count_long_short_ratio",
+        "sum_taker_long_short_vol_ratio"
+      ],
+      "observed_anomalies": [
+        "The sampled archive repeats its first timestamp row byte-for-byte; a future adapter must deterministically deduplicate exact duplicate rows and reject conflicting duplicates."
+      ]
+    },
+    {
+      "dataset": "monthly_funding_rate",
+      "prefix": "data/futures/um/monthly/fundingRate/BTCUSDT/",
+      "first_archive": "BTCUSDT-fundingRate-2020-01.zip",
+      "latest_visible_archive": "BTCUSDT-fundingRate-2026-07.zip",
+      "archive_zip_count": 79,
+      "archive_object_count_including_checksums": 158,
+      "sample_archive": "BTCUSDT-fundingRate-2020-01.zip",
+      "sample_sha256": "7f81b2f3694d13779e7e896b69d60cd61e9444d7b9f9e90df761935e1c1b76e2",
+      "sample_checksum_match": true,
+      "sample_columns": [
+        "calc_time",
+        "funding_interval_hours",
+        "last_funding_rate"
+      ],
+      "observed_anomalies": []
+    },
+    {
+      "dataset": "monthly_premium_index_1h",
+      "prefix": "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1h/",
+      "first_archive": "BTCUSDT-1h-2020-01.zip",
+      "latest_visible_archive": "BTCUSDT-1h-2026-07.zip",
+      "archive_zip_count": 79,
+      "archive_object_count_including_checksums": 158,
+      "sample_archive": "BTCUSDT-1h-2020-01.zip",
+      "sample_sha256": "32908c64c74ad4a74f4467a4918267e8e3ffa36d26ddf1d3c2cfe3e55a1b807a",
+      "sample_checksum_match": true,
+      "sample_columns": [
+        "open_time",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "close_time",
+        "quote_volume",
+        "trade_count",
+        "taker_buy_base_volume",
+        "taker_buy_quote_volume",
+        "ignore"
+      ],
+      "observed_anomalies": []
+    }
+  ],
+  "rest_api_limits": {
+    "funding_rate_history": "PAGINABLE_ASCENDING_WITH_MAXIMUM_1000_RECORDS_PER_REQUEST",
+    "open_interest_statistics": "LATEST_ONE_MONTH_ONLY_NOT_A_MULTIYEAR_BACKFILL_SOURCE",
+    "basis_and_positioning_statistics": "LATEST_THIRTY_DAYS_ONLY_NOT_A_MULTIYEAR_BACKFILL_SOURCE"
+  },
+  "deduplication_decision": {
+    "excluded_as_closed_family_reopen": [
+      {
+        "proposed_axis": "funding_or_premium_level_carry_veto",
+        "closed_duplicate_family_key": "dra-crypto-carry-risk-veto",
+        "reason": "A different public venue does not revive the permanently closed carry-conditioned DRA risk-veto family."
+      },
+      {
+        "proposed_axis": "open_interest_growth_alone",
+        "closed_duplicate_family_key": "btc-cftc-total-open-interest-growth-long-cash",
+        "reason": "Venue frequency alone does not make univariate open-interest participation a new causal mechanism."
+      },
+      {
+        "proposed_axis": "taker_buy_imbalance_alone",
+        "closed_duplicate_family_key": "btc-binance-spot-seven-day-taker-buy-imbalance-long-cash",
+        "reason": "Changing spot to perpetual data or parent strategy does not justify reopening the univariate taker-imbalance family."
+      }
+    ],
+    "provisional_independent_joint_families": [
+      {
+        "family_key": "dra-binance-usdm-deleveraging-flush-entry-admission",
+        "feature_family": "joint-price-open-interest-deleveraging-flush",
+        "independence_boundary": "Requires a jointly negative complete-day price path and open-interest-value contraction; neither univariate price shock nor univariate open-interest growth is sufficient."
+      },
+      {
+        "family_key": "dra-binance-usdm-positioning-divergence-entry-admission",
+        "feature_family": "top-trader-versus-global-positioning-divergence",
+        "independence_boundary": "Uses contemporaneous divergence between top-trader position ratio and the global account ratio rather than a single participant level or weekly CFTC category."
+      },
+      {
+        "family_key": "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission",
+        "feature_family": "joint-perpetual-taker-flow-open-interest-confirmation",
+        "independence_boundary": "Requires both directional perpetual taker flow and non-contracting open interest; raw taker imbalance alone is expressly prohibited."
+      }
+    ]
+  },
+  "capability_decision": "SOURCE_READY_FOR_ONE_SHARED_OFFLINE_ADAPTER_AND_DECLARATIVE_DRA_RUNNER_NO_HYPOTHESIS_OR_CANDIDATE_YET",
+  "required_next_capability": {
+    "maximum_files_changed": 6,
+    "maximum_candidate_variants_per_experiment": 3,
+    "network_policy": "PUBLIC_READ_ONLY_BINANCE_ARCHIVE_ONLY",
+    "required_behaviors": [
+      "Verify every archive against its official CHECKSUM sidecar before parsing.",
+      "Restrict normalized contents to observations available no later than the frozen 2024 selection cutoff.",
+      "Deduplicate byte-identical timestamp rows and reject conflicting duplicates.",
+      "Use only complete UTC days and make each feature available after its source day is complete and before the next DRA fill.",
+      "Bind the unchanged BTC_DRA_V1 equal-capital parent, fee, slippage, holding, inventory, drawdown and annual breadth outputs.",
+      "Keep each experiment to one family and at most three preregistered variants."
+    ]
+  },
+  "missing_proof": [
+    "The full pre-2025 archive corpus has not been downloaded, checksum-verified, normalized or sealed.",
+    "No shared adapter or declarative DRA external-feature runner exists yet.",
+    "The three joint feature definitions are source-ready pre-candidates, not frozen hypotheses; thresholds, redundancy gates and sample breadth remain unregistered.",
+    "No predictive, matched-capital economic, drawdown, holding, inventory, candidate or OOS evidence exists for these families."
+  ],
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "candidate_created": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false
+  }
+}

@@ -263,6 +263,135 @@
         "No MFI outcome, matched buy-and-hold economics, candidate, OOS or forward evidence exists."
       ],
       "duplicate_family_key": "btc-daily-money-flow-index-14-midline-long-cash"
+    },
+    {
+      "family_id": "dra-binance-usdm-deleveraging-flush-entry-admission",
+      "title": "DRA entry admission after Binance USD-M leverage flush",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_JOINT_NEGATIVE_BINANCE_USDM_PRICE_RETURN_AND_OPEN_INTEREST_VALUE_CONTRACTION",
+      "causal_hypothesis": "A complete-day BTC perpetual price decline accompanied by falling open-interest value may identify forced leverage removal rather than a still-crowded directional move.",
+      "economic_hypothesis": "Admitting the next eligible DRA long entry only after a preregistered deleveraging-flush state may improve equal-capital realized and total PnL without worsening drawdown, holding age or terminal inventory.",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+      "runner_id": "BTC_DRA_BINANCE_USDM_DERIVATIVES_DECLARATIVE_RUNNER_NOT_YET_IMPLEMENTED",
+      "base_stage": "READY_FOR_HYPOTHESIS",
+      "estimated_days_to_next_gate": 1,
+      "compute_cost_class": "LOW",
+      "independence_key": "joint-binance-usdm-price-open-interest-deleveraging-flush",
+      "next_gate": "VALIDATE_ONE_SHARED_CANDIDATE_ENABLING_CAPABILITY_PREFLIGHT_THEN_IMPLEMENT_THE_CHECKSUM_BOUND_ADAPTER_AND_RUNNER",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+          "role": "OFFICIAL_ARCHIVE_SOURCE_AND_SEMANTIC_DEDUP_AUDIT",
+          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "REQUIRED_NOT_MEASURED",
+        "adverse_slippage": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "No checksum-bound full pre-2025 normalized Binance USD-M corpus or shared external-feature runner exists.",
+        "The joint state, thresholds, redundancy gate and maximum three variants are not frozen in a hypothesis or manifest.",
+        "No predictive, matched-capital economic, candidate, OOS or forward evidence exists."
+      ],
+      "duplicate_family_key": "dra-binance-usdm-deleveraging-flush-entry-admission"
+    },
+    {
+      "family_id": "dra-binance-usdm-positioning-divergence-entry-admission",
+      "title": "DRA entry admission by Binance USD-M positioning divergence",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_TOP_TRADER_POSITION_RATIO_MINUS_GLOBAL_ACCOUNT_LONG_SHORT_RATIO",
+      "causal_hypothesis": "A persistent divergence between top-trader position ratio and broad account positioning may distinguish informed participation from uniformly crowded long exposure.",
+      "economic_hypothesis": "Conditioning the next eligible DRA entry on one preregistered non-crowded positioning-divergence state may improve equal-capital PnL and path risk after unchanged fees and slippage.",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+      "runner_id": "BTC_DRA_BINANCE_USDM_DERIVATIVES_DECLARATIVE_RUNNER_NOT_YET_IMPLEMENTED",
+      "base_stage": "READY_FOR_HYPOTHESIS",
+      "estimated_days_to_next_gate": 1,
+      "compute_cost_class": "LOW",
+      "independence_key": "binance-usdm-top-trader-versus-global-positioning-divergence",
+      "next_gate": "VALIDATE_ONE_SHARED_CANDIDATE_ENABLING_CAPABILITY_PREFLIGHT_THEN_IMPLEMENT_THE_CHECKSUM_BOUND_ADAPTER_AND_RUNNER",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+          "role": "OFFICIAL_ARCHIVE_SOURCE_AND_SEMANTIC_DEDUP_AUDIT",
+          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "REQUIRED_NOT_MEASURED",
+        "adverse_slippage": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "No checksum-bound full pre-2025 normalized Binance USD-M metrics corpus or shared external-feature runner exists.",
+        "The divergence direction, aggregation, thresholds, redundancy gate and maximum three variants are not frozen.",
+        "No predictive, matched-capital economic, candidate, OOS or forward evidence exists."
+      ],
+      "duplicate_family_key": "dra-binance-usdm-positioning-divergence-entry-admission"
+    },
+    {
+      "family_id": "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission",
+      "title": "DRA entry admission by Binance USD-M taker flow and open-interest confirmation",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_JOINT_SUPPORTIVE_TAKER_LONG_SHORT_VOLUME_RATIO_AND_NON_CONTRACTING_OPEN_INTEREST",
+      "causal_hypothesis": "Directional perpetual taker demand accompanied by stable or expanding open interest may identify committed participation more reliably than raw taker imbalance alone.",
+      "economic_hypothesis": "Requiring one preregistered joint taker-flow and open-interest confirmation state before a DRA entry may improve equal-capital fee-adjusted PnL without concentrating gains or worsening drawdown and inventory paths.",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+      "runner_id": "BTC_DRA_BINANCE_USDM_DERIVATIVES_DECLARATIVE_RUNNER_NOT_YET_IMPLEMENTED",
+      "base_stage": "READY_FOR_HYPOTHESIS",
+      "estimated_days_to_next_gate": 1,
+      "compute_cost_class": "LOW",
+      "independence_key": "joint-binance-usdm-taker-flow-open-interest-confirmation",
+      "next_gate": "VALIDATE_ONE_SHARED_CANDIDATE_ENABLING_CAPABILITY_PREFLIGHT_THEN_IMPLEMENT_THE_CHECKSUM_BOUND_ADAPTER_AND_RUNNER",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+          "role": "OFFICIAL_ARCHIVE_SOURCE_AND_SEMANTIC_DEDUP_AUDIT",
+          "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "REQUIRED_NOT_MEASURED",
+        "adverse_slippage": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "No checksum-bound full pre-2025 normalized Binance USD-M metrics corpus or shared external-feature runner exists.",
+        "Raw taker imbalance is a prohibited closed-family reopen; the joint OI condition, thresholds, redundancy gate and maximum three variants are not frozen.",
+        "No predictive, matched-capital economic, candidate, OOS or forward evidence exists."
+      ],
+      "duplicate_family_key": "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission"
     }
   ],
   "closed_families": [

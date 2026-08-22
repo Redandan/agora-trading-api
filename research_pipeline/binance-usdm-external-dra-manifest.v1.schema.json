@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/binance-usdm-external-dra-manifest.v1.schema.json",
+  "title": "Binance USD-M external-feature DRA manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["authorization", "dataset", "document_type", "economics", "experiment_id", "external_dataset", "feature", "gate_set", "oos_access", "parent_strategy", "prior_evidence", "schema_version", "selection_cutoff", "variants"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BINANCE_USDM_EXTERNAL_DRA_MANIFEST_V1"},
+    "experiment_id": {"$ref": "#/$defs/identifier"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "parent_strategy": {"const": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH"},
+    "selection_cutoff": {"const": "2025-01-01T00:00:00Z"},
+    "oos_access": {"const": "DENY"},
+    "gate_set": {"const": "DRA_BINANCE_USDM_EXTERNAL_ENTRY_ADMISSION_GATES_V1"},
+    "prior_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["disposition", "path", "sha256"],
+      "properties": {
+        "disposition": {"const": "SOURCE_READY_FOR_ONE_SHARED_OFFLINE_ADAPTER_AND_DECLARATIVE_DRA_RUNNER_NO_HYPOTHESIS_OR_CANDIDATE_YET"},
+        "path": {"const": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical_sha256", "rows"],
+      "properties": {
+        "canonical_sha256": {"$ref": "#/$defs/sha256"},
+        "rows": {"type": "integer", "minimum": 1}
+      }
+    },
+    "external_dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["archive_inventory_sha256", "complete_utc_days", "dataset", "instrument", "latest_permitted_observation", "normalized_payload_sha256"],
+      "properties": {
+        "archive_inventory_sha256": {"$ref": "#/$defs/sha256"},
+        "complete_utc_days": {"type": "integer", "minimum": 1},
+        "dataset": {"const": "BINANCE_USDM_DAILY_METRICS"},
+        "instrument": {"const": "BTCUSDT"},
+        "latest_permitted_observation": {"const": "2024-12-31T23:59:59Z"},
+        "normalized_payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "economics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fee_rate", "initial_equity_usdt", "slippage_rate", "slot_capacity_usdt"],
+      "properties": {
+        "fee_rate": {"const": "0.0010"},
+        "initial_equity_usdt": {"const": "250"},
+        "slippage_rate": {"const": "0.0005"},
+        "slot_capacity_usdt": {"const": "240"}
+      }
+    },
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_time", "family_key", "feature_family"],
+      "properties": {
+        "decision_time": {"const": "LATEST_COMPLETE_UTC_SOURCE_DAY_BEFORE_NEXT_DRA_FILL"},
+        "family_key": {
+          "enum": [
+            "dra-binance-usdm-deleveraging-flush-entry-admission",
+            "dra-binance-usdm-positioning-divergence-entry-admission",
+            "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission"
+          ]
+        },
+        "feature_family": {
+          "enum": [
+            "joint-price-open-interest-deleveraging-flush",
+            "top-trader-versus-global-positioning-divergence",
+            "joint-perpetual-taker-flow-open-interest-confirmation"
+          ]
+        }
+      }
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "contains": {"type": "object", "properties": {"role": {"const": "primary"}}, "required": ["role"]},
+      "minContains": 1,
+      "maxContains": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "thresholds", "variant_id"],
+        "properties": {
+          "role": {"enum": ["lower_neighbor", "primary", "upper_neighbor"]},
+          "thresholds": {
+            "oneOf": [
+              {"$ref": "#/$defs/flushThresholds"},
+              {"$ref": "#/$defs/divergenceThresholds"},
+              {"$ref": "#/$defs/takerOiThresholds"}
+            ]
+          },
+          "variant_id": {"$ref": "#/$defs/identifier"}
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"feature": {"properties": {"family_key": {"const": "dra-binance-usdm-deleveraging-flush-entry-admission"}}, "required": ["family_key"]}}, "required": ["feature"]},
+      "then": {
+        "properties": {
+          "feature": {"properties": {"feature_family": {"const": "joint-price-open-interest-deleveraging-flush"}}},
+          "variants": {"items": {"properties": {"thresholds": {"$ref": "#/$defs/flushThresholds"}}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"feature": {"properties": {"family_key": {"const": "dra-binance-usdm-positioning-divergence-entry-admission"}}, "required": ["family_key"]}}, "required": ["feature"]},
+      "then": {
+        "properties": {
+          "feature": {"properties": {"feature_family": {"const": "top-trader-versus-global-positioning-divergence"}}},
+          "variants": {"items": {"properties": {"thresholds": {"$ref": "#/$defs/divergenceThresholds"}}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"feature": {"properties": {"family_key": {"const": "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission"}}, "required": ["family_key"]}}, "required": ["feature"]},
+      "then": {
+        "properties": {
+          "feature": {"properties": {"feature_family": {"const": "joint-perpetual-taker-flow-open-interest-confirmation"}}},
+          "variants": {"items": {"properties": {"thresholds": {"$ref": "#/$defs/takerOiThresholds"}}}}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signedDecimal": {"type": "string", "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+    "unsignedDecimal": {"type": "string", "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+    "flushThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["oi_value_return_at_or_below", "price_return_at_or_below"],
+      "properties": {
+        "oi_value_return_at_or_below": {"$ref": "#/$defs/signedDecimal"},
+        "price_return_at_or_below": {"$ref": "#/$defs/signedDecimal"}
+      }
+    },
+    "divergenceThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["absolute_positioning_gap_at_or_above"],
+      "properties": {
+        "absolute_positioning_gap_at_or_above": {"$ref": "#/$defs/unsignedDecimal"}
+      }
+    },
+    "takerOiThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["oi_value_return_at_or_above", "taker_long_short_ratio_at_or_above"],
+      "properties": {
+        "oi_value_return_at_or_above": {"$ref": "#/$defs/unsignedDecimal"},
+        "taker_long_short_ratio_at_or_above": {"$ref": "#/$defs/unsignedDecimal"}
+      }
+    }
+  }
+}

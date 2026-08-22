@@ -121,6 +121,8 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_BYTE_IDENTICAL_METADATA_SOURCE_GATE_PASS_PRICE_ACCESS_STILL_DENIED",
                 "FROZEN_CHECKSUM_BOUND_TWO_SYMBOL_SOURCE_MANIFEST",
                 "FROZEN_PRE_VALUE_POLICY_COST_WINDOW_COMPARATOR_AND_ALL_PASS_GATE_SPEC",
+                "SEALED_BYTE_IDENTICAL_CHECKSUM_VERIFIED_SOURCE_GATE_PASS",
+                "FROZEN_HASH_BOUND_FINAL_HISTORICAL_MANIFEST",
             ],
         )
         closed_fixed_maturity_carry = next(

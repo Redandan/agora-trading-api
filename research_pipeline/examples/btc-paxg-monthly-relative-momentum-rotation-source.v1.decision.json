@@ -1,0 +1,50 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_SOURCE_DECISION_V1",
+  "experiment_id": "btc-paxg-monthly-relative-momentum-rotation-source-v1",
+  "family_id": "btc-paxg-monthly-relative-momentum-rotation",
+  "decided_at": "2026-08-22T16:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_BYTE_IDENTICAL_CHECKSUM_VERIFIED_SOURCE_GATE_PASS_NO_STRATEGY_OUTCOME",
+  "source_contract": {
+    "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.manifest.json",
+    "sha256": "b09a7c4630cfef987e2f6a8875a323cbf8ed1513d8274f44683b810b903222e8"
+  },
+  "sealed_runs": [
+    {
+      "bundle_path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/source.v1.run1.bundle.json",
+      "bundle_sha256": "e09d7e1229f3748c9998532c7137f8eb77e4d8e2342315515f026bd2ae907e7a",
+      "normalized_gzip_path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/btc-paxg-daily-2020-09-2024.v1.run1.csv.gz",
+      "normalized_gzip_sha256": "0f19030db8562d1f892aaa00d38d164cf3b15c87cdad80350e2f3adbe2cc07fe"
+    },
+    {
+      "bundle_path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/source.v1.run2.bundle.json",
+      "bundle_sha256": "e09d7e1229f3748c9998532c7137f8eb77e4d8e2342315515f026bd2ae907e7a",
+      "normalized_gzip_path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/btc-paxg-daily-2020-09-2024.v1.run2.csv.gz",
+      "normalized_gzip_sha256": "0f19030db8562d1f892aaa00d38d164cf3b15c87cdad80350e2f3adbe2cc07fe"
+    }
+  ],
+  "determinism": {
+    "bundle_byte_identical": true,
+    "normalized_gzip_byte_identical": true,
+    "archive_count": 104,
+    "intersection_day_count_per_symbol": 1583,
+    "row_count": 3166
+  },
+  "integrity": {
+    "every_archive_matches_publisher_checksum": true,
+    "every_archive_has_one_expected_csv_member": true,
+    "exact_symbols_only": true,
+    "complete_utc_day_intersection": true,
+    "duplicate_symbol_day_rows": 0,
+    "partial_terminal_session_rows": 0,
+    "current_exchange_info_used": false,
+    "return_or_strategy_outcome_computed": false
+  },
+  "decision": "ALLOW_THE_ALREADY_FROZEN_SINGLE_VARIANT_ECONOMIC_RUNNER_TO_READ_ONLY_RUN1_AFTER_THE_FINAL_MANIFEST_BINDS_THESE_HASHES",
+  "remaining_proof": [
+    "PAXG secondary-market liquidity, spread and physical-gold tracking are not proven by daily archive integrity.",
+    "Formation returns, selections, turnover, costs, PnL, drawdown, breadth, concentration and OOS remain unopened."
+  ],
+  "scope_note": "Checksum-bound source acquisition only. No return, ranking, strategy path, PnL, drawdown, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

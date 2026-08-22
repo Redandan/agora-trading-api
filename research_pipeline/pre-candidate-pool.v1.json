@@ -219,7 +219,7 @@
       "estimated_days_to_next_gate": 1,
       "compute_cost_class": "LOW",
       "independence_key": "btc-tokenized-gold-cross-asset-relative-momentum-not-fixed-weight-rebalancing-volatility-selection-or-external-market-timing",
-      "next_gate": "EXECUTE_THE_FROZEN_CHECKSUM_BOUND_BTC_PAXG_SOURCE_TWICE_THEN_BIND_BYTE_IDENTICAL_HASHES_WITHOUT_CHANGING_POLICY_COSTS_WINDOWS_OR_GATES",
+      "next_gate": "EXECUTE_THE_FROZEN_MATCHED_CAPITAL_HISTORICAL_RUNNER_TWICE_AND_CLOSE_ON_ANY_SOURCE_DESIGN_VALIDATION_PATH_RISK_OR_BREADTH_FAILURE",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
@@ -249,6 +249,16 @@
           "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.prevalue-spec.json",
           "role": "FROZEN_PRE_VALUE_POLICY_COST_WINDOW_COMPARATOR_AND_ALL_PASS_GATE_SPEC",
           "sha256": "0a4d1155c95dc2a6e96c56e8c3fafa1d22c74a79e76ac5bc9e601ffb70bf277d"
+        },
+        {
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_CHECKSUM_VERIFIED_SOURCE_GATE_PASS",
+          "sha256": "4e9fe1039ab3ae4ed3d9afb3c5a5c7268c979e59c04deaeaeba25e813dc41bf0"
+        },
+        {
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.manifest.json",
+          "role": "FROZEN_HASH_BOUND_FINAL_HISTORICAL_MANIFEST",
+          "sha256": "56c671313da7c6f5880a459c2c9790701a8cde8de97dcf227a77df497e97fae3"
         }
       ],
       "economic_evidence_status": {
@@ -264,7 +274,7 @@
       },
       "missing_proof": [
         "Metadata proves every required 2020-09 through 2024-12 ZIP and checksum object exists, but no body or daily row has been opened.",
-        "The source adapter and complete strategy ledger are frozen, but archive checksums, common daily lattice and deterministic source hashes remain unopened.",
+        "All 104 archives passed publisher checksums and the 3,166-row daily corpus is byte-identical across two runs; historical economics remain unopened.",
         "PAXG liquidity, spread and physical-gold tracking remain diagnostics rather than proved execution capacity.",
         "All Design, Validation, annual breadth, concentration, drawdown, candidate and OOS evidence remains missing."
       ],

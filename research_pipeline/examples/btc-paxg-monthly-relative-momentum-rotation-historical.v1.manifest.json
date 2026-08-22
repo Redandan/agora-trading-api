@@ -1,0 +1,163 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-paxg-monthly-relative-momentum-rotation-historical-v1",
+  "created_at": "2026-08-22T16:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "At each UTC month boundary, holding only the better-performing of BTC and tokenized gold over the preceding six complete calendar months improves after-cost risk-adjusted performance versus static 50/50 BTC-PAXG, with non-worse drawdown and Calmar versus BTC-only opportunity cost and broad annual support.",
+  "prevalue_contract": {
+    "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.prevalue-spec.json",
+    "sha256": "0a4d1155c95dc2a6e96c56e8c3fafa1d22c74a79e76ac5bc9e601ffb70bf277d",
+    "policy_cost_window_and_gate_changes": "DENY"
+  },
+  "dataset": {
+    "bundle_path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/source.v1.run1.bundle.json",
+    "bundle_sha256": "e09d7e1229f3748c9998532c7137f8eb77e4d8e2342315515f026bd2ae907e7a",
+    "normalized_gzip_path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/btc-paxg-daily-2020-09-2024.v1.run1.csv.gz",
+    "normalized_gzip_sha256": "0f19030db8562d1f892aaa00d38d164cf3b15c87cdad80350e2f3adbe2cc07fe",
+    "rows": 3166,
+    "intersection_days_per_symbol": 1583,
+    "first_day": "2020-09-01",
+    "last_day": "2024-12-31",
+    "selection_cutoff": "2025-01-01T00:00:00Z"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_paxg_monthly_relative_momentum_rotation_v1.py",
+      "sha256": "e65f49cfc4cfd60b62ad2a0b1d5891ecb62b4e456e2c2cd5461b157c32507197",
+      "role": "FROZEN_DIRECT_MATCHED_CAPITAL_ROTATION_RUNNER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.prevalue-spec.json",
+      "sha256": "0a4d1155c95dc2a6e96c56e8c3fafa1d22c74a79e76ac5bc9e601ffb70bf277d",
+      "role": "FROZEN_PRE_VALUE_POLICY_COST_WINDOW_COMPARATOR_AND_ALL_PASS_GATE_SPEC"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.decision.json",
+      "sha256": "4e9fe1039ab3ae4ed3d9afb3c5a5c7268c979e59c04deaeaeba25e813dc41bf0",
+      "role": "SEALED_BYTE_IDENTICAL_CHECKSUM_VERIFIED_SOURCE_GATE_PASS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-primary-prior.v1.json",
+      "sha256": "49bfcf8a65abb1d973556796dd408d02ff08e79c0d8204466000b2fa5737f3bb",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR"
+    },
+    {
+      "path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/source.v1.run1.bundle.json",
+      "sha256": "e09d7e1229f3748c9998532c7137f8eb77e4d8e2342315515f026bd2ae907e7a",
+      "role": "SEALED_SOURCE_BUNDLE"
+    },
+    {
+      "path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/btc-paxg-daily-2020-09-2024.v1.run1.csv.gz",
+      "sha256": "0f19030db8562d1f892aaa00d38d164cf3b15c87cdad80350e2f3adbe2cc07fe",
+      "role": "SEALED_NORMALIZED_DAILY_SOURCE"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_PAXG_MONTHLY_SIX_COMPLETE_MONTH_RELATIVE_MOMENTUM_ROTATION_V1",
+    "symbols": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "bar_interval": "1d",
+    "initial_equity_usdt": "10000",
+    "formation": "EACH_SYMBOL_LAST_COMPLETE_DAY_CLOSE_DIVIDED_BY_FIRST_NATIVE_DAILY_OPEN_SIX_COMPLETE_CALENDAR_MONTHS_EARLIER_MINUS_ONE",
+    "decision_clock": "FIRST_NATIVE_DAILY_OPEN_OF_EACH_UTC_MONTH",
+    "selection": "HOLD_ONE_HUNDRED_PERCENT_OF_THE_SYMBOL_WITH_THE_HIGHER_LAGGED_FORMATION_RETURN",
+    "exact_tie": "BTCUSDT",
+    "switch_execution": "SELL_CURRENT_ASSET_THEN_BUY_SELECTED_ASSET_AT_THE_SAME_NATIVE_DAILY_OPEN_WITH_ADVERSE_COSTS",
+    "cash_return": "0",
+    "leverage": "DENY",
+    "short": "DENY",
+    "external_cash_flow": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2021-03-01",
+      "2023-01-01"
+    ],
+    "validation": [
+      "2023-01-01",
+      "2025-01-01"
+    ],
+    "annual_fair_reset_years": [
+      2022,
+      2023,
+      2024
+    ],
+    "formation_bootstrap_start": "2020-09-01",
+    "state": "FAIR_RESET_IDENTICAL_INITIAL_EQUITY_EACH_WINDOW"
+  },
+  "comparators": {
+    "primary": "STATIC_50_50_BTC_PAXG_BOUGHT_AT_WINDOW_FIRST_NATIVE_OPEN_AND_NEVER_REBALANCED",
+    "opportunity_cost": "BTC_ONLY_BOUGHT_AT_WINDOW_FIRST_NATIVE_OPEN_AND_NEVER_TRADED",
+    "capital_matching": "SAME_INITIAL_EQUITY_SOURCE_WINDOW_INITIAL_EXECUTION_COSTS_DAILY_CLOSE_VALUATION_AND_TERMINAL_LIQUIDATION_SENSITIVITY"
+  },
+  "gate_set": {
+    "id": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_MATCHED_CAPITAL_GATES_V1",
+    "design_and_validation_each_cost_scenario": [
+      "candidate_total_return_positive",
+      "candidate_total_return_strictly_above_static_50_50",
+      "candidate_terminal_liquidation_return_strictly_above_static_50_50",
+      "candidate_maximum_drawdown_non_worse_than_static_50_50",
+      "candidate_calmar_non_worse_than_static_50_50",
+      "candidate_maximum_drawdown_non_worse_than_btc_only",
+      "candidate_calmar_non_worse_than_btc_only"
+    ],
+    "mechanism_breadth_each_window": [
+      "monthly_signal_count_exactly_22_design_and_24_validation",
+      "switch_count_at_least_2",
+      "btc_selected_at_least_3_months",
+      "paxg_selected_at_least_3_months"
+    ],
+    "annual_breadth_each_cost_scenario_2022_2024": [
+      "candidate_positive_return_at_least_2_of_3_years",
+      "candidate_beats_static_50_50_at_least_2_of_3_years",
+      "candidate_drawdown_non_worse_than_static_at_least_2_of_3_years",
+      "candidate_calmar_non_worse_than_static_at_least_2_of_3_years",
+      "candidate_calmar_non_worse_than_btc_at_least_2_of_3_years",
+      "top_positive_incremental_year_contribution_at_most_65_percent"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_BTC_PAXG_MONTHLY_SIX_MONTH_RELATIVE_MOMENTUM_ROTATION_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "runs": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS_WITH_IDENTICAL_SHA256",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "oos_access": "DENY",
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics if any manifest binding, source bundle, normalized gzip, normalized CSV, symbol, row, UTC-day intersection or OHLCV gate differs.",
+    "Use exactly one six-month monthly BTC-PAXG policy under the two frozen cost scenarios; do not scan horizons, thresholds, trend, volatility, cash, weights, leverage, shorting, venue, source or costs after outcome access.",
+    "Stop and permanently close the exact family if Design, Validation, mechanism breadth, annual breadth, concentration, return, drawdown, Calmar or determinism fails any frozen gate.",
+    "Do not access post-2024 evidence or OOS. A full historical pass may only become CANDIDATE_ELIGIBLE_REPORTED_NOT_ACTIVATED with independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

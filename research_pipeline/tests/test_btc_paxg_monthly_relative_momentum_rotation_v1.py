@@ -11,6 +11,7 @@ from research.btc_paxg_monthly_relative_momentum_rotation_v1 import (
     formation_returns,
     selected_symbol,
     simulate_rotation,
+    validate_manifest,
 )
 
 
@@ -18,6 +19,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_MANIFEST = REPO_ROOT / (
     "research_pipeline/examples/"
     "btc-paxg-monthly-relative-momentum-rotation-source.v1.manifest.json"
+)
+PREVALUE_SPEC = REPO_ROOT / (
+    "research_pipeline/examples/"
+    "btc-paxg-monthly-relative-momentum-rotation-historical.v1.prevalue-spec.json"
+)
+HISTORICAL_MANIFEST = REPO_ROOT / (
+    "research_pipeline/examples/"
+    "btc-paxg-monthly-relative-momentum-rotation-historical.v1.manifest.json"
 )
 
 
@@ -45,6 +54,20 @@ class BtcPaxgMonthlyRelativeMomentumRotationV1Test(unittest.TestCase):
         )
         self.assertEqual(52, len(source.expected_months()))
         self.assertEqual(1583, len(source.expected_days()))
+
+    def test_final_manifest_preserves_every_frozen_scientific_field(self) -> None:
+        import json
+
+        prevalue = json.loads(PREVALUE_SPEC.read_text(encoding="utf-8"))
+        manifest = validate_manifest(HISTORICAL_MANIFEST)
+        for field in (
+            "strategy_policy",
+            "cost_scenarios",
+            "windows",
+            "comparators",
+            "gate_set",
+        ):
+            self.assertEqual(prevalue[field], manifest[field])
 
     def test_formation_uses_six_month_start_open_and_prior_day_close(self) -> None:
         bars = synthetic_bars(date(2020, 9, 1), date(2021, 2, 28))

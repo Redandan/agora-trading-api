@@ -1,0 +1,142 @@
+{
+  "schema_version": "1",
+  "document_type": "LOCAL_DIRECT_SCREEN_PACKAGE_BLUEPRINT_V1",
+  "package_id": "btc-daily-aroon14-oscillator-long-cash-v1",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "local_thread_id": "inline-local-node-2026-08-22-aroon14",
+  "canonical_research_status": "SERVER_CANONICAL_WAITING_QUEUE_IDLE_FUNNEL_READY_ZERO_ACTIVE_ZERO_OOS_2026_08_22T09_07_08Z",
+  "objective": "Evaluate exactly one frozen Aroon14 oscillator BTC long-or-zero-yield-cash policy on the sealed pre-2025 H1 corpus. Compare primary zero and rejection-only negative-25 and positive-25 thresholds with full-capital buy-and-hold under identical normal and stress costs. Freeze a historical candidate only if every Design, Validation, annual breadth, concentration, drawdown, holding and terminal-inventory gate passes; otherwise permanently close the exact family without tuning. This is historical development evidence, not OOS or Trading authorization.",
+  "issued_at": {
+    "task": "2026-08-22T09:26:00Z",
+    "dispatch": "2026-08-22T09:26:10Z",
+    "intent": "2026-08-22T09:26:20Z",
+    "strategy_path": "2026-08-22T09:26:30Z"
+  },
+  "limits": {
+    "timeout_seconds": 3600
+  },
+  "classification": {
+    "duplicate_family_key": "btc-daily-aroon14-oscillator-long-cash",
+    "independence_semantics": "UNIQUE_FAMILY",
+    "disposition_actions": [
+      {
+        "disposition": "BTC_DAILY_AROON14_HISTORICAL_CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED",
+        "action": "COUNT"
+      },
+      {
+        "disposition": "BTC_DAILY_AROON14_FAMILY_CLOSE",
+        "action": "COUNT"
+      },
+      {
+        "disposition": "BTC_DAILY_AROON14_EVIDENCE_INSUFFICIENT",
+        "action": "EXCLUDE"
+      }
+    ]
+  },
+  "decision_contract": {
+    "positive_disposition": "BTC_DAILY_AROON14_HISTORICAL_CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED",
+    "negative_disposition": "BTC_DAILY_AROON14_FAMILY_CLOSE",
+    "insufficient_evidence_disposition": "BTC_DAILY_AROON14_EVIDENCE_INSUFFICIENT"
+  },
+  "performance_case": {
+    "causal_mechanism": "Aroon14 distinguishes the relative recency of complete-day highs and lows without averaging price, scaling directional movement by volatility or using a trailing stop before the next-open decision.",
+    "performance_hypothesis": "The primary Aroon14 oscillator above zero state improves after-cost risk-adjusted performance versus matched full-capital buy-and-hold in both Design and historical Validation, with stable negative-25 and positive-25 neighbors and broad annual support.",
+    "drawdown_hypothesis": "The policy is valuable only if it reduces adverse exposure enough to meet strict drawdown and Calmar gates without sacrificing required upside, hiding losses in terminal inventory or concentrating gains in one year or episode.",
+    "expected_direction": "POSITIVE",
+    "opportunity_cost": "The filter may miss profitable trends while an old extreme remains in the window and can overtrade when extreme recency changes. One frozen screen either produces a historical candidate for independent OOS or closes the exact family before more threshold or runtime work consumes capacity.",
+    "claim_boundary": "This task may establish only one pre-2025 historical Design and Validation decision for exact Aroon14 oscillator thresholds negative 25, zero and positive 25. It cannot inspect post-2024 data, tune any formula or gate, substitute a neighbor, create Trading behavior, activate a strategy or open OOS unless every frozen gate passes."
+  },
+  "strategy_path": {
+    "candidate_path": {
+      "status": "DIRECT_TO_FROZEN_HYPOTHESIS",
+      "maximum_additional_research_steps": 1,
+      "positive_next_step": "FROZEN_HYPOTHESIS_MANIFEST",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "runner_id": "BTC_DAILY_AROON14_OSCILLATOR_LONG_CASH_RUNNER_V1"
+    },
+    "decision_time": {
+      "feature_name": "COMPLETE_UTC_DAY_AROON14_EXTREME_RECENCY_OSCILLATOR",
+      "decision_clock": "COMPLETE_UTC_DAY_CLOSE_BEFORE_NEXT_H1_OPEN",
+      "availability_rule": "All daily high and low inputs through completed day D and prior D-14 are known before the next H1 open; no incomplete day or later bar is used."
+    },
+    "evidence_bindings": {
+      "decision_feature": "research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-historical.v1.manifest.json",
+      "parent_strategy": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "matched_comparator": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "execution_runner": "research/btc_daily_aroon14_oscillator_long_cash_historical.py"
+    }
+  },
+  "inputs": [
+    {"kind": "REPOSITORY_PATH", "locator": "AGENTS.md", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": ".agents/skills/autonomous-trading-research/SKILL.md", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "docs/autonomous-research-charter.md", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "docs/local-codex-research-node-v1.md", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/policy.v3.json", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/local-research-result.schema.json", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/local-research-strategy-path.v1.schema.json", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/local-direct-screen-package.v1.schema.json", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/local_direct_screen_package.py", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/examples/local-direct-screen-package.btc-daily-aroon14-oscillator-long-cash.v1.json", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-primary-prior.v1.json", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-v1.hypothesis.json", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-historical.v1.manifest.json", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research/btc_daily_aroon14_oscillator_long_cash_historical.py", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research/btc_daily_chaikin_money_flow_long_cash_historical.py", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research/btc_daily_rsi14_midline_long_cash_historical.py", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research/btc_monthly_12m_time_series_momentum_historical.py", "sha256": "AUTO"},
+    {"kind": "REPOSITORY_PATH", "locator": "research/btc_dra_reversal_confirmed_exit_v2c.py", "sha256": "AUTO"},
+    {"kind": "SEALED_ARTIFACT", "locator": ".research-state/java-parity/selection-2019-2024.tsv", "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"},
+    {"kind": "TASK_MESSAGE", "locator": "Decision feature: complete UTC-day Aroon14 oscillator. For each target day use exactly day D-14 through D, locate the most recent equal maximum high and most recent equal minimum low, compute Up and Down as 100 divided by 14 times each extreme offset from the window start, and subtract Down from Up. Execute long only when the completed-day oscillator is strictly above the frozen threshold at the next H1 open.", "sha256": null},
+    {"kind": "TASK_MESSAGE", "locator": "Frozen variants and accounting: primary threshold zero and rejection-only negative 25 and positive 25, all at fourteen complete-day periods with fifteen observations. Design is 2020-2022, historical Validation 2023-2024 and fair-reset annual folds 2020-2024. Candidate and buy-and-hold use equity one, zero-yield cash, no leverage or shorting, normal cost 10 bps fee plus 5 bps adverse slippage each side and stress cost 20 plus 10 bps.", "sha256": null},
+    {"kind": "TASK_MESSAGE", "locator": "Frozen all-pass gates: positive normal and stress returns; Design drawdown at most 95 percent of buy-and-hold and Calmar at least buy-and-hold; Validation drawdown at most 90 percent, upside capture at least 60 percent, Calmar at least buy-and-hold, 2 to 250 position changes, stress drawdown at most normal plus 3pp, positive terminal-liquidation return and cost at most 1pp; both neighbors positive under both costs with non-worse drawdown, at least 75 percent Calmar and 50 percent upside capture; annual normal and stress positive at least 4/5, drawdown non-worse 4/5, Calmar breadth 3/5, upside breadth 4/5, top-year and top-episode contribution at most 60 percent, P90 and terminal holding at most 17520 hours.", "sha256": null}
+  ],
+  "task_contract": {
+    "allowed_actions": [
+      "READ_FROZEN_REPOSITORY_CONTRACTS",
+      "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+      "READ_EXACT_SEALED_PRE2025_H1_CORPUS",
+      "VALIDATE_H1_ROW_AND_CLOCK_INTEGRITY",
+      "RUN_FROZEN_AROON14_DIRECT_ECONOMIC_RUNNER_TWICE",
+      "COMPARE_BYTE_IDENTICAL_RESULTS",
+      "EVALUATE_FROZEN_GATE_MATRIX",
+      "RETURN_LOCAL_RESEARCH_RESULT"
+    ],
+    "forbidden_actions": [
+      "CANONICAL_STATE_WRITE",
+      "SERVER_RESEARCH_MCP_WRITE",
+      "SECOND_TIMER_OR_WRITER",
+      "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+      "OOS_OPEN_OR_GATE_RELAXATION",
+      "EXTERNAL_BACKFILL_OR_IMPORT",
+      "PAID_API_OR_API_KEY",
+      "PRODUCTION_OR_DATABASE_MUTATION",
+      "UNLISTED_REPOSITORY_OR_RESEARCH_STATE_WRITE",
+      "POST2024_OR_FORWARD_EVIDENCE_ACCESS",
+      "CURRENT_SERVER_STATUS_REFRESH_OR_NETWORK_ACCESS",
+      "RUNNER_SOURCE_OR_ACCOUNTING_CHANGE",
+      "FEATURE_FORMULA_PERIOD_THRESHOLD_TIE_RULE_OR_GATE_TUNING",
+      "NEIGHBOR_SUBSTITUTION",
+      "GIT_STAGE_COMMIT_PUSH_OR_RESET"
+    ],
+    "expected_outputs": [
+      "EXACT_PACKAGE_PREFLIGHT_VALIDATION",
+      "SEALED_H1_CORPUS_INTEGRITY",
+      "AROON14_FEATURE_ACCOUNTING",
+      "DESIGN_AND_VALIDATION_LEDGER_MATRIX",
+      "ANNUAL_BREADTH_AND_CONCENTRATION",
+      "FROZEN_GATE_MATRIX",
+      "ONE_TERMINAL_FAMILY_DISPOSITION",
+      "MISSING_PROOF_REGISTER",
+      "OPPORTUNITY_COST_AND_NEXT_ACTION"
+    ],
+    "stop_conditions": [
+      "Before outcome access, validate exact task, dispatch, intent and strategy path; rehash all non-null inputs and require clean HEAD equal to origin. Any failure is BTC_DAILY_AROON14_EVIDENCE_INSUFFICIENT.",
+      "Require corpus SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd, 52608 contiguous finite H1 rows and 2192 complete UTC days. Do not repair a failure.",
+      "Use only primary zero and rejection-only negative 25 and positive 25 with exact Aroon14 formula, tie rule, costs, windows and gates. Do not inspect any alternative.",
+      "Run the frozen runner twice to new create-only outputs and require byte-identical SHA-256 results.",
+      "Return the positive disposition only if every frozen gate passes; otherwise valid economics returns BTC_DAILY_AROON14_FAMILY_CLOSE without tuning.",
+      "A positive result remains historical and REPORTED_NOT_ACTIVATED. It authorizes at most one independent sealed OOS and no Trading action."
+    ]
+  }
+}

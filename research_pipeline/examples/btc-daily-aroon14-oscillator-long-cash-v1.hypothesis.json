@@ -1,0 +1,53 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-aroon14-oscillator-long-cash-v1",
+  "title": "Daily Aroon14 oscillator extreme-recency long/cash timing",
+  "thesis": "When the most recent high in the current and prior fourteen complete BTC days is newer than the most recent low, bullish price discovery may be more recent than bearish price discovery strongly enough that a causal next-open long/cash policy preserves material upside while avoiding enough adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "mechanism": "For each complete UTC day, locate the most recent equal-or-higher daily high and most recent equal-or-lower daily low inside the current day plus the prior fourteen complete days. Compute Aroon Up and Down from each extreme's age and subtract Down from Up. The strategy is fully long BTC when the completed-day Aroon14 oscillator is strictly above a frozen threshold and otherwise holds zero-yield cash, with state changes executed at the next H1 open.",
+  "economic_rationale": "Aroon14 measures relative extreme recency rather than return magnitude, moving-average level or volatility-scaled direction. The mechanism is useful only if the fixed zero boundary retains material upside after costs while reducing drawdown and improving Calmar with broad annual support and symmetric negative-25 and positive-25 neighbor stability.",
+  "source": "BTC_DAILY_AROON14_OSCILLATOR_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-aroon14-oscillator-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "aroon_complete_day_period": 14,
+      "oscillator_long_threshold": "0"
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "aroon_complete_day_period": 14,
+      "oscillator_long_threshold": "-25"
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "aroon_complete_day_period": 14,
+      "oscillator_long_threshold": "25"
+    }
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-22-candidate-factory-cycle-aroon14",
+  "created_at": "2026-08-22T09:18:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

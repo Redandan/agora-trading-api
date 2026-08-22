@@ -49,4 +49,9 @@ research_pipeline/dra-declarative-entry-admission-manifest.v1.schema.json text e
 research_pipeline/tests/test_dra_declarative_entry_admission_v1.py text eol=lf
 research_pipeline/examples/btc-search-attention-volume-interaction-source-gate.v1.decision.json text eol=lf
 research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-primary-prior.v1.json text eol=lf
+research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-v1.hypothesis.json text eol=lf
+research/btc_daily_aroon14_oscillator_long_cash_historical.py text eol=lf
+research_pipeline/tests/test_btc_daily_aroon14_oscillator_long_cash_historical.py text eol=lf
+research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-historical.v1.manifest.json text eol=lf
+research_pipeline/examples/local-direct-screen-package.btc-daily-aroon14-oscillator-long-cash.v1.json text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

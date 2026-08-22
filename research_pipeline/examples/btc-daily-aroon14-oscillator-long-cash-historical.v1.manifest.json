@@ -1,0 +1,206 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_AROON14_OSCILLATOR_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-aroon14-oscillator-long-cash-historical-v1",
+  "created_at": "2026-08-22T09:22:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "When the most recent high in the current and prior fourteen complete BTC days is newer than the most recent low, bullish price discovery may be more recent than bearish price discovery strongly enough that a causal next-open long/cash policy preserves material upside while avoiding enough adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "economic_rationale": "Aroon14 compares the recency of rolling daily highs and lows without averaging price or scaling by volatility. It is valuable only if the fixed zero oscillator boundary retains material upside after costs, lowers drawdown, improves Calmar, survives annual breadth and remains stable at frozen thresholds negative 25 and positive 25. Reduced exposure alone cannot pass.",
+  "opportunity_cost": "One exact historical decision is cheaper and more informative than waiting ninety days or building another data adapter. A failure permanently closes this Aroon14 oscillator family without threshold, period, smoothing, band, confirmation or parent changes.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-aroon14-oscillator-long-cash",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_CAUSAL_NEXT_H1_OPEN_POLICY",
+    "distinct_from_closed_families": [
+      "Unlike DMI14 and ADX25, Aroon uses extreme positions rather than directional-movement magnitudes, true range or Wilder smoothing.",
+      "Unlike Donchian execution, Aroon can change when an old extreme ages without requiring price to cross a separate channel boundary.",
+      "Unlike SMA, MACD, Supertrend and PSAR, Aroon has no averaged price level, ATR band, acceleration factor or trailing-stop path."
+    ],
+    "excluded_reinterpretations": [
+      "Aroon14 oscillator strictly above zero is primary; negative 25 and positive 25 are rejection-only neighbors and cannot replace it.",
+      "No alternate period, tie rule, threshold, separate Up or Down rule, smoothing, confirmation, delay, hold, stop, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and still requires one independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_aroon14_oscillator_long_cash_historical.py",
+      "sha256": "f025e3d8a1835a66c1581c8f7406ff1e7a2d3cb1aaa56af1181bae2ffb7549b0",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd",
+      "role": "FROZEN_DAILY_AGGREGATION_AND_LONG_CASH_LEDGER_SUPPORT"
+    },
+    {
+      "path": "research/btc_daily_rsi14_midline_long_cash_historical.py",
+      "sha256": "1753cfd3a28bf7fdad8bb6a63e7de486d179491b2eab5d433830a71eca523281",
+      "role": "FROZEN_MATCHED_CAPITAL_GATE_LOGIC_SUPPORT"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_PASSIVE_REFERENCE_AND_ECONOMIC_PRIMITIVES"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-primary-prior.v1.json",
+      "sha256": "06ede606b1d8a635127fae47609aaef6578135b21cb383b032af0e9ad9ba37f8",
+      "role": "SEALED_PRIMARY_FORMULA_ACADEMIC_ADVERSARIAL_AND_DEDUP_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-v1.hypothesis.json",
+      "sha256": "6638e0901d2f601367dd2b295aab0f8f688432320125357691a9c72b90e65356",
+      "role": "FROZEN_HYPOTHESIS"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_AROON14_OSCILLATOR_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_aggregation": "COMPLETE_UTC_DAY_24_CONTIGUOUS_H1_BARS",
+    "window": "CURRENT_COMPLETE_DAY_PLUS_PRIOR_14_COMPLETE_DAYS",
+    "extreme_selection": "MOST_RECENT_MAXIMUM_DAILY_HIGH_AND_MOST_RECENT_MINIMUM_DAILY_LOW",
+    "tie_rule": "MOST_RECENT_EQUAL_EXTREME",
+    "aroon_up": "100_DIVIDED_BY_14_TIMES_MOST_RECENT_HIGH_OFFSET_FROM_WINDOW_START",
+    "aroon_down": "100_DIVIDED_BY_14_TIMES_MOST_RECENT_LOW_OFFSET_FROM_WINDOW_START",
+    "oscillator": "AROON_UP_MINUS_AROON_DOWN",
+    "primary": {
+      "aroon_complete_day_period": 14,
+      "oscillator_long_threshold": "0"
+    },
+    "rejection_only_neighbors": [
+      {
+        "aroon_complete_day_period": 14,
+        "oscillator_long_threshold": "-25"
+      },
+      {
+        "aroon_complete_day_period": 14,
+        "oscillator_long_threshold": "25"
+      }
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "long_condition": "COMPLETED_DAY_AROON14_OSCILLATOR_STRICTLY_GREATER_THAN_THRESHOLD",
+    "cash_condition": "COMPLETED_DAY_AROON14_OSCILLATOR_LESS_THAN_OR_EQUAL_TO_THRESHOLD",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2020-01-01T00:00:00",
+      "2023-01-01T00:00:00"
+    ],
+    "validation": [
+      "2023-01-01T00:00:00",
+      "2025-01-01T00:00:00"
+    ],
+    "annual_fair_reset_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "state": "FAIR_RESET_EACH_WINDOW_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "gate_set": {
+    "id": "BTC_DAILY_AROON14_OSCILLATOR_LONG_CASH_MATCHED_CAPITAL_GATES_V1",
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_95pct_of_buy_hold",
+      "normal_calmar_at_least_buy_hold"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_90pct_of_buy_hold",
+      "normal_upside_capture_at_least_60pct",
+      "normal_calmar_at_least_buy_hold",
+      "position_changes_between_2_and_250",
+      "stress_drawdown_no_more_than_normal_plus_3pp",
+      "terminal_liquidation_adjusted_return_pct_gt_0",
+      "terminal_liquidation_cost_at_most_1pp"
+    ],
+    "neighbor_stability": [
+      "both_neighbors_positive_normal_and_stress_validation_return",
+      "both_neighbors_validation_drawdown_non_worse_than_buy_hold",
+      "both_neighbors_validation_calmar_at_least_75pct_buy_hold",
+      "both_neighbors_validation_upside_capture_at_least_50pct"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_at_least_4_of_5_years",
+      "normal_primary_calmar_at_least_75pct_buy_hold_at_least_3_of_5_years",
+      "normal_primary_upside_capture_at_least_50pct_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_AROON14_OSCILLATOR_GT_NEGATIVE25_ZERO_POSITIVE25_LONG_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any source hash, dataset hash, hourly lattice, OHLCV or complete UTC-day gate fails.",
+    "Stop and permanently close the exact Aroon14 oscillator thresholds negative 25, zero and positive 25 family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Do not scan another Aroon period, tie rule, threshold, separate Up or Down condition, smoothing, delay, holding period, confirmation, DRA combination or cost model after results.",
+    "Do not use post-2024 data; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

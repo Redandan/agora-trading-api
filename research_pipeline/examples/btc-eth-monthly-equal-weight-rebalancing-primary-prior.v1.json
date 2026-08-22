@@ -1,0 +1,111 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-eth-monthly-equal-weight-rebalancing-premium",
+  "created_at": "2026-08-22T12:50:30Z",
+  "status": "COMPLETED_PREOUTCOME_SOURCE_GATE_READY",
+  "decision": "PRIMARY_AND_ADVERSARIAL_PRIOR_PERMIT_ONE_CHECKSUM_BOUND_FIXED_BTC_ETH_SOURCE_ACQUISITION_BEFORE_STRATEGY_OUTCOME_ACCESS",
+  "causal_hypothesis": "At a predetermined monthly clock, restoring a fixed BTC and ETH portfolio to equal market value sells part of the relative outperformer and buys part of the relative underperformer. If the two assets exhibit sufficient relative variance and non-persistent leadership, this contrarian transfer may improve compound growth or risk-adjusted performance versus the same initially equal-value holdings allowed to drift.",
+  "economic_hypothesis": "A monthly equal-value BTC-ETH constant-mix portfolio may improve after-cost Calmar and concentration-adjusted total return versus an initially equal-value BTC-ETH buy-and-hold portfolio under identical capital, source window and valuation, but the prior does not establish positive alpha, lower drawdown or cost survival.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Scott Willenbrock, Diversification Return, Portfolio Rebalancing, and the Commodity Return Puzzle, Financial Analysts Journal 67(4), 2011",
+      "url": "https://rpc.cfainstitute.org/research/financial-analysts-journal/2011/diversification-return-portfolio-rebalancing-and-the-commodity-return-puzzle",
+      "role": "PRIMARY_REBALANCING_MECHANISM_PRIOR",
+      "finding": "The study attributes diversification return to rebalancing and distinguishes it from buy-and-hold drift, where the best-performing asset becomes an increasing portfolio share.",
+      "transfer_boundary": "Commodity futures are not BTC and ETH spot. The result supports the accounting distinction between fixed-weight rebalancing and weight drift, not a profitable crypto claim or a monthly frequency choice."
+    },
+    {
+      "identity": "Edward E. Qian, A Mathematical and Empirical Analysis of Rebalancing Alpha, 2014",
+      "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2543705",
+      "role": "PRIMARY_CONDITIONAL_REBALANCING_ALPHA_PRIOR",
+      "finding": "The paper decomposes fixed-weight rebalancing alpha relative to buy-and-hold into volatility and return effects and shows that its sign depends on pairwise excess-return behavior and cross-sectional serial correlation.",
+      "transfer_boundary": "The mechanism is conditional rather than universal. Agora must measure relative-return leadership, annual breadth and concentration and cannot infer a positive premium from high standalone volatility alone."
+    },
+    {
+      "identity": "Daniela Hanicova and Radovan Vojtko, Rebalancing Premium in Cryptocurrencies, SSRN 3982120, 2021",
+      "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3982120",
+      "role": "CRYPTO_SPECIFIC_MONTHLY_REBALANCING_PRIOR",
+      "finding": "The study reports a rebalancing premium for simulated assets and a 27-cryptocurrency portfolio under daily and monthly rebalancing, while stating that the mechanism may fail when one asset consistently outperforms the others.",
+      "transfer_boundary": "A 27-asset working-paper portfolio does not transfer mechanically to a two-asset BTC-ETH universe. Its broad-universe outcome and frequency comparison cannot select Agora's result, gate or benchmark."
+    },
+    {
+      "identity": "Guillaume Rabault, Harvesting Excess Volatility, SSRN 3146917, 2017",
+      "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3146917",
+      "role": "ADVERSARIAL_EXPECTED_RETURN_AND_MEAN_REVERSION_PRIOR",
+      "finding": "The paper shows that with independent identically distributed returns a rebalanced portfolio underperforms buy-and-hold in expected relative return, and that excess volatility or mean reversion is required for volatility pumping to improve expected relative return.",
+      "transfer_boundary": "A historical BTC-ETH pass must not be labeled structural alpha unless relative-return behavior is broad rather than driven by one trend, year or terminal weight drift."
+    },
+    {
+      "identity": "Konstantin Hausler, ETF construction on CRIX, arXiv:2211.15260, 2022",
+      "url": "https://arxiv.org/abs/2211.15260",
+      "role": "CRYPTO_IMPLEMENTATION_COST_AND_NONSTATIONARITY_PRIOR",
+      "finding": "The scenario study finds BTC and ETH are the largest rebalanced CRIX constituents, often trade in opposite directions at rebalancing dates, and have relatively low spreads, while warning that crypto performance is highly non-stationary and interval dependent.",
+      "transfer_boundary": "CRIX changes constituents and target weights and uses a short scenario period. It supports explicit turnover, fee, spread and path diagnostics only, not the fixed 50-50 strategy's performance."
+    }
+  ],
+  "fixed_research_boundary": {
+    "universe": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "universe_selection": "FIXED_BEFORE_SOURCE_VALUE_OR_OUTCOME_ACCESS",
+    "source": "OFFICIAL_BINANCE_PUBLIC_DATA_SPOT_MONTHLY_1D_ARCHIVES",
+    "source_window": "2020-01-01_THROUGH_2024-12-31_UTC",
+    "decision_clock": "FIRST_NATIVE_DAILY_OPEN_OF_EACH_UTC_MONTH_AFTER_INITIAL_ALLOCATION",
+    "target_weights": {
+      "BTCUSDT": "0.5",
+      "ETHUSDT": "0.5"
+    },
+    "candidate_variants": 1,
+    "matched_comparator": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING_SAME_WINDOW_COST_AND_VALUATION",
+    "source_acquisition_may_compute": [
+      "publisher_archive_checksums",
+      "row_schema_and_clock_integrity",
+      "exact_two_symbol_daily_intersection",
+      "normalized_source_bytes"
+    ],
+    "source_acquisition_must_not_compute": [
+      "returns",
+      "relative_returns",
+      "month_rankings",
+      "turnover",
+      "portfolio_weights",
+      "strategy_path",
+      "pnl",
+      "drawdown",
+      "sharpe",
+      "calmar"
+    ]
+  },
+  "independence_and_nonreopen": {
+    "not_low_volatility_rotation": "Both assets are always held at fixed target weights; no trailing volatility, asset selection, cash fallback or winner choice is permitted.",
+    "not_cross_sectional_momentum": "The universe contains exactly BTC and ETH selected before source access and never ranks assets by prior return, liquidity or current survival.",
+    "not_simple_eth_inclusion": "The matched comparator begins with the identical 50-50 BTC-ETH capital allocation; only subsequent monthly rebalancing differs.",
+    "closed_family_bindings": [
+      {
+        "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-source-boundary.v1.decision.json",
+        "sha256": "3f3e7e79f051a448baba96863cf1ae473e103efdc5fd15ac806925947cdff256"
+      },
+      {
+        "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-source-gate.v1.decision.json",
+        "sha256": "af94de6fd54a0752966aad4faeccfab55826fce9cb35bb17b5ac8375fcfa1dbb"
+      }
+    ]
+  },
+  "admission_and_stop_conditions": [
+    "Before reading any price value, freeze one official Binance source contract for exactly BTCUSDT and ETHUSDT monthly 1d archives from 2020-01 through 2024-12 and require each publisher checksum.",
+    "Reject before outcome access if either symbol lacks any complete UTC day in the exact 2020-2024 intersection, any archive checksum or ZIP member fails, any OHLC value is nonpositive or malformed, or any day is duplicated.",
+    "After a source pass, freeze exactly one monthly 50-50 constant-mix hypothesis, cost ledger and deterministic runner; do not test daily, weekly, quarterly, annual, threshold-band, momentum, volatility, trend, cash, leverage or short variants.",
+    "The later economic gate must compare identical initial holdings and separate realized rebalancing cash flow, mark-to-market drift, turnover, fees, adverse slippage, maximum drawdown, underwater duration, annual breadth and top-year concentration.",
+    "A historical pass remains only a candidate-eligible result and must not open independent OOS unless all frozen economic gates pass in Design and Validation."
+  ],
+  "missing_proof": [
+    "No checksum-bound official Binance BTCUSDT and ETHUSDT daily 2020-2024 intersection exists for this family.",
+    "No relative-return, leadership-persistence or annual-breadth diagnostic has been accessed.",
+    "No exact accounting, costs, hypothesis, manifest, deterministic economic runner, PnL, drawdown, turnover, candidate, OOS or forward evidence exists."
+  ],
+  "next_gate": "FREEZE_AND_EXECUTE_ONE_CHECKSUM_BOUND_OFFICIAL_BINANCE_BTC_ETH_DAILY_SOURCE_CONTRACT_WITHOUT_RETURN_OR_STRATEGY_OUTCOME_ACCESS",
+  "scope_note": "Primary and adversarial prior plus source boundary only. No BTC or ETH source value, return, ranking, strategy path, PnL, hypothesis, economic manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

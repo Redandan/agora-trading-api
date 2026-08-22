@@ -107,13 +107,17 @@ class CandidateFunnelTest(unittest.TestCase):
             if family["family_id"]
             == "btc-eth-monthly-equal-weight-rebalancing-premium"
         )
-        self.assertEqual(equal_weight_rebalancing["base_stage"], "HISTORICAL_PRIOR")
+        self.assertEqual(
+            equal_weight_rebalancing["base_stage"], "PREREGISTRATION_READY"
+        )
         self.assertEqual(
             [
                 binding["role"]
                 for binding in equal_weight_rebalancing["evidence_bindings"]
             ],
             [
+                "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
+                "FROZEN_CHECKSUM_BOUND_FIXED_TWO_SYMBOL_SOURCE_CONTRACT",
                 "SEALED_FIXED_BTC_ETH_UNIVERSE_SOURCE_AND_ADVERSARIAL_PRIOR",
                 "SEALED_LOW_VOLATILITY_ROTATION_NON_REOPEN_AND_SOURCE_BOUNDARY",
                 "SEALED_MANY_ASSET_MOMENTUM_SOURCE_REJECT_AND_FIXED_TWO_ASSET_BOUNDARY",

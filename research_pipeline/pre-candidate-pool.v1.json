@@ -207,7 +207,7 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "base_stage": "HISTORICAL_PRIOR",
+      "base_stage": "PREREGISTRATION_READY",
       "canonical_binding": {
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
@@ -228,8 +228,18 @@
         "unrealized_pnl": "REQUIRED_NOT_MEASURED"
       },
       "economic_hypothesis": "A monthly rebalanced equal-value BTC-ETH portfolio may improve after-cost Calmar and concentration-adjusted total return versus an initially equal-value buy-and-hold BTC-ETH portfolio, with broad annual support, bounded turnover and zero terminal inventory uplift.",
-      "estimated_days_to_next_gate": 1,
+      "estimated_days_to_next_gate": 0,
       "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
+          "sha256": "f7ccd67a76491701c0ea1134061d6a803425d1438f8d9adb7b803d2960c0d490"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.manifest.json",
+          "role": "FROZEN_CHECKSUM_BOUND_FIXED_TWO_SYMBOL_SOURCE_CONTRACT",
+          "sha256": "933208658c8a3e58e15c999abccb632b6aab544d7d8cc9ef8797d503d8c1fa07"
+        },
         {
           "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-primary-prior.v1.json",
           "role": "SEALED_FIXED_BTC_ETH_UNIVERSE_SOURCE_AND_ADVERSARIAL_PRIOR",
@@ -250,11 +260,11 @@
       "independence_key": "fixed-two-asset-equal-weight-monthly-rebalancing-premium-not-asset-selection-timing-or-cash-filter",
       "matched_comparator_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING_SAME_WINDOW_COST_AND_VALUATION",
       "missing_proof": [
-        "No primary and adversarial prior yet freezes the exact monthly constant-mix mechanism and separates rebalancing premium from simple ETH inclusion or volatility timing.",
-        "No checksum-bound official Binance BTCUSDT and ETHUSDT daily 2020-2024 intersection is sealed; any incomplete, conflicting or non-native day remains a source gate.",
+        "The frozen checksum-bound official Binance BTCUSDT and ETHUSDT daily source contract has not produced two byte-identical complete 2020-2024 source bundles.",
+        "No source evidence yet proves that both symbols have an exact complete native 1827-day intersection with every publisher archive checksum valid.",
         "No exact monthly execution clock, two-asset accounting, costs, hypothesis, manifest, deterministic runner, Design or Validation economics, annual breadth, concentration, candidate, independent OOS or forward evidence exists."
       ],
-      "next_gate": "FREEZE_PRIMARY_ADVERSARIAL_CONSTANT_MIX_PRIOR_AND_CHECKSUM_BOUND_OFFICIAL_BINANCE_BTC_ETH_DAILY_SOURCE_CONTRACT_BEFORE_OUTCOME_ACCESS",
+      "next_gate": "EXECUTE_THE_FROZEN_CHECKSUM_BOUND_BTC_ETH_DAILY_SOURCE_CONTRACT_TWICE_WITHOUT_RETURN_OR_STRATEGY_OUTCOME_ACCESS",
       "parent_strategy_id": "INITIAL_EQUAL_VALUE_BTC_ETH_BUY_AND_HOLD_NO_REBALANCING",
       "runner_id": "DIRECT_TWO_ASSET_MONTHLY_CONSTANT_MIX_LEDGER_REQUIRED",
       "title": "BTC-ETH monthly equal-weight rebalancing premium"

@@ -1,0 +1,102 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_MONTHLY_EQUAL_WEIGHT_REBALANCING_SOURCE_MANIFEST_V1",
+  "experiment_id": "btc-eth-monthly-equal-weight-rebalancing-source-v1",
+  "created_at": "2026-08-22T12:50:30Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_SOURCE_ACQUISITION_ONLY",
+  "thesis": "Acquire exactly one checksum-bound, complete and deterministic BTCUSDT plus ETHUSDT daily source intersection from the official Binance public monthly archives without computing returns, relative leadership, rebalancing trades or strategy outcomes.",
+  "official_source_capability": {
+    "publisher": "Binance",
+    "documentation": "https://github.com/binance/binance-public-data/blob/master/README.md",
+    "data_root": "https://data.binance.vision/data/spot/monthly/klines",
+    "documented_semantics": "Public spot klines are aggregated into monthly files, use the API kline schema, and each ZIP has a companion publisher CHECKSUM.",
+    "vintage_boundary": "Publisher archives may later be corrected. Every observed ZIP and checksum response is therefore recorded by byte hash, and any later acquisition is a new vintage rather than an overwrite."
+  },
+  "acquisition_policy": {
+    "source": "BINANCE_PUBLIC_DATA_SPOT_MONTHLY_1D_ARCHIVES",
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "first_month": "2020-01",
+    "last_month": "2024-12",
+    "archive_checksum": "REQUIRE_EXACT_PUBLISHER_SHA256_FOR_EVERY_ZIP",
+    "daily_intersection": "REQUIRE_EVERY_COMPLETE_UTC_DAY_FOR_BOTH_SYMBOLS",
+    "partial_terminal_session": "DENY",
+    "current_exchange_info": "DENY",
+    "price_return_or_strategy_outcome": "DENY"
+  },
+  "source_bindings": [
+    {
+      "path": "research/binance_btc_eth_daily_source_v1.py",
+      "sha256": "2e98481e98d9754bf0fdd17a046fd5ba936fa3d4493a6e90d7c64776b335ba4f",
+      "role": "FROZEN_FIXED_TWO_SYMBOL_SOURCE_BUILDER"
+    },
+    {
+      "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+      "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c",
+      "role": "FROZEN_REUSED_CHECKSUM_ZIP_DAILY_CLOCK_AND_NORMALIZATION_LIBRARY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-primary-prior.v1.json",
+      "sha256": "f7ccd67a76491701c0ea1134061d6a803425d1438f8d9adb7b803d2960c0d490",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-source-boundary.v1.decision.json",
+      "sha256": "3f3e7e79f051a448baba96863cf1ae473e103efdc5fd15ac806925947cdff256",
+      "role": "SEALED_LOW_VOLATILITY_ROTATION_NON_REOPEN_BOUNDARY"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-source-gate.v1.decision.json",
+      "sha256": "af94de6fd54a0752966aad4faeccfab55826fce9cb35bb17b5ac8375fcfa1dbb",
+      "role": "SEALED_MANY_ASSET_MOMENTUM_NON_REOPEN_BOUNDARY"
+    }
+  ],
+  "output_contract": {
+    "run1_bundle": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/source.v1.run1.bundle.json",
+    "run1_normalized_gzip": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/btc-eth-daily-2020-2024.v1.run1.csv.gz",
+    "run2_bundle": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/source.v1.run2.bundle.json",
+    "run2_normalized_gzip": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/btc-eth-daily-2020-2024.v1.run2.csv.gz",
+    "write_mode": "CREATE_ONCE_NO_OVERWRITE",
+    "determinism_gate": "RUN1_AND_RUN2_BUNDLE_AND_NORMALIZED_GZIP_BYTES_MUST_BE_IDENTICAL"
+  },
+  "integrity_gates": [
+    "all_source_binding_hashes_match_before_network_access",
+    "exactly_BTCUSDT_and_ETHUSDT_without_current_exchange_info",
+    "all_120_expected_monthly_archives_exist",
+    "every_archive_matches_its_publisher_checksum",
+    "one_expected_csv_member_per_zip",
+    "strict_pre_2025_millisecond_daily_clock",
+    "no_partial_terminal_session_rows",
+    "positive_valid_ohlc_and_nonnegative_activity",
+    "exact_1827_day_intersection_per_symbol_from_2020_01_01_through_2024_12_31",
+    "no_duplicate_symbol_day_rows",
+    "byte_identical_run1_and_run2_outputs"
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT without source substitution if any binding, transport, month, checksum, ZIP, timestamp, schema, OHLCV, intersection or determinism gate fails.",
+    "Do not change source, symbols, quote asset, date range, interval or parser after observing any source price value.",
+    "Do not compute returns, relative returns, rankings, turnover, portfolio weights, strategy paths, PnL, drawdown, Sharpe or Calmar in this stage.",
+    "Do not read current exchangeInfo, post-2024 archives, paid data or prior closed-family outcomes to rescue this source route."
+  ],
+  "next_gate_on_pass": "FREEZE_ONE_SINGLE_VARIANT_MONTHLY_EQUAL_WEIGHT_ACCOUNTING_HYPOTHESIS_MANIFEST_COST_LEDGER_AND_DETERMINISTIC_ECONOMIC_RUNNER_BEFORE_READING_SOURCE_PRICE_VALUES",
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "CURRENT_EXCHANGE_INFO",
+    "POST_2024_OUTCOME",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE"
+  ]
+}

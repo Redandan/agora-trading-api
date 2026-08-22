@@ -108,4 +108,5 @@ research_pipeline/examples/btc-binance-fixed-maturity-delivery-cash-and-carry-pr
 research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.spec.json text eol=lf
 research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.decision.json text eol=lf
 research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.spec.json text eol=lf
+research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.decision.json text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

@@ -1,0 +1,80 @@
+{
+  "schema_version": "2",
+  "document_type": "BTC_BINANCE_FIXED_MATURITY_DELIVERY_SOURCE_INVENTORY_DECISION_V2",
+  "family_id": "btc-binance-fixed-maturity-delivery-cash-and-carry",
+  "decided_at": "2026-08-22T13:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SOURCE_METADATA_GATE_PASS_VALUE_ACCESS_STILL_DENIED",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.spec.json",
+      "sha256": "8e435dd6bedc4f74b78a569546b797d9eb1bdadd09569cbf168f75ad98e06503",
+      "role": "FROZEN_CORRECTED_UNCHANGED_THROUGH_EXPIRY_METADATA_GATE"
+    },
+    {
+      "path": "research/binance_btcusdt_delivery_archive_inventory_probe_v2.py",
+      "sha256": "f7d7b8c892caef7103f0c5977e45541e36d53fdb065d0596799026e0515d5e0c",
+      "role": "FROZEN_METADATA_ONLY_PROBE"
+    },
+    {
+      "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v1.decision.json",
+      "sha256": "972eec8726463764b2920ebe94906aad6c54c01f552491bc6f573c1a8c9e707b",
+      "role": "SEALED_V1_IMPLEMENTATION_REJECT_AND_NO_GATE_CHANGE_PROOF"
+    }
+  ],
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-binance-fixed-maturity-delivery-source-inventory-v2/artifacts/inventory-run1.json",
+    "run2_path": ".research-state/experiments/btc-binance-fixed-maturity-delivery-source-inventory-v2/artifacts/inventory-run2.json",
+    "run1_sha256": "67edb3f5cd8403ed0aafb8756aba40a71fe13f39285810fa92c6d72ceb42b273",
+    "run2_sha256": "67edb3f5cd8403ed0aafb8756aba40a71fe13f39285810fa92c6d72ceb42b273",
+    "byte_identical": true
+  },
+  "root_inventory": {
+    "contract_kline_root_prefix_count": 986,
+    "contract_kline_root_raw_sha256": "4886a8501fda0cc639956073771f3d4fc03e516ce6a65ab9ce45fdd108a11571",
+    "mark_price_root_prefix_count": 971,
+    "mark_price_root_raw_sha256": "84e1b6d92fddd1ec1705e7f018e07972ba274e92e82bcb80a8372f9ae84f3939",
+    "all_btcusdt_delivery_contract_prefixes_per_root": 24,
+    "selected_pre2025_contracts": 16
+  },
+  "reference_inventory": {
+    "required_window": "2021-03_THROUGH_2024-12_INCLUSIVE",
+    "required_month_count": 46,
+    "spot_archive_count_all_visible_metadata": 108,
+    "spot_checksum_count": 108,
+    "spot_raw_sha256": "b4bdc1f4f15111d3dc49f57afbba53038a9fe639289cbb910cb44f9f32bd1d87",
+    "index_archive_count_all_visible_metadata": 79,
+    "index_checksum_count": 79,
+    "index_raw_sha256": "4752f003035bfbda08e77290b71bc23ed6bcff2113d75c0a8eedb5010fbdadcc",
+    "required_window_complete": true
+  },
+  "contract_inventory": [
+    {"symbol": "BTCUSDT_210326", "expiry": "2021-03-26", "eligible_pre_expiry_months": 2, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 16},
+    {"symbol": "BTCUSDT_210625", "expiry": "2021-06-25", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 13},
+    {"symbol": "BTCUSDT_210924", "expiry": "2021-09-24", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 10},
+    {"symbol": "BTCUSDT_211231", "expiry": "2021-12-31", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 7},
+    {"symbol": "BTCUSDT_220325", "expiry": "2022-03-25", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 4},
+    {"symbol": "BTCUSDT_220624", "expiry": "2022-06-24", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 1},
+    {"symbol": "BTCUSDT_220930", "expiry": "2022-09-30", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 10},
+    {"symbol": "BTCUSDT_221230", "expiry": "2022-12-30", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 7},
+    {"symbol": "BTCUSDT_230331", "expiry": "2023-03-31", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 4},
+    {"symbol": "BTCUSDT_230630", "expiry": "2023-06-30", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 1},
+    {"symbol": "BTCUSDT_230929", "expiry": "2023-09-29", "eligible_pre_expiry_months": 4, "post_expiry_contract_objects": 2, "post_expiry_mark_objects": 2},
+    {"symbol": "BTCUSDT_231229", "expiry": "2023-12-29", "eligible_pre_expiry_months": 5, "post_expiry_contract_objects": 1, "post_expiry_mark_objects": 1},
+    {"symbol": "BTCUSDT_240329", "expiry": "2024-03-29", "eligible_pre_expiry_months": 7, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 16},
+    {"symbol": "BTCUSDT_240628", "expiry": "2024-06-28", "eligible_pre_expiry_months": 7, "post_expiry_contract_objects": 1, "post_expiry_mark_objects": 13},
+    {"symbol": "BTCUSDT_240927", "expiry": "2024-09-27", "eligible_pre_expiry_months": 7, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 10},
+    {"symbol": "BTCUSDT_241227", "expiry": "2024-12-27", "eligible_pre_expiry_months": 7, "post_expiry_contract_objects": 0, "post_expiry_mark_objects": 7}
+  ],
+  "material_conclusion": "The official archive metadata supports one bounded pre-2025 source path: all 16 frozen BTCUSDT USD-M delivery symbols have checksum-paired contract and mark-price monthly object coverage through their expiry-code month, and the required BTCUSDT spot and index reference months are present. Object names alone remain insufficient for economics.",
+  "adversarial_learning": "Several contract and mark-price prefixes retain object names after the contract expiry month. A later value-access adapter must ignore those months, checksum every selected ZIP, verify rows are non-empty and within the frozen pre-expiry interval, and reject any timestamp or identity conflict instead of treating archive filenames as economic observations.",
+  "decision": "SOURCE_METADATA_GATE_PASS_FREEZE_VALUE_ACCESS_SETTLEMENT_AND_MARGIN_LEDGER_CONTRACT",
+  "missing_proof": [
+    "No ZIP or CHECKSUM body has been downloaded, so payload integrity, row continuity, timestamp units and non-empty eligible rows remain MISSING_PROOF.",
+    "Historical listing time, contract specification, delivery-price response history and settlement reconciliation remain MISSING_PROOF.",
+    "No contract-selection rule, roll clock, maturity band, entry premium floor, collateral and maintenance-margin policy, fees, slippage or liquidation ledger is frozen.",
+    "No hypothesis, manifest, deterministic economic runner, matched-capital PnL, drawdown, breadth, candidate, OOS or forward evidence exists."
+  ],
+  "next_action": "FREEZE_ONE_CHECKSUM_BOUND_PRE2025_VALUE_ACCESS_SETTLEMENT_AND_CONSERVATIVE_MARGIN_LEDGER_CONTRACT_BEFORE_OPENING_ANY_ARCHIVE_BODY_OR_DELIVERY_PRICE_RESPONSE",
+  "scope_note": "S3 object metadata only. No ZIP body, CHECKSUM body, market-data row, price, basis, delivery-price response, return, PnL, hypothesis, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

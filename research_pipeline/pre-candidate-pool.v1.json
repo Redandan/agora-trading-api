@@ -251,6 +251,11 @@
           "sha256": "8e435dd6bedc4f74b78a569546b797d9eb1bdadd09569cbf168f75ad98e06503"
         },
         {
+          "path": "research_pipeline/examples/btc-binance-fixed-maturity-delivery-source-inventory.v2.decision.json",
+          "role": "SEALED_METADATA_SOURCE_GATE_PASS_VALUE_ACCESS_STILL_DENIED",
+          "sha256": "0993300f312ee7bebff26de23606c95363a76a49df21c8dac7c61ffea2cb57af"
+        },
+        {
           "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-primary-prior-audit.v4.json",
           "role": "SEALED_FIXED_MATURITY_VERSUS_PERPETUAL_CARRY_PRIMARY_PRIOR_BOUNDARY",
           "sha256": "8ad99ea87046321bae3a7edd94f0d82997e8038c2628787973dfea82bad03cb9"
@@ -281,10 +286,10 @@
       "matched_comparator_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "missing_proof": [
         "The fixed-maturity settlement-convergence prior and adversarial path-risk boundary are frozen, but their economic claims remain untested.",
-        "No point-in-time checksum-bound historical delivery-contract inventory, listing, expiry, settlement-reference and native spot-futures intersection is sealed.",
+        "The metadata inventory proves 16 contract, mark, spot and index archive paths through expiry, but ZIP checksums, eligible rows, historical listing semantics and settlement responses remain unopened.",
         "No contract-selection rule, roll clock, maturity band, entry cost floor, collateral and liquidation ledger, hypothesis, manifest, deterministic runner, economics, breadth, candidate, OOS or forward evidence exists."
       ],
-      "next_gate": "EXECUTE_FROZEN_V2_METADATA_ONLY_BINANCE_HISTORICAL_DELIVERY_CONTRACT_INVENTORY_TWICE_BEFORE_PRICE_OR_BASIS_VALUE_ACCESS",
+      "next_gate": "FREEZE_ONE_CHECKSUM_BOUND_PRE2025_VALUE_ACCESS_SETTLEMENT_AND_CONSERVATIVE_MARGIN_LEDGER_CONTRACT_BEFORE_OPENING_ANY_ARCHIVE_BODY_OR_DELIVERY_PRICE_RESPONSE",
       "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "runner_id": "DIRECT_FIXED_MATURITY_SPOT_DELIVERY_FUTURES_SETTLEMENT_LEDGER_REQUIRED",
       "title": "BTC Binance fixed-maturity delivery cash-and-carry"

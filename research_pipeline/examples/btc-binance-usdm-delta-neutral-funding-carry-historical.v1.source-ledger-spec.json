@@ -1,0 +1,198 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_SOURCE_LEDGER_SPEC_V1",
+  "spec_id": "btc-binance-usdm-delta-neutral-funding-carry-historical-v1",
+  "frozen_at": "2026-08-22T11:26:31Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_SOURCE_AND_ACCOUNTING_FREEZE",
+  "hypothesis": "A continuously held, quarterly reset long-BTCUSDT-spot and equal-BTC short-BTCUSDT-USD-M-perpetual book can earn the actual short-side funding transfer after both-leg costs while suppressing first-order BTC direction, provided basis path and isolated futures collateral remain safe.",
+  "independence_boundary": {
+    "duplicate_family_key": "btc-binance-usdm-delta-neutral-funding-carry",
+    "direct_cashflow_not_directional_filter": true,
+    "closed_family_not_reopened": "dra-crypto-carry-risk-veto",
+    "prohibited_reinterpretation": "Funding cannot be used as a DRA admission or directional BTC timing signal, and no threshold, leverage, rebalance interval, neighboring allocation or venue may be selected after outcome access."
+  },
+  "source_contract": {
+    "publisher": "Binance public market-data archive",
+    "base_url": "https://data.binance.vision/",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "automatic_retry": "DENY",
+    "redirect": "DENY",
+    "instrument": "BTCUSDT",
+    "interval": "1h",
+    "first_month": "2020-01",
+    "last_month": "2024-12",
+    "latest_permitted_observation": "2024-12-31T23:59:59.999Z",
+    "datasets": [
+      {
+        "dataset_id": "spot_klines_1h",
+        "zip_template": "data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-{YYYY-MM}.zip",
+        "expected_csv_member": "BTCUSDT-1h-{YYYY-MM}.csv",
+        "expected_columns": 12
+      },
+      {
+        "dataset_id": "usdm_contract_klines_1h",
+        "zip_template": "data/futures/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-{YYYY-MM}.zip",
+        "expected_csv_member": "BTCUSDT-1h-{YYYY-MM}.csv",
+        "expected_columns": 12
+      },
+      {
+        "dataset_id": "usdm_mark_price_klines_1h",
+        "zip_template": "data/futures/um/monthly/markPriceKlines/BTCUSDT/1h/BTCUSDT-1h-{YYYY-MM}.zip",
+        "expected_csv_member": "BTCUSDT-1h-{YYYY-MM}.csv",
+        "expected_columns": 12
+      },
+      {
+        "dataset_id": "usdm_funding_rate",
+        "zip_template": "data/futures/um/monthly/fundingRate/BTCUSDT/BTCUSDT-fundingRate-{YYYY-MM}.zip",
+        "expected_csv_member": "BTCUSDT-fundingRate-{YYYY-MM}.csv",
+        "expected_header": [
+          "calc_time",
+          "funding_interval_hours",
+          "last_funding_rate"
+        ]
+      }
+    ],
+    "archive_count": 240,
+    "checksum_policy": "APPEND_.CHECKSUM_AND_REQUIRE_EXACT_PUBLISHER_SHA256_FOR_EVERY_ZIP",
+    "archive_revision_policy": "The corpus binds the publisher bytes and checksum sidecars observed in this one acquisition. Any later publisher revision requires a new corpus and experiment identity; sealed bytes are never overwritten.",
+    "maximum_zip_bytes_each": 8388608,
+    "maximum_expanded_csv_bytes_each": 33554432,
+    "maximum_total_download_bytes": 536870912
+  },
+  "normalization_contract": {
+    "expected_hourly_rows": 43848,
+    "hour_ms": 3600000,
+    "timestamp_unit": "PRE_2025_MILLISECONDS",
+    "hourly_lattice": "2020-01-01T00:00:00Z_THROUGH_2024-12-31T23:00:00Z_CONTIGUOUS",
+    "kline_clock": "OPEN_TIME_UTC_HOUR_AND_CLOSE_TIME_OPEN_PLUS_3599999MS",
+    "duplicates": "REJECT_EVERY_DUPLICATE_OR_CONFLICTING_TIMESTAMP",
+    "funding_clock": "EXACT_8_HOUR_EVENTS_AT_00_08_16_UTC_WITHIN_THE_HOURLY_LATTICE",
+    "expected_funding_events": 5481,
+    "prices": "STRICTLY_POSITIVE_FINITE_DECIMAL_AND_VALID_OHLC",
+    "normalized_columns": [
+      "open_time_ms",
+      "spot_open",
+      "spot_close",
+      "perp_open",
+      "perp_close",
+      "mark_open",
+      "mark_close",
+      "funding_rate"
+    ],
+    "funding_rate_empty_value": "",
+    "normalized_order": "STRICTLY_ASCENDING_OPEN_TIME_MS",
+    "compression": "GZIP_MTIME_ZERO_EMPTY_FILENAME",
+    "output": "CREATE_ONCE_UNDER_.research-state"
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_BINANCE_USDM_QUARTERLY_RESET_25_75_DELTA_NEUTRAL_FUNDING_CARRY_V1",
+    "initial_equity_usdt": "10000",
+    "spot_budget_fraction": "0.25",
+    "futures_collateral_fraction": "0.75",
+    "cash_yield": "0",
+    "spot_position": "LONG_BTC",
+    "perpetual_position": "SHORT_EQUAL_BTC_QUANTITY",
+    "borrowing": "DENY",
+    "cross_margin": "DENY",
+    "external_collateral_transfer_between_resets": "DENY",
+    "rebalance": "CLOSE_BOTH_LEGS_AND_REOPEN_AT_01_00_UTC_ON_THE_FIRST_DAY_OF_EACH_UTC_CALENDAR_QUARTER_AFTER_THE_00_00_FUNDING_EVENT; A_NEW_WINDOW_OPENS_AT_01_00_AND_DOES_NOT_CLAIM_THE_PRIOR_00_00_EVENT",
+    "funding_cashflow_for_short": "BTC_QUANTITY_TIMES_MARK_OPEN_AT_CALC_TIME_TIMES_SIGNED_LAST_FUNDING_RATE",
+    "positive_funding_rate_effect": "CREDIT_SHORT",
+    "negative_funding_rate_effect": "DEBIT_SHORT",
+    "hourly_valuation": "SPOT_AT_SPOT_CLOSE_PLUS_FUTURES_CASH_PLUS_SHORT_ENTRY_MINUS_MARK_CLOSE_UNREALIZED_PNL",
+    "basis_accounting": "SPOT_AND_PERPETUAL_EXECUTION_PRICES_AND_MARK_PRICE_REMAIN_SEPARATE; REALIZED_NONFUNDING_PNL_AND_HOURLY_BASIS_PATH_ARE_REPORTED",
+    "window_finalization": "CLOSE_BOTH_LEGS_AT_THE_FINAL_HOURLY_CLOSE_STRICTLY_BEFORE_WINDOW_END_WITH_ALL_EXIT_COSTS; ZERO_TERMINAL_POSITION",
+    "maintenance_margin_rate": "0.10",
+    "liquidation_rule": "FAIL_IF_FUTURES_EQUITY_AT_ANY_HOURLY_MARK_IS_LESS_THAN_OR_EQUAL_TO_10_PERCENT_OF_ABSOLUTE_SHORT_MARK_NOTIONAL",
+    "minimum_safety_buffer_rule": "FUTURES_EQUITY_DIVIDED_BY_CONSERVATIVE_MAINTENANCE_REQUIREMENT_MUST_BE_AT_LEAST_2.0",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "spot_fee_rate_per_side": "0.0010",
+      "perpetual_fee_rate_per_side": "0.0010",
+      "spot_adverse_slippage_rate_per_side": "0.0005",
+      "perpetual_adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "spot_fee_rate_per_side": "0.0020",
+      "perpetual_fee_rate_per_side": "0.0020",
+      "spot_adverse_slippage_rate_per_side": "0.0010",
+      "perpetual_adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2020-01-01T00:00:00Z",
+      "2023-01-01T00:00:00Z"
+    ],
+    "validation": [
+      "2023-01-01T00:00:00Z",
+      "2025-01-01T00:00:00Z"
+    ],
+    "annual_fair_reset_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "quarterly_fair_reset": "EVERY_WINDOW_STARTS_FROM_CASH_AND_THE_SAME_INITIAL_EQUITY; ANNUAL_AND_QUARTERLY_BREADTH_DO_NOT_CHAIN_PRIOR_WINDOW_STATE",
+    "oos": "DENY"
+  },
+  "gate_set": {
+    "id": "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_MATCHED_CASH_GATES_V1",
+    "design_and_validation_all_pass": [
+      "normal_total_return_pct_gt_0",
+      "stress_total_return_pct_gt_0",
+      "normal_annualized_return_pct_at_least_1",
+      "stress_annualized_return_pct_at_least_0_5",
+      "normal_max_drawdown_pct_at_most_3",
+      "stress_max_drawdown_pct_at_most_5",
+      "normal_calmar_at_least_0_5",
+      "normal_gross_funding_pnl_gt_0",
+      "normal_and_stress_funding_minus_all_costs_gt_0",
+      "normal_total_pnl_not_greater_than_gross_funding_pnl",
+      "normal_and_stress_no_liquidation",
+      "normal_and_stress_minimum_conservative_margin_buffer_at_least_2",
+      "terminal_position_zero_and_unrealized_pnl_zero",
+      "funding_event_coverage_100_percent"
+    ],
+    "annual_breadth_all_pass": [
+      "normal_positive_total_return_at_least_4_of_5_years",
+      "stress_positive_total_return_at_least_4_of_5_years",
+      "normal_funding_minus_all_costs_positive_at_least_4_of_5_years",
+      "normal_max_drawdown_at_most_3_percent_at_least_4_of_5_years",
+      "normal_no_liquidation_5_of_5_years",
+      "top_year_positive_total_pnl_contribution_at_most_45_percent"
+    ],
+    "quarter_breadth_all_pass": [
+      "normal_positive_total_return_at_least_12_of_20_quarters",
+      "stress_positive_total_return_at_least_10_of_20_quarters"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_QUARTERLY_RESET_25_75_BINANCE_BTCUSDT_DELTA_NEUTRAL_FUNDING_CARRY_FAMILY_WITHOUT_TUNING"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_MECHANISM_AND_DEDUP_PRIOR",
+      "sha256": "40adff8c29f5e5da386a00363b607d5af6185bab0b4de6792d3d02846b2620ed"
+    },
+    {
+      "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+      "role": "SEALED_OFFICIAL_ARCHIVE_CAPABILITY_PROOF",
+      "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
+    }
+  ],
+  "stop_conditions": [
+    "Stop before economics if any source binding, archive, publisher checksum, expected member, schema, timestamp, hourly lattice, funding event, OHLC or normalized hash gate fails.",
+    "Stop before economics if funding sign, event mark, spot or perpetual execution price, basis, fee, slippage, collateral, margin, liquidation, quarterly reset or final liquidation semantics are ambiguous.",
+    "After outcome access, do not change the 25/75 allocation, quarterly reset, cost scenarios, maintenance model, windows, comparator, attribution or any gate.",
+    "Do not scan funding thresholds, leverage, alternate resets, collateral transfers, neighbor allocations, venues, contracts or cost models.",
+    "A failed primary or breadth gate permanently closes this exact family; a passing historical result may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED and still requires one independent sealed OOS."
+  ],
+  "claim_boundary": "This specification freezes one public-archive source, accounting and all-pass decision contract before strategy outcomes are opened. It is not evidence of source completeness, profitability, a candidate, OOS value, deployability or Trading authority.",
+  "scope_note": "No archive corpus, strategy outcome, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

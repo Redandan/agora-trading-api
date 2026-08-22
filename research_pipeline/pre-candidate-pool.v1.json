@@ -215,11 +215,11 @@
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
       "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_EXTREME_FEAR_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
       "runner_id": "NOT_BUILT_EXACT_ARCHIVED_FGI_SOURCE_GATE_FIRST",
-      "base_stage": "HISTORICAL_PRIOR",
-      "estimated_days_to_next_gate": 1,
+      "base_stage": "DEFERRED",
+      "estimated_days_to_next_gate": null,
       "compute_cost_class": "LOW",
       "independence_key": "publisher-composite-crypto-sentiment-label-not-consumer-sentiment-search-volume-price-premium-single-price-indicator-or-calendar",
-      "next_gate": "FREEZE_AND_RUN_ONE_EXACT_WAYBACK_REPLAY_TRANSPORT_SCHEMA_CONTINUITY_AND_SELECTED_PRE2025_COVERAGE_GATE_BEFORE_FGI_VALUE_OR_BTC_OUTCOME_ACCESS",
+      "next_gate": "NO_SECOND_REQUEST_SELECT_AND_BIND_ONE_DIFFERENT_EXECUTABLE_FREE_DATA_REPLACEMENT_THEN_CLOSE_THIS_DEFERRED_SLOT",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
@@ -229,6 +229,11 @@
           "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
           "sha256": "3034f11ef0abab8fe42ed8e3fd8170027a2e2b549548ad8b2844cb3ed5334b5b"
+        },
+        {
+          "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-source.v1.execution.json",
+          "role": "SEALED_ONE_ATTEMPT_SOURCE_TRANSPORT_INDETERMINATE_NO_ARTIFACT_NO_RETRY",
+          "sha256": "d02427065a5b7f416d3d2dd4f45d8d51a06ec3695eff800c307be5a9c379e6de"
         }
       ],
       "economic_evidence_status": {
@@ -243,6 +248,7 @@
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
       },
       "missing_proof": [
+        "The one exact archived-source execution reached its 30-second deadline without stdout, response evidence or artifact; no second request is permitted in this lineage.",
         "No exact archived official API response, schema, label continuity or selected pre-2025 FGI corpus is sealed.",
         "No Extreme Fear state support, independent next-day relation or stable Design and Validation direction has been measured.",
         "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."

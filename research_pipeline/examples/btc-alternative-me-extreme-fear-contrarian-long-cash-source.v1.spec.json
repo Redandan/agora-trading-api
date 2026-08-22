@@ -1,0 +1,98 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ALTERNATIVE_ME_FGI_WAYBACK_SOURCE_SPEC_V1",
+  "family_id": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+  "created_at": "2026-08-22T22:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_FGI_VALUE_EXACT_ARCHIVED_SOURCE_AND_PREDICTIVE_PREREGISTRATION",
+  "bindings": [
+    {
+      "path": "research/alternative_me_fgi_wayback_source_v1.py",
+      "sha256": "6d6ac49a0296cf0edf53eb224b4e8a9fa7dbae436b7c07c82072a607290c5f45",
+      "role": "FROZEN_CREATE_ONLY_EXACT_WAYBACK_SOURCE_ADAPTER"
+    },
+    {
+      "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+      "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c",
+      "role": "FROZEN_REUSED_CREATE_ONLY_AND_DETERMINISTIC_GZIP_CAPABILITY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
+      "sha256": "3034f11ef0abab8fe42ed8e3fd8170027a2e2b549548ad8b2844cb3ed5334b5b",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR"
+    }
+  ],
+  "acquisition_policy": {
+    "capture_timestamp": "20241126094019",
+    "original_url": "https://api.alternative.me/fng/?limit=10000",
+    "replay_url": "https://web.archive.org/web/20241126094019id_/https://api.alternative.me/fng/?limit=10000",
+    "cdx_digest": "V4YE4TMPOQINOT55Y2WPDODDVBM7WTTO",
+    "response_format": "ARCHIVED_ORIGINAL_JSON_NO_MEMENTO_WRAPPER",
+    "selected_first_day": "2018-02-01",
+    "selected_last_day": "2024-11-25",
+    "selected_complete_calendar_days": "REQUIRE_EVERY_DAY",
+    "selected_fields": [
+      "date",
+      "value",
+      "value_classification",
+      "source_timestamp"
+    ],
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "live_api": "DENY",
+    "other_capture_or_provider": "DENY",
+    "btc_outcome_access": "DENY"
+  },
+  "source_all_pass_gate": [
+    "The exact 2024-11-26 09:40:19 Wayback id_ replay returns HTTP 200 without redirect, credential, retry or Memento HTML wrapper.",
+    "The response payload SHA-1 base32 digest exactly matches the frozen CDX digest V4YE4TMPOQINOT55Y2WPDODDVBM7WTTO.",
+    "The official JSON envelope has name, data and null-error metadata; every row has one valid integer value from 0 through 100, an allowed exact publisher label and one unique parseable timestamp day.",
+    "Every calendar day from 2018-02-01 through 2024-11-25 is present exactly once without repair, imputation, live-API access or another capture.",
+    "Two create-only source executions produce byte-identical bundle and normalized-gzip hashes."
+  ],
+  "frozen_downstream_predictive_contract": {
+    "feature": "LATEST_COMPLETE_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
+    "other_state": "EVERY_ALLOWED_LABEL_OTHER_THAN_EXTREME_FEAR",
+    "signal_lag": "ONE_COMPLETE_INDEX_DAY",
+    "mapping": "AFTER_INDEX_DAY_D_COMPLETES_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_D_PLUS_1_UTC_OPEN_TO_D_PLUS_2_UTC_OPEN_WHEN_EXTREME_FEAR_OTHERWISE_ZERO_YIELD_CASH",
+    "variants": 1,
+    "design_outcome_window": "2020-01-01_THROUGH_2022-12-31",
+    "validation_outcome_window": "2023-01-01_THROUGH_2024-11-26",
+    "btc_outcome_source": "EXISTING_CHECKSUM_BOUND_PRE2025_BTCUSDT_COMPLETE_H1_CORPUS_SEPARATELY_HASH_BOUND_BEFORE_EVALUATION",
+    "all_pass_predictive_gates": [
+      "Design and Validation each contain at least 50 Extreme Fear and 50 other-label next-day outcomes.",
+      "Extreme Fear mean next-day BTC open-to-open return exceeds other-label mean in both Design and Validation.",
+      "Validation Extreme Fear downside semideviation is no worse than other-label downside semideviation.",
+      "Extreme-Fear-minus-other annual mean next-day return is positive in at least three of 2020, 2021, 2022, 2023 and partial 2024.",
+      "No single positive annual delta supplies more than 60 percent of total positive annual delta."
+    ]
+  },
+  "economic_contract_if_predictive_passes": {
+    "candidate": "FULL_CAPITAL_BTC_NEXT_DAY_AFTER_EXTREME_FEAR_OTHERWISE_ZERO_YIELD_CASH",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_WINDOW_COST_AND_MARKING",
+    "normal_cost_per_side": "10_BPS_FEE_PLUS_5_BPS_ADVERSE_SLIPPAGE",
+    "stress_cost_per_side": "20_BPS_FEE_PLUS_10_BPS_ADVERSE_SLIPPAGE",
+    "required_visibility": [
+      "realized_return",
+      "unrealized_return",
+      "total_return",
+      "maximum_drawdown",
+      "Calmar",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "state_concentration",
+      "buy_and_hold_opportunity_cost"
+    ],
+    "oos_access": "DENY_UNTIL_ALL_DESIGN_VALIDATION_ECONOMIC_AND_PATH_RISK_GATES_PASS"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before factor computation on any replay transport, redirect, wrapper, archive identity, digest, JSON, metadata, row, timestamp, duplicate, missing-day, label, selected-coverage or determinism failure.",
+    "Do not use the live API, another capture, provider, date range, numeric threshold, classification repair or imputation.",
+    "After FGI value access, do not change the exact Extreme Fear label, direction, next-day mapping, window, gate, cost or comparator and do not add smoothing, price, volume, volatility, attention or regime conditions.",
+    "If any frozen predictive gate fails, close before matched-capital economics and keep OOS sealed."
+  ],
+  "next_action_on_source_pass": "BIND_THE_SEALED_FGI_ONLY_CORPUS_AND_EXISTING_BTC_H1_OUTCOME_CORPUS_TO_ONE_EXACT_LABEL_PREDICTIVE_ONLY_RUNNER_WITHOUT_CHANGING_THE_FROZEN_CONTRACT",
+  "scope_note": "Frozen exact archived free FGI source and downstream predictive preregistration before any archived response body, FGI value or BTC outcome access. No factor, return, strategy, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -107,9 +107,8 @@ class CandidateFunnelTest(unittest.TestCase):
             if family["family_id"]
             == "btc-alternative-me-extreme-fear-contrarian-long-cash"
         )
-        self.assertEqual(
-            extreme_fear["base_stage"], "HISTORICAL_PRIOR"
-        )
+        self.assertEqual(extreme_fear["base_stage"], "DEFERRED")
+        self.assertIsNone(extreme_fear["estimated_days_to_next_gate"])
         self.assertEqual(
             [
                 binding["role"]
@@ -117,6 +116,7 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
             [
                 "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+                "SEALED_ONE_ATTEMPT_SOURCE_TRANSPORT_INDETERMINATE_NO_ARTIFACT_NO_RETRY",
             ],
         )
         closed_geopolitical_risk = next(

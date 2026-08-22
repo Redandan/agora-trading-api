@@ -5,12 +5,14 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import importlib.util
 from pathlib import Path
+import json
 import sys
 import unittest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RUNNER = REPO_ROOT / "research" / "btc_daily_stochastic_5_3_3_kd_cross_long_cash_historical.py"
+MANIFEST = REPO_ROOT / "research_pipeline" / "examples" / "btc-daily-stochastic-5-3-3-kd-cross-long-cash-historical.v1.manifest.json"
 
 
 def load_runner():
@@ -38,6 +40,16 @@ class StochasticRunnerTest(unittest.TestCase):
     def points(self, closes: list[str], high: str = "10", low: str = "0") -> list[Point]:
         start = datetime(2020, 1, 2)
         return [Point(start + timedelta(days=i), Decimal(high), Decimal(low), Decimal(value)) for i, value in enumerate(closes)]
+
+    def test_manifest_accepts_exact_three_variant_contract(self) -> None:
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        self.runner.validate_manifest(manifest)
+
+    def test_manifest_rejects_neighbor_change(self) -> None:
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        manifest["strategy_policy"]["rejection_only_neighbors"][1]["kd_gap_threshold"] = "20"
+        with self.assertRaisesRegex(self.runner.ResearchReject, "NEIGHBORS"):
+            self.runner.validate_manifest(manifest)
 
     def test_flat_range_maps_fast_k_and_gap_to_zero_cash(self) -> None:
         points = [Point(datetime(2020, 1, 2) + timedelta(days=i), Decimal("5"), Decimal("5"), Decimal("5")) for i in range(9)]

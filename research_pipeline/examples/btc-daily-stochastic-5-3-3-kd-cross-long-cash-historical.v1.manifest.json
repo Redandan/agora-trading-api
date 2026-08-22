@@ -1,0 +1,101 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_STOCHASTIC_5_3_3_KD_CROSS_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-stochastic-5-3-3-kd-cross-long-cash-historical-v1",
+  "created_at": "2026-08-22T09:47:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "When a completed-day BTC close is rising inside its latest five-day high-low range faster than its three-day smoothed signal line, short-horizon range-position acceleration may persist strongly enough that a causal next-open long/cash policy preserves material upside while avoiding enough adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "economic_rationale": "Default stochastic 5-3-3 measures the difference between a three-day smoothed five-day closing-range position and its own three-day simple signal average. It is valuable only if the fixed zero K-D boundary retains material upside after costs, lowers drawdown, improves Calmar, survives annual breadth and remains stable at frozen negative-10 and positive-10 gap thresholds. Reduced exposure alone cannot pass.",
+  "opportunity_cost": "One exact historical decision is cheaper and more informative than waiting ninety days or building another data adapter. A failure permanently closes this default stochastic K-D family without period, averaging, gap, band, confirmation or parent changes.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-stochastic-5-3-3-kd-cross-long-cash",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_CAUSAL_NEXT_H1_OPEN_POLICY",
+    "distinct_from_closed_families": [
+      "Unlike RSI14 and MFI14, stochastic uses closing location inside a five-day high-low range and nested simple averages rather than positive-versus-negative return or money-flow ratios.",
+      "Unlike the closed single-day close-location DRA family, this mechanism uses a rolling five-day range and the acceleration gap between SlowK and SlowD.",
+      "Unlike Donchian, price need not cross a rolling high or low; unlike Aroon, the feature uses distance within the range rather than extreme age."
+    ],
+    "excluded_reinterpretations": [
+      "SlowK minus SlowD strictly above zero is primary; negative 10 and positive 10 are rejection-only neighbors and cannot replace it.",
+      "No alternate period, averaging type, fast stochastic, band, crossover event, threshold, confirmation, delay, hold, stop, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and still requires one independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {"path": "research/btc_daily_stochastic_5_3_3_kd_cross_long_cash_historical.py", "sha256": "3ade61b5061c9144876802fa45f3d9b39ab7b90e1999f6fbb9a95286b0e9b3d6", "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"},
+    {"path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py", "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd", "role": "FROZEN_DAILY_AGGREGATION_AND_LONG_CASH_LEDGER_SUPPORT"},
+    {"path": "research/btc_daily_rsi14_midline_long_cash_historical.py", "sha256": "1753cfd3a28bf7fdad8bb6a63e7de486d179491b2eab5d433830a71eca523281", "role": "FROZEN_MATCHED_CAPITAL_GATE_LOGIC_SUPPORT"},
+    {"path": "research/btc_monthly_12m_time_series_momentum_historical.py", "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b", "role": "FROZEN_PASSIVE_REFERENCE_AND_ECONOMIC_PRIMITIVES"},
+    {"path": "research/btc_dra_reversal_confirmed_exit_v2c.py", "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37", "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"},
+    {"path": "research_pipeline/examples/btc-daily-stochastic-5-3-3-kd-cross-long-cash-primary-prior.v1.json", "sha256": "368c8fd16b1cd5e0239ed4e5af832762da145474393fb9d1f6fab2da6a098fb3", "role": "SEALED_PRIMARY_FORMULA_ACADEMIC_ADVERSARIAL_AND_DEDUP_PRIOR"},
+    {"path": "research_pipeline/examples/btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.hypothesis.json", "sha256": "83c149c9f44437afc20dfc22304e05f398b80eef497882100b741ab97c3a02af", "role": "FROZEN_HYPOTHESIS"}
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_STOCHASTIC_5_3_3_KD_CROSS_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_aggregation": "COMPLETE_UTC_DAY_24_CONTIGUOUS_H1_BARS",
+    "fast_k": "100_TIMES_CLOSE_MINUS_5D_LOW_DIVIDED_BY_5D_HIGH_MINUS_5D_LOW",
+    "flat_range_value": "0",
+    "slow_k": "SIMPLE_AVERAGE_OF_LATEST_3_FAST_K",
+    "slow_d": "SIMPLE_AVERAGE_OF_LATEST_3_SLOW_K",
+    "moving_average_type": "SIMPLE",
+    "primary": {"fast_k_period": 5, "slow_k_period": 3, "slow_d_period": 3, "kd_gap_threshold": "0"},
+    "rejection_only_neighbors": [
+      {"fast_k_period": 5, "slow_k_period": 3, "slow_d_period": 3, "kd_gap_threshold": "-10"},
+      {"fast_k_period": 5, "slow_k_period": 3, "slow_d_period": 3, "kd_gap_threshold": "10"}
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "long_condition": "COMPLETED_DAY_SLOW_K_MINUS_SLOW_D_STRICTLY_GREATER_THAN_THRESHOLD",
+    "cash_condition": "COMPLETED_DAY_SLOW_K_MINUS_SLOW_D_LESS_THAN_OR_EQUAL_TO_THRESHOLD",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": ["2020-01-01T00:00:00", "2023-01-01T00:00:00"],
+    "validation": ["2023-01-01T00:00:00", "2025-01-01T00:00:00"],
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024],
+    "state": "FAIR_RESET_EACH_WINDOW_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "gate_set": {
+    "id": "BTC_DAILY_STOCHASTIC_5_3_3_KD_CROSS_LONG_CASH_MATCHED_CAPITAL_GATES_V1",
+    "primary_design": ["normal_and_stress_total_return_pct_gt_0", "normal_drawdown_at_most_95pct_of_buy_hold", "normal_calmar_at_least_buy_hold"],
+    "primary_validation": ["normal_and_stress_total_return_pct_gt_0", "normal_drawdown_at_most_90pct_of_buy_hold", "normal_upside_capture_at_least_60pct", "normal_calmar_at_least_buy_hold", "position_changes_between_2_and_250", "stress_drawdown_no_more_than_normal_plus_3pp", "terminal_liquidation_adjusted_return_pct_gt_0", "terminal_liquidation_cost_at_most_1pp"],
+    "neighbor_stability": ["both_neighbors_positive_normal_and_stress_validation_return", "both_neighbors_validation_drawdown_non_worse_than_buy_hold", "both_neighbors_validation_calmar_at_least_75pct_buy_hold", "both_neighbors_validation_upside_capture_at_least_50pct"],
+    "annual_breadth": ["normal_and_stress_positive_primary_return_at_least_4_of_5_years", "normal_primary_drawdown_non_worse_at_least_4_of_5_years", "normal_primary_calmar_at_least_75pct_buy_hold_at_least_3_of_5_years", "normal_primary_upside_capture_at_least_50pct_at_least_4_of_5_years"],
+    "concentration_holding_and_inventory": ["top_year_positive_return_contribution_at_most_60pct", "validation_top_positive_episode_contribution_at_most_60pct", "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours"],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_STOCHASTIC_5_3_3_KD_GT_NEGATIVE10_ZERO_POSITIVE10_LONG_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {"python_minimum": "3.11", "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE", "output": "CREATE_NEW_SEALED_CANONICAL_JSON", "reruns": 2, "required": "BYTE_IDENTICAL_OUTPUTS"},
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any source hash, dataset hash, hourly lattice, OHLCV or complete UTC-day gate fails.",
+    "Stop and permanently close the exact default stochastic 5-3-3 K-D thresholds negative 10, zero and positive 10 family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Do not scan another stochastic period, averaging type, fast variant, threshold, band, crossover event, delay, holding period, confirmation, DRA combination or cost model after results.",
+    "Do not use post-2024 data; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": ["PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL", "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO", "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"]
+}

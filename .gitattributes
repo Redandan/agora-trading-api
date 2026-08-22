@@ -64,4 +64,6 @@ research_pipeline/examples/btc-daily-stochastic-5-3-3-kd-cross-long-cash-primary
 research_pipeline/examples/btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.hypothesis.json text eol=lf
 research/btc_daily_stochastic_5_3_3_kd_cross_long_cash_historical.py text eol=lf
 research_pipeline/tests/test_btc_daily_stochastic_5_3_3_kd_cross_long_cash_historical.py text eol=lf
+research_pipeline/examples/btc-daily-stochastic-5-3-3-kd-cross-long-cash-historical.v1.manifest.json text eol=lf
+research_pipeline/examples/local-direct-screen-package.btc-daily-stochastic-5-3-3-kd-cross-long-cash.v1.json text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

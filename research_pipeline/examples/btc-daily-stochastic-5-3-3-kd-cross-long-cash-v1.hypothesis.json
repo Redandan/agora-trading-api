@@ -1,0 +1,36 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1",
+  "title": "Daily default stochastic 5-3-3 K-D range-acceleration long/cash timing",
+  "thesis": "When a completed-day BTC close is rising inside its latest five-day high-low range faster than its three-day smoothed signal line, short-horizon range-position acceleration may persist strongly enough that a causal next-open long/cash policy preserves material upside while avoiding enough adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "mechanism": "For every complete UTC day, compute FastK from close location inside the latest five complete-day high-low range, map a flat range to zero, average the latest three FastK values into SlowK, and average the latest three SlowK values into SlowD. The strategy is fully long BTC when completed-day SlowK minus SlowD is strictly above a frozen threshold and otherwise holds zero-yield cash, with state changes executed at the next H1 open.",
+  "economic_rationale": "Default stochastic 5-3-3 measures smoothed range-position acceleration rather than return magnitude, extreme age or a price breakout. The mechanism is useful only if the fixed zero K-D boundary retains material upside after costs while reducing drawdown and improving Calmar with broad annual and symmetric negative-10 and positive-10 neighbor support.",
+  "source": "BTC_DAILY_STOCHASTIC_5_3_3_KD_CROSS_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "variants": [
+    {"role": "PRIMARY", "fast_k_period": 5, "slow_k_period": 3, "slow_d_period": 3, "kd_gap_threshold": "0"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "fast_k_period": 5, "slow_k_period": 3, "slow_d_period": 3, "kd_gap_threshold": "-10"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "fast_k_period": 5, "slow_k_period": 3, "slow_d_period": 3, "kd_gap_threshold": "10"}
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {"economic_mechanism": 3, "interpretability": 5, "evidence_readiness": 5, "opportunity_cost_reduction": 5},
+  "research_cycle_id": "2026-08-22-candidate-factory-cycle-stochastic-5-3-3",
+  "created_at": "2026-08-22T09:43:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

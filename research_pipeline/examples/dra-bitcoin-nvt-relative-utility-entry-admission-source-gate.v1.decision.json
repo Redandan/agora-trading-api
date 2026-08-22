@@ -1,0 +1,54 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BITCOIN_NVT_RELATIVE_UTILITY_ENTRY_ADMISSION_SOURCE_GATE_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DATA_REJECT_CLOSE_NVTADJ_FREE_SOURCE_FAMILY",
+  "experiment_id": "dra-bitcoin-nvt-relative-utility-entry-admission-historical-v1",
+  "decision_at": "2026-08-20T06:17:04Z",
+  "decision": "DATA_REJECT",
+  "material_conclusion": "The one permitted no-credential Coin Metrics Community API request for BTC NVTAdj returned HTTP 403. The response failed before any payload bytes were opened or sealed and before any BTC/DRA outcome was accessed. The exact family is closed without retry, paid access, credential use, metric substitution or gate change.",
+  "source_gate": {
+    "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=NVTAdj&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000&status=reviewed",
+    "attempt_count": 1,
+    "automatic_retry": "DENY",
+    "redirect": "DENY",
+    "credentials": "DENY",
+    "observed_result": "SOURCE_REJECT:HTTP:403",
+    "raw_response_sealed": false,
+    "normalized_subset_sealed": false,
+    "source_bundle_sealed": false,
+    "btc_or_dra_outcome_accessed": false
+  },
+  "evidence_bindings": [
+    {
+      "path": "research/coinmetrics_btc_nvtadj_source_probe.cjs",
+      "role": "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE",
+      "sha256": "62a276b3d7e1cdcaea2c685c23232c0ab25f30ec0fcb235865cb839f5562cf13"
+    },
+    {
+      "path": "research_pipeline/examples/dra-bitcoin-nvt-relative-utility-entry-admission-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
+      "sha256": "8e36559a9063fa16758b8dad62f569d6c3fe920d3ecdbe4a8734f771a6c3cdc1"
+    }
+  ],
+  "performance_evidence": {
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "NOT_OPENED"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not retry the fixed Community API URL, add an API key, use a paid endpoint or relax the HTTP gate.",
+    "Do not substitute NVTAdj90, RVT, SOPR, MVRV, raw transfer volume, another provider or manual export.",
+    "Do not reinterpret HTTP 403 as evidence about NVTAdj predictive or economic value."
+  ],
+  "next_action": "Exclude this family permanently and select a deduplicated independent family whose exact free metric is already documented as Community-accessible.",
+  "concept_to_teach": "A published metric can still be unavailable on the free executable path. Source-first rejection protects the research budget from building an experiment around data the system cannot lawfully and reproducibly obtain.",
+  "scope_note": "No hypothesis, manifest, strategy runner, candidate, OOS, canonical state, scheduler, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

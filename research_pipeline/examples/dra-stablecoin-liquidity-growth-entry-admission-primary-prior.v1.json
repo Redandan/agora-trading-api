@@ -1,0 +1,86 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_STABLECOIN_LIQUIDITY_GROWTH_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_LOW_COST_DRA_STABLECOIN_LIQUIDITY_ENTRY_ADMISSION_AUDIT",
+  "claim_boundary": "The sealed long-cash study found that lagged combined USDT and USDC capitalization growth was not independent risk-adjusted BTC timing alpha: Validation return, drawdown, Calmar, upside capture and annual breadth failed. That result is a strong adverse prior, not permission to retune the long-cash family. Exactly one different-parent matched-capital audit may test whether the same frozen, lagged liquidity state filters sparse DRA V1 entries without changing the source, assets, 28-day lag, decision delay or zero-growth threshold. Any Design, Validation, realized-PnL, path-risk, breadth, concentration or neighbor failure closes this DRA-admission family.",
+  "feature_contract": {
+    "publisher": "Coin Metrics Community API",
+    "assets": ["usdt", "usdc"],
+    "metric": "CapMrktCurUSD",
+    "observation": "SEALED_REVIEWED_DAILY_UTC_CURRENT_MARKET_CAPITALIZATION_USD",
+    "decision_time": "SECOND_CALENDAR_DAY_0000_UTC_AFTER_OBSERVATION_DAY",
+    "primary_feature": "COMBINED_USDT_PLUS_USDC_CAPMRKTCURUSD_STRICTLY_ABOVE_ITS_LEVEL_28_CALENDAR_DAYS_EARLIER",
+    "neighbor_features": [
+      "USDT_CAPMRKTCURUSD_STRICTLY_ABOVE_ITS_LEVEL_28_CALENDAR_DAYS_EARLIER",
+      "USDC_CAPMRKTCURUSD_STRICTLY_ABOVE_ITS_LEVEL_28_CALENDAR_DAYS_EARLIER"
+    ],
+    "parent_strategy": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+    "policy": "ADMIT_OTHERWISE_UNCHANGED_DRA_ENTRY_ONLY_WHEN_LAGGED_STABLECOIN_LIQUIDITY_GROWTH_IS_POSITIVE",
+    "growth_lag_days": 28,
+    "threshold": "STRICT_ZERO_GROWTH_NO_TUNED_MARGIN"
+  },
+  "independence_contract": {
+    "duplicate_family_key": "dra-stablecoin-usdt-usdc-capitalization-28d-growth-entry-admission",
+    "independence_key": "lagged-stablecoin-liquidity-state-for-sparse-dra-entry-selection",
+    "not_long_cash_reopen": "The closed study continuously switched full-capital BTC versus cash. This audit leaves the sparse DRA parent, exits, lot sizing, capacity and accounting unchanged and only tests entry admission. The long-cash decision and its failed economics remain sealed and cannot be recomputed, renamed or used as a positive prior.",
+    "source_reuse_boundary": "Reuse is limited to the byte-identified sealed source snapshot and its existing timing and revision contract; no new download, refreshed vintage or post-2024 observation is permitted."
+  },
+  "prior_matrix": [
+    {
+      "identity": "Sealed BTC stablecoin-liquidity long-cash historical decision",
+      "primary_source": "research_pipeline/examples/btc-stablecoin-liquidity-growth-long-cash-historical.v1.decision.json",
+      "sha256": "fb2e0a4dc60322f506aa6f4889ef576631419fe42b778cac97e2c36e7757b921",
+      "finding": "The primary Validation result earned 275.13508553% versus 464.75475156% buy-and-hold, had 32.94709767% versus 32.28416349% drawdown, and achieved only 58.008884% of buy-and-hold Calmar. Annual drawdown was non-worse in four of five years and annual Calmar in two of five.",
+      "role": "SEALED_ADVERSARIAL_ECONOMIC_PRIOR",
+      "transfer_boundary": "Failure of continuous long-cash timing is not proof that the same state has no conditional value for sparse DRA entries, but it requires a strict no-rescue audit and prevents any positive alpha claim before new matched-capital evidence."
+    },
+    {
+      "identity": "Sealed stablecoin primary and adversarial literature prior",
+      "primary_source": "research_pipeline/examples/btc-stablecoin-liquidity-growth-primary-prior.v1.json",
+      "sha256": "a9a6b1d64df7f7fb7d752d6777f9da46857b4a550c1f51455ff3c8fcf3f9fb4b",
+      "finding": "Primary literature summarized in the sealed prior does not establish subsequent Bitcoin-return alpha from stablecoin issuance and includes reverse-causality evidence.",
+      "role": "SEALED_ADVERSARIAL_CAUSAL_PRIOR",
+      "transfer_boundary": "Stablecoin capitalization is a risk-state proxy, not established causal liquidity inflow or independent alpha."
+    },
+    {
+      "identity": "Sealed Coin Metrics USDT and USDC daily source identity",
+      "primary_source": "research_pipeline/examples/coinmetrics-usdt-usdc-stablecoin-liquidity-daily-2018-2024.v1.source.json",
+      "sha256": "6e0db2ea42b2694d275e3664d2ecac5b6d71fd06d27f31c39e1d05a2377b56f6",
+      "finding": "The source contract identifies reviewed daily CapMrktCurUSD observations, a two-calendar-day usability delay, present-vintage revision limits and Community API license boundary.",
+      "role": "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_METRIC_AND_LICENSE_IDENTITY",
+      "transfer_boundary": "Source availability and identity do not establish predictive or economic value."
+    },
+    {
+      "identity": "Sealed USDT and USDC normalized source snapshot",
+      "primary_source": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/inputs/coinmetrics-usdt-usdc-stablecoin-liquidity-2018-2024.csv",
+      "sha256": "144bd8a20d1954b09f20e85cdf8f16fd8befd201cb77da824ba57562573a7d81",
+      "source_bundle_sha256": "60f3db703af391ad7f1dfab22b089eb6a8a82f4ea7c6082fa702faa913707aad",
+      "role": "EXECUTABLE_PRE_OUTCOME_FACTOR_DATA_PATH",
+      "transfer_boundary": "This is a present-vintage historical snapshot through 2024. It cannot establish original-vintage availability or serve as independent post-selection OOS."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Reuse only the sealed normalized source and source bundle with their exact hashes; do not access the network or refresh values.",
+    "Use observation day D only at D plus two calendar days 00:00 UTC and carry the latest usable state without lookahead.",
+    "Freeze the combined USDT-plus-USDC 28-day positive-growth state as primary and USDT-only and USDC-only as rejection-only neighbors.",
+    "Keep DRA parent signals, next-bar fills, exits, lot cost, capacity, fee, adverse slippage, cooldown and accounting unchanged.",
+    "Require matched-capital Design and Validation total and realized PnL improvement, drawdown and underwater non-inferiority, holding support, terminal inventory, annual breadth, contribution concentration and both-neighbor stability.",
+    "Count blocked and admitted DRA signals and expose year-level deltas so reduced participation or terminal cleanup cannot be mistaken for alpha.",
+    "Do not open post-2024 OOS; a historical pass can only freeze a candidate for later independent evidence."
+  ],
+  "prohibited_substitutions": [
+    "Do not reopen or recompute the closed long-cash family, reinterpret its result as supportive evidence, or substitute its economic gates.",
+    "Do not change the 28-day lag, strict-zero threshold, two-day delay, assets, capitalization metric, smoothing or decision cadence.",
+    "Do not add price, trend, volatility, dominance, depeg, issuance, transfer-flow or interaction terms after DRA outcome access.",
+    "Do not let a single-asset neighbor replace a failed combined primary."
+  ],
+  "uncertainty": [
+    "The previously failed long-cash economics make this a deliberately adverse-prior audit with a low expected pass rate.",
+    "CapMrktCurUSD combines supply and stablecoin reference-price effects and may respond to rather than lead crypto demand.",
+    "The present-vintage snapshot does not prove what was known at each historical decision time beyond the conservative two-day availability rule.",
+    "No DRA outcome for this exact admission policy, post-2024 evidence, OOS, candidate, runtime filter, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T06:45:00Z"
+}

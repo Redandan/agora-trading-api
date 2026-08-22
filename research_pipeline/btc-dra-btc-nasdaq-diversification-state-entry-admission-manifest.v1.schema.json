@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/btc-dra-btc-nasdaq-diversification-state-entry-admission-manifest.v1.schema.json",
+  "title": "BTC DRA BTC-Nasdaq diversification-state entry-admission manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["authorization", "availability", "bindings", "dataset", "document_type", "economics", "experiment_id", "factor", "gate_set", "oos_access", "parent_strategy", "schema_version", "selection_cutoff", "source", "windows"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_DRA_BTC_NASDAQ_DIVERSIFICATION_STATE_ENTRY_ADMISSION_MANIFEST_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "experiment_id": {"const": "dra-btc-nasdaq-diversification-state-entry-admission-historical-v1"},
+    "parent_strategy": {"const": "BTC_DRA_V1"},
+    "gate_set": {"const": "BTC_DRA_BTC_NASDAQ_DIVERSIFICATION_STATE_ENTRY_ADMISSION_GATES_V1"},
+    "oos_access": {"const": "DENY"},
+    "selection_cutoff": {"const": "2025-01-01T00:00:00"},
+    "dataset": {"const": {"canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd", "rows": 52608}},
+    "economics": {"const": {"fee_rate": "0.0010", "initial_equity_usdt": "250", "slippage_rate": "0.0005", "slot_capacity_usdt": "240"}},
+    "factor": {
+      "const": {
+        "admission_rule": "ADMIT_PARENT_SIGNAL_ONLY_WHEN_LAGGED_63_PAIR_BTC_NASDAQ_RETURN_CORRELATION_AT_OR_BELOW_THRESHOLD",
+        "correlation_estimator": "DECIMAL_PEARSON_SIMPLE_CLOSE_TO_CLOSE_RETURNS",
+        "factor_identity": "LAGGED_63_PAIR_BTC_NASDAQ_RETURN_CORRELATION_AT_OR_BELOW_WEEKLY_168H_V1",
+        "primary_threshold": "0.00",
+        "relation": "AT_OR_BELOW",
+        "stability_neighbors": ["-0.10", "0.10"],
+        "veto_action": "HOLD_CASH"
+      }
+    },
+    "availability": {
+      "const": {
+        "eligible_time": "FINAL_NASDAQ_BUSINESS_DATE_OF_ISO_WEEK_PLUS_1_CALENDAR_DAY_AT_00_00_UTC",
+        "evaluation_frequency": "ONE_POINT_PER_ISO_WEEK",
+        "factor_valid_hours": 168,
+        "missing_pair_action": "SKIP_WITHOUT_INTERPOLATION",
+        "paired_business_day_returns": 63,
+        "publication_lag_calendar_days": 1
+      }
+    },
+    "source": {
+      "const": {
+        "first_date": "2018-01-02",
+        "last_date": "2024-12-31",
+        "normalized_bytes": 36406,
+        "present_vintage": true,
+        "publisher": "Nasdaq, Inc., redistributed by Federal Reserve Bank of St. Louis FRED",
+        "rows": 1762,
+        "series_id": "NASDAQCOM"
+      }
+    },
+    "windows": {
+      "const": {
+        "annual_folds": ["2020", "2021", "2022", "2023", "2024"],
+        "design": {"end_exclusive": "2023-01-01T00:00:00", "start_inclusive": "2020-01-01T00:00:00"},
+        "outcome_horizon_hours": 168,
+        "validation": {"end_exclusive": "2025-01-01T00:00:00", "start_inclusive": "2023-01-01T00:00:00"}
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_runner", "capacity_runner", "hypothesis", "manifest_schema", "normalized_source", "primary_prior", "raw_source_response", "reused_economic_runner", "runner", "source_bundle", "source_metadata", "source_probe"],
+      "properties": {
+        "base_runner": {"$ref": "#/$defs/binding"},
+        "capacity_runner": {"$ref": "#/$defs/binding"},
+        "hypothesis": {"$ref": "#/$defs/binding"},
+        "manifest_schema": {"$ref": "#/$defs/binding"},
+        "normalized_source": {"$ref": "#/$defs/binding"},
+        "primary_prior": {"$ref": "#/$defs/binding"},
+        "raw_source_response": {"$ref": "#/$defs/binding"},
+        "reused_economic_runner": {"$ref": "#/$defs/binding"},
+        "runner": {"$ref": "#/$defs/binding"},
+        "source_bundle": {"$ref": "#/$defs/binding"},
+        "source_metadata": {"$ref": "#/$defs/binding"},
+        "source_probe": {"$ref": "#/$defs/binding"}
+      }
+    }
+  },
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

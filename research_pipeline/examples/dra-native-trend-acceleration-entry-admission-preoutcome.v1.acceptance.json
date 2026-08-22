@@ -1,0 +1,40 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_TREND_ACCELERATION_PREOUTCOME_ACCEPTANCE_V1",
+  "accepted_at": "2026-08-21T08:05:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-native-trend-acceleration-entry-admission",
+  "disposition": "PASS_PREOUTCOME_DEDUP_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+  "support_result": {
+    "path": ".research-state/experiments/dra-native-trend-acceleration-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+    "sha256": "fbf98a7a30223aa9c14a1cbddcb16ccbf506d1ba80e2069ad49f633e58674e10",
+    "run2_path": ".research-state/experiments/dra-native-trend-acceleration-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+    "run2_sha256": "fbf98a7a30223aa9c14a1cbddcb16ccbf506d1ba80e2069ad49f633e58674e10",
+    "byte_identical": true,
+    "support_pass": true,
+    "failed_gates": []
+  },
+  "spec_binding": {
+    "path": "research_pipeline/examples/dra-native-trend-acceleration-entry-admission-preoutcome.v1.spec.json",
+    "sha256": "263cf0092b34ffae471438b598778c94109d75c513eb98e09f0f4fb01f6d903e"
+  },
+  "hypothesis_binding": {
+    "path": "research_pipeline/examples/dra-native-trend-acceleration-entry-admission-v1.hypothesis.json",
+    "sha256": "5f9b0f7acde5b98bc36a03af8f20916f15988300c6505425cf1939f956da303d",
+    "schema_valid": true
+  },
+  "support_summary": {
+    "design_parent_capacity_feature_available_primary_veto_counts": "103_100_102_40",
+    "validation_parent_capacity_feature_available_primary_veto_counts": "51_51_51_26",
+    "design_validation_acceleration_minimum_median_maximum_atr": "-0.79164081_0.18928078_1.34447656__-0.92121883_-0.01282006_1.53874462",
+    "annual_primary_veto_counts_2020_2024": [14, 11, 5, 13, 13],
+    "top_year_primary_veto_share": "0.25000000",
+    "validation_top_month_primary_veto_share": "0.15384615",
+    "primary_design_validation_action_shares": "0.40000000_AND_0.50980392",
+    "exact_parent_path_parity": true,
+    "action_fingerprints_distinct": true,
+    "outcome_accessed": false
+  },
+  "decision_boundary": "This acceptance permits exactly one frozen matched-capital historical experiment with the zero-ATR-curvature primary threshold and rejection-only minus 0.10 and plus 0.10 ATR neighbors. It is not performance evidence and does not permit threshold, EMA20 window, ATR update, feature direction, cooldown route, gate, OOS or Trading changes.",
+  "scope_note": "No strategy economics, candidate, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

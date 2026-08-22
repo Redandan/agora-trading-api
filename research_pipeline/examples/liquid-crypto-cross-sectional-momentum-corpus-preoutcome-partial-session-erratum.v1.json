@@ -1,0 +1,38 @@
+{
+  "schema_version": "1",
+  "document_type": "LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_CORPUS_PREOUTCOME_PARTIAL_SESSION_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRE_OUTCOME_SOURCE_PARSER_ERRATUM_NO_STRATEGY_OUTCOME_ACCESSED",
+  "observed_at": "2026-08-20T08:05:00Z",
+  "failed_source_manifest": {
+    "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-corpus.v1.source-manifest.json",
+    "sha256_before_erratum": "8da4f97c71602fe94d9d69bbfa7f9176552c2a1f9dfab8cf7df571065666731f"
+  },
+  "failed_corpus_builder": {
+    "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+    "sha256": "bd6aeb5e54fb250cd7d04ff2e5a281ce8fa70341afde1a1f73135c7e96b48142"
+  },
+  "failure": {
+    "classification": "INCOMPLETE_TERMINAL_EXCHANGE_SESSION_WAS_NOT_A_COMPLETE_DAILY_BAR",
+    "identity": "BEAMUSDT_2023_01_ROW_25",
+    "open_time_ms": "1674691200000",
+    "close_time_ms": "1674723599999",
+    "duration_ms_inclusive": "32400000",
+    "position_in_archive": "FINAL_ROW",
+    "original_error": "DATA_REJECT:DAILY_CLOCK:BEAMUSDT:2023-01:25",
+    "sealed_outputs_created": false
+  },
+  "interpretation": "The frozen hypothesis requires complete UTC daily bars. A final nine-hour exchange session is not an eligible complete day and must not become a feature or return observation. Rejecting the entire otherwise checksum-valid archive was stricter than the frozen complete-day contract and would convert an execution-session boundary into a source-family failure.",
+  "correction": {
+    "rule": "Exclude a row only when its open is exactly UTC midnight, its close is after open but before the full 24-hour close, and it is the final row of that monthly archive. Record every excluded identity and duration in the sealed corpus ledger.",
+    "fail_closed": "Reject every partial row that is not the final archive row, starts off the UTC daily lattice, has a nonpositive duration, exceeds 24 hours, or leaves an archive with no complete rows.",
+    "outcome_independence": "The correction depends only on open timestamp, close timestamp and row position. No OHLC price, quote volume, return, rank, strategy path, PnL, drawdown or post-2024 evidence was inspected or used."
+  },
+  "prohibited_changes": [
+    "Do not interpolate or rescale the partial session.",
+    "Do not convert it into a complete day.",
+    "Do not change cohort month, archive window, asset taxonomy, momentum horizon, liquidity rule, parent, costs or gates.",
+    "Do not retain the failed partial row in either the candidate or parent corpus."
+  ],
+  "scope_note": "No sealed corpus output, strategy outcome, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

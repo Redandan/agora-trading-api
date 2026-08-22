@@ -1,0 +1,132 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_CHAIKIN_MONEY_FLOW_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-daily-chaikin-money-flow-long-cash-historical-v1",
+  "decided_at": "2026-08-20T09:07:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DAILY_CHAIKIN_MONEY_FLOW_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_CMF14_20_28_LONG_CASH_FAMILY_WITHOUT_LOOKBACK_THRESHOLD_OR_POLICY_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "manifest": {
+    "path": "research_pipeline/examples/btc-daily-chaikin-money-flow-long-cash-historical.v1.manifest.json",
+    "sha256": "14ac2a9f829818f1bb041d3718c6b6532eaf4916efa4f0c98c96b7627fa4e9b8"
+  },
+  "runner": {
+    "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+    "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-daily-chaikin-money-flow-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "cd08a034b6eac13586bed473412677bb98de64465a346eb6832c2a380a7264ac"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-daily-chaikin-money-flow-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "cd08a034b6eac13586bed473412677bb98de64465a346eb6832c2a380a7264ac",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "primary_cmf20_design_normal": {
+      "realized_return_pct": "321.45464716",
+      "unrealized_return_pct": "0.00000000",
+      "total_return_pct": "321.45464716",
+      "buy_hold_total_return_pct": "129.60544229",
+      "maximum_drawdown_pct": "53.72966641",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "calmar_ratio": "5.98281487",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "upside_capture_ratio": "2.48025578",
+      "position_changes": 92,
+      "median_hold_hours": "132.00000000",
+      "p90_hold_hours": "780.00000000"
+    },
+    "primary_cmf20_design_stress": {
+      "total_return_pct": "267.12850311",
+      "maximum_drawdown_pct": "58.57406572"
+    },
+    "primary_cmf20_validation_normal": {
+      "realized_return_pct": "117.23822648",
+      "unrealized_return_pct": "0.00000000",
+      "total_return_pct": "117.23822648",
+      "buy_hold_total_return_pct": "464.75475156",
+      "maximum_drawdown_pct": "44.05135660",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "calmar_ratio": "2.66139877",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.25225826",
+      "position_changes": 74,
+      "median_hold_hours": "48.00000000",
+      "p90_hold_hours": "806.40000000",
+      "top_positive_episode_contribution_pct": "30.89438259",
+      "terminal_position": false
+    },
+    "primary_cmf20_validation_stress": {
+      "total_return_pct": "94.41486886",
+      "maximum_drawdown_pct": "46.19135621"
+    },
+    "validation_rejection_only_neighbors": {
+      "cmf14": {
+        "total_return_pct": "209.57328547",
+        "maximum_drawdown_pct": "30.70843814",
+        "calmar_ratio": "6.82461558",
+        "upside_capture_ratio": "0.45093307"
+      },
+      "cmf28": {
+        "total_return_pct": "265.87101342",
+        "maximum_drawdown_pct": "30.43291723",
+        "calmar_ratio": "8.73629733",
+        "upside_capture_ratio": "0.57206734"
+      }
+    },
+    "annual_breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_years": "3_of_5",
+      "normal_calmar_at_least_75pct_buy_hold_years": "2_of_5",
+      "normal_upside_capture_at_least_50pct_years": "2_of_5",
+      "top_year_positive_total_return_contribution_pct": "68.48483743"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_cmf14_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_cmf14_validation_normal_upside_capture_at_least_50pct",
+    "neighbor_cmf28_validation_normal_calmar_at_least_75pct_buy_hold",
+    "primary_normal_annual_drawdown_non_worse_at_least_4_of_5",
+    "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+    "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+    "primary_top_year_positive_total_return_contribution_at_most_60pct"
+  ],
+  "passed_evidence": [
+    "CMF20 produced positive normal and stress total return in both Design and Validation and had no terminal unrealized inventory in either full window.",
+    "Design CMF20 returned 321.45464716 percent versus 129.60544229 percent for buy-and-hold while drawdown was 53.72966641 percent versus 77.18955925 percent.",
+    "Validation episode concentration was not excessive at 30.89438259 percent, holding duration stayed bounded, and position changes remained inside the frozen execution-support range.",
+    "CMF14 and CMF28 were positive under both Validation cost scenarios and both kept normal Validation drawdown below passive BTC."
+  ],
+  "material_failure": [
+    "The Design advantage did not transfer: CMF20 Validation captured only 25.225826 percent of passive upside while drawdown rose to 44.05135660 percent versus passive 32.28416349 percent.",
+    "CMF20 Validation Calmar was 2.66139877 versus passive 14.39575015, so lower participation did not produce risk-adjusted improvement.",
+    "Annual stability failed with drawdown non-worse only 3/5 years, Calmar breadth only 2/5, upside breadth only 2/5, and 68.48483743 percent of positive annual return concentrated in the top year.",
+    "CMF14 captured only 45.093307 percent of Validation upside and CMF28 Calmar reached only 60.686642 percent of passive, below the frozen neighbor gates; neither can replace the failed primary."
+  ],
+  "material_learning": "Single-venue close-location-weighted volume balance was strongly regime-dependent. Its excellent 2020-2022 Design result did not generalize to 2023-2024, where it both missed most upside and suffered more drawdown than passive BTC. The better post-outcome appearance of CMF28 is precisely why rejection-only neighbors cannot become replacement candidates.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not promote CMF14 or CMF28 after observing their Validation outcomes.",
+    "Do not test another lookback, zero band, threshold, volume field, formula, delay, holding period, price filter, sizing rule, leverage or short direction.",
+    "Do not combine CMF with a closed factor or DRA as a rescue.",
+    "Do not relax upside, Calmar, drawdown, annual breadth or concentration gates and do not open independent OOS."
+  ],
+  "next_action": "SWITCH_TO_A_DIFFERENT_INDEPENDENT_MECHANISM_WITH_THE_EXISTING_FREE_SEALED_CORPUS_AND_NO_PRICE_VOLUME_FLOW_REINTERPRETATION",
+  "claim_boundary": "Historical matched-capital single-venue CMF evidence only. This is not independent OOS, a runtime strategy or permission to activate.",
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

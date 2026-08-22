@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_INITIAL_CLAIMS_EASING_LABOR_RESILIENCE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_SOURCE_FEASIBILITY_THEN_PRE_ECONOMIC_HISTORICAL_AUDIT",
+  "claim_boundary": "U.S. initial unemployment-insurance claims are a high-frequency leading labor-market indicator, but they are volatile, seasonally adjusted and revised. A four-week decline may identify labor resilience that supports risk demand, yet it may also lag or conflict with monetary-policy and inflation channels. Exactly one preregistered long-or-cash audit may test this sign; no causal or alpha claim is imported from the source definition.",
+  "feature_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_agency": "U.S. Employment and Training Administration",
+    "release": "Unemployment Insurance Weekly Claims Report",
+    "series_id": "ICSA",
+    "observation": "WEEKLY_ENDING_SATURDAY_INITIAL_CLAIMS_NUMBER_SEASONALLY_ADJUSTED",
+    "weekly_transformation": "ARITHMETIC_MEAN_OF_EXACTLY_FOUR_CONSECUTIVE_WEEKLY_OBSERVATIONS",
+    "decision_time": "OBSERVATION_WEEK_ENDING_SATURDAY_PLUS_SEVEN_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_FOUR_WEEK_MEAN_STRICTLY_BELOW_FOUR_WEEK_MEAN_ENDING_28_CALENDAR_DAYS_EARLIER",
+    "policy": "HOLD_FULL_CAPITAL_SPOT_BTC_ONLY_WHILE_INITIAL_CLAIMS_FOUR_WEEK_MEAN_IS_DECLINING_OTHERWISE_HOLD_ZERO_YIELD_CASH",
+    "change_lag_calendar_days": 28,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_CHANGE_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "U.S. Employment and Training Administration Initial Claims via FRED",
+      "primary_source": "https://fred.stlouisfed.org/series/ICSA",
+      "finding": "The official series is a weekly count ending Saturday, seasonally adjusted, sourced from the Unemployment Insurance Weekly Claims Report and tagged Public Domain: Citation Requested.",
+      "role": "FREE_OFFICIAL_MACHINE_READABLE_SOURCE_IDENTITY",
+      "transfer_boundary": "The present-vintage series is revised and does not preserve the first advance estimate that was available to a historical decision maker."
+    },
+    {
+      "identity": "U.S. Department of Labor Unemployment Insurance Weekly Claims technical notes",
+      "primary_source": "https://www.dol.gov/ui/data.pdf",
+      "finding": "The weekly release is embargoed until Thursday 8:30 a.m. Eastern; initial claims are described as a leading labor-market indicator, while the administrative data are volatile and difficult to seasonally adjust. Advance claims are revised after subsequent state reporting.",
+      "role": "OFFICIAL_RELEASE_CLOCK_MECHANISM_AND_REVISION_PRIOR",
+      "transfer_boundary": "A leading labor indicator does not imply weekly Bitcoin return predictability, and a present-vintage backtest can benefit from revisions unavailable at the original release."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Before accessing any historical ICSA values, freeze a source-feasibility specification for exact FRED CSV identity, Saturday weekly lattice, missing-value handling, both-state support, transitions, annual breadth and concentration.",
+    "If the source gate permits continuation, seal exact annual FRED CSV responses for ICSA from 2017-01-01 through 2024-12-31; reject duplicate, non-Saturday, non-positive, missing or discontinuous weekly observations.",
+    "Compute each current value from exactly four consecutive weekly observations and compare it only with the exact four-week mean ending 28 calendar days earlier.",
+    "Make observation week ending Saturday D usable only at D plus seven calendar days 00:00 UTC, after the normally scheduled Thursday release, and valid for at most 168 hours.",
+    "Use the same historical BTC corpus, valuation clock, fee, adverse-slippage, cash-yield and capital conventions as the matched buy-and-hold comparator.",
+    "Require separate Design and Validation predictive gates before opening matched-capital economics; require return effect, negative-rate effect, drawdown path, annual breadth, support and concentration.",
+    "Do not add continued claims, unemployment rate, payrolls, JOLTS, non-seasonally-adjusted claims, recession labels, claims levels, magnitude cutoffs, moving-average alternatives, z-scores, alternate lags, direction inversion, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not reinterpret the closed financial-conditions, dollar, yield, liquidity, volatility or credit branches as evidence for this family; labor-market stress is the only proposed mechanism.",
+    "Do not open post-2024 data; any historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Initial claims are volatile administrative data and seasonality can be difficult around holidays, disasters and unusual policy periods.",
+    "The present-vintage FRED series contains revisions; the advance values originally available each Thursday and complete revision history remain MISSING_PROOF.",
+    "Strong labor data can support risk demand but can also imply tighter monetary policy, so the proposed sign is economically ambiguous.",
+    "The four-week comparison and positive risk-demand interpretation are preregistered conventions, not parameters established by the official sources.",
+    "No historical ICSA values, BTC outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T14:10:00Z"
+}

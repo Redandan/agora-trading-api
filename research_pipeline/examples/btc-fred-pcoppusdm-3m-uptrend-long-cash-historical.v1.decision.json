@@ -1,0 +1,99 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_PCOPPUSDM_3M_UPTREND_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-pcoppusdm-3m-uptrend-long-cash",
+  "experiment_id": "btc-fred-pcoppusdm-3m-uptrend-long-cash-historical-v1",
+  "decided_at": "2026-08-21T04:13:00Z",
+  "status": "NO_CANDIDATE_CLOSE_AFTER_DESIGN_AND_VALIDATION_WITHOUT_OOS",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_PCOPPUSDM_3M_UPTREND_LONG_CASH_FAMILY",
+  "decision": "The single preregistered variant failed seven frozen drawdown, Calmar, upside-capture and annual-breadth gates. It reduced Design drawdown, but did not reduce Validation drawdown, captured only 16.45% of buy-and-hold Validation upside and achieved only 16.45% of buy-and-hold Validation Calmar. Close without tuning or OOS.",
+  "determinism": {
+    "required_runs": 2,
+    "run1_sha256": "4251b0ac711629ed691d6c91037fe801318ec0171fa0789e68734355d1fdeabc",
+    "run2_sha256": "4251b0ac711629ed691d6c91037fe801318ec0171fa0789e68734355d1fdeabc",
+    "byte_identical": true
+  },
+  "economic_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "214.88059091",
+      "buy_hold_total_return_pct": "346.32062389",
+      "candidate_realized_return_pct": "239.40543813",
+      "candidate_unrealized_return_pct": "-24.52484722",
+      "candidate_drawdown_pct": "66.89578703",
+      "buy_hold_drawdown_pct": "77.18955925",
+      "drawdown_delta_pp": "-10.29377221",
+      "upside_capture_ratio": "0.62046721",
+      "candidate_calmar": "3.21216926",
+      "buy_hold_calmar": "4.48662523",
+      "calmar_ratio_to_buy_hold": "0.71594330",
+      "average_exposure_pct": "59.27446954"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "76.47054497",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_realized_return_pct": "91.53531443",
+      "candidate_unrealized_return_pct": "-15.06476946",
+      "candidate_drawdown_pct": "32.28416349",
+      "buy_hold_drawdown_pct": "32.28416349",
+      "drawdown_delta_pp": "0E-8",
+      "upside_capture_ratio": "0.16453957",
+      "candidate_calmar": "2.36867048",
+      "buy_hold_calmar": "14.39575015",
+      "calmar_ratio_to_buy_hold": "0.16453957",
+      "average_exposure_pct": "56.36114911"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "74.62762245",
+      "candidate_drawdown_pct": "32.28416349"
+    },
+    "annual_breadth": {
+      "normal_positive_years": "5_of_6",
+      "stress_positive_years": "5_of_6",
+      "drawdown_non_worse_years": "4_of_6",
+      "calmar_at_least_80pct_buy_hold_years": "1_of_6",
+      "upside_capture_at_least_50pct_years": "2_of_6",
+      "top_year_positive_contribution_pct": "37.57991096527103022427738362657637"
+    },
+    "path_and_inventory": {
+      "design_terminal_position": true,
+      "validation_terminal_position": true,
+      "validation_terminal_holding_age_hours": "408.00000000",
+      "validation_terminal_liquidation_adjusted_return_pct": "76.20592739",
+      "validation_terminal_liquidation_cost_pp": "0.26461758",
+      "validation_median_hold_hours": "3624.00000000",
+      "validation_p90_hold_hours": "4814.40000000",
+      "validation_top_positive_episode_contribution_pct": "41.76882596"
+    }
+  },
+  "failed_primary_gates": [
+    "design_calmar_at_least_buy_hold",
+    "validation_drawdown_at_most_90pct_of_buy_hold",
+    "validation_upside_capture_at_least_60pct",
+    "validation_calmar_at_least_80pct_of_buy_hold",
+    "annual_drawdown_non_worse_at_least_5_of_6",
+    "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+    "annual_upside_capture_at_least_50pct_at_least_4_of_6"
+  ],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "1d12be9eb8a41563e5f3139d06c2b48afd3ea122a804c228b80471347e64f7c6"},
+    {"path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "c43814541192073274a5c97b17b273d91fcf794215b102893dd593991ddc086f"},
+    {"path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "8b8836768230460c119a1b58d134c9428e8e832bb8236e2c35de3deea80d87b9"},
+    {"path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "04e6575e163accf1ca5ec908bcc272929ddb028370dd944c01f5463b5b5649ef"},
+    {"path": "research/fred_pcoppusdm_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "e5cf27546f07a89abe163960a7c5ee4772d3de4118a813470b746948cad7929c"},
+    {"path": "research/btc_fred_pcoppusdm_3m_uptrend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "1bb802f78ca38a0497c367fa8086439c56a4b95f714629e0a23330e58b0361a7"},
+    {"path": ".research-state/experiments/btc-fred-pcoppusdm-3m-uptrend-long-cash-historical-v1/inputs/pcoppusdm-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "a9914e5ae7be1a76c2a7805b509977732d07070297742599fad941c35e8d7f8f"},
+    {"path": ".research-state/experiments/btc-fred-pcoppusdm-3m-uptrend-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "4251b0ac711629ed691d6c91037fe801318ec0171fa0789e68734355d1fdeabc"}
+  ],
+  "prohibited_reopen": [
+    "Do not invert the copper direction, replace the three-month horizon, change monthly aggregation or 75-day availability, or add a magnitude threshold.",
+    "Do not add inventories, futures curves, other metals, China, dollar, equities, oil, inflation, rates, CFTC, BTC interactions, smoothing, sizing, shorting or leverage as a rescue.",
+    "Do not waive Validation drawdown, upside, Calmar or annual-breadth failures because Design drawdown improved or 2019 outperformed.",
+    "Do not relax drawdown, Calmar, upside, breadth, concentration, holding, inventory or friction gates.",
+    "Do not open post-2024 OOS for this closed family."
+  ],
+  "learning": "The conservatively lagged copper-uptrend state was useful only in a narrow early-year slice. In Validation it stayed exposed through the same maximum drawdown while missing most BTC upside, so an industrial-demand proxy did not generalize into risk-adjusted BTC timing alpha.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,120 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-umcsent-rising-consumer-sentiment-long-cash",
+  "experiment_id": "btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1",
+  "decided_at": "2026-08-21T03:05:00Z",
+  "status": "NO_CANDIDATE_CLOSE_BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_LONG_CASH_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_LAGGED_UMCSENT_ADJACENT_MONTH_RISE_LONG_CASH_FAMILY_WITHOUT_COMPONENT_LEVEL_THRESHOLD_LAG_OR_DIRECTION_TUNING",
+  "decision": "The policy reduced Validation drawdown but failed seven frozen gates. It did not deliver enough Design drawdown reduction or Calmar, captured only 54.60% of Validation buy-and-hold upside versus the 60% minimum, and lacked annual positive-return, Calmar and upside breadth. The strong 2024 result does not repair the 2021 loss or the cross-year opportunity cost.",
+  "determinism": {
+    "run1_sha256": "fe98bcfb2437bda8a4404a3d04df1e81ae3149919485b99f3b64c9777c7582a1",
+    "run2_sha256": "fe98bcfb2437bda8a4404a3d04df1e81ae3149919485b99f3b64c9777c7582a1",
+    "byte_identical": true
+  },
+  "economic_evidence": {
+    "design_normal": {
+      "candidate_realized_return_pct": "255.19445931",
+      "candidate_unrealized_return_pct": "-62.53642608",
+      "candidate_total_return_pct": "192.65803322",
+      "buy_hold_total_return_pct": "346.32062389",
+      "total_return_delta_pp": "-153.66259066",
+      "candidate_maximum_drawdown_pct": "73.13361252",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "candidate_calmar": "2.63432950",
+      "buy_hold_calmar": "4.48662523",
+      "candidate_underwater_duration_hours": 16277,
+      "buy_hold_underwater_duration_hours": 11925,
+      "upside_capture_ratio": "0.55629963"
+    },
+    "validation_normal": {
+      "candidate_realized_return_pct": "139.73054923",
+      "candidate_unrealized_return_pct": "114.01084996",
+      "candidate_total_return_pct": "253.74139919",
+      "buy_hold_total_return_pct": "464.75475156",
+      "total_return_delta_pp": "-211.01335237",
+      "candidate_maximum_drawdown_pct": "21.72199642",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "candidate_calmar": "11.68131116",
+      "buy_hold_calmar": "14.39575015",
+      "upside_capture_ratio": "0.54596838",
+      "average_exposure_pct": "49.65800274",
+      "position_changes": 11,
+      "signal_evaluations": 24
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "247.95319777",
+      "buy_hold_total_return_pct": "463.90931032",
+      "candidate_maximum_drawdown_pct": "21.72199642",
+      "candidate_calmar": "11.41484388"
+    },
+    "annual_breadth_and_concentration": {
+      "normal_positive_years": "4_of_6",
+      "stress_positive_years": "4_of_6",
+      "normal_drawdown_non_worse_years": "5_of_6",
+      "normal_calmar_at_least_75pct_buy_hold_years": "2_of_6",
+      "normal_upside_capture_at_least_50pct_years": "2_of_6",
+      "top_year_positive_total_return_contribution_pct": "55.39229514",
+      "validation_top_positive_episode_contribution_pct": "57.33468697",
+      "notable_2021_candidate_total_return_pct": "-13.58632850",
+      "notable_2021_buy_hold_total_return_pct": "59.60909620",
+      "notable_2024_candidate_total_return_pct": "173.37790065",
+      "notable_2024_buy_hold_total_return_pct": "120.99348678"
+    }
+  },
+  "failed_gates": [
+    "design_normal_drawdown_at_most_90pct_of_buy_hold",
+    "design_normal_calmar_at_least_buy_hold",
+    "validation_normal_upside_capture_at_least_60pct",
+    "normal_positive_annual_total_return_at_least_5_of_6",
+    "stress_positive_annual_total_return_at_least_5_of_6",
+    "normal_annual_calmar_at_least_75pct_buy_hold_at_least_4_of_6",
+    "normal_annual_upside_capture_at_least_50pct_at_least_5_of_6"
+  ],
+  "sealed_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical.v3.manifest.json",
+      "role": "FROZEN_POST_ERRATUM_PREREGISTRATION_MANIFEST",
+      "sha256": "3e0db2c889485f53e693f07a2b40ad370f8dad5812ec034682565c8c95b69c6f"
+    },
+    {
+      "path": "research/btc_fred_umcsent_rising_consumer_sentiment_long_cash_historical.py",
+      "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
+      "sha256": "09193e45fc64b0d547abd7317cf5721f0e0b624a6432ce4afdd16421ebf62da3"
+    },
+    {
+      "path": ".research-state/experiments/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1/artifacts/run1.json",
+      "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+      "sha256": "fe98bcfb2437bda8a4404a3d04df1e81ae3149919485b99f3b64c9777c7582a1"
+    },
+    {
+      "path": ".research-state/experiments/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1/inputs/umcsent-source-bundle.json",
+      "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
+      "sha256": "493e2a4600958fc731ca8bcb666f5f336ec5fbb1113e19420e2280e08bfc911b"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "sha256": "65c9ed9f906956685f68b641839fec0ab5ebd20e7dd717c1ca0df205f9404028"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-v1.hypothesis.json",
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "sha256": "78281cdfc3dc99880b2094b81e1b4e7e101dfe3e17745e629be38fa6f4847d27"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-post-outcome-signal-count-binding-erratum.v1.json",
+      "role": "SEALED_POST_OUTCOME_FIELD_BINDING_ERRATUM",
+      "sha256": "5f5f9a78ef8d4e0a60972b16817a5f78a94f1617712c97bbfa1d44f7070516e4"
+    }
+  ],
+  "prohibited_reopen": [
+    "Do not switch to a UMCSENT level, magnitude, component, preliminary release, surprise, smoothing, alternate lag or inverse direction.",
+    "Do not combine UMCSENT with another factor to rescue the failed family.",
+    "Do not relax the drawdown, Calmar, upside, breadth, holding, terminal or concentration gates.",
+    "Do not open post-2024 OOS or promote this family to a candidate."
+  ],
+  "learning": "A factor can reduce drawdown in Validation yet remain economically inferior because it misses too much upside and fails across years. Risk reduction is useful only when its opportunity cost is broad and stable enough to improve risk-adjusted performance.",
+  "scope_note": "Historical research only. No OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

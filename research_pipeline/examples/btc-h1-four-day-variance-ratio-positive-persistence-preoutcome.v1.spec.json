@@ -1,0 +1,80 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_H1_FOUR_DAY_VARIANCE_RATIO_POSITIVE_PERSISTENCE_PREOUTCOME_SPEC_V1",
+  "created_at": "2026-08-21T04:47:38Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
+  "source_contract": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00",
+    "parser_path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+    "parser_sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+    "primary_prior_path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-primary-prior.v1.json",
+    "primary_prior_sha256": "d692e290fead48f5ff09ad8d39375cee4cececc85b01328fd34eb748fe2d6111"
+  },
+  "factor_contract": {
+    "factor_identity": "PRIOR_28_COMPLETE_UTC_DAY_POSITIVE_RETURN_AND_OVERLAPPING_FOUR_DAY_VARIANCE_RATIO_ABOVE_ONE_V1",
+    "decision_clock": "AFTER_LATEST_COMPLETE_UTC_DAY_BEFORE_SAME_TIMESTAMP_NEXT_H1_OPEN_FILL",
+    "window": "EXACTLY_29_CONSECUTIVE_COMPLETE_UTC_DAY_CLOSES_PRODUCING_28_LOG_RETURNS",
+    "one_day_variance": "UNBIASED_SAMPLE_VARIANCE_OF_28_ONE_DAY_LOG_RETURNS",
+    "four_day_variance": "UNBIASED_SAMPLE_VARIANCE_OF_25_OVERLAPPING_SUMS_OF_FOUR_CONSECUTIVE_ONE_DAY_LOG_RETURNS",
+    "variance_ratio": "FOUR_DAY_VARIANCE_DIVIDED_BY_FOUR_TIMES_ONE_DAY_VARIANCE",
+    "persistence_condition": "VARIANCE_RATIO_STRICTLY_GREATER_THAN_ONE",
+    "direction_condition": "LATEST_CLOSE_STRICTLY_GREATER_THAN_CLOSE_28_COMPLETE_DAYS_EARLIER",
+    "candidate_long_condition": "PERSISTENCE_AND_DIRECTION_BOTH_TRUE",
+    "trend_parent_long_condition": "DIRECTION_TRUE_WITHOUT_VARIANCE_RATIO_FILTER",
+    "cash_condition": "OTHERWISE",
+    "arithmetic": "PYTHON_DECIMAL_PRECISION_50_WITH_DECIMAL_LN_NO_QUANTIZATION_BEFORE_COMPARISON",
+    "expected_total_feature_evaluations": 2164,
+    "expected_design_evaluations": 1432,
+    "expected_validation_evaluations": 731
+  },
+  "pre_outcome_support_gates": {
+    "design_window": "2019-01-01T00:00:00_TO_2023-01-01T00:00:00_EXCLUSIVE",
+    "validation_window": "2023-01-01T00:00:00_TO_2025-01-01T00:00:00_EXCLUSIVE",
+    "minimum_design_direction_positive": 300,
+    "minimum_design_direction_nonpositive": 300,
+    "minimum_design_variance_ratio_above_one": 300,
+    "minimum_design_variance_ratio_at_or_below_one": 300,
+    "minimum_design_joint_long": 200,
+    "minimum_design_joint_cash": 300,
+    "minimum_design_joint_transitions": 60,
+    "minimum_design_trend_parent_vetoes": 100,
+    "minimum_validation_direction_positive": 150,
+    "minimum_validation_direction_nonpositive": 150,
+    "minimum_validation_variance_ratio_above_one": 150,
+    "minimum_validation_variance_ratio_at_or_below_one": 150,
+    "minimum_validation_joint_long": 100,
+    "minimum_validation_joint_cash": 150,
+    "minimum_validation_joint_transitions": 30,
+    "minimum_validation_trend_parent_vetoes": 50,
+    "annual_years": [2019, 2020, 2021, 2022, 2023, 2024],
+    "minimum_each_year_joint_long": 20,
+    "minimum_each_year_joint_cash": 20,
+    "minimum_each_year_joint_transitions": 6,
+    "failure_disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BEFORE_HYPOTHESIS_OR_STRATEGY_ECONOMICS"
+  },
+  "execution_contract": {
+    "maximum_support_runs": 1,
+    "probe_path": "research/btc_h1_four_day_variance_ratio_support.py",
+    "output_mode": "CREATE_ONCE_UNDER_RESEARCH_STATE",
+    "on_pass": "ALLOW_EXACTLY_ONE_SCHEMA_VALID_HYPOTHESIS_AND_ONE_VARIANT_MANIFEST_WITH_TREND_PARENT_ABLATION",
+    "on_fail": "CLOSE_WITHOUT_ALTERNATE_WINDOW_RATIO_HORIZON_THRESHOLD_DIRECTION_OR_SIZING",
+    "oos": "DENY"
+  },
+  "prohibited_variants": [
+    "Do not change the 28-return window, four-day overlapping horizon, sample-variance estimator, threshold one, positive direction or next-open timing.",
+    "Do not add another ratio horizon, significance threshold, lag-one autocorrelation, sign persistence, volume, volatility, macro, on-chain or cross-asset feature.",
+    "Do not omit the unconditioned 28-day positive-trend factor-ablation parent or compare only with passive BTC.",
+    "Do not compute a forward return, PnL, drawdown, Calmar, holding or inventory field in the support probe."
+  ],
+  "stop_conditions": [
+    "Stop before factor computation on any dataset hash, row count, hourly lattice, daily completeness, parser hash, prior hash, nonpositive close or arithmetic failure.",
+    "Stop before hypothesis or strategy economics if exact evaluation inventory or any Design, Validation or annual support gate fails.",
+    "After one create-once support run, do not change formula or gates and do not run another support variant."
+  ],
+  "scope_note": "No variance-ratio feature value, forward return or strategy outcome was computed; no hypothesis, manifest, economic runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

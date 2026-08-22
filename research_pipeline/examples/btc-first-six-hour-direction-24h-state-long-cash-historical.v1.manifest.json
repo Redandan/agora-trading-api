@@ -1,0 +1,138 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-first-six-hour-direction-24h-state-long-cash-historical-v1",
+  "created_at": "2026-08-21T00:49:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "Positive BTC direction in the first six complete UTC hours may contain delayed information that supports a rolling 24-hour BTC state after the 06:00 decision.",
+  "economic_rationale": "The rule is useful only if a balanced and frequent signal exceeds matched passive BTC after normal and doubled friction while preserving drawdown, Calmar, upside, terminal economics and annual breadth. Intraday predictability without direct economic value is insufficient.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-first-six-hour-direction-24h-state-long-cash",
+    "independence_key": "same-day-first-six-hour-direction-delayed-information-state",
+    "distinct_from_closed_families": [
+      "The closed DRA sign-persistence feature used the prior complete day's share of adjacent same-sign hourly returns relative to a 20-day median; this rule uses only the current day's six-hour net direction as a standalone state.",
+      "The closed fixed UTC session family was unconditional calendar exposure; this rule changes state only from an observed same-day direction and remains valid until the next daily decision."
+    ],
+    "excluded_reinterpretations": [
+      "No alternate formation hour, magnitude threshold, reversal sign, weekday, session, neighbor, smoothing, stop, leverage or short leg may be added after outcome access.",
+      "A failure cannot reopen the prior-day sign-persistence or unconditional session families.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED until separate untouched independent OOS succeeds."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-primary-prior.v1.json",
+      "sha256": "a1535b9429b97bd7a923b686a3b82fd49cb3351b747962b1ad4bf03ad972775b",
+      "role": "SEALED_PRIMARY_ACADEMIC_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": ".research-state/experiments/btc-first-six-hour-direction-24h-state-long-cash-historical-v1/inputs/first-six-hour-direction-state-feasibility.json",
+      "sha256": "d698b2b1c734d42b1dc4958b9457828dc3dae1c310392b20a1e423ebd716b3fc",
+      "role": "SEALED_PRE_OUTCOME_FEATURE_SUPPORT"
+    },
+    {
+      "path": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-v1.hypothesis.json",
+      "sha256": "b570258b0a6f581a3be92a2ee90ab34fce72cfd2f4dca53980768df313daa7dd",
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-pre-execution-initial-state-amendment.v1.json",
+      "sha256": "389cb2db45c44ec94eef8e312c439a7f4d8f2e120b79f2fde4d7930ae17de9f8",
+      "role": "SEALED_PRE_RESULT_INITIAL_CASH_BOUNDARY_AMENDMENT"
+    },
+    {
+      "path": "research/btc_treasury_term_spread_long_cash_historical.cjs",
+      "sha256": "cd375a15ed0f6cf5801f9fd26563753c06af895a81da34e6c23643c6e00320e9",
+      "role": "FROZEN_DETERMINISTIC_MATCHED_CAPITAL_ECONOMIC_ENGINE"
+    },
+    {
+      "path": "research/btc_first_six_hour_direction_state_probe.cjs",
+      "sha256": "a69039e782edce52c871a6c7608dcf413782fad3f857f1970d4029c5ddcbdcaf",
+      "role": "FROZEN_NO_POST_0600_RETURN_FEATURE_PROBE"
+    },
+    {
+      "path": "research/btc_first_six_hour_direction_24h_state_long_cash_historical.cjs",
+      "sha256": "be75705bfaf472b1efc43e307a1d4fdd4d430712f2b2fd8c19a96e48fb86fc8f",
+      "role": "FROZEN_SINGLE_VARIANT_FEATURE_POLICY_AND_RESULT_RUNNER"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_LONG_CASH_V1",
+    "variant_id": "first-six-hour-direction-24h-state-v1",
+    "variants": 1,
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "observation_window": "UTC_0000_THROUGH_0559_SIX_COMPLETE_H1_BARS",
+    "relation": "CLOSE_AT_0600_STRICTLY_ABOVE_OPEN_AT_0000",
+    "decision_clock": "0600_UTC",
+    "signal_validity_hours": 24,
+    "execution": "STATE_CHANGE_ONLY_AT_0600_UTC_HOURLY_OPEN",
+    "long_target": "BTC_100_PERCENT",
+    "risk_off_target": "CASH_100_PERCENT",
+    "cash_yield": "ZERO",
+    "short": "DENY",
+    "leverage": "DENY"
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2019-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "annual_breadth": {"years": [2019, 2020, 2021, 2022, 2023, 2024], "state": "FAIR_RESET_EACH_CALENDAR_YEAR_TO_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"}
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_ZERO_YIELD_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_LONG_EPISODES_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "frozen_gates": {
+    "source_feature_counts": {
+      "design": {"evaluations": 1461, "positive": 689, "nonpositive": 772, "transitions": 764},
+      "validation": {"evaluations": 731, "positive": 370, "nonpositive": 361, "transitions": 378}
+    },
+    "upside_capture_at_least": 0.65,
+    "validation_position_changes_min": 100,
+    "validation_position_changes_max": 500,
+    "stress_drawdown_max_above_normal_pp": 3,
+    "top_positive_episode_contribution_max_pct": 40,
+    "annual_normal_positive_delta_min_years_of_6": 4,
+    "annual_stress_positive_delta_min_years_of_6": 4,
+    "annual_drawdown_non_worse_min_years_of_6": 5,
+    "annual_calmar_non_worse_min_years_of_6": 4,
+    "top_positive_annual_delta_contribution_max_pct": 60,
+    "validation_terminal_liquidation_cost_max_pp": 1,
+    "validation_p90_hold_max_hours": 720,
+    "validation_terminal_holding_age_max_hours": 720
+  },
+  "determinism": {
+    "runtime": "NODE_22_OR_COMPATIBLE",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any frozen hash, row count, lattice, first-six-hour boundary, decision time, validity, cost, window, comparator, gate or policy binding differs.",
+    "Stop with NO_CANDIDATE and permanently close the exact single-variant family if any frozen gate fails; do not tune or add a neighbor.",
+    "Do not open post-2024 OOS unless every frozen historical gate passes and a separate sealed OOS authorization exists.",
+    "Never activate SHADOW, PAPER or LIVE and never mutate Production, Trading, database, order, fund, OCO, Grid, scheduler or canonical research state."
+  ],
+  "oos_access": "DENY"
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-bls-employment-situation-scheduled-release-day-risk-veto-v1",
+  "title": "Scheduled BLS Employment Situation release-day full-UTC-day BTC risk veto",
+  "thesis": "The complete UTC day containing a preregistered BLS Employment Situation release may have worse BTC return and path risk than same-window non-event days with the same weekdays because a labor-market update can reprice expected policy, growth and cross-asset liquidity.",
+  "mechanism": "A calendar-known Employment Situation release concentrates uncertainty around an 08:30 Eastern information shock, which may increase downside incidence or intraday drawdown in BTC even though payroll, unemployment, earnings and revision surprise directions are unknown and an adversarial Bitcoin-macro prior predicts muted or unstable responses.",
+  "economic_rationale": "A spot-only policy that exits BTC at 00:00 UTC on each frozen Employment Situation release date and reenters at the next 00:00 UTC is useful only if avoided event-day losses and drawdown exceed two fee-and-adverse-slippage transitions per event and the opportunity cost of foregone positive event-day returns under matched capital.",
+  "source": "research_pipeline/examples/btc-bls-employment-situation-scheduled-release-day-risk-veto-primary-prior.v1.json#sha256=87411465603c9c7bea4f3adb4bec3161827cce4b6e3ab6b6d9617d163166af4f;research_pipeline/examples/btc-bls-employment-situation-release-dates-2020-2024.v1.json#sha256=899c286c952c8a79c04336bd00852e0c81024a015ee20ec9ccbd644b501468d0",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_2020_2024_H1_CORPUS_COST_AND_VALUATION",
+  "required_capability": "DIRECT_DETERMINISTIC_FROZEN_EVENT_DATE_PRE_ECONOMIC_SCREEN_THEN_MATCHED_CAPITAL_LONG_CASH_ECONOMIC_RUNNER",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "event_and_same_weekday_control_count",
+    "median_complete_day_return_delta",
+    "negative_return_rate_delta",
+    "one_sided_fisher_p_value",
+    "median_and_p75_intraday_path_drawdown",
+    "annual_direction_breadth",
+    "top_event_loss_concentration",
+    "fee_and_adverse_slippage_adjusted_total_return_delta",
+    "realized_pnl",
+    "unrealized_pnl",
+    "maximum_drawdown",
+    "capital_utilization",
+    "holding_age",
+    "terminal_inventory"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-employment-1",
+  "created_at": "2026-08-20T15:41:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

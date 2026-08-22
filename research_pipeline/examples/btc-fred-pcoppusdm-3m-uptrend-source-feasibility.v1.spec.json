@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_PCOPPUSDM_3M_UPTREND_SOURCE_FEASIBILITY_SPEC_V1",
+  "created_at": "2026-08-21T03:54:18Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-pcoppusdm-3m-uptrend-long-cash",
+  "source_contract": {
+    "provider": "FRED",
+    "upstream_source": "INTERNATIONAL_MONETARY_FUND_PRIMARY_COMMODITY_PRICES",
+    "series": "PCOPPUSDM",
+    "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCOPPUSDM&cosd=2018-01-01&coed=2024-12-31",
+    "transport": "HTTPS_GET_NO_REDIRECT_NO_RETRY_NO_CREDENTIAL",
+    "maximum_response_bytes": 65536,
+    "expected_header": "observation_date,PCOPPUSDM",
+    "expected_unique_ordered_month_rows": 84,
+    "required_first_date": "2018-01-01",
+    "required_last_date": "2024-12-01",
+    "required_calendar_step": "EVERY_CONSECUTIVE_CALENDAR_MONTH_EXACTLY_ON_DAY_1",
+    "missing_markers": ["", "."],
+    "required_valid_positive_values": 84,
+    "revision_boundary": "PRESENT_VINTAGE_ONLY_NO_REAL_TIME_VINTAGE_CLAIM"
+  },
+  "factor_contract": {
+    "factor_identity": "FRED_PCOPPUSDM_MONTHLY_VALUE_STRICTLY_ABOVE_VALUE_3_MONTHS_EARLIER_PLUS_75D_V1",
+    "formula": "PCOPPUSDM_MONTH_t-PCOPPUSDM_MONTH_t_minus_3",
+    "comparison": "STRICTLY_GREATER_THAN_ZERO_WITH_EXACT_DECIMAL_COMPARISON",
+    "uptrend_state": "CURRENT_MONTH_VALUE_STRICTLY_ABOVE_VALUE_3_CALENDAR_MONTHS_EARLIER",
+    "other_state": "CURRENT_MONTH_VALUE_LESS_THAN_OR_EQUAL_TO_VALUE_3_CALENDAR_MONTHS_EARLIER",
+    "effective_time": "OBSERVATION_MONTH_START_PLUS_75_CALENDAR_DAYS_AT_0000_UTC",
+    "availability_reason": "The floor is intentionally later than the IMF documented first-full-week publication cadence and remains a conservative present-vintage approximation, not vintage proof.",
+    "warmup_months": 3,
+    "expected_evaluations": 81
+  },
+  "pre_outcome_support_gates": {
+    "design_effective_window": "2019-01-01T00:00:00Z_TO_2023-01-01T00:00:00Z_EXCLUSIVE",
+    "validation_effective_window": "2023-01-01T00:00:00Z_TO_2025-01-01T00:00:00Z_EXCLUSIVE",
+    "minimum_design_uptrend_states": 12,
+    "minimum_design_other_states": 12,
+    "minimum_design_state_transitions": 6,
+    "minimum_validation_uptrend_states": 6,
+    "minimum_validation_other_states": 6,
+    "minimum_validation_state_transitions": 3,
+    "failure_disposition": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS"
+  },
+  "execution_contract": {
+    "cycle_limit": "NEXT_RESEARCH_CYCLE_ONLY",
+    "maximum_source_attempts": 1,
+    "output_mode": "CREATE_ONCE_UNDER_RESEARCH_STATE",
+    "on_pass": "SEAL_SOURCE_BUNDLE_AND_ONLY_THEN_ALLOW_ONE_SCHEMA_VALID_HYPOTHESIS_AND_ONE_VARIANT_MANIFEST",
+    "on_fail": "SEAL_DATA_REJECT_DECISION_AND_CLOSE_WITHOUT_ALTERNATE_TRANSPORT_SOURCE_SERIES_THRESHOLD_OR_TIMING",
+    "oos": "DENY"
+  },
+  "prohibited_variants": [
+    "Do not add inventories, futures curves, other metals, China data, the dollar, equities, oil, inflation, rates, CFTC, BTC price, trend, volatility or on-chain inputs.",
+    "Do not invert direction, change the three-month comparison horizon, alter the 75-day availability floor, add smoothing, magnitude thresholds, fractional sizing, shorting or leverage.",
+    "Do not substitute another FRED, IMF, World Bank, exchange, vendor or manually exported series after source access."
+  ],
+  "stop_conditions": [
+    "Stop before factor evaluation if transport, header, byte ceiling, exact monthly lattice, positivity, row count, date bounds or present-vintage identity fails.",
+    "Stop before BTC outcomes if either Design or Validation state and transition support fails.",
+    "Stop after one source attempt regardless of result; no same-cycle rescue or hypothesis is allowed for this newly admitted family."
+  ],
+  "scope_note": "No PCOPPUSDM source probe was executed and no historical factor value or BTC outcome was accessed; no hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,102 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_PRIOR_24H_BREAKOUT_PREOUTCOME_SPEC_V1",
+  "family_id": "dra-native-signal-prior-24h-breakout-entry-admission",
+  "created_at": "2026-08-21T06:57:33Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "runner_binding": {
+    "path": "research/dra_native_signal_prior_24h_breakout_support_v1.py",
+    "sha256": "df615099422421f88d97dab8f320f936b1bf393b19469100fe515dad389ce0d6"
+  },
+  "prior_binding": {
+    "path": "research_pipeline/examples/dra-native-signal-prior-24h-breakout-entry-admission-primary-prior.v1.json",
+    "sha256": "452f2f137e2f0f264b3517d385473bce8ebfe62eb9e94212379e7a2c13e6b59d"
+  },
+  "closed_family_bindings": [
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-long-trend-entry-admission.v1.json",
+      "role": "CLOSED_PRIOR_200_DAY_LONG_TREND_ADMISSION",
+      "sha256": "63cc4a07761702fe0945cad0ac23798dc560d54e30adea93d42f8b4c172eb920"
+    },
+    {
+      "path": "research_pipeline/examples/btc-donchian-20d-10d-standalone-historical.v1.decision.json",
+      "role": "CLOSED_STANDALONE_20_DAY_DONCHIAN_LONG_CASH_POLICY",
+      "sha256": "9032a111eb8288aa45d016f044b2823c06e003d6f9f0f06be00202d150d2e67c"
+    },
+    {
+      "path": "research_pipeline/examples/dra-close-location-entry-admission.v1.decision.json",
+      "role": "CLOSED_COMPLETE_DAY_CLOSE_LOCATION_ADMISSION",
+      "sha256": "62d727e7f25434dbfc2185fb876918d74a0b3a4537801e7964b6128c8977fa58"
+    },
+    {
+      "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.decision.json",
+      "role": "CLOSED_COMPLETE_DAY_INTRADAY_PATH_EFFICIENCY_ADMISSION",
+      "sha256": "6cc6c1de7582306477250274ed9e8c055ba5627021a69370ff852a795d7c3189"
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-overextension-entry-admission-preoutcome.v1.decision.json",
+      "role": "CLOSED_NATIVE_SIGNAL_EMA20_OVEREXTENSION_ADMISSION",
+      "sha256": "3646d41706903be7a16eb9279f8beab6d4e013c36d3fe24bee7ad5ad0a72c37c"
+    }
+  ],
+  "action_fingerprints": {
+    "new_family": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_CAPACITY_ADMISSIBLE_DRA_SIGNAL|FEATURE_SIGNAL_CLOSE_MINUS_MAX_PRIOR_24_COMPLETE_H1_HIGHS_DIV_UPDATED_ATR14_STRICTLY_ABOVE_0|VETO_NONBREAKOUT_RESERVES_PARENT_7D_COOLDOWN|LOT_30|CAP_240",
+    "closed_long_trend": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_DRA_SIGNAL|FEATURE_PRIOR_200_COMPLETE_DAY_LONG_TREND_STATE|HARD_INCEPTION_FALLBACK",
+    "closed_donchian": "ACTION_STANDALONE_LONG_CASH|CLOCK_COMPLETE_UTC_DAY|FEATURE_CLOSE_ABOVE_PRIOR_20_COMPLETE_UTC_DAY_HIGHS|EXIT_PRIOR_10_DAY_LOW|ATR14_STOP",
+    "closed_close_location": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_DRA_SIGNAL|FEATURE_COMPLETE_DAY_CLOSE_LOCATION_TO_PRIOR_20D_MEDIAN",
+    "closed_path_efficiency": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_DRA_SIGNAL|FEATURE_COMPLETE_DAY_ABSOLUTE_NET_H1_RETURN_DIV_GROSS_H1_PATH_PRIOR_20D_PERCENTILE",
+    "closed_signal_overextension": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_CAPACITY_ADMISSIBLE_DRA_SIGNAL|FEATURE_SIGNAL_CLOSE_MINUS_UPDATED_EMA20_DIV_UPDATED_ATR14_AT_OR_BELOW_1_00|VETO_OVEREXTENSION_RESERVES_PARENT_7D_COOLDOWN|LOT_30|CAP_240"
+  },
+  "feature_policy": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_BEFORE_NEXT_H1_OPEN_FILL",
+    "formula": "SIGNAL_BAR_CLOSE_MINUS_MAX_HIGH_OF_PRIOR_24_COMPLETE_H1_BARS_DIVIDED_BY_CAUSALLY_UPDATED_ATR14",
+    "relation": "ADMIT_STRICTLY_ABOVE_THRESHOLD_VETO_AT_OR_BELOW_THRESHOLD",
+    "primary_threshold": "0.00",
+    "rejection_only_neighbors": ["-0.25", "0.25"],
+    "feature_unavailable": "VETO_AND_RESERVE_ORIGINAL_SIGNAL_COOLDOWN",
+    "prior_window_excludes_signal_bar": true,
+    "evaluate_only_when_parent_capacity_can_accept_30_usdt": true,
+    "vetoed_signal_reserves_parent_cooldown": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL",
+    "capacity_block_behavior": "UNCHANGED_PARENT_BLOCK_WITHOUT_COOLDOWN_RESERVATION",
+    "lot_cost_usdt": "30",
+    "maximum_open_cost_usdt": "240",
+    "maximum_open_lots": 8,
+    "variants": 3
+  },
+  "gates": {
+    "design_minimum_parent_signals": 80,
+    "validation_minimum_parent_signals": 40,
+    "minimum_feature_available_signal_share": "0.98",
+    "design_minimum_primary_actionable_vetoes": 8,
+    "validation_minimum_primary_actionable_vetoes": 4,
+    "validation_minimum_each_neighbor_actionable_vetoes": 4,
+    "minimum_active_annual_folds": 4,
+    "minimum_primary_vetoes_per_active_annual_fold": 2,
+    "maximum_top_year_primary_veto_share": "0.40",
+    "maximum_validation_top_month_primary_veto_share": "0.35",
+    "primary_action_share_minimum": "0.05",
+    "primary_action_share_maximum": "0.60",
+    "minimum_neighbor_action_hash_differences_each_window": 1
+  },
+  "decision_rule": {
+    "pass": "ALLOW_EXACTLY_ONE_SCHEMA_VALID_HYPOTHESIS_AND_ONE_FROZEN_MATCHED_CAPITAL_EXPERIMENT",
+    "fail": "PERMANENTLY_CLOSE_EXACT_NATIVE_SIGNAL_PRIOR_24H_BREAKOUT_FAMILY_WITHOUT_THRESHOLD_WINDOW_NORMALIZATION_OR_RELATION_TUNING"
+  },
+  "forbidden_after_support_output": [
+    "CHANGE_MINUS_0_25_0_00_PLUS_0_25_THRESHOLDS",
+    "CHANGE_PRIOR_24_COMPLETE_H1_HIGH_WINDOW",
+    "INCLUDE_SIGNAL_BAR_HIGH_IN_PRIOR_WINDOW",
+    "CHANGE_ATR14_UPDATE_OR_DECISION_CLOCK",
+    "COUNT_CAPACITY_BLOCKED_SIGNALS_AS_VETOES",
+    "CHANGE_COOLDOWN_RESERVATION_OR_ROUTE_TIMING",
+    "RELAX_SUPPORT_GATES",
+    "READ_CANDIDATE_PNL_OR_OOS_TO_RESCUE_SUPPORT"
+  ],
+  "outcome_access": "DENY_CANDIDATE_ECONOMICS_AND_OOS"
+}

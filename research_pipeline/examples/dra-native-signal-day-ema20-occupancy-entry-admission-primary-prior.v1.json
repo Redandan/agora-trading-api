@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_DAY_EMA20_OCCUPANCY_PRIMARY_PRIOR_V1",
+  "family_id": "dra-native-signal-day-ema20-occupancy-entry-admission",
+  "created_at": "2026-08-21T08:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_SIGNAL_DAY_EMA20_OCCUPANCY_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "The frozen DRA signal requires only the final UTC-day close to exceed the causally updated EMA20. The share of the signal day's 24 complete H1 closes that stayed above the EMA20 known before that day began may distinguish sustained demand from a late recovery that passes the same final-close gate. A fixed 18-of-24 primary boundary with 12-of-24 and 24-of-24 rejection-only neighbors may be screened once for causal availability, nonredundancy and intervention breadth before any hypothesis or candidate economics.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "reference": "EMA20_AFTER_PRIOR_COMPLETE_UTC_DAY_AND_BEFORE_SIGNAL_DAY_H1_00",
+    "formula": "COUNT_OF_EXACTLY_24_SIGNAL_DAY_H1_CLOSES_STRICTLY_ABOVE_PRIOR_COMPLETE_DAY_EMA20_DIVIDED_BY_24",
+    "primary_relation": "ADMIT_AT_OR_ABOVE_0_75_AND_VETO_BELOW_0_75",
+    "rejection_only_neighbors": ["0.50", "1.00"],
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN"
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": "research_pipeline/examples/dra-native-prior-day-momentum-continuation-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "99451ebc2c14aaf466c87321388eeb97d0e02ded458fe189f81f149bf0e0aa8d",
+      "learning": "Signal-day open-to-close direction almost exactly restated the parent's positive 24-hour momentum gate. EMA20 occupancy uses the full causal H1 path and a prior-day reference, but must prove that it creates a materially different action set."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-intraday-sign-persistence-entry-admission-v1.json",
+      "sha256": "613c08b1f97f8eb2372bf79d590d43f66c378a4598988a6f8d8aced6365006fb",
+      "learning": "Same-sign adjacent H1 return persistence already failed its frozen economic screen. EMA20 occupancy measures state duration rather than return-sign sequencing and cannot inherit a persistence claim."
+    },
+    {
+      "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.decision.json",
+      "sha256": "6cc6c1de7582306477250274ed9e8c055ba5627021a69370ff852a795d7c3189",
+      "learning": "Net-move-to-total-path efficiency failed. Occupancy ignores return magnitude and path length, so it must show an independently different action fingerprint and economic value."
+    },
+    {
+      "path": "research_pipeline/examples/dra-close-location-entry-admission.v1.decision.json",
+      "sha256": "62d727e7f25434dbfc2185fb876918d74a0b3a4537801e7964b6128c8977fa58",
+      "learning": "Final close location within the daily range failed. Occupancy is a duration measure anchored to prior EMA20, not permission to reopen candle close-location thresholds."
+    },
+    {
+      "path": "research_pipeline/examples/dra-late-day-price-activity-entry-admission.v1.decision.json",
+      "sha256": "16e526df0814c8bd27558da23e8ffc5bb99c458c8aa74931c250b475d8a01aa6",
+      "learning": "Late-day absolute activity failed. Occupancy includes all 24 hours equally and must not become a session recency rescue."
+    }
+  ],
+  "deduplication_conclusion": "The proposed state-duration count is distinct in formula from adjacent-return sign persistence, net path efficiency, final candle close location, late-day activity and open-to-close direction. Distinct syntax is not enough: one preoutcome support run must establish material, broad and stable intervention under the fixed 0.50, 0.75 and 1.00 lattice.",
+  "adversarial_risks": [
+    "Because the parent final close is above EMA20, occupancy may still be too high on nearly every signal and create too few primary vetoes.",
+    "The 0.75 primary may remove early trend reversals that recover late and later become profitable.",
+    "The 1.00 neighbor may suppress most signals and is rejection-only, not a replacement primary.",
+    "Any later drawdown reduction may be participation suppression unless realized and total PnL, holding, underwater duration and annual breadth also pass.",
+    "Cooldown route substitution can invalidate economics unless each actionable veto reserves the original signal timestamp."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_CAUSAL_FEATURE_DEDUP_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No candidate PnL, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

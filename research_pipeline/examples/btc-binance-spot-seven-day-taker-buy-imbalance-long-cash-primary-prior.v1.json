@@ -1,0 +1,68 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_SPOT_SEVEN_DAY_TAKER_BUY_IMBALANCE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "created_at": "2026-08-21T05:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-binance-spot-seven-day-taker-buy-imbalance-long-cash",
+  "claim_boundary": "Binance's official public archive establishes that checksum-addressable spot kline files expose total quote-asset volume and taker-buy quote-asset volume. It does not establish that aggressor imbalance predicts BTC returns. Exactly one future preregistered source-and-support audit may test whether a frozen seven-complete-day taker-buy share above the neutral one-half threshold has enough causal support for one matched-capital long-or-cash experiment.",
+  "primary_sources": [
+    {
+      "identity": "Binance Public Data official repository",
+      "url": "https://github.com/binance/binance-public-data/blob/master/README.md",
+      "evidence": "The official archive provides daily and monthly public market-data files, documents spot kline fields including quote-asset volume and taker-buy quote-asset volume, and publishes checksum files.",
+      "boundary": "Archive availability and column identity are data-source evidence only; they are not performance evidence, and archived files may later receive documented replacements."
+    },
+    {
+      "identity": "Binance Spot API official kline documentation",
+      "url": "https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md",
+      "evidence": "The kline contract defines the underlying public market-data fields used by the archive.",
+      "boundary": "Exchange-specific trade classification can contain venue, wash-trading, market-share and regime effects that do not generalize."
+    }
+  ],
+  "frozen_prior": {
+    "venue": "BINANCE_SPOT",
+    "symbol": "BTCUSDT",
+    "source": "OFFICIAL_DATA_BINANCE_VISION_MONTHLY_SPOT_1D_KLINES_WITH_PUBLISHED_CHECKSUMS",
+    "historical_selection": "2019-01-01_TO_2025-01-01_EXCLUSIVE",
+    "sampling": "COMPLETE_UTC_1D_KLINES_ONLY",
+    "feature_window": "PRIOR_SEVEN_COMPLETE_UTC_DAYS",
+    "feature": "SUM_TAKER_BUY_QUOTE_ASSET_VOLUME_DIVIDED_BY_SUM_TOTAL_QUOTE_ASSET_VOLUME",
+    "neutral_threshold": "STRICTLY_GREATER_THAN_0_5",
+    "availability": "NEXT_COMPLETE_UTC_DAY_OPEN_WITHOUT_INTRADAY_LOOKAHEAD",
+    "policy": "FULL_CAPITAL_UNLEVERED_BTC_ONLY_WHEN_SEVEN_DAY_TAKER_BUY_SHARE_IS_STRICTLY_GREATER_THAN_ONE_HALF_ELSE_ZERO_YIELD_CASH",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "costs": "NORMAL_0_10PCT_FEE_PLUS_0_05PCT_ADVERSE_SLIPPAGE_PER_SIDE_AND_STRESS_DOUBLE",
+    "variants": 1
+  },
+  "mechanism_prior": "When buyer-initiated spot volume persistently exceeds seller-initiated volume over a complete week, inventory demand may continue into the next day. The rule is useful only if that venue-specific flow state improves total return, drawdown and Calmar broadly after turnover costs rather than merely identifying bull-market participation.",
+  "adversarial_prior": [
+    "Taker-buy share is venue-specific and may reflect arbitrage, internalization, wash activity or market-share changes rather than durable directional demand.",
+    "The maker-side boolean and taker-buy volume fields are easy to invert or double count; field identity, totals and daily boundaries must fail closed.",
+    "A seven-day share near one-half may switch frequently and lose any gross edge to fees and adverse slippage.",
+    "The result may simply repackage contemporaneous price trend; a future experiment must measure correlation and incremental value rather than compare only with cash.",
+    "Binance archive files can be replaced after corrections, so every selected file and checksum inventory must be sealed before factor access."
+  ],
+  "future_preoutcome_requirements": [
+    "Freeze exact official archive URLs, monthly file checksums, decompressed row hashes, timestamp units, column order, UTC-day continuity and duplicate rules before factor computation.",
+    "Verify total quote volume is positive, taker-buy quote volume lies between zero and total quote volume, and seven-day windows never cross missing days.",
+    "Freeze minimum Design, Validation and each-year counts for above-half, at-or-below-half, transitions and non-missing observations before any forward return or strategy economics.",
+    "Run exactly one hypothesis and one variant only if source integrity and support pass; include passive BTC and a price-trend redundancy diagnostic under identical capital and costs."
+  ],
+  "prohibited_rescue": [
+    "Do not change seven days, threshold one-half, quote-volume fields, daily boundary, execution timing or direction after factor or outcome access.",
+    "Do not substitute aggregate trades, futures, funding, open interest, another venue, base-volume ratios, smoothing, percentile thresholds, alternate windows, shorts, leverage or fractional sizing.",
+    "Do not open OOS, activate Trading, or treat source availability as alpha."
+  ],
+  "independence": {
+    "key": "binance-spot-observed-taker-buy-quote-volume-share",
+    "distinct_from_closed_directional_volume_participation": "The closed DRA feature inferred directional participation from price-signed H1 volume in the existing corpus. This family uses the exchange-reported taker-buy quote-volume field and controls a standalone next-day policy.",
+    "distinct_from_closed_chaikin_money_flow": "Chaikin money flow inferred accumulation from close location and total volume. This family measures aggressor-side quote volume directly and does not use daily high, low or close location.",
+    "residual_overlap_risk": "Aggressive buy share can still correlate strongly with contemporaneous trend, so incremental information remains MISSING_PROOF."
+  },
+  "missing_proof": [
+    "The official BTCUSDT 1d archive inventory, checksums, timestamp semantics and 2019-2024 coverage have not been sealed locally.",
+    "No factor value, support count, trend redundancy measure, hypothesis, manifest, runner, fees, slippage, PnL, drawdown, holding, inventory, concentration, candidate, OOS or forward evidence exists."
+  ],
+  "next_action": "In a future cycle, perform only the official archive source-boundary and pre-outcome support audit. Stop before economics on any checksum, schema, timestamp, continuity, field-semantic or support failure.",
+  "scope_note": "No Binance plugin, API credential, paid API, archive download, external backfill, factor value, strategy outcome, hypothesis, manifest, runner, candidate, OOS, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

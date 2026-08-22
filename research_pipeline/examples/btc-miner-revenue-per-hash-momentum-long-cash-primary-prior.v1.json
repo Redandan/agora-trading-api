@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MINER_REVENUE_PER_HASH_MOMENTUM_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-miner-revenue-per-hash-momentum-long-cash",
+  "decision": "PRIOR_SUPPORTS_ONE_SOURCE_REUSE_AND_NONREDUNDANCY_GATED_FOUR_WEEK_MINER_REVENUE_PER_HASH_MOMENTUM_LONG_CASH_EXPERIMENT_WITH_TWO_AND_EIGHT_WEEK_REJECTION_ONLY_NEIGHBORS",
+  "causal_hypothesis": "A rising lagged theoretical miner revenue per unit of hash may reduce miner balance-sheet stress and forced BTC selling while identifying demand strong enough to compensate increasing network competition.",
+  "economic_hypothesis": "A weekly full-capital BTC long-or-zero-yield-cash policy may preserve sufficient upside while avoiding deteriorating miner-economics states to improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold across Design, Validation and annual folds.",
+  "frozen_feature": {
+    "daily_proxy": "((EXPECTED_144_BLOCKS_TIMES_PROTOCOL_BLOCK_SUBSIDY_BTC)+TOTAL_DAILY_FEES_BTC)_TIMES_BTC_COMPLETE_UTC_DAY_CLOSE_USD_DIVIDED_BY_HASH_RATE_TH_PER_S",
+    "block_subsidy_schedule": {
+      "through_2020_05_10": "12.5",
+      "from_2020_05_11_through_2024_04_19": "6.25",
+      "from_2024_04_20": "3.125"
+    },
+    "weekly_aggregation": "MEAN_OF_EXACTLY_SEVEN_COMPLETE_MONDAY_THROUGH_SUNDAY_DAILY_PROXY_VALUES",
+    "primary_comparison": "CURRENT_FOUR_COMPLETE_WEEK_MEAN_STRICTLY_ABOVE_PREVIOUS_ADJACENT_FOUR_COMPLETE_WEEK_MEAN",
+    "rejection_only_neighbor_week_counts": [2, 8],
+    "availability": "WEEK_ENDING_SUNDAY_PLUS_THREE_CALENDAR_DAYS_AT_00_00_UTC",
+    "long_condition": "CURRENT_MEAN_STRICTLY_GREATER_THAN_PREVIOUS_ADJACENT_MEAN",
+    "cash_condition": "CURRENT_MEAN_LESS_THAN_OR_EQUAL_TO_PREVIOUS_ADJACENT_MEAN",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "signal_validity_hours": 168,
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT",
+    "variants": 3
+  },
+  "independence_boundary": {
+    "not_closed_hashrate_growth": "The closed hashrate family treated rising hashrate as network confidence and admitted DRA entries. This proxy divides price-valued protocol subsidy plus fees by hashrate to represent miner revenue pressure and drives a standalone policy.",
+    "not_closed_fee_pressure": "The closed fee-pressure family used total BTC fees alone as a congestion signal. Fees are only one revenue component here and cannot determine the proxy without subsidy, BTC price and hashrate.",
+    "not_closed_btc_trend": "BTC price is only the USD conversion leg of miner revenue and cannot determine the proxy without protocol revenue and network competition.",
+    "required_nonredundancy": "Before economics, absolute Spearman correlation of the frozen weekly proxy change with matched BTC price return, hashrate growth and fee-pressure growth must each be at most 0.80 in both Design and Validation."
+  },
+  "adversarial_prior": [
+    "The theoretical 144-block daily assumption omits realized block-count variation and therefore is not actual miner revenue per hash.",
+    "The feature may be dominated by BTC price momentum or the mechanical subsidy halving rather than miner balance-sheet pressure.",
+    "Coin Metrics present-vintage reviewed observations do not prove original historical availability, so any historical pass still requires untouched OOS.",
+    "The two-week and eight-week variants are rejection-only stability checks and cannot replace a failed four-week primary."
+  ],
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPORA_NO_NEW_DOWNLOAD",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "fees": {
+      "path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v1/inputs/coinmetrics-btc-fee-pressure-2018-2024.csv",
+      "sha256": "6dd78283ff476ddca7bed52bf01ad76a6b49d6bf1125c9e360ad95aa5787feed",
+      "rows": 2557
+    },
+    "hashrate": {
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-btc-hashrate-2018-2024.csv",
+      "sha256": "1dfdfde2f8806f912c6dc3c3d48e2bf244c40af94e9aeb4389ed2cc8337ec273",
+      "rows": 2557
+    },
+    "source_cost": "FREE_ALREADY_SEALED"
+  },
+  "stop_conditions": [
+    "Stop before feature construction if any corpus identity, daily pairing, seven-day week, subsidy schedule or publication-lag binding fails.",
+    "Stop DUPLICATE_REJECT before economics if any frozen proxy-change Spearman absolute correlation exceeds 0.80 against BTC price return, hashrate growth or fee-pressure growth in Design or Validation.",
+    "Stop NO_CANDIDATE if the four-week primary or either rejection-only neighbor fails any Design, Validation, annual breadth, cost, drawdown, Calmar, upside, concentration, holding or terminal-inventory gate.",
+    "Do not replace expected block count with realized block count, change subsidy dates, scan another lookback, threshold, normalization, lag, holding interval, sizing rule, leverage or short leg after outcome access.",
+    "Do not combine this proxy with DRA or another closed factor as a rescue."
+  ],
+  "missing_proof": [
+    "No deterministic proxy ledger, nonredundancy audit, economic runner or frozen manifest exists.",
+    "Actual daily block count and actual miner revenue per hash are not present in the sealed corpus.",
+    "No matched-capital Design, Validation, stress, annual breadth, path-risk, independent OOS or forward result exists."
+  ],
+  "scope_note": "Pre-outcome source-reuse prior only. No miner-proxy outcome, runner, manifest, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

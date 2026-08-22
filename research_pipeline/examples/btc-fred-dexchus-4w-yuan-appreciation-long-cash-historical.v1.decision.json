@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_DEXCHUS_4W_YUAN_APPRECIATION_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-dexchus-4w-yuan-appreciation-long-cash",
+  "experiment_id": "btc-fred-dexchus-4w-yuan-appreciation-long-cash-historical-v1",
+  "decided_at": "2026-08-21T03:54:18Z",
+  "status": "NO_CANDIDATE_CLOSE_AFTER_DESIGN_AND_VALIDATION_WITHOUT_OOS",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_DEXCHUS_4W_YUAN_APPRECIATION_LONG_CASH_FAMILY",
+  "decision": "The single preregistered variant failed six frozen Calmar, upside-capture, annual-breadth and concentration gates. It reduced drawdown in Validation, but captured only 22.14% of buy-and-hold upside and achieved only 30.06% of buy-and-hold Calmar. Close without tuning or OOS.",
+  "determinism": {
+    "required_runs": 2,
+    "run1_sha256": "8806fe4b4b670a04a4ff907b26cd660b29e66ac7212b0f3a4cf46d537fcb04cf",
+    "run2_sha256": "8806fe4b4b670a04a4ff907b26cd660b29e66ac7212b0f3a4cf46d537fcb04cf",
+    "byte_identical": true
+  },
+  "economic_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "212.78502063",
+      "buy_hold_total_return_pct": "346.32062389",
+      "candidate_realized_return_pct": "214.39036996",
+      "candidate_unrealized_return_pct": "-1.60534933",
+      "candidate_drawdown_pct": "61.61498902",
+      "buy_hold_drawdown_pct": "77.18955925",
+      "drawdown_delta_pp": "-15.57457023",
+      "upside_capture_ratio": "0.61441625",
+      "candidate_calmar": "3.45346196",
+      "buy_hold_calmar": "4.48662523",
+      "average_exposure_pct": "56.74195756"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "102.90248769",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_realized_return_pct": "102.90248769",
+      "candidate_unrealized_return_pct": "0E-8",
+      "candidate_drawdown_pct": "23.77761797",
+      "buy_hold_drawdown_pct": "32.28416349",
+      "drawdown_delta_pp": "-8.50654552",
+      "upside_capture_ratio": "0.22141245",
+      "candidate_calmar": "4.32770380",
+      "buy_hold_calmar": "14.39575015",
+      "calmar_ratio_to_buy_hold": "0.30062371",
+      "average_exposure_pct": "39.26128591"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "96.90580258",
+      "candidate_drawdown_pct": "23.94520532"
+    },
+    "annual_breadth": {
+      "normal_positive_years": "4_of_6",
+      "stress_positive_years": "4_of_6",
+      "drawdown_non_worse_years": "5_of_6",
+      "calmar_at_least_80pct_buy_hold_years": "2_of_6",
+      "upside_capture_at_least_50pct_years": "1_of_6",
+      "top_year_positive_contribution_pct": "68.40588973916083172765921568443463"
+    },
+    "path_and_inventory": {
+      "design_terminal_position": true,
+      "validation_terminal_position": false,
+      "validation_terminal_holding_age_hours": null,
+      "validation_terminal_liquidation_adjusted_return_pct": "102.90248769",
+      "validation_terminal_liquidation_cost_pp": "0E-8",
+      "validation_p90_hold_hours": "1562.40000000",
+      "validation_top_positive_episode_contribution_pct": "36.56898779"
+    }
+  },
+  "failed_primary_gates": [
+    "design_calmar_at_least_buy_hold",
+    "validation_upside_capture_at_least_60pct",
+    "validation_calmar_at_least_80pct_of_buy_hold",
+    "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+    "annual_upside_capture_at_least_50pct_at_least_4_of_6",
+    "top_year_positive_contribution_at_most_60pct"
+  ],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-dexchus-4w-yuan-appreciation-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "78483fa28a762f71caa471941e3f02d804edae5f099acabdf9ae458b41b57387"},
+    {"path": "research_pipeline/examples/btc-fred-dexchus-4w-yuan-appreciation-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "b94fcc65b022eb90965fd6a04e05bc612d6ce94cd2d22faecb6488f0b460f8bd"},
+    {"path": "research_pipeline/examples/btc-fred-dexchus-4w-yuan-appreciation-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "c0503768abac57e45a64f10208499e8ac8fa0114cca6607d8a0555425652130b"},
+    {"path": "research_pipeline/examples/btc-fred-dexchus-4w-yuan-appreciation-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "4bd6b4a6d285ef2dc6de0cf9aad63fc44bff9d7d47d55583886e059bbe6221bf"},
+    {"path": "research/fred_dexchus_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "764ca7ed31fbda834b23eb53f7b1a5ac12c10ddadfd280b00cc310d2a620d6ec"},
+    {"path": "research/btc_fred_dexchus_4w_yuan_appreciation_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "56d4a6cdc80776b8c0e6306e072ee847e4f13cc61a787d835ec774e9a8e5b618"},
+    {"path": ".research-state/experiments/btc-fred-dexchus-4w-yuan-appreciation-long-cash-historical-v1/inputs/dexchus-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "005c7f442d569aabe2e1c21b66be60e2d02e786c0430a28f66a70a3df0a11ce5"},
+    {"path": ".research-state/experiments/btc-fred-dexchus-4w-yuan-appreciation-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "8806fe4b4b670a04a4ff907b26cd660b29e66ac7212b0f3a4cf46d537fcb04cf"}
+  ],
+  "prohibited_reopen": [
+    "Do not invert the DEXCHUS direction, replace the four-week horizon, change complete-week aggregation or following-Thursday availability, or add a magnitude threshold.",
+    "Do not add CNH, other currencies, Chinese credit or GDP, central-bank events, intervention labels, broad-dollar indices, volatility, BTC interactions, smoothing, sizing or leverage as a rescue.",
+    "Do not waive Validation upside, Calmar, annual-breadth or concentration failures because drawdown improved.",
+    "Do not relax drawdown, Calmar, upside, breadth, concentration, holding, inventory or friction gates.",
+    "Do not open post-2024 OOS for this closed family."
+  ],
+  "learning": "The lagged yuan-appreciation state avoided part of BTC drawdown, but it was out of the market during most of the Validation upside and its positive annual return was concentrated. Defensive exposure reduction is not risk-adjusted alpha when Calmar and upside breadth fail.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

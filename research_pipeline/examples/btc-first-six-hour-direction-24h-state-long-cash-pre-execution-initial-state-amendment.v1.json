@@ -1,0 +1,26 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_LONG_CASH_PRE_EXECUTION_INITIAL_STATE_AMENDMENT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "FROZEN_BEFORE_ANY_STRATEGY_RESULT",
+  "experiment_id": "btc-first-six-hour-direction-24h-state-long-cash-historical-v1",
+  "observed_error": "FORMULA_REJECT:NO_INITIAL_STATE:2019-01-01T00:00:00",
+  "failed_attempts": 2,
+  "sealed_result_created": false,
+  "strategy_metric_emitted": false,
+  "amendment": "At the unique dataset start 2019-01-01T00:00:00, initialize the target to CASH until the first lawful same-day decision at 2019-01-01T06:00:00. Do not create synthetic initial targets for later windows because their latest prior daily 06:00 state exists in the frozen target lattice.",
+  "causal_reason": "The policy cannot observe six complete hours before 06:00 on the first source day. Cash is the already frozen risk-off target and avoids backward fill or future leakage.",
+  "unchanged": [
+    "First-six-hour feature and strict positive relation",
+    "06:00 UTC daily decision and 24-hour validity",
+    "All costs, windows, gates, comparators and stop conditions",
+    "Single variant, no OOS and no activation boundary"
+  ],
+  "pre_amendment_bindings": {
+    "manifest_path": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-historical.v1.manifest.json",
+    "manifest_sha256": "036c5411b8392a00a5f5ed19ffd91705e3c12295e4de88210c1114db5f07ff8c",
+    "runner_path": "research/btc_first_six_hour_direction_24h_state_long_cash_historical.cjs",
+    "runner_sha256": "93fd08df5a875edacd9ffdf08be451a62039b72b71f3997a18f5e1f8677794f3"
+  },
+  "scope_note": "No output artifact, strategy metric, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

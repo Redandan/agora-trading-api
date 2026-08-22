@@ -1,0 +1,52 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_DSPIC96_YOY_GROWTH_ACCELERATION_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-dspic96-yoy-growth-acceleration-long-cash",
+  "experiment_id": "btc-fred-dspic96-yoy-growth-acceleration-long-cash-historical-v1",
+  "decided_at": "2026-08-21T02:38:59Z",
+  "status": "NO_CANDIDATE_CLOSE_AFTER_DESIGN_AND_VALIDATION_WITHOUT_OOS",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_DSPIC96_YOY_GROWTH_ACCELERATION_LONG_CASH_FAMILY",
+  "decision": "The single preregistered variant failed ten frozen economic, drawdown, Calmar, upside and breadth gates. Design total return was negative under both cost scenarios, and Validation preserved too little buy-and-hold upside for only a small drawdown reduction. Close without tuning or OOS.",
+  "determinism": {"required_runs": 2, "run1_sha256": "9d41f59c1507fb5dd57a94935446e57cd72b42b2c487f5618f01158223a1e79b", "run2_sha256": "9d41f59c1507fb5dd57a94935446e57cd72b42b2c487f5618f01158223a1e79b", "byte_identical": true},
+  "economic_evidence": {
+    "design_normal": {"candidate_total_return_pct": "-15.95938937", "buy_hold_total_return_pct": "346.32062389", "candidate_realized_return_pct": "61.76283878", "candidate_unrealized_return_pct": "-77.72222815", "candidate_drawdown_pct": "75.02100094", "buy_hold_drawdown_pct": "77.18955925", "drawdown_delta_pp": "-2.16855831", "upside_capture_ratio": "-0.04608270", "candidate_calmar": "-0.21273229", "buy_hold_calmar": "4.48662523", "average_exposure_pct": "52.01916496"},
+    "validation_normal": {"candidate_total_return_pct": "125.19380474", "buy_hold_total_return_pct": "464.75475156", "candidate_realized_return_pct": "125.19380474", "candidate_unrealized_return_pct": "0E-8", "candidate_drawdown_pct": "30.63336666", "buy_hold_drawdown_pct": "32.28416349", "drawdown_delta_pp": "-1.65079684", "upside_capture_ratio": "0.26937606", "candidate_calmar": "4.08684446", "buy_hold_calmar": "14.39575015", "average_exposure_pct": "54.30916553"},
+    "validation_stress": {"candidate_total_return_pct": "122.50762370", "candidate_drawdown_pct": "30.84115508"},
+    "annual_breadth": {"normal_positive_years": "4_of_6", "stress_positive_years": "4_of_6", "drawdown_non_worse_years": "5_of_6", "calmar_at_least_80pct_buy_hold_years": "1_of_6", "upside_capture_at_least_50pct_years": "1_of_6", "top_year_positive_contribution_pct": "33.70701462336137057584986506348263"},
+    "path_and_inventory": {"design_terminal_position": true, "design_terminal_holding_age_hours": "5136.00000000", "design_terminal_liquidation_adjusted_return_pct": "-16.08540826", "validation_terminal_position": false, "validation_p90_hold_hours": "4528.80000000", "validation_top_positive_episode_contribution_pct": "44.36707506"}
+  },
+  "failed_primary_gates": [
+    "design_normal_total_return_positive",
+    "design_stress_total_return_positive",
+    "design_drawdown_at_most_90pct_of_buy_hold",
+    "design_upside_capture_at_least_60pct",
+    "design_calmar_at_least_buy_hold",
+    "validation_drawdown_at_most_90pct_of_buy_hold",
+    "validation_upside_capture_at_least_60pct",
+    "validation_calmar_at_least_80pct_of_buy_hold",
+    "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+    "annual_upside_capture_at_least_50pct_at_least_4_of_6"
+  ],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-dspic96-yoy-growth-acceleration-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "52edff277e0314f012849a264dd52da76fb139f64e576b344446b6435f36fb26"},
+    {"path": "research_pipeline/examples/btc-fred-dspic96-yoy-growth-acceleration-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "24eb161a2ef834800e9298e10e43419bcd0e29f217f8a5d228ef4c6ab481fd94"},
+    {"path": "research_pipeline/examples/btc-fred-dspic96-yoy-growth-acceleration-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "da92a3db1459056af553b4cbdd6b915901bc1294b65ca84fbd3f1c6a68f941cd"},
+    {"path": "research_pipeline/examples/btc-fred-dspic96-yoy-growth-acceleration-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "220e43518f125dc9389a93f8eeb0e983209b3797b1f77d62a28e6c9e066afd3a"},
+    {"path": "research/fred_dspic96_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "ed8be72e5b8e6d61e0a4faa629f2366b6d5ab7d21e45e31809fb3a74ec350b43"},
+    {"path": "research/btc_fred_dspic96_yoy_growth_acceleration_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "ac5805403d4851e1e2b43f1bb6c3ca66432ed203939472ce539ff43be84f3481"},
+    {"path": ".research-state/experiments/btc-fred-dspic96-yoy-growth-acceleration-long-cash-historical-v1/inputs/dspic96-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "d6f4a9d9e9c47a63a639461f8d3989e9f029cfa022a87a39e7cf525ca5e35760"},
+    {"path": ".research-state/experiments/btc-fred-dspic96-yoy-growth-acceleration-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "9d41f59c1507fb5dd57a94935446e57cd72b42b2c487f5618f01158223a1e79b"}
+  ],
+  "prohibited_reopen": [
+    "Do not invert the acceleration sign, replace adjacent year-over-year acceleration with level or absolute growth, or alter the two-month availability floor.",
+    "Do not scan transfers, savings, consumption, thresholds, smoothing, alternate lags, sizing, leverage or another factor as a rescue.",
+    "Do not waive negative Design economics because Validation was positive.",
+    "Do not relax drawdown, Calmar, upside, breadth, concentration, holding, inventory or friction gates.",
+    "Do not open post-2024 OOS for this closed family."
+  ],
+  "learning": "Balanced state counts and frequent transitions are necessary but not sufficient. The factor spent about half the time in BTC yet lost money in Design and captured little Validation upside; a modest drawdown reduction cannot compensate for severe participation opportunity cost.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

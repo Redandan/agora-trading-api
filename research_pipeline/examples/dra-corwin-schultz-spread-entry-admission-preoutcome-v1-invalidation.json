@@ -1,0 +1,39 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CORWIN_SCHULTZ_SPREAD_PREOUTCOME_V1_INVALIDATION",
+  "created_at": "2026-08-21T05:30:21Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-corwin-schultz-spread-entry-admission",
+  "status": "V1_INVALIDATED_NO_SUPPORT_ARTIFACT_CREATED",
+  "invalidated_bindings": [
+    {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "9630ac361000bb80d194351396ba02fa9923cbd4f40761f769fa4ac4cf7478d9",
+      "role": "FROZEN_V1_SPEC"
+    },
+    {
+      "path": "research/dra_corwin_schultz_spread_support_v1.py",
+      "sha256": "99b15b0ed86b3c6d0fda8bce0a82b42155b88d86f4d048b186f6d4e18ad26d51",
+      "role": "FROZEN_V1_RUNNER"
+    }
+  ],
+  "failure": {
+    "classification": "PRE_ECONOMIC_RESULT_SERIALIZATION_NAME_ERROR",
+    "error": "NameError: name 'false' is not defined",
+    "location": "build_result candidate_created and oos_opened Python dictionary literals",
+    "factor_computation_reached": true,
+    "factor_values_emitted": false,
+    "support_result_created": false,
+    "strategy_economics_accessed": false,
+    "candidate_created": false,
+    "oos_opened": false
+  },
+  "scientific_impact": "The error occurs after the pre-economic diagnostics are computed in memory but before any result object can be returned or written. No diagnostic value or gate outcome was emitted. V1 must not be reused; V2 may change only the two Python boolean literals and version identities while preserving every formula, input and frozen gate.",
+  "permitted_v2_change": "COPY_V1_AND_REPLACE_ONLY_JSON_STYLE_false_WITH_PYTHON_False_FOR_candidate_created_AND_oos_opened_PLUS_V2_DOCUMENT_IDENTITIES",
+  "prohibited_changes": [
+    "Do not change the dataset, formula, zero floor, daily boundary, twenty-day normalization, comparator definitions, windows or any gate.",
+    "Do not inspect or report in-memory V1 diagnostics.",
+    "Do not open strategy economics, candidate OOS or any rescue variant."
+  ],
+  "scope_note": "No support artifact, strategy return, PnL, drawdown, candidate, OOS, external download, canonical write, Production, Trading, database, order, fund, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_WCOILWTICO_4W_UPTREND_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-wcoilwtico-4w-uptrend-long-cash",
+  "experiment_id": "btc-fred-wcoilwtico-4w-uptrend-long-cash-historical-v1",
+  "decided_at": "2026-08-21T03:34:00Z",
+  "status": "NO_CANDIDATE_CLOSE_AFTER_DESIGN_AND_VALIDATION_WITHOUT_OOS",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_WCOILWTICO_4W_UPTREND_LONG_CASH_FAMILY",
+  "decision": "The single preregistered variant failed seven frozen Calmar, drawdown, upside and annual-breadth gates. Design was economically positive and reduced drawdown, but Validation captured only 17.96% of buy-and-hold upside while drawdown was 4.65 percentage points worse. Close without tuning or OOS.",
+  "determinism": {
+    "required_runs": 2,
+    "run1_sha256": "5131e4ca396ed8e5e07399d3ac9dbb82ac3a977e9158633074173d6f7eb03e26",
+    "run2_sha256": "5131e4ca396ed8e5e07399d3ac9dbb82ac3a977e9158633074173d6f7eb03e26",
+    "byte_identical": true
+  },
+  "economic_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "239.25406886",
+      "buy_hold_total_return_pct": "346.32062389",
+      "candidate_realized_return_pct": "239.25406886",
+      "candidate_unrealized_return_pct": "0E-8",
+      "candidate_drawdown_pct": "57.76744247",
+      "buy_hold_drawdown_pct": "77.18955925",
+      "drawdown_delta_pp": "-19.42211678",
+      "upside_capture_ratio": "0.69084557",
+      "candidate_calmar": "4.14167667",
+      "buy_hold_calmar": "4.48662523",
+      "average_exposure_pct": "58.93223819"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "83.45933637",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_realized_return_pct": "96.73767787",
+      "candidate_unrealized_return_pct": "-13.27834150",
+      "candidate_drawdown_pct": "36.92936473",
+      "buy_hold_drawdown_pct": "32.28416349",
+      "drawdown_delta_pp": "4.64520123",
+      "upside_capture_ratio": "0.17957716",
+      "candidate_calmar": "2.25997217",
+      "buy_hold_calmar": "14.39575015",
+      "average_exposure_pct": "49.65800274"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "78.30487533",
+      "candidate_drawdown_pct": "37.49445471"
+    },
+    "annual_breadth": {
+      "normal_positive_years": "5_of_6",
+      "stress_positive_years": "5_of_6",
+      "drawdown_non_worse_years": "4_of_6",
+      "calmar_at_least_80pct_buy_hold_years": "1_of_6",
+      "upside_capture_at_least_50pct_years": "2_of_6",
+      "top_year_positive_contribution_pct": "56.80285622495994754301287304447733"
+    },
+    "path_and_inventory": {
+      "design_terminal_position": false,
+      "validation_terminal_position": true,
+      "validation_terminal_holding_age_hours": "312.00000000",
+      "validation_terminal_liquidation_adjusted_return_pct": "83.18423909",
+      "validation_terminal_liquidation_cost_pp": "0.27509727",
+      "validation_p90_hold_hours": "2318.40000000",
+      "validation_top_positive_episode_contribution_pct": "29.98668621"
+    }
+  },
+  "failed_primary_gates": [
+    "design_calmar_at_least_buy_hold",
+    "validation_drawdown_at_most_90pct_of_buy_hold",
+    "validation_upside_capture_at_least_60pct",
+    "validation_calmar_at_least_80pct_of_buy_hold",
+    "annual_drawdown_non_worse_at_least_5_of_6",
+    "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+    "annual_upside_capture_at_least_50pct_at_least_4_of_6"
+  ],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-wcoilwtico-4w-uptrend-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "2803beb7d2d5c85fb21bf4bc530523f78198bb8579f6680ebb18bf8e208020a1"},
+    {"path": "research_pipeline/examples/btc-fred-wcoilwtico-4w-uptrend-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "f768ed7c9f986bf044cfe7f51c6e9f3a329c8c78cbda09f0013cb4373aec6fd0"},
+    {"path": "research_pipeline/examples/btc-fred-wcoilwtico-4w-uptrend-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "e8e89e0a581760eea788944750d936bc0a3699a1817bc73fd7eee000b05735be"},
+    {"path": "research_pipeline/examples/btc-fred-wcoilwtico-4w-uptrend-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "8fc51ac8cdd5931b3f1b8b2b39cccd05656cedf0f25367f59282f2d828778138"},
+    {"path": "research/fred_wcoilwtico_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "a795145c4c998877ce8f6b6c379b23baecc9d5e067307f9ac5ab7cc4a377baa0"},
+    {"path": "research/btc_fred_wcoilwtico_4w_uptrend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "79bb9b912f88af84c927ff384da69d25bd37d500ac218294700546e1ac6ff99d"},
+    {"path": ".research-state/experiments/btc-fred-wcoilwtico-4w-uptrend-long-cash-historical-v1/inputs/wcoilwtico-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "3c4ec6f5fea3725a5d5eacd8edb68046c1acd53fc760c958ee1ddf4b239b93b5"},
+    {"path": ".research-state/experiments/btc-fred-wcoilwtico-4w-uptrend-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "5131e4ca396ed8e5e07399d3ac9dbb82ac3a977e9158633074173d6f7eb03e26"}
+  ],
+  "prohibited_reopen": [
+    "Do not invert the WTI direction, replace the four-week horizon, change following-Thursday availability or add a magnitude threshold.",
+    "Do not add Brent, natural gas, futures curves, inventories, equities, inflation data, BTC interactions, smoothing, sizing or leverage as a rescue.",
+    "Do not waive Validation drawdown, upside, Calmar or annual-breadth failures because Design was positive.",
+    "Do not relax drawdown, Calmar, upside, breadth, concentration, holding, inventory or friction gates.",
+    "Do not open post-2024 OOS for this closed family."
+  ],
+  "learning": "WTI direction produced attractive Design economics and a large Design drawdown reduction, but the mechanism reversed out of sample within historical Validation: exposure captured little BTC upside and still suffered a worse drawdown. A strong development window is not evidence of stable cross-market timing.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

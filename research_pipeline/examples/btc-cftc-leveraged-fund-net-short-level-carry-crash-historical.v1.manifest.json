@@ -1,0 +1,178 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_LEVERAGED_FUND_NET_SHORT_LEVEL_CARRY_CRASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-cftc-leveraged-fund-net-short-level-carry-crash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "cftc": {
+      "historical_source_manifest_path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json",
+      "historical_source_manifest_sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a",
+      "archive_years": [2019, 2020, 2021, 2022, 2023, 2024],
+      "exact_contract_rows": 313
+    }
+  },
+  "predictive_policy": {
+    "factor_identity": "CFTC_TFF_LEVERAGED_FUND_NET_SHORT_PCT_OI_LEVEL_TOP_QUARTILE_CARRY_CRASH_PROXY_V1",
+    "long_field": "Pct_of_OI_Lev_Money_Long_All",
+    "short_field": "Pct_of_OI_Lev_Money_Short_All",
+    "level_formula": "CURRENT_LEVERAGED_FUND_SHORT_PCT_OI_MINUS_CURRENT_LEVERAGED_FUND_LONG_PCT_OI",
+    "lookback_eligible_weekly_points": 52,
+    "percentile": "0.75",
+    "percentile_rule": "NEAREST_RANK_ASCENDING_WITHOUT_CURRENT_OBSERVATION",
+    "high_risk_condition": "LEVEL_STRICTLY_GREATER_THAN_PRIOR_52_P75",
+    "availability": "REPORT_DATE_PLUS_7_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "ion_exclusion": {
+      "start_inclusive": "2023-01-31",
+      "end_inclusive": "2023-03-14"
+    },
+    "predictive_horizon_hours": 672,
+    "crash_definition": "PEAK_TO_TROUGH_MAX_DRAWDOWN_AT_LEAST_15_PERCENT_WITHIN_672H",
+    "variants": 1,
+    "strategy_economics": "DENY_UNLESS_ALL_PRE_ECONOMIC_GATES_PASS"
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "predictive_horizon_hours": 672,
+    "predictive_overlap_rule": "KEEP_FIRST_THEN_SKIP_ANCHORS_BEFORE_672H_TERMINAL"
+  },
+  "gate_set": {
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "cftc_archives_manifest_and_exact_rows_match",
+      "weekly_tuesday_ion_exclusion_day7_availability_52_point_warmup_pass",
+      "frozen_runner_sources_prior_hypothesis_and_contract_sha256_match",
+      "design_minimum_required_evaluable_episodes",
+      "design_minimum_required_high_risk_episodes",
+      "design_minimum_required_normal_state_episodes",
+      "design_high_risk_chronological_quartile_breadth",
+      "design_high_risk_anchor_year_breadth",
+      "design_high_risk_maximum_anchor_month_share",
+      "design_high_risk_median_path_drawdown_strictly_worse",
+      "design_high_risk_p75_path_drawdown_strictly_worse",
+      "design_high_risk_crash_rate_at_least_10pp_worse",
+      "design_high_risk_median_terminal_return_strictly_worse",
+      "design_high_risk_negative_terminal_rate_at_least_10pp_worse",
+      "design_one_sided_fisher_crash_rate_p_value_at_most_0_10",
+      "design_top_high_risk_path_drawdown_contribution_at_most_40pct",
+      "validation_minimum_required_evaluable_episodes",
+      "validation_minimum_required_high_risk_episodes",
+      "validation_minimum_required_normal_state_episodes",
+      "validation_high_risk_chronological_quartile_breadth",
+      "validation_high_risk_anchor_year_breadth",
+      "validation_high_risk_maximum_anchor_month_share",
+      "validation_high_risk_median_path_drawdown_strictly_worse",
+      "validation_high_risk_p75_path_drawdown_strictly_worse",
+      "validation_high_risk_crash_rate_at_least_10pp_worse",
+      "validation_high_risk_median_terminal_return_strictly_worse",
+      "validation_high_risk_negative_terminal_rate_at_least_10pp_worse",
+      "validation_one_sided_fisher_crash_rate_p_value_at_most_0_10",
+      "validation_top_high_risk_path_drawdown_contribution_at_most_40pct"
+    ],
+    "pass": "PREDICTIVE_SCREEN_PASS_ECONOMIC_MANIFEST_REQUIRED_NO_CANDIDATE",
+    "failure": "PERMANENTLY_CLOSE_WITHOUT_STRATEGY_ECONOMIC_ACCESS_OR_TUNING"
+  },
+  "thresholds": {
+    "design": {
+      "minimum_evaluable_episodes": 30,
+      "minimum_high_risk_episodes": 6,
+      "minimum_normal_state_episodes": 18,
+      "minimum_high_risk_chronological_quartiles": 3,
+      "minimum_high_risk_anchor_years": 2,
+      "maximum_high_risk_anchor_month_share_pct": "25.00000000"
+    },
+    "validation": {
+      "minimum_evaluable_episodes": 20,
+      "minimum_high_risk_episodes": 4,
+      "minimum_normal_state_episodes": 12,
+      "minimum_high_risk_chronological_quartiles": 2,
+      "minimum_high_risk_anchor_years": 2,
+      "maximum_high_risk_anchor_month_share_pct": "35.00000000"
+    },
+    "both_windows": {
+      "crash_drawdown_pct": "15.00000000",
+      "minimum_crash_rate_delta_pp": "10.00000000",
+      "minimum_negative_terminal_rate_delta_pp": "10.00000000",
+      "maximum_one_sided_fisher_p_value": "0.10000000",
+      "maximum_top_high_risk_path_drawdown_contribution_pct": "40.00000000"
+    }
+  },
+  "future_economics_if_and_only_if_predictive_passes": {
+    "status": "SEPARATE_FROZEN_MANIFEST_REQUIRED",
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_NORMAL_STATE_ZERO_YIELD_CASH_IN_HIGH_RISK_STATE_NO_LEVERAGE_NO_SHORT",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "normal_cost": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "stress_cost": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_PREDICTIVE_RUNNER",
+      "path": "research/btc_cftc_leveraged_fund_net_short_level_carry_crash_historical.py",
+      "sha256": "0e8ed2af74d13bd581d6db8e179d874e4dc414ea4d93d92cebd601884c6de294"
+    },
+    {
+      "role": "FROZEN_CFTC_ARCHIVE_LOADER",
+      "path": "research/btc_dra_cftc_tff_entry_admission_historical_v1.py",
+      "sha256": "fdde75be9efe7b9dfe065c46429de75594da88c4d2360b0c7891ee467649635b"
+    },
+    {
+      "role": "FROZEN_CFTC_ORDERED_FIELD_DEFINITION",
+      "path": "research_pipeline/cftc_cme_bitcoin_tff_source.py",
+      "sha256": "b56f9ceecb6f1ed1cf10d77756c109c1cd9ad25540ede6c70d555867aaed9eb0"
+    },
+    {
+      "role": "FROZEN_CFTC_EXACT_DECIMAL_PARSER",
+      "path": "research_pipeline/cftc_tff_lev_money_net_pct_oi_delta_evaluator_v1.py",
+      "sha256": "a0a9f3c9d1b190e1cac21dfd9255b7d19b7f0c88afa48c482744c0d5da78eb70"
+    },
+    {
+      "role": "FROZEN_CFTC_SOURCE_CONTRACT",
+      "path": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.json",
+      "sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5"
+    },
+    {
+      "role": "FROZEN_HISTORICAL_ARCHIVE_MANIFEST",
+      "path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json",
+      "sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a"
+    },
+    {
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+      "path": "research_pipeline/examples/btc-cftc-leveraged-fund-net-short-level-carry-crash-primary-prior.v1.json",
+      "sha256": "3c66bc3d514ce6aecaaf673fa6fbaa57a3e886b419db37e9b234fa9e44fccb89"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-cftc-leveraged-fund-net-short-level-carry-crash-v1.hypothesis.json",
+      "sha256": "cfb0ec1f21fcadffa9b1c59f8242c43782defd0f183770bde041cd2b0d0da9b2"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not change the current net-short level to a weekly delta, net-long continuation, gross position, trader count or another category.",
+    "Do not change the prior-52 lookback, nearest-rank 75th percentile, strict comparison, seven-day availability or 672-hour horizon.",
+    "Do not change the 15 percent crash definition, path-drawdown calculation, support, breadth, concentration or significance gates after outcome access.",
+    "Do not add actual carry backfill, ETF flow, BTC trend, volatility, leverage, shorting, fractional sizing or another CFTC factor as a rescue.",
+    "Do not access strategy economics when any pre-economic gate fails; a predictive pass creates no candidate and requires a separate frozen economic manifest."
+  ],
+  "scope_note": "Frozen before current leveraged-fund net-short level factor values or new BTC response pairing access. No strategy economics, candidate, OOS, paid API, second timer, second writer, external backfill, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

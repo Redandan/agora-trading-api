@@ -557,7 +557,9 @@ def _volatility_persistence_state(
         if activation.status == ACTIVATION_RECEIPT_RETIRED:
             return {
                 "stage": "DEFERRED",
-                "integrity_status": "LAWFUL_ROLLOVER_RETIRED_LEAF_BOUND_ACTIVATION",
+                "integrity_status": (
+                    "LAWFUL_ROLLOVER_RETIRED_LEAF_BOUND_ACTIVATION"
+                ),
                 "progress": {
                     "activation_status": activation.status,
                     "evidence_collection_active": False,

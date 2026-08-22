@@ -1,0 +1,132 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-halloween-november-april-long-cash-historical-v1",
+  "hypothesis_id": "btc-halloween-november-april-long-cash-v1",
+  "created_at": "2026-08-21T05:48:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_REPLICATION_DESIGN_VALIDATION_NO_OOS",
+  "post_outcome_implementation_erratum": {
+    "path": "research_pipeline/examples/btc-halloween-november-april-long-cash-post-outcome-signal-count-binding-erratum.v1.json",
+    "sha256": "b26c02322ae2c02c7361f4b11ae38827b8bb00898529686bca0381998880f579",
+    "scope": "SIGNAL_COUNT_SERIALIZED_VIEW_BINDING_ONLY_NO_POLICY_COST_GATE_OR_DECISION_CHANGE"
+  },
+  "thesis": "A fixed November-through-April UTC BTC exposure season can become useful only if it improves matched-capital drawdown and Calmar while preserving sufficient after-cost return and upside across both Design and Validation, rather than relying on one year or one seasonal episode.",
+  "literature_boundary": "Published Bitcoin calendar studies already expose overlapping outcome windows and conflict on the Halloween effect. This experiment is replication and development evidence only; even a full pass is not independent confirmation.",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {"key": "economic_kernel", "path": "research/btc_m2_liquidity_acceleration_long_cash_historical.py", "sha256": "eb059aed19f839f9b6c1f443df45e6611e7170b431904c6a28e35d7c2dc2eb09"},
+    {"key": "long_cash_ledger", "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py", "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"},
+    {"key": "path_reference", "path": "research/btc_monthly_12m_time_series_momentum_historical.py", "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"},
+    {"key": "h1_parser", "path": "research/btc_dra_reversal_confirmed_exit_v2c.py", "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"},
+    {"key": "primary_prior", "path": "research_pipeline/examples/btc-halloween-november-april-long-cash-primary-prior.v1.json", "sha256": "f97c34876bf180a046df1e65e4608884a5e870604735536eece80942b46776e1"},
+    {"key": "hypothesis", "path": "research_pipeline/examples/btc-halloween-november-april-long-cash-v1.hypothesis.json", "sha256": "f1e7dc9a0ab9809bb663d7407c2ac822f90d6a82d533b5d7676b9aff4712dadf"},
+    {"key": "signal_count_erratum", "path": "research_pipeline/examples/btc-halloween-november-april-long-cash-post-outcome-signal-count-binding-erratum.v1.json", "sha256": "b26c02322ae2c02c7361f4b11ae38827b8bb00898529686bca0381998880f579"}
+  ],
+  "runner_binding": {
+    "path": "research/btc_halloween_november_april_long_cash_historical.py",
+    "sha256": "fa4a01abb9470afb5b2eff2e295d6dd0e40c62803510836fd4819fd522e4907d",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_V1",
+    "decision_clock": "FIRST_H1_OPEN_AT_EACH_UTC_CALENDAR_MONTH_BOUNDARY",
+    "long_months": [11, 12, 1, 2, 3, 4],
+    "cash_months": [5, 6, 7, 8, 9, 10],
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2019-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00"},
+    "annual_fair_reset_years": [2019, 2020, 2021, 2022, 2023, 2024]
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_SEASONAL_SALES_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct", "unrealized_return_pct", "total_return_pct", "terminal_liquidation_adjusted_return_pct",
+    "maximum_drawdown_pct", "maximum_underwater_duration_hours", "fees_equity_units", "turnover_equity_units",
+    "average_exposure_pct", "signal_evaluation_count", "long_target_count", "cash_target_count",
+    "position_change_count", "completed_episode_count", "median_hold_hours", "p90_hold_hours",
+    "terminal_position", "terminal_holding_age_hours", "buy_hold_total_return_pct", "buy_hold_maximum_drawdown_pct",
+    "upside_capture_ratio", "calmar_ratio", "annual_breadth", "top_year_positive_return_contribution_pct",
+    "top_positive_episode_contribution_pct"
+  ],
+  "gate_set": {
+    "id": "BTC_HALLOWEEN_NOVEMBER_APRIL_MATCHED_CAPITAL_GATES_V1",
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "hourly_lattice_and_2192_complete_utc_days_pass",
+      "frozen_runner_kernel_ledger_reference_parser_prior_and_hypothesis_sha256_match",
+      "single_variant_fixed_utc_november_april_no_rescue_contract_pass",
+      "design_monthly_signals_exactly_48_with_24_long_and_24_cash_targets",
+      "validation_monthly_signals_exactly_24_with_12_long_and_12_cash_targets",
+      "design_position_changes_exactly_9",
+      "validation_position_changes_exactly_5",
+      "design_normal_total_return_positive",
+      "design_stress_total_return_positive",
+      "design_drawdown_at_most_90pct_of_buy_hold",
+      "design_upside_capture_at_least_60pct",
+      "design_calmar_at_least_buy_hold",
+      "validation_normal_total_return_positive",
+      "validation_stress_total_return_positive",
+      "validation_drawdown_at_most_90pct_of_buy_hold",
+      "validation_upside_capture_at_least_60pct",
+      "validation_calmar_at_least_80pct_of_buy_hold",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_positive_annual_return_at_least_4_of_6",
+      "stress_positive_annual_return_at_least_4_of_6",
+      "annual_drawdown_non_worse_at_least_5_of_6",
+      "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+      "annual_upside_capture_at_least_50pct_at_least_4_of_6",
+      "top_year_positive_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_at_most_4400_hours",
+      "validation_terminal_holding_age_at_most_1500_hours",
+      "validation_terminal_liquidation_adjusted_return_positive",
+      "validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics if any dataset, runner, parser, hourly lattice or frozen binding hash gate fails.",
+    "Stop and permanently close the exact fixed UTC November-April long-cash family if any Design, Validation, annual breadth, concentration, holding or inventory gate fails.",
+    "Do not move a month boundary, select months, add January, quarter, weekday, trend, volatility, macro, on-chain or event interactions, invert the season, fractional-size or short after outcomes.",
+    "Do not use post-2024 data. A pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED and still requires independent sealed OOS."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": [
+    "PAID_API", "SECOND_TIMER", "SECOND_WRITER", "BACKFILL", "PRODUCTION", "TRADING", "DATABASE",
+    "ORDERS", "FUNDS", "OCO", "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"
+  ]
+}

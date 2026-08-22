@@ -1,0 +1,128 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_INTRADAY_UTC0816_SESSION_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-intraday-utc0816-session-long-cash-historical-v1",
+  "decided_at": "2026-08-19T05:07:49Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_INTRADAY_FIXED_UTC_SESSION_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_FIXED_UTC_07_15_08_16_09_17_SESSION_LONG_CASH_FAMILY_WITHOUT_TUNING",
+  "manifest_sha256": "18816c793937b549582e70bd723f8df446e8797a3dd593e5ccdd46b2e2adb8db",
+  "runner": {
+    "path": "research/btc_intraday_utc0816_session_long_cash_historical.py",
+    "sha256": "7862fef67ceb21be5756a4e06f54329954e04b4570644dfeb9eefb90c1abe1f0",
+    "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+    "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+    "launch": "ISOLATED_PYTHON_3_12_13_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-intraday-utc0816-session-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "8056aff649367fe371e04e3d6e18e22934d970104a6ddf941637c655ab9d1796"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-intraday-utc0816-session-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "8056aff649367fe371e04e3d6e18e22934d970104a6ddf941637c655ab9d1796",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "integrity_evidence": {
+    "source_manifest_and_dataset_hashes_match": true,
+    "hourly_lattice_and_exact_daily_session_inventory_pass": true,
+    "synthetic_clock_accounting_and_cost_tests_passed_before_outcome_access": true,
+    "deterministic_runs": "2_BYTE_IDENTICAL",
+    "oos_opened": false
+  },
+  "economic_summary": {
+    "primary_utc_08_16_design_normal": {
+      "candidate_realized_return_pct": "-92.97861013",
+      "candidate_unrealized_return_pct": "0E-8",
+      "candidate_total_return_pct": "-92.97861013",
+      "candidate_maximum_drawdown_pct": "93.40876813",
+      "candidate_calmar_ratio": "-0.99539489",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405"
+    },
+    "primary_utc_08_16_validation_normal": {
+      "candidate_realized_return_pct": "-80.25443853",
+      "candidate_unrealized_return_pct": "-0E-8",
+      "candidate_total_return_pct": "-80.25443853",
+      "candidate_maximum_drawdown_pct": "81.90244083",
+      "candidate_calmar_ratio": "-0.97987847",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "-0.17268127",
+      "average_exposure_pct": "33.33333333",
+      "completed_episodes": 731,
+      "median_hold_hours": "8.00000000",
+      "p90_hold_hours": "8.00000000",
+      "terminal_position": false,
+      "top_positive_episode_contribution_pct": "4.01828539"
+    },
+    "primary_utc_08_16_validation_stress": {
+      "candidate_total_return_pct": "-97.79676906",
+      "candidate_maximum_drawdown_pct": "97.84308376"
+    },
+    "rejection_only_neighbor_utc_07_15_validation": {
+      "normal_total_return_pct": "-82.97475158",
+      "stress_total_return_pct": "-98.10030451"
+    },
+    "rejection_only_neighbor_utc_09_17_validation": {
+      "normal_total_return_pct": "-83.00651379",
+      "stress_total_return_pct": "-98.10384857"
+    },
+    "annual_primary_normal": {
+      "2020": {"candidate_total_return_pct": "-32.91844582", "buy_hold_total_return_pct": "301.32276307", "candidate_maximum_drawdown_pct": "52.67329115"},
+      "2021": {"candidate_total_return_pct": "-63.36395209", "buy_hold_total_return_pct": "59.60909620", "candidate_maximum_drawdown_pct": "70.50882670"},
+      "2022": {"candidate_total_return_pct": "-71.42992674", "buy_hold_total_return_pct": "-64.25634095", "candidate_maximum_drawdown_pct": "71.68492960"},
+      "2023": {"candidate_total_return_pct": "-55.32239914", "buy_hold_total_return_pct": "155.16375107", "candidate_maximum_drawdown_pct": "58.53107038"},
+      "2024": {"candidate_total_return_pct": "-55.80433799", "buy_hold_total_return_pct": "120.99348678", "candidate_maximum_drawdown_pct": "58.16966092"}
+    },
+    "breadth": {
+      "normal_positive_years": "0_of_5",
+      "stress_positive_years": "0_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "1_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "0_of_5",
+      "normal_upside_capture_at_least_20pct_years": "0_of_5",
+      "top_year_positive_total_return_contribution_pct": "100.00000000"
+    }
+  },
+  "failed_gate_classes": [
+    "primary_design_return_drawdown_upside_and_calmar",
+    "primary_validation_return_drawdown_upside_and_calmar",
+    "primary_validation_stress_path_risk",
+    "both_rejection_only_neighbor_return_drawdown_upside_and_calmar",
+    "annual_return_drawdown_upside_and_calmar_breadth",
+    "annual_positive_return_concentration"
+  ],
+  "numerical_diagnostic": {
+    "gate": "primary_validation_realized_equals_total_and_unrealized_zero",
+    "artifact_values_at_8dp": {
+      "realized_return_pct": "-80.25443853",
+      "total_return_pct": "-80.25443853",
+      "unrealized_return_pct": "-0E-8",
+      "terminal_position": false
+    },
+    "classification": "DECIMAL_TAIL_EQUALITY_FALSE_NEGATIVE_NON_ECONOMIC_AND_NON_DECISIONAL",
+    "treatment": "Do not modify the frozen runner, gates or sealed results after outcome access. The family is independently closed by large return, drawdown, Calmar, neighbor and annual-breadth failures. Do not cite this numerical gate as economic evidence."
+  },
+  "passed_evidence": [
+    "The exact dataset, source bindings, hourly lattice, fixed session inventory, synthetic accounting checks and two byte-identical runs passed integrity requirements.",
+    "The policy completed all 731 Validation sessions, held exactly eight hours, maintained one-third average exposure, had no terminal inventory and low episode concentration.",
+    "Both one-hour rejection-only neighbors failed in the same direction, so the result is not a fragile boundary-hour miss."
+  ],
+  "material_learning": "The literature-supported 08:00-16:00 UTC activity window did not produce a tradable long-only return premium after one daily round trip on the sealed OKX corpus. The primary lost 92.97861013 percent in Design and 80.25443853 percent in Validation under Normal costs while matched buy-and-hold gained 129.60544229 and 464.75475156 percent. Validation drawdown was 81.90244083 percent versus 32.28416349 percent for buy-and-hold, both one-hour neighbors lost more than 82 percent, and the primary had zero positive Normal or Stress years. Activity and price discovery are therefore not evidence of positive session-return alpha.",
+  "scientific_claim": "The exact every-day 07:00-15:00, 08:00-16:00 and 09:00-17:00 UTC long/cash family produced deterministic historical evidence but failed return, drawdown, Calmar, upside, cost-stress, neighbor-stability and annual-breadth requirements. It is permanently closed without hour, duration, weekday, timezone, direction, DRA or condition rescue.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "The evidence is historical Design and Validation through 2024, not independent OOS or prospective evidence.",
+    "The study tests only the preregistered long/cash clock family and does not claim that intraday activity or volatility has no forecasting value for other independently specified mechanisms.",
+    "The raw Decimal realized-versus-total comparison has a sub-8-decimal residual despite zero terminal inventory; this numerical false negative is immaterial to the independently decisive economic failures and was not repaired after outcome access."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

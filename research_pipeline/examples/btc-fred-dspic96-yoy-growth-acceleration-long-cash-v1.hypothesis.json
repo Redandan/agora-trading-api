@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-dspic96-yoy-growth-acceleration-long-cash-v1",
+  "title": "Lagged real disposable-income year-over-year growth acceleration for BTC long or cash",
+  "thesis": "A conservatively lagged monthly acceleration in U.S. real disposable personal-income year-over-year growth may identify improving household risk-bearing capacity with better subsequent Bitcoin risk-adjusted economics than nonaccelerating months.",
+  "mechanism": "Using only the sealed present-vintage DSPIC96 monthly series, compute DSPIC96_t divided by DSPIC96_t-minus-12 minus one and subtract the immediately prior month's analogous year-over-year rate. Make the state usable on the first day of the second following month at 00:00 UTC. Hold full-capital unlevered BTC only when the adjacent year-over-year growth change is strictly positive, and zero-yield cash otherwise. No transfers, savings, consumption, payrolls, absolute-growth level, magnitude threshold, smoothing, alternate lag, inverse direction or combined factor is allowed.",
+  "economic_rationale": "If accelerating inflation-adjusted after-tax household resources improve risk-bearing capacity, the policy may avoid nonaccelerating drawdowns while retaining enough BTC upside to improve matched-capital Calmar after explicit normal and doubled friction. Because fiscal transfers and saving can break the mechanism, Design, Validation, annual breadth, episode concentration and terminal inventory must all pass.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-dspic96-yoy-growth-acceleration-long-cash:PRIMARY_PRIOR_SHA256_da92a3db1459056af553b4cbdd6b915901bc1294b65ca84fbd3f1c6a68f941cd:SOURCE_BUNDLE_SHA256_d6f4a9d9e9c47a63a639461f8d3989e9f029cfa022a87a39e7cf525ca5e35760:NORMALIZED_DSPIC96_SHA256_ae6b4292ca56abe93dbc95ec96fbbe5e1a125ab903105b8ad11867150e778035",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "monthly-official-fred-dspic96-yoy-growth-acceleration-matched-capital-long-cash-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "monthly_signal_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_validation_positive_episode_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-dspic96-income-acceleration-1",
+  "created_at": "2026-08-21T02:27:52Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

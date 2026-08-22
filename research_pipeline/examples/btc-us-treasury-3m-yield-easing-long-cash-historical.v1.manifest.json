@@ -1,0 +1,154 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_US_TREASURY_3M_YIELD_EASING_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-us-treasury-3m-yield-easing-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "expected_complete_utc_days": 2192,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "treasury": {
+      "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/inputs/treasury-yield-curve-2018-2024.csv",
+      "sha256": "045ce4646a4595697fc16d8e32c0fd08efd431680e998c9f85d2dcac1732c82a",
+      "rows": 1750,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31",
+      "present_vintage": true
+    }
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_US_TREASURY_3M_YIELD_EASING_LONG_CASH_V1",
+    "source_series": "US_TREASURY_DAILY_PAR_THREE_MONTH_YIELD_PERCENT",
+    "evaluation_frequency": "FINAL_VALID_TREASURY_BUSINESS_DATE_OF_EACH_ISO_WEEK",
+    "availability": "OBSERVATION_DATE_PLUS_ONE_CALENDAR_DAY_AT_00_00_UTC",
+    "primary_lookback_valid_business_observations": 63,
+    "rejection_only_neighbor_lookbacks_valid_business_observations": [42, 84],
+    "change_formula": "LATEST_THREE_MONTH_YIELD_MINUS_YIELD_EXACTLY_N_VALID_OBSERVATIONS_EARLIER",
+    "long_condition": "YIELD_CHANGE_STRICTLY_LESS_THAN_ZERO",
+    "cash_condition": "YIELD_CHANGE_GREATER_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "missing_observation_rule": "USE_ONLY_VALID_PUBLISHED_ROWS_WITHOUT_INTERPOLATION_OR_SOURCE_REPAIR",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "gate_set": {
+    "id": "BTC_US_TREASURY_3M_YIELD_EASING_MATCHED_CAPITAL_GATES_V1",
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "treasury_sha256_and_1750_rows_match",
+      "hourly_lattice_weekly_selection_and_next_day_availability_pass",
+      "frozen_runner_ledger_reference_parser_prior_hypothesis_and_source_sha256_match",
+      "primary_design_normal_total_return_pct_gt_0",
+      "primary_design_stress_total_return_pct_gt_0",
+      "primary_design_normal_drawdown_at_most_95pct_of_buy_hold",
+      "primary_design_normal_calmar_at_least_buy_hold",
+      "primary_validation_normal_total_return_pct_gt_0",
+      "primary_validation_stress_total_return_pct_gt_0",
+      "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+      "primary_validation_normal_upside_capture_at_least_60pct",
+      "primary_validation_normal_calmar_at_least_buy_hold",
+      "primary_validation_position_changes_between_2_and_100",
+      "primary_validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "neighbor_yield42_validation_normal_total_return_pct_gt_0",
+      "neighbor_yield42_validation_stress_total_return_pct_gt_0",
+      "neighbor_yield42_validation_normal_drawdown_non_worse",
+      "neighbor_yield42_validation_normal_calmar_at_least_75pct_buy_hold",
+      "neighbor_yield42_validation_normal_upside_capture_at_least_50pct",
+      "neighbor_yield84_validation_normal_total_return_pct_gt_0",
+      "neighbor_yield84_validation_stress_total_return_pct_gt_0",
+      "neighbor_yield84_validation_normal_drawdown_non_worse",
+      "neighbor_yield84_validation_normal_calmar_at_least_75pct_buy_hold",
+      "neighbor_yield84_validation_normal_upside_capture_at_least_50pct",
+      "primary_normal_positive_annual_total_return_at_least_4_of_5",
+      "primary_stress_positive_annual_total_return_at_least_4_of_5",
+      "primary_normal_annual_drawdown_non_worse_at_least_4_of_5",
+      "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+      "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+      "primary_top_year_positive_total_return_contribution_at_most_60pct",
+      "primary_validation_top_positive_episode_contribution_at_most_60pct",
+      "primary_validation_p90_hold_at_most_17520_hours",
+      "primary_validation_terminal_holding_age_at_most_17520_hours",
+      "primary_validation_terminal_liquidation_adjusted_return_pct_gt_0",
+      "primary_validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER",
+      "path": "research/btc_us_treasury_3m_yield_easing_long_cash_historical.py",
+      "sha256": "7cb17d6fb8b409fdfdb1862987c0b462e20066530f0f99f0373a38218dd2527b"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_LEDGER_REFERENCE",
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_ACCOUNTING_AND_PASSIVE_REFERENCE",
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY",
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+      "path": "research_pipeline/examples/btc-us-treasury-3m-yield-easing-long-cash-primary-prior.v1.json",
+      "sha256": "7d272580657f56d24ec8e33ae32fff9617000e5036a1e62c23990ca707482992"
+    },
+    {
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-us-treasury-3m-yield-easing-long-cash-v1.hypothesis.json",
+      "sha256": "b73caeffdd95cfacf1ac2cb1b53adb51e9244f7fd4357da27ce56f7dc094e83d"
+    },
+    {
+      "role": "SEALED_OFFICIAL_TREASURY_SOURCE_METADATA",
+      "path": "research_pipeline/examples/us-treasury-par-yield-curve-2018-2024.v1.source.json",
+      "sha256": "0b66812eaf7f4da1b8c4a2b282887a256226b100048c98dce957f650f7bbc4b5"
+    },
+    {
+      "role": "SEALED_NORMALIZED_TREASURY_CORPUS",
+      "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/inputs/treasury-yield-curve-2018-2024.csv",
+      "sha256": "045ce4646a4595697fc16d8e32c0fd08efd431680e998c9f85d2dcac1732c82a"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not promote YIELD42 or YIELD84 after observing their outcomes.",
+    "Do not change the sixty-three-valid-observation primary, zero threshold, weekly evaluation, next-day availability or long/cash action.",
+    "Do not add real-yield conversion, long-yield spread, curve shape, interpolation, smoothing, BTC trend, volatility, leverage, shorting or fractional sizing as a rescue.",
+    "Do not relax return, stress, drawdown, Calmar, upside, annual breadth, concentration, holding or terminal-inventory gates and do not open OOS unless every gate passes."
+  ],
+  "scope_note": "Frozen pre-outcome manifest only. No factor outcome, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

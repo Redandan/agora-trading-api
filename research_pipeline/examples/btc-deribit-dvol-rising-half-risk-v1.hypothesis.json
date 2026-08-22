@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-deribit-dvol-rising-half-risk-v1",
+  "title": "Rising Bitcoin option-implied volatility half-risk policy",
+  "thesis": "A complete Sunday BTC DVOL close strictly above the previous complete Sunday close may identify a week with higher forward expected movement. Reducing an otherwise passive unlevered BTC allocation from one hundred to fifty percent for that week may improve matched-capital drawdown and Calmar without sacrificing excessive upside or total return.",
+  "mechanism": "Use only the sealed official public Deribit 1D BTC DVOL history, compare each complete Sunday close with the exact prior Sunday close, make the state usable at Monday 00:00 UTC for 168 hours, hold fifty percent BTC and fifty percent zero-yield cash while rising, and otherwise hold one hundred percent BTC. This is risk sizing rather than a bearish-return claim. No absolute threshold, median, IV rank, percentile, realized volatility, skew, funding, basis, alternate lag, weight or direction is allowed.",
+  "economic_rationale": "If rising option-implied volatility identifies wider forward path risk, partial de-risking may materially reduce drawdown and underwater duration while preserving at least eighty percent of passive BTC upside. The policy is useful only if Design and Validation Calmar, annual breadth, terminal inventory and fee-adjusted economics pass together under normal and doubled friction.",
+  "source": "PRE_CANDIDATE_POOL:btc-deribit-dvol-rising-half-risk:PRIMARY_PRIOR_SHA256_26a274b2cfddf9bf145b1f103659cc8cfb95a6655495b4f6ef765b64611eb1d4:SOURCE_BUNDLE_SHA256_e90919ba1ffb2304cf662cd6fcbf349f5ad52b15b2c2f68ab97ecedcb2b4a67b:NORMALIZED_DVOL_SHA256_19524e87db8ada24b1cc4a6c051e2d3953125357d9654a2e88e417caffca4b94",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-public-deribit-btc-dvol-rising-half-risk-matched-capital-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "weekly_signal_counts_rebalance_count_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_positive_realized_lot_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-deribit-dvol-half-risk-1",
+  "created_at": "2026-08-21T05:03:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

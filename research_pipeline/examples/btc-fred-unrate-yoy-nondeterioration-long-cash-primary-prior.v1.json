@@ -1,0 +1,21 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_UNRATE_YOY_NONDETERIORATION_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-unrate-yoy-nondeterioration-long-cash",
+  "created_at": "2026-08-21T06:12:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_unrate_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_SOURCE_FEASIBILITY_GATE_THEN_AT_MOST_ONE_HASH_BOUND_ECONOMIC_AUDIT",
+  "claim_boundary": "The unemployment rate is a realized household labor-market outcome, not a leading indicator or Bitcoin predictor. A rate no higher than one year earlier may proxy broad labor resilience and risk-bearing capacity, but monetary-policy reactions can reverse the sign. This supports one audit only.",
+  "primary_sources": [
+    {"title": "Unemployment Rate", "publisher": "U.S. Bureau of Labor Statistics via FRED", "url": "https://fred.stlouisfed.org/series/UNRATE", "use": "Official monthly seasonally adjusted unemployment-rate identity and free present-vintage CSV source."},
+    {"title": "Labor Force Statistics from the Current Population Survey definitions", "publisher": "U.S. Bureau of Labor Statistics", "url": "https://www.bls.gov/cps/definitions.htm", "use": "Official measurement boundary for unemployed persons, labor force and unemployment rate."}
+  ],
+  "frozen_feature": {"factor_identity": "FRED_UNRATE_CURRENT_MONTH_LESS_THAN_OR_EQUAL_TO_SAME_MONTH_12_OBSERVATIONS_EARLIER_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC_V1", "resilient_state": "CURRENT_MONTH_UNRATE_LESS_THAN_OR_EQUAL_TO_UNRATE_12_MONTHS_EARLIER", "deteriorating_state": "OTHERWISE", "policy": "FULL_CAPITAL_BTC_LONG_IN_RESILIENT_STATE_ZERO_YIELD_CASH_OTHERWISE", "availability_floor": "FIRST_DAY_OF_SECOND_FOLLOWING_CALENDAR_MONTH_AT_00_00_UTC", "variant_count": 1},
+  "independence_and_duplicate_boundary": {"distinct_from_closed_initial_claims": "ICSA measured volatile weekly new unemployment-insurance claims and closed before BTC outcomes. UNRATE is a monthly realized household-survey rate; it cannot inherit ICSA support or alter the closed ICSA family.", "distinct_from_activity": "UNRATE is neither output, housing authorization, retail demand nor sentiment.", "prohibited_rescue": "Do not add payrolls, participation, claims, Sahm thresholds, levels, monthly changes, smoothing, alternate lags, direction inversion or another factor after access."},
+  "adversarial_prior": ["UNRATE is lagging and can remain low until after market prices move.", "Strong labor can support demand but also delay monetary easing.", "Present-vintage seasonal adjustment and population controls do not reproduce original releases.", "The 2020 shock can dominate state variation.", "A long-cash rule can reduce drawdown only by forfeiting upside."],
+  "stop_conditions": ["Stop DATA_REJECT before hypothesis or BTC access on any source, lattice or support failure.", "If the source gate passes, freeze exactly one hypothesis and economic manifest before BTC outcomes.", "Stop NO_CANDIDATE on any economic, drawdown, Calmar, upside, breadth, concentration or determinism failure.", "Do not open post-2024 outcomes; a historical pass remains REPORTED_NOT_ACTIVATED."],
+  "missing_proof": ["No exact UNRATE source bundle or state-support result exists.", "No hypothesis, runner, manifest, economics, candidate, OOS or forward evidence exists."],
+  "scope_note": "Primary and adversarial prior only. No historical UNRATE value, BTC outcome, paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

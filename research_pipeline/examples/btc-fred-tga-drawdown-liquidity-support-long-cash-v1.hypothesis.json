@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-tga-drawdown-liquidity-support-long-cash-v1",
+  "title": "Lagged Treasury General Account drawdown liquidity support for BTC long or cash",
+  "thesis": "A current U.S. Treasury General Account weekly average strictly below its value four eligible observations earlier may identify an all-else-equal reserve-liquidity state with better subsequent BTC return and path-risk evidence than drain-or-neutral weeks.",
+  "mechanism": "Use official WTREGEN Wednesday-ending observations only from Friday 00:00 UTC, compare each value with the observation exactly four weeks earlier, and evaluate one non-overlapping 168-hour BTC response. The supportive state is strictly lower TGA; no threshold, smoothing, alternate lag, direction inversion or combined macro factor is allowed.",
+  "economic_rationale": "If and only if both Design and Validation establish predictive direction, a later matched-capital policy would hold full BTC during supportive weeks and zero-yield cash otherwise. It must improve fee-adjusted Calmar and underwater duration while explicitly charging lost upside and capital utilization.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-tga-drawdown-liquidity-support-long-cash:PRIMARY_PRIOR_SHA256_053a6cc8b22f2053527c3b2b36adb1b30d8480168ca635acd88791a246737f56",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-wtregen-four-week-drawdown-pre-economic-predictive-screen-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "supportive_and_drain_or_neutral_weekly_episode_support",
+    "median_168h_terminal_return_and_negative_return_rate",
+    "median_168h_peak_to_trough_path_drawdown",
+    "one_sided_fisher_negative_return_rate_p_value",
+    "annual_direction_breadth_and_top_year_positive_return_concentration",
+    "matched_capital_fee_drawdown_calmar_utilization_and_upside_opportunity_cost_only_after_predictive_pass"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 3
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-tga-liquidity-support-1",
+  "created_at": "2026-08-20T11:59:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

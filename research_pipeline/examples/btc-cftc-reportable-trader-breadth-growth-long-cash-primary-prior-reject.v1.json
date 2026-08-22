@@ -1,0 +1,72 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_REPORTABLE_TRADER_BREADTH_GROWTH_LONG_CASH_PRIMARY_PRIOR_REJECT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-cftc-reportable-trader-breadth-growth-long-cash",
+  "created_at": "2026-08-20T11:40:00Z",
+  "status": "PRIOR_REJECT_CLOSE_BTC_CFTC_REPORTABLE_TRADER_BREADTH_GROWTH_LONG_CASH_FAMILY",
+  "frozen_before_trader_count_factor_or_btc_outcome_access": true,
+  "decision": "CLOSE_BEFORE_HYPOTHESIS_OR_FACTOR_ACCESS_BECAUSE_NO_PRIMARY_SOURCE_SUPPORTS_ONE_TRADABLE_DIRECTION",
+  "reviewed_primary_sources": [
+    {
+      "title": "Who Trades Bitcoin Futures and Why?",
+      "authors": "Alex Ferko; Amani Moin; Esen Onur; Michael Penick",
+      "publication": "Global Finance Journal 55 (2023)",
+      "url": "https://www.cftc.gov/sites/default/files/2021-11/WhoTradesBTC_V2_ada.pdf",
+      "finding": "The CFTC-authored study documents changing trader composition, concurrent trader counts and reporting-threshold effects in CME Bitcoin futures, but does not establish that growth or contraction in total reportable trader count predicts subsequent Bitcoin returns.",
+      "rejection_implication": "Trader-count growth can reflect contract maturation, reporting thresholds, micro-contract migration or reactive participation. The source therefore does not select continuation, contrarian or risk-veto direction before outcome access."
+    },
+    {
+      "title": "Effects of Index-Fund Investing on Commodity Futures Prices",
+      "authors": "James D. Hamilton; Jing Cynthia Wu",
+      "publication": "NBER Working Paper 19892",
+      "url": "https://www.nber.org/papers/w19892",
+      "finding": "The study finds no robust return-predictive evidence from one class of CFTC trader positions and reports that apparent support in another market breaks down out of sample.",
+      "rejection_implication": "CFTC participation measures require an independently specified economic direction and cannot be mined merely because the fields are available."
+    },
+    {
+      "title": "CFTC Commitments of Traders Explanatory Notes",
+      "url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/ExplanatoryNotes/index.htm",
+      "finding": "Official semantics define trader counts as reportable traders by category and side, not unique institutional adoption or capital committed.",
+      "rejection_implication": "A total-trader-count change is not a clean breadth-of-risk-bearing factor without an additional unsupported interpretation."
+    }
+  ],
+  "executable_data_path": {
+    "status": "READY_BUT_NOT_SUFFICIENT_TO_CREATE_A_HYPOTHESIS",
+    "cftc_manifest": {
+      "path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json",
+      "sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a"
+    },
+    "source_contract": {
+      "path": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.json",
+      "sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5"
+    },
+    "btc_corpus": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608
+    }
+  },
+  "material_learning": "A machine-readable field and a sealed corpus do not create a performance hypothesis. Total reportable trader count has multiple non-predictive structural explanations, and the reviewed primary sources do not select one causal return direction before outcome access.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not inspect trader-count outcomes and then select continuation or contrarian direction.",
+    "Do not threshold, smooth, percentile-rank or combine trader counts to rescue the family.",
+    "Do not reinterpret total reportable trader count as institutional capital, unique ownership or carry without separate primary evidence."
+  ],
+  "performance_evidence": {
+    "factor_values": "NOT_ACCESSED",
+    "btc_outcomes": "NOT_ACCESSED",
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "NOT_OPENED"
+  },
+  "next_action": "REPLACE_WITH_ONE_PRIMARY_DIRECTION_AND_EXECUTABLE_DATA_PATH_FAMILY_WITHOUT_OPENING_THIS_FACTOR",
+  "scope_note": "Primary-source prior rejection only. No factor value, BTC outcome, hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,181 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_VIX_TERM_STRUCTURE_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-vix-term-structure-long-cash-historical-v1",
+  "decided_at": "2026-08-19T07:51:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_VIX_TERM_STRUCTURE_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_LAGGED_CBOE_VIX_DIVIDED_BY_VIX3M_TERM_STRUCTURE_LONG_CASH_FAMILY_WITHOUT_RELATION_RATIO_THRESHOLD_SMOOTHING_INTERACTION_OR_SIZING_TUNING",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "artifact": {
+    "path": ".research-state/experiments/btc-vix-term-structure-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "4e356bdfc20875698e2619e62fc41c0ae07e5362c3619d5dc60b16cb3b028cfe",
+    "bytes": 61436,
+    "reproducibility_run_path": ".research-state/experiments/btc-vix-term-structure-long-cash-historical-v1/artifacts/run2.json",
+    "reproducibility_run_sha256": "4e356bdfc20875698e2619e62fc41c0ae07e5362c3619d5dc60b16cb3b028cfe",
+    "byte_identical": true
+  },
+  "bindings": {
+    "manifest_path": "research_pipeline/examples/btc-vix-term-structure-long-cash-historical.v1.manifest.json",
+    "manifest_sha256": "fb9313c84378626aab9e81bca3dee24ccdd76e0a55ee912c4d106f570a96de18",
+    "primary_prior_path": "research_pipeline/examples/btc-vix-term-structure-primary-prior.v1.json",
+    "primary_prior_sha256": "09dc6c5c964ef920c16a1eacdaeb771567046185d827891bd4325ac24960410c",
+    "vix3m_source_metadata_path": "research_pipeline/examples/cboe-vix3m-daily-2018-2024.v1.source.json",
+    "vix3m_source_metadata_sha256": "eb57c841d3607799a198a831ac12a91498f0795dcaa359d8205c3b83330b5d3c",
+    "runner_path": "research/btc_vix_term_structure_long_cash_historical.py",
+    "runner_sha256": "7069bea90ca05f68cbd53c11242806c3c48de9d0c60af733e6f13b9970334785",
+    "git_commit": "ff095641987751cd80a0be0472f12d26b0155faa"
+  },
+  "datasets": {
+    "btc_h1": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "cboe_vix": {
+      "path": "research_pipeline/examples/cboe-vix-daily-2018-2024.v1.csv",
+      "sha256": "b31effdd0af01e12baf3631772e4b00136b2d62f8b18fc8dd8ef246f1076a8bf",
+      "rows": 1780
+    },
+    "cboe_vix3m": {
+      "path": ".research-state/experiments/btc-vix-term-structure-long-cash-historical-v1/inputs/cboe-vix3m-history-raw.csv",
+      "sha256": "a9705859b8d9c64e1d6b349c34e4bdb724528fab4ec0c833c6a32b8e6c5a84e6",
+      "raw_rows": 4254,
+      "window_rows": 1761,
+      "matched_vix_rows": 1761,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31"
+    }
+  },
+  "policy": {
+    "feature": "LATEST_MATCHED_VIX_CLOSE_DIVIDED_BY_VIX3M_CLOSE",
+    "effective_time": "NEXT_CALENDAR_DAY_0000_UTC",
+    "missing_date_policy": "NO_FILL_NO_INTERPOLATION_NO_SUBSTITUTION",
+    "long_relation": "AT_OR_BELOW",
+    "primary_threshold": "1.00",
+    "neighbors": ["0.95", "1.05"],
+    "targets": ["BTC_100_PERCENT", "CASH_100_PERCENT"]
+  },
+  "economic_summary": {
+    "primary_ratio_1_00": {
+      "design_normal": {
+        "total_return_pct": "83.19969623",
+        "realized_return_pct": "112.68320850",
+        "unrealized_return_pct": "-29.48351227",
+        "maximum_drawdown_pct": "81.86535760",
+        "maximum_underwater_duration_hours": 9990,
+        "average_exposure_pct": "91.51459854",
+        "calmar_ratio": "1.01629919",
+        "buy_hold_total_return_pct": "129.60544229",
+        "buy_hold_maximum_drawdown_pct": "77.18955925",
+        "buy_hold_calmar_ratio": "1.67905405",
+        "total_return_delta_pp": "-46.40574606",
+        "drawdown_delta_pp": "4.67579835",
+        "calmar_ratio_to_buy_hold": "0.60528080",
+        "median_hold_hours": "648.00000000",
+        "p90_hold_hours": "3396.00000000",
+        "position_changes": 33
+      },
+      "design_stress": {
+        "total_return_pct": "74.35240768",
+        "maximum_drawdown_pct": "82.40131820",
+        "calmar_ratio": "0.90232061",
+        "buy_hold_total_return_pct": "129.26172157"
+      },
+      "validation_normal": {
+        "total_return_pct": "414.25431620",
+        "realized_return_pct": "436.34019737",
+        "unrealized_return_pct": "-22.08588118",
+        "maximum_drawdown_pct": "28.56958266",
+        "maximum_underwater_duration_hours": 5815,
+        "average_exposure_pct": "98.08481532",
+        "calmar_ratio": "14.49983786",
+        "buy_hold_total_return_pct": "464.75475156",
+        "buy_hold_maximum_drawdown_pct": "32.28416349",
+        "buy_hold_calmar_ratio": "14.39575015",
+        "total_return_delta_pp": "-50.50043537",
+        "drawdown_delta_pp": "-3.71458083",
+        "upside_capture_ratio": "0.89133960",
+        "calmar_ratio_to_buy_hold": "1.00723045",
+        "median_hold_hours": "1008.00000000",
+        "p90_hold_hours": "8884.80000000",
+        "position_changes": 11,
+        "terminal_position": true,
+        "terminal_holding_age_hours": "288.00000000",
+        "terminal_liquidation_adjusted_return_pct": "413.48319185",
+        "top_positive_episode_contribution_pct": "59.81083649"
+      },
+      "validation_stress": {
+        "total_return_pct": "405.83967326",
+        "maximum_drawdown_pct": "28.78355317",
+        "calmar_ratio": "14.09970725",
+        "buy_hold_total_return_pct": "463.90931032"
+      },
+      "annual_normal": {
+        "2020": {"total_return_pct": "342.90342037", "maximum_drawdown_pct": "19.83607614", "calmar_ratio": "17.28685744"},
+        "2021": {"total_return_pct": "46.48484662", "maximum_drawdown_pct": "54.72348518", "calmar_ratio": "0.84944967"},
+        "2022": {"total_return_pct": "-71.84268253", "maximum_drawdown_pct": "74.19834787", "calmar_ratio": "-0.96825178"},
+        "2023": {"total_return_pct": "153.16397280", "maximum_drawdown_pct": "21.72199642", "calmar_ratio": "7.05110018"},
+        "2024": {"total_return_pct": "90.76731598", "maximum_drawdown_pct": "28.56958266", "calmar_ratio": "3.17706132"}
+      },
+      "breadth": {
+        "normal_positive_years": "4_of_5",
+        "stress_positive_years": "4_of_5",
+        "drawdown_non_worse_years": "4_of_5",
+        "calmar_non_worse_years": "1_of_5",
+        "top_year_positive_contribution_pct": "54.14382317"
+      }
+    },
+    "lower_neighbor_ratio_0_95": {
+      "design_normal_total_return_pct": "8.95597503",
+      "design_stress_total_return_pct": "-2.34453849",
+      "validation_normal_total_return_pct": "228.16908857",
+      "validation_maximum_drawdown_pct": "25.62922635",
+      "validation_calmar_ratio": "8.90269123",
+      "validation_calmar_ratio_to_buy_hold": "0.61842496",
+      "normal_positive_years": "4_of_5",
+      "disposition": "FAILS_FROZEN_VALIDATION_CALMAR_NEIGHBOR_GATE"
+    },
+    "upper_neighbor_ratio_1_05": {
+      "design_normal_total_return_pct": "256.33110969",
+      "validation_normal_total_return_pct": "452.19317373",
+      "validation_maximum_drawdown_pct": "32.28416349",
+      "validation_calmar_ratio": "14.00665604",
+      "validation_calmar_ratio_to_buy_hold": "0.97297160",
+      "normal_positive_years": "4_of_5",
+      "disposition": "PASSES_NEIGHBOR_MINIMUMS_BUT_CANNOT_RESCUE_PRIMARY_OR_LOWER_NEIGHBOR"
+    }
+  },
+  "failed_primary_gates": [
+    "design_drawdown_at_most_85pct_of_buy_hold",
+    "design_calmar_at_least_buy_hold",
+    "validation_drawdown_at_most_85pct_of_buy_hold",
+    "annual_drawdown_non_worse_5_of_5",
+    "annual_calmar_non_worse_at_least_3_of_5"
+  ],
+  "failed_neighbor_gates": {
+    "vix-vix3m-ratio-0_95-v1": ["validation_calmar_at_least_75pct_of_buy_hold"]
+  },
+  "passed_evidence": [
+    "The exact sealed BTC, VIX and VIX3M inputs, date alignment, source metadata, prior, parser and runner hashes passed; two outputs were byte-identical.",
+    "The primary stayed positive under Normal and doubled Stress friction in Design and Validation, achieved positive returns in four of five annual folds, and exposed realized, unrealized, holding-time and terminal-inventory effects.",
+    "The primary reduced Validation drawdown by 3.71458083 percentage points and retained 89.133960 percent of passive upside, but the frozen gate required at least a fifteen-percent relative drawdown reduction."
+  ],
+  "material_learning": "The exact lagged VIX/VIX3M ratio is an observable risk-state descriptor but not a stable risk-adjusted BTC strategy. Ratio 1.00 worsened Design drawdown from 77.18955925 to 81.86535760 percent and delivered only 60.528080 percent of passive Design Calmar. Its Validation drawdown improvement was real but too small for the frozen gate, annual Calmar was non-worse in only one of five years, and 2022 drawdown worsened from 67.36039868 to 74.19834787 percent. The stricter 0.95 neighbor retained only 61.842496 percent of passive Validation Calmar, while 1.05 became almost passive exposure. This is insufficient breadth, not an invitation to tune or invert the ratio.",
+  "scientific_claim": "For the exact sealed same-date Cboe VIX divided by VIX3M closes, next-calendar-day 00:00 UTC availability, long-at-or-below ratios 0.95, 1.00 and 1.05, matched capital, explicit Normal and Stress friction and historical Design/Validation through 2024, the evidence rejects candidate status. The result does not authorize relation inversion, alternate ratios, missing-date fill, smoothing, thresholds, BTC interactions, partial sizing, leverage or shorting.",
+  "forbidden_followups": [
+    "DO_NOT_INVERT_THE_VIX_DIVIDED_BY_VIX3M_RELATION",
+    "DO_NOT_SCAN_ANOTHER_RATIO_THRESHOLD_OR_LOOKBACK_POST_OUTCOME",
+    "DO_NOT_FILL_INTERPOLATE_OR_SUBSTITUTE_MISSING_CBOE_DATES",
+    "DO_NOT_ADD_SMOOTHING_BTC_INTERACTION_PARTIAL_SIZING_LEVERAGE_OR_SHORTING",
+    "DO_NOT_RERUN_OR_OPEN_OOS"
+  ],
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-2024 OOS or prospective evidence.",
+    "VIX and VIX3M measure S&P 500 option-implied volatility rather than crypto-specific risk.",
+    "The cited working paper supplies a contemporaneous mechanism hypothesis and does not validate this lagged BTC policy.",
+    "No canonical state, server Research MCP write, second timer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+  ],
+  "recommended_next_action": "Keep this exact VIX/VIX3M term-structure family permanently closed. Preserve the five open forward/source families and allocate the next direct cycle only to an independent evidence-ready mechanism with a frozen formula and matched-capital economics."
+}

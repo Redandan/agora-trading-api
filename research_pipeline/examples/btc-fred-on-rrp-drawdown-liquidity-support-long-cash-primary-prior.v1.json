@@ -1,0 +1,93 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_ON_RRP_DRAWDOWN_LIQUIDITY_SUPPORT_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-on-rrp-drawdown-liquidity-support-long-cash",
+  "created_at": "2026-08-20T12:38:00Z",
+  "status": "PRIMARY_PRIOR_AND_OFFICIAL_FREE_TRANSPORT_READY_SOURCE_NOT_SEALED",
+  "frozen_before_historical_on_rrp_factor_or_btc_outcome_pairing_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_SOURCE_FEASIBILITY_THEN_AT_MOST_ONE_HASH_BOUND_PRE_ECONOMIC_SCREEN",
+  "claim_boundary": "FRED identifies RRPONTSYD as the aggregated daily amount of New York Fed overnight reverse-repurchase transactions. The New York Fed explains that settlement reduces reserve liabilities and increases RRP liabilities by an equal amount. These sources define the plumbing mechanism but do not establish that a falling ON RRP balance reaches crypto markets, predicts BTC returns or supports a profitable long-or-cash policy.",
+  "primary_sources": [
+    {
+      "title": "Overnight Reverse Repurchase Agreements: Treasury Securities Sold by the Federal Reserve in the Temporary Open Market Operations",
+      "publisher": "FRED, Federal Reserve Bank of St. Louis",
+      "url": "https://fred.stlouisfed.org/series/RRPONTSYD",
+      "use": "Primary series identity, daily frequency, units, source and reserve-draining interpretation."
+    },
+    {
+      "title": "FAQs: Reverse Repurchase Agreement Operations",
+      "publisher": "Federal Reserve Bank of New York",
+      "url": "https://www.newyorkfed.org/markets/rrp_faq.html",
+      "use": "Primary operational definition, liability substitution, counterparty set and publication timing boundary."
+    }
+  ],
+  "proposed_feature_for_next_cycle_only": {
+    "factor_identity": "FRED_RRPONTSYD_COMPLETE_WEEK_LAST_AVAILABLE_BUSINESS_DAY_STRICTLY_BELOW_VALUE_FOUR_COMPLETE_WEEKS_EARLIER_V1",
+    "support_state": "CURRENT_COMPLETE_WEEK_LAST_AVAILABLE_RRPONTSYD_STRICTLY_BELOW_THE_VALUE_FOUR_COMPLETE_WEEKS_EARLIER",
+    "other_state": "OTHERWISE",
+    "primary_direction": "SUPPORT_STATE_HAS_HIGHER_NEXT_168H_BTC_RETURN_AND_NO_WORSE_PATH_DRAWDOWN",
+    "weekly_observation_rule": "For each complete Monday-through-Sunday UTC week, use the last non-missing FRED observation dated inside that week; reject a week with no observation.",
+    "availability_floor": "COMPLETE_WEEK_SUNDAY_PLUS_3_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "outcome_horizon_hours": 168,
+    "variant_count": 1,
+    "status": "PROPOSED_NOT_A_HYPOTHESIS_SOURCE_FEASIBILITY_MUST_CONFIRM_BOTH_STATES_BEFORE_ALLOCATION"
+  },
+  "future_economic_contract_if_and_only_if_predictive_screen_passes": {
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_ON_RRP_DRAWDOWN_SUPPORT_STATE_ZERO_YIELD_CASH_OTHERWISE_NO_LEVERAGE_NO_SHORT",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "top_event_concentration"
+    ]
+  },
+  "data_path": {
+    "status": "READY_FOR_NEXT_CYCLE_SOURCE_SEALING_NO_PAID_API",
+    "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=RRPONTSYD&cosd=2018-01-01&coed=2024-12-31",
+    "source_cost": "FRED_PUBLIC_CSV_NO_KEY_FREE",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "required_action_before_factor_access": "DOWNLOAD_ONCE_SEAL_RAW_BYTES_RECORD_SHA256_VALIDATE_SERIES_ID_DATE_ORDER_MISSING_VALUE_POLICY_WEEKLY_COVERAGE_AND_PRE_OUTCOME_BOTH_STATE_SUPPORT"
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_tga": "TGA measures Treasury deposits at the Fed; ON RRP measures cash placed by eligible money-market counterparties into a Fed facility. They are different liabilities with different counterparties and drivers.",
+    "distinct_from_walcl_and_m2": "The feature does not measure total Fed assets or broad money growth; it measures use of a specific temporary reserve-draining facility.",
+    "prohibited_rescue": "Do not combine ON RRP with TGA, WALCL, M2, rates, Treasury issuance or BTC price after source or outcome access. Do not change the four-week lag, weekly endpoint, direction or availability floor."
+  },
+  "adversarial_prior": [
+    "A decline in ON RRP does not prove that cash purchased risk assets; it can move into Treasury bills, deposits or other money-market instruments.",
+    "ON RRP usage is strongly affected by administered rates, Treasury bill supply, money-fund constraints and counterparty eligibility.",
+    "The series is near zero for long periods and extremely elevated during 2021-2023, so state support and year concentration may fail before outcomes.",
+    "FRED warns that data are subject to revision; the downloaded history is a present-vintage source without original daily vintages.",
+    "TGA and reserve movements can offset the simple liquidity interpretation, but adding them as ex-post controls is prohibited in this family."
+  ],
+  "next_cycle_stop_conditions": [
+    "Stop DATA_REJECT before hypothesis or BTC outcome access if the exact CSV cannot be sealed, series identity changes, dates are unordered, missing-value handling is ambiguous, weekly coverage fails or either state lacks adequate Design and Validation support.",
+    "Freeze exactly one hypothesis and one pre-economic predictive manifest only after source feasibility passes and before joining a BTC outcome.",
+    "Stop NO_CANDIDATE before economics if either Design or Validation fails return direction, path-drawdown, annual-breadth or concentration gates.",
+    "Do not alter the weekly endpoint, four-week comparison, strict direction, Wednesday availability, 168-hour horizon, parent or action after factor or outcome access.",
+    "Do not open post-2024 outcomes; any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed forward evidence."
+  ],
+  "missing_proof": [
+    "The complete 2018-2024 RRPONTSYD response has not been downloaded or sealed.",
+    "Both-state support and weekly missing-value behavior have not been measured.",
+    "No hash-bound hypothesis, runner, manifest or deterministic run exists.",
+    "No Design or Validation predictive result, matched-capital economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior plus official free transport design only. No historical RRP value or BTC outcome was retained in this artifact; no hypothesis, runner, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

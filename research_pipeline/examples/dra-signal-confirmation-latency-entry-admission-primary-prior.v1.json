@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_SIGNAL_CONFIRMATION_LATENCY_PRIMARY_PRIOR_V1",
+  "family_id": "dra-signal-confirmation-latency-entry-admission",
+  "created_at": "2026-08-21T07:27:38Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_ARMED_TO_SIGNAL_LATENCY_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "DRA V1 opens a thirty-day armed window and accepts the first later bar that satisfies the unchanged signal. A prompt confirmation and a confirmation that arrives only after many days are not necessarily the same economic event. The exact armed-to-signal elapsed time is known before the next-open fill and can be screened without reading price distance, inventory state or outcome. A support-only audit can determine whether vetoing confirmations at least seven days late is selective, stable and broad enough for one matched-capital experiment. This prior is not performance evidence.",
+  "causal_boundary": {
+    "decision_time": "AT_UNCHANGED_PARENT_SIGNAL_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "formula": "SIGNAL_TIME_MINUS_CURRENT_PARENT_ARMED_AT_IN_HOURS",
+    "primary_relation": "VETO_WHEN_SIGNAL_CONFIRMATION_LATENCY_IS_AT_LEAST_168_HOURS",
+    "rejection_only_neighbors_hours": ["72", "336"],
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN",
+    "window_expiry": "UNCHANGED_PARENT_THIRTY_DAY_ARM_EXPIRY_AND_SAME_BAR_REARM_BEHAVIOR",
+    "price_feature_access": "DENY",
+    "inventory_state_or_pnl_access": "DENY",
+    "existing_lot_mutation": "DENY"
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-historical.v1.decision.json",
+      "sha256": "1f9a4eb28dcb1f7ab4b0270cd42cf8b553277628814d4098b8ff2f89449965c8",
+      "learning": "Oldest-open-lot age reduced drawdown by suppressing profitable participation and failed annual PnL breadth. Armed-to-signal latency does not read any lot or inventory state and must independently prove selectivity before economics."
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-prior-24h-breakout-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "f0e149b8eea2b66c9ce7cfbf19d444c561eec62ba62dcc1edbd78722608af56d",
+      "learning": "Prior-24-hour breakout clearance vetoed nearly all parent signals and failed selectivity. Latency reads only the pre-existing parent armed timestamp and must stay within the same frozen five-to-sixty-percent action-share lattice."
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-overextension-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "3646d41706903be7a16eb9279f8beab6d4e013c36d3fe24bee7ad5ad0a72c37c",
+      "learning": "Signal distance from EMA20 lacked Validation selectivity. Latency does not inspect EMA20, ATR or price distance and cannot rescue that family through a different threshold."
+    },
+    {
+      "path": "research_pipeline/examples/dra-underwater-inventory-congestion-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "3ecd9132834265b2f6b8c9ced8e2e10b71d301d4bcad7dafec7d1904d599c02e",
+      "learning": "Underwater inventory and open-cost support failed. Latency is parent signal-lifecycle state, not inventory congestion, and reads neither open cost nor inventory PnL after the parent capacity decision."
+    },
+    {
+      "path": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
+      "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac",
+      "learning": "A veto that does not reserve the original signal cooldown changes later route availability. Every actionable latency veto therefore reserves the unchanged seven-day cooldown, while capacity blocks remain unchanged parent blocks without reservation."
+    }
+  ],
+  "deduplication_conclusion": "The proposed feature is elapsed time inside the current parent-owned armed window when an unchanged capacity-admissible DRA signal occurs. It is not inventory age or PnL, prior-price breakout, EMA20 overextension, underwater congestion, flat-regime state or a change to the parent seven-day cooldown or thirty-day armed-window lifecycle.",
+  "adversarial_risks": [
+    "Most parent signals may arrive within the first three days, leaving the seven-day and fourteen-day vetoes too sparse.",
+    "Late confirmations may be concentrated in one year or month rather than a recurring mechanism.",
+    "The three-day neighbor may suppress too much participation and the fourteen-day neighbor may be too sparse.",
+    "Elapsed armed time may proxy the same trend weakness already rejected by price-based admission families even though its action fingerprint is distinct.",
+    "Lower drawdown or terminal inventory without realized and annual total-PnL breadth may be participation suppression rather than alpha.",
+    "Cooldown route substitution can invalidate comparison unless every actionable veto reserves the original signal timestamp."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_CAUSAL_PARENT_LIFECYCLE_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No price or inventory state, candidate economics, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

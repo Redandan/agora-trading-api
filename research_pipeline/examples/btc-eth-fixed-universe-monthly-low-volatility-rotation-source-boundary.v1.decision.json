@@ -1,0 +1,45 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_FIXED_UNIVERSE_MONTHLY_LOW_VOLATILITY_ROTATION_SOURCE_BOUNDARY_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DUPLICATE_SOURCE_BOUNDARY_REJECT_CLOSE_BEFORE_SOURCE_OR_OUTCOME",
+  "family_id": "btc-eth-fixed-universe-monthly-low-volatility-rotation",
+  "decision": "CLOSE_WITHOUT_SOURCE_RETRY_HYPOTHESIS_MANIFEST_RUNNER_OR_OUTCOME_ACCESS",
+  "material_conclusion": "The low-volatility mechanism is distinct from the earlier ETH-relative-strength rule, but its proposed free BTC and ETH ReferenceRateUSD corpus would substitute the official GitHub archive after the already sealed Community API path returned zero rows. The prior source-gate decision explicitly prohibits transport, metric and provider substitution for this BTC-ETH reference-rate free-source boundary. Opening the GitHub archive now would be an outcome-aware source rescue, so this family is closed before any BTC or ETH price row, volatility state or strategy outcome is accessed.",
+  "conflict": {
+    "closed_source_family": "DATA_REJECT_CLOSE_BTC_ETH_REFERENCE_RATE_FREE_SOURCE_FAMILY",
+    "closed_request": "COIN_METRICS_COMMUNITY_API_BTC_ETH_REFERENCERATEUSD_2018_2024",
+    "proposed_substitution": "COIN_METRICS_OFFICIAL_GITHUB_ARCHIVE_BTC_ETH_REFERENCERATEUSD_2018_2024",
+    "classification": "PROHIBITED_TRANSPORT_SUBSTITUTION_AFTER_SOURCE_REJECT",
+    "mechanism_outcome_accessed": false,
+    "source_value_accessed": false
+  },
+  "evidence_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-primary-prior.v1.json",
+      "role": "SEALED_PRE_SOURCE_OFFICIAL_ACADEMIC_AND_ADVERSARIAL_PRIOR",
+      "sha256": "722523426b3a5b64412924962c07f745bef4315a72197d0343ccfa4f5f8cd86a"
+    },
+    {
+      "path": "research_pipeline/examples/dra-eth-relative-strength-breadth-entry-admission-source-gate.v1.decision.json",
+      "role": "PREEXISTING_TERMINAL_BTC_ETH_REFERENCE_RATE_SOURCE_BOUNDARY",
+      "sha256": "0071f07247454a6d544b51af5e6e5814a9db98680598bcaffc8969dd188b5ea4"
+    }
+  ],
+  "performance_evidence": {
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "NOT_OPENED"
+  },
+  "prohibited_reopen": true,
+  "next_action": "Use one preregistered family computed entirely from the already sealed 52,608-row BTC H1 corpus and do not reopen BTC-ETH reference-rate transport.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No source request, BTC or ETH price value, hypothesis, manifest, runner, strategy outcome, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

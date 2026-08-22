@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-first-six-hour-direction-24h-state-long-cash",
+  "disposition": "SEALED_H1_CORPUS_AND_ADVERSARIAL_PRIOR_PERMIT_ONE_FUTURE_PREREGISTERED_HISTORICAL_AUDIT",
+  "claim_boundary": "Exactly one future audit may test whether the sign of BTC's first six complete UTC hours contains enough delayed intraday information to support a full-capital 24-hour BTC-or-cash state after costs. Published intraday predictability motivates the mechanism but does not establish this six-hour aggregation, decision clock or economic value.",
+  "feature_contract": {
+    "source": "SEALED_OKX_BTC_USDT_SPOT_H1_2019_2024_CORPUS",
+    "source_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "observation": "EACH_UTC_DAY_FIRST_SIX_COMPLETE_HOURLY_BARS_0000_THROUGH_0559",
+    "feature": "CLOSE_AT_0600_UTC_STRICTLY_ABOVE_OPEN_AT_0000_UTC",
+    "decision_time": "0600_UTC_NEXT_HOURLY_OPEN",
+    "validity": "24_HOURS_UNTIL_NEXT_0600_UTC_DECISION",
+    "policy": "FULL_CAPITAL_BTC_WHEN_TRUE_ZERO_YIELD_CASH_WHEN_FALSE_STATE_CHANGES_ONLY",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Intraday return predictability in the cryptocurrency markets: Momentum, reversal, or both",
+      "primary_source": "https://doi.org/10.1016/j.najef.2022.101733",
+      "finding": "The peer-reviewed study reports intraday momentum and reversal in BTC and other major cryptocurrencies, with patterns changing around jumps, FOMC events and liquidity; its timing strategy showed economic value against always-long benchmarks.",
+      "role": "PRIMARY_CAUSAL_PRIOR",
+      "transfer_boundary": "The paper's first-half-hour and last-half-hour relationships do not establish a six-hour formation or a rolling 24-hour long-cash state on the sealed OKX H1 corpus."
+    },
+    {
+      "identity": "Autocorrelation of returns in major cryptocurrency markets",
+      "primary_source": "https://arxiv.org/abs/2003.13517",
+      "finding": "The study evaluates return autocorrelation across BTC, ETH and major venues at multiple frequencies, emphasizing that efficiency and serial dependence vary by asset, venue and sampling interval.",
+      "role": "ADVERSARIAL_MARKET_EFFICIENCY_PRIOR",
+      "transfer_boundary": "Any historical sign persistence can be small, unstable or overwhelmed by two-sided trading friction and must pass both windows and annual breadth."
+    },
+    {
+      "identity": "Closed DRA intraday sign-persistence entry-admission family",
+      "primary_source": "research_pipeline/examples/local-research-result.dra-intraday-sign-persistence-entry-admission-v1.json#sha256=613c08b1f97f8eb2372bf79d590d43f66c378a4598988a6f8d8aced6365006fb",
+      "finding": "A magnitude-neutral prior-day 23-return same-sign-pair persistence share failed as a DRA entry filter, with weaker Validation economics and zero of five annual total-PnL wins.",
+      "role": "DUPLICATION_AND_OPPORTUNITY_COST_PRIOR",
+      "transfer_boundary": "The new family uses the current day's first-six-hour net direction as a standalone 24-hour state, not prior-day sign-pair persistence or DRA admission. It may not reinterpret, tune or reopen the closed persistence-share rule."
+    },
+    {
+      "identity": "Closed fixed UTC session long-cash family",
+      "primary_source": "research_pipeline/examples/btc-intraday-utc0816-session-long-cash-historical.v1.decision.json#sha256=bab8a8fc653081c3f3e3163a825ab2e98e0bd21da67a6db6af1263d438963ecc",
+      "finding": "An unconditional fixed 08:00-16:00 UTC holding session was closed after historical economics.",
+      "role": "CALENDAR_DUPLICATION_PRIOR",
+      "transfer_boundary": "The new policy is conditional on a same-day observed direction and maintains a rolling state until the next decision; it is not permission to tune fixed session hours or reopen unconditional calendar exposure."
+    }
+  ],
+  "future_design_requirements": [
+    "Use only the sealed 52,608 contiguous pre-2025 BTC H1 rows and reject any hash, lattice or boundary mismatch.",
+    "Freeze one variant before outcome access: first-six-hour strict positive net direction, 06:00 UTC decision, 24-hour validity, full BTC or zero-yield cash, and state-change-only execution.",
+    "Do not add magnitude thresholds, alternate formation lengths, weekday filters, reversal direction, holding sessions, stops, leverage, shorting, smoothing or neighbors.",
+    "Run deterministic matched-capital Design 2019-2022 and Validation 2023-2024 economics under normal and doubled adverse friction, including total, realized and unrealized PnL, drawdown, Calmar, upside capture, turnover, holding, terminal inventory, annual breadth and concentration.",
+    "A historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent post-2024 OOS."
+  ],
+  "uncertainty": [
+    "Six hours is a coarse H1-compatible aggregation and not the exact interval studied in the cited intraday paper.",
+    "A daily binary state can turn over frequently enough that fees and slippage dominate a weak serial-dependence effect.",
+    "UTC is an operational boundary in a 24-hour market rather than a natural close and may encode unstable geographic participation patterns.",
+    "No BTC return, feature state, strategy path, economic result, candidate, post-2024 observation or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-21T00:37:00Z"
+}

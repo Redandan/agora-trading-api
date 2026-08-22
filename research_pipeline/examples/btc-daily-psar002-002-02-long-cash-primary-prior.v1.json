@@ -1,0 +1,79 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_PSAR002_002_02_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "DAILY_PARABOLIC_TIME_PRICE_ACCELERATION_STOP_AND_REVERSE_LONG_CASH",
+  "reviewed_at": "2026-08-19T05:02:00Z",
+  "prior_matrix": [
+    {
+      "identity": "TradingView Parabolic SAR indicator documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000502597-parabolic-sar-sar/",
+      "role": "PRIMARY_FORMULA_INITIALIZATION_AND_ADVERSARIAL_USE_SOURCE",
+      "finding": "The documented original-style algorithm initializes direction from the first two closes, advances the stop toward the extreme point with acceleration start 0.02, increment 0.02 and maximum 0.20, clamps the stop outside the prior two bars, and reverses on strict price penetration. The same source warns that standalone SAR identifies direction and duration rather than trend strength and is not typically recommended as a sole signal.",
+      "transfer_boundary": "This fixes calculation and default parameters and supplies a strong adversarial warning. It does not establish BTC profitability, next-H1-open fill parity or matched-capital value."
+    },
+    {
+      "identity": "TradingView Parabolic SAR Strategy documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000645065-parabolic-sar-strategy/",
+      "role": "PRIMARY_DIRECTIONAL_RULE_SOURCE",
+      "finding": "The strategy enters long when SAR moves from above price to below and enters short when SAR moves from below price to above. This experiment translates the second event to zero-yield cash because spot shorting is prohibited.",
+      "transfer_boundary": "The experiment uses complete-day state and next-H1-open execution. It claims signal-family fidelity, not native platform order-fill parity."
+    },
+    {
+      "identity": "Papathanasiou, Can Technical Analysis Generate Superior Returns in the Cryptocurrency Ecosystem? Evidence from the Bitcoin Market, Journal of Business Management and Finance 2023",
+      "primary_source": "https://jbusinessmanagement.com/articles/1007.pdf",
+      "publisher_record": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4332884",
+      "role": "WEAK_SUPPORTIVE_BITCOIN_PSAR_PRIOR",
+      "finding": "The paper reports a default-parameter Parabolic SAR result 3.38 percent above buy-and-hold after transaction costs over its 2010-2021 daily sample, materially less than several other scanned rules.",
+      "transfer_boundary": "The result is full-sample, scans nine technical strategies, exposes no matched hourly path, drawdown, holding, terminal inventory or post-2021 validation, and its buy/sell accounting is not this exact spot long/cash ledger. It authorizes replication, not a positive prior strong enough to relax gates."
+    },
+    {
+      "identity": "Anghel, A Reality Check on Trading Rule Performance in the Cryptocurrency Market, Finance Research Letters 39, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_FRICTION_PRIOR",
+      "finding": "After accounting for data snooping, risk and market frictions, significant positive excess returns from cryptocurrency technical rules were rare.",
+      "transfer_boundary": "This requires frozen default parameters, rejection-only sensitivity neighbors, matched costs, annual and path-risk gates, and permanent closure without rescue on failure."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": ["open_time", "close_time", "open", "high", "low", "close", "volume"],
+    "decision_feature": "Using only complete UTC-day high, low and close history, compute the path-dependent Parabolic SAR. Hold full BTC while SAR is below the daily price state and zero-yield cash while above; execute any changed target at the next H1 open.",
+    "prospective_transport": "The sealed OKX BTC-USDT H1 source contains all required OHLC and timestamp fields. No paid API, credential, timer, writer, database, manual export or backfill is required.",
+    "status": "READY"
+  },
+  "fingerprint_boundary": {
+    "independence_semantics": "ADJACENT_TREND_FAMILY_DISTINCT_TIME_ACCELERATION_PATH_POLICY",
+    "duplicate_family_key": "btc-daily-psar-start-increment-001-002-003-max02-long-cash",
+    "distinct_from_closed_families": [
+      "The closed Supertrend family advances ATR-scaled ratcheted bands around daily midpoint. PSAR advances a stop nonlinearly toward an evolving extreme point using a time-dependent acceleration factor and has no ATR.",
+      "The closed DMI14/ADX family gates directional movement by measured trend strength. PSAR has no DI or ADX calculation and tests only direction and duration, matching the official standalone warning.",
+      "The closed SMA200 and MACD families compare price averages. PSAR uses high/low extreme points, path-dependent reversals and an accelerating stop rather than an average crossover."
+    ],
+    "non_independence_warning": "PSAR remains adjacent to the closed trend-following cluster and its strongest recommended confirmation, DMI, is already closed. A positive historical result would have lower independence and still require untouched OOS; a negative result closes the standalone PSAR family.",
+    "excluded_reinterpretations": [
+      "Start and increment 0.02 with maximum 0.20 is the sole primary. Start/increment 0.01 and 0.03 at maximum 0.20 are rejection-only neighbors and cannot replace a failed primary.",
+      "No alternate initialization, equality rule, clamp order, close-only penetration, ATR or DMI confirmation, trend filter, persistence, delay, stop override, cash yield, leverage, short leg, DRA interaction or ensemble may be introduced after outcome access.",
+      "The result cannot reopen the closed Supertrend or DMI families."
+    ]
+  },
+  "real_time_design_requirements": [
+    "Aggregate exactly twenty-four contiguous H1 bars per complete UTC day and retain daily high, low and close.",
+    "Initialize direction from the first two complete-day closes, use the first day's opposite extreme as the second-day SAR, and use the two days' trend extreme as EP.",
+    "For each later day compute prior SAR plus prior AF times prior EP minus prior SAR, reverse on strict current low or high penetration, otherwise clamp outside the prior two bars and update EP and AF only on a new trend extreme.",
+    "Execute changed long or cash targets only at the next H1 open with no short, leverage, confirmation or DRA interaction.",
+    "Compare with full-capital BTC buy-and-hold under identical initial capital, hourly price path, fees, adverse slippage and valuation boundary."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_DEFAULT_PSAR_LONG_CASH_EXPERIMENT_WITH_ADJACENT_TREND_WARNING",
+  "uncertainty": [
+    "The one supportive Bitcoin study reports only a small full-sample advantage and lacks this experiment's path-risk evidence.",
+    "The official source explicitly warns against standalone use; combining DMI after a failure would be an unauthorized rescue of two closed or tested branches.",
+    "PSAR initialization details are implementation-sensitive, so synthetic state-path tests and frozen Decimal arithmetic are required before outcome access.",
+    "Historical Design and Validation through 2024 cannot establish independent OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one historical default PSAR family with two rejection-only acceleration neighbors. It does not establish alpha, a candidate, independent evidence, OOS value, deployability or Trading authority."
+}

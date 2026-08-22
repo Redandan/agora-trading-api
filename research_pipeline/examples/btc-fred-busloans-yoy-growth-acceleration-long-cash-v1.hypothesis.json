@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-busloans-yoy-growth-acceleration-long-cash-v1",
+  "title": "Lagged commercial-bank business-loan year-over-year growth acceleration for BTC long or cash",
+  "thesis": "A conservatively lagged monthly acceleration in U.S. commercial and industrial loan year-over-year growth may identify broadening business credit or demand with better subsequent Bitcoin risk-adjusted economics than nonaccelerating months.",
+  "mechanism": "Using only the sealed present-vintage BUSLOANS monthly series, compute BUSLOANS_t divided by BUSLOANS_t-minus-12 minus one and subtract the immediately prior month's analogous year-over-year rate. Make the state usable on the first day of the second following month at 00:00 UTC. Hold full-capital unlevered BTC only when the adjacent year-over-year growth change is strictly positive, and zero-yield cash otherwise. No total loans, consumer loans, standards surveys, deposits, spreads, rates, absolute-growth level, magnitude threshold, smoothing, alternate lag, inverse direction or combined factor is allowed.",
+  "economic_rationale": "If accelerating business-credit balances proxy broader credit availability or demand, the policy may avoid nonaccelerating drawdowns while retaining enough BTC upside to improve matched-capital Calmar after explicit normal and doubled friction. Because crisis credit-line draws and revisions can break the mechanism, Design, Validation, annual breadth, episode concentration and terminal inventory must all pass.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-busloans-yoy-growth-acceleration-long-cash:PRIMARY_PRIOR_SHA256_93b0496705c1784809b8c175d6d9712b76a424e3025aa2b7758295c6e5eed574:SOURCE_BUNDLE_SHA256_28056b5fcd067e33a8f18235d1d252e0f5b383b384ea78bcbc15d242cb75f87e:NORMALIZED_BUSLOANS_SHA256_19b7fcea00e959b7d64a2417cafaad9d81cf310b0c3df2694972bbcede4c6ae5",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "monthly-official-fred-busloans-yoy-growth-acceleration-matched-capital-long-cash-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "monthly_signal_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_validation_positive_episode_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-busloans-credit-acceleration-1",
+  "created_at": "2026-08-21T02:47:41Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_US_TREASURY_3M_YIELD_EASING_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-us-treasury-3m-yield-easing-long-cash",
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_LAGGED_63_BUSINESS_OBSERVATION_THREE_MONTH_YIELD_EASING_LONG_CASH_EXPERIMENT_WITH_42_AND_84_OBSERVATION_REJECTION_ONLY_NEIGHBORS",
+  "causal_hypothesis": "A sustained decline in the nominal three-month U.S. Treasury yield may identify easing short-end funding conditions and lower cash opportunity cost before the next weekly BTC holding interval.",
+  "economic_hypothesis": "A weekly full-capital BTC long-or-zero-yield-cash policy may retain sufficient BTC upside while avoiding tightening short-rate states to improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold across Design, Validation and annual folds.",
+  "frozen_feature": {
+    "source_series": "US_TREASURY_DAILY_PAR_THREE_MONTH_YIELD_PERCENT",
+    "evaluation_frequency": "FINAL_VALID_TREASURY_BUSINESS_DATE_OF_EACH_ISO_WEEK",
+    "availability": "OBSERVATION_DATE_PLUS_ONE_CALENDAR_DAY_AT_00_00_UTC",
+    "primary_lookback_business_observations": 63,
+    "rejection_only_neighbor_lookback_business_observations": [42, 84],
+    "change_formula": "LATEST_THREE_MONTH_YIELD_MINUS_THREE_MONTH_YIELD_EXACTLY_N_VALID_OBSERVATIONS_EARLIER",
+    "long_condition": "YIELD_CHANGE_STRICTLY_LESS_THAN_ZERO",
+    "cash_condition": "YIELD_CHANGE_GREATER_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "signal_validity": "UNTIL_NEXT_WEEKLY_FACTOR_BECOMES_AVAILABLE",
+    "missing_observation_rule": "USE_ONLY_VALID_PUBLISHED_ROWS_WITHOUT_INTERPOLATION_OR_SOURCE_REPAIR",
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT",
+    "variants": 3
+  },
+  "independence_boundary": {
+    "not_closed_term_spread": "The closed Treasury term-spread family compared ten-year yields with three-month, one-year and two-year yields. This family uses no long maturity and measures only the time change in the three-month policy-sensitive yield.",
+    "not_closed_real_yield": "The source-rejected real-yield family proposed a weekly change in ten-year inflation-protected real yield as DRA admission. This family uses an already sealed nominal three-month Treasury source and a standalone BTC long/cash policy.",
+    "not_fed_balance_sheet_or_dollar": "The feature contains no WALCL level, dollar index, NFCI, EPU, equity, BTC price, volatility or on-chain input.",
+    "not_cash_carry": "Cash remains zero yield under matched accounting; the three-month yield is solely a lagged external state and is not credited as portfolio income."
+  },
+  "adversarial_prior": [
+    "Short-rate declines may occur only after recession or crisis risk is already visible and therefore can lag BTC drawdowns.",
+    "Long periods of nearly unchanged low rates may produce sparse transitions and excessive cash or BTC exposure.",
+    "Present-vintage Treasury observations do not establish original historical publication values despite the next-day lag.",
+    "The 42-observation and 84-observation variants are rejection-only stability checks and cannot replace a failed 63-observation primary."
+  ],
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPORA_NO_NEW_DOWNLOAD",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "treasury": {
+      "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/inputs/treasury-yield-curve-2018-2024.csv",
+      "sha256": "045ce4646a4595697fc16d8e32c0fd08efd431680e998c9f85d2dcac1732c82a",
+      "rows": 1750
+    },
+    "source_cost": "OFFICIAL_FREE_ALREADY_SEALED"
+  },
+  "stop_conditions": [
+    "Stop before economics if corpus identity, Treasury row ordering, next-day availability, lookback indexing or H1 continuity fails.",
+    "Stop NO_CANDIDATE if the 63-observation primary or either rejection-only neighbor fails any Design, Validation, annual breadth, cost, drawdown, Calmar, upside, concentration, holding or terminal-inventory gate.",
+    "Do not scan another maturity, yield level, threshold, lookback, smoothing rule, evaluation day, lag, holding interval, cash yield, sizing rule, leverage or short leg after outcome access.",
+    "Do not combine this state with the closed term-spread, real-yield, Fed, dollar, NFCI, EPU, equity, BTC trend or DRA family as a rescue."
+  ],
+  "missing_proof": [
+    "No deterministic three-month-yield easing ledger, economic runner or frozen manifest exists.",
+    "No matched-capital Design, Validation, stress, annual breadth or path-risk result exists.",
+    "No independent OOS or forward evidence exists."
+  ],
+  "scope_note": "Pre-outcome source-reuse prior only. No short-rate strategy outcome, runner, manifest, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

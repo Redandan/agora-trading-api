@@ -1,0 +1,67 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NYFED_GSCPI_3M_EASING_SOURCE_FEASIBILITY_SPEC_V1",
+  "created_at": "2026-08-21T04:13:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-nyfed-gscpi-3m-easing-long-cash",
+  "source_contract": {
+    "provider": "FEDERAL_RESERVE_BANK_OF_NEW_YORK",
+    "series": "GLOBAL_SUPPLY_CHAIN_PRESSURE_INDEX",
+    "request_url": "https://www.newyorkfed.org/medialibrary/research/interactives/gscpi/downloads/gscpi_data.xlsx",
+    "transport": "HTTPS_GET_NO_REDIRECT_NO_RETRY_NO_CREDENTIAL",
+    "maximum_response_bytes": 2097152,
+    "allowed_content_types": [
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ],
+    "workbook_contract": "VALID_OOXML_WORKBOOK_WITH_EXACTLY_ONE_WORKSHEET_AND_HEADER_ROW_IN_FIRST_20_ROWS_CONTAINING_UNIQUE_CASE_INSENSITIVE_TRIMMED_DATE_AND_GSCPI_CELLS",
+    "row_contract": "SELECT_ONLY_ROWS_WHOSE_DATE_NORMALIZES_TO_2018-01_THROUGH_2024-12_AND_REQUIRE_EXACTLY_ONE_FINITE_GSCPI_VALUE_PER_CALENDAR_MONTH",
+    "expected_unique_ordered_month_rows": 84,
+    "required_first_month": "2018-01",
+    "required_last_month": "2024-12",
+    "required_calendar_step": "EVERY_CONSECUTIVE_CALENDAR_MONTH",
+    "required_finite_values": 84,
+    "revision_boundary": "PRESENT_VINTAGE_ONLY_NO_REAL_TIME_VINTAGE_CLAIM"
+  },
+  "factor_contract": {
+    "factor_identity": "NYFED_GSCPI_MONTHLY_VALUE_STRICTLY_BELOW_VALUE_3_MONTHS_EARLIER_PLUS_45D_V1",
+    "formula": "GSCPI_MONTH_t-GSCPI_MONTH_t_minus_3",
+    "comparison": "STRICTLY_LESS_THAN_ZERO_WITH_EXACT_DECIMAL_COMPARISON",
+    "easing_state": "CURRENT_MONTH_VALUE_STRICTLY_BELOW_VALUE_3_CALENDAR_MONTHS_EARLIER",
+    "other_state": "CURRENT_MONTH_VALUE_GREATER_THAN_OR_EQUAL_TO_VALUE_3_CALENDAR_MONTHS_EARLIER",
+    "effective_time": "OBSERVATION_MONTH_START_PLUS_45_CALENDAR_DAYS_AT_0000_UTC",
+    "availability_reason": "The floor is materially later than the scheduled fourth-business-day publication in the following month and remains a conservative present-vintage approximation, not vintage proof.",
+    "warmup_months": 3,
+    "expected_evaluations": 81
+  },
+  "pre_outcome_support_gates": {
+    "design_effective_window": "2019-01-01T00:00:00Z_TO_2023-01-01T00:00:00Z_EXCLUSIVE",
+    "validation_effective_window": "2023-01-01T00:00:00Z_TO_2025-01-01T00:00:00Z_EXCLUSIVE",
+    "minimum_design_easing_states": 12,
+    "minimum_design_other_states": 12,
+    "minimum_design_state_transitions": 6,
+    "minimum_validation_easing_states": 6,
+    "minimum_validation_other_states": 6,
+    "minimum_validation_state_transitions": 3,
+    "failure_disposition": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS"
+  },
+  "execution_contract": {
+    "cycle_limit": "NEXT_RESEARCH_CYCLE_ONLY",
+    "maximum_source_attempts": 1,
+    "output_mode": "CREATE_ONCE_UNDER_RESEARCH_STATE",
+    "on_pass": "SEAL_SOURCE_BUNDLE_AND_ONLY_THEN_ALLOW_ONE_SCHEMA_VALID_HYPOTHESIS_AND_ONE_VARIANT_MANIFEST",
+    "on_fail": "SEAL_DATA_REJECT_DECISION_AND_CLOSE_WITHOUT_ALTERNATE_TRANSPORT_SOURCE_SERIES_THRESHOLD_OR_TIMING",
+    "oos": "DENY"
+  },
+  "prohibited_variants": [
+    "Do not add component shipping rates, manufacturing surveys, CPI, PPI, commodities, the dollar, equities, rates, BTC price, trend, volatility or on-chain inputs.",
+    "Do not invert direction, change the three-month comparison horizon, alter the 45-day availability floor, add smoothing, magnitude thresholds, fractional sizing, shorting or leverage.",
+    "Do not substitute another New York Fed path, FRED, vendor, mirror or manually exported series after source access."
+  ],
+  "stop_conditions": [
+    "Stop before factor evaluation if transport, content type, byte ceiling, OOXML validity, worksheet uniqueness, header uniqueness, exact monthly lattice, finite-value count or date bounds fails.",
+    "Stop before BTC outcomes if either Design or Validation state and transition support fails.",
+    "Stop after one source attempt regardless of result; no same-cycle rescue or hypothesis is allowed for this newly admitted family."
+  ],
+  "scope_note": "No GSCPI source probe was executed and no historical factor value or BTC outcome was accessed; no hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

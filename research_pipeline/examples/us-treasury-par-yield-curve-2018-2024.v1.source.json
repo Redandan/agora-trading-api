@@ -1,0 +1,50 @@
+{
+  "schema_version": "1",
+  "document_type": "US_TREASURY_PAR_YIELD_CURVE_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "U.S. Department of the Treasury",
+  "landing_page": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rate-archives",
+  "methodology_url": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+  "captured_at": "2026-08-19T08:05:02.598Z",
+  "source_probe": {
+    "path": "research/treasury_yield_curve_source_probe.cjs",
+    "sha256": "3e45cd2eccaf7dfc4093afb6eba960834a557844480baf3fbfa3e15ede2faa8d"
+  },
+  "raw_bundle": {
+    "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/inputs/treasury-source-bundle.json",
+    "sha256": "5eeda69a5b3a5ad289e0ee9aff6020638266d062d667b902a4b353e593b80965",
+    "bytes": 344518,
+    "response_count": 14,
+    "request_origin": "https://home.treasury.gov",
+    "credentials": "DENY"
+  },
+  "sealed_subset": {
+    "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/inputs/treasury-yield-curve-2018-2024.csv",
+    "sha256": "045ce4646a4595697fc16d8e32c0fd08efd431680e998c9f85d2dcac1732c82a",
+    "bytes": 53753,
+    "rows": 1750,
+    "first_date": "2018-01-02",
+    "last_date": "2024-12-31",
+    "columns": ["date", "three_month_pct", "one_year_pct", "two_year_pct", "ten_year_pct"],
+    "annual_rows": {
+      "2018": 249,
+      "2019": 250,
+      "2020": 251,
+      "2021": 251,
+      "2022": 249,
+      "2023": 250,
+      "2024": 250
+    }
+  },
+  "pre_outcome_feature_feasibility": {
+    "ten_year_minus_three_month": {"non_inverted_days": 1098, "inverted_days": 652, "state_transitions": 20},
+    "ten_year_minus_one_year": {"non_inverted_days": 1106, "inverted_days": 644, "state_transitions": 20},
+    "ten_year_minus_two_year": {"non_inverted_days": 1206, "inverted_days": 544, "state_transitions": 10},
+    "btc_outcome_accessed": false
+  },
+  "publication_timing_boundary": "Treasury states that rates are normally published by 6:00 PM Eastern on each trading day. Use an observation only at 00:00 UTC on the following calendar day or later, then persist the latest state across weekends and holidays.",
+  "series_break_boundary": "Treasury changed from the quasi-cubic Hermite spline to the monotone-convex method on 2021-12-06 and states that prior official rates remain official. Preserve the break; never splice, recompute or normalize one method into the other.",
+  "revision_boundary": "The exact raw bundle and normalized subset hashes identify the sole present-vintage historical source for this experiment. A later response is a new source artifact and cannot replace or repair this one after BTC outcome access.",
+  "scope_note": "Official free historical source only. No BTC outcome, paid API, account, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed."
+}

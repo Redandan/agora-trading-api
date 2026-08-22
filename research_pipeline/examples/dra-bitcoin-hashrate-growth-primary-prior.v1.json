@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BITCOIN_HASHRATE_GROWTH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_BITCOIN_HASHRATE_GROWTH_DRA_ADMISSION_HISTORICAL_AUDIT",
+  "claim_boundary": "Hash rate is an estimated measure of proof-of-work participation and network security, but primary empirical work often finds that Bitcoin price or miner revenue leads hash rate rather than hash rate leading returns. Exactly one preregistered audit may test whether a conservatively lagged contraction in smoothed hash rate is useful as DRA entry-risk evidence; no predictive or causal claim is imported from the literature.",
+  "feature_contract": {
+    "publisher": "Coin Metrics Community API",
+    "asset": "btc",
+    "metric": "HashRate",
+    "observation": "REVIEWED_DAILY_UTC_ESTIMATED_MEAN_HASH_RATE",
+    "weekly_aggregation": "SEVEN_COMPLETE_DAYS_ENDING_SUNDAY",
+    "decision_time": "WEEK_ENDING_SUNDAY_PLUS_THREE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_28D_MEAN_HASHRATE_STRICTLY_ABOVE_IMMEDIATELY_PRECEDING_NONOVERLAPPING_28D_MEAN_HASHRATE",
+    "policy": "ADMIT_UNCHANGED_DRA_V1_PARENT_SIGNAL_ONLY_WHILE_LAGGED_HASHRATE_GROWTH_IS_POSITIVE_OTHERWISE_VETO",
+    "current_window_days": 28,
+    "prior_window_days": 28,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_GROWTH_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Coin Metrics Hash Rate metric documentation",
+      "primary_source": "https://docs.coinmetrics.io/asset-metrics/mining/hashrate",
+      "finding": "Coin Metrics defines HashRate as the estimated mean rate at which miners solve hashes during a day and derives BTC values from block count and mean difficulty. It is an estimate of chain-level mining power, not miner profitability or directional demand.",
+      "role": "FREE_MACHINE_READABLE_METRIC_IDENTITY",
+      "transfer_boundary": "Hash rate cannot identify miner costs, forced selling, leverage or future BTC returns. The current reviewed history is present-vintage evidence rather than an original-release archive."
+    },
+    {
+      "identity": "Rehman and Kang, A time-frequency comovement and causality relationship between Bitcoin hashrate and energy commodity markets, Global Finance Journal 49 (2021)",
+      "primary_source": "https://doi.org/10.1016/j.gfj.2020.100576",
+      "finding": "The study reports time-varying hash-rate and Bitcoin-return comovement and asymmetric causality that more often runs from Bitcoin returns to hash rate.",
+      "role": "ADVERSARIAL_REVERSE_CAUSALITY_PRIOR",
+      "transfer_boundary": "Time-frequency comovement does not validate a 28-day growth sign, a DRA veto or after-cost strategy economics."
+    },
+    {
+      "identity": "Fantazzini and Kolodin, Does the Hashrate Affect the Bitcoin Price?, Journal of Risk and Financial Management 13 (2020)",
+      "primary_source": "https://doi.org/10.3390/jrfm13110263",
+      "finding": "The analysis concludes that Bitcoin price is more plausibly the driver of hash rate as mining profitability attracts or removes computing power.",
+      "role": "FALSIFICATION_AND_ENDOGENEITY_PRIOR",
+      "transfer_boundary": "A miner-response variable may be a lagging consequence of price rather than independent entry information. Only matched-capital forward-path evidence can rescue the hypothesis."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact no-key Community API reviewed HashRate response for BTC from 2018-01-01 through 2024-12-31; reject pagination residue, missing dates, non-positive values or identity drift.",
+    "Partition complete daily observations into Monday-through-Sunday weeks. Exclude the final incomplete week and make week-ending Sunday D usable only at D plus three calendar days 00:00 UTC for at most 168 hours.",
+    "Compare the simple mean of exactly 28 days ending at D with the simple mean of the immediately preceding nonoverlapping 28 days; admit the unchanged DRA V1 signal only when current is strictly larger.",
+    "Use the frozen 250 USDT DRA V1 parent, 240 USDT slot capacity, 0.10% fee and 0.05% adverse slippage without changing entries, exits, lot size, capacity or accounting.",
+    "Require Design, Validation and 2020-2024 annual matched-capital economics, including realized, unrealized and total PnL, drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth, concentration and independent 168-hour predictive diagnostics.",
+    "Do not add Coin Metrics HashRate30d, difficulty, miner revenue, price, halvings, 7/14/30/60/90-day windows, magnitude thresholds, z-scores, inverse rules, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Hash rate is estimated from realized blocks and difficulty and can be noisy over short windows.",
+    "Price, miner revenue, electricity costs, hardware efficiency and jurisdictional shocks can drive hash rate, making reverse causality likely.",
+    "The 28-day smoothing horizon is a preregistered monthly-scale operational convention, not a parameter established by the cited papers.",
+    "The Community API response is a present-vintage reviewed snapshot; original daily review timestamps and vintages remain MISSING_PROOF.",
+    "No complete HashRate history, BTC/DRA outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T10:15:03Z"
+}

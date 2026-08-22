@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_DAY_VWAP_OCCUPANCY_PRIMARY_PRIOR_V1",
+  "family_id": "dra-native-signal-day-vwap-occupancy-entry-admission",
+  "created_at": "2026-08-21T08:35:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_SIGNAL_DAY_VWAP_OCCUPANCY_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "The frozen DRA signal observes a complete UTC day before the unchanged next-H1-open fill. The count of that day's 24 H1 closes above the same complete day's typical-price/base-volume VWAP may distinguish demand sustained through many hours from a late mark-up that finishes above value. A fixed 12-of-24 primary boundary with 8-of-24 and 16-of-24 rejection-only neighbors may be screened once for causal availability, nonredundancy and intervention breadth before any hypothesis or candidate economics.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "reference": "COMPLETE_SIGNAL_DAY_H1_TYPICAL_PRICE_BASE_VOLUME_VWAP",
+    "vwap_formula": "SUM_OF_24_H1_BASE_VOLUME_TIMES_OPEN_PAREN_HIGH_PLUS_LOW_PLUS_CLOSE_CLOSE_PAREN_DIVIDED_BY_3_DIVIDED_BY_SUM_OF_24_H1_BASE_VOLUME",
+    "occupancy_formula": "COUNT_OF_EXACTLY_24_SIGNAL_DAY_H1_CLOSES_STRICTLY_ABOVE_COMPLETE_SIGNAL_DAY_VWAP",
+    "primary_relation": "ADMIT_AT_OR_ABOVE_12_OF_24_AND_VETO_BELOW_12_OF_24",
+    "rejection_only_neighbors": ["8_OF_24", "16_OF_24"],
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN"
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": "research_pipeline/examples/dra-native-signal-day-ema20-occupancy-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "fc83e775c70acf390be420c35df874fae0ae847e4e29b8f3ba38c986d0e6c6ae",
+      "learning": "Occupancy above a prior-day EMA20 failed concentration and neighbor-support gates. Same-day VWAP occupancy changes both the reference and mechanism, but must prove a materially different and broad action set rather than rescue occupancy by retuning."
+    },
+    {
+      "path": "research_pipeline/examples/dra-h1-volume-weighted-close-location-entry-admission.v1.decision.json",
+      "sha256": "a5079b1df12429e94298d149d5baf61f37888538f3f919fb2196813fc1c105b6",
+      "learning": "The final-close-to-H1-volume-weighted-close family worsened Validation PnL, drawdown and holding. VWAP occupancy counts time above a complete-day volume-weighted typical-price reference and cannot reopen or invert the closed final-close ratio."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-directional-volume-participation-entry-admission-v1.json",
+      "sha256": "c7007ef318484033edaeb63e97ff0bb53964b3ed888e4aefb9956d20fd778ea4",
+      "learning": "Directional-volume participation already failed. VWAP occupancy uses volume only to set one same-day price reference, then counts hours without volume weighting; it cannot inherit an order-flow or participation claim."
+    },
+    {
+      "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.decision.json",
+      "sha256": "6cc6c1de7582306477250274ed9e8c055ba5627021a69370ff852a795d7c3189",
+      "learning": "Net-move-to-total-path efficiency failed. VWAP occupancy ignores return magnitude and total path length, but distinct syntax alone is insufficient evidence."
+    },
+    {
+      "path": "research_pipeline/examples/dra-close-location-entry-admission.v1.decision.json",
+      "sha256": "62d727e7f25434dbfc2185fb876918d74a0b3a4537801e7964b6128c8977fa58",
+      "learning": "Final close location within the daily range failed. VWAP occupancy is a duration-above-consensus measure and cannot become a close-location threshold rescue."
+    }
+  ],
+  "deduplication_conclusion": "The proposed feature is formulaically distinct from EMA20 occupancy, final-close-to-volume-weighted-close, directional-volume participation, path efficiency and daily close location. It uses a same-day decision-time VWAP reference and an unweighted count of hourly closes above it. One preoutcome support run must still establish materially different, broad and stable intervention under the frozen 8, 12 and 16 count lattice.",
+  "adversarial_risks": [
+    "The final positive-momentum parent gate may make occupancy above same-day VWAP high on nearly every signal, producing too few primary vetoes.",
+    "The feature may be highly correlated with the already closed final-close-to-volume-weighted-close family despite counting all 24 closes.",
+    "H1 typical-price times base volume is only a coarse candle proxy, not trade-level VWAP, order flow or executable fair value.",
+    "The 12-of-24 primary may remove early reversals that spend much of the day below VWAP but later become profitable.",
+    "Any later drawdown reduction may be participation suppression unless realized and total PnL, holding, underwater duration and annual breadth also pass.",
+    "Cooldown route substitution can invalidate economics unless each actionable veto reserves the original signal timestamp."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_CAUSAL_FEATURE_DEDUP_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No candidate PnL, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

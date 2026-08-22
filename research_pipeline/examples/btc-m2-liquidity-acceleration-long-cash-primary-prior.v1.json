@@ -1,0 +1,74 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_M2_LIQUIDITY_ACCELERATION_LONG_CASH_PRIMARY_PRIOR_V1",
+  "family_id": "btc-m2-liquidity-acceleration-long-cash",
+  "reviewed_at": "2026-08-20T10:40:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_TRANSPARENT_US_M2_ACCELERATION_BTC_LONG_CASH_HISTORICAL_AUDIT",
+  "outcome_access": "DENY_NOT_ACCESSED",
+  "oos_access": "DENY",
+  "claim_boundary": "The literature supports M2 as a potentially informative Bitcoin or Bitcoin-futures variable, but does not identify this exact U.S. M2 year-over-year growth-acceleration sign rule. The rule is a transparent, preregistered liquidity-risk proxy to be falsified, not a replication claim or established alpha.",
+  "feature_contract": {
+    "publisher": "Board of Governors of the Federal Reserve System",
+    "release": "H.6 Money Stock Measures",
+    "series_unique_identifier": "H6/H6_M2/M2.M",
+    "series_label": "M2; Seasonally adjusted",
+    "observation_frequency": "MONTHLY",
+    "unit": "BILLIONS_USD",
+    "decision_time": "FIRST_CALENDAR_DAY_OF_THE_SECOND_MONTH_AFTER_OBSERVATION_AT_0000_UTC",
+    "primary_feature": "M2_YEAR_OVER_YEAR_GROWTH_AT_T_MINUS_M2_YEAR_OVER_YEAR_GROWTH_AT_T_MINUS_1",
+    "formula": "((M2_t / M2_t_minus_12) - 1) - ((M2_t_minus_1 / M2_t_minus_13) - 1)",
+    "policy": "LONG_FULL_CAPITAL_BTC_WHEN_ACCELERATION_IS_STRICTLY_POSITIVE_OTHERWISE_CASH",
+    "threshold": "STRICT_ZERO_NO_TUNED_MARGIN",
+    "rebalance_frequency": "MONTHLY_AT_CONSERVATIVE_DECISION_TIME",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Shimeng Shi, Bitcoin futures risk premia, Journal of Futures Markets 42(12), 2022",
+      "primary_source": "https://doi.org/10.1002/fut.22373",
+      "finding": "The published abstract reports that U.S. M2 money stock could predict Bitcoin futures returns among several macroeconomic variables.",
+      "role": "PRE_OUTCOME_VARIABLE_RELEVANCE_PRIOR",
+      "transfer_boundary": "The accessible abstract does not expose the coefficient sign, exact M2 transformation, horizon, spot-BTC policy, fees, drawdown or tradable long/cash rule. The paper also uses licensed Bloomberg data, so this audit is not a direct replication."
+    },
+    {
+      "identity": "Federal Reserve H.6 Money Stock Measures and Data Download Program",
+      "primary_source": "https://www.federalreserve.gov/datadownload/Download.aspx?rel=H6",
+      "finding": "The official monthly H.6 package identifies seasonally adjusted M2 as H6/H6_M2/M2.M in billions of U.S. dollars and provides an unauthenticated CSV download.",
+      "role": "FREE_OFFICIAL_MACHINE_READABLE_SOURCE_IDENTITY",
+      "transfer_boundary": "The downloaded file is a 2026 present-vintage history. Annual seasonal-factor revisions, methodological changes and original release vintages remain material limitations."
+    },
+    {
+      "identity": "Co-movement and Granger causality between Bitcoin and M2, inflation and economic policy uncertainty: Evidence from the U.K. and Japan, Heliyon 8(10), 2022",
+      "primary_source": "https://doi.org/10.1016/j.heliyon.2022.e11178",
+      "finding": "The study reports negative short-term M2 effects on Bitcoin prices in both the U.K. and Japan and time-varying effects across horizons.",
+      "role": "ADVERSARIAL_DIRECTION_AND_TRANSPORT_PRIOR",
+      "transfer_boundary": "U.K. and Japan M2 results do not identify the U.S. rule, but they reject treating a positive liquidity-to-Bitcoin sign as universal."
+    }
+  ],
+  "economic_mechanism": "A positive acceleration in broad U.S. dollar liquidity growth may relax funding constraints and increase demand for scarce risk assets. The competing hypothesis is that M2 changes proxy policy reaction, inflation or regime state rather than independently causing subsequent BTC returns.",
+  "real_time_design_requirements": [
+    "Use only the official H.6 seasonally adjusted M2 series M2.M and seal the exact raw response before BTC outcome access.",
+    "Use observation month t only from the first calendar day of t plus two months at 00:00 UTC; this conservative lag must not be shortened after results.",
+    "Compute exactly one feature: the change in adjacent twelve-month M2 growth rates. Long full-capital BTC only when it is strictly positive; otherwise hold cash.",
+    "Use the existing sealed BTC H1 corpus, the full-capital BTC buy-and-hold comparator, 0.10 percent fee and 0.05 percent adverse slippage per fill without tuning.",
+    "Freeze Design and Validation windows before outcome access and require paired annual economics, realized and unrealized PnL, maximum drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth and concentration.",
+    "Do not test M2 level, monthly growth, 3/6/24-month growth, global M2, alternate lag, magnitude threshold, inverse direction, leverage, shorting, fractional sizing or interaction rescue variants.",
+    "Do not open post-2024 BTC outcomes. Any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed OOS."
+  ],
+  "hard_risks": [
+    "Present-vintage M2 can contain revisions unavailable at decision time; original release-vintage reconstruction is MISSING_PROOF.",
+    "Monthly sampling yields limited Validation decisions and may make annual breadth or concentration gates fail even if aggregate PnL improves.",
+    "The July 2026 H.6 methodology change and recurring seasonal revisions may alter historical comparability.",
+    "The cited futures study does not specify this sign rule, while cross-country evidence shows the sign can reverse.",
+    "No M2 factor state, BTC outcome, PnL, drawdown, candidate evidence or OOS was accessed while freezing this prior."
+  ],
+  "prohibited_rescue": [
+    "No alternate M2 transformations, horizons, lags or thresholds after factor or outcome access.",
+    "No contrarian inversion if the positive-acceleration rule fails.",
+    "No combination with WALCL, rates, dollar, CFTC, Nasdaq, stablecoin or on-chain families to rescue the result.",
+    "No gate relaxation for sparse monthly observations or present-vintage revisions."
+  ],
+  "scope_note": "No paid API, second timer, second writer, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_FIVE_YEAR_BREAKEVEN_INFLATION_SOURCE_FEASIBILITY_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-five-year-breakeven-inflation-reflation-support-long-cash",
+  "created_at": "2026-08-20T13:45:00Z",
+  "status": "FROZEN_BEFORE_2017_2024_T5YIE_FACTOR_ACCESS",
+  "purpose": "Test only whether the official free present-vintage T5YIE history has the frozen publication clock, both factor states, transitions and annual breadth before any BTC outcome or hypothesis is opened.",
+  "source_contract": {
+    "series": "T5YIE",
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_identity": "FIVE_YEAR_BREAKEVEN_INFLATION_RATE_DERIVED_FROM_FIVE_YEAR_NOMINAL_AND_INFLATION_INDEXED_TREASURY_YIELDS",
+    "frequency": "DAILY_WEEKDAYS_WITH_EXPLICIT_HOLIDAY_BLANKS",
+    "years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "expected_weekly_rows": 417,
+    "expected_first_week": "2017-01-06",
+    "expected_last_week": "2024-12-27",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY"
+  },
+  "feature_contract": {
+    "factor_identity": "FRED_T5YIE_COMPLETE_WEEK_LAST_AVAILABLE_BUSINESS_DAY_STRICTLY_ABOVE_VALUE_28_CALENDAR_DAYS_EARLIER_V1",
+    "weekly_value": "LAST_AVAILABLE_PUBLISHED_MONDAY_THROUGH_FRIDAY_OBSERVATION_REQUIRE_3_TO_5_OBSERVATIONS",
+    "supportive_condition": "CURRENT_COMPLETE_WEEK_LAST_VALUE_STRICTLY_ABOVE_EXACT_COMPLETE_WEEK_VALUE_28_CALENDAR_DAYS_EARLIER",
+    "other_condition": "OTHERWISE_INCLUDING_EQUAL",
+    "lookback_calendar_days": 28,
+    "availability": "WEEK_ENDING_FRIDAY_PLUS_5_CALENDAR_DAYS_AT_00_00_UTC",
+    "maximum_validity_hours": 168,
+    "direction_inversion": "DENY",
+    "threshold_or_smoothing_scan": "DENY"
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00Z",
+      "end_exclusive": "2023-01-01T00:00:00Z",
+      "minimum_evaluations": 200,
+      "minimum_per_state": 40,
+      "minimum_transitions": 20,
+      "minimum_years_with_both_states": 4,
+      "maximum_single_year_state_share": 0.40
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00Z",
+      "end_exclusive": "2025-01-01T00:00:00Z",
+      "minimum_evaluations": 100,
+      "minimum_per_state": 20,
+      "minimum_transitions": 8,
+      "minimum_years_with_both_states": 2,
+      "maximum_single_year_state_share": 0.70
+    }
+  },
+  "decision": {
+    "pass": "SOURCE_FEASIBILITY_PASS_MAY_FREEZE_EXACTLY_ONE_NEW_CYCLE_HYPOTHESIS_BEFORE_BTC_OUTCOME_ACCESS",
+    "failure": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+    "no_partial_pass": true
+  },
+  "prohibited_after_factor_access": [
+    "Do not change the last-observation weekly aggregation, 28-calendar-day lookback, positive direction, Wednesday availability or frozen support and concentration gates.",
+    "Do not substitute T10YIE, T5YIFR, nominal yields, real yields, an alternate source, an alternate transport or a manually exported file.",
+    "Do not add a level threshold, magnitude cutoff, moving average, z-score, alternate lag, direction inversion or combined macro factor as rescue.",
+    "Do not access BTC outcomes unless this exact source feasibility contract passes in both Design and Validation.",
+    "Do not treat present-vintage historical values as original point-in-time release vintages or independent OOS."
+  ],
+  "scope_note": "No T5YIE factor value, BTC outcome, hypothesis, manifest, runner result, economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed by this specification."
+}

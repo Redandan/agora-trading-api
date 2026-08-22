@@ -1,0 +1,134 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_US_EPU_HEDGE_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "dra-us-epu-hedge-entry-admission-historical-v1",
+  "status": "NO_CANDIDATE_CLOSE_US_EPU_HEDGE_ENTRY_ADMISSION_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_LAGGED_WEEKLY_USEPUINDXD_MEAN_TO_PRIOR_52W_MEDIAN_AT_OR_ABOVE_080_100_120_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_TUNING",
+  "material_conclusion": "High lagged US economic-policy uncertainty is not an economically useful DRA V1 entry-admission state in the frozen 2018-2024 present-vintage screen. The primary 1.00 rule materially reduced Design and Validation realized and total PnL. Its lower Validation drawdown came from rejecting most eligible participation, while underwater duration worsened and annual gains occurred in only one of five folds. Both fixed neighbors also lost Validation total and realized PnL, so the result is not a threshold cliff. The primary predictive direction failed in Design and narrowly missed the frozen sign-test gate in Validation. Close the whole exact family; do not invert or tune it.",
+  "determinism": {
+    "run1_path": ".research-state/experiments/dra-us-epu-hedge-entry-admission-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/dra-us-epu-hedge-entry-admission-historical-v1/artifacts/run2.json",
+    "run1_sha256": "f1503643e747e3de48a71e7f7887bc9d70462001fef2a17b1d7e33605bbe04b2",
+    "run2_sha256": "f1503643e747e3de48a71e7f7887bc9d70462001fef2a17b1d7e33605bbe04b2",
+    "byte_identical": true,
+    "manifest_sha256": "3d3d328a9de7c4b83bf1ef6c699e04009ffd8c5f6153130fbdc32076579a4e39",
+    "runner_sha256": "6b980d0792d075570d2e0c9234aaabea642f7f3eb579cac8197227c7ceadf2ba",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "dataset_rows": 52608
+  },
+  "source_evidence": {
+    "source_bundle_sha256": "52b43c8f7aeda54fcf16c75d269651070a6b6d440a3c737bbcaeadfdb56f21bd",
+    "normalized_source_sha256": "c5e2ed9aa0cae08e5675e9325e0d5525959a34a063f9b1f709151483689c4a7d",
+    "daily_rows": 2557,
+    "complete_weeks": 365,
+    "cutoff_safe_factor_points": 312,
+    "primary_pre_outcome_high_low_transitions": "156/157/84",
+    "revision_boundary": "PRESENT_VINTAGE_ONLY_ORIGINAL_NEWS_INDEX_RELEASE_VINTAGES_AND_REVISIONS_MISSING_PROOF"
+  },
+  "performance_evidence": {
+    "parent_design": {
+      "realized_usdt": "122.11969534",
+      "unrealized_usdt": "-79.12049441",
+      "total_pnl_usdt": "42.99920093",
+      "max_drawdown_pct": "18.673983"
+    },
+    "primary_100_design": {
+      "realized_usdt": "65.25339692",
+      "unrealized_usdt": "-62.03668979",
+      "total_pnl_usdt": "3.21670713",
+      "total_pnl_delta_usdt": "-39.78249380",
+      "max_drawdown_pct": "17.541438",
+      "median_hold_hours": "166",
+      "p90_hold_hours": "1373.8",
+      "admitted_vetoed_parent_signals": "42/138/180"
+    },
+    "parent_validation": {
+      "realized_usdt": "89.41118307",
+      "unrealized_usdt": "-3.20820121",
+      "total_pnl_usdt": "86.20298186",
+      "max_drawdown_pct": "7.121498",
+      "maximum_underwater_duration_hours": 2397,
+      "median_hold_hours": "182.5",
+      "p90_hold_hours": "1418.3",
+      "terminal_inventory_count": 1
+    },
+    "primary_100_validation": {
+      "realized_usdt": "52.10814062",
+      "unrealized_usdt": "-3.20820121",
+      "total_pnl_usdt": "48.89993941",
+      "total_pnl_delta_usdt": "-37.30304245",
+      "max_drawdown_pct": "4.940032",
+      "max_drawdown_delta_pp": "-2.181466",
+      "maximum_underwater_duration_hours": 2617,
+      "median_hold_hours": "182.5",
+      "p90_hold_hours": "1406.9",
+      "terminal_inventory_count": 1,
+      "admitted_vetoed_parent_signals": "31/88/119"
+    },
+    "neighbor_080_validation": {
+      "total_pnl_usdt": "70.52879908",
+      "total_pnl_delta_usdt": "-15.67418278",
+      "realized_usdt": "73.73700029",
+      "max_drawdown_pct": "8.906452"
+    },
+    "neighbor_120_validation": {
+      "total_pnl_usdt": "26.88694798",
+      "total_pnl_delta_usdt": "-59.31603388",
+      "realized_usdt": "30.09514919",
+      "max_drawdown_pct": "2.518497"
+    },
+    "primary_annual_total_pnl_delta_usdt": {
+      "2020": "-12.02667679",
+      "2021": "-39.43966036",
+      "2022": "13.83834460",
+      "2023": "-24.31834023",
+      "2024": "-11.75582211"
+    },
+    "annual_total_wins": "1/5",
+    "annual_drawdown_non_worse": "5/5",
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "predictive_evidence": {
+    "design": {
+      "episodes": 155,
+      "median_signed_response_168h": "-0.007818517239759009068826241779525",
+      "sign_test_successes_failures": "70/85",
+      "one_sided_sign_test_p_value": "0.9007081973459748076675992363102200",
+      "failed_gates": [
+        "median_signed_response_positive",
+        "negative_factor_median_raw_return_negative",
+        "one_sided_sign_test_at_most_0_10"
+      ]
+    },
+    "validation": {
+      "episodes": 104,
+      "median_signed_response_168h": "0.00892127979276768399390345276658625",
+      "sign_test_successes_failures": "59/45",
+      "one_sided_sign_test_p_value": "0.1010865530480878349181378000723151",
+      "failed_gates": ["one_sided_sign_test_at_most_0_10"]
+    }
+  },
+  "failed_primary_economic_gates": [
+    "design_total_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_realized_pnl_improves",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_underwater_duration_non_worse",
+    "annual_total_wins_at_least_3_of_5",
+    "top_year_positive_delta_contribution_at_most_60pct"
+  ],
+  "prohibited_followups": [
+    "INVERT_HIGH_EPU_TO_LOW_EPU_AFTER_OUTCOME",
+    "CHANGE_WEEKLY_AGGREGATION_OR_PUBLICATION_LAG",
+    "TUNE_RATIO_THRESHOLD_OR_ADD_INTERACTIONS",
+    "RELAX_ECONOMIC_PREDICTIVE_BREADTH_OR_NEIGHBOR_GATES",
+    "OPEN_POST_2024_OOS_FOR_A_FAILED_DEVELOPMENT_FAMILY",
+    "REINTERPRET_DRAWDOWN_REDUCTION_AS_ALPHA_WITHOUT_PNL_AND_PATH_BREADTH"
+  ],
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_reopen": true,
+  "next_action": "Advance the next independent free-data family; retain this EPU result as a permanent duplicate and opportunity-cost tombstone.",
+  "scope_note": "No paid API, second timer, second writer, canonical write, post-2024 OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

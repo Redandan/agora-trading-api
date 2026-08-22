@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-dexchus-4w-yuan-appreciation-long-cash-v1",
+  "title": "Lagged renminbi four-week appreciation for BTC long or cash",
+  "thesis": "A conservatively lagged appreciation in weekly onshore renminbi spot rates may accompany stronger Chinese conditions and global risk appetite, producing better subsequent Bitcoin risk-adjusted economics than non-appreciation weeks.",
+  "mechanism": "Using only the sealed present-vintage DEXCHUS daily series, form the exact arithmetic mean of three to five valid Monday-Friday observations per complete week and compare it with the mean exactly four complete weeks earlier. Make the state usable on the following Thursday at 00:00 UTC. Hold full-capital unlevered BTC only when yuan per U.S. dollar is strictly lower, and zero-yield cash otherwise. No offshore CNH, Chinese credit or GDP, policy event, fixing gap, intervention label, other currency, broad-dollar index, BTC interaction, magnitude threshold, smoothing, alternate horizon, inverse direction or combined factor is allowed.",
+  "economic_rationale": "If renminbi appreciation captures stronger China-linked global risk sentiment rather than managed policy or broad-dollar noise, the policy may avoid China-stress BTC drawdowns while preserving enough upside to improve matched-capital Calmar after explicit normal and doubled friction. Because the exchange rate is managed and may not represent China growth, Design, Validation, annual breadth, episode concentration and terminal inventory must all pass.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-dexchus-4w-yuan-appreciation-long-cash:PRIMARY_PRIOR_SHA256_c0503768abac57e45a64f10208499e8ac8fa0114cca6607d8a0555425652130b:SOURCE_BUNDLE_SHA256_005c7f442d569aabe2e1c21b66be60e2d02e786c0430a28f66a70a3df0a11ce5:NORMALIZED_DEXCHUS_SHA256_8dd9f4f7da9be0c2583e8a7cf04f2d46b6e84e6f8b82bd9efe58ad9d0f2621cb",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-official-fred-dexchus-four-week-yuan-appreciation-matched-capital-long-cash-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "weekly_signal_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_validation_positive_episode_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-yuan-appreciation-1",
+  "created_at": "2026-08-21T03:47:05Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

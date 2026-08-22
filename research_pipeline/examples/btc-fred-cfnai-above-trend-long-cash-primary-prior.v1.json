@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_CFNAI_ABOVE_TREND_LONG_CASH_PRIMARY_PRIOR_V1",
+  "created_at": "2026-08-21T04:23:13Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-cfnai-above-trend-long-cash",
+  "claim_boundary": "A positive Chicago Fed National Activity Index reading denotes above-trend U.S. economic activity, but the composite is revised, mixes 85 indicators and can reflect conditions already represented by closed macro families. Exactly one future preregistered long-or-cash audit may test whether the conservatively delayed zero-threshold state has matched-capital BTC value; no causal or alpha claim is imported from the sources.",
+  "primary_sources": [
+    {
+      "identity": "Federal Reserve Bank of Chicago CFNAI current data",
+      "url": "https://www.chicagofed.org/research/data/cfnai/current-data",
+      "evidence": "The CFNAI is a monthly index of overall economic activity; zero corresponds to historical trend growth, negative to below-average growth and positive to above-average growth. It is normally released toward month-end.",
+      "boundary": "The official interpretation defines the zero threshold but does not establish Bitcoin timing value."
+    },
+    {
+      "identity": "Federal Reserve Bank of Chicago introduction to CFNAI",
+      "url": "https://www.chicagofed.org/~/media/publications/cfnai/background/cfnai-slides-pdf.pdf?la=en",
+      "evidence": "The index is a principal-components weighted average of 85 activity indicators across production/income, labor, consumption/housing and sales/orders/inventories.",
+      "boundary": "The same source states that revisions arise from input revisions and estimates of previously unavailable data."
+    },
+    {
+      "identity": "Federal Reserve Bank of St. Louis FRED, Chicago Fed National Activity Index [CFNAI]",
+      "url": "https://fred.stlouisfed.org/series/CFNAI",
+      "evidence": "FRED exposes the monthly Chicago Fed series and documents its units, frequency, source and zero-threshold interpretation.",
+      "boundary": "FRED is present-vintage and marks the series copyrighted with citation required; internal reproducibility does not claim redistribution rights."
+    }
+  ],
+  "frozen_prior": {
+    "series_id": "CFNAI",
+    "frequency": "MONTHLY",
+    "factor": "CFNAI_MONTH_t_STRICTLY_GREATER_THAN_ZERO",
+    "availability": "OBSERVATION_MONTH_START_PLUS_60_CALENDAR_DAYS_AT_0000_UTC",
+    "policy": "FULL_CAPITAL_BTC_WHEN_ABOVE_TREND_ELSE_ZERO_YIELD_CASH",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "variants": 1
+  },
+  "adversarial_prior": [
+    "Above-trend U.S. activity can coincide with tighter monetary policy and higher discount rates rather than stronger Bitcoin returns.",
+    "A broad composite can duplicate closed industrial-production, labor, income, retail, housing and financial-condition signals without independent value.",
+    "Present-vintage revisions and estimated missing inputs weaken historical point-in-time fidelity.",
+    "A monthly zero-threshold filter may remain in cash during much of a secular BTC advance and still fail to avoid rapid drawdowns."
+  ],
+  "prohibited_rescue": [
+    "Do not add CFNAI-MA3, diffusion or component indices, GDP, labor, retail, housing, rates, equities, BTC trend, volatility or on-chain inputs.",
+    "Do not replace the official zero threshold, change the 60-day availability floor, smooth, invert, resize, short or leverage after source or outcome access.",
+    "Do not reinterpret closed U.S.-macro or financial-condition families as support for this one."
+  ],
+  "independence": {
+    "key": "monthly-us-national-activity-composite-above-trend-level",
+    "distinct_from_closed_single_series_macro": "The decision input is one precomputed 85-indicator common component at its official zero boundary rather than growth in one industrial, labor, income, retail or housing series.",
+    "distinct_from_closed_financial_conditions": "The input measures real economic activity rather than money, credit, equity-market or banking-system financial conditions.",
+    "residual_overlap_risk": "Because its inputs include already studied macro domains, incremental value over closed families remains MISSING_PROOF and cannot be rescued with components."
+  },
+  "missing_proof": [
+    "No exact 2018-2024 FRED response, monthly lattice, finite-value audit, revision boundary or conservative 60-day mapping has been sealed.",
+    "No above-trend/other support, transitions, hypothesis, manifest, runner, fees, slippage, PnL, drawdown, holding, inventory, breadth, concentration, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "No CFNAI historical factor value or BTC outcome was accessed by an experiment; no hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_POST_OUTCOME_SIGNAL_COUNT_BINDING_ERRATUM_V1",
+  "experiment_id": "btc-halloween-november-april-long-cash-historical-v1",
+  "created_at": "2026-08-21T05:51:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_IMPLEMENTATION_BINDING_ERRATUM_BEFORE_ANY_RESULT_ARTIFACT",
+  "failure": {
+    "exception": "KeyError: signal_evaluations",
+    "location": "evaluate_gates design monthly signal count",
+    "artifact_created": false,
+    "performance_metrics_printed": false,
+    "cause": "The reused long-cash ledger exposes signal_evaluation_count, long_target_count and cash_target_count in the serialized candidate view, while its raw arithmetic dictionary contains only economic and path-risk fields. The runner incorrectly requested signal_evaluations from the raw dictionary."
+  },
+  "authorized_fix": "Pass the already-produced Design and Validation serialized window views into evaluate_gates and bind the two exact signal-count gates to candidate.signal_evaluation_count, candidate.long_target_count and candidate.cash_target_count. Do not derive, transform or alter any economic metric.",
+  "unchanged_contract": [
+    "fixed November-through-April long and May-through-October cash months",
+    "one variant",
+    "2019-2022 Design and 2023-2024 Validation",
+    "normal and doubled friction",
+    "all economic, drawdown, Calmar, upside, annual breadth, concentration, holding and inventory gates",
+    "pre-2025 dataset and OOS denial",
+    "candidate and closure decisions"
+  ],
+  "prohibited": [
+    "Do not inspect or change a performance value while applying the field binding.",
+    "Do not change a gate, threshold, month, cost, window, metric formula, family direction or sizing.",
+    "Do not use post-2024 data or open OOS."
+  ],
+  "scope_note": "Implementation field binding only. No result artifact, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

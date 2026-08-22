@@ -1,0 +1,75 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_REAL_YIELD_EASING_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-real-yield-easing-entry-admission-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DATA_REJECT_NO_BTC_DRA_OUTCOME",
+  "status": "DATA_REJECT_CLOSE_REAL_YIELD_SOURCE_TRANSPORT_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_PRESENT_VINTAGE_FRED_DFII10_WEEKLY_NEGATIVE_28_DAY_CHANGE_FRIDAY_PLUS_5D_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_TRANSPORT_RETRY_OR_SOURCE_SUBSTITUTION",
+  "material_conclusion": "The exact preregistered DFII10 source could not be sealed under its frozen fail-closed transport contract. The first direct HTTPS request was disconnected by the remote endpoint before the 2018 response began. The probe denied redirects and automatic retries, persisted zero responses, and created zero sealed source files. Retrying, changing transport, or substituting a source after registration would be source-path rescue. No BTC or DRA outcome was opened, so no performance conclusion is claimed.",
+  "source_evidence": {
+    "series_id": "DFII10",
+    "requested_sample": "2018-01-01_THROUGH_2024-12-31",
+    "official_identity": "Board of Governors of the Federal Reserve System 10-Year Treasury Inflation-Indexed Security Constant Maturity via Federal Reserve Bank of St. Louis FRED",
+    "attempts": [
+      {
+        "transport": "PYTHON_STDLIB_DIRECT_HTTPS",
+        "timeout_seconds": 30,
+        "result": "REMOTE_DISCONNECTED_BEFORE_2018_RESPONSE",
+        "persisted_response_count": 0
+      }
+    ],
+    "staged_response_count": 0,
+    "sealed_source_file_count": 0,
+    "source_values_available_for_research": false
+  },
+  "performance_evidence": {
+    "design": "NOT_RUN_DATA_REJECT",
+    "validation": "NOT_RUN_DATA_REJECT",
+    "annual_folds": "NOT_RUN_DATA_REJECT",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "underwater_duration": "MISSING_PROOF",
+    "holding": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF",
+    "breadth_and_path_risk": "MISSING_PROOF"
+  },
+  "closed_fingerprint": {
+    "duplicate_family_key": "dra-fred-dfii10-weekly-negative-28d-change-entry-admission",
+    "decision_feature": "FRED_DFII10_WEEKLY_MEAN_STRICT_NEGATIVE_28_DAY_CHANGE_FRIDAY_PLUS_5D_168H_DRA_V1_ENTRY_ADMISSION",
+    "prohibited_reopen": true,
+    "prohibited_rescue": [
+      "SECOND_TRANSPORT_ATTEMPT",
+      "FRED_SOURCE_SUBSTITUTION",
+      "DFII5_OR_DFII20_SUBSTITUTION",
+      "NOMINAL_YIELD_OR_BREAKEVEN_SUBSTITUTION",
+      "THRESHOLD_OR_LAG_CHANGE",
+      "POST_OUTCOME_PARAMETER_SCAN"
+    ]
+  },
+  "sealed_evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-real-yield-easing-primary-prior.v1.json",
+      "sha256": "71de610294479f19f21ffb77d317206561ae1586ac2a8a5f636772e681995539"
+    },
+    "hypothesis": {
+      "path": "research_pipeline/examples/dra-real-yield-easing-entry-admission-v1.hypothesis.json",
+      "sha256": "63b908610cb1183c6014b49f84c44e90db8d0ba50f5b6c56e17ba88c3ae0133c"
+    },
+    "source_probe": {
+      "path": "research/fred_dfii10_source_probe.py",
+      "sha256": "d605ee0e5a524c9239ac95c1cf6e58d58023335f003c5bd4a5665ce4d926fe14"
+    }
+  },
+  "uncertainty": [
+    "The official DFII10 series and its real-yield meaning are documented, but exact 2018-2024 machine-readable bytes were not sealed under the frozen contract.",
+    "This is a source-path rejection, not evidence that real yields lack predictive or economic value.",
+    "No original-release vintage, present-vintage history, BTC response, candidate or OOS evidence exists for this closed fingerprint."
+  ],
+  "next_action": "Advance a different independent family with an accessible preregistered source. Do not retry, substitute or tune this exact DFII10 family.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No source value was persisted, no BTC/DRA outcome was opened, and no paid API, credential, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

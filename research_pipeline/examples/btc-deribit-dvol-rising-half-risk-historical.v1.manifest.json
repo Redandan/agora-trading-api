@@ -1,0 +1,138 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DERIBIT_DVOL_RISING_HALF_RISK_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-deribit-dvol-rising-half-risk-historical-v1",
+  "created_at": "2026-08-21T05:14:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A complete Sunday BTC DVOL close strictly above the prior Sunday close may identify higher forward expected movement. Reducing passive unlevered BTC exposure from one hundred to fifty percent for that week may materially improve drawdown and Calmar while retaining at least eighty percent of passive BTC upside.",
+  "economic_rationale": "DVOL is a Bitcoin-specific option-implied forward-volatility index, not a spot realized-volatility estimator or directional fear gauge. The policy is useful only if partial de-risking improves direct matched-capital normal and doubled-friction economics, annual path breadth and terminal inventory accounting without relying on one year or realized lot.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-deribit-dvol-rising-half-risk",
+    "distinct_from_closed_families": [
+      "Closed spot realized-volatility and volatility-of-volatility families used BTC return paths; this factor is separately sourced forward implied volatility from Bitcoin options.",
+      "Closed VIX and GVZ families measured traditional-asset option risk, while closed skew targeted tail asymmetry. DVOL measures Bitcoin expected movement without a directional skew input.",
+      "Closed crypto carry used funding and basis. This policy cannot add funding, basis, open interest, skew or realized volatility."
+    ],
+    "excluded_reinterpretations": [
+      "No absolute DVOL threshold, median, IV rank, percentile, alternate weekly lag, direction, target weight, smoothing, hysteresis, leverage, short leg or interaction may be scanned after outcome access.",
+      "Any failed source, Design, Validation, annual breadth, concentration, holding or inventory gate permanently closes the exact family.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {"path": ".research-state/experiments/btc-deribit-dvol-rising-half-risk-historical-v1/inputs/dvol-daily-2021-2024.csv", "sha256": "19524e87db8ada24b1cc4a6c051e2d3953125357d9654a2e88e417caffca4b94", "role": "SEALED_NORMALIZED_DERIBIT_BTC_DVOL_DAILY_SOURCE"},
+    {"path": ".research-state/experiments/btc-deribit-dvol-rising-half-risk-historical-v1/inputs/dvol-source-bundle.json", "sha256": "e90919ba1ffb2304cf662cd6fcbf349f5ad52b15b2c2f68ab97ecedcb2b4a67b", "role": "SEALED_DERIBIT_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE"},
+    {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-primary-prior.v1.json", "sha256": "26a274b2cfddf9bf145b1f103659cc8cfb95a6655495b4f6ef765b64611eb1d4", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR"},
+    {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-source-feasibility.v1.spec.json", "sha256": "a444c66ead6b7d100e89edc51f7644d96ee5a78d3d42f06ee0640427ff07fba4", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC"},
+    {"path": "research/deribit_btc_dvol_source_probe.py", "sha256": "b9dcd8af284ffbc2a0721ce2d6cb3e1c2b0f54ad534739b8f1942f6b6d3ba56f", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE"},
+    {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-v1.hypothesis.json", "sha256": "3de2a1e9ed9a91355b5c02c9f170d87e867e86ea570f7d0a1767a7d79695bf03", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS"},
+    {"path": "research/btc_monthly_volatility_of_volatility_half_risk_historical.py", "sha256": "295d4f098d660260c69fe315960434495281f4c5a69762525e39abc02237eb2b", "role": "FROZEN_PARTIAL_REBALANCE_SIMULATION_REFERENCE"},
+    {"path": "research/btc_monthly_30d_volatility_target_40pct_historical.py", "sha256": "8eb185644904b62152feb9170964fa86032ee561680a1ba92786746dc9a466d6", "role": "FROZEN_FIFO_PARTIAL_REBALANCE_AND_INVENTORY_REFERENCE"},
+    {"path": "research/btc_monthly_12m_time_series_momentum_historical.py", "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b", "role": "FROZEN_PASSIVE_BENCHMARK_AND_PATH_METRIC_REFERENCE"},
+    {"path": "research/btc_dra_reversal_confirmed_exit_v2c.py", "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37", "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"}
+  ],
+  "runner_binding": {
+    "path": "research/btc_deribit_dvol_rising_half_risk_historical.py",
+    "sha256": "62862cb1ca16c3dde1beaf9d882a6725247c84091e6db4da365a1754e4726376",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_DERIBIT_DVOL_RISING_HALF_RISK_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "MONDAY_00_00_UTC_AFTER_COMPLETE_SUNDAY_DVOL_CANDLE",
+    "decision_feature": "CURRENT_COMPLETE_SUNDAY_DVOL_CLOSE_STRICTLY_ABOVE_PREVIOUS_COMPLETE_SUNDAY_DVOL_CLOSE",
+    "high_risk_target": "BTC_50_PERCENT_CASH_50_PERCENT",
+    "other_target": "BTC_100_PERCENT",
+    "execution": "SAME_TIMESTAMP_HOURLY_OPEN_AFTER_COMPLETE_EXTERNAL_CANDLE_AND_ONE_DAY_AVAILABILITY_LAG",
+    "sizing": "PRE_TRADE_EQUITY_TARGET_WEIGHT_WITH_NO_LEVERAGE_AND_FEES_DEBITED_FROM_CASH",
+    "rebalance": "ONLY_WHEN_A_NEW_WEEKLY_STATE_BECOMES_EFFECTIVE_WITH_FIFO_COST_BASIS_FOR_PARTIAL_SALES",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": [
+      {"variant_id": "dvol-rising-half-risk-v1", "role": "primary", "threshold": "CURRENT_SUNDAY_CLOSE_STRICTLY_ABOVE_PRIOR_SUNDAY_CLOSE", "high_risk_btc_weight": "0.50"}
+    ]
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2021-04-12T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH"},
+    "annual_breadth": {
+      "windows": {
+        "2021_PARTIAL": ["2021-04-12T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_CASH"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "FIFO_PARTIAL_SALE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct", "unrealized_return_pct", "total_return_pct", "terminal_liquidation_adjusted_return_pct",
+    "maximum_drawdown_pct", "maximum_underwater_duration_hours", "fees_equity_units", "turnover_equity_units",
+    "average_exposure_pct", "signal_evaluation_count", "high_risk_target_count", "full_risk_target_count",
+    "rebalance_trade_count", "median_realized_lot_hold_hours", "p90_realized_lot_hold_hours", "terminal_position",
+    "terminal_oldest_lot_age_hours", "terminal_inventory_cost_basis", "buy_hold_total_return_pct",
+    "buy_hold_maximum_drawdown_pct", "upside_capture_ratio", "calmar_ratio", "annual_breadth",
+    "top_year_positive_return_contribution_pct", "top_positive_realized_lot_contribution_pct"
+  ],
+  "gate_set": {
+    "id": "BTC_DERIBIT_DVOL_RISING_HALF_RISK_ECONOMIC_GATES_V1",
+    "primary": [
+      "design_and_validation_normal_and_stress_total_return_positive",
+      "design_and_validation_drawdown_at_most_90pct_of_buy_hold",
+      "design_and_validation_upside_capture_at_least_80pct",
+      "design_and_validation_calmar_at_least_buy_hold",
+      "design_and_validation_signal_counts_exactly_90_and_105",
+      "both_states_observed_in_design_and_validation",
+      "validation_at_least_10_rebalance_trades",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_and_stress_positive_annual_return_at_least_3_of_4",
+      "annual_drawdown_and_calmar_non_worse_at_least_3_of_4",
+      "top_year_and_top_positive_realized_lot_contribution_at_most_60pct",
+      "validation_holding_terminal_inventory_and_liquidation_gates_pass"
+    ],
+    "decision": "EVERY_PRIMARY_GATE_PASSES_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics if any dataset, DVOL source, runner, parser, hourly lattice, OHLCV or frozen binding hash gate fails.",
+    "Stop and permanently close the exact weekly rising-DVOL fifty-percent-risk family if any frozen Design, Validation, annual breadth, concentration, holding or inventory gate fails.",
+    "Do not scan another DVOL threshold, transformation, lag, target weight, relation, rebalance clock, smoothing, hysteresis, leverage, short leg or interaction after seeing results.",
+    "Do not use any post-2024 data. A pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with independent sealed OOS still required."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": [
+    "PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL", "PRODUCTION", "TRADING",
+    "DATABASE", "ORDERS", "FUNDS", "OCO", "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"
+  ]
+}

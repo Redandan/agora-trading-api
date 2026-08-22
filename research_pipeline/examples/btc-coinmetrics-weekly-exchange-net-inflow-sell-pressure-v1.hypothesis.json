@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-v1",
+  "title": "Lagged weekly Bitcoin exchange net inflow as sell-pressure risk evidence",
+  "thesis": "A complete UTC week with aggregate Coin Metrics BTC exchange inflows strictly greater than aggregate exchange outflows may identify a sell-pressure state with lower subsequent BTC return and worse path drawdown than nonpositive-net-inflow weeks.",
+  "mechanism": "Sum seven complete Monday-through-Sunday FlowInExNtv and FlowOutExNtv observations separately, classify strictly positive net inflow as high sell pressure, make the state usable only from Wednesday 00:00 UTC, and evaluate one non-overlapping 168-hour BTC response. No magnitude threshold, alternate window, individual exchange, USD normalization or direction inversion is allowed.",
+  "economic_rationale": "If and only if both Design and Validation establish downside direction, a later matched-capital policy would hold zero-yield cash during high sell pressure and BTC otherwise. It must improve fee-adjusted Calmar and underwater duration after charging utilization and missed-upside opportunity cost.",
+  "source": "PRE_CANDIDATE_POOL:btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-risk-veto:PRIOR_SHA256_1729b6339eedd68ee94c5330a9e754176fb0e8cc3e249a708ec7a40c50bef726:TRANSPORT_ERRATUM_SHA256_2620ba192905412024037b33b11bbb91945d9b691b20e561e2636340cfb82ab1",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "coinmetrics-weekly-exchange-net-inflow-pre-economic-sell-pressure-screen-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "high_sell_pressure_and_other_weekly_episode_support",
+    "median_168h_terminal_return_and_negative_return_rate",
+    "median_and_p75_168h_peak_to_trough_path_drawdown",
+    "one_sided_fisher_downside_rate_p_value",
+    "annual_direction_breadth_and_top_year_downside_concentration",
+    "matched_capital_fee_drawdown_calmar_utilization_and_upside_opportunity_cost_only_after_predictive_pass"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-exchange-net-inflow-1",
+  "created_at": "2026-08-20T12:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

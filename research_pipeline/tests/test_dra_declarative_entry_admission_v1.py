@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 import json
 from pathlib import Path
@@ -18,6 +18,7 @@ if str(RESEARCH) not in sys.path:
     sys.path.insert(0, str(RESEARCH))
 
 import btc_dra_declarative_entry_admission_v1 as runner
+import dra_corwin_schultz_spread_support_v2 as spread_support
 
 
 D = Decimal
@@ -68,6 +69,8 @@ def bar(
     *,
     open_price: str | None = None,
     close: str = "100",
+    high: str | None = None,
+    low: str | None = None,
     volume: str = "1",
 ) -> runner.base.Bar:
     price = D(close)
@@ -76,8 +79,8 @@ def bar(
         open_time=opened,
         close_time=opened + timedelta(hours=1),
         open=opened_price,
-        high=max(opened_price, price),
-        low=min(opened_price, price),
+        high=D(high) if high is not None else max(opened_price, price),
+        low=D(low) if low is not None else min(opened_price, price),
         close=price,
         volume=D(volume),
     )
@@ -298,6 +301,68 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
                     volume="2",
                 )
             )
+
+    def test_corwin_schultz_formula_matches_frozen_support_runner(self) -> None:
+        previous = spread_support.DailyObservation(
+            day=date(2024, 1, 1),
+            open=D("100"),
+            high=D("110"),
+            low=D("100"),
+            close=D("105"),
+            hourly_closes=tuple(D("105") for _ in range(24)),
+            quote_volume_proxy=D("1000000"),
+        )
+        current = spread_support.DailyObservation(
+            day=date(2024, 1, 2),
+            open=D("102"),
+            high=D("112"),
+            low=D("101"),
+            close=D("108"),
+            hourly_closes=tuple(D("108") for _ in range(24)),
+            quote_volume_proxy=D("1000000"),
+        )
+        self.assertEqual(
+            runner.corwin_schultz_spread(
+                previous.high, previous.low, current.high, current.low
+            ),
+            spread_support.corwin_schultz_spread(previous, current),
+        )
+
+    def test_corwin_schultz_feature_uses_prior_day_and_prior_twenty_spreads(self) -> None:
+        feature = "DAILY_CORWIN_SCHULTZ_SPREAD_TO_PRIOR_20D_MEDIAN"
+        value = manifest(feature=feature)
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIs(runner.validate_manifest(value), value)
+
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        opened = datetime(2024, 1, 1)
+        for day_index in range(22):
+            for hour in range(24):
+                engine._update_feature(
+                    bar(
+                        opened + timedelta(days=day_index, hours=hour),
+                        open_price="100",
+                        close="105",
+                        high="110",
+                        low="100",
+                    )
+                )
+            if day_index < 21:
+                self.assertIsNone(engine.current_feature_ratio)
+        self.assertEqual(engine.current_feature_ratio, D("1.00000000"))
+        self.assertEqual(engine.complete_feature_days, 22)
 
     def test_realized_to_bipower_ratio_uses_adjacent_absolute_returns(self) -> None:
         engine = runner.DeclarativeEntryAdmissionEngine(
@@ -649,6 +714,60 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         with self.assertRaisesRegex(runner.ScreenReject, "positive and negative"):
             runner.realized_performance([D("0.01")] * 24)
 
+    def test_late_day_price_activity_is_exact_final_six_hour_share_and_v2(self) -> None:
+        feature = (
+            "DAILY_1800_2359_UTC_ABSOLUTE_LOG_RETURN_SHARE_TO_PRIOR_20D_MEDIAN"
+        )
+        value = manifest(feature=feature)
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertEqual(value["feature"]["lookback_complete_days"], 20)
+        self.assertIs(runner.validate_manifest(value), value)
+
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        engine.daily_bar_count = 24
+        engine.daily_intraday_log_returns = [D("0.01")] * 18 + [D("0.02")] * 6
+        self.assertEqual(engine._daily_value(), D("0.4"))
+
+        engine.daily_intraday_log_returns = [D("0")] * 24
+        self.assertIsNone(engine._daily_value())
+
+    def test_intraday_close_path_drawdown_uses_ordered_peak_to_later_close_and_v2(self) -> None:
+        feature = "DAILY_H1_CLOSE_PATH_MAX_DRAWDOWN_TO_PRIOR_20D_MEDIAN"
+        value = manifest(feature=feature)
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertEqual(value["feature"]["relation"], "AT_OR_BELOW")
+        self.assertIs(runner.validate_manifest(value), value)
+
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_BELOW",
+            threshold=D("1"),
+        )
+        engine.feature_open = D("100")
+        engine.daily_bar_count = 24
+        engine.daily_intraday_closes = [D("100"), D("110"), D("99")] + [D("120")] * 21
+        self.assertEqual(engine._daily_value(), D("0.1"))
+
     def test_realized_performance_feature_requires_v2_gate_set(self) -> None:
         feature = "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE"
         value = manifest(feature=feature)
@@ -712,6 +831,244 @@ class DeclarativeDraEntryAdmissionRunnerTest(unittest.TestCase):
         Draft202012Validator(schema).validate(value)
         self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
         self.assertIs(runner.validate_manifest(value), value)
+
+    def test_h1_absolute_return_log_volume_correlation_preserves_direction(self) -> None:
+        absolute_returns = [D(index) / D("1000") for index in range(1, 25)]
+        increasing_volumes = [D(index).exp() for index in range(1, 25)]
+        decreasing_volumes = list(reversed(increasing_volumes))
+        self.assertEqual(
+            runner.absolute_return_log_volume_correlation(
+                absolute_returns, increasing_volumes
+            ).quantize(D("0.00000001")),
+            D("1.00000000"),
+        )
+        self.assertEqual(
+            runner.absolute_return_log_volume_correlation(
+                absolute_returns, decreasing_volumes
+            ).quantize(D("0.00000001")),
+            D("-1.00000000"),
+        )
+
+    def test_h1_absolute_return_log_volume_correlation_fails_closed(self) -> None:
+        with self.assertRaisesRegex(runner.ScreenReject, "exactly 24"):
+            runner.absolute_return_log_volume_correlation(
+                [D("0.01")] * 23,
+                [D("100")] * 23,
+            )
+        with self.assertRaisesRegex(runner.ScreenReject, "positive"):
+            runner.absolute_return_log_volume_correlation(
+                [D(index) / D("1000") for index in range(1, 25)],
+                [D("100")] * 23 + [D("0")],
+            )
+        with self.assertRaisesRegex(runner.ScreenReject, "non-zero variation"):
+            runner.absolute_return_log_volume_correlation(
+                [D("0.01")] * 24,
+                [D(index).exp() for index in range(1, 25)],
+            )
+
+    def test_h1_absolute_return_volume_coupling_feature_is_percentile_v2(self) -> None:
+        feature = (
+            "DAILY_H1_ABSOLUTE_LOG_RETURN_TO_LOG_CLOSE_WEIGHTED_VOLUME_"
+            "CORRELATION_PRIOR_20D_PERCENTILE"
+        )
+        value = manifest(feature=feature)
+        value["variants"] = [
+            {"role": "lower_neighbor", "threshold": "0.30", "variant_id": "lower-mv-v1"},
+            {"role": "primary", "threshold": "0.50", "variant_id": "primary-mv-v1"},
+            {"role": "upper_neighbor", "threshold": "0.70", "variant_id": "upper-mv-v1"},
+        ]
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["feature"]["relation"], "AT_OR_ABOVE")
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIn(feature, runner.PERCENTILE_FEATURES)
+        self.assertIs(runner.validate_manifest(value), value)
+
+        log_returns = [D(index) / D("1000") for index in range(1, 25)]
+        volumes = [D(index).exp() for index in range(1, 25)]
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_ABOVE",
+            threshold=D("0.50"),
+        )
+        engine.daily_intraday_log_returns = log_returns
+        engine.daily_intraday_close_weighted_volumes = volumes
+        self.assertEqual(
+            runner.absolute_return_log_volume_correlation(log_returns, volumes),
+            engine._daily_value(),
+        )
+
+        engine.daily_intraday_close_weighted_volumes[-1] = D("0")
+        self.assertIsNone(engine._daily_value())
+
+        engine.daily_intraday_log_returns = [D("0.01")] * 24
+        engine.daily_intraday_close_weighted_volumes = volumes
+        self.assertIsNone(engine._daily_value())
+
+    def test_realized_skewness_preserves_sign_and_scale(self) -> None:
+        positive = [D("-0.01")] * 12 + [D("0.01")] * 11 + [D("0.08")]
+        negative = [-value for value in positive]
+        scaled = [value * D("2") for value in positive]
+        positive_value = runner.realized_skewness(positive)
+        self.assertGreater(positive_value, 0)
+        self.assertEqual(
+            (-positive_value).quantize(D("0.00000001")),
+            runner.realized_skewness(negative).quantize(D("0.00000001")),
+        )
+        self.assertEqual(
+            positive_value.quantize(D("0.00000001")),
+            runner.realized_skewness(scaled).quantize(D("0.00000001")),
+        )
+
+    def test_realized_skewness_fails_closed_without_complete_variation(self) -> None:
+        with self.assertRaisesRegex(runner.ScreenReject, "exactly 24"):
+            runner.realized_skewness([D("0.01")] * 23)
+        with self.assertRaisesRegex(runner.ScreenReject, "positive realized variance"):
+            runner.realized_skewness([D("0")] * 24)
+
+    def test_realized_skewness_feature_is_percentile_based_and_v2(self) -> None:
+        feature = "DAILY_INTRADAY_REALIZED_SKEWNESS_PRIOR_20D_PERCENTILE"
+        value = manifest(feature=feature)
+        value["variants"] = [
+            {"role": "lower_neighbor", "threshold": "0.3", "variant_id": "lower-sk-v1"},
+            {"role": "primary", "threshold": "0.5", "variant_id": "primary-sk-v1"},
+            {"role": "upper_neighbor", "threshold": "0.7", "variant_id": "upper-sk-v1"},
+        ]
+        self.assertEqual(value["feature"]["relation"], "AT_OR_BELOW")
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIn(feature, runner.PERCENTILE_FEATURES)
+        self.assertIs(runner.validate_manifest(value), value)
+
+        log_returns = [D("-0.01")] * 12 + [D("0.01")] * 11 + [D("0.08")]
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key=feature,
+            relation="AT_OR_BELOW",
+            threshold=D("0.5"),
+        )
+        engine.daily_intraday_log_returns = log_returns
+        self.assertEqual(runner.realized_skewness(log_returns), engine._daily_value())
+
+    def test_h1_first_extreme_order_feature_is_direct_binary_and_v2(self) -> None:
+        feature = "DAILY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY"
+        value = manifest(feature=feature)
+        value["variants"] = [
+            {
+                "role": "primary",
+                "threshold": "1",
+                "variant_id": "h1-first-low-before-high-v1",
+            }
+        ]
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["feature"]["lookback_complete_days"], 0)
+        self.assertEqual(value["feature"]["relation"], "AT_OR_ABOVE")
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIn(feature, runner.DIRECT_FEATURES)
+        self.assertIs(runner.validate_manifest(value), value)
+
+    def test_h1_first_extreme_order_distinguishes_low_before_high(self) -> None:
+        feature = "DAILY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY"
+        start = datetime(2024, 1, 1)
+        outcomes = []
+        for low_hour, high_hour in ((4, 18), (18, 4)):
+            engine = runner.DeclarativeEntryAdmissionEngine(
+                feature_key=feature,
+                relation="AT_OR_ABOVE",
+                threshold=D("1"),
+            )
+            for hour in range(24):
+                engine._update_feature(
+                    bar(
+                        start + timedelta(hours=hour),
+                        high="110" if hour == high_hour else "100",
+                        low="90" if hour == low_hour else "100",
+                    )
+                )
+            outcomes.append(engine.current_feature_ratio)
+        self.assertEqual(outcomes, [D("1.00000000"), D("0E-8")])
+
+    def test_h1_first_extreme_order_fails_closed_when_same_bar_has_both(self) -> None:
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="DAILY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY",
+            relation="AT_OR_ABOVE",
+            threshold=D("1"),
+        )
+        start = datetime(2024, 1, 1)
+        for hour in range(24):
+            engine._update_feature(
+                bar(
+                    start + timedelta(hours=hour),
+                    high="110" if hour == 12 else "100",
+                    low="90" if hour == 12 else "100",
+                )
+            )
+        self.assertIsNone(engine.current_feature_ratio)
+        self.assertEqual(engine.complete_feature_days, 1)
+
+    def test_90d_drawdown_recovery_feature_is_direct_point_in_time_and_v2(self) -> None:
+        feature = "PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION"
+        value = manifest(feature=feature)
+        value["variants"] = [
+            {"role": "lower_neighbor", "threshold": "0.40", "variant_id": "recovery-040-v1"},
+            {"role": "primary", "threshold": "0.50", "variant_id": "recovery-050-v1"},
+            {"role": "upper_neighbor", "threshold": "0.60", "variant_id": "recovery-060-v1"},
+        ]
+        schema = json.loads(
+            (
+                ROOT
+                / "research_pipeline"
+                / "dra-declarative-entry-admission-manifest.v1.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        Draft202012Validator(schema).validate(value)
+        self.assertEqual(value["feature"]["lookback_complete_days"], 90)
+        self.assertEqual(value["feature"]["relation"], "AT_OR_ABOVE")
+        self.assertEqual(value["gate_set"], runner.GATE_SET_V2)
+        self.assertIn(feature, runner.DIRECT_FEATURES)
+        self.assertIs(runner.validate_manifest(value), value)
+
+    def test_90d_drawdown_recovery_uses_first_peak_and_complete_day_close(self) -> None:
+        days = [(D("110"), D("90"), D("100")) for _ in range(90)]
+        days[10] = (D("120"), D("110"), D("115"))
+        days[20] = (D("115"), D("80"), D("85"))
+        days[50] = (D("120"), D("95"), D("110"))
+        days[-1] = (D("110"), D("90"), D("100"))
+        self.assertEqual(runner.drawdown_recovery_fraction(days), D("0.5"))
+        self.assertIsNone(runner.drawdown_recovery_fraction(days[:-1]))
+
+        engine = runner.DeclarativeEntryAdmissionEngine(
+            feature_key="PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION",
+            relation="AT_OR_ABOVE",
+            threshold=D("0.50"),
+        )
+        start = datetime(2024, 1, 1)
+        for day in range(90):
+            day_high, day_low, day_close = days[day]
+            for hour in range(24):
+                engine._update_feature(
+                    bar(
+                        start + timedelta(days=day, hours=hour),
+                        close=str(day_close),
+                        high=str(day_high),
+                        low=str(day_low),
+                    )
+                )
+                if day == 89 and hour == 22:
+                    self.assertIsNone(engine.current_feature_ratio)
+        self.assertEqual(engine.current_feature_ratio, D("0.50000000"))
+        self.assertEqual(engine.complete_feature_days, 90)
 
 
     def test_v2_primary_gate_fails_on_worse_underwater_duration(self) -> None:

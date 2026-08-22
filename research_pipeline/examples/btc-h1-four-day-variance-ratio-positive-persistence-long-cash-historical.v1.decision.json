@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_H1_FOUR_DAY_VARIANCE_RATIO_POSITIVE_PERSISTENCE_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1",
+  "decided_at": "2026-08-21T05:12:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_H1_FOUR_DAY_VARIANCE_RATIO_POSITIVE_PERSISTENCE_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_28_DAY_DIRECTION_FOUR_DAY_VARIANCE_RATIO_ABOVE_ONE_LONG_CASH_FAMILY_WITHOUT_TUNING",
+  "evidence": {
+    "manifest": {"path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical.v1.manifest.json", "sha256": "13d397b3c84a67c4251dffa75903c05ca860b814f57b551d55c93e2b86a96be7"},
+    "runner": {"path": "research/btc_h1_four_day_variance_ratio_positive_persistence_long_cash_historical.py", "sha256": "669d6b4f99b867322518ad179509f9ccb945d68a1033385f9b597f2383db58db"},
+    "hypothesis": {"path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-v1.hypothesis.json", "sha256": "2b81b5eff519002abb87dc87fd04551bbe1ed92f91474f4c48750bdfd92e02df"},
+    "primary_prior": {"path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-primary-prior.v1.json", "sha256": "d692e290fead48f5ff09ad8d39375cee4cececc85b01328fd34eb748fe2d6111"},
+    "valid_preoutcome_support_v2": {"path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/inputs/feature-support.v2.json", "sha256": "b102c7d421fdd1593b9904684a38e730f2269b91f05c03a63ea9c025de6ef293", "feature_lattice_sha256": "067fa12477292207e843fe31f40c2a4dd10b08a7d860c8f62a358ec4becbffc8"},
+    "invalid_v1_support": {"path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/inputs/feature-support.json", "sha256": "520c5f87b9187f535982d140b075e7e2a12f0c65fc543b3a8dfdfc2f11cad6de", "disposition": "INVALIDATED_BEFORE_STRATEGY_ECONOMICS_FOR_IMPORT_ORDER_DECIMAL_PRECISION_DRIFT"},
+    "run1": {"path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/artifacts/run1.json", "sha256": "277854240e9fc63d661920e9eab7b3b89e9146949ef6692ea741c8564a6fd27b"},
+    "run2": {"path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/artifacts/run2.json", "sha256": "277854240e9fc63d661920e9eab7b3b89e9146949ef6692ea741c8564a6fd27b"},
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "preoutcome_support": {
+    "design": {"evaluations": 1432, "trend_parent_long_days": 800, "candidate_long_days": 209, "trend_parent_vetoes": 591, "candidate_transitions": 82},
+    "validation": {"evaluations": 731, "trend_parent_long_days": 463, "candidate_long_days": 208, "trend_parent_vetoes": 255, "candidate_transitions": 60},
+    "annual_support_gates": "6_OF_6_PASS",
+    "arithmetic": "LOCAL_PYTHON_DECIMAL_CONTEXT_PRECISION_50"
+  },
+  "economic_summary": {
+    "design_normal": {"candidate_total_return_pct": "77.45871371", "candidate_drawdown_pct": "46.94593089", "candidate_calmar": "1.64995586", "candidate_average_exposure_pct": "14.30527036", "trend_parent_total_return_pct": "931.22013498", "trend_parent_drawdown_pct": "56.41214977", "trend_parent_calmar": "16.50743924", "buy_hold_total_return_pct": "346.32062389", "buy_hold_drawdown_pct": "77.18955925", "buy_hold_calmar": "4.48662523", "candidate_minus_trend_parent_return_pp": "-853.76142127"},
+    "design_stress": {"candidate_total_return_pct": "56.92025836", "trend_parent_total_return_pct": "784.92041062", "candidate_minus_trend_parent_return_pp": "-728.00015225"},
+    "validation_normal": {"candidate_total_return_pct": "103.80365550", "candidate_drawdown_pct": "31.26201821", "candidate_calmar": "3.32043999", "candidate_average_exposure_pct": "28.45417237", "trend_parent_total_return_pct": "294.50439206", "trend_parent_drawdown_pct": "37.47660708", "trend_parent_calmar": "7.85835258", "buy_hold_total_return_pct": "464.75475156", "buy_hold_drawdown_pct": "32.28416349", "buy_hold_calmar": "14.39575015", "candidate_minus_trend_parent_return_pp": "-190.70073655"},
+    "validation_stress": {"candidate_total_return_pct": "86.26248710", "trend_parent_total_return_pct": "262.71961540", "candidate_minus_trend_parent_return_pp": "-176.45712830"},
+    "annual_breadth": {"candidate_normal_positive_years": "5_OF_6", "candidate_stress_positive_years": "4_OF_6", "candidate_normal_return_above_trend_parent_years": "1_OF_6", "candidate_stress_return_above_trend_parent_years": "1_OF_6", "candidate_calmar_at_least_trend_parent_years": "1_OF_6", "candidate_upside_capture_at_least_50pct_years": "1_OF_6", "positive_incremental_return_top_year_contribution_pct": "100.00000000"}
+  },
+  "failed_gate_count": 17,
+  "failed_gates": [
+    "design_candidate_upside_capture_at_least_50pct",
+    "design_candidate_calmar_at_least_buy_hold",
+    "validation_candidate_drawdown_at_most_90pct_of_buy_hold",
+    "validation_candidate_upside_capture_at_least_60pct",
+    "validation_candidate_calmar_at_least_80pct_of_buy_hold",
+    "design_candidate_normal_total_return_strictly_above_trend_parent",
+    "design_candidate_stress_total_return_strictly_above_trend_parent",
+    "design_candidate_calmar_at_least_trend_parent",
+    "validation_candidate_normal_total_return_strictly_above_trend_parent",
+    "validation_candidate_stress_total_return_strictly_above_trend_parent",
+    "validation_candidate_calmar_at_least_trend_parent",
+    "candidate_annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+    "candidate_annual_upside_capture_at_least_50pct_at_least_4_of_6",
+    "candidate_normal_annual_total_return_above_trend_parent_at_least_4_of_6",
+    "candidate_stress_annual_total_return_above_trend_parent_at_least_4_of_6",
+    "candidate_annual_calmar_at_least_trend_parent_at_least_4_of_6",
+    "positive_annual_incremental_return_over_trend_parent_top_year_at_most_60pct"
+  ],
+  "material_learning": "A four-day variance ratio above one can select profitable BTC periods and reduce drawdown relative to passive exposure, but it does not establish incremental alpha. In this sample it discarded most of the simpler positive-28-day-trend parent's return in both Design and Validation, improved annual return over that parent in only one of six years, and concentrated all positive annual incremental return in one year. The correct disposition is branch closure, not threshold, horizon, window, direction or sizing rescue.",
+  "prohibited_reopen": [
+    "Do not rerun or tune the exact 28-day direction plus overlapping four-day variance-ratio-above-one long/cash family.",
+    "Do not change the variance-ratio horizon, estimator, threshold, direction, execution, costs, sizing or gates to rescue the result.",
+    "Do not open OOS or activate SHADOW, PAPER or LIVE."
+  ],
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

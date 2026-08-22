@@ -1,0 +1,49 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-us-epu-hedge-entry-admission-v1",
+  "title": "Lagged weekly US economic-policy-uncertainty DRA V1 entry admission",
+  "thesis": "Elevated newspaper-based US economic policy uncertainty may create alternative-asset demand that improves the forward path of otherwise unchanged BTC DRA V1 entries after the uncertainty week is completely observed and conservatively lagged.",
+  "mechanism": "Average exactly seven positive USEPUINDXD observations for each complete Monday-through-Sunday week. Divide that mean by the median of the immediately preceding 52 non-overlapping complete weekly means. Beginning at week end D plus seven calendar days 00:00 UTC and for at most 168 hours, admit an otherwise unchanged parent signal only when the ratio is at or above the frozen threshold; otherwise hold cash without changing existing lots or exits.",
+  "economic_rationale": "The feature is useful only if the primary 1.00 threshold improves Design and Validation total and realized PnL while preserving unrealized PnL, drawdown, underwater duration, holding and terminal inventory, has annual and predictive breadth, and the 0.80 and 1.20 neighbors retain positive matched-capital economics without excessive drawdown. Lower participation, one election or crisis, terminal-inventory cleanup or present-vintage timing is insufficient.",
+  "source": "SEALED_CREATE_ONCE_FRED_USEPUINDXD_2018_2024_PRESENT_VINTAGE_SOURCE",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+  "matched_comparator": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_US_EPU_ADMISSION",
+  "required_capability": "btc-dra-us-epu-hedge-entry-admission-historical-v1-thin-adapter-over-existing-matched-capital-economic-runner",
+  "data_readiness": "SEALED_2557_DAILY_ROWS_365_COMPLETE_WEEKS_313_PRE_OUTCOME_EVALUATIONS_PRIMARY_STATE_COUNTS_156_HIGH_157_LOW_AND_84_TRANSITIONS",
+  "independence_semantics": "EXTERNAL_NEWS_BASED_US_POLICY_UNCERTAINTY_STATE",
+  "variants": [
+    {
+      "role": "STABILITY_NEIGHBOR_LOW",
+      "relation": "AT_OR_ABOVE",
+      "threshold": "0.80"
+    },
+    {
+      "role": "PRIMARY",
+      "relation": "AT_OR_ABOVE",
+      "threshold": "1.00"
+    },
+    {
+      "role": "STABILITY_NEIGHBOR_HIGH",
+      "relation": "AT_OR_ABOVE",
+      "threshold": "1.20"
+    }
+  ],
+  "frozen_gates": {
+    "primary": "All inherited matched-capital economic and independent 168-hour predictive gates must pass in both Design and Validation.",
+    "neighbors": "Each neighbor must improve Design total PnL, Validation total and realized PnL, keep Validation drawdown within plus 0.25 percentage points, and veto at least four Validation parent signals.",
+    "failure_action": "Permanently close the exact US EPU hedge entry-admission family without changing direction, source, aggregation, lag, thresholds, parent, windows, accounting or gates."
+  },
+  "expected_metrics": [
+    "parent_signal_admission_and_veto_accounting",
+    "fee_adjusted_realized_unrealized_and_total_pnl",
+    "maximum_drawdown_and_underwater_duration",
+    "median_and_p90_holding",
+    "terminal_inventory",
+    "annual_breadth_and_positive_delta_concentration",
+    "independent_168h_predictive_episode_breadth",
+    "fixed_neighbor_stability"
+  ],
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-epu-1",
+  "created_at": "2026-08-20T05:40:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

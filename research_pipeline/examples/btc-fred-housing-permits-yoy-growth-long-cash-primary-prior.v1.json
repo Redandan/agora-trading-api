@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_HOUSING_PERMITS_YOY_GROWTH_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-fred-housing-permits-yoy-growth-long-cash",
+  "disposition": "OFFICIAL_FREE_SOURCE_AND_ADVERSARIAL_PRIOR_PERMIT_ONE_FUTURE_PREREGISTERED_HISTORICAL_AUDIT",
+  "claim_boundary": "Exactly one future audit may test whether conservatively lagged positive year-over-year growth in U.S. private housing permits supports a full-capital BTC-or-cash policy. Building permits measure prospective housing activity, not crypto demand or alpha.",
+  "feature_contract": {
+    "publisher": "U.S. Census Bureau and U.S. Department of Housing and Urban Development via Federal Reserve Bank of St. Louis FRED",
+    "series": "PERMIT",
+    "frequency": "MONTHLY",
+    "observation": "SEASONALLY_ADJUSTED_ANNUAL_RATE_THOUSANDS_OF_UNITS",
+    "relation": "CURRENT_MONTH_STRICTLY_ABOVE_SAME_MONTH_ONE_YEAR_EARLIER",
+    "decision_time": "FIRST_DAY_OF_SECOND_FOLLOWING_CALENDAR_MONTH_0000_UTC",
+    "validity": "ONE_CALENDAR_MONTH",
+    "policy": "FULL_CAPITAL_BTC_WHEN_YOY_GROWTH_POSITIVE_ZERO_YIELD_CASH_OTHERWISE",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "FRED PERMIT",
+      "primary_source": "https://fred.stlouisfed.org/series/PERMIT",
+      "finding": "FRED identifies PERMIT as a monthly, seasonally adjusted annual-rate series in thousands of units sourced from the Census Bureau and HUD, requests citation, and warns that graph data are subject to revision.",
+      "role": "OFFICIAL_IDENTITY_FREQUENCY_UNITS_REVISION_AND_LICENSE_PRIOR",
+      "transfer_boundary": "Present-vintage permit levels are not original release vintages, and year-over-year growth need not predict BTC."
+    },
+    {
+      "identity": "Census New Residential Construction",
+      "primary_source": "https://www.census.gov/construction/nrc/index.html",
+      "finding": "The program reports new privately owned housing units authorized by permits, started, under construction and completed using the Building Permits Survey and Survey of Construction.",
+      "role": "OFFICIAL_REAL_ACTIVITY_MECHANISM_PRIOR",
+      "transfer_boundary": "Permits are a housing and credit-sensitive activity measure; they do not uniquely identify global liquidity or speculative risk appetite."
+    },
+    {
+      "identity": "Closed lagged rising UMCSENT long-cash family",
+      "primary_source": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical.v1.decision.json#sha256=79738c57145952a13f669fc63aef4ccb9b2000916f5399216cabac26cc0e482f",
+      "finding": "Consumer sentiment reduced Validation drawdown but failed Design Calmar, Validation upside and annual breadth gates.",
+      "role": "ADVERSARIAL_MACRO_RISK_APPETITE_PRIOR",
+      "transfer_boundary": "PERMIT is a quantity-based prospective construction measure with a frozen year-over-year relation, not a sentiment threshold, component or rescue of UMCSENT."
+    }
+  ],
+  "future_design_requirements": [
+    "Before BTC outcome access, freeze one exact no-credential FRED PERMIT request contract, raw response and a 2017-2024 monthly subset with date, value, timing, revision and citation boundaries.",
+    "Use only the strict 12-observation year-over-year level relation, first day of the second following calendar month at 00:00 UTC and one-calendar-month validity; no month-over-month rule, moving average, percentile, alternate lag, regional series, starts or completions.",
+    "Require both positive and non-positive year-over-year states with sufficient transitions in Design and Validation before direct economics.",
+    "Run deterministic matched-capital BTC versus zero-yield-cash Design and Validation economics under normal and doubled adverse friction with total, realized and unrealized return, drawdown, Calmar, upside, holding, terminal inventory, annual breadth and concentration gates.",
+    "Treat present-vintage history as historical research only. A pass remains REPORTED_NOT_ACTIVATED until separately sealed independent OOS succeeds."
+  ],
+  "uncertainty": [
+    "PERMIT is revised, seasonally adjusted and affected by survey imputation and methodology changes; original point-in-time vintages remain missing.",
+    "Housing permits can respond to mortgage rates, local supply and policy without transmitting to global crypto liquidity.",
+    "A 12-month comparison may lag turning points and create large BTC opportunity cost.",
+    "No 2017-2024 PERMIT value, state count, BTC outcome, strategy path, hypothesis, candidate, post-2024 observation or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-21T03:15:00Z"
+}

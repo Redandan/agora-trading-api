@@ -1,0 +1,154 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_PSAR002_002_02_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-daily-psar002-002-02-long-cash-historical-v1",
+  "decided_at": "2026-08-19T05:14:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DAILY_PSAR_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DAILY_PSAR_START_INCREMENT_001_002_003_MAX02_LONG_CASH_FAMILY_WITHOUT_TUNING",
+  "manifest_sha256": "4845f1dc868578b1ef26198f3fd2ba3e659e9e9634ff55390f658333fc1d4738",
+  "runner": {
+    "path": "research/btc_daily_psar002_002_02_long_cash_historical.py",
+    "sha256": "358cff49d2f019d7d21c43a4dba78c578ece49818e2267c10ba1ac1378950020",
+    "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+    "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+    "launch": "ISOLATED_PYTHON_3_12_13_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-daily-psar002-002-02-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "cf45dc1ce70de33fe6a48fbd15359c60652afc4aaa61c4892f024286f5661dd9"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-daily-psar002-002-02-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "cf45dc1ce70de33fe6a48fbd15359c60652afc4aaa61c4892f024286f5661dd9",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "integrity_evidence": {
+    "source_and_manifest_hashes_match": true,
+    "hourly_lattice_and_utc_day_inventory_pass": true,
+    "initialization_acceleration_reversal_clamp_and_maximum_formula_tests": true,
+    "buy_hold_python_reference_parity_at_8dp": true,
+    "formula_tests_before_outcome_access": true,
+    "oos_opened": false
+  },
+  "economic_summary": {
+    "primary_psar002_design_normal": {
+      "candidate_realized_return_pct": "86.18604983",
+      "candidate_unrealized_return_pct": "0E-8",
+      "candidate_total_return_pct": "86.18604983",
+      "candidate_maximum_drawdown_pct": "69.77790405",
+      "candidate_calmar_ratio": "1.23514816",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "total_return_delta_pp": "-43.41939246",
+      "maximum_drawdown_delta_pp": "-7.41165519",
+      "upside_capture_ratio": "0.66498789",
+      "average_exposure_pct": "53.46715328",
+      "position_changes": 90,
+      "completed_episodes": 45,
+      "winning_episodes": 20,
+      "top_positive_episode_contribution_pct": "23.52108545"
+    },
+    "primary_psar002_validation_normal": {
+      "candidate_realized_return_pct": "75.46513844",
+      "candidate_unrealized_return_pct": "0E-8",
+      "candidate_total_return_pct": "75.46513844",
+      "candidate_maximum_drawdown_pct": "32.76852557",
+      "candidate_calmar_ratio": "2.30297632",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "total_return_delta_pp": "-389.28961313",
+      "maximum_drawdown_delta_pp": "0.48436208",
+      "upside_capture_ratio": "0.16237626",
+      "calmar_ratio_to_buy_hold": "0.15997612",
+      "average_exposure_pct": "56.90834473",
+      "position_changes": 68,
+      "completed_episodes": 34,
+      "winning_episodes": 12,
+      "median_hold_hours": "252.00000000",
+      "p90_hold_hours": "520.80000000",
+      "terminal_position": false,
+      "top_positive_episode_contribution_pct": "16.71663592"
+    },
+    "primary_psar002_validation_stress": {
+      "candidate_total_return_pct": "58.45017701",
+      "candidate_maximum_drawdown_pct": "34.55949167",
+      "candidate_calmar_ratio": "1.69129157",
+      "buy_hold_total_return_pct": "463.90931032",
+      "terminal_liquidation_cost_pp": "0E-8"
+    },
+    "rejection_only_neighbor_psar001_validation_normal": {
+      "candidate_total_return_pct": "312.63090033",
+      "candidate_maximum_drawdown_pct": "18.93656920",
+      "candidate_calmar_ratio": "16.50937385",
+      "upside_capture_ratio": "0.67267930",
+      "calmar_ratio_to_buy_hold": "1.14682276",
+      "position_changes": 38,
+      "completed_episodes": 19,
+      "top_positive_episode_contribution_pct": "27.53147261"
+    },
+    "rejection_only_neighbor_psar003_validation_normal": {
+      "candidate_total_return_pct": "143.34040843",
+      "candidate_maximum_drawdown_pct": "27.44898952",
+      "candidate_calmar_ratio": "5.22206504",
+      "upside_capture_ratio": "0.30842161",
+      "calmar_ratio_to_buy_hold": "0.36275046",
+      "position_changes": 80,
+      "completed_episodes": 40,
+      "top_positive_episode_contribution_pct": "14.34890740"
+    },
+    "annual_primary_normal": {
+      "2020": {"candidate_total_return_pct": "189.24471143", "buy_hold_total_return_pct": "301.32276307", "candidate_maximum_drawdown_pct": "22.96616903"},
+      "2021": {"candidate_total_return_pct": "45.39061430", "buy_hold_total_return_pct": "59.60909620", "candidate_maximum_drawdown_pct": "45.04187717"},
+      "2022": {"candidate_total_return_pct": "-55.85173889", "buy_hold_total_return_pct": "-64.25634095", "candidate_maximum_drawdown_pct": "57.24094697"},
+      "2023": {"candidate_total_return_pct": "38.14945215", "buy_hold_total_return_pct": "155.16375107", "candidate_maximum_drawdown_pct": "24.56860190"},
+      "2024": {"candidate_total_return_pct": "27.01109972", "buy_hold_total_return_pct": "120.99348678", "candidate_maximum_drawdown_pct": "32.76852557"}
+    },
+    "breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "3_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "2_of_5",
+      "normal_upside_capture_at_least_50pct_years": "2_of_5",
+      "top_year_positive_total_return_contribution_pct": "63.12452091",
+      "validation_top_positive_episode_contribution_pct": "16.71663592"
+    }
+  },
+  "failed_gates": [
+    "primary_design_normal_calmar_at_least_buy_hold",
+    "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_psar003_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_psar003_validation_normal_upside_capture_at_least_50pct",
+    "primary_normal_annual_drawdown_non_worse_at_least_4_of_5",
+    "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+    "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+    "primary_top_year_positive_total_return_contribution_at_most_60pct"
+  ],
+  "passed_evidence": [
+    "The exact dataset, source bindings, hourly lattice, complete UTC-day inventory, PSAR state-path tests, buy-and-hold parity and two byte-identical Python runs passed every integrity requirement.",
+    "The official PSAR002 primary produced positive Normal and Stress returns in both Design and Validation, four positive annual returns, 34 completed Validation episodes, low episode concentration and no terminal inventory.",
+    "The PSAR001 rejection-only neighbor had materially stronger Validation return, drawdown and Calmar, proving the implementation can express a favorable path while simultaneously exposing severe parameter instability."
+  ],
+  "material_learning": "The published default PSAR advantage does not replicate as robust matched-capital value in the 2019-2024 sealed corpus. The official 0.02 primary earned 75.46513844 percent in Validation but passive BTC earned 464.75475156 percent; PSAR captured only 16.237626 percent of upside and worsened drawdown by 0.48436208 percentage points, leaving Calmar at 15.997612 percent of buy-and-hold. The preregistered slower 0.01 neighbor looked much better at 312.63090033 percent return, 18.93656920 percent drawdown and Calmar 16.50937385, while the faster 0.03 neighbor fell to Calmar 5.22206504. That spread is parameter sensitivity, not permission to select the winner after outcome access. Because 0.01 was explicitly rejection-only and the primary plus 0.03 stability gates failed, the entire frozen family closes.",
+  "scientific_claim": "The exact complete-UTC-day Parabolic SAR family with start and increment 0.01, 0.02 and 0.03 at maximum 0.20 produced deterministic historical evidence but failed the official primary's Validation drawdown, upside and Calmar, annual path breadth, positive-year concentration and fast-neighbor stability gates. None is a candidate; the apparent PSAR001 winner cannot be promoted post hoc and the exact family is permanently closed without confirmation or parameter rescue.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The factor is adjacent to the closed trend cluster, so even a pass would have had reduced independence.",
+    "The prior Bitcoin paper's fill, sell-signal and path accounting are not sufficiently detailed for exact result parity; this experiment replicated the documented mechanism under the frozen Agora ledger instead.",
+    "A separate implementation such as TradingView ta.sar was not executed against the full path today. The synthetic Decimal state sequence freezes initialization, strict reversal, two-bar clamp and acceleration cap, but full cross-platform PSAR value parity remains MISSING_PROOF.",
+    "The wide primary opportunity-cost and Calmar failures cannot plausibly be fixed by numerical rounding. A different trend construction needs an independent pre-outcome fingerprint and cannot reuse PSAR001 as a selected rescue."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

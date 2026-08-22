@@ -1,0 +1,79 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-halloween-november-april-long-cash",
+  "created_at": "2026-08-21T05:42:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_BEFORE_REPOSITORY_BTC_OUTCOME_ACCESS",
+  "frozen_before_repository_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_AT_MOST_ONE_FROZEN_SINGLE_VARIANT_MATCHED_CAPITAL_HISTORICAL_AUDIT",
+  "claim_boundary": "Published Bitcoin calendar studies conflict: one 2013-2019 study reports no Halloween return anomaly and stronger calendar effects in conditional volatility, while a 2018-2024 multi-crypto study reports higher Halloween-period returns with higher risk and states that BTC is an exception to most-assets outperformance. This conflict permits one exact low-turnover replication, not a seasonal-alpha claim.",
+  "primary_sources": [
+    {
+      "title": "Calendar effects in Bitcoin returns and volatility",
+      "publisher": "Finance Research Letters",
+      "doi": "10.1016/j.frl.2019.101420",
+      "url": "https://doi.org/10.1016/j.frl.2019.101420",
+      "finding": "The 2013-2019 analysis reports no evidence of a Bitcoin Halloween return anomaly and stronger calendar effects in conditional volatility.",
+      "role": "ADVERSARIAL_BITCOIN_SPECIFIC_PRIOR"
+    },
+    {
+      "title": "Profitability and risk in cryptocurrency markets: testing the Halloween effect and investment strategies",
+      "publisher": "Journal of Economic Studies",
+      "doi": "10.1108/JES-01-2025-0029",
+      "url": "https://doi.org/10.1108/JES-01-2025-0029",
+      "finding": "The 2018-2024 multi-crypto analysis reports higher Halloween-period returns with higher risk, but identifies BTC as an exception to most-assets Halloween outperformance.",
+      "role": "RECENT_OVERLAPPING_WINDOW_PRIOR_NOT_INDEPENDENT_VALIDATION"
+    },
+    {
+      "title": "Bitcoin time-of-day, day-of-week and month-of-year effects in returns and trading volume",
+      "publisher": "Finance Research Letters",
+      "doi": "10.1016/j.frl.2019.04.023",
+      "url": "https://doi.org/10.1016/j.frl.2019.04.023",
+      "finding": "A seven-exchange high-frequency study reports time-specific return anomalies but no persistent return effects across time, while volume patterns were more persistent.",
+      "role": "CALENDAR_STABILITY_ADVERSARIAL_PRIOR"
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "UTC_CALENDAR_MONTH_IS_NOVEMBER_DECEMBER_JANUARY_FEBRUARY_MARCH_OR_APRIL_V1",
+    "risk_on_state": "FROM_FIRST_H1_OPEN_AT_OR_AFTER_NOVEMBER_01_0000_UTC_THROUGH_IMMEDIATELY_BEFORE_FIRST_H1_OPEN_AT_OR_AFTER_MAY_01_0000_UTC",
+    "risk_off_state": "OTHERWISE",
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_RISK_ON_STATE_ZERO_YIELD_CASH_IN_RISK_OFF_STATE_NO_LEVERAGE_NO_SHORT",
+    "execution_anchor": "FIRST_AVAILABLE_BTC_H1_OPEN_AT_OR_AFTER_EACH_SEMIANNUAL_BOUNDARY",
+    "variant_count": 1,
+    "threshold_scan": "DENY",
+    "timezone_scan": "DENY"
+  },
+  "future_economic_contract": {
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "historical_windows": {"design": "2019-01-01_TO_2022-12-31", "validation": "2023-01-01_TO_2024-12-31"},
+    "costs": "EXPLICIT_0_10_PERCENT_FEE_AND_0_05_PERCENT_ADVERSE_SLIPPAGE_PER_SIDE",
+    "required_visibility": ["realized_pnl", "unrealized_pnl", "total_pnl", "maximum_drawdown", "calmar", "upside_participation", "capital_utilization", "holding_age", "terminal_inventory", "annual_breadth", "underwater_duration", "seasonal_episode_concentration"]
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_turn_of_month": "The closed turn-of-month family used a short last-day-plus-three-day window. This family uses one fixed six-month UTC season and cannot inherit or combine that result.",
+    "distinct_from_closed_weekend_and_intraday": "This family has no weekday or hour selection and cannot scan calendar subperiods.",
+    "overlapping_published_outcomes": "Both cited Bitcoin studies expose overlapping historical returns. Repository Design and Validation can only be replication/development evidence, never independent confirmation or OOS.",
+    "prohibited_rescue": "Do not move either boundary, select months, add January, quarter, weekday, trend, volatility, macro, on-chain or event interactions, invert the season, fractional-size or short after outcomes."
+  },
+  "adversarial_prior": [
+    "Continuous global BTC trading has no equity-market summer closure mechanism, so a traditional-market Halloween story may not transfer.",
+    "The strongest directly relevant older Bitcoin study reports no Halloween return anomaly.",
+    "The newer study used 2018-2024, overlapping the entire intended repository sample and therefore cannot validate it independently.",
+    "A six-month cash leg can reduce drawdown mechanically while forfeiting most bull-market upside; total PnL, Calmar and upside participation must pass together.",
+    "With only four Design and two Validation seasonal episodes, annual breadth and episode concentration are severe limits even if aggregate PnL improves."
+  ],
+  "stop_conditions": [
+    "Before reading repository BTC outcomes, freeze exactly one hypothesis, one manifest, one runner hash and all Design, Validation, cost, path-risk, breadth, concentration and determinism gates.",
+    "Use exactly November through April long and May through October zero-yield cash at UTC month boundaries; no alternative dates, months, direction or sizing.",
+    "Stop NO_CANDIDATE on any Design or Validation matched-capital total-PnL, drawdown, Calmar, upside, annual-breadth, concentration or determinism failure.",
+    "Do not open post-2024 outcomes. Any historical pass remains REPORTED_NOT_ACTIVATED and needs untouched independent OOS."
+  ],
+  "missing_proof": [
+    "No repository BTC outcome has been joined to the calendar feature under this family.",
+    "No schema-valid hypothesis, hash-bound manifest, deterministic runner or economic result exists.",
+    "No candidate, independent OOS, forward evidence or activation claim exists."
+  ],
+  "scope_note": "Primary and adversarial prior only. No repository BTC outcome, post-2024 value, hypothesis, manifest, runner result, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

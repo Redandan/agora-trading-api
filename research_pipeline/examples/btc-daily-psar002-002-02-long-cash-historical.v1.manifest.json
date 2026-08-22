@@ -1,0 +1,204 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_PSAR002_002_02_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-psar002-002-02-long-cash-historical-v1",
+  "created_at": "2026-08-19T05:02:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A path-dependent Parabolic SAR stop that accelerates toward each BTC trend extreme may exit deteriorating trends faster than a slow moving average while remaining invested through persistent advances, preserving material after-cost upside and improving drawdown and Calmar versus continuous BTC ownership.",
+  "economic_rationale": "The acceleration mechanism is useful only if the official default produces positive normal and stress returns, retains material BTC upside, improves drawdown and Calmar, survives annual breadth, avoids episode concentration and remains stable at the frozen 0.01 and 0.03 rejection-only acceleration neighbors. A small aggregate advantage or one bear-year avoidance cannot pass.",
+  "opportunity_cost": "Resolve the only obvious default technical family with a published Bitcoin-specific positive result that is not already exactly tombstoned, using the restored formal Python runtime and existing matched-capital ledger. Close it permanently before considering lower-prior indicator families.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-psar-start-increment-001-002-003-max02-long-cash",
+    "independence_semantics": "ADJACENT_TREND_FAMILY_DISTINCT_TIME_ACCELERATION_PATH_POLICY",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_COMPLETE_DAY_NEXT_H1_OPEN_POLICY",
+    "distinct_from_closed_families": [
+      "Supertrend uses ATR-scaled ratcheted midpoint bands; PSAR uses a time-accelerating stop toward a high or low extreme point with no ATR.",
+      "DMI14/ADX measures directional movement and strength; PSAR measures only path direction and duration and has no DI or ADX.",
+      "SMA200 and MACD use moving averages; PSAR uses daily high and low extremes, strict penetration reversals and nonlinear acceleration."
+    ],
+    "non_independence_warning": "The mechanism remains adjacent to the closed trend cluster. Its official recommended DMI confirmation is already closed and cannot be added as a rescue. A historical pass would still require untouched independent OOS.",
+    "excluded_reinterpretations": [
+      "Start/increment 0.02 and maximum 0.20 is the sole primary. Start/increment 0.01 and 0.03 with maximum 0.20 are rejection-only neighbors and cannot replace a failed primary.",
+      "No alternate initialization, equality handling, clamp order, maximum, close-only penetration, DMI or ATR confirmation, trend filter, persistence, delay, stop override, cash yield, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "No result may reopen the closed Supertrend, DMI, SMA or MACD families."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_psar002_002_02_long_cash_historical.py",
+      "sha256": "358cff49d2f019d7d21c43a4dba78c578ece49818e2267c10ba1ac1378950020",
+      "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+      "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research/btc_daily_obv_ma_long_cash_historical.py",
+      "sha256": "449f6790007cc0fc57298059f9f3f3dee812e37ec3539c9fc8c63593fe99a3d5",
+      "role": "FROZEN_LONG_CASH_ECONOMIC_SUPPORT"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_MATCHED_CAPITAL_REFERENCE_LEDGER"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER"
+    },
+    {
+      "path": "research/btc_daily_supertrend10x3_long_cash_historical.py",
+      "sha256": "46db811403ae61f70eff615e342d8c4d93e7d72c1bb8edc162c4cc6022d18213",
+      "role": "FROZEN_DAILY_OHLC_AGGREGATION_SUPPORT"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-psar002-002-02-long-cash-primary-prior.v1.json",
+      "sha256": "34c5591291eb69739661959337a7dd87ae6406997fa4fdfc95bedd88740d2e35",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_FINGERPRINT_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-psar002-002-02-long-cash-v1.hypothesis.json",
+      "sha256": "32a5d43dad5215638a09f6f192d99291adb0e62ee41c33a90e3cf0665555146b",
+      "role": "FROZEN_HYPOTHESIS"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_PSAR002_002_02_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_aggregation": "COMPLETE_UTC_DAY_24_CONTIGUOUS_H1_BARS_WITH_HIGH_LOW_CLOSE",
+    "initialization": "SECOND_COMPLETE_DAY_DIRECTION_FROM_FIRST_TWO_CLOSES_FIRST_DAY_OPPOSITE_EXTREME_AS_SAR_TWO_DAY_TREND_EXTREME_AS_EP",
+    "recurrence": "PRIOR_SAR_PLUS_PRIOR_AF_TIMES_PRIOR_EP_MINUS_PRIOR_SAR",
+    "reversal": "STRICT_CURRENT_LOW_BELOW_CANDIDATE_WHEN_BULLISH_OR_CURRENT_HIGH_ABOVE_CANDIDATE_WHEN_BEARISH",
+    "reversal_sar": "PRIOR_TREND_EXTREME_POINT",
+    "non_reversal_clamp": "BULLISH_MIN_WITH_PRIOR_TWO_LOWS_BEARISH_MAX_WITH_PRIOR_TWO_HIGHS",
+    "extreme_and_acceleration_update": "ONLY_ON_STRICT_NEW_TREND_EXTREME_AFTER_NON_REVERSAL",
+    "primary": {"start": "0.02", "increment": "0.02", "maximum": "0.20"},
+    "rejection_only_neighbors": [
+      {"start": "0.01", "increment": "0.01", "maximum": "0.20"},
+      {"start": "0.03", "increment": "0.03", "maximum": "0.20"}
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "long_condition": "PSAR_STATE_BULLISH_SAR_BELOW_PRICE_PATH",
+    "cash_condition": "PSAR_STATE_BEARISH_SAR_ABOVE_PRICE_PATH",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "stop": "DENY_AS_SEPARATE_ORDER_PSAR_ONLY_SETS_NEXT_OPEN_TARGET",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_AND_POSITION_CASH_WITH_CAUSAL_PREWINDOW_PSAR_HISTORY"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_AND_POSITION_CASH_WITH_CAUSAL_PREWINDOW_PSAR_HISTORY"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_AND_POSITION_CASH_WITH_CAUSAL_PREWINDOW_PSAR_HISTORY"
+    }
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY",
+    "ledger_parity": "REQUIRE_EXACT_8DP_BUY_HOLD_DESIGN_AND_VALIDATION_RETURN_DRAWDOWN_CALMAR_MATCH_TO_FROZEN_PYTHON_REFERENCE"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_ALL_IN_EPISODE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "gate_set": {
+    "id": "BTC_DAILY_PSAR_LONG_CASH_MATCHED_CAPITAL_GATES_V1",
+    "integrity": [
+      "exact_dataset_hash_rows_hourly_lattice_utc_days_and_source_hashes",
+      "exact_initialization_acceleration_reversal_clamp_and_maximum_state_path_tests",
+      "exact_buy_hold_reference_ledger_parity_before_candidate_classification"
+    ],
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_95pct_of_buy_hold",
+      "normal_calmar_at_least_buy_hold"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_90pct_of_buy_hold",
+      "normal_upside_capture_at_least_60pct",
+      "normal_calmar_at_least_buy_hold",
+      "position_changes_between_2_and_250",
+      "stress_drawdown_no_more_than_normal_plus_3pp",
+      "terminal_liquidation_adjusted_return_pct_gt_0",
+      "terminal_liquidation_cost_at_most_1pp"
+    ],
+    "neighbor_stability": [
+      "both_neighbors_have_positive_normal_and_stress_validation_total_return",
+      "both_neighbors_have_validation_normal_drawdown_non_worse_than_buy_hold",
+      "both_neighbors_have_validation_normal_calmar_at_least_75pct_of_buy_hold",
+      "both_neighbors_have_validation_normal_upside_capture_at_least_50pct",
+      "neighbors_are_rejection_only_and_cannot_replace_the_primary"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_at_least_4_of_5_years",
+      "normal_primary_calmar_at_least_75pct_of_buy_hold_at_least_3_of_5_years",
+      "normal_primary_upside_capture_at_least_50pct_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_DAILY_PSAR_START_INCREMENT_001_002_003_MAX02_LONG_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "runtime": "ISOLATED_PROJECT_PYTHON_3_12_13_AVAILABLE_IN_RESEARCH_STATE",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "decimal_precision": 34,
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset hash, hourly lattice, OHLCV or complete UTC-day inventory gate fails.",
+    "Stop with FORMULA_REJECT if initialization, acceleration, reversal, two-bar clamp or maximum-factor synthetic state tests fail.",
+    "Stop with ECONOMIC_REJECT if same-capital buy-and-hold return, drawdown and Calmar do not match the frozen Python reference at eight decimals.",
+    "Stop and permanently close the exact PSAR start/increment 0.01, 0.02 and 0.03 at maximum 0.20 family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Do not scan another initialization, equality rule, clamp order, acceleration factor, maximum, confirmation, holding period, stop, DRA combination or cost model after results.",
+    "Do not use post-2024 data in this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL",
+    "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO",
+    "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"
+  ]
+}

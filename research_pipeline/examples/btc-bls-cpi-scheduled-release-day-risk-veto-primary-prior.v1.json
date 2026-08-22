@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BLS_CPI_SCHEDULED_RELEASE_DAY_RISK_VETO_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-bls-cpi-scheduled-release-day-risk-veto",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_FUTURE_PRE_ECONOMIC_OFFICIAL_CPI_RELEASE_DAY_AUDIT",
+  "claim_boundary": "BLS publishes calendar-known CPI release dates and times, and inflation surprises can affect discount rates and cross-asset risk. Primary Bitcoin-macro evidence also reports muted or unstable responses, so the calendar alone is not alpha. Exactly one future preregistered audit may test whether holding cash for the complete UTC day containing an official CPI release improves matched-capital BTC risk-adjusted economics; no return direction is imported from the calendar or literature.",
+  "feature_contract": {
+    "publisher": "U.S. Bureau of Labor Statistics",
+    "source": "OFFICIAL_BLS_CPI_RELEASE_CALENDAR_AND_ARCHIVED_NEWS_RELEASES",
+    "event_universe": "MONTHLY_CONSUMER_PRICE_INDEX_NEWS_RELEASES_ONLY",
+    "event_date": "OFFICIAL_RELEASE_DATE_FOR_EACH_MONTHLY_CPI_NEWS_RELEASE",
+    "decision_time": "EVENT_DATE_0000_UTC_USING_A_CALENDAR_PUBLISHED_BEFORE_THE_RELEASE",
+    "primary_feature": "COMPLETE_UTC_DAY_CONTAINS_AN_OFFICIAL_BLS_CPI_RELEASE",
+    "policy": "HOLD_ZERO_YIELD_CASH_FOR_THE_COMPLETE_EVENT_UTC_DAY_AND_FULL_CAPITAL_BTC_OTHERWISE",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "BLS Schedule of Selected Releases 2020",
+      "primary_source": "https://www.bls.gov/schedule/2020/",
+      "finding": "The official archived schedule lists release date, Eastern Time and release identity, including monthly Consumer Price Index releases.",
+      "role": "FREE_OFFICIAL_HISTORICAL_PRE_EVENT_CALENDAR",
+      "transfer_boundary": "A scheduled release date does not encode the inflation surprise or establish a negative Bitcoin return."
+    },
+    {
+      "identity": "BLS Schedule of Selected Releases 2024",
+      "primary_source": "https://www.bls.gov/schedule/2024/",
+      "finding": "The official year archive provides the same date, time and named-release fields for 2024.",
+      "role": "FREE_OFFICIAL_VALIDATION_WINDOW_CALENDAR",
+      "transfer_boundary": "Historical calendar pages may reflect later corrections; original publication vintages must be checked before outcome access."
+    },
+    {
+      "identity": "BLS Consumer Price Index archived news releases",
+      "primary_source": "https://www.bls.gov/bls/news-release/cpi.htm",
+      "finding": "BLS retains CPI release archives that can cross-check release identity and publication date without a paid API.",
+      "role": "FREE_OFFICIAL_EVENT_IDENTITY_CROSS_CHECK",
+      "transfer_boundary": "Release content and surprise magnitude are prohibited post-event features for the calendar-only audit."
+    },
+    {
+      "identity": "Benigno and Rosa, The Bitcoin-Macro Disconnect, Federal Reserve Bank of New York Staff Report 1052",
+      "primary_source": "https://www.newyorkfed.org/medialibrary/media/research/staff_reports/sr1052.pdf",
+      "finding": "The study reports that Bitcoin reactions to macro news are often muted or unstable even when conventional assets respond.",
+      "role": "ADVERSARIAL_BITCOIN_MACRO_DISCONNECT_PRIOR",
+      "transfer_boundary": "High-frequency surprise regressions do not directly test a full-day long-or-cash policy, fees, drawdown or opportunity cost."
+    }
+  ],
+  "future_design_requirements": [
+    "Before BTC outcome access, freeze the exact official 2020-2024 monthly CPI release-date list and cross-check each event against BLS archived releases.",
+    "Use one complete UTC-day event interval from 00:00 UTC to the next 00:00 UTC and same-window non-event controls matched by event weekday.",
+    "Require Design and Validation event support, return disadvantage, negative-rate difference, one-sided Fisher significance, drawdown path, annual breadth and top-event concentration before economics.",
+    "Only after every predictive gate passes, run matched-capital full BTC versus zero-yield-cash event-day economics under normal and doubled adverse friction.",
+    "Do not add CPI surprise sign, core versus headline, inflation level, revisions, consensus forecast, equities, yields, dollar, BTC trend, volatility, intraday windows, partial sizing, leverage or shorting.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "A complete UTC day contains many hours unrelated to the usual 08:30 Eastern release and may forgo positive pre-release or post-release drift.",
+    "The event date is known but surprise direction is not; a calendar-only veto may mix opposite regimes and have no stable return sign.",
+    "Original calendar vintages and revisions for every 2020-2024 event remain MISSING_PROOF until the future source-freeze step.",
+    "No CPI-matched BTC return, path, strategy economics, post-2024 observation, hypothesis, candidate or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T15:05:00Z"
+}

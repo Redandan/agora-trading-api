@@ -1,0 +1,65 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_ON_RRP_DRAWDOWN_LIQUIDITY_SUPPORT_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-on-rrp-drawdown-liquidity-support-long-cash",
+  "experiment_id": "btc-fred-on-rrp-drawdown-liquidity-support-historical-v1",
+  "decided_at": "2026-08-20T12:45:00Z",
+  "status": "NO_CANDIDATE_CLOSE_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_ON_RRP_FOUR_WEEK_DRAWDOWN_FAMILY_WITHOUT_ECONOMIC_ACCESS_OR_TUNING",
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-fred-on-rrp-drawdown-liquidity-support-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-fred-on-rrp-drawdown-liquidity-support-historical-v1/artifacts/run2.json",
+    "run1_sha256": "52346fc2b443e1d75299251cd2fb18b4d4533d99cc0a52bb089066a048dc8c65",
+    "run2_sha256": "52346fc2b443e1d75299251cd2fb18b4d4533d99cc0a52bb089066a048dc8c65",
+    "byte_identical": true
+  },
+  "predictive_evidence": {
+    "design": {
+      "episodes": 208,
+      "supportive": 72,
+      "other": 136,
+      "supportive_median_return_168h": "-0.01369097",
+      "other_median_return_168h": "0.00533443",
+      "supportive_negative_rate": "0.55555556",
+      "other_negative_rate": "0.47794118",
+      "one_sided_fisher_p": "0.88709662",
+      "supportive_median_path_drawdown_168h": "0.09631182",
+      "other_median_path_drawdown_168h": "0.08745052",
+      "annual_direction_wins": "1/4"
+    },
+    "validation": {
+      "episodes": 103,
+      "supportive": 76,
+      "other": 27,
+      "supportive_median_return_168h": "0.00577688",
+      "other_median_return_168h": "0.01371171",
+      "supportive_negative_rate": "0.36842105",
+      "other_negative_rate": "0.33333333",
+      "one_sided_fisher_p": "0.70938537",
+      "supportive_median_path_drawdown_168h": "0.06398522",
+      "other_median_path_drawdown_168h": "0.06787350",
+      "maximum_state_anchor_month_share_pct": "18.51851852",
+      "annual_direction_wins": "1/2"
+    }
+  },
+  "material_conclusion": "Lower ON RRP usage did not identify the preregistered BTC support state. Median 168-hour return and negative-return rate were worse in both Design and Validation; Design median path drawdown also worsened. The apparent reserve-liquidity narrative therefore does not survive direct predictive evidence.",
+  "economic_evidence": "MISSING_PROOF_NOT_ACCESSED_BECAUSE_PRE_ECONOMIC_GATES_FAILED",
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_rescue": [
+    "Do not invert the ON RRP direction after observing outcomes.",
+    "Do not add magnitude thresholds, smoothing, alternate lags, TGA, WALCL, M2, rates, Treasury issuance or BTC price filters.",
+    "Do not open matched-capital economics or post-2024 OOS for this family."
+  ],
+  "evidence_bindings": {
+    "manifest_sha256": "19dfe134548d3b63a9cb73f39d9aa540b51b1b6be2d2ee352a41bbfab5a576f8",
+    "runner_sha256": "2f958e0b0d481acbd4610cdc234d9ddc069713984c46c0690720ebe1c0192fc9",
+    "hypothesis_sha256": "434e0d870ebbbe088367c197b6126165ed1b8608eac339407dd84e4bbb4cca3d",
+    "prior_sha256": "e1df8f64645caa79809065f0053f7e486cb91e8f78f10ea3d400a01d158ced93",
+    "source_probe_sha256": "87211dd95e2ce671a7b42e12749118eb6865bc1a5d41b0ff0ed18c1a92f63cdb",
+    "source_bundle_sha256": "21b4ad77c0a37413aa0524aac7b3e18188740e51bc3d70682795330c39dae9d5",
+    "normalized_source_sha256": "ef424a4861a04a9731b269224662c0ebda3e5d3050019e02b8a29ebad8f5f0a5"
+  },
+  "scope_note": "Historical present-vintage pre-economic screen only. No strategy economics, candidate, OOS, paid API, second timer, second writer, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

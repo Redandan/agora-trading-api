@@ -1,0 +1,32 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-monthly-rebalanced-half-passive-half-dra-v1",
+  "title": "Monthly risk-budget reset between passive BTC and frozen DRA V1",
+  "thesis": "Resetting passive BTC and frozen DRA V1 component sleeves to equal value at each UTC month boundary may retain the sealed DRA incremental return while preventing passive BTC appreciation from recreating nearly full-passive drawdown.",
+  "mechanism": "Construct two same-capital component equity indices from the sealed H1 corpus: full passive BTC and unchanged DRA V1. Start each fair-reset window at 50/50. At each first H1 open of a new UTC month, sell the overweight component and buy the underweight component back to exactly 50/50, charging frozen normal or stress friction on every traded component-index notional. Do not rebalance at any other time.",
+  "economic_rationale": "The prior static portfolio already showed broad return uplift but failed because its passive sleeve drifted into the dominant risk exposure. Monthly rebalancing is valuable only if it fixes full-window and annual path risk without consuming the incremental return through turnover cost or relying on terminal DRA inventory.",
+  "source": "SEALED_STATIC_HALF_PASSIVE_HALF_DRA_V1_DECISION_AND_EXISTING_52608_ROW_BTC_H1_CORPUS",
+  "parent": "MONTHLY_REBALANCED_50PCT_PASSIVE_BTC_50PCT_ZERO_YIELD_CASH",
+  "required_capability": "monthly-rebalanced-passive-dra-component-index-matched-capital-runner-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_stress_total_return",
+    "realized_and_unrealized_dra_contribution",
+    "maximum_drawdown_and_underwater_duration",
+    "calmar_and_passive_upside_capture",
+    "rebalance_turnover_and_cost",
+    "pre_rebalance_weight_drift",
+    "annual_return_and_drawdown_breadth",
+    "top_year_incremental_contribution",
+    "terminal_dra_inventory_and_holding"
+  ],
+  "ranking": {
+    "economic_mechanism": 5,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-monthly-risk-budget-1",
+  "created_at": "2026-08-20T08:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

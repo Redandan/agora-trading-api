@@ -1,0 +1,100 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_CFNAI_ABOVE_TREND_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-cfnai-above-trend-long-cash",
+  "experiment_id": "btc-fred-cfnai-above-trend-long-cash-historical-v1",
+  "decided_at": "2026-08-21T04:37:17Z",
+  "status": "NO_CANDIDATE_CLOSE_AFTER_DESIGN_AND_VALIDATION_WITHOUT_OOS",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_CFNAI_ABOVE_TREND_LONG_CASH_FAMILY",
+  "decision": "The single preregistered positive-CFNAI variant failed eight frozen Validation, annual-breadth and concentration gates. It reduced Validation drawdown by 2.51 percentage points and remained profitable, but captured only 5.62% of passive BTC upside, achieved only 6.09% of passive Calmar, produced positive annual returns in only three of six years and concentrated 90.83% of positive annual contribution in one year. Close without tuning or OOS.",
+  "determinism": {
+    "required_runs": 2,
+    "run1_sha256": "d2aa61074709789bcc1d323a8766eeb382af3df3a11932a669eec6378d76eb91",
+    "run2_sha256": "d2aa61074709789bcc1d323a8766eeb382af3df3a11932a669eec6378d76eb91",
+    "byte_identical": true
+  },
+  "economic_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "315.78074454",
+      "buy_hold_total_return_pct": "346.32062389",
+      "candidate_realized_return_pct": "315.78074454",
+      "candidate_unrealized_return_pct": "0E-8",
+      "candidate_drawdown_pct": "68.73661636",
+      "buy_hold_drawdown_pct": "77.18955925",
+      "drawdown_delta_pp": "-8.45294289",
+      "upside_capture_ratio": "0.91181617",
+      "candidate_calmar": "4.59406880",
+      "buy_hold_calmar": "4.48662523",
+      "calmar_ratio_to_buy_hold": "1.02394753",
+      "average_exposure_pct": "56.39972621"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "26.11221457",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_realized_return_pct": "26.11221457",
+      "candidate_unrealized_return_pct": "0E-8",
+      "candidate_drawdown_pct": "29.77514519",
+      "buy_hold_drawdown_pct": "32.28416349",
+      "drawdown_delta_pp": "-2.50901830",
+      "upside_capture_ratio": "0.05618493",
+      "candidate_calmar": "0.87698026",
+      "buy_hold_calmar": "14.39575015",
+      "calmar_ratio_to_buy_hold": "0.06091939",
+      "average_exposure_pct": "24.89740082"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "23.86249895",
+      "candidate_drawdown_pct": "30.19523353"
+    },
+    "annual_breadth": {
+      "normal_positive_years": "3_of_6",
+      "stress_positive_years": "3_of_6",
+      "drawdown_non_worse_years": "6_of_6",
+      "calmar_at_least_80pct_buy_hold_years": "2_of_6",
+      "upside_capture_at_least_50pct_years": "1_of_6",
+      "top_year_positive_contribution_pct": "90.83352482954896446344262948872262"
+    },
+    "path_and_inventory": {
+      "design_terminal_position": false,
+      "validation_terminal_position": false,
+      "validation_terminal_holding_age_hours": null,
+      "validation_terminal_liquidation_adjusted_return_pct": "26.11221457",
+      "validation_terminal_liquidation_cost_pp": "0E-8",
+      "validation_median_hold_hours": "732.00000000",
+      "validation_p90_hold_hours": "744.00000000",
+      "validation_top_positive_episode_contribution_pct": "45.31917084"
+    }
+  },
+  "failed_primary_gates": [
+    "validation_drawdown_at_most_90pct_of_buy_hold",
+    "validation_upside_capture_at_least_60pct",
+    "validation_calmar_at_least_80pct_of_buy_hold",
+    "normal_positive_annual_return_at_least_4_of_6",
+    "stress_positive_annual_return_at_least_4_of_6",
+    "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+    "annual_upside_capture_at_least_50pct_at_least_4_of_6",
+    "top_year_positive_contribution_at_most_60pct"
+  ],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-cfnai-above-trend-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "63d8b31f11ef65e7da801c211f67eaf39b2281f2c07c4180745a65d712cfbaec"},
+    {"path": "research_pipeline/examples/btc-fred-cfnai-above-trend-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "b4d65c603765bdb7ca298eae326e2a1456c9581c1232a051eed136b777b5a126"},
+    {"path": "research_pipeline/examples/btc-fred-cfnai-above-trend-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "05047b9163a84dbbb82a9c1e9df87e6a5688f307c81e270181fe70b5cb2d89ca"},
+    {"path": "research_pipeline/examples/btc-fred-cfnai-above-trend-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "5eb5710709f2296e83804d418a2883129a0a34f66abf6885f876ae51b801b6c2"},
+    {"path": "research/fred_cfnai_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "508d575b5dbabd5aa6281118fc78f39be6472fecca04839dd506d269c5d0bd5b"},
+    {"path": "research/btc_fred_cfnai_above_trend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "d8df173bf0356c5434e362bf0d338743dd2c042388c3a034198822790e7f74f4"},
+    {"path": ".research-state/experiments/btc-fred-cfnai-above-trend-long-cash-historical-v1/inputs/cfnai-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "a07e750784f1f0cad86e0bbed7e5b124cc9dcdd5a00a24a03d64088d5aba31ef"},
+    {"path": ".research-state/experiments/btc-fred-cfnai-above-trend-long-cash-historical-v1/artifacts/economic-run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "d2aa61074709789bcc1d323a8766eeb382af3df3a11932a669eec6378d76eb91"}
+  ],
+  "prohibited_reopen": [
+    "Do not change the publisher zero threshold, replace the 60-day availability lag, smooth CFNAI, use CFNAI-MA3 or invert the direction.",
+    "Do not add the diffusion index, components, release revisions, other macro or BTC interactions, fractional sizing, shorting or leverage as a rescue.",
+    "Do not waive Validation drawdown, upside, Calmar, annual-breadth or concentration failures because Design economics passed.",
+    "Do not relax drawdown, Calmar, upside, breadth, concentration, holding, inventory or friction gates.",
+    "Do not open post-2024 OOS for this closed family."
+  ],
+  "learning": "The delayed positive-CFNAI state looked competitive in Design and reduced drawdown in every annual slice, but became too selective in Validation and missed nearly all of the 2023-2024 BTC upside. Broad above-trend U.S. activity at this lag is therefore a weak BTC timing state rather than generalizable risk-adjusted alpha.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

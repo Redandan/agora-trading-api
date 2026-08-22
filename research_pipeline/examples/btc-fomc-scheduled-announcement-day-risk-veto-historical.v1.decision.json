@@ -1,0 +1,90 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FOMC_SCHEDULED_ANNOUNCEMENT_DAY_RISK_VETO_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fomc-scheduled-announcement-day-risk-veto",
+  "experiment_id": "btc-fomc-scheduled-announcement-day-risk-veto-historical-v1",
+  "decided_at": "2026-08-20T15:03:00Z",
+  "status": "NO_CANDIDATE_CLOSE_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_FROZEN_FOMC_REGULAR_MEETING_FINAL_DATE_FULL_UTC_DAY_RISK_VETO_WITHOUT_EVENT_DATE_OR_WINDOW_TUNING",
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-fomc-scheduled-announcement-day-risk-veto-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-fomc-scheduled-announcement-day-risk-veto-historical-v1/artifacts/run2.json",
+    "run1_sha256": "dfa830268c55378a4b47b42ec8e4fde0e34f98c130c82561f2cfdf08933ac48e",
+    "run2_sha256": "dfa830268c55378a4b47b42ec8e4fde0e34f98c130c82561f2cfdf08933ac48e",
+    "byte_identical": true
+  },
+  "predictive_evidence": {
+    "design": {
+      "years": "2020-2022",
+      "matched_weekday_episodes": 314,
+      "scheduled_fomc_events": 23,
+      "same_weekday_non_event_controls": 291,
+      "event_median_return_24h": "0.01433350",
+      "control_median_return_24h": "-0.00001499",
+      "event_negative_rate": "0.34782609",
+      "control_negative_rate": "0.50171821",
+      "one_sided_fisher_p": "0.95038746",
+      "event_median_path_drawdown_24h": "0.04574260",
+      "control_median_path_drawdown_24h": "0.03676190",
+      "annual_return_direction_wins": "0/3",
+      "annual_drawdown_direction_wins": "2/3",
+      "top1_negative_event_loss_contribution_pct": "38.71564742",
+      "top3_negative_event_loss_contribution_pct": "78.73328697"
+    },
+    "validation": {
+      "years": "2023-2024",
+      "matched_weekday_episodes": 208,
+      "scheduled_fomc_events": 16,
+      "same_weekday_non_event_controls": 192,
+      "event_median_return_24h": "0.00395236",
+      "control_median_return_24h": "-0.00303562",
+      "event_negative_rate": "0.43750000",
+      "control_negative_rate": "0.56250000",
+      "one_sided_fisher_p": "0.88997210",
+      "event_median_path_drawdown_24h": "0.03295180",
+      "control_median_path_drawdown_24h": "0.02852280",
+      "annual_return_direction_wins": "0/2",
+      "annual_drawdown_direction_wins": "1/2",
+      "top1_negative_event_loss_contribution_pct": "29.17797563",
+      "top3_negative_event_loss_contribution_pct": "65.60372949"
+    },
+    "failed_gate_count": 13,
+    "failed_gates": [
+      "design_control_median_return_at_least_25bp_higher",
+      "design_control_negative_rate_at_least_5pp_lower",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_annual_median_return_direction_breadth",
+      "design_top1_negative_event_loss_contribution_at_most_25pct",
+      "design_top3_negative_event_loss_contribution_at_most_50pct",
+      "validation_control_median_return_at_least_25bp_higher",
+      "validation_control_negative_rate_at_least_5pp_lower",
+      "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "validation_annual_median_return_direction_breadth",
+      "validation_annual_median_path_drawdown_direction_breadth",
+      "validation_top1_negative_event_loss_contribution_at_most_25pct",
+      "validation_top3_negative_event_loss_contribution_at_most_50pct"
+    ]
+  },
+  "economic_evidence": {
+    "status": "NOT_OPENED_PRE_ECONOMIC_GATE_FAILURE",
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED"
+  },
+  "material_conclusion": "The frozen FOMC event days had higher median BTC returns and lower negative-return rates than same-window Wednesday and Thursday controls in both Design and Validation. Event-day path drawdown was higher, but the loss-avoidance premise required for a full-day cash veto failed in the opposite return direction with zero annual return-direction wins. The branch is closed before economics rather than tuned into a volatility, direction or intraday variant.",
+  "uncertainty": [
+    "Only one Thursday event appears in each window, while most events and controls are Wednesdays; this sparse weekday component cannot be rescued by removing or separately tuning dates after outcome access.",
+    "The calendar identifies scheduled decision days but not policy surprise sign or causal attribution.",
+    "No matched-capital economics, post-2024 observation, independent OOS, candidate or forward evidence was opened."
+  ],
+  "next_action": "EXCLUDE_THIS_EXACT_FOMC_FULL_UTC_DAY_RISK_VETO_FINGERPRINT_AND_RANK_THE_NEXT_INDEPENDENT_OPEN_FAMILY",
+  "concept_to_teach": "A day can have higher path risk and still be costly to avoid. A risk veto needs both drawdown relief and acceptable return opportunity cost; elevated volatility alone is not a long-to-cash signal.",
+  "prohibited_reopen": true,
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

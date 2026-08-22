@@ -1,0 +1,56 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DERIBIT_LAST_FRIDAY_MONTHLY_OPTIONS_EXPIRY_RISK_VETO_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_CALENDAR_BOUND_PRE_ECONOMIC_HISTORICAL_AUDIT",
+  "claim_boundary": "Deribit currently defines monthly options expiry as the last Friday of each calendar month at 08:00 UTC and applies settlement-specific delivery-price and delta-decay mechanics. These mechanics make a recurring expiry-day liquidity and hedging disturbance plausible, but current documentation does not independently prove that identical monthly rules governed every 2019-2024 observation or that aggregate spot Bitcoin returns are negative on those dates. Exactly one preregistered full-day risk-veto audit may test the calendar proxy; no alpha claim is imported from exchange documentation.",
+  "feature_contract": {
+    "calendar_identity": "LAST_FRIDAY_OF_EACH_UTC_CALENDAR_MONTH",
+    "reference_venue": "Deribit BTC options",
+    "reference_event_time": "08:00:00 UTC",
+    "decision_time": "LAST_FRIDAY_00:00:00_UTC_BEFORE_THE_REFERENCE_EVENT",
+    "primary_feature": "COMPLETE_UTC_DAY_IS_LAST_FRIDAY_OF_ITS_CALENDAR_MONTH",
+    "policy": "HOLD_ZERO_YIELD_CASH_FOR_THE_COMPLETE_LAST_FRIDAY_UTC_DAY_OTHERWISE_HOLD_FULL_CAPITAL_SPOT_BTC",
+    "exit_time": "LAST_FRIDAY_00:00:00_UTC",
+    "reentry_time": "FOLLOWING_SATURDAY_00:00:00_UTC",
+    "event_duration_hours": 24,
+    "threshold": "NONE_CALENDAR_IDENTITY_ONLY",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Deribit Contract Introduction Policy",
+      "primary_source": "https://support.deribit.com/hc/en-us/articles/25944688876957",
+      "finding": "Deribit states that monthly options expire on the last Friday of each calendar month at 08:00 UTC and distinguishes daily, weekly, monthly and quarterly expiries.",
+      "role": "PRIMARY_CALENDAR_AND_EVENT_TIME_IDENTITY",
+      "transfer_boundary": "The current policy page is not a sealed historical listing archive for every monthly expiry from 2019 through 2024."
+    },
+    {
+      "identity": "Deribit Settlement",
+      "primary_source": "https://support.deribit.com/hc/en-us/articles/29734325712413-Settlement",
+      "finding": "Deribit describes expiry delivery at 08:00 UTC, a delivery price based on the 07:30-08:00 UTC index TWAP, and linear decay of expiring option and future delta during the final 30 minutes.",
+      "role": "PRIMARY_SETTLEMENT_AND_HEDGING_MECHANISM",
+      "transfer_boundary": "Settlement mechanics establish a plausible flow event but do not establish its sign, magnitude, persistence or effect on broad spot BTC returns."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Freeze the exact proleptic Gregorian last-Friday calendar, 00:00 UTC exit, 24-hour cash interval and following-Saturday 00:00 UTC reentry before accessing BTC outcomes.",
+    "Use only complete UTC-day events from 2019-01-01 through 2024-12-31 derived without market or options data; reject any month with zero or more than one computed last Friday.",
+    "Use the existing sealed 52,608-row BTC H1 corpus and require exact hourly continuity at every exit and reentry boundary.",
+    "Charge the same fee and adverse slippage on every exit and reentry under the same capital and final valuation as the matched full-capital BTC buy-and-hold comparator.",
+    "Require separate Design and Validation predictive event gates before matched-capital economics; expose event count, median return, negative-rate effect, drawdown path, annual breadth and top-event concentration.",
+    "Do not add weekly, quarterly, daily or non-Deribit expiries; option strikes, open interest, implied volatility, max-pain, funding, basis, direction filters or magnitude thresholds.",
+    "Do not shift the 24-hour interval around 08:00 UTC, scan neighboring weekdays, invert the veto, add fractional sizing or rescue a failure with a different calendar window.",
+    "Do not reinterpret the closed crypto-carry branch as evidence for this family; the proposed feature is a deterministic monthly settlement calendar, not a measured carry state.",
+    "Do not open post-2024 data; any historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Historical Deribit monthly-expiry schedule continuity for every 2019-2024 month remains MISSING_PROOF; the audit tests a frozen calendar proxy unless separately proven before outcome access.",
+    "A last-Friday effect could reflect month-end portfolio flows rather than options expiry, so mechanism attribution is not identified by calendar returns alone.",
+    "The event sample is sparse at approximately twelve days per year, increasing uncertainty and concentration risk.",
+    "A full-day cash veto can miss positive BTC convexity and pays two transitions per event; apparent drawdown improvement may be economically dominated by foregone upside and fees.",
+    "No BTC return, event outcome, post-2024 observation, hypothesis, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T14:21:00Z"
+}

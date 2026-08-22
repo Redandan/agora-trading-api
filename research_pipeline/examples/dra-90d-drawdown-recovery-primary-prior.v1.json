@@ -1,0 +1,51 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary research supports maximum drawdown and recovery as return-path descriptors and reports that Bitcoin forecastability varies with its recent return trajectory. It does not establish that a trailing-90-day drawdown-recovery state improves DRA V1 economics. Exactly one frozen equal-capital historical screen may test the 0.50 primary admission threshold with fixed 0.40 and 0.60 stability neighbors. Any economic, breadth, drawdown, holding, inventory or support failure closes the exact family without changing the window, formula, thresholds, relation, parent or accounting.",
+  "disposition": "PRIOR_SUPPORTS_ONE_DRA_90D_DRAWDOWN_RECOVERY_ADMISSION_AUDIT",
+  "document_type": "DRA_90D_DRAWDOWN_RECOVERY_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION",
+    "formula": "For exactly the latest ninety complete UTC days, compute the highest daily high, then the lowest daily low occurring at or after the first occurrence of that high. Compute recovery as latest complete-day close minus that post-peak low, divided by the peak high minus that low. The feature is unavailable when the peak-low range is non-positive or when ninety complete days are unavailable.",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.40", "0.50", "0.60"],
+    "primary_threshold": "0.50"
+  },
+  "prior_matrix": [
+    {
+      "finding": "The study develops maximum-drawdown and consecutive-recovery ranking measures and reports distinct momentum and contrarian predictability across monthly and weekly equity horizons.",
+      "identity": "Choi, Maximum Drawdown, Recovery, and Momentum, Journal of Risk and Financial Management 14(11), 542 (2021)",
+      "primary_source": "https://doi.org/10.3390/jrfm14110542",
+      "role": "DRAWDOWN_AND_RECOVERY_MEASUREMENT_PRIOR",
+      "transfer_boundary": "Cross-sectional equity ranking results do not establish Bitcoin time-series transferability, a ninety-day window, threshold direction, or DRA entry economics."
+    },
+    {
+      "finding": "The study reports that Bitcoin return forecastability varies across observed recent return trajectories and that trajectory information can improve directional forecasts.",
+      "identity": "Rudkin and Qiu, Return trajectory and the forecastability of bitcoin returns, Financial Review (2025)",
+      "primary_source": "https://doi.org/10.1111/fire.12420",
+      "role": "BITCOIN_RETURN_PATH_DEPENDENCE_PRIOR",
+      "transfer_boundary": "Weekly trajectory forecasting does not validate this daily drawdown-recovery formula, threshold, execution clock, or trading profitability."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only ninety complete UTC days known before the unchanged next-bar open fill.",
+    "Freeze the first occurrence of the trailing peak and the first post-peak trough; do not choose extrema after seeing strategy outcomes.",
+    "Use exactly primary 0.50 with fixed 0.40 and 0.60 stability neighbors and relation AT_OR_ABOVE.",
+    "Keep DRA side, entries, exits, lot cost, capacity, fees, adverse slippage, cooldown and fill clock unchanged.",
+    "Require matched-capital Design and Validation PnL, realized and unrealized decomposition, drawdown, underwater duration, holding distribution, terminal inventory, intervention support, annual breadth, concentration and both-neighbor stability.",
+    "Do not inspect post-2024 evidence, open OOS, reverse the relation, change the window or thresholds, or substitute simple momentum after outcome access."
+  ],
+  "reviewed_at": "2026-08-20T05:10:00Z",
+  "source_access": {
+    "choi_publisher_identity_and_abstract": "PASS",
+    "rudkin_qiu_publisher_identity_and_abstract": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "No primary source directly validates this exact Bitcoin DRA admission rule.",
+    "The feature may overlap economically with long-trend, close-location or range states even though the peak-to-post-peak-trough recovery fingerprint is distinct.",
+    "A high recovery fraction may avoid falling-knife entries but can also enter late and discard compensated deep-drawdown reversals.",
+    "One aggregate PnL improvement is insufficient without annual breadth, realized support, drawdown path and terminal-inventory evidence.",
+    "No strategy outcome, post-2024 evidence, OOS, candidate, runtime filter, canonical write or Trading action was accessed while freezing this prior."
+  ]
+}

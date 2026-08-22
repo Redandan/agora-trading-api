@@ -1,0 +1,91 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_OVEREXTENSION_PREOUTCOME_DECISION_V1",
+  "family_id": "dra-native-signal-overextension-entry-admission",
+  "decided_at": "2026-08-21T06:34:54Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_HYPOTHESIS_CLOSE_NATIVE_SIGNAL_OVEREXTENSION_AT_SUPPORT_GATE",
+  "decision": "PERMANENTLY_CLOSE_EXACT_SIGNAL_BAR_CLOSE_MINUS_UPDATED_EMA20_DIVIDED_BY_UPDATED_ATR14_AT_0_75_1_00_1_25_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_FORMULA_OR_DIRECTION_RESCUE",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-native-signal-overextension-entry-admission-primary-prior.v1.json",
+      "sha256": "9d3744d2aee78114e05d900a1ce3c2d4729c547990abe179717860b04ae74d5e"
+    },
+    "preoutcome_spec": {
+      "path": "research_pipeline/examples/dra-native-signal-overextension-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "b102a75b8bf86297727037aa43b80d60ee42b881335cf11025c90044b57b4c25"
+    },
+    "support_runner": {
+      "path": "research/dra_native_signal_overextension_support_v1.py",
+      "sha256": "500c7a0b8bcee37981a5cb1a106272f7d4f00e279c2e5259a3c9332b974dfdf5"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/dra-native-signal-overextension-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "9ea62a14feec5c096518693c704e8403ab7d74cb5bbc0819a6bfe9909d425378"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/dra-native-signal-overextension-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+      "sha256": "9ea62a14feec5c096518693c704e8403ab7d74cb5bbc0819a6bfe9909d425378"
+    },
+    "determinism": "SUPPORT_RUNS_BYTE_IDENTICAL"
+  },
+  "deduplication": {
+    "status": "PASS_DISTINCT_ACTION_STATE_FINGERPRINT",
+    "new_action": "Capacity-admissible fixed-30-USDT DRA entry veto based on the complete signal bar close displacement above causally updated EMA20 normalized by causally updated ATR14, with rejected-signal cooldown reservation.",
+    "distinct_from": [
+      "prior-200-complete-day long-trend admission",
+      "final-six-hour price-activity admission",
+      "complete-day intraday close-path drawdown admission"
+    ]
+  },
+  "support_summary": {
+    "parent_path_parity": "EXACT_ALL_DESIGN_VALIDATION_AND_ANNUAL_WINDOWS",
+    "feature_availability": {
+      "design": "0.99029126",
+      "validation": "1.00000000"
+    },
+    "design": {
+      "parent_signals": 103,
+      "capacity_admissible_signals": 100,
+      "primary_1_00_atr_actionable_vetoes": 47,
+      "primary_action_share": "0.47000000",
+      "primary_top_month_share": "0.08510638",
+      "lower_0_75_atr_actionable_vetoes": 59,
+      "upper_1_25_atr_actionable_vetoes": 35
+    },
+    "validation": {
+      "parent_signals": 51,
+      "capacity_admissible_signals": 51,
+      "primary_1_00_atr_actionable_vetoes": 34,
+      "primary_action_share": "0.66666667",
+      "primary_top_month_share": "0.08823529",
+      "lower_0_75_atr_actionable_vetoes": 39,
+      "upper_1_25_atr_actionable_vetoes": 26
+    },
+    "annual_primary_1_00_atr_actionable_vetoes": {
+      "2020": 18,
+      "2021": 12,
+      "2022": 8,
+      "2023": 16,
+      "2024": 18
+    },
+    "active_annual_folds": 5,
+    "top_year_primary_veto_share": "0.25000000"
+  },
+  "failed_gates": [
+    "primary_action_share_design_validation"
+  ],
+  "material_learning": "The native signal-margin feature is causal, available, action-distinct and broad across years and months, but the preregistered 1.00 ATR primary vetoed 34 of 51 capacity-admissible Validation signals, or 66.67 percent, above the frozen 60 percent maximum. That intervention is too broad to qualify as a selective admission overlay and risks turning apparent improvement into participation suppression. Promoting the 1.25 ATR neighbor after observing its lower 50.98 percent Validation action share would be post-support threshold selection, so the exact family is closed before a hypothesis or PnL run.",
+  "prohibited_reopen": [
+    "Do not promote the 1.25 ATR rejection-only neighbor to primary after seeing its lower Validation action share.",
+    "Do not rerun 0.75, 1.00 or 1.25 ATR signal-close-minus-updated-EMA20 divided by updated-ATR14 thresholds in this direction.",
+    "Do not change the EMA20 or ATR14 update, signal clock, normalization, relation, capacity order, cooldown reservation, lot cost, cap, windows or support gates to rescue this family.",
+    "Do not invert the relation to require overextension under this family fingerprint.",
+    "Do not create a hypothesis, economic manifest, candidate, OOS, deployment, SHADOW, PAPER or LIVE action from this support result."
+  ],
+  "hypothesis_created": false,
+  "candidate_economics_accessed": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Causal parent-state support and deduplication only. No candidate PnL, OOS, paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

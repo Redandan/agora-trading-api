@@ -1,0 +1,136 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_STABLECOIN_LIQUIDITY_GROWTH_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-stablecoin-liquidity-growth-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BTC_STABLECOIN_LIQUIDITY_GROWTH_LONG_CASH_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_LAGGED_28_DAY_USDT_PLUS_USDC_CAPITALIZATION_GROWTH_LONG_CASH_FAMILY_AND_FROZEN_SINGLE_ASSET_NEIGHBORS_WITHOUT_TUNING",
+  "material_conclusion": "The combined stablecoin-liquidity rule produced positive Design and Validation returns, but it did not improve Validation path risk versus matched-capital buy-and-hold. Validation total return was 275.13508553% versus 464.75475156%, maximum drawdown was slightly worse at 32.94709767% versus 32.28416349%, Calmar was 8.35081403 versus 14.39575015, and upside capture failed the frozen 60% gate. Annual drawdown and Calmar breadth also failed. This is a lower-participation market-state filter, not independent risk-adjusted alpha.",
+  "performance_evidence": {
+    "design_primary_normal": {
+      "candidate_realized_return_pct": "301.94408727",
+      "candidate_unrealized_return_pct": "-29.04378134",
+      "candidate_total_return_pct": "272.90030593",
+      "buy_hold_total_return_pct": "129.60544229",
+      "candidate_maximum_drawdown_pct": "61.56322489",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "candidate_calmar_ratio": "4.43284617",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "average_exposure_pct": "78.37591241",
+      "position_change_count": 17,
+      "top_positive_episode_contribution_pct": "88.01199520"
+    },
+    "validation_primary_normal": {
+      "candidate_realized_return_pct": "178.49031816",
+      "candidate_unrealized_return_pct": "96.64476737",
+      "candidate_total_return_pct": "275.13508553",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_total_return_delta_pp": "-189.61966603",
+      "candidate_maximum_drawdown_pct": "32.94709767",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "candidate_drawdown_delta_pp": "0.66293418",
+      "candidate_calmar_ratio": "8.35081403",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "calmar_ratio_to_buy_hold": "0.58008884",
+      "average_exposure_pct": "69.76744186",
+      "position_change_count": 31,
+      "median_hold_hours": "240.00000000",
+      "p90_hold_hours": "2788.80000000",
+      "terminal_position": true,
+      "terminal_holding_age_hours": "1416.00000000",
+      "top_positive_episode_contribution_pct": "43.51800978"
+    },
+    "validation_primary_stress": {
+      "candidate_total_return_pct": "258.09130036",
+      "buy_hold_total_return_pct": "463.90931032",
+      "candidate_maximum_drawdown_pct": "33.14795530",
+      "candidate_calmar_ratio": "7.78603983"
+    },
+    "validation_neighbors_normal": {
+      "usdt_only": {
+        "candidate_total_return_pct": "416.80080476",
+        "maximum_drawdown_pct": "32.28416349",
+        "calmar_ratio": "12.91037957",
+        "average_exposure_pct": "83.72093023"
+      },
+      "usdc_only": {
+        "candidate_total_return_pct": "46.27559674",
+        "maximum_drawdown_pct": "21.87709084",
+        "calmar_ratio": "2.11525367",
+        "average_exposure_pct": "41.58686731"
+      }
+    },
+    "annual_primary_normal": {
+      "2020": {"candidate_total_return_pct": "259.73212161", "buy_hold_total_return_pct": "301.32276307", "candidate_drawdown_pct": "59.19049593", "buy_hold_drawdown_pct": "60.56916406", "candidate_calmar_ratio": "4.38807139", "buy_hold_calmar_ratio": "4.97485425"},
+      "2021": {"candidate_total_return_pct": "59.60909620", "buy_hold_total_return_pct": "59.60909620", "candidate_drawdown_pct": "54.72348518", "buy_hold_drawdown_pct": "54.72348518", "candidate_calmar_ratio": "1.08927814", "buy_hold_calmar_ratio": "1.08927814"},
+      "2022": {"candidate_total_return_pct": "-35.23741947", "buy_hold_total_return_pct": "-64.25634095", "candidate_drawdown_pct": "45.00057982", "buy_hold_drawdown_pct": "67.36039868", "candidate_calmar_ratio": "-0.78304368", "buy_hold_calmar_ratio": "-0.95391866"},
+      "2023": {"candidate_total_return_pct": "87.48800253", "buy_hold_total_return_pct": "155.16375107", "candidate_drawdown_pct": "17.79588246", "buy_hold_drawdown_pct": "21.72199642", "candidate_calmar_ratio": "4.91619355", "buy_hold_calmar_ratio": "7.14316254"},
+      "2024": {"candidate_total_return_pct": "99.78034601", "buy_hold_total_return_pct": "120.99348678", "candidate_drawdown_pct": "32.94709767", "buy_hold_drawdown_pct": "32.28416349", "candidate_calmar_ratio": "3.02850184", "buy_hold_calmar_ratio": "3.74776589"}
+    },
+    "breadth_and_concentration": {
+      "primary_normal_positive_years": "4_of_5",
+      "primary_stress_positive_years": "4_of_5",
+      "primary_drawdown_non_worse_years": "4_of_5",
+      "primary_calmar_non_worse_years": "2_of_5",
+      "primary_top_year_positive_return_contribution_pct": "51.26869662",
+      "primary_validation_top_positive_episode_contribution_pct": "43.51800978",
+      "usdt_neighbor_normal_positive_years": "4_of_5",
+      "usdc_neighbor_normal_positive_years": "3_of_5"
+    }
+  },
+  "failed_gates_as_emitted": [
+    "primary_validation_normal_drawdown_at_most_85pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_usdt_only_validation_drawdown_non_worse_than_buy_hold",
+    "neighbor_usdc_only_validation_calmar_at_least_75pct_of_buy_hold",
+    "primary_annual_drawdown_non_worse_5_of_5",
+    "primary_annual_calmar_non_worse_at_least_3_of_5"
+  ],
+  "numerical_gate_review": {
+    "gate": "neighbor_usdt_only_validation_drawdown_non_worse_than_buy_hold",
+    "candidate_raw_drawdown_pct": 32.28416349378315,
+    "buy_hold_raw_drawdown_pct": 32.28416349378314,
+    "raw_delta_pp": 0.000000000000007105427357601002,
+    "classification": "NON_MATERIAL_BINARY_FLOATING_POINT_EQUALITY_ARTIFACT",
+    "decision_effect": "NONE",
+    "material_failed_gate_count_after_excluding_artifact": 6,
+    "boundary": "The sealed runner and byte-identical artifacts are not modified. The exact family remains closed because six independent frozen gates fail, including three primary Validation economics gates and two annual breadth gates."
+  },
+  "failure_attribution": [
+    "Design outperformance did not generalize: Validation opportunity cost was 189.61966603 percentage points and drawdown was 0.66293418 points worse than buy-and-hold.",
+    "The primary's Validation Calmar reached only 58.008884% of buy-and-hold, so reduced exposure did not buy enough path-risk improvement.",
+    "The rule helped materially in 2022 but lagged buy-and-hold in both 2023 and 2024; annual drawdown was non-worse in only 4 of 5 years and annual Calmar in only 2 of 5.",
+    "USDT-only was near passive participation at 83.72093023% exposure and did not create superior risk adjustment; USDC-only cut drawdown but retained too little upside and reached only 2.11525367 Calmar.",
+    "The result is consistent with the adversarial literature prior that stablecoin capitalization often reacts to crypto demand and price changes rather than supplying independent directional information."
+  ],
+  "sealed_evidence": {
+    "manifest": {
+      "path": "research_pipeline/examples/btc-stablecoin-liquidity-growth-long-cash-historical.v1.manifest.json",
+      "sha256": "a4041d0948adc287516e83fac234e2f796312b3c0bd14ed2fefb432d4a73ca2c"
+    },
+    "runner": {
+      "path": "research/btc_stablecoin_liquidity_growth_long_cash_historical.cjs",
+      "sha256": "7a49b0a471b1f45528c0ba9ffec670675def2bedb492faeffc2369a0666e0e7c"
+    },
+    "run1": {
+      "path": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/artifacts/run1.json",
+      "sha256": "927bbd73a575f39efca9f73f5b3a6b5820749dd34702fac35cb210912b08127e"
+    },
+    "run2": {
+      "path": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/artifacts/run2.json",
+      "sha256": "927bbd73a575f39efca9f73f5b3a6b5820749dd34702fac35cb210912b08127e"
+    },
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "Coin Metrics Community data is a sealed present-vintage reviewed snapshot; original daily review timestamps, reference-rate vintages and original historical values remain MISSING_PROOF.",
+    "CapMrktCurUSD mixes supply with stablecoin reference-price changes, so this experiment is not a pure issuance test.",
+    "The study closes the exact lagged 28-day combined USDT-USDC capitalization growth policy, not all independently preregistered stablecoin transfer, depeg or flow mechanisms."
+  ],
+  "next_action": "Add this exact family to the permanent tombstone catalog and advance a different independent mechanism without changing the growth lag, threshold, assets or long-cash rule.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

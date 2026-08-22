@@ -1,0 +1,32 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_HOUSING_PERMITS_YOY_GROWTH_SOURCE_FEASIBILITY_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-housing-permits-yoy-growth-long-cash",
+  "experiment_id": "btc-fred-housing-permits-yoy-growth-long-cash-historical-v1",
+  "decided_at": "2026-08-21T03:30:00Z",
+  "status": "DATA_REJECT_CLOSE_BEFORE_HYPOTHESIS_MANIFEST_RUNNER_OR_BTC_OUTCOME_ACCESS",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_HOUSING_PERMITS_YOY_GROWTH_LONG_CASH_FAMILY",
+  "decision": "The exact free official present-vintage source passed identity, monthly-lattice and Validation support checks, but Design contained only eleven non-positive year-over-year months versus the frozen minimum of twelve. Because the missing state support is known before BTC access and no partial pass is allowed, close without economic testing.",
+  "pre_outcome_evidence": {
+    "whole_source": {"monthly_observations": 96, "evaluations": 84, "positive_yoy_months": 50, "nonpositive_yoy_months": 34, "transitions": 23},
+    "design_2019_2022": {"evaluations": 48, "positive_yoy_months": 37, "nonpositive_yoy_months": 11, "transitions": 9, "frozen_minimum_per_state": 12, "support_pass": false},
+    "validation_2023_2024": {"evaluations": 24, "positive_yoy_months": 6, "nonpositive_yoy_months": 18, "transitions": 8, "frozen_minimum_per_state": 6, "support_pass": true}
+  },
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-housing-permits-yoy-growth-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "5608f1bde8ba5d0e8446c575af57a889ccb7901a1c86de815aec40f9d1c7154f"},
+    {"path": "research_pipeline/examples/btc-fred-housing-permits-yoy-growth-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "a3f6740a794159a67ef6513236067bfb3a651dbaa8171f3f190d52dfd588bb78"},
+    {"path": "research/fred_housing_permits_source_probe.py", "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE", "sha256": "c4a22a51a29844ff4f4c481f5a31c2ece8b7dee6f4041dcd2f7706cdb7b4701e"},
+    {"path": ".research-state/experiments/btc-fred-housing-permits-yoy-growth-long-cash-historical-v1/inputs/permit-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "ed44b93c0468bad2fb7f8870ebb2f7dda896ef414deafee7cbffe479eb7cda26"},
+    {"path": ".research-state/experiments/btc-fred-housing-permits-yoy-growth-long-cash-historical-v1/inputs/permit-raw.csv", "role": "SEALED_EXACT_RAW_FRED_RESPONSE", "sha256": "334f06858166d2e19c2b5b1ef4c4d27634d783710ea3260c071c72448bc3c43d"},
+    {"path": ".research-state/experiments/btc-fred-housing-permits-yoy-growth-long-cash-historical-v1/inputs/permit-monthly-2017-2024.csv", "role": "SEALED_NORMALIZED_MONTHLY_FACTOR_SUBSET", "sha256": "339866e0e9dcbb2d5d09211604faa13df113eff486280d508d0ea3d10b9ecabb"}
+  ],
+  "prohibited_reopen": [
+    "Do not lower the Design minimum-state gate from twelve to eleven after observing factor values.",
+    "Do not scan month-over-month change, another lookback, a magnitude threshold, regional permits, starts, completions or inverse direction.",
+    "Do not combine PERMIT with another factor to rescue the family.",
+    "Do not open BTC outcomes, create a hypothesis, manifest, economic runner, candidate or OOS for this closed family."
+  ],
+  "learning": "A one-observation gate miss still matters when it was frozen in advance. Relaxing twelve to eleven after seeing the data would turn a source-feasibility screen into post-hoc selection.",
+  "scope_note": "No BTC outcome, hypothesis, manifest, economic runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

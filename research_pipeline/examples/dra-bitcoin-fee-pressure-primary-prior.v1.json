@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BITCOIN_FEE_PRESSURE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_BITCOIN_FEE_PRESSURE_DRA_ADMISSION_HISTORICAL_AUDIT",
+  "claim_boundary": "Coin Metrics FeeTotNtv measures aggregate transaction fees paid in native BTC and removes direct USD conversion noise, but fee pressure is jointly determined by blockspace demand, congestion, waiting costs, transaction composition and Bitcoin market conditions. Exactly one preregistered audit may test whether conservatively lagged growth in smoothed native-unit fees is useful as DRA entry-admission evidence; no predictive or causal claim is imported from the literature.",
+  "feature_contract": {
+    "publisher": "Coin Metrics Community API",
+    "asset": "btc",
+    "metric": "FeeTotNtv",
+    "observation": "REVIEWED_DAILY_UTC_TOTAL_TRANSACTION_FEES_IN_NATIVE_BTC",
+    "weekly_aggregation": "SEVEN_COMPLETE_DAYS_ENDING_SUNDAY",
+    "decision_time": "WEEK_ENDING_SUNDAY_PLUS_THREE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_28D_MEAN_FEETOTNTV_STRICTLY_ABOVE_IMMEDIATELY_PRECEDING_NONOVERLAPPING_28D_MEAN_FEETOTNTV",
+    "policy": "ADMIT_UNCHANGED_DRA_V1_PARENT_SIGNAL_ONLY_WHILE_LAGGED_NATIVE_FEE_PRESSURE_GROWTH_IS_POSITIVE_OTHERWISE_VETO",
+    "current_window_days": 28,
+    "prior_window_days": 28,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_GROWTH_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Coin Metrics Fees metric documentation",
+      "primary_source": "https://gitbook-docs.coinmetrics.io/network-data/network-data-overview/fees-and-revenue/fees",
+      "finding": "Coin Metrics defines FeeTotNtv as total fees paid during the interval in native units and explicitly notes that native-unit fees avoid exchange-rate volatility embedded in USD fee measures.",
+      "role": "FREE_MACHINE_READABLE_METRIC_IDENTITY",
+      "transfer_boundary": "Total native fees still mix transaction count, transaction size, urgency, congestion, batching and changing usage composition. The current reviewed history is present-vintage evidence rather than an original-release archive."
+    },
+    {
+      "identity": "Koutmos, Bitcoin returns and transaction activity, Economics Letters 167 (2018)",
+      "primary_source": "https://doi.org/10.1016/j.econlet.2018.03.021",
+      "finding": "The study reports bidirectional links between Bitcoin returns and transaction activity, with return shocks contributing more to transaction activity than the reverse linkage.",
+      "role": "ADVERSARIAL_REVERSE_CAUSALITY_PRIOR",
+      "transfer_boundary": "Transaction counts and addresses are not transaction fees, and the paper does not validate a 28-day FeeTotNtv growth sign, DRA veto or after-cost strategy economics."
+    },
+    {
+      "identity": "Basu, Easley, O'Hara and Sirer, From mining to markets: The evolution of bitcoin transaction fees, Journal of Financial Economics 134 (2019)",
+      "primary_source": "https://doi.org/10.1016/j.jfineco.2019.03.004",
+      "finding": "The model and empirical evidence connect Bitcoin fees to user participation, waiting time, miner incentives and price, demonstrating that fees are an endogenous market outcome rather than a clean exogenous demand shock.",
+      "role": "FALSIFICATION_AND_ENDOGENEITY_PRIOR",
+      "transfer_boundary": "Fee-market structure may explain contemporaneous fee formation without predicting future BTC returns. Only matched-capital forward-path evidence can rescue the hypothesis."
+    },
+    {
+      "identity": "Kim, Lee and Kang, The market for bitcoin transactions, Journal of International Financial Markets, Institutions and Money 71 (2021)",
+      "primary_source": "https://doi.org/10.1016/j.intfin.2021.101282",
+      "finding": "The study finds transaction volume and average fees rise with congestion and that high-fee volatile periods reflect user urgency.",
+      "role": "CONGESTION_AND_VOLATILITY_CONFOUNDING_PRIOR",
+      "transfer_boundary": "Congestion can be a consequence of volatility or speculative urgency and may identify adverse rather than favorable paths; the preregistered direction cannot be reversed after outcomes are seen."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact no-key Community API reviewed FeeTotNtv response for BTC from 2018-01-01 through 2024-12-31; reject pagination residue, missing dates, negative values or identity drift.",
+    "Partition complete daily observations into Monday-through-Sunday weeks. Exclude the final incomplete week and make week-ending Sunday D usable only at D plus three calendar days 00:00 UTC for at most 168 hours.",
+    "Compare the simple mean of exactly 28 days ending at D with the simple mean of the immediately preceding nonoverlapping 28 days; admit the unchanged DRA V1 signal only when current is strictly larger.",
+    "Use the frozen 250 USDT DRA V1 parent, 240 USDT slot capacity, 0.10% fee and 0.05% adverse slippage without changing entries, exits, lot size, capacity or accounting.",
+    "Require Design, Validation and 2020-2024 annual matched-capital economics, including realized, unrealized and total PnL, drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth, concentration and independent 168-hour predictive diagnostics.",
+    "Do not add FeeTotUSD, FeeMeanNtv, FeeMeanUSD, FeeRevPct, fee-per-byte, mempool state, transaction count, active addresses, price, volume, miner revenue, hash rate, 7/14/30/60/90-day windows, magnitude thresholds, z-scores, inverse rules, fractional sizing, short legs or post-outcome exceptions.",
+    "Treat the prior mempool source audit as a distinct prospective source-contract diagnostic with no factor or economic result; do not use this historical present-vintage test to claim that prospective mempool evidence is ready.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Native-unit total fees are endogenous to transaction demand, blockspace scarcity, volatility, urgency and transaction composition.",
+    "Inscription waves, batching and protocol usage changes can alter fee meaning across years without representing durable directional demand.",
+    "The 28-day smoothing horizon is a preregistered monthly-scale operational convention, not a parameter established by the cited papers.",
+    "The Community API response is a present-vintage reviewed snapshot; original daily review timestamps and vintages remain MISSING_PROOF.",
+    "No complete FeeTotNtv history, BTC/DRA outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T11:05:00Z"
+}

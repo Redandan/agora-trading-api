@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_TOTAL_OPEN_INTEREST_GROWTH_LONG_CASH_HISTORICAL_MANIFEST_V2",
+  "experiment_id": "btc-cftc-total-open-interest-growth-long-cash-historical-v2",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "v1_scientific_manifest": {
+    "path": "research_pipeline/examples/btc-cftc-total-open-interest-growth-long-cash-historical.v1.manifest.json",
+    "sha256": "8fc77b2da697115c76c6617c0020be41abcd1a11a1f5c00c818ada1bec264c13"
+  },
+  "v1_scientific_runner": {
+    "path": "research/btc_cftc_total_open_interest_growth_long_cash_historical.py",
+    "sha256": "c6047414a27472e1cef2a27694ca5609837e116443342a37d32d3e6e086e58fe"
+  },
+  "v1_capability_erratum": {
+    "path": "research_pipeline/examples/btc-cftc-total-open-interest-growth-long-cash-v1-source-field-parser-erratum.json",
+    "sha256": "32bbc622225a65caddb86aa3cd8fc91460ecdfbdcb60db618de1cb8447922841"
+  },
+  "v2_runner": {
+    "path": "research/btc_cftc_total_open_interest_growth_long_cash_historical_v2.py",
+    "sha256": "a1b200301ac86ded19c9ddf4f3a8999cd7482468065f2c288e300f2fca6ebf30"
+  },
+  "permitted_change": "STRICT_SIGNED_INTEGER_PARSER_FOR_OPEN_INTEREST_CONTRACT_COUNT_FIELDS_ONLY",
+  "scientific_design_change": false,
+  "gate_change": false,
+  "direction_change": false,
+  "threshold_change": false,
+  "lag_or_window_change": false,
+  "cost_or_accounting_change": false,
+  "scope_note": "V2 capability correction only. No candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

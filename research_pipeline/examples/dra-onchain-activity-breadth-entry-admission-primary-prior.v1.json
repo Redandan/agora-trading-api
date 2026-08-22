@@ -1,0 +1,86 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_ONCHAIN_ACTIVITY_BREADTH_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_LOW_COST_DRA_ONCHAIN_ACTIVITY_BREADTH_ENTRY_ADMISSION_AUDIT",
+  "claim_boundary": "The sealed long-cash study found that the conjunction of lagged Bitcoin transaction-count and active-address growth failed to preserve participation or risk-adjusted performance, while transaction count alone nearly replicated passive exposure without independent value. This is a strong adverse prior and the long-cash family remains permanently closed. Exactly one different-parent matched-capital audit may test whether the unchanged lagged two-axis state filters sparse DRA V1 entries. Any Design, Validation, realized-PnL, path-risk, breadth, concentration, predictive or neighbor failure closes this DRA-admission family without changing the axes, means, comparison lag, threshold, decision delay, parent or accounting.",
+  "feature_contract": {
+    "publisher": "Coin Metrics Community API",
+    "asset": "btc",
+    "metrics": ["TxCnt", "AdrActCnt"],
+    "observation": "SEALED_REVIEWED_DAILY_UTC_NETWORK_ACTIVITY",
+    "decision_time": "SECOND_CALENDAR_DAY_0000_UTC_AFTER_OBSERVATION_DAY",
+    "primary_feature": "BOTH_28D_MEAN_TXCNT_AND_ADRACTCNT_STRICTLY_ABOVE_CORRESPONDING_28D_MEAN_364_DAYS_EARLIER",
+    "neighbor_features": [
+      "TXCNT_AXIS_ONLY",
+      "ADRACTCNT_AXIS_ONLY"
+    ],
+    "parent_strategy": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+    "current_window_days": 28,
+    "comparison_lag_days": 364,
+    "threshold": "STRICT_ZERO_GROWTH_NO_TUNED_MARGIN"
+  },
+  "independence_contract": {
+    "duplicate_family_key": "dra-onchain-activity-breadth-28d-vs-52w-entry-admission",
+    "independence_key": "lagged-network-activity-breadth-for-sparse-dra-entry-selection",
+    "not_long_cash_reopen": "The closed study continuously switched full-capital BTC versus cash. This audit leaves the sparse DRA parent and all exits, sizing, capacity, fees, slippage and inventory accounting unchanged and only tests entry admission.",
+    "source_reuse_boundary": "Reuse is limited to the byte-identified sealed present-vintage source; no new download, revised vintage, post-2024 observation or original long-cash recomputation is permitted."
+  },
+  "prior_matrix": [
+    {
+      "identity": "Sealed BTC on-chain activity breadth long-cash decision",
+      "primary_source": "research_pipeline/examples/btc-onchain-activity-breadth-long-cash-historical.v1.decision.json",
+      "sha256": "e1aa08d08415ec429474f058f05ee8bfc067dd79b9ee769a2a3c639159878d90",
+      "finding": "Validation returned 71.58206970% versus 464.75475156% buy-and-hold, improved drawdown by only 3.81226381 percentage points, captured 15.402117% of upside and achieved 17.464393% of buy-and-hold Calmar. The transaction-only neighbor was near passive exposure rather than independent alpha.",
+      "role": "SEALED_ADVERSARIAL_ECONOMIC_PRIOR",
+      "transfer_boundary": "Continuous timing failure does not logically prove absence of conditional DRA-entry value, but it requires a strict no-rescue audit and prohibits any supportive alpha interpretation."
+    },
+    {
+      "identity": "Sealed on-chain activity primary and adversarial literature prior",
+      "primary_source": "research_pipeline/examples/btc-onchain-activity-breadth-primary-prior.v1.json",
+      "sha256": "6e199ca7cbaae2374b7f0a0aad2b5bcf08f8f788c6a5f57ff7895465da11d9de",
+      "finding": "The sealed prior documents bidirectional return-activity relations and explicit reverse-causality risk; it does not establish that activity breadth independently leads Bitcoin returns.",
+      "role": "SEALED_ADVERSARIAL_CAUSAL_PRIOR",
+      "transfer_boundary": "Addresses are not users and transaction counts can change because of batching, inscriptions, fees or usage composition."
+    },
+    {
+      "identity": "Sealed Coin Metrics BTC TxCnt and AdrActCnt source identity",
+      "primary_source": "research_pipeline/examples/coinmetrics-btc-onchain-activity-daily-2018-2024.v1.source.json",
+      "sha256": "c06b986f8a5878998e04be91f6066070fd20ec07d12eed2ef2bdbef2c45bb27d",
+      "finding": "The source contract identifies 2,557 consecutive reviewed daily observations, exact metric semantics, a two-calendar-day usability delay and present-vintage revision limits.",
+      "role": "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_METRIC_AND_LICENSE_IDENTITY",
+      "transfer_boundary": "Source completeness and deterministic executability do not establish predictive or economic value."
+    },
+    {
+      "identity": "Sealed normalized BTC on-chain activity snapshot",
+      "primary_source": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/inputs/coinmetrics-btc-onchain-activity-2018-2024.csv",
+      "sha256": "f47e2c082f21683befa4092f7bdc83de92c3717859fee5ec70f9b52117e4f669",
+      "source_bundle_sha256": "41ed62da5ca1fdc7e36361db9318939ede775993958175cc6e7181cfb90f0aca",
+      "role": "EXECUTABLE_PRE_OUTCOME_FACTOR_DATA_PATH",
+      "transfer_boundary": "The present-vintage snapshot cannot establish original-vintage availability or independent post-selection OOS."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Reuse only the sealed normalized source and source bundle with exact hashes; do not access the network or refresh values.",
+    "Use observation day D only at D plus two calendar days 00:00 UTC and carry the latest usable state without lookahead.",
+    "For each axis compare the mean of exactly 28 complete observations ending at D with the corresponding 28-day mean ending 364 days earlier.",
+    "Freeze both axes positive as primary and TxCnt-only and AdrActCnt-only as rejection-only neighbors; neither may replace a failed primary.",
+    "Keep DRA parent signals, next-bar fills, exits, lot cost, capacity, fee, adverse slippage, cooldown and accounting unchanged.",
+    "Require matched-capital Design and Validation total and realized PnL improvement, drawdown and underwater non-inferiority, holding support, terminal inventory, annual breadth, concentration, non-overlapping predictive support and both-neighbor stability.",
+    "Do not open post-2024 OOS; a historical pass can only freeze one candidate for later independent evidence."
+  ],
+  "prohibited_substitutions": [
+    "Do not reopen or recompute the closed long-cash family or reinterpret its result as positive evidence.",
+    "Do not change the 28-day mean, 364-day comparison lag, strict-zero threshold, two-day delay, conjunction or metrics.",
+    "Do not add price, fee, volume, address-value, transfer-value, trend or interaction terms after DRA outcome access.",
+    "Do not let the near-passive TxCnt-only neighbor replace the primary."
+  ],
+  "uncertainty": [
+    "The previously failed long-cash economics and strong return-to-activity feedback make this a low-pass-probability audit.",
+    "Address and transaction metrics can reflect protocol use rather than investable network demand.",
+    "Original historical review timestamps and vintages remain MISSING_PROOF despite the conservative two-day delay.",
+    "No DRA outcome for this exact admission policy, post-2024 evidence, OOS, candidate, runtime filter, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T07:15:00Z"
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_PRIOR_DAY_MOMENTUM_CONTINUATION_PRIMARY_PRIOR_V1",
+  "family_id": "dra-native-prior-day-momentum-continuation-entry-admission",
+  "created_at": "2026-08-21T08:09:21Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_ALLOWS_ONE_DUPLICATE_AND_ACTION_SUPPORT_AUDIT_ONLY",
+  "prior_thesis": "A positive latest complete UTC-day open-to-close move could represent multi-session continuation before the unchanged next-open DRA fill. However, the parent signal is itself evaluated only after the UTC 23 bar and already requires its close to exceed the close 24 hours earlier. The proposed zero boundary therefore has a high risk of being a non-intervening restatement of the parent momentum gate. Exactly one causal support audit may test that duplicate risk and the frozen rejection-only neighbors before any hypothesis or economic outcome access.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "formula": "SIGNAL_DAY_CLOSE_MINUS_SIGNAL_DAY_00_H1_OPEN_DIVIDED_BY_UPDATED_ATR14",
+    "parent_momentum_formula": "SIGNAL_CLOSE_MINUS_CLOSE_24_H1_BARS_EARLIER_DIVIDED_BY_UPDATED_ATR14",
+    "primary_relation": "ADMIT_AT_OR_ABOVE_0_00_ATR_AND_VETO_BELOW_0_00",
+    "rejection_only_neighbors": ["-0.25", "0.25"],
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN"
+  },
+  "authoritative_parent_evidence": [
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "learning": "The frozen parent evaluates a signal only on the UTC 23 bar and requires close above the close exactly 24 H1 bars earlier, in addition to close above EMA20 and a rising five-day EMA20. This makes a zero-centered complete-day momentum filter presumptively redundant."
+    },
+    {
+      "path": "research/btc_dra_equal_capital_capacity_v1.py",
+      "sha256": "0736afdfe22f514adf5596a883ad94dd3713ec0ef542b167dc92db03e1fd619f",
+      "learning": "The equal-capital parent fixes 30 USDT lots, a 240 USDT slot cap and 250 USDT initial equity; a support audit must evaluate only capacity-admissible signals without altering this path."
+    }
+  ],
+  "sealed_adversarial_evidence": [
+    {
+      "path": "research_pipeline/examples/dra-native-trend-acceleration-entry-admission-historical.v1.decision.json",
+      "sha256": "efc5ad126f819383bee3852a70c2411fe24fc37bf08fcee60b2d9e9d81fa7779",
+      "learning": "EMA20 acceleration reduced participation and Validation PnL despite a smoother drawdown path; generic continuation intuition is not independent alpha."
+    },
+    {
+      "path": "research_pipeline/examples/dra-h1-lag1-return-autocorrelation-entry-admission.v1.decision.json",
+      "sha256": "63db244d1d110769adba7493421932264b49363f28fcfaa313c39c270d0f7bf5",
+      "learning": "The prior-day H1 return-sequence family lost PnL in every annual comparison. Aggregate daily direction is distinct from lag-1 dependence but cannot inherit a persistence claim from it."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-long-trend-entry-admission.v1.json",
+      "sha256": "63cc4a07761702fe0945cad0ac23798dc560d54e30adea93d42f8b4c172eb920",
+      "learning": "A prior-200-day long-trend admission already failed. The new proposal must not reopen a generic trend-strength family."
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-prior-24h-breakout-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "f0e149b8eea2b66c9ce7cfbf19d444c561eec62ba62dcc1edbd78722608af56d",
+      "learning": "Prior-24-hour breakout clearance lacked broad support. A daily-direction proposal must independently intervene and cannot rescue that closed family."
+    }
+  ],
+  "deduplication_status": "UNRESOLVED_HIGH_DUPLICATE_RISK_PENDING_ONE_PREOUTCOME_SUPPORT_AUDIT",
+  "adversarial_risks": [
+    "At the UTC 23 decision, the signal-day 00 H1 open will usually equal or closely track the parent close 24 H1 bars earlier, making the primary action set empty.",
+    "A positive 0.25 ATR neighbor may intervene only by converting the idea into a post-hoc momentum-strength threshold.",
+    "Any lower drawdown could be participation suppression that removes profitable entries.",
+    "Cooldown route substitution would invalidate later economics unless a real veto reserves the original signal timestamp."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_DUPLICATE_CAUSAL_FEATURE_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No candidate PnL, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-dmi14-adx25-long-cash-v1",
+  "title": "Daily DMI14 bullish direction with ADX14 strong-trend long/cash timing",
+  "thesis": "A complete-day bullish directional-movement state filtered by strong ADX may distinguish persistent BTC trends from weak noisy moves early enough that a causal next-open long/cash policy preserves material upside while reducing adverse paths and improving fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "mechanism": "For each complete UTC day, calculate Wilder DMI14 and ADX14 from high, low and close. Hold full BTC only while positive DI is strictly above negative DI and ADX is strictly above 25, executing a changed target at the next H1 open.",
+  "economic_rationale": "The mechanism requires directional high expansion to dominate directional low expansion while their normalized separation is persistently strong. It is useful only if the default threshold retains material after-cost upside, reduces drawdown, improves Calmar and is supported by annual breadth and rejection-only ADX thresholds 20 and 30.",
+  "source": "BTC_DAILY_DMI14_ADX25_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-dmi14-adx25-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "di_complete_days": 14,
+      "adx_complete_dx_values": 14,
+      "adx_threshold": "25"
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "di_complete_days": 14,
+      "adx_complete_dx_values": 14,
+      "adx_threshold": "20"
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "di_complete_days": 14,
+      "adx_complete_dx_values": 14,
+      "adx_threshold": "30"
+    }
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-7",
+  "created_at": "2026-08-19T03:43:34Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

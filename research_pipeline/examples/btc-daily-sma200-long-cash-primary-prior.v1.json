@@ -1,0 +1,73 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_SMA200_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "DAILY_CLOSE_ABOVE_PRIOR_SMA_LONG_CASH",
+  "reviewed_at": "2026-08-19T03:58:00Z",
+  "prior_matrix": [
+    {
+      "identity": "Detzel, Liu, Strauss, Zhou and Zhu, Learning and predictability via technical analysis, Financial Management 2021, DOI 10.1111/fima.12310",
+      "primary_source": "https://onlinelibrary.wiley.com/doi/10.1111/fima.12310",
+      "role": "SUPPORTIVE_BITCOIN_PRICE_TO_MOVING_AVERAGE_PRIOR",
+      "finding": "The authors report that ratios of Bitcoin prices to moving averages forecast daily returns in and out of sample and that resulting strategies improve alpha and Sharpe ratio relative to buy-and-hold.",
+      "transfer_boundary": "The paper studies price-to-moving-average ratios and portfolios rather than this exact strict-above prior-200-day, next-H1-open, spot-only long/cash policy and cost model. It supplies a mechanism prior, not matched-capital evidence."
+    },
+    {
+      "identity": "Hudson and Urquhart, Technical trading and cryptocurrencies, Annals of Operations Research 2021, DOI 10.1007/s10479-019-03357-1",
+      "primary_source": "https://link.springer.com/article/10.1007/s10479-019-03357-1",
+      "role": "MIXED_MOVING_AVERAGE_AND_BITCOIN_OOS_PRIOR",
+      "finding": "The study includes moving-average horizons through 200 days and reports broad risk-adjusted and drawdown benefits for technical rules, but its separately selected Bitcoin out-of-sample rules had negative returns.",
+      "parameter_boundary": "The primary horizon is fixed at 200 prior complete days. Horizons 150 and 250 are rejection-only sensitivity neighbors and cannot replace a failed primary.",
+      "transfer_boundary": "The study scans many rule classes and parameterizations. Its mixed result requires frozen parameters, matched capital and costs, path-risk gates, annual breadth and independent OOS before any candidate claim."
+    },
+    {
+      "identity": "Anghel, A Reality Check on Trading Rule Performance in the Cryptocurrency Market, Finance Research Letters 39, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_FRICTION_PRIOR",
+      "finding": "After accounting for data snooping, risk and market frictions, significant positive excess returns from cryptocurrency trading rules were rare.",
+      "transfer_boundary": "This does not directly reject a slow trend state. It requires one preregistered family, rejection-only neighbors and permanent closure on any frozen gate failure."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": ["open_time", "close_time", "open", "high", "low", "close", "volume"],
+    "decision_feature": "At each complete UTC-day close, compare that close strictly with the arithmetic mean of exactly the prior N complete-day closes, excluding the current day; execute any changed target at the next H1 open.",
+    "prospective_transport": "The sealed OKX BTC-USDT H1 source contains all required close and timestamp fields. No paid API, credential, timer, writer, database, manual export or backfill is required.",
+    "status": "READY"
+  },
+  "fingerprint_boundary": {
+    "independence_semantics": "ADJACENT_FEATURE_DISTINCT_ECONOMIC_POLICY",
+    "duplicate_family_key": "btc-daily-prior-sma-150-200-250-full-capital-long-cash",
+    "distinct_from_closed_families": [
+      "The closed DRA long-trend study used the same strict prior-200-day price relation only to veto otherwise qualifying 30-USDT DRA lot entries while retaining DRA arms, cooldown and profit-only exits. This policy directly controls a continuous zero-or-full-capital BTC allocation, has no DRA signals, lots, cooldown or exit manager, and therefore asks a different economic and path-risk question.",
+      "The closed monthly 12-month time-series-momentum policy uses one monthly endpoint-return sign and monthly execution. This policy uses a daily price-versus-level state and daily next-open execution.",
+      "The closed OBV family compares moving averages of cumulative signed volume. This policy uses price only.",
+      "The closed MACD family compares two exponential price averages and a signal average over short horizons. This policy compares price with one slow simple average and has no signal line."
+    ],
+    "non_independence_warning": "The factor is adjacent to the closed DRA prior-200-day admission feature and to the closed slow-trend allocation family. A positive historical result cannot be counted as independent evidence and still requires untouched OOS; a negative result permanently closes this exact standalone daily SMA family.",
+    "excluded_reinterpretations": [
+      "SMA200 is the sole primary. SMA150 and SMA250 are rejection-only neighbors and cannot replace it.",
+      "No EMA, alternate length, price band, persistence, delay, stop, minimum hold, cash yield, leverage, short leg, DRA interaction or ensemble may be added after outcome access.",
+      "No result may reopen the closed DRA long-trend admission or monthly 12-month momentum families."
+    ]
+  },
+  "real_time_design_requirements": [
+    "Aggregate exactly twenty-four contiguous H1 bars per complete UTC day.",
+    "For period N, require N prior complete-day closes and exclude the current close from the average.",
+    "Hold full BTC only when the current complete-day close is strictly above the prior-N-day simple average and zero-yield cash otherwise.",
+    "Execute changed targets only at the next H1 open with no short, leverage, stop, confirmation or DRA interaction.",
+    "Compare with full-capital BTC buy-and-hold under identical initial capital, hourly price path, fees, adverse slippage and valuation boundary."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_DAILY_SMA200_LONG_CASH_EXPERIMENT_WITH_ADJACENT_INDEPENDENCE_WARNING",
+  "uncertainty": [
+    "The literature is mixed and does not test this exact implementation.",
+    "The same long-trend feature failed as a DRA admission veto, although the economic policy here is different.",
+    "A slow filter may avoid a bear regime yet miss early bull recovery and under-capture persistent BTC upside.",
+    "Historical Design and Validation through 2024 cannot establish independent OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one preregistered historical SMA150, SMA200 and SMA250 standalone long/cash family. It does not establish alpha, a candidate, independent evidence, OOS value, deployability or Trading authority."
+}

@@ -1,0 +1,150 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_BITCOIN_HASHRATE_GROWTH_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-bitcoin-hashrate-growth-entry-admission-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BITCOIN_HASHRATE_GROWTH_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_PRESENT_VINTAGE_COIN_METRICS_BTC_HASHRATE_STRICT_POSITIVE_ADJACENT_28D_GROWTH_SUNDAY_PLUS_3D_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_WINDOW_THRESHOLD_METRIC_OR_INVERSE_TUNING",
+  "material_conclusion": "The exact lagged Bitcoin hash-rate-growth admission rule failed matched-capital economics. Validation total and realized PnL both fell by 8.66947165 USDT while unrealized PnL and terminal inventory were unchanged, maximum drawdown rose by 0.053696 percentage points, maximum underwater duration rose by 244 hours and median holding rose by 8.5 hours. Only one of five annual folds improved. The result is missed profitable participation rather than terminal-inventory cleanup or independent risk-adjusted alpha.",
+  "performance_evidence": {
+    "design": {
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "19.25135004",
+      "total_pnl_delta_usdt": "-23.74785089",
+      "parent_realized_pnl_usdt": "122.11969534",
+      "candidate_realized_pnl_usdt": "88.61862634",
+      "realized_pnl_delta_usdt": "-33.50106900",
+      "parent_unrealized_pnl_usdt": "-79.12049441",
+      "candidate_unrealized_pnl_usdt": "-69.36727630",
+      "unrealized_pnl_delta_usdt": "9.75321811",
+      "parent_maximum_drawdown_pct": "18.673983",
+      "candidate_maximum_drawdown_pct": "18.279347",
+      "maximum_drawdown_delta_pp": "-0.394636",
+      "parent_maximum_underwater_duration_hours": 9878,
+      "candidate_maximum_underwater_duration_hours": 9878,
+      "parent_median_hold_hours": 113.0,
+      "candidate_median_hold_hours": 108.5,
+      "parent_p90_hold_hours": 1266.0,
+      "candidate_p90_hold_hours": 1146.4,
+      "parent_terminal_inventory_count": 5,
+      "candidate_terminal_inventory_count": 4,
+      "vetoed_parent_signals": 69
+    },
+    "validation": {
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "77.53351021",
+      "total_pnl_delta_usdt": "-8.66947165",
+      "parent_realized_pnl_usdt": "89.41118307",
+      "candidate_realized_pnl_usdt": "80.74171142",
+      "realized_pnl_delta_usdt": "-8.66947165",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "candidate_unrealized_pnl_usdt": "-3.20820121",
+      "unrealized_pnl_delta_usdt": "0.00000000",
+      "parent_maximum_drawdown_pct": "7.121498",
+      "candidate_maximum_drawdown_pct": "7.175194",
+      "maximum_drawdown_delta_pp": "0.053696",
+      "parent_maximum_underwater_duration_hours": 2397,
+      "candidate_maximum_underwater_duration_hours": 2641,
+      "underwater_duration_delta_hours": 244,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 191.0,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 1277.6,
+      "parent_terminal_inventory_count": 1,
+      "candidate_terminal_inventory_count": 1,
+      "vetoed_parent_signals": 28
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-13.63507255",
+      "2021": "-9.08319710",
+      "2022": "1.71182418",
+      "2023": "-2.04735869",
+      "2024": "-6.62211296"
+    },
+    "breadth_and_concentration": {
+      "annual_total_wins": "1_of_5",
+      "annual_drawdown_non_worse": "5_of_5",
+      "top_year_positive_delta_contribution_pct": "100.000000",
+      "validation_realized_delta_contribution_pct": "0.000000"
+    },
+    "predictive_design": {
+      "episode_count": 156,
+      "positive_factor_count": 116,
+      "negative_factor_count": 40,
+      "median_signed_response_168h": "0.001333716642917418229109581611645",
+      "positive_factor_median_raw_return_168h": "0.001333716642917418229109581611645",
+      "negative_factor_median_raw_return_168h": "-0.00125904932725396845929302568886965",
+      "one_sided_sign_test_p_value": "0.3445271364657339848323239241870075",
+      "passed_gates": "10_of_11"
+    },
+    "predictive_validation": {
+      "episode_count": 103,
+      "positive_factor_count": 90,
+      "negative_factor_count": 13,
+      "median_signed_response_168h": "0.007120795550121212549562857364988",
+      "positive_factor_median_raw_return_168h": "0.008751851298363832607502896398637",
+      "negative_factor_median_raw_return_168h": "0.005325186073885540071660910802728",
+      "one_sided_sign_test_p_value": "0.02411682608549850783722405684165172",
+      "passed_gates": "10_of_11"
+    }
+  },
+  "failed_economic_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_median_hold_non_worse",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_underwater_duration_non_worse"
+  ],
+  "failed_predictive_gates": {
+    "design": [
+      "one_sided_sign_test_at_most_0_10"
+    ],
+    "validation": [
+      "negative_factor_median_raw_return_negative"
+    ]
+  },
+  "failure_attribution": [
+    "Validation unrealized PnL and terminal inventory were identical to the parent while realized and total PnL both fell by 8.66947165 USDT, isolating the loss to vetoed participation rather than mark-to-market cleanup.",
+    "Maximum drawdown, maximum underwater duration and median holding all worsened in Validation; the P90 holding improvement did not compensate for the poorer central holding and recovery path.",
+    "Only 2022 improved across five annual folds and it contributed all positive annual delta, while 2020, 2021, 2023 and 2024 were worse than the parent.",
+    "Directional diagnostics were not uniformly absent, but Design failed the preregistered sign test and Validation negative-growth weeks had a positive rather than negative median forward return. Predictive hints therefore did not translate into robust economic admission value.",
+    "The primary prior explicitly warned that Bitcoin price and mining profitability may drive hash rate. The failed economic result is consistent with hash rate being a lagging participation measure rather than an independent entry signal, but causality remains unproven."
+  ],
+  "sealed_evidence": {
+    "manifest": {
+      "path": "research_pipeline/examples/dra-bitcoin-hashrate-growth-entry-admission-historical.v1.manifest.json",
+      "sha256": "97993e4ebdcf6b7266bb0fbe5e546cea2893701e67ea2ec1bcb80cac2b6d3b8a"
+    },
+    "runner": {
+      "path": "research/btc_dra_bitcoin_hashrate_growth_entry_admission_historical_v1.py",
+      "sha256": "d467dd13766b86326d4f32b52e5c65b013da6893b2b3fee832fd6d73ec1dd079"
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-source-bundle.json",
+      "sha256": "177675c165dbb70c76ca4fb4c967dfdb80529a0bcdaa037071b6cce4f1e81e13"
+    },
+    "run1": {
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/artifacts/run1.json",
+      "sha256": "59134a7ecc33d31c7cd4c4ff273c25f20ffb3a6f86a77da190456bbccf27e7ae"
+    },
+    "run2": {
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/artifacts/run2.json",
+      "sha256": "59134a7ecc33d31c7cd4c4ff273c25f20ffb3a6f86a77da190456bbccf27e7ae"
+    },
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "Hash rate is an estimated chain-level mining-power metric and does not directly measure miner profitability, leverage, electricity cost or forced selling.",
+    "The sealed Community API history is a present-vintage reviewed snapshot. Original daily review timestamps and original vintages remain MISSING_PROOF.",
+    "This closes only the exact adjacent 28-day mean-growth, Sunday-plus-three-day DRA V1 entry-admission rule. It does not test independently preregistered miner-revenue, difficulty, fee-pressure or cross-sectional mining mechanisms.",
+    "No post-2024 observation or independent OOS was opened."
+  ],
+  "next_action": "Add the exact family to the permanent tombstone catalog and advance a different independent mechanism without changing the hash-rate metric, aggregation, horizon, sign, threshold, admission action or inverse rule.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, canonical state write, post-2024 data, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

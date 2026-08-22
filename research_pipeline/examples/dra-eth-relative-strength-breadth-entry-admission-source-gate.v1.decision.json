@@ -1,0 +1,55 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_ETH_RELATIVE_STRENGTH_BREADTH_ENTRY_ADMISSION_SOURCE_GATE_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DATA_REJECT_CLOSE_BTC_ETH_REFERENCE_RATE_FREE_SOURCE_FAMILY",
+  "experiment_id": "dra-eth-relative-strength-breadth-entry-admission-historical-v1",
+  "decision_at": "2026-08-20T06:22:12Z",
+  "decision": "DATA_REJECT",
+  "material_conclusion": "The one permitted no-credential Coin Metrics Community API request for paired BTC and ETH ReferenceRateUSD returned an empty data array. The response failed the frozen 5,114-row contract before any price value was accepted or sealed and before any DRA outcome was accessed. The exact family is closed without retry, metric-name substitution, exchange-candle substitution or gate change.",
+  "source_gate": {
+    "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc,eth&metrics=ReferenceRateUSD&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000",
+    "attempt_count": 1,
+    "automatic_retry": "DENY",
+    "redirect": "DENY",
+    "credentials": "DENY",
+    "expected_total_rows": 5114,
+    "observed_result": "SOURCE_REJECT:ROWS:0",
+    "raw_response_sealed": false,
+    "normalized_subset_sealed": false,
+    "source_bundle_sealed": false,
+    "dra_outcome_accessed": false
+  },
+  "evidence_bindings": [
+    {
+      "path": "research/coinmetrics_btc_eth_reference_rate_source_probe.cjs",
+      "role": "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE",
+      "sha256": "920c8234b5dd92eb818e59d97231ea7bbf496d3ff6fb34c80c1ffb44cfaca788"
+    },
+    {
+      "path": "research_pipeline/examples/dra-eth-relative-strength-breadth-entry-admission-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
+      "sha256": "71035b51348b2d82510ca49136dce7a0b96bc27f4463bbad88e1eacb1093fbba"
+    }
+  ],
+  "performance_evidence": {
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "NOT_OPENED"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not retry the fixed request or rename ReferenceRateUSD after observing the empty response.",
+    "Do not substitute ReferenceRate, PriceUSD, exchange candles, another altcoin, another provider, manual export or paid source.",
+    "Do not reinterpret an empty data array as evidence about ETH-relative-strength predictive or economic value."
+  ],
+  "next_action": "Exclude this family permanently and prefer a preregistered factor computed from the already sealed BTC H1 corpus.",
+  "concept_to_teach": "Source catalogs and documentation are weaker than an executable point-in-time path. An empty but valid API envelope is still a data-path rejection, not permission to search neighboring metric names after access.",
+  "scope_note": "No hypothesis, manifest, strategy runner, candidate, OOS, canonical state, scheduler, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

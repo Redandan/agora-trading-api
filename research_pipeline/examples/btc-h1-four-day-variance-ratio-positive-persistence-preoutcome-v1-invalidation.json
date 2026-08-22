@@ -1,0 +1,25 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_H1_FOUR_DAY_VARIANCE_RATIO_PREOUTCOME_V1_INVALIDATION",
+  "recorded_at": "2026-08-21T05:01:20Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
+  "invalidated_artifact": {
+    "path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/inputs/feature-support.json",
+    "sha256": "520c5f87b9187f535982d140b075e7e2a12f0c65fc543b3a8dfdfc2f11cad6de",
+    "reported_feature_lattice_sha256": "672a181ec1a3cee522a41fbf629010ebc3bf639693a4be5780c5d0bc5141ee1a"
+  },
+  "finding": "The V1 spec required Python Decimal precision 50, but V1 build_output imported the frozen H1 parser after setting that precision. The parser changed the process-global Decimal precision to 34, so V1 feature values depended on module import order and did not satisfy the declared arithmetic contract.",
+  "detection": {
+    "stage": "PRE_ECONOMIC_MANIFEST_AND_FEATURE_REPRODUCTION_TEST",
+    "precision_50_reproduction_feature_lattice_sha256": "067fa12477292207e843fe31f40c2a4dd10b08a7d860c8f62a358ec4becbffc8",
+    "strategy_return_accessed": false,
+    "pnl_accessed": false,
+    "drawdown_accessed": false,
+    "oos_accessed": false
+  },
+  "disposition": "INVALIDATE_V1_SUPPORT_AS_INSTRUMENTATION_DRIFT_AND_SUPERSEDE_WITH_ONE_V2_LOCAL_DECIMAL_CONTEXT_RUN_BEFORE_ANY_STRATEGY_ECONOMICS",
+  "allowed_correction": "Wrap every variance-ratio calculation in an explicit local Decimal context with precision 50. Preserve the exact dataset, parser, 29-close window, log-return formula, overlapping four-day sums, sample-variance estimator, threshold one, direction condition, windows and all V1 support gates.",
+  "prohibited_correction": "Do not inspect or use strategy returns, PnL, drawdown, Calmar, holding, inventory or OOS; do not change a factor threshold, window, estimator, direction, gate or strategy rule.",
+  "scope_note": "The invalid V1 artifact remains create-once evidence and was not overwritten. No strategy economics, candidate, canonical state, schedule, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_PRE_EXECUTION_RUNNER_IMPORT_AMENDMENT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1",
+  "created_at": "2026-08-21T02:45:00Z",
+  "status": "FROZEN_AFTER_IMPORT_FAILURE_BEFORE_ANY_INPUT_OR_OUTCOME_ACCESS",
+  "observed_failure": "ModuleNotFoundError: No module named 'research' occurred at module import before argument parsing, manifest loading, UMCSENT loading, BTC loading, simulation, metric calculation or output creation.",
+  "output_state": {
+    "run1_exists": false,
+    "run2_exists": false,
+    "result_or_metric_exposed": false
+  },
+  "frozen_correction": "Replace only the package-style import of the existing matched-capital kernel with an explicit importlib file-path load rooted at this repository. Preserve every dataset, feature, window, cost, gate, decision and output field. Freeze a V2 manifest with the corrected runner hash before rerunning.",
+  "immutable_bindings": [
+    {
+      "path": "research/btc_fred_umcsent_rising_consumer_sentiment_long_cash_historical.py",
+      "role": "FAILED_PRE_EXECUTION_RUNNER",
+      "sha256": "42fa36b863085eb68aa1872a5e84d1b0c09feab28bb2e5430723b2a0676ff974"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical.v1.manifest.json",
+      "role": "FAILED_PRE_EXECUTION_V1_MANIFEST",
+      "sha256": "70ffa4a14a451e0f134fe26ab1126b77c0bbea7970bf75452941acb77f2a0e09"
+    }
+  ],
+  "prohibited_changes": [
+    "Do not change the UMCSENT feature, availability, windows, costs, sizing or gates.",
+    "Do not read either input or any BTC outcome before the corrected runner and V2 manifest are frozen and validated.",
+    "Do not overwrite the V1 manifest or create a result at the failed output paths through manual repair."
+  ],
+  "scope_note": "No UMCSENT value was loaded by the failed runner, no BTC input or outcome was accessed, no result was created, and no candidate, OOS, paid API, canonical write, second timer, second writer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

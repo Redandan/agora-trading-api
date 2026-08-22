@@ -1,0 +1,26 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_WEEKLY_EXCHANGE_NET_INFLOW_SELL_PRESSURE_PRIMARY_PRIOR_TRANSPORT_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-risk-veto",
+  "prior_path": "research_pipeline/examples/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-primary-prior.v1.json",
+  "prior_sha256": "1729b6339eedd68ee94c5330a9e754176fb0e8cc3e249a708ec7a40c50bef726",
+  "created_before_factor_or_btc_outcome_access": true,
+  "correction": "The prior's transport preflight used an unescaped comma in a combined metrics URL and therefore observed an empty data array. A percent-encoded comma returns both metrics. The frozen source probe intentionally retains two separate no-key requests so each response, metric identity, row lattice, status field and SHA-256 can be validated independently.",
+  "scientific_effect": "NONE. The seven-day net-inflow formula, strict zero threshold, sell-pressure direction, conservative availability, BTC horizon, parent, gates and stop conditions are unchanged.",
+  "sealed_source_acceptance": {
+    "bundle_path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/inputs/coinmetrics-source-bundle.json",
+    "bundle_sha256": "0b0ab780d3efd64b56e4a5d8d55b15ae225d12371659eef0e09123368119e918",
+    "flow_in_raw_sha256": "683313aa248566f12b4a667d2ecd531c5131551724d310f39cf309717a5651b0",
+    "flow_out_raw_sha256": "094b84d9a4e7ebe2a4308b9c1b54c3c6cb3957c6ae8ed48ab58e854c3fda420c",
+    "normalized_sha256": "725bab20952e98c3c7cbb62a9d5bc3f96590a62ea2940fa3feb8bcd2f66e91c1",
+    "daily_rows": 2557,
+    "complete_week_evaluations": 365,
+    "positive_net_inflow_weeks": 202,
+    "nonpositive_net_inflow_weeks": 163,
+    "transitions": 156,
+    "response_status": "FLASH_PRESENT_VINTAGE",
+    "original_historical_vintages": "MISSING_PROOF"
+  },
+  "scope_note": "Pre-outcome transport correction and sealed-source acceptance only. No weekly factor values were inspected, no BTC outcome was paired, and no hypothesis, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

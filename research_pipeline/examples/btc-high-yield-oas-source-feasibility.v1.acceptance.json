@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "document_type": "PRE_CANDIDATE_POOL_SOURCE_CLOSURE_ACCEPTANCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "accepted_at": "2026-08-19T07:52:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "duplicate_family_key": "btc-ice-bofa-us-high-yield-oas-risk-state-long-cash",
+  "result_path": "research_pipeline/examples/btc-high-yield-oas-source-feasibility.v1.json",
+  "result_sha256": "b2bf83b59608524d875a8aaa3c835c085c16ca07fa441f98f159adda508f21e0",
+  "accepted_disposition": "DATA_PATH_REJECT_INSUFFICIENT_FREE_HISTORICAL_COVERAGE",
+  "classification_outcome": "EXCLUDE_NON_ECONOMIC_SOURCE_CLOSURE",
+  "acceptance_reason": "The official no-key FRED CSV and the same URL with a 2025 vintage parameter both begin on 2023-08-21, leaving the complete 2020-2022 Design period unavailable. The official observations API rejects a no-key request, FRED states the series now retains only three years, and no already-sealed full-history lawful source exists in the repository. The family is therefore closed before BTC outcome access rather than receiving a runner, manifest, experiment or performance claim.",
+  "kpi_treatment": {
+    "direct_economic_closure": false,
+    "candidate_delivery": false,
+    "accepted_work_class": "NON_COUNTING_SOURCE_FEASIBILITY",
+    "reason": "No matched-capital PnL, drawdown, holding, inventory or breadth evidence was opened."
+  },
+  "safety_assertions": {
+    "btc_outcome_opened": false,
+    "canonical_state_changed": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "server_research_mcp_write_attempted": false,
+    "trading_action_attempted": false
+  },
+  "prohibited_reopen": true
+}

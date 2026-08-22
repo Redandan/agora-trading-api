@@ -1,0 +1,86 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_UNDERWATER_INVENTORY_CONGESTION_PREOUTCOME_DECISION_V1",
+  "family_id": "dra-underwater-inventory-congestion-entry-admission",
+  "decided_at": "2026-08-21T06:23:35Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_HYPOTHESIS_CLOSE_INVENTORY_CONGESTION_FAMILY_AT_SUPPORT_GATE",
+  "decision": "PERMANENTLY_CLOSE_EXACT_CAPACITY_ADMISSIBLE_AGGREGATE_UNDERWATER_OPEN_COST_90_120_150_USDT_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_OR_STATE_RESCUE",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-underwater-inventory-congestion-entry-admission-primary-prior.v1.json",
+      "sha256": "3914325ce58bd92b496b0e5193c32324b40e390d5730cc5cc8229f08dfb079cf"
+    },
+    "preoutcome_spec": {
+      "path": "research_pipeline/examples/dra-underwater-inventory-congestion-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "a45aec9165cf2e4ed3130e473052880c536e7ce7a1e273f75b22d80d9e07c1f6"
+    },
+    "support_runner": {
+      "path": "research/dra_underwater_inventory_congestion_support_v1.py",
+      "sha256": "f202304d9278e3e138a393d82c1c5714a700108cba07392fe87f5d8dcdef95b4"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/dra-underwater-inventory-congestion-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "d96302e456ac967ef12801396a46bf188d42dbd6f1d2bb34412a3372b8091fc0"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/dra-underwater-inventory-congestion-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+      "sha256": "d96302e456ac967ef12801396a46bf188d42dbd6f1d2bb34412a3372b8091fc0"
+    },
+    "determinism": "SUPPORT_RUNS_BYTE_IDENTICAL"
+  },
+  "deduplication": {
+    "status": "PASS_DISTINCT_ACTION_STATE_FINGERPRINT",
+    "new_action": "Capacity-admissible fixed-30-USDT DRA entry veto based on existing open cost and aggregate estimated-net inventory PnL, with rejected-signal cooldown reservation.",
+    "distinct_from": [
+      "one-slot profitable-incumbent sell-and-replace rotation",
+      "flat-regime stale-inventory veto",
+      "open-slot capacity change",
+      "inverse-realized-variance variable lot sizing"
+    ]
+  },
+  "support_summary": {
+    "parent_path_parity": "EXACT_ALL_DESIGN_VALIDATION_AND_ANNUAL_WINDOWS",
+    "design": {
+      "parent_signals": 103,
+      "capacity_admissible_signals": 100,
+      "primary_120_usdt_actionable_vetoes": 24,
+      "primary_action_share": "0.24000000",
+      "primary_top_month_share": "0.16666667",
+      "lower_90_usdt_actionable_vetoes": 40,
+      "upper_150_usdt_actionable_vetoes": 20
+    },
+    "validation": {
+      "parent_signals": 51,
+      "capacity_admissible_signals": 51,
+      "primary_120_usdt_actionable_vetoes": 2,
+      "primary_action_share": "0.03921569",
+      "primary_top_month_share": "0.50000000",
+      "lower_90_usdt_actionable_vetoes": 7,
+      "upper_150_usdt_actionable_vetoes": 0
+    },
+    "annual_primary_120_usdt_actionable_vetoes_2020_2024": [4, 0, 3, 1, 1],
+    "active_annual_folds": 4,
+    "top_year_primary_veto_share": "0.44444444"
+  },
+  "failed_gates": [
+    "annual_active_fold_minimum_support",
+    "primary_action_share_design_validation",
+    "top_year_action_concentration",
+    "validation_neighbor_action_support",
+    "validation_primary_action_support",
+    "validation_top_month_action_concentration"
+  ],
+  "material_learning": "The internal inventory state is causal and action-distinct, and the observer reproduced the parent path exactly, but the proposed mechanism does not have enough stable support to justify candidate economics. The primary condition fired only twice in Validation, only 3.92 percent of capacity-admissible Validation signals, with one month carrying half the events. It fired zero times in 2021 and only once in each of 2023 and 2024; the 150 USDT neighbor had zero Validation actions. Selecting the apparently denser 90 USDT neighbor after seeing these counts would be post-support threshold selection, so the exact family is closed before a hypothesis or PnL run.",
+  "prohibited_reopen": [
+    "Do not promote 90 USDT from rejection-only neighbor to primary after seeing its seven Validation actions.",
+    "Do not rerun 90, 120 or 150 USDT open-cost thresholds with aggregate estimated-net inventory PnL at or below zero.",
+    "Do not change the underwater sign, aggregation, mark convention, capacity-admissibility order, cooldown reservation, lot cost, cap, windows or support gates to rescue this family.",
+    "Do not create a hypothesis, economic manifest, candidate, OOS, deployment, SHADOW, PAPER or LIVE action from this support result."
+  ],
+  "hypothesis_created": false,
+  "candidate_economics_accessed": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Causal parent-state support and deduplication only. No candidate PnL, OOS, paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

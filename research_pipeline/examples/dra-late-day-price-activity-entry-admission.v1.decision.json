@@ -1,0 +1,135 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_LATE_DAY_PRICE_ACTIVITY_ENTRY_ADMISSION_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_LATE_DAY_PRICE_ACTIVITY_FAMILY",
+  "experiment_id": "dra-late-day-price-activity-entry-admission-v1",
+  "decision": "PERMANENTLY_CLOSE_EXACT_FINAL_SIX_HOUR_ABSOLUTE_LOG_RETURN_SHARE_TO_PRIOR_20D_MEDIAN_FAMILY_WITHOUT_HOUR_RETURN_LOOKBACK_DIRECTION_OR_THRESHOLD_TUNING",
+  "manifest": {
+    "path": "research_pipeline/examples/dra-late-day-price-activity-entry-admission.v1.manifest.json",
+    "sha256": "5b6f9e07ad99ef566bda6742ce5571f40026af979e4ca33584621a43e9eddc47"
+  },
+  "prior": {
+    "path": "research_pipeline/examples/dra-late-day-price-activity-entry-admission-primary-prior.v1.json",
+    "sha256": "7f20b5ba0c58b6763fb82045ab6ebd90f849c012e49d4f38f63eb5f9f11fe34e"
+  },
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "93793685bb01659c85536a2464195e74b0792e687bcdacbc6ef707e91ea3db31",
+    "identity": "BTC_DRA_DECLARATIVE_ENTRY_ADMISSION_RUNNER_V1",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-late-day-price-activity-entry-admission-v1/artifacts/run1.json",
+    "sha256": "3103c524e9d1ad36443b57fbe5bd7c2ca6d5587b86eb53af88d76f59675b414b"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-late-day-price-activity-entry-admission-v1/artifacts/run2.json",
+    "sha256": "3103c524e9d1ad36443b57fbe5bd7c2ca6d5587b86eb53af88d76f59675b414b",
+    "byte_identical": true
+  },
+  "policy": {
+    "feature": "DAILY_1800_2359_UTC_ABSOLUTE_LOG_RETURN_SHARE_TO_PRIOR_20D_MEDIAN",
+    "relation": "AT_OR_ABOVE",
+    "primary_threshold": "1.00",
+    "neighbors": ["0.80", "1.20"],
+    "parent_strategy": "BTC_DRA_V1",
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "primary_economic_summary": {
+    "design": {
+      "parent_signals": 168,
+      "admitted_signals": 79,
+      "vetoed_signals": 89,
+      "parent_realized_usdt": "169.89846767",
+      "candidate_realized_usdt": "128.03443391",
+      "parent_unrealized_usdt": "-79.12049441",
+      "candidate_unrealized_usdt": "-78.17385363",
+      "parent_total_pnl_usdt": "90.77797326",
+      "candidate_total_pnl_usdt": "49.86058028",
+      "total_pnl_delta_usdt": "-40.91739298",
+      "parent_max_drawdown_pct": "29.530448",
+      "candidate_max_drawdown_pct": "18.187900",
+      "parent_open_lots": 5,
+      "candidate_open_lots": 6
+    },
+    "validation": {
+      "parent_signals": 82,
+      "admitted_signals": 45,
+      "vetoed_signals": 37,
+      "parent_realized_usdt": "89.41118307",
+      "candidate_realized_usdt": "77.87386674",
+      "parent_unrealized_usdt": "-3.20820121",
+      "candidate_unrealized_usdt": "0.00000000",
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "77.87386674",
+      "total_pnl_delta_usdt": "-8.32911512",
+      "parent_max_drawdown_pct": "7.121498",
+      "candidate_max_drawdown_pct": "11.247414",
+      "drawdown_delta_pp": "4.125916",
+      "parent_max_underwater_hours": 2397,
+      "candidate_max_underwater_hours": 3121,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 184.0,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 2634.2,
+      "parent_open_lots": 1,
+      "candidate_open_lots": 0
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-13.54716630",
+      "2021": "-8.58045896",
+      "2022": "-3.91889484",
+      "2023": "-11.51039413",
+      "2024": "0.84036131"
+    },
+    "annual_total_wins": "1_OF_5",
+    "annual_drawdown_non_worse": "4_OF_5",
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "neighbor_summary": {
+    "lower_080": {
+      "validation_total_pnl_usdt": "87.22209142",
+      "parent_total_pnl_usdt": "86.20298186",
+      "validation_total_delta_usdt": "1.01910956",
+      "validation_max_drawdown_pct": "13.696508",
+      "disposition": "FAILS_DRAWDOWN_PATH_AND_REALIZED_STABILITY_GATES"
+    },
+    "upper_120": {
+      "validation_total_pnl_usdt": "57.93864333",
+      "parent_total_pnl_usdt": "86.20298186",
+      "validation_total_delta_usdt": "-28.26433853",
+      "validation_max_drawdown_pct": "9.192423",
+      "disposition": "FAILS_TOTAL_PNL_DRAWDOWN_AND_REALIZED_STABILITY_GATES"
+    }
+  },
+  "material_learning": "Concentrating absolute H1 movement in the final six UTC hours is not an independent DRA quality signal. The primary filter removed 37 of 82 Validation signals, but total PnL fell by 8.32911512 USDT, maximum drawdown worsened by 4.125916 percentage points, maximum underwater duration increased by 724 hours and P90 holding nearly doubled. The only positive annual delta was 2024 and the lower threshold's small aggregate PnL uplift came with materially worse drawdown, so no neighboring configuration rescues the mechanism.",
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_terminal_inventory_count_non_worse",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The result closes the exact final-six-hour absolute within-bar log-return share and does not establish that every intraday timing or path-risk feature is useless.",
+    "No canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

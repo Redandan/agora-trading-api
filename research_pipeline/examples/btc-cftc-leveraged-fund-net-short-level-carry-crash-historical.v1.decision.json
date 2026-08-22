@@ -1,0 +1,99 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_LEVERAGED_FUND_NET_SHORT_LEVEL_CARRY_CRASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-cftc-leveraged-fund-net-short-level-carry-crash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_CFTC_LEVERAGED_FUND_NET_SHORT_CARRY_CRASH_PROXY_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_NET_SHORT_LEVEL_CARRY_CRASH_PROXY_WITHOUT_ECONOMIC_ACCESS_OR_TUNING",
+  "candidate_created": false,
+  "economic_evidence_accessed": false,
+  "oos_opened": false,
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-cftc-leveraged-fund-net-short-level-carry-crash-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+      "sha256": "3c66bc3d514ce6aecaaf673fa6fbaa57a3e886b419db37e9b234fa9e44fccb89"
+    },
+    {
+      "path": "research_pipeline/examples/btc-cftc-leveraged-fund-net-short-level-carry-crash-v1.hypothesis.json",
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "sha256": "cfb0ec1f21fcadffa9b1c59f8242c43782defd0f183770bde041cd2b0d0da9b2"
+    },
+    {
+      "path": "research_pipeline/examples/btc-cftc-leveraged-fund-net-short-level-carry-crash-historical.v1.manifest.json",
+      "role": "FROZEN_PREREGISTRATION_MANIFEST",
+      "sha256": "e9a006d6fa311c05457643be663e20db40678f259982ff0432122086ca996578"
+    },
+    {
+      "path": "research/btc_cftc_leveraged_fund_net_short_level_carry_crash_historical.py",
+      "role": "FROZEN_DIRECT_PREDICTIVE_RUNNER",
+      "sha256": "0e8ed2af74d13bd581d6db8e179d874e4dc414ea4d93d92cebd601884c6de294"
+    },
+    {
+      "path": ".research-state/experiments/btc-cftc-leveraged-fund-net-short-level-carry-crash-historical-v1/artifacts/run1.json",
+      "role": "SEALED_BYTE_IDENTICAL_RUN1_AND_RUN2",
+      "sha256": "40c8ca813c8f5b4d7e559ccfdf820deb43d44fb448695e8f3443a897dede09ea"
+    }
+  ],
+  "predictive_summary": {
+    "design": {
+      "episode_count": 38,
+      "high_risk_count": 13,
+      "normal_state_count": 25,
+      "high_risk_median_path_drawdown_672h": "0.25889523",
+      "normal_state_median_path_drawdown_672h": "0.18399456",
+      "high_risk_crash_rate": "0.69230769",
+      "normal_state_crash_rate": "0.68000000",
+      "high_risk_median_terminal_return_672h": "0.12960718",
+      "normal_state_median_terminal_return_672h": "0.00062963",
+      "high_risk_negative_terminal_rate": "0.30769231",
+      "normal_state_negative_terminal_rate": "0.48000000",
+      "one_sided_fisher_crash_rate_p_value": "0.61892600"
+    },
+    "validation": {
+      "episode_count": 25,
+      "high_risk_count": 13,
+      "normal_state_count": 12,
+      "high_risk_median_path_drawdown_672h": "0.12040357",
+      "normal_state_median_path_drawdown_672h": "0.12423022",
+      "high_risk_crash_rate": "0.46153846",
+      "normal_state_crash_rate": "0.25000000",
+      "high_risk_median_terminal_return_672h": "0.06910631",
+      "normal_state_median_terminal_return_672h": "0.02161799",
+      "high_risk_negative_terminal_rate": "0.46153846",
+      "normal_state_negative_terminal_rate": "0.41666667",
+      "one_sided_fisher_crash_rate_p_value": "0.24813568"
+    }
+  },
+  "failed_pre_economic_gates": [
+    "design_high_risk_crash_rate_at_least_10pp_worse",
+    "design_high_risk_median_terminal_return_strictly_worse",
+    "design_high_risk_negative_terminal_rate_at_least_10pp_worse",
+    "design_one_sided_fisher_crash_rate_p_value_at_most_0_10",
+    "validation_high_risk_median_path_drawdown_strictly_worse",
+    "validation_high_risk_median_terminal_return_strictly_worse",
+    "validation_high_risk_negative_terminal_rate_at_least_10pp_worse",
+    "validation_one_sided_fisher_crash_rate_p_value_at_most_0_10"
+  ],
+  "material_learning": "The BIS carry mechanism does not transfer reliably through this public CFTC level proxy. Design high-risk weeks had almost the same 15-percent path-crash rate as normal weeks and substantially higher positive terminal returns; Validation high-risk weeks did not have worse median path drawdown and also had higher median terminal returns. The two windows therefore do not support a stable crash-risk state.",
+  "scientific_claim": "The exact current leveraged-fund net-short percent-of-open-interest level above the prior-52 nearest-rank 75th percentile is not a validated BTC carry-crash proxy in the sealed 2020-2024 historical windows. This rejects only the frozen proxy, not measured crypto basis or the BIS carry result.",
+  "performance_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "breadth_and_path_risk": "PREDICTIVE_PATH_RISK_FAILED_BEFORE_ECONOMICS"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not change the 52-week lookback, 75th-percentile threshold, strict comparison, seven-day availability or 672-hour horizon.",
+    "Do not invert the direction, use weekly delta, replace net-short level with gross shorts or select another CFTC category to rescue the result.",
+    "Do not compute strategy economics or open post-2024 OOS for this closed proxy."
+  ],
+  "next_action": "SWITCH_TO_A_NON_CFTC_EVIDENCE_READY_FAMILY_USING_AN_EXISTING_SEALED_CORPUS",
+  "scope_note": "Historical pre-economic predictive evidence only. No strategy economics, candidate, OOS, paid API, second timer, second writer, external backfill, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

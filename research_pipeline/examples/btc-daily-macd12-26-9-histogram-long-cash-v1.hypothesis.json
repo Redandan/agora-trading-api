@@ -1,0 +1,56 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-macd12-26-9-histogram-long-cash-v1",
+  "title": "Daily MACD 12/26/9 positive-histogram long/cash timing",
+  "thesis": "A positive daily MACD histogram may identify strengthening BTC trend momentum early enough that a causal next-open long/cash policy preserves material upside while avoiding sufficiently adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "mechanism": "For each complete UTC day, calculate TradingView-style EMA12 and EMA26 of close, subtract them to obtain MACD, calculate EMA9 of the MACD series, and hold full BTC only while MACD minus signal is strictly positive. Execute a changed target at the next H1 open.",
+  "economic_rationale": "The mechanism requires short-horizon price trend to exceed both a slower price trend and its own smoothed recent state. It is useful only if the default tuple retains material after-cost upside, reduces drawdown, improves Calmar and is supported by annual breadth and rejection-only fast-length neighbors.",
+  "source": "BTC_DAILY_MACD12_26_9_HISTOGRAM_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-macd12-26-9-histogram-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "fast_complete_days": 12,
+      "slow_complete_days": 26,
+      "signal_complete_macd_values": 9
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "fast_complete_days": 10,
+      "slow_complete_days": 26,
+      "signal_complete_macd_values": 9
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "fast_complete_days": 14,
+      "slow_complete_days": 26,
+      "signal_complete_macd_values": 9
+    }
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-6",
+  "created_at": "2026-08-19T03:25:12Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

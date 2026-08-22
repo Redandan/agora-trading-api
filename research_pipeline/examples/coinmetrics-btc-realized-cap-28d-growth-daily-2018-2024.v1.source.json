@@ -1,0 +1,73 @@
+{
+  "schema_version": "1",
+  "document_type": "COIN_METRICS_BTC_REALIZED_CAP_28D_GROWTH_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Coin Metrics",
+  "asset": "btc",
+  "source_fields": ["CapMrktCurUSD", "CapMVRVCur"],
+  "derived_metric": "CapRealUSD=CapMrktCurUSD/CapMVRVCur",
+  "metric_documentation": "https://docs.coinmetrics.io/asset-metrics/market/capact1yrusd",
+  "archive_repository": "https://github.com/coinmetrics/data",
+  "source_commit": "f1a36afb962731c387bb03982758ab0103063da5",
+  "download_url": "https://raw.githubusercontent.com/coinmetrics/data/f1a36afb962731c387bb03982758ab0103063da5/csv/btc.csv",
+  "captured_at": "2026-08-20T15:55:50Z",
+  "source_probe": {
+    "path": "research/coinmetrics_btc_realized_cap_growth_source_probe.py",
+    "sha256": "5a6229394885fbbf2e9820794a86340705a9c3c6bc82c30eefdda4913b0a07a3"
+  },
+  "source_bundle": {
+    "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/inputs/coinmetrics-realized-cap-source-bundle.json",
+    "sha256": "e097f4c7da2153ab2f1387d54f0400ef745972bda645a4202d83783ac812d33b"
+  },
+  "raw_archive": {
+    "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/inputs/coinmetrics-btc-raw.csv",
+    "sha256": "06495ff8e643432e6948b7b4686ce44fc106217287dabdc1b38351d9ddec46c3",
+    "bytes": 2482497,
+    "http_status": 200,
+    "etag": "\"4dbc6335d4de3300bce96ffd1a49f82bc82273b37caefd922e9bdf948037362b\"",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "retry": "DENY"
+  },
+  "sealed_subset": {
+    "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/inputs/coinmetrics-btc-realized-cap-2018-2024.csv",
+    "sha256": "d24ab2b1445226894feb8fef0f7843485f9fc520d79992b2ecb14a825c96056a",
+    "bytes": 199487,
+    "rows": 2557,
+    "first_date": "2018-01-01",
+    "last_date": "2024-12-31",
+    "columns": ["date", "cap_mrkt_cur_usd", "mvrv", "cap_real_usd"],
+    "derivation": "CapMrktCurUSD_divided_by_CapMVRVCur_quantized_half_even_to_0.00000001_USD"
+  },
+  "pre_outcome_feature_feasibility": {
+    "design": {
+      "effective_window": "2019-01-01_to_2023-01-01_exclusive",
+      "evaluations": 209,
+      "positive_growth_weeks": 128,
+      "nonpositive_growth_weeks": 81,
+      "transitions": 12,
+      "first_observation": "2018-12-30",
+      "first_effective_at": "2019-01-02T00:00:00",
+      "last_observation": "2022-12-25",
+      "last_effective_at": "2022-12-28T00:00:00"
+    },
+    "validation": {
+      "effective_window": "2023-01-01_to_2025-01-01_exclusive",
+      "evaluations": 104,
+      "positive_growth_weeks": 89,
+      "nonpositive_growth_weeks": 15,
+      "transitions": 9,
+      "first_observation": "2023-01-01",
+      "first_effective_at": "2023-01-04T00:00:00",
+      "last_observation": "2024-12-22",
+      "last_effective_at": "2024-12-25T00:00:00"
+    },
+    "btc_outcome_accessed": false,
+    "result": "PASS_BOTH_STATES_AND_TRANSITIONS_PRESENT"
+  },
+  "publication_timing_boundary": "Use only Sunday D after exactly 28 prior calendar-day observations. D becomes usable at D plus three calendar days 00:00 UTC and remains valid for at most 168 hours.",
+  "revision_boundary": "The exact official GitHub commit and raw bytes are sealed present-vintage Community data. Original daily review timestamps and original vintages remain MISSING_PROOF; a historical pass requires untouched independent OOS.",
+  "license_boundary": "Coin Metrics publishes the archive under CC BY-NC 4.0 without warranty. Raw and normalized bytes remain internal research inputs; commercial reuse or redistribution is not authorized by this audit.",
+  "scope_note": "Free historical source only. No BTC strategy outcome, paid API, key, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed."
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BROAD_DOLLAR_WEAKNESS_PREOUTCOME_SOURCE_FORMAT_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "FROZEN_BEFORE_ANY_BTC_OR_DRA_OUTCOME_ACCESS",
+  "hypothesis_id": "dra-broad-dollar-weakness-entry-admission-v1",
+  "observed_source_fact": "The exact official FRED DTWEXBGS CSV preserves some U.S. weekday holiday dates with an empty value field, for example 2018-01-15, instead of omitting the row entirely.",
+  "original_requirement": "Require unique weekday dates, positive finite decimal values and no missing-value marker.",
+  "corrected_requirement": "Require every source row to have a unique ordered weekday date. A non-empty value must be a positive finite decimal. An explicitly empty value is classified as an unpublished holiday observation, counted, excluded from aggregation and never interpolated. Each complete calendar week must still contain three to five published observations.",
+  "unchanged_contract": [
+    "DTWEXBGS_ONLY",
+    "ARITHMETIC_MEAN_OF_ACTUALLY_PUBLISHED_MONDAY_FRIDAY_OBSERVATIONS",
+    "EXACT_28_CALENDAR_DAY_WEEKLY_PREDECESSOR",
+    "STRICT_DOLLAR_WEAKNESS_SIGN",
+    "FRIDAY_PLUS_FIVE_CALENDAR_DAYS_0000_UTC",
+    "168_HOUR_VALIDITY",
+    "ONE_PRIMARY_VARIANT",
+    "FROZEN_DRA_V1_MATCHED_CAPITAL_PARENT",
+    "NO_POST_2024_DATA",
+    "NO_OOS_OR_TRADING_PATH"
+  ],
+  "scope_note": "Only official DTWEXBGS source-format rows were inspected. No BTC price, DRA event, PnL, drawdown, holding, annual strategy result, candidate, post-2024 observation or OOS was accessed.",
+  "frozen_at": "2026-08-19T09:51:39Z"
+}

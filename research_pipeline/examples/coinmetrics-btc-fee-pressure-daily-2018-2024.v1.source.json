@@ -1,0 +1,55 @@
+{
+  "schema_version": "1",
+  "document_type": "COIN_METRICS_BTC_FEE_PRESSURE_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Coin Metrics Community API",
+  "asset": "btc",
+  "metric": "FeeTotNtv",
+  "metric_documentation": "https://gitbook-docs.coinmetrics.io/network-data/network-data-overview/fees-and-revenue/fees",
+  "download_url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=FeeTotNtv&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000&status=reviewed",
+  "captured_at": "2026-08-19T10:51:57.724Z",
+  "source_probe": {
+    "path": "research/coinmetrics_btc_fee_pressure_source_probe.cjs",
+    "sha256": "91eded6fb5bcb86f6a6b394a074acde0efd991cc98c653f891d83e3f5be6a117"
+  },
+  "raw_bundle": {
+    "path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v1/inputs/coinmetrics-source-bundle.json",
+    "sha256": "17c2af2888356f531e20b6f23aab40647fa44997a0fb6fcfeb6ecbc1eabb8eb6",
+    "request_count": 1,
+    "request_origin": "https://community-api.coinmetrics.io",
+    "credentials": "DENY",
+    "requested_status": "reviewed"
+  },
+  "raw_response": {
+    "path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v1/inputs/coinmetrics-btc-fee-pressure-2018-2024-raw.json",
+    "sha256": "42275b99afb4d2cefdd39a5dacd089f02e52d69689b3a23069d12e9c4332c772",
+    "bytes": 210186,
+    "rows": 2557,
+    "pagination_remaining": false
+  },
+  "sealed_subset": {
+    "path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v1/inputs/coinmetrics-btc-fee-pressure-2018-2024.csv",
+    "sha256": "6dd78283ff476ddca7bed52bf01ad76a6b49d6bf1125c9e360ad95aa5787feed",
+    "bytes": 59333,
+    "rows": 2557,
+    "first_date": "2018-01-01",
+    "last_date": "2024-12-31",
+    "columns": ["date", "total_fees_btc"]
+  },
+  "pre_outcome_feature_feasibility": {
+    "complete_week_count": 365,
+    "evaluations": 358,
+    "positive_growth_weeks": 160,
+    "nonpositive_growth_weeks": 198,
+    "transitions": 56,
+    "excluded_incomplete_tail_days": 2,
+    "first_evaluable_week_end": "2018-02-25",
+    "first_effective_time": "2018-02-28T00:00:00Z",
+    "btc_outcome_accessed": false
+  },
+  "publication_timing_boundary": "Aggregate only complete Monday-through-Sunday weeks. Week-ending Sunday D becomes usable at D plus three calendar days 00:00 UTC and remains valid for at most 168 hours.",
+  "revision_boundary": "The exact Community API response is a sealed present-vintage reviewed historical input. Original daily review timestamps and original vintages remain MISSING_PROOF; a historical pass therefore requires untouched sealed forward OOS.",
+  "license_boundary": "Coin Metrics documents Community API data as no-key and free for non-commercial use under a Creative Commons license. Raw and normalized bytes remain untracked internal research inputs; commercial reuse and redistribution remain unauthorized by this audit.",
+  "scope_note": "Free historical source only. No BTC/DRA outcome, paid API, account, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed."
+}

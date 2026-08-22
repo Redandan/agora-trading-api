@@ -1,0 +1,123 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_NATIVE_ISSUANCE_CONTRACTION_SUPPLY_PRESSURE_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "btc-coinmetrics-native-issuance-contraction-historical-v1",
+  "hypothesis_id": "btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash-v1",
+  "status": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_NATIVE_ISSUANCE_CONTRACTION_SUPPLY_PRESSURE_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_YEAR_PAIRED_NATIVE_ISSUANCE_CONTRACTION_FAMILY_WITHOUT_ECONOMIC_ACCESS_OR_TUNING",
+  "candidate_created": false,
+  "economic_evidence_accessed": false,
+  "oos_opened": false,
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-coinmetrics-native-issuance-contraction-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-coinmetrics-native-issuance-contraction-historical-v1/artifacts/run2.json",
+    "run1_sha256": "ea200ff6e46c5f11c0efc28657fb55528dd6b2037af176a3b32e86bee4d5f918",
+    "run2_sha256": "ea200ff6e46c5f11c0efc28657fb55528dd6b2037af176a3b32e86bee4d5f918",
+    "byte_identical": true
+  },
+  "frozen_bindings": {
+    "manifest_sha256": "1bb0f31b052899a86df868788c15b670ef7af879b1e2d48a84e272a5cb67fa19",
+    "runner_sha256": "1cb8ffa290d53c0f81a7eb22874c701e10d4f62547fd13f0dda90f6452e9164c",
+    "source_probe_sha256": "9886c51b9251d6ca9c94d1b5f3e7cd0e43f7928c4569ddf3509587bc6aeefb8f",
+    "source_bundle_sha256": "05964036ded83834019078b7ea631fc4d7ffd9a746942bde4a545bb557c01a7e",
+    "normalized_issuance_sha256": "7e443a284b5df553b5bb0c442126a1a00d752e6cadf5afd847de9b3c039f2ee6",
+    "btc_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+  },
+  "source_feasibility": {
+    "daily_observations": 2922,
+    "factor_evaluations": 362,
+    "supportive_weeks": 228,
+    "other_weeks": 134,
+    "transitions": 49,
+    "design_support": "133_SUPPORTIVE_76_OTHER_26_TRANSITIONS_PASS",
+    "validation_support": "67_SUPPORTIVE_37_OTHER_16_TRANSITIONS_PASS",
+    "validation_top_year_supportive_share": "0.71641791_PASS_BELOW_FROZEN_0.75",
+    "supportive_weeks_outside_post_halving_364d": "DESIGN_81_VALIDATION_31_PASS"
+  },
+  "predictive_result": {
+    "failed_gate_count": 8,
+    "design": {
+      "episodes": 208,
+      "supportive_count": 132,
+      "other_count": 76,
+      "supportive_median_terminal_return_168h": "0.00943636",
+      "other_median_terminal_return_168h": "-0.01008263",
+      "supportive_negative_terminal_rate": "0.45454545",
+      "other_negative_terminal_rate": "0.59210526",
+      "one_sided_fisher_negative_rate_p_value": "0.03844897",
+      "supportive_median_path_drawdown_168h": "0.09068592",
+      "other_median_path_drawdown_168h": "0.09231563",
+      "supportive_p75_path_drawdown_168h": "0.11970265",
+      "other_p75_path_drawdown_168h": "0.14812730",
+      "annual_direction_wins": "3_OF_4",
+      "annual_median_return_deltas": {
+        "2019": "0.02732540",
+        "2020": "-0.07778342",
+        "2021": "0.00108190",
+        "2022": "0.01084050"
+      },
+      "top_positive_annual_delta_contribution_pct": "69.62276479"
+    },
+    "validation": {
+      "episodes": 103,
+      "supportive_count": 66,
+      "other_count": 37,
+      "supportive_median_terminal_return_168h": "0.00738916",
+      "other_median_terminal_return_168h": "0.00601674",
+      "supportive_negative_terminal_rate": "0.37878788",
+      "other_negative_terminal_rate": "0.32432432",
+      "one_sided_fisher_negative_rate_p_value": "0.77751396",
+      "supportive_median_path_drawdown_168h": "0.06917086",
+      "other_median_path_drawdown_168h": "0.06267999",
+      "supportive_p75_path_drawdown_168h": "0.09364816",
+      "other_p75_path_drawdown_168h": "0.07614956",
+      "annual_direction_wins": "1_OF_2",
+      "annual_median_return_deltas": {
+        "2023": "0.00746363",
+        "2024": "-0.03181164"
+      },
+      "top_positive_annual_delta_contribution_pct": "100.00000000"
+    },
+    "material_interpretation": "Design looked strong in aggregate but exceeded the frozen annual-concentration gate and reversed sharply in 2020. Validation then delivered only 13.72bp median-return uplift versus the required 25bp, a 5.45 percentage-point worse negative-return rate, worse median and p75 path drawdown, no Fisher support, only one winning year, and all positive annual contribution in 2023. The anticipated lower-issuance state does not generalize."
+  },
+  "failed_pre_economic_gates": [
+    "design_top_positive_annual_median_return_delta_contribution_at_most_60pct",
+    "validation_supportive_median_terminal_return_at_least_25bp_higher",
+    "validation_supportive_negative_terminal_rate_at_least_5pp_lower",
+    "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+    "validation_supportive_median_path_drawdown_non_worse",
+    "validation_supportive_p75_path_drawdown_non_worse",
+    "validation_annual_median_return_direction_breadth",
+    "validation_top_positive_annual_median_return_delta_contribution_at_most_60pct"
+  ],
+  "permanent_tombstone": {
+    "duplicate_family_key": "btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash",
+    "closed_fingerprint_inputs": [
+      "COINMETRICS_BTC_ISS_TOT_NTV",
+      "COMPLETE_SUNDAY_TRAILING_28D_SUM",
+      "STRICTLY_BELOW_TRAILING_28D_SUM_ENDING_364D_EARLIER",
+      "WEDNESDAY_00_UTC_AVAILABILITY",
+      "168H_BTC_RESPONSE",
+      "FULL_BTC_LONG_OR_ZERO_YIELD_CASH_LATER_ECONOMIC_POLICY"
+    ],
+    "prohibited_reopen": [
+      "No direction inversion, block-count normalization, magnitude threshold, smoothing, alternate lag or halving-event window.",
+      "No blend with miner revenue, fees, hashrate, USD issuance, BTC price or technical state.",
+      "No economics, post-2024 OOS or forward trigger for this closed family."
+    ]
+  },
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "breadth_and_path_risk": "PREDICTIVE_PATH_RISK_FAILED_BEFORE_ECONOMICS"
+  },
+  "next_action": "REMOVE_FROM_OPEN_POOL_ADD_PERMANENT_TOMBSTONE_AND_ADMIT_ONE_DISTINCT_FREE_DATA_FAMILY_WITHOUT_REOPENING_CLOSED_SUPPLY_MINER_OR_TECHNICAL_BRANCHES",
+  "scope_note": "Historical pre-economic conclusion only. No strategy economics, candidate, OOS, paid API, second timer, second writer, canonical state write, schedule change, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

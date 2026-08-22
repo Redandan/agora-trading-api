@@ -1,0 +1,138 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_INTRADAY_CLOSE_PATH_DRAWDOWN_ENTRY_ADMISSION_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_INTRADAY_CLOSE_PATH_DRAWDOWN_FAMILY",
+  "experiment_id": "dra-intraday-close-path-drawdown-entry-admission-v1",
+  "decision": "PERMANENTLY_CLOSE_EXACT_COMPLETE_DAY_H1_CLOSE_PATH_MAXIMUM_DRAWDOWN_TO_PRIOR_20D_MEDIAN_FAMILY_WITHOUT_PATH_WINDOW_DIRECTION_OR_THRESHOLD_TUNING",
+  "manifest": {
+    "path": "research_pipeline/examples/dra-intraday-close-path-drawdown-entry-admission.v1.manifest.json",
+    "sha256": "04c0e8e4c69c0500cabbcd99e91c52ca3f7706a310e088a2bdcf6eb91d06398f"
+  },
+  "prior": {
+    "path": "research_pipeline/examples/dra-intraday-close-path-drawdown-entry-admission-primary-prior.v1.json",
+    "sha256": "c8947a783c6319e10c1c5b44c6548dead5e1d60812cbeacb114c2e2d39676ef0"
+  },
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "b0007e0a08323e7e27f322bd8ceb67531251b03ed26fbd334bee040af9246ecd",
+    "identity": "BTC_DRA_DECLARATIVE_ENTRY_ADMISSION_RUNNER_V1",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-intraday-close-path-drawdown-entry-admission-v1/artifacts/run1.json",
+    "sha256": "813a2b597d7807867f9054808ae54c43629a348b7b509e11fd924880b7e43aa0"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-intraday-close-path-drawdown-entry-admission-v1/artifacts/run2.json",
+    "sha256": "813a2b597d7807867f9054808ae54c43629a348b7b509e11fd924880b7e43aa0",
+    "byte_identical": true
+  },
+  "policy": {
+    "feature": "DAILY_H1_CLOSE_PATH_MAX_DRAWDOWN_TO_PRIOR_20D_MEDIAN",
+    "relation": "AT_OR_BELOW",
+    "primary_threshold": "1.00",
+    "neighbors": ["0.80", "1.20"],
+    "parent_strategy": "BTC_DRA_V1",
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "primary_economic_summary": {
+    "design": {
+      "parent_signals": 125,
+      "admitted_signals": 91,
+      "vetoed_signals": 34,
+      "parent_realized_usdt": "169.89846767",
+      "candidate_realized_usdt": "149.04691379",
+      "parent_unrealized_usdt": "-79.12049441",
+      "candidate_unrealized_usdt": "-85.88808117",
+      "parent_total_pnl_usdt": "90.77797326",
+      "candidate_total_pnl_usdt": "63.15883262",
+      "total_pnl_delta_usdt": "-27.61914064",
+      "parent_max_drawdown_pct": "29.530448",
+      "candidate_max_drawdown_pct": "20.102347",
+      "parent_max_underwater_hours": 9878,
+      "candidate_max_underwater_hours": 9878,
+      "parent_median_hold_hours": 126.0,
+      "candidate_median_hold_hours": 168.0,
+      "parent_p90_hold_hours": 1818.6,
+      "candidate_p90_hold_hours": 1329.6,
+      "parent_open_lots": 5,
+      "candidate_open_lots": 6
+    },
+    "validation": {
+      "parent_signals": 69,
+      "admitted_signals": 46,
+      "vetoed_signals": 23,
+      "parent_realized_usdt": "89.41118307",
+      "candidate_realized_usdt": "81.73627550",
+      "parent_unrealized_usdt": "-3.20820121",
+      "candidate_unrealized_usdt": "0.00000000",
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "81.73627550",
+      "total_pnl_delta_usdt": "-4.46670636",
+      "parent_max_drawdown_pct": "7.121498",
+      "candidate_max_drawdown_pct": "7.175435",
+      "drawdown_delta_pp": "0.053937",
+      "parent_max_underwater_hours": 2397,
+      "candidate_max_underwater_hours": 2397,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 147.5,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 1766.0,
+      "parent_open_lots": 1,
+      "candidate_open_lots": 0
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-6.83943684",
+      "2021": "-1.65063172",
+      "2022": "-9.79086875",
+      "2023": "-5.58583226",
+      "2024": "-0.91703256"
+    },
+    "annual_total_wins": "0_OF_5",
+    "annual_drawdown_non_worse": "4_OF_5",
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "neighbor_summary": {
+    "lower_080": {
+      "validation_total_pnl_usdt": "70.08620213",
+      "parent_total_pnl_usdt": "86.20298186",
+      "validation_total_delta_usdt": "-16.11677973",
+      "validation_max_drawdown_pct": "7.239311",
+      "disposition": "FAILS_TOTAL_PNL_REALIZED_AND_HOLDING_PATH_STABILITY_GATES"
+    },
+    "upper_120": {
+      "validation_total_pnl_usdt": "83.75114823",
+      "parent_total_pnl_usdt": "86.20298186",
+      "validation_total_delta_usdt": "-2.45183363",
+      "validation_max_drawdown_pct": "7.124483",
+      "disposition": "FAILS_TOTAL_PNL_AND_REALIZED_STABILITY_GATES"
+    }
+  },
+  "material_learning": "Low complete-day H1 close-path drawdown is not an independent DRA entry-quality signal. The primary filter removed 23 of 69 Validation signals, but total PnL fell by 4.46670636 USDT, realized PnL fell by 7.67490757 USDT and no calendar year improved. Lower drawdown in Design and lower median holding in Validation therefore reflect lower participation or terminal-inventory cleanup rather than generalized alpha. Both neighboring thresholds also lost total and realized PnL, so the feature family has no stable local region.",
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_terminal_inventory_count_non_worse",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The result closes the exact complete-day H1 close-path maximum-drawdown ratio and does not establish that every intraday path or market-state feature is useless.",
+    "No canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

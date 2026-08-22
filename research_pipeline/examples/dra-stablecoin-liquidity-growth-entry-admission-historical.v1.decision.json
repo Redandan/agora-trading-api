@@ -1,0 +1,159 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_STABLECOIN_LIQUIDITY_GROWTH_ENTRY_ADMISSION_HISTORICAL_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_STABLECOIN_LIQUIDITY_DRA_ADMISSION_FAMILY",
+  "experiment_id": "dra-stablecoin-liquidity-growth-entry-admission-historical-v1",
+  "decision": "PERMANENTLY_CLOSE_EXACT_LAGGED_COMBINED_USDT_USDC_28D_POSITIVE_CAPITALIZATION_GROWTH_DRA_ENTRY_ADMISSION_FAMILY_AND_SINGLE_ASSET_NEIGHBORS_WITHOUT_TIMING_ASSET_THRESHOLD_OR_PARENT_TUNING",
+  "manifest": {
+    "path": "research_pipeline/examples/dra-stablecoin-liquidity-growth-entry-admission-historical.v1.manifest.json",
+    "sha256": "938e14308c24823d9baab1780fa7eab9641ec063e0ec58e5e52eeafb4bcc39f6"
+  },
+  "prior": {
+    "path": "research_pipeline/examples/dra-stablecoin-liquidity-growth-entry-admission-primary-prior.v1.json",
+    "sha256": "2f5562f4dee072bf6abe81bf12606c54cc071156c4c14a4534b906e28e54bb22"
+  },
+  "runner": {
+    "path": "research/btc_dra_stablecoin_liquidity_growth_entry_admission_historical_v1.py",
+    "sha256": "36c316a22074246df37481bc24717ed10fee6ce4bccfd039b19d5318f5c61c45",
+    "identity": "BTC_DRA_STABLECOIN_LIQUIDITY_GROWTH_ENTRY_ADMISSION_RUNNER_V1",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "factor_source": {
+    "path": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/inputs/coinmetrics-usdt-usdc-stablecoin-liquidity-2018-2024.csv",
+    "sha256": "144bd8a20d1954b09f20e85cdf8f16fd8befd201cb77da824ba57562573a7d81",
+    "rows": 2287,
+    "present_vintage": true,
+    "network_access": false
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-stablecoin-liquidity-growth-entry-admission-historical-v1/artifacts/run1.json",
+    "sha256": "2d339679af0883b6a84e0cb28a8f3e0902469fc81f0206c89a16a656f44b2589"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-stablecoin-liquidity-growth-entry-admission-historical-v1/artifacts/run2.json",
+    "sha256": "2d339679af0883b6a84e0cb28a8f3e0902469fc81f0206c89a16a656f44b2589",
+    "byte_identical": true
+  },
+  "policy": {
+    "primary": "COMBINED_USDT_USDC_CAPMRKTCURUSD_POSITIVE_28D_GROWTH",
+    "neighbors": ["USDT_ONLY", "USDC_ONLY"],
+    "decision_delay": "OBSERVATION_DAY_PLUS_2_CALENDAR_DAYS",
+    "factor_valid_hours": 24,
+    "parent_strategy": "BTC_DRA_V1",
+    "gate_set": "BTC_DRA_CFTC_TFF_HISTORICAL_ENTRY_ADMISSION_GATES_V1"
+  },
+  "primary_economic_summary": {
+    "design": {
+      "parent_signals": 102,
+      "admitted_signals": 63,
+      "vetoed_signals": 39,
+      "parent_realized_usdt": "122.11969534",
+      "candidate_realized_usdt": "104.45660111",
+      "parent_unrealized_usdt": "-79.12049441",
+      "candidate_unrealized_usdt": "-62.03668979",
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "42.41991132",
+      "total_pnl_delta_usdt": "-0.57928961",
+      "parent_max_drawdown_pct": "18.673983",
+      "candidate_max_drawdown_pct": "16.194048",
+      "parent_max_underwater_hours": 9878,
+      "candidate_max_underwater_hours": 9878,
+      "parent_median_hold_hours": 113.0,
+      "candidate_median_hold_hours": 112.5,
+      "parent_p90_hold_hours": 1266.0,
+      "candidate_p90_hold_hours": 1198.5,
+      "parent_open_lots": 5,
+      "candidate_open_lots": 3
+    },
+    "validation": {
+      "parent_signals": 86,
+      "admitted_signals": 43,
+      "vetoed_signals": 43,
+      "parent_realized_usdt": "89.41118307",
+      "candidate_realized_usdt": "72.33655572",
+      "parent_unrealized_usdt": "-3.20820121",
+      "candidate_unrealized_usdt": "-3.20820121",
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "69.12835451",
+      "total_pnl_delta_usdt": "-17.07462735",
+      "parent_max_drawdown_pct": "7.121498",
+      "candidate_max_drawdown_pct": "11.398864",
+      "drawdown_delta_pp": "4.277366",
+      "parent_max_underwater_hours": 2397,
+      "candidate_max_underwater_hours": 3121,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 182.5,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 3515.5,
+      "parent_open_lots": 1,
+      "candidate_open_lots": 1
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-6.34941036",
+      "2021": "0.00000000",
+      "2022": "5.77012075",
+      "2023": "-14.45601079",
+      "2024": "-2.61861656"
+    },
+    "annual_total_wins": "1_OF_5",
+    "annual_drawdown_non_worse": "4_OF_5",
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "neighbor_summary": {
+    "usdt_only": {
+      "validation_total_pnl_usdt": "78.46523696",
+      "parent_total_pnl_usdt": "86.20298186",
+      "validation_total_delta_usdt": "-7.73774490",
+      "validation_realized_usdt": "81.67343817",
+      "validation_max_drawdown_pct": "6.331677",
+      "annual_total_wins": "0_OF_5",
+      "disposition": "FAILS_TOTAL_REALIZED_AND_ANNUAL_BREADTH_STABILITY"
+    },
+    "usdc_only": {
+      "validation_total_pnl_usdt": "35.72797652",
+      "parent_total_pnl_usdt": "86.20298186",
+      "validation_total_delta_usdt": "-50.47500534",
+      "validation_realized_usdt": "35.72797652",
+      "validation_max_drawdown_pct": "7.352095",
+      "maximum_underwater_hours": 6004,
+      "annual_total_wins": "2_OF_5",
+      "disposition": "FAILS_TOTAL_REALIZED_UNDERWATER_AND_ANNUAL_BREADTH_STABILITY"
+    }
+  },
+  "predictive_summary": {
+    "sampling": "SUNDAY_OBSERVATION_ONLY_NON_OVERLAPPING_168H_EPISODES",
+    "design_episode_count": 155,
+    "validation_episode_count": 104,
+    "design_failed_gates": [],
+    "validation_failed_gates": ["negative_factor_median_raw_return_negative"]
+  },
+  "material_learning": "Lagged combined stablecoin-capitalization growth does not rescue DRA entry selection. The primary removed half of Validation signals but lost 17.07462735 USDT of total and realized PnL, worsened drawdown by 4.277366 percentage points, extended maximum underwater duration by 724 hours and more than doubled P90 holding. Its only positive annual delta was 2022, reproducing the previously sealed long-cash pattern of bear-market avoidance without broad risk-adjusted alpha. Both single-asset neighbors also lost total and realized PnL, and Validation predictive evidence did not support the negative state, so neither aggregation nor asset substitution is stable.",
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_p90_hold_non_worse",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_underwater_duration_non_worse",
+    "validation_predictive_negative_factor_median_raw_return_negative"
+  ],
+  "prohibited_reopen": true,
+  "candidate_created": false,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024 using a present-vintage factor snapshot, not independent original-vintage OOS or prospective profitability.",
+    "The result closes the exact combined USDT-USDC 28-day capitalization-growth DRA admission family and frozen single-asset neighbors; it does not prove that every independently defined stablecoin flow or depeg mechanism is useless.",
+    "No canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, source refresh, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,178 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_VIX_TERM_STRUCTURE_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-vix-term-structure-long-cash-historical-v1",
+  "created_at": "2026-08-19T07:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A VIX close above the same-date VIX3M close represents acute short-horizon equity stress relative to the three-month expectation. Holding BTC only when the lagged VIX/VIX3M ratio is at or below one may avoid uncompensated cross-asset stress paths and improve drawdown and Calmar after costs while preserving sufficient BTC upside.",
+  "economic_rationale": "The policy is valuable only if a public and observable equity-volatility term structure improves matched-capital BTC economics beyond passive holding after normal and doubled friction. Positive aggregate PnL is insufficient: Design, Validation, annual breadth, concentration, drawdown, Calmar, upside capture, terminal inventory sensitivity and both neighboring ratios must support the mechanism.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-vix-divided-by-vix3m-term-structure-long-cash",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_LAGGED_CBOE_VIX_DIVIDED_BY_VIX3M_POLICY",
+    "distinct_from_closed_families": [
+      "The closed VIX risk-state family used an absolute VIX level transformed into a trailing percentile; this family uses only the same-date ratio of 30-day to three-month Cboe implied volatility and has no level percentile or lookback.",
+      "The closed BTC realized-volatility term-structure family used BTC return variance at multiple horizons; this family contains no BTC-derived volatility feature.",
+      "The closed VIX volatility-of-volatility, SKEW and volatility-target families used different external levels or continuous sizing; this family is one binary BTC-or-cash state based on the VIX/VIX3M relation.",
+      "The open post-shock volatility family conditions on a three-percent BTC event and awaits forward evidence; this policy does not inspect BTC shock labels."
+    ],
+    "excluded_reinterpretations": [
+      "No inverse relation, alternate ratio, smoothing, lookback, threshold, VIX or VIX3M absolute level, BTC interaction, fractional sizing, leverage or short leg may be added after outcome access.",
+      "Missing Cboe dates may not be filled, interpolated or substituted; only the 1,761 frozen same-date matches are eligible.",
+      "A failure cannot be reinterpreted as support for the open post-shock family or another external-risk feature.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/cboe-vix-daily-2018-2024.v1.csv",
+      "sha256": "b31effdd0af01e12baf3631772e4b00136b2d62f8b18fc8dd8ef246f1076a8bf",
+      "role": "SEALED_CBOE_VIX_DAILY_OHLC_SOURCE"
+    },
+    {
+      "path": "research_pipeline/examples/cboe-vix-daily-2018-2024.v1.source.json",
+      "sha256": "cc4cc1edc7d387594a9c82ecfea19e98cd8fbf0219837ba939ec0cb2bdf66fc8",
+      "role": "SEALED_VIX_SOURCE_PROVENANCE_AND_PUBLICATION_TIMING"
+    },
+    {
+      "path": ".research-state/experiments/btc-vix-term-structure-long-cash-historical-v1/inputs/cboe-vix3m-history-raw.csv",
+      "sha256": "a9705859b8d9c64e1d6b349c34e4bdb724528fab4ec0c833c6a32b8e6c5a84e6",
+      "role": "CREATE_ONLY_SEALED_CBOE_VIX3M_RAW_SOURCE"
+    },
+    {
+      "path": "research_pipeline/examples/cboe-vix3m-daily-2018-2024.v1.source.json",
+      "sha256": "eb57c841d3607799a198a831ac12a91498f0795dcaa359d8205c3b83330b5d3c",
+      "role": "SEALED_VIX3M_SOURCE_PROVENANCE_ALIGNMENT_AND_PUBLICATION_TIMING"
+    },
+    {
+      "path": "research_pipeline/examples/btc-vix-term-structure-primary-prior.v1.json",
+      "sha256": "09dc6c5c964ef920c16a1eacdaeb771567046185d827891bd4325ac24960410c",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research/btc_vix_term_structure_long_cash_historical.py",
+      "sha256": "7069bea90ca05f68cbd53c11242806c3c48de9d0c60af733e6f13b9970334785",
+      "role": "FROZEN_TERM_STRUCTURE_POLICY_AND_DETERMINISTIC_RUNNER"
+    },
+    {
+      "path": "research/btc_vix_risk_state_long_cash_historical.py",
+      "sha256": "83563163d35d6a3fd2cf12785aa4f923235dba7b833ad4d1f2b932b431b43ad7",
+      "role": "FROZEN_MATCHED_CAPITAL_SIMULATION_COST_AND_GATE_REFERENCE"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_MATCHED_PASSIVE_BENCHMARK_AND_PATH_METRIC_REFERENCE"
+    },
+    {
+      "path": "src/main/java/com/agora/research/BtcDonchianStandaloneHistoricalCli.java",
+      "sha256": "4ce8133148e691793c2d21419e11b9c2afaf70f9c2442b83d3b9c67e0fc68760",
+      "role": "FROZEN_PASSIVE_VALUATION_REFERENCE"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_VIX_DIVIDED_BY_VIX3M_TERM_STRUCTURE_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "NEXT_CALENDAR_DAY_0000_UTC_AFTER_EACH_MATCHED_CBOE_CLOSE",
+    "decision_feature": "LATEST_MATCHED_VIX_CLOSE_DIVIDED_BY_VIX3M_CLOSE",
+    "relation": "AT_OR_BELOW",
+    "long_target": "BTC_100_PERCENT",
+    "risk_off_target": "CASH_100_PERCENT",
+    "state_persistence": "LATEST_MATCHED_TARGET_PERSISTS_ACROSS_WEEKENDS_HOLIDAYS_AND_VIX_ONLY_DATES",
+    "missing_date_policy": "NO_FILL_NO_INTERPOLATION_NO_SUBSTITUTION",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AT_OR_AFTER_FROZEN_EFFECTIVE_TIME",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": [
+      {"variant_id": "vix-vix3m-ratio-0_95-v1", "role": "lower_neighbor", "threshold": "0.95"},
+      {"variant_id": "vix-vix3m-ratio-1_00-v1", "role": "primary", "threshold": "1.00"},
+      {"variant_id": "vix-vix3m-ratio-1_05-v1", "role": "upper_neighbor", "threshold": "1.05"}
+    ]
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2020-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH"},
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_CASH"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_LONG_EPISODES_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "gate_set": {
+    "id": "BTC_VIX_TERM_STRUCTURE_LONG_CASH_ECONOMIC_GATES_V1",
+    "primary": [
+      "design_normal_and_stress_total_return_positive",
+      "design_drawdown_at_most_85pct_of_buy_hold",
+      "design_upside_capture_at_least_60pct",
+      "design_calmar_at_least_buy_hold",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_at_most_85pct_of_buy_hold",
+      "validation_upside_capture_at_least_60pct",
+      "validation_calmar_at_least_buy_hold",
+      "validation_at_least_400_signals_and_2_position_changes",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_and_stress_positive_annual_return_at_least_4_of_5",
+      "annual_drawdown_non_worse_5_of_5",
+      "annual_calmar_non_worse_at_least_3_of_5",
+      "top_year_positive_contribution_at_most_60pct",
+      "validation_terminal_liquidation_adjusted_return_positive_and_cost_at_most_1pp"
+    ],
+    "neighbors": [
+      "design_normal_total_return_positive",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_non_worse_than_buy_hold",
+      "validation_calmar_at_least_75pct_of_buy_hold",
+      "normal_positive_annual_return_at_least_3_of_5"
+    ],
+    "decision": "PRIMARY_AND_BOTH_NEIGHBORS_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any BTC corpus, parser, VIX source, VIX3M source, source metadata, prior, date alignment, ordering, OHLC or publication-timing binding fails.",
+    "Stop and permanently close the exact VIX divided by VIX3M term-structure long-cash family if any primary or neighbor gate fails.",
+    "Do not invert the relation, scan another ratio or threshold, smooth either index, add a lookback, BTC interaction, exposure, leverage or short rule after outcome access.",
+    "Do not use post-2024 BTC, VIX or VIX3M data in this historical decision; a pass requires separately sealed independent OOS and remains REPORTED_NOT_ACTIVATED."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": ["PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL", "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO", "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"]
+}

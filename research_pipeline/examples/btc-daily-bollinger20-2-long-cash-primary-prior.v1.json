@@ -1,0 +1,79 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_BOLLINGER20_2_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "DAILY_BOLLINGER20_2_LOWER_TO_UPPER_MEAN_REVERSION_LONG_CASH",
+  "reviewed_at": "2026-08-19T04:25:00Z",
+  "prior_matrix": [
+    {
+      "identity": "TradingView Bollinger Bands indicator documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000501840-bollinger-bands-bb/",
+      "role": "PRIMARY_FORMULA_AND_ADVERSARIAL_BEHAVIOR_SOURCE",
+      "finding": "The standard definition is a 20-period close SMA with upper and lower bands two standard deviations from the SMA. The source describes the lower band as a possible buying area but explicitly warns that prices can walk the lower band during a strong downtrend, so a lower-band event is not sufficient proof of reversal.",
+      "transfer_boundary": "This fixes the indicator calculation and supplies an adversarial warning. It does not establish Bitcoin profitability, the next-H1-open execution translation, or matched-capital value."
+    },
+    {
+      "identity": "TradingView Bollinger Bands Strategy Directed documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000599826-bollinger-bands-strategy-directed/",
+      "role": "PRIMARY_DIRECTIONAL_RULE_SOURCE",
+      "finding": "The documented strategy enters long when price crosses below the lower Bollinger band and enters short when price crosses above the upper band. This experiment translates those directional events into spot-only long and cash targets respectively.",
+      "transfer_boundary": "The source platform uses native strategy order semantics. This experiment deliberately uses a causal complete-day signal and next-H1-open spot fill; it claims signal-family fidelity, not TradingView fill parity."
+    },
+    {
+      "identity": "Gerritsen, Bouri, Ramezanifar and Roubaud, The profitability of technical trading rules in the Bitcoin market, Finance Research Letters 34, DOI 10.1016/j.frl.2019.08.011",
+      "primary_source": "https://dirkgerritsen.nl/uploads/gerritsen_et_al_2020_bitcoin_trading_rules.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2019.08.011",
+      "role": "MIXED_BITCOIN_TECHNICAL_RULE_CLASS_PRIOR",
+      "finding": "The study reports that selected technical rules can improve risk-adjusted Bitcoin performance, but its strongest evidence is mainly for trading-range breakout rules in strongly trending markets rather than this volatility-normalized mean-reversion rule.",
+      "transfer_boundary": "This supports testing a preregistered technical mechanism but is not evidence for Bollinger mean reversion and cannot justify parameter search."
+    },
+    {
+      "identity": "Anghel, A Reality Check on Trading Rule Performance in the Cryptocurrency Market, Finance Research Letters 39, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_FRICTION_PRIOR",
+      "finding": "After accounting for data snooping, risk and market frictions, significant positive excess returns from cryptocurrency trading rules were rare.",
+      "transfer_boundary": "This requires one exact 20/2 family, frozen costs and path-risk gates, permanent closure on failure and no nearby parameter rescue."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": ["open_time", "close_time", "open", "high", "low", "close", "volume"],
+    "decision_feature": "Using only complete UTC-day closes, calculate the current 20-day close SMA and population standard deviation. A close crossing strictly from at-or-above to below the lower band sets long; a close crossing strictly from at-or-below to above the upper band sets cash. Execute a changed target at the next H1 open.",
+    "prospective_transport": "The sealed OKX BTC-USDT H1 source contains all required close and timestamp fields. No paid API, credential, timer, writer, database, manual export or backfill is required.",
+    "status": "READY"
+  },
+  "fingerprint_boundary": {
+    "independence_semantics": "INDEPENDENT_PRICE_DEVIATION_MEAN_REVERSION_POLICY",
+    "duplicate_family_key": "btc-daily-bollinger20-2-lower-cross-long-upper-cross-cash",
+    "distinct_from_closed_families": [
+      "The closed SMA150/200/250 family is a slow trend allocation based on price above a prior mean. This policy trades two-sided deviations around a short volatility-scaled mean and expects reversion.",
+      "The closed Donchian family follows prior-extreme breakouts. This policy enters on a lower volatility-band break in the opposite direction and exits on an upper-band break.",
+      "The closed Supertrend family uses ATR-ratcheted trend direction. Bollinger bands are symmetric standard-deviation bands with no ratchet or trend state.",
+      "The closed RSI14 midline family follows momentum above or below 50. This policy does not use RSI and is not a threshold or hysteresis rescue of that family."
+    ],
+    "excluded_reinterpretations": [
+      "Exactly one official-default 20-day and two-population-standard-deviation primary is allowed; no neighbor is evaluated or selected.",
+      "No alternate length, deviation multiplier, sample-standard-deviation substitution, middle-band exit, trend filter, persistence, stop, minimum hold, cash yield, leverage, short leg, DRA interaction or ensemble may be added after outcome access.",
+      "A lower-band entry may not be reinterpreted as a breakout short, and an upper-band exit may not be reinterpreted as a momentum long after results."
+    ]
+  },
+  "real_time_design_requirements": [
+    "Aggregate exactly twenty-four contiguous H1 bars per complete UTC day.",
+    "For every day with at least twenty complete closes, compute the SMA and population standard deviation from exactly the current and prior nineteen complete-day closes.",
+    "Enter full BTC only on a strict close cross from at-or-above to below the lower 20/2 band; return to zero-yield cash only on a strict close cross from at-or-below to above the upper band.",
+    "Execute changed targets only at the next H1 open with no short, leverage, stop, confirmation or DRA interaction.",
+    "Compare with full-capital BTC buy-and-hold under identical initial capital, hourly price path, fees, adverse slippage and valuation boundary."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_STANDARD_BOLLINGER20_2_LONG_CASH_EXPERIMENT_WITH_LOW_PRIOR_CONFIDENCE",
+  "uncertainty": [
+    "The exact spot-only lower-cross entry and upper-cross cash translation is not directly tested by the cited Bitcoin studies.",
+    "Strong downtrends can walk the lower band, while long BTC trends can make a mean-reversion exit under-capture upside.",
+    "Population rather than sample standard deviation is frozen to match the standard platform implementation; the alternative is prohibited after outcome access.",
+    "Historical Design and Validation through 2024 cannot establish independent OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one historical Bollinger20/2 long/cash experiment. It does not establish alpha, a candidate, independent evidence, OOS value, deployability or Trading authority."
+}

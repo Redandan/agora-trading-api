@@ -1,0 +1,249 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_MACD12_26_9_HISTOGRAM_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-macd12-26-9-histogram-long-cash-historical-v1",
+  "created_at": "2026-08-19T03:32:53Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A positive daily MACD histogram may identify strengthening BTC trend momentum early enough that a causal next-open long/cash policy preserves material upside while avoiding sufficiently adverse paths to improve fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "economic_rationale": "The mechanism requires a fast exponentially weighted price trend to exceed both a slower trend and the smoothed recent state of that spread. It is useful only if the default 12/26/9 tuple retains material after-cost upside, lowers drawdown, improves Calmar, survives annual breadth and remains stable at two frozen fast-length neighbors. Reduced exposure alone cannot pass.",
+  "opportunity_cost": "Test one widely documented, executable close-only momentum state before allocating more research to external data, another DRA exit variant or waiting-only forward families.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-macd-fast-10-12-14-slow-26-signal-9-histogram-long-cash",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_CAUSAL_NEXT_H1_OPEN_POLICY",
+    "distinct_from_closed_families": [
+      "The closed RSI14 rule compares recent gain and loss magnitudes; MACD compares two exponentially weighted close levels and then smooths their spread.",
+      "The closed OBV rule accumulates signed volume and compares simple averages; MACD uses no volume and a second-stage EMA signal.",
+      "The closed monthly time-series momentum rule uses one twelve-month endpoint return and monthly decisions; MACD uses daily exponentially decaying path memory and daily state.",
+      "The closed Donchian and Supertrend rules require extrema or true range and band state; MACD uses close only and no channel, ATR or stop."
+    ],
+    "excluded_reinterpretations": [
+      "MACD 12/26/9 is the primary policy. Fast lengths 10 and 14 with slow 26 and signal 9 are rejection-only neighbors and cannot replace a failed primary.",
+      "No alternate fast, slow or signal length, initialization, price basis, histogram threshold, confirmation, delay, minimum hold, cash yield, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires at most one independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_macd12_26_9_histogram_long_cash_historical.py",
+      "sha256": "e0c371481a5b6045dbf8abb5b6bb0a883eeb4d97fd8695b2dda3c7573bcb6a78",
+      "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+      "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research/btc_daily_rsi14_midline_long_cash_historical.py",
+      "sha256": "1753cfd3a28bf7fdad8bb6a63e7de486d179491b2eab5d433830a71eca523281",
+      "role": "FROZEN_GATE_AND_RESULT_SUPPORT"
+    },
+    {
+      "path": "research/btc_daily_obv_ma_long_cash_historical.py",
+      "sha256": "449f6790007cc0fc57298059f9f3f3dee812e37ec3539c9fc8c63593fe99a3d5",
+      "role": "FROZEN_DAILY_LONG_CASH_LEDGER_AND_PATH_RISK_SUPPORT"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_PASSIVE_REFERENCE_AND_ECONOMIC_PRIMITIVES"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-macd12-26-9-histogram-long-cash-primary-prior.v1.json",
+      "sha256": "8440d7fdac59f5055e7dc8c42d3e7b992debf24549f050ff78c186e982e37a72",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-macd12-26-9-histogram-long-cash-v1.hypothesis.json",
+      "sha256": "4a25e4cf2ca38e5af6133756e902bc1a56af5e51103c621f376740b3becbb3f6",
+      "role": "FROZEN_HYPOTHESIS"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_MACD12_26_9_HISTOGRAM_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_aggregation": "COMPLETE_UTC_DAY_24_CONTIGUOUS_H1_BARS",
+    "price_source": "COMPLETE_UTC_DAY_CLOSE",
+    "ema_definition": "ALPHA_2_DIVIDED_BY_LENGTH_PLUS_1_INITIALIZED_BY_FIRST_LENGTH_SIMPLE_MEAN_THEN_RECURSIVE",
+    "macd_definition": "FAST_CLOSE_EMA_MINUS_SLOW_CLOSE_EMA",
+    "signal_definition": "EMA_OF_CONSECUTIVE_DEFINED_MACD_VALUES",
+    "primary": {
+      "fast_complete_days": 12,
+      "slow_complete_days": 26,
+      "signal_complete_macd_values": 9
+    },
+    "rejection_only_neighbors": [
+      {
+        "fast_complete_days": 10,
+        "slow_complete_days": 26,
+        "signal_complete_macd_values": 9
+      },
+      {
+        "fast_complete_days": 14,
+        "slow_complete_days": 26,
+        "signal_complete_macd_values": 9
+      }
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "long_condition": "COMPLETED_DAY_MACD_MINUS_SIGNAL_STRICTLY_GT_ZERO",
+    "cash_condition": "COMPLETED_DAY_MACD_MINUS_SIGNAL_AT_OR_BELOW_ZERO",
+    "delay_complete_days": 0,
+    "minimum_hold": "UNTIL_DIFFERENT_SIGNAL",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    }
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_ALL_IN_EPISODE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct",
+    "unrealized_return_pct",
+    "total_return_pct",
+    "total_return_delta_pp",
+    "terminal_liquidation_adjusted_return_pct",
+    "maximum_drawdown_pct",
+    "maximum_drawdown_delta_pp",
+    "maximum_underwater_duration_hours",
+    "calmar_ratio",
+    "calmar_ratio_to_buy_hold",
+    "upside_capture_ratio",
+    "average_exposure_pct",
+    "fees_equity_units",
+    "turnover_equity_units",
+    "signal_evaluation_count",
+    "position_change_count",
+    "completed_episode_count",
+    "median_hold_hours",
+    "p90_hold_hours",
+    "terminal_position",
+    "terminal_holding_age_hours",
+    "top_positive_episode_contribution_pct",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "gate_set": {
+    "id": "BTC_DAILY_MACD12_26_9_HISTOGRAM_LONG_CASH_MATCHED_CAPITAL_GATES_V1",
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_95pct_of_buy_hold",
+      "normal_calmar_at_least_buy_hold"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_90pct_of_buy_hold",
+      "normal_upside_capture_at_least_60pct",
+      "normal_calmar_at_least_buy_hold",
+      "position_changes_between_2_and_250",
+      "stress_drawdown_no_more_than_normal_plus_3pp",
+      "terminal_liquidation_adjusted_return_pct_gt_0",
+      "terminal_liquidation_cost_at_most_1pp"
+    ],
+    "neighbor_stability": [
+      "both_neighbors_have_positive_normal_and_stress_validation_total_return",
+      "both_neighbors_have_validation_normal_drawdown_non_worse_than_buy_hold",
+      "both_neighbors_have_validation_normal_calmar_at_least_75pct_of_buy_hold",
+      "both_neighbors_have_validation_normal_upside_capture_at_least_50pct",
+      "neighbors_are_rejection_only_and_cannot_replace_the_primary"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_at_least_4_of_5_years",
+      "normal_primary_calmar_at_least_75pct_of_buy_hold_at_least_3_of_5_years",
+      "normal_primary_upside_capture_at_least_50pct_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_THE_EXACT_DAILY_MACD_FAST_10_12_14_SLOW_26_SIGNAL_9_HISTOGRAM_LONG_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset hash, hourly lattice, OHLCV or complete UTC-day inventory gate fails.",
+    "Stop and permanently close the exact fast lengths 10, 12 and 14 with slow 26 and signal 9 MACD histogram family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Do not scan another fast, slow or signal length, initialization, price basis, histogram threshold, delay, holding period, confirmation, DRA combination or cost model after results.",
+    "Do not use post-2024 data in this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

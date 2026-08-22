@@ -1,0 +1,97 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_PRIOR_24H_BREAKOUT_PREOUTCOME_DECISION_V1",
+  "family_id": "dra-native-signal-prior-24h-breakout-entry-admission",
+  "decided_at": "2026-08-21T07:00:13Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_HYPOTHESIS_CLOSE_PRIOR_24H_BREAKOUT_AT_SUPPORT_GATE",
+  "decision": "PERMANENTLY_CLOSE_EXACT_SIGNAL_CLOSE_MINUS_MAX_PRIOR_24_COMPLETE_H1_HIGHS_DIVIDED_BY_UPDATED_ATR14_AT_MINUS_0_25_0_00_PLUS_0_25_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_WINDOW_NORMALIZATION_OR_RELATION_RESCUE",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-native-signal-prior-24h-breakout-entry-admission-primary-prior.v1.json",
+      "sha256": "452f2f137e2f0f264b3517d385473bce8ebfe62eb9e94212379e7a2c13e6b59d"
+    },
+    "preoutcome_spec": {
+      "path": "research_pipeline/examples/dra-native-signal-prior-24h-breakout-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "62959d4e7d11941a040cda7e491b098fbf8dc8789e2480d599764c2676eebd99"
+    },
+    "support_runner": {
+      "path": "research/dra_native_signal_prior_24h_breakout_support_v1.py",
+      "sha256": "df615099422421f88d97dab8f320f936b1bf393b19469100fe515dad389ce0d6"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/dra-native-signal-prior-24h-breakout-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "06171cb389f6d92577d0e88153e5f2f9a93970875b0cb7a43a2dd791f2d3d89f"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/dra-native-signal-prior-24h-breakout-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+      "sha256": "06171cb389f6d92577d0e88153e5f2f9a93970875b0cb7a43a2dd791f2d3d89f"
+    },
+    "determinism": "SUPPORT_RUNS_BYTE_IDENTICAL"
+  },
+  "deduplication": {
+    "status": "PASS_DISTINCT_ACTION_STATE_FINGERPRINT",
+    "new_action": "Capacity-admissible fixed-30-USDT DRA entry veto when the completed signal close does not strictly clear the maximum high of the prior twenty-four complete H1 bars at the frozen ATR14 threshold, with rejected-signal cooldown reservation.",
+    "distinct_from": [
+      "prior-200-complete-day long-trend admission",
+      "standalone 20-day Donchian long-or-cash policy",
+      "complete-day close-location admission",
+      "complete-day intraday path-efficiency admission",
+      "native signal distance from EMA20 overextension admission"
+    ]
+  },
+  "support_summary": {
+    "parent_path_parity": "EXACT_ALL_DESIGN_VALIDATION_AND_ANNUAL_WINDOWS",
+    "feature_availability": {
+      "design": "0.99029126",
+      "validation": "1.00000000"
+    },
+    "design": {
+      "parent_signals": 103,
+      "capacity_admissible_signals": 100,
+      "primary_0_00_atr_actionable_vetoes": 92,
+      "primary_action_share": "0.92000000",
+      "primary_admitted_signals": 8,
+      "primary_top_month_share": "0.04347826",
+      "lower_minus_0_25_atr_actionable_vetoes": 38,
+      "upper_plus_0_25_atr_actionable_vetoes": 97,
+      "clearance_atr_median": "-0.19642844"
+    },
+    "validation": {
+      "parent_signals": 51,
+      "capacity_admissible_signals": 51,
+      "primary_0_00_atr_actionable_vetoes": 49,
+      "primary_action_share": "0.96078431",
+      "primary_admitted_signals": 2,
+      "primary_top_month_share": "0.08163265",
+      "lower_minus_0_25_atr_actionable_vetoes": 22,
+      "upper_plus_0_25_atr_actionable_vetoes": 51,
+      "clearance_atr_median": "-0.23285987"
+    },
+    "annual_primary_0_00_atr_actionable_vetoes": {
+      "2020": 31,
+      "2021": 24,
+      "2022": 15,
+      "2023": 25,
+      "2024": 24
+    },
+    "active_annual_folds": 5,
+    "top_year_primary_veto_share": "0.26050420"
+  },
+  "failed_gates": [
+    "primary_action_share_design_validation"
+  ],
+  "material_learning": "The exact prior-24-hour breakout feature is causal, available, action-distinct and broad across years and months, but it is not selective for this parent. Only eight of one hundred capacity-admissible Design signals and two of fifty-one Validation signals closed strictly above the preceding twenty-four hourly highs. The preregistered primary therefore vetoed 92.00 and 96.08 percent of signals, far above the frozen 60 percent maximum, effectively replacing rather than filtering DRA V1. Promoting the minus-0.25 ATR rejection-only neighbor after observing its 38.00 and 43.14 percent action shares would be post-support threshold selection, so the family is closed before a hypothesis or PnL run.",
+  "prohibited_reopen": [
+    "Do not promote the minus-0.25 ATR rejection-only neighbor to primary after seeing its lower Design and Validation action shares.",
+    "Do not rerun minus-0.25, zero or plus-0.25 ATR prior-24-complete-H1-high clearance thresholds under this family.",
+    "Do not change the twenty-four-bar window, include the signal bar high, remove ATR14 normalization, invert the relation, change capacity order, cooldown reservation, lot cost, cap, windows or support gates to rescue this family.",
+    "Do not reuse the two admitted Validation signals as evidence of profitability or open their outcomes.",
+    "Do not create a hypothesis, economic manifest, candidate, OOS, deployment, SHADOW, PAPER or LIVE action from this support result."
+  ],
+  "hypothesis_created": false,
+  "candidate_economics_accessed": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Causal parent-state support and deduplication only. No candidate PnL, OOS, paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

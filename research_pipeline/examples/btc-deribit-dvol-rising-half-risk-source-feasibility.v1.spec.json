@@ -1,0 +1,69 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DERIBIT_DVOL_RISING_HALF_RISK_SOURCE_FEASIBILITY_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-deribit-dvol-rising-half-risk",
+  "created_at": "2026-08-21T04:52:00Z",
+  "status": "FROZEN_BEFORE_2021_2024_DVOL_FACTOR_ACCESS",
+  "purpose": "Test only whether the official unauthenticated Deribit 1D BTC DVOL history can be sealed with deterministic continuation and enough rising and non-rising weekly states in Design and Validation before any BTC outcome is opened.",
+  "source_contract": {
+    "method": "GET",
+    "endpoint": "https://www.deribit.com/api/v2/public/get_volatility_index_data",
+    "currency": "BTC",
+    "resolution": "1D",
+    "start_timestamp_ms": 1617235200000,
+    "end_timestamp_ms": 1735689599999,
+    "expected_first_date_floor": "2021-04-01",
+    "expected_last_date": "2024-12-31",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "maximum_pages": 4,
+    "maximum_response_bytes_per_page": 1048576,
+    "continuation_rule": "NEXT_END_TIMESTAMP_EQUALS_PRIOR_NON_NULL_CONTINUATION_AND_MUST_STRICTLY_DECREASE",
+    "expected_candle_fields": ["timestamp_ms", "open", "high", "low", "close"]
+  },
+  "feature_contract": {
+    "factor_identity": "DERIBIT_BTC_DVOL_COMPLETE_SUNDAY_CLOSE_STRICTLY_ABOVE_PREVIOUS_COMPLETE_SUNDAY_CLOSE_PLUS_1D",
+    "high_expected_movement_condition": "CURRENT_COMPLETE_SUNDAY_DVOL_CLOSE_STRICTLY_ABOVE_PREVIOUS_COMPLETE_SUNDAY_DVOL_CLOSE",
+    "other_condition": "OTHERWISE",
+    "comparison_lag_days": 7,
+    "availability": "MONDAY_00_00_UTC_AFTER_COMPLETE_SUNDAY_CANDLE",
+    "maximum_validity_hours": 168,
+    "direction_inversion": "DENY",
+    "threshold_lag_or_weight_scan": "DENY"
+  },
+  "pre_outcome_support_gates": {
+    "design": {
+      "start": "2021-04-01T00:00:00Z",
+      "end_exclusive": "2023-01-01T00:00:00Z",
+      "minimum_evaluations": 80,
+      "minimum_per_state": 25,
+      "minimum_transitions": 20,
+      "minimum_calendar_years_per_state": 2,
+      "maximum_single_calendar_year_high_state_share": "0.75"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00Z",
+      "end_exclusive": "2025-01-01T00:00:00Z",
+      "minimum_evaluations": 100,
+      "minimum_per_state": 30,
+      "minimum_transitions": 25,
+      "minimum_calendar_years_per_state": 2,
+      "maximum_single_calendar_year_high_state_share": "0.75"
+    }
+  },
+  "decision": {
+    "pass": "SOURCE_FEASIBILITY_PASS_MAY_FREEZE_EXACTLY_ONE_HYPOTHESIS_BEFORE_BTC_OUTCOME_ACCESS",
+    "failure": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+    "no_partial_pass": true
+  },
+  "prohibited_after_factor_access": [
+    "Do not change the Sunday-to-prior-Sunday comparison, strict rising direction, Monday availability, half-risk policy or support gates.",
+    "Do not add absolute thresholds, medians, IV rank, IV percentile, realized volatility, skew, funding, basis, open interest or direction filters.",
+    "Do not access BTC outcomes unless this exact source feasibility contract passes every Design and Validation gate.",
+    "Do not treat present-vintage historical values as original point-in-time methodology vintages or independent OOS."
+  ],
+  "scope_note": "No historical DVOL value, BTC outcome, hypothesis, manifest, runner result, economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred by this specification."
+}

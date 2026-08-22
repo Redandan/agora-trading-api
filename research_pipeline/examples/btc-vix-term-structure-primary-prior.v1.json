@@ -1,0 +1,56 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_VIX_TERM_STRUCTURE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "PRIOR_SUPPORTS_ONE_VIX_DIVIDED_BY_VIX3M_LONG_CASH_HISTORICAL_AUDIT",
+  "claim_boundary": "Official Cboe material supports interpreting VIX relative to VIX3M as the short-versus-three-month equity implied-volatility term structure. A recent working paper reports contemporaneous Bitcoin explanatory association, not a validated lagged trading rule. Exactly one preregistered historical audit may test the frozen ratio policy. Any failed primary or neighboring economic gate permanently closes this exact family without threshold search or inversion.",
+  "feature_contract": {
+    "sources": ["CBOE_VIX_DAILY_CLOSE", "CBOE_VIX3M_DAILY_CLOSE"],
+    "decision_time": "NEXT_CALENDAR_DAY_0000_UTC_AFTER_MATCHED_CBOE_CLOSES",
+    "feature": "LATEST_MATCHED_VIX_CLOSE_DIVIDED_BY_VIX3M_CLOSE",
+    "formula": "same-Cboe-date VIX close divided by VIX3M close; no fill or interpolation",
+    "policy": "LONG_BTC_WHEN_RATIO_AT_OR_BELOW_THRESHOLD_OTHERWISE_CASH",
+    "thresholds": ["0.95", "1.00", "1.05"],
+    "primary_threshold": "1.00"
+  },
+  "prior_matrix": [
+    {
+      "identity": "Cboe, VIX Term Structure",
+      "primary_source": "https://www.cboe.com/tradable-products/vix/term-structure/",
+      "finding": "Cboe presents VIX as a 30-day expected-volatility measure and VIX3M as a three-month measure using the VIX methodology, making their relative level an observable term-structure state.",
+      "role": "OFFICIAL_FEATURE_IDENTITY",
+      "transfer_boundary": "An equity-volatility term structure is not proof of Bitcoin timing, economic value or a ratio threshold."
+    },
+    {
+      "identity": "Cboe, Selected SPX Target Expected Volatility Term Indices Methodology",
+      "primary_source": "https://cdn.cboe.com/api/global/us_indices/governance/Volatility_Index_Methodology_Selected_SPX_Target_Expected_Volatility_Term_Indices.pdf",
+      "finding": "The methodology identifies VIX3M as the Cboe three-month volatility index and documents its target-term construction.",
+      "role": "OFFICIAL_HORIZON_AND_METHODOLOGY_IDENTITY",
+      "transfer_boundary": "Methodological validity of an index does not establish a profitable cross-asset strategy."
+    },
+    {
+      "identity": "Volatility Transmission to Bitcoin: The Role of VIX Term Structure and Crypto Options Markets",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6233752",
+      "finding": "The working paper reports that VIX term-structure information helps explain contemporaneous Bitcoin volatility transmission.",
+      "role": "MECHANISM_HYPOTHESIS_ONLY",
+      "transfer_boundary": "Contemporaneous explanatory association cannot establish a next-day BTC return signal, after-cost PnL, drawdown improvement, stability or causality."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only same-date observations from the sealed Cboe VIX and VIX3M sources; never fill, interpolate or substitute missing dates.",
+    "Make each matched close effective no earlier than 00:00 UTC on the following calendar day and persist the latest state until the next match.",
+    "Freeze ratio 1.00 as primary and 0.95 and 1.05 as its only neighbors before BTC outcome access.",
+    "Use a spot-only 100-percent BTC or 100-percent cash policy with next-H1-open fills, explicit normal and doubled stress friction, realized/unrealized separation and terminal liquidation sensitivity.",
+    "Require positive Design and Validation economics, drawdown and Calmar improvement, upside capture, annual breadth, contribution concentration control and both-neighbor stability.",
+    "Do not invert the relation, scan another ratio, smooth either index, add a BTC interaction, change thresholds, use leverage or short after outcome access.",
+    "Do not open post-2024 OOS or create a Trading runtime rule from this audit."
+  ],
+  "uncertainty": [
+    "Both indices measure S&P 500 option-implied volatility rather than crypto-specific risk.",
+    "The cited research is a working paper and its stated contemporaneous relationship does not validate a lagged trading policy.",
+    "The relation may vary across monetary, equity-volatility and crypto-specific regimes.",
+    "No BTC performance result, post-2024 data, OOS, candidate, runtime filter or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T07:42:00Z"
+}

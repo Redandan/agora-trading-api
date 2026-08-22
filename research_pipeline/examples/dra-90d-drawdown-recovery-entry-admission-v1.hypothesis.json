@@ -1,0 +1,32 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-90d-drawdown-recovery-entry-admission-v1",
+  "title": "Trailing-90-day drawdown recovery DRA V1 entry admission",
+  "thesis": "An otherwise valid DRA V1 signal may be less exposed to a falling-knife path when the latest complete UTC-day close has recovered at least half of the distance from the first trailing-90-day peak high to the first subsequent trough low.",
+  "mechanism": "For exactly the latest ninety complete UTC days known before the unchanged next-bar fill, select the first occurrence of the highest daily high, then the first occurrence of the lowest daily low at or after that peak. Divide latest close minus the trough by peak minus trough and admit the unchanged parent signal only when the fraction is at or above the frozen threshold.",
+  "economic_rationale": "The feature is useful only if the 0.50 primary and both 0.40 and 0.60 stability neighbors preserve broad matched-capital total and realized PnL while reducing or preserving drawdown, underwater duration, holding and terminal inventory. Entering later, one favorable year, lower participation or terminal-inventory cleanup is insufficient.",
+  "source": "DRA_90D_DRAWDOWN_RECOVERY_PRIMARY_PRIOR_V1_AND_EXISTING_SEALED_52608_H1_BTC_CORPUS",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITH_MATCHED_UNFILTERED_COMPARATOR",
+  "required_capability": "dra-declarative-entry-admission-v1-direct-90d-drawdown-recovery-screen",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "parent_signal_admission_veto_and_unavailable_accounting",
+    "fee_adjusted_realized_unrealized_and_total_pnl",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "median_and_p90_holding",
+    "utilization_and_capacity_blocks",
+    "terminal_inventory",
+    "annual_breadth_and_positive_delta_concentration",
+    "both_neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-26",
+  "created_at": "2026-08-20T05:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

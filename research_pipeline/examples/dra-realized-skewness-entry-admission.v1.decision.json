@@ -1,0 +1,169 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_REALIZED_SKEWNESS_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-realized-skewness-entry-admission-v1",
+  "decided_at": "2026-08-19T05:43:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_REALIZED_SKEWNESS_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_H1_REALIZED_SKEWNESS_PRIOR20_MIDRANK_PERCENTILE_DRA_ADMISSION_FAMILY_WITHOUT_ESTIMATOR_SAMPLING_LOOKBACK_NORMALIZATION_THRESHOLD_OR_RELATION_TUNING",
+  "manifest_sha256": "0be7c8159ce209bff72193055717974db6d31cd5454e1472180f610f9cb8da51",
+  "prior_sha256": "7706f3af36d92918fee174da60156a6dd08ba2374662d54889351022c20933ed",
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "b405e86b8ae287e97ffab7448029f1ac8c4d1e681709f307c0c3ac8ca6962898",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-realized-skewness-entry-admission-v1/artifacts/run1.json",
+    "sha256": "ed221deea0a2a7636d1f20f718ee745e4fc8b3fb26f69502e51ac6634e015eac"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-realized-skewness-entry-admission-v1/artifacts/run2.json",
+    "sha256": "ed221deea0a2a7636d1f20f718ee745e4fc8b3fb26f69502e51ac6634e015eac",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature": {
+    "key": "DAILY_INTRADAY_REALIZED_SKEWNESS_PRIOR_20D_PERCENTILE",
+    "formula": "sqrt(24) * sum(H1 open-to-close log return cubed) / sum(H1 open-to-close log return squared)^(3/2)",
+    "primary_threshold": "0.5",
+    "neighbors": ["0.3", "0.7"],
+    "relation": "AT_OR_BELOW",
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "pre_economic_nonredundancy": {
+    "absolute_spearman_limit": "0.80",
+    "design_sample_count": 1461,
+    "validation_sample_count": 731,
+    "design": {
+      "correlation_to_realized_performance": "0.79852499",
+      "correlation_to_intraday_price_path_efficiency": "0.05097564"
+    },
+    "validation": {
+      "correlation_to_realized_performance": "0.78581565",
+      "correlation_to_intraday_price_path_efficiency": "0.11554657"
+    },
+    "status": "PASS_CLOSE_TO_REALIZED_PERFORMANCE_LIMIT"
+  },
+  "economic_summary": {
+    "parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": 126.0,
+        "p90_hold_hours": 1818.6,
+        "maximum_underwater_duration_hours": 9878,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": 182.5,
+        "p90_hold_hours": 1418.3,
+        "maximum_underwater_duration_hours": 2397,
+        "terminal_inventory_count": 1
+      }
+    },
+    "primary_0_5": {
+      "design": {
+        "realized_usdt": "93.06586137",
+        "unrealized_usdt": "-45.85051488",
+        "total_pnl_usdt": "47.21534649",
+        "total_pnl_delta_usdt": "-43.56262677",
+        "max_drawdown_pct": "18.802136",
+        "median_hold_hours": 131.0,
+        "p90_hold_hours": 1651.5,
+        "maximum_underwater_duration_hours": 7251,
+        "vetoed_signals": 171,
+        "terminal_inventory_count": 3
+      },
+      "validation": {
+        "realized_usdt": "58.03524362",
+        "realized_delta_usdt": "-31.37593945",
+        "unrealized_usdt": "-3.62496601",
+        "total_pnl_usdt": "54.41027761",
+        "total_pnl_delta_usdt": "-31.79270425",
+        "max_drawdown_pct": "9.687191",
+        "drawdown_delta_pp": "+2.565693",
+        "median_hold_hours": 320.0,
+        "p90_hold_hours": 2711.0,
+        "maximum_underwater_duration_hours": 3121,
+        "vetoed_signals": 92,
+        "terminal_inventory_count": 1
+      },
+      "annual_total_pnl_delta_usdt": {
+        "2020": "-20.72318988",
+        "2021": "-12.34167913",
+        "2022": "-3.48398013",
+        "2023": "-18.43341340",
+        "2024": "-16.55054585"
+      },
+      "annual_total_wins": "0_of_5",
+      "annual_drawdown_non_worse": "4_of_5"
+    },
+    "lower_neighbor_0_3": {
+      "validation_realized_usdt": "34.45700048",
+      "validation_total_pnl_usdt": "30.83203447",
+      "validation_max_drawdown_pct": "7.504979",
+      "validation_maximum_underwater_duration_hours": 4561,
+      "annual_total_wins": "0_of_5",
+      "disposition": "STRICTER_LOW_SKEW_ADMISSION_REMOVES_PROFITABLE_PARTICIPATION"
+    },
+    "upper_neighbor_0_7": {
+      "validation_realized_usdt": "71.30595974",
+      "validation_total_pnl_usdt": "67.69648558",
+      "validation_max_drawdown_pct": "11.501366",
+      "validation_maximum_underwater_duration_hours": 2431,
+      "annual_total_wins": "1_of_5",
+      "disposition": "LOOSER_LOW_SKEW_ADMISSION_STILL_LOSES_PNL_AND_WORSENS_VALIDATION_PATH_RISK"
+    }
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_unrealized_non_worse"
+  ],
+  "failed_neighbor_gates": {
+    "lower_0_3": [
+      "validation_drawdown_within_0_25pp",
+      "validation_max_underwater_duration_non_worse",
+      "validation_realized_non_worse",
+      "validation_total_pnl_non_worse"
+    ],
+    "upper_0_7": [
+      "validation_drawdown_within_0_25pp",
+      "validation_max_underwater_duration_non_worse",
+      "validation_realized_non_worse",
+      "validation_total_pnl_non_worse"
+    ]
+  },
+  "material_learning": "Low realized-skewness admission was not an independent economic improvement for DRA V1. Although the frozen nonredundancy gate narrowly passed against realized performance in Design, the primary vetoed 171 Design and 92 Validation signals, lost 43.56 USDT of Design total PnL and 31.79 USDT of Validation total PnL, worsened Validation drawdown by 2.57 percentage points, lengthened median and P90 holding, and lost total PnL in every annual fold. Both stricter and looser neighbors also lost Validation realized and total PnL and failed path-risk gates.",
+  "scientific_claim": "For the exact complete-day H1 realized-skewness estimator, prior-twenty-day midrank normalization, low-skew relation, 0.5 primary and 0.3/0.7 neighbors applied only to unchanged equal-capital DRA V1 entries, historical Design and Validation evidence through 2024 rejects candidate status.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is preregistered historical Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The Design correlation to realized performance passed the frozen limit by only 0.00147501, so practical mechanism independence is weak even though the preregistered gate formally passed.",
+    "H1 open-to-close realized skewness is coarser than the intraday estimators used in the cited literature; that limitation does not authorize another sampling interval or estimator after outcome access.",
+    "The conclusion closes only this exact DRA admission transfer and does not dispute higher-moment predictability in other assets, horizons or strategies.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

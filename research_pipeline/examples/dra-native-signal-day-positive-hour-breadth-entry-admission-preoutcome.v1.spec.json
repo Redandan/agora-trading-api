@@ -1,0 +1,105 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_DAY_POSITIVE_HOUR_BREADTH_PREOUTCOME_SPEC_V1",
+  "family_id": "dra-native-signal-day-positive-hour-breadth-entry-admission",
+  "created_at": "2026-08-21T08:50:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "runner_binding": {
+    "path": "research/dra_native_signal_day_positive_hour_breadth_support_v1.py",
+    "sha256": "07ac224d5a3931947d54a0f9a96f47d6da65d23e150fa4b910f0b7bf0d190484"
+  },
+  "prior_binding": {
+    "path": "research_pipeline/examples/dra-native-signal-day-positive-hour-breadth-entry-admission-primary-prior.v1.json",
+    "sha256": "1a97dbc82acc5b24f2683b3cca7753925963bd1d5778da23b4f37aca0062f1a1"
+  },
+  "evidence_bindings": [
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "role": "FROZEN_AUTHORITATIVE_PARENT_SIGNAL_AND_CLOCK",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "path": "research/btc_dra_equal_capital_capacity_v1.py",
+      "role": "FROZEN_EQUAL_CAPITAL_PARENT_AND_PATH_LEDGER",
+      "sha256": "0736afdfe22f514adf5596a883ad94dd3713ec0ef542b167dc92db03e1fd619f"
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-prior-day-momentum-continuation-entry-admission-preoutcome.v1.decision.json",
+      "role": "CLOSED_NET_SIGNAL_DAY_MOMENTUM_DUPLICATE",
+      "sha256": "99451ebc2c14aaf466c87321388eeb97d0e02ded458fe189f81f149bf0e0aa8d"
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-intraday-sign-persistence-entry-admission-v1.json",
+      "role": "CLOSED_ADJACENT_RETURN_SIGN_PERSISTENCE_ADMISSION",
+      "sha256": "613c08b1f97f8eb2372bf79d590d43f66c378a4598988a6f8d8aced6365006fb"
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-directional-volume-participation-entry-admission-v1.json",
+      "role": "CLOSED_DIRECTIONAL_VOLUME_PARTICIPATION_ADMISSION",
+      "sha256": "c7007ef318484033edaeb63e97ff0bb53964b3ed888e4aefb9956d20fd778ea4"
+    },
+    {
+      "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.decision.json",
+      "role": "CLOSED_INTRADAY_PRICE_PATH_EFFICIENCY_ADMISSION",
+      "sha256": "6cc6c1de7582306477250274ed9e8c055ba5627021a69370ff852a795d7c3189"
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-day-ema20-occupancy-entry-admission-preoutcome.v1.decision.json",
+      "role": "CLOSED_SIGNAL_DAY_EMA20_OCCUPANCY_ADMISSION",
+      "sha256": "fc83e775c70acf390be420c35df874fae0ae847e4e29b8f3ba38c986d0e6c6ae"
+    }
+  ],
+  "feature_policy": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_BEFORE_NEXT_H1_OPEN_FILL",
+    "first_hour_reference": "PRECEDING_COMPLETE_UTC_DAY_H1_23_CLOSE",
+    "formula": "COUNT_OF_EXACTLY_24_SIGNAL_DAY_H1_CLOSES_STRICTLY_ABOVE_IMMEDIATELY_PRECEDING_H1_CLOSE",
+    "zero_return_treatment": "NONPOSITIVE",
+    "relation": "ADMIT_AT_OR_ABOVE_MINIMUM_POSITIVE_H1_RETURN_COUNT_VETO_BELOW",
+    "primary_minimum_positive_h1_returns": 13,
+    "rejection_only_neighbor_counts": [11, 15],
+    "feature_unavailable": "VETO_AND_RESERVE_ORIGINAL_SIGNAL_COOLDOWN",
+    "evaluate_only_when_parent_capacity_can_accept_30_usdt": true,
+    "vetoed_signal_reserves_parent_cooldown": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL",
+    "capacity_block_behavior": "UNCHANGED_PARENT_BLOCK_WITHOUT_COOLDOWN_RESERVATION",
+    "lot_cost_usdt": "30",
+    "maximum_open_cost_usdt": "240",
+    "maximum_open_lots": 8,
+    "variants": 3
+  },
+  "gates": {
+    "design_minimum_parent_signals": 80,
+    "validation_minimum_parent_signals": 40,
+    "minimum_feature_available_signal_share": "0.98",
+    "design_minimum_primary_actionable_vetoes": 8,
+    "validation_minimum_primary_actionable_vetoes": 4,
+    "validation_minimum_each_neighbor_actionable_vetoes": 4,
+    "minimum_active_annual_folds": 4,
+    "minimum_primary_vetoes_per_active_annual_fold": 2,
+    "maximum_top_year_primary_veto_share": "0.40",
+    "maximum_validation_top_month_primary_veto_share": "0.35",
+    "primary_action_share_minimum": "0.05",
+    "primary_action_share_maximum": "0.60"
+  },
+  "decision_rule": {
+    "pass": "ALLOW_EXACTLY_ONE_SCHEMA_VALID_HYPOTHESIS_AND_ONE_FROZEN_MATCHED_CAPITAL_EXPERIMENT",
+    "fail": "PERMANENTLY_CLOSE_EXACT_NATIVE_SIGNAL_DAY_POSITIVE_HOUR_BREADTH_FAMILY_WITHOUT_THRESHOLD_REFERENCE_ZERO_TREATMENT_FORMULA_DIRECTION_OR_WINDOW_TUNING"
+  },
+  "forbidden_after_support_output": [
+    "PROMOTE_11_OF_24_OR_15_OF_24_REJECTION_ONLY_NEIGHBOR_TO_PRIMARY",
+    "CHANGE_11_13_15_COUNT_THRESHOLDS",
+    "INVERT_ADMISSION_RELATION_TO_REQUIRE_LOW_POSITIVE_HOUR_BREADTH",
+    "CHANGE_FIRST_HOUR_REFERENCE_ZERO_RETURN_TREATMENT_24_RETURN_DENOMINATOR_OR_DECISION_CLOCK",
+    "ADD_RETURN_MAGNITUDE_VOLUME_WEIGHT_ADJACENCY_OR_SESSION_SELECTION",
+    "COUNT_CAPACITY_BLOCKED_SIGNALS_AS_VETOES",
+    "CHANGE_COOLDOWN_RESERVATION_OR_ROUTE_TIMING",
+    "RELAX_SUPPORT_GATES",
+    "READ_CANDIDATE_PNL_OR_OOS_TO_RESCUE_SUPPORT"
+  ],
+  "outcome_access": "DENY_CANDIDATE_ECONOMICS_AND_OOS"
+}

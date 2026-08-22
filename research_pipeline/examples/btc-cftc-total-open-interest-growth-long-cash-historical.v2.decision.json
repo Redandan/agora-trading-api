@@ -1,0 +1,109 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_TOTAL_OPEN_INTEREST_GROWTH_LONG_CASH_HISTORICAL_DECISION_V2",
+  "experiment_id": "btc-cftc-total-open-interest-growth-long-cash-historical-v2",
+  "decided_at": "2026-08-20T10:59:18Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_CFTC_TOTAL_OPEN_INTEREST_GROWTH_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_TOTAL_OPEN_INTEREST_WEEKLY_GROWTH_FAMILY_WITHOUT_ECONOMIC_ACCESS_DIRECTION_INVERSION_INTERACTION_OR_TUNING",
+  "candidate_created": false,
+  "economic_evidence_accessed": false,
+  "oos_opened": false,
+  "manifest": {
+    "path": "research_pipeline/examples/btc-cftc-total-open-interest-growth-long-cash-historical.v2.manifest.json",
+    "sha256": "a17678f1f69ae6a2dd70bc239489fd2378d8756ba18dc96ed438ed9c4ef60e24"
+  },
+  "runner": {
+    "path": "research/btc_cftc_total_open_interest_growth_long_cash_historical_v2.py",
+    "sha256": "a1b200301ac86ded19c9ddf4f3a8999cd7482468065f2c288e300f2fca6ebf30",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "v1_capability_erratum": {
+    "path": "research_pipeline/examples/btc-cftc-total-open-interest-growth-long-cash-v1-source-field-parser-erratum.json",
+    "sha256": "32bbc622225a65caddb86aa3cd8fc91460ecdfbdcb60db618de1cb8447922841",
+    "v1_run_artifact_created": false,
+    "scientific_design_change_in_v2": false
+  },
+  "prior": {
+    "path": "research_pipeline/examples/btc-cftc-total-open-interest-growth-long-cash-primary-prior.v1.json",
+    "sha256": "95f1e7f2741b282f21738448872e69ae9f55c05c3527434e7e02ca22fb1db191"
+  },
+  "hypothesis": {
+    "path": "research_pipeline/examples/btc-cftc-total-open-interest-growth-long-cash-v1.hypothesis.json",
+    "sha256": "faaaef97c1b5fb98bad83a1d4db0240f610415b2b0bb5fa71cf714e399ad7dcf"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-cftc-total-open-interest-growth-long-cash-historical-v2/artifacts/run1.json",
+    "sha256": "cb7d2c765485c32774b1dfdb030068117a466827ab9a26e28a69e67bd1d0b252"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-cftc-total-open-interest-growth-long-cash-historical-v2/artifacts/run2.json",
+    "sha256": "cb7d2c765485c32774b1dfdb030068117a466827ab9a26e28a69e67bd1d0b252",
+    "byte_identical": true
+  },
+  "datasets": {
+    "btc": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "cftc": {
+      "historical_source_manifest_sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a",
+      "exact_contract_rows": 313,
+      "eligible_factor_points": 299,
+      "positive_growth_points": 166,
+      "nonpositive_growth_points": 133,
+      "zero_growth_points": 1
+    }
+  },
+  "predictive_summary": {
+    "design": {
+      "episodes": 153,
+      "positive_growth_count": 86,
+      "nonpositive_growth_count": 67,
+      "positive_growth_median_next_168h_return": "0.00618151",
+      "nonpositive_growth_median_next_168h_return": "0.00885320",
+      "positive_minus_nonpositive_median": "-0.00267169",
+      "one_sided_mann_whitney_p_value": "0.28247093",
+      "top_absolute_signed_response_contribution_pct": "3.30107935"
+    },
+    "validation": {
+      "episodes": 94,
+      "positive_growth_count": 53,
+      "nonpositive_growth_count": 41,
+      "positive_growth_median_next_168h_return": "0.01644122",
+      "nonpositive_growth_median_next_168h_return": "0.01081820",
+      "positive_minus_nonpositive_median": "0.00562302",
+      "one_sided_mann_whitney_p_value": "0.63995603",
+      "top_absolute_signed_response_contribution_pct": "6.17324201"
+    }
+  },
+  "failed_pre_economic_gates": [
+    "design_positive_minus_nonpositive_growth_median_next_168h_return_strictly_positive",
+    "design_one_sided_mann_whitney_p_value_at_most_0_10",
+    "validation_one_sided_mann_whitney_p_value_at_most_0_10"
+  ],
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP"
+  },
+  "material_failure": "Positive total-open-interest growth did not transport as a directional return state. In Design, the positive-growth median next-week BTC return was lower than the nonpositive-growth median. In Validation, the median difference turned positive but the full rank distribution remained statistically incompatible with the preregistered one-sided advantage gate.",
+  "material_learning": "Regulated-futures participation is not directional alpha. Open interest can expand through balanced long and short creation, hedging, arbitrage or leverage crowding; a visually favorable Validation median cannot rescue failed Design direction and weak full-distribution evidence.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "No direction inversion.",
+    "No open-interest level, raw-change, z-score, percentile, smoothing, lag, horizon or threshold scan.",
+    "No BTC trend, basis, funding, volume, participant-category, macro, on-chain, volatility or DRA interaction rescue.",
+    "No gate relaxation and no post-2024 OOS access."
+  ],
+  "next_action": "Move this exact family into the permanently closed pool and select a distinct free-data family before any new factor or outcome access.",
+  "claim_boundary": "Historical present-vintage CME TFF total-open-interest and pre-2025 BTC predictive evidence only. Strategy PnL, drawdown and OOS were deliberately not accessed after pre-economic failure.",
+  "scope_note": "No candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

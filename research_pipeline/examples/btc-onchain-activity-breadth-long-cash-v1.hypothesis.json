@@ -1,0 +1,43 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-onchain-activity-breadth-long-cash-v1",
+  "title": "Lagged Bitcoin on-chain activity breadth full-capital long/cash timing",
+  "thesis": "Sustained growth in both transaction count and active-address participation may identify a broader network-use state than either noisy proxy alone. Holding unlevered BTC only when both lagged four-week activity means exceed their corresponding levels 52 weeks earlier may reduce weak-network paths without forfeiting too much after-cost upside.",
+  "mechanism": "For complete UTC observation day D, compute the 28-day simple means of TxCnt and AdrActCnt and compare each with the 28-day mean ending exactly 364 days earlier. At D plus two calendar days 00:00 UTC, hold 100-percent BTC only if both comparisons are strictly positive; otherwise hold zero-yield cash. TxCnt-only and AdrActCnt-only policies are frozen rejection neighbors.",
+  "economic_rationale": "The policy is useful only if a causally distinct network-use state improves drawdown and Calmar enough to offset missed BTC participation and switching costs. Aggregate PnL, one crisis exit, present-vintage correlation or terminal inventory appreciation is insufficient.",
+  "source": "BTC_ONCHAIN_ACTIVITY_BREADTH_PRIMARY_PRIOR_V1_AND_SEALED_COIN_METRICS_COMMUNITY_BTC_DAILY_2018_2024",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-onchain-activity-breadth-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY_SEALED_2557_CONSECUTIVE_DAILY_ROWS",
+  "independence_semantics": "CRYPTO_NATIVE_ONCHAIN_NETWORK_USAGE_GROWTH_FAMILY",
+  "variants": [
+    {"role": "PRIMARY", "axes": ["TxCnt", "AdrActCnt"], "combination": "AND", "mean_days": 28, "comparison_lag_days": 364},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "axes": ["TxCnt"], "combination": "SINGLE", "mean_days": 28, "comparison_lag_days": 364},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "axes": ["AdrActCnt"], "combination": "SINGLE", "mean_days": 28, "comparison_lag_days": 364}
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 4,
+    "opportunity_cost_reduction": 4,
+    "independence": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-16",
+  "created_at": "2026-08-19T08:44:14Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

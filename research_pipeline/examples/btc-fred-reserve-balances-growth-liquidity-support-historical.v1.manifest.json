@@ -1,0 +1,155 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_RESERVE_BALANCES_GROWTH_LIQUIDITY_SUPPORT_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-fred-reserve-balances-growth-liquidity-support-historical-v1",
+  "hypothesis_id": "btc-fred-reserve-balances-growth-liquidity-support-long-cash-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "wresbal": {
+      "path": ".research-state/experiments/btc-fred-reserve-balances-growth-liquidity-support-historical-v1/inputs/fred-wresbal-2018-2024.normalized.csv",
+      "sha256": "d10bed3db65744c2de4c189ea5dffd2cc77b4fa63f88019e0b5dba534a2e0d1e",
+      "rows": 365,
+      "first_date": "2018-01-03",
+      "last_date": "2024-12-25",
+      "present_vintage": true
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-fred-reserve-balances-growth-liquidity-support-historical-v1/inputs/fred-wresbal-source-bundle.json",
+      "sha256": "54984ab5b7f1066ad3a4db58c29f0b2fc57a429d3fc716337773b447fff76b86"
+    }
+  },
+  "predictive_policy": {
+    "factor_identity": "FEDERAL_RESERVE_H41_WRESBAL_CURRENT_WEEKLY_VALUE_STRICTLY_ABOVE_VALUE_FOUR_WEEKLY_OBSERVATIONS_EARLIER_V1",
+    "supportive_condition": "CURRENT_WRESBAL_STRICTLY_ABOVE_VALUE_FOUR_WEEKLY_OBSERVATIONS_EARLIER",
+    "other_condition": "OTHERWISE",
+    "availability": "OBSERVATION_WEDNESDAY_PLUS_2_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "predictive_horizon_hours": 168,
+    "variants": 1,
+    "strategy_economics": "DENY_UNLESS_ALL_PRE_ECONOMIC_GATES_PASS"
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "predictive_horizon_hours": 168,
+    "predictive_overlap_rule": "WEEKLY_168H_EPISODES_NON_OVERLAPPING_BY_CONSTRUCTION"
+  },
+  "gate_set": {
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "wresbal_sha256_rows_weekly_lattice_and_day2_availability_match",
+      "source_bundle_runner_prior_hypothesis_probe_spec_and_errata_sha256_match",
+      "design_minimum_evaluable_episodes",
+      "design_minimum_supportive_episodes",
+      "design_minimum_other_episodes",
+      "design_both_states_chronological_quartile_breadth",
+      "design_both_states_anchor_year_breadth",
+      "design_maximum_state_anchor_month_share",
+      "design_supportive_median_terminal_return_at_least_25bp_higher",
+      "design_supportive_negative_terminal_rate_at_least_5pp_lower",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_supportive_median_path_drawdown_non_worse",
+      "design_supportive_p75_path_drawdown_non_worse",
+      "design_annual_median_return_direction_breadth",
+      "design_top_positive_annual_median_return_delta_contribution_at_most_60pct",
+      "validation_minimum_evaluable_episodes",
+      "validation_minimum_supportive_episodes",
+      "validation_minimum_other_episodes",
+      "validation_both_states_chronological_quartile_breadth",
+      "validation_both_states_anchor_year_breadth",
+      "validation_maximum_state_anchor_month_share",
+      "validation_supportive_median_terminal_return_at_least_25bp_higher",
+      "validation_supportive_negative_terminal_rate_at_least_5pp_lower",
+      "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "validation_supportive_median_path_drawdown_non_worse",
+      "validation_supportive_p75_path_drawdown_non_worse",
+      "validation_annual_median_return_direction_breadth",
+      "validation_top_positive_annual_median_return_delta_contribution_at_most_60pct"
+    ],
+    "pass": "PREDICTIVE_SCREEN_PASS_ECONOMIC_MANIFEST_REQUIRED_NO_CANDIDATE",
+    "failure": "PERMANENTLY_CLOSE_WITHOUT_STRATEGY_ECONOMIC_ACCESS_OR_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_PRE_ECONOMIC_RUNNER",
+      "path": "research/btc_fred_reserve_balances_growth_liquidity_support_historical.py",
+      "sha256": "8d9696f660cd09df006a55a0857877c2b893389d2b37b1aaadf97e72aac01755"
+    },
+    {
+      "role": "FROZEN_PREDICTIVE_STATISTICS_KERNEL",
+      "path": "research/btc_fred_on_rrp_drawdown_liquidity_support_historical.py",
+      "sha256": "2f958e0b0d481acbd4610cdc234d9ddc069713984c46c0690720ebe1c0192fc9"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DETERMINISTIC_STATISTICS",
+      "path": "research/btc_cftc_dealer_net_position_change_long_cash_historical.py",
+      "sha256": "389efeb6583d7af32981704c649288f0a9395f4031f2c299931a56e582734a3e"
+    },
+    {
+      "role": "FROZEN_FAIL_CLOSED_WRESBAL_SOURCE_PROBE",
+      "path": "research/fred_wresbal_source_probe.py",
+      "sha256": "e1ab00763360d371c909ae2ad8dcdbb5b115bdeca14dda88f7c65278b59b8ad7"
+    },
+    {
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-fred-reserve-balances-growth-liquidity-support-long-cash-primary-prior.v1.json",
+      "sha256": "7017e02a796eaa7f37bc8b002459492c4273661597c2560aa811c80cdc840ddf"
+    },
+    {
+      "role": "FROZEN_PRE_FACTOR_SOURCE_FEASIBILITY_SPEC",
+      "path": "research_pipeline/examples/btc-fred-reserve-balances-growth-source-feasibility.v1.spec.json",
+      "sha256": "92ba7699c15d1d9ecbbf51558129eb34eb6063b9650afe101fdc73673e4bfbb6"
+    },
+    {
+      "role": "FROZEN_ZERO_BYTE_TRANSPORT_ERRATUM",
+      "path": "research_pipeline/examples/btc-fred-reserve-balances-growth-source-transport-erratum.v1.json",
+      "sha256": "a76dfd687522ee09a713e4aebb669ddb828a91f69fb0cc8c774bdc69c43f6b1a"
+    },
+    {
+      "role": "FROZEN_SAME_ORIGIN_REDIRECT_ERRATUM",
+      "path": "research_pipeline/examples/btc-fred-reserve-balances-growth-source-transport-redirect-erratum.v1.json",
+      "sha256": "4c8c0203e1bea7bbd3a63c5d300af146b78a8581dbc4e938b908a310955a4fa7"
+    },
+    {
+      "role": "FROZEN_OFFICIAL_XML_FORMAT_ERRATUM",
+      "path": "research_pipeline/examples/btc-fred-reserve-balances-growth-source-transport-format-erratum.v1.json",
+      "sha256": "b4ac0f72a88e9ca3f9cba93c662f26ee3f13d32c21a17a87f81261fbcbf05d93"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-fred-reserve-balances-growth-liquidity-support-long-cash-v1.hypothesis.json",
+      "sha256": "cfd3792ec743609c3b9ebd2c98302875131fdf6103a5fc9aea016b9cdffaf4ae"
+    },
+    {
+      "role": "SEALED_OFFICIAL_H41_SOURCE_BUNDLE",
+      "path": ".research-state/experiments/btc-fred-reserve-balances-growth-liquidity-support-historical-v1/inputs/fred-wresbal-source-bundle.json",
+      "sha256": "54984ab5b7f1066ad3a4db58c29f0b2fc57a429d3fc716337773b447fff76b86"
+    },
+    {
+      "role": "SEALED_NORMALIZED_WRESBAL_CORPUS",
+      "path": ".research-state/experiments/btc-fred-reserve-balances-growth-liquidity-support-historical-v1/inputs/fred-wresbal-2018-2024.normalized.csv",
+      "sha256": "d10bed3db65744c2de4c189ea5dffd2cc77b4fa63f88019e0b5dba534a2e0d1e"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not change the four-observation comparison, strict growth direction, Friday availability, 168-hour horizon or one-variant contract after BTC outcome access.",
+    "Do not add WALCL, TGA, ON RRP, M2, rates, Treasury issuance, dollar, credit, CFTC, on-chain, trend, volatility or technical indicators as rescue variants.",
+    "Do not invert the direction, add a magnitude threshold, smooth WRESBAL, scan alternate lags or select a different H.4.1 field.",
+    "Do not open matched-capital economics unless every Design and Validation predictive gate passes; do not open post-2024 OOS in this experiment."
+  ],
+  "revision_boundary": "This is one August 2026 present-vintage H.4.1 history. Original H.4.1 weekly release vintages remain MISSING_PROOF, so even a predictive pass cannot establish point-in-time alpha or create a candidate.",
+  "scope_note": "Frozen pre-outcome predictive manifest only. No WRESBAL-BTC outcome, strategy economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

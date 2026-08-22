@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_BITCOIN_ACTIVE_SUPPLY_CONTRACTION_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-bitcoin-active-supply-contraction-entry-admission-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DATA_REJECT_NO_BTC_DRA_OUTCOME",
+  "status": "DATA_REJECT_CLOSE_BITCOIN_ACTIVE_SUPPLY_CONTRACTION_FREE_SOURCE_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_COIN_METRICS_COMMUNITY_SPLYACTPCT1YR_ADJACENT_28_DAY_CONTRACTION_SUNDAY_PLUS_3D_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_RETRY_PAID_ACCESS_OR_SOURCE_SUBSTITUTION",
+  "material_conclusion": "The exact preregistered Coin Metrics Community API request for BTC SplyActPct1yr returned HTTP 403 before any source body was accepted. The frozen probe denied credentials, retries and redirects, persisted zero responses, and created zero sealed source files. Paid access, another endpoint, another active-supply cohort or a source substitution would violate the free-data and pre-outcome contract. No BTC or DRA outcome was opened, so no performance conclusion is claimed.",
+  "source_evidence": {
+    "metric": "SplyActPct1yr",
+    "requested_sample": "2018-01-01_THROUGH_2024-12-31",
+    "official_identity": "Coin Metrics one-year active supply percentage for BTC",
+    "attempts": [
+      {
+        "transport": "NODE_NATIVE_FETCH_DIRECT_HTTPS",
+        "credentials": "DENY",
+        "timeout_seconds": 30,
+        "result": "HTTP_403_BEFORE_SOURCE_ACCEPTANCE",
+        "persisted_response_count": 0
+      }
+    ],
+    "staged_response_count": 0,
+    "sealed_source_file_count": 0,
+    "source_values_available_for_research": false
+  },
+  "performance_evidence": {
+    "design": "NOT_RUN_DATA_REJECT",
+    "validation": "NOT_RUN_DATA_REJECT",
+    "annual_folds": "NOT_RUN_DATA_REJECT",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "underwater_duration": "MISSING_PROOF",
+    "holding": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF",
+    "breadth_and_path_risk": "MISSING_PROOF"
+  },
+  "closed_fingerprint": {
+    "duplicate_family_key": "dra-coinmetrics-btc-splyactpct1yr-adjacent-28d-contraction-entry-admission",
+    "decision_feature": "COIN_METRICS_BTC_SPLYACTPCT1YR_CURRENT_28D_MEAN_STRICTLY_BELOW_PREVIOUS_ADJACENT_28D_MEAN_SUNDAY_PLUS_3D_168H_DRA_V1_ENTRY_ADMISSION",
+    "prohibited_reopen": true,
+    "prohibited_rescue": [
+      "SECOND_COMMUNITY_API_REQUEST",
+      "PAID_API_OR_API_KEY",
+      "GITHUB_CSV_OR_OTHER_SOURCE_SUBSTITUTION",
+      "OTHER_ACTIVE_SUPPLY_COHORT_SUBSTITUTION",
+      "THRESHOLD_WINDOW_OR_LAG_CHANGE",
+      "POST_OUTCOME_PARAMETER_SCAN"
+    ]
+  },
+  "sealed_evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-bitcoin-active-supply-contraction-primary-prior.v1.json",
+      "sha256": "3bd1ffba70ab3ef31f2905e01a4098d701dd155540b14d34d299b58ce0fac032"
+    },
+    "hypothesis": {
+      "path": "research_pipeline/examples/dra-bitcoin-active-supply-contraction-entry-admission-v1.hypothesis.json",
+      "sha256": "aabeef7d1fd01273e2355fbaa0e58b9ee3a3732a90b59d1804972cedc4221d2b"
+    },
+    "source_probe": {
+      "path": "research/coinmetrics_btc_active_supply_contraction_source_probe.cjs",
+      "sha256": "be17ab7c9a1c8a22931fe589ea7c67179ce3b48554b1167d283bce8b74625f2b"
+    }
+  },
+  "uncertainty": [
+    "Coin Metrics documents the metric definition, but the exact no-key Community API path did not authorize the requested historical series.",
+    "This is a free-source-path rejection, not evidence that active-supply contraction lacks predictive or economic value.",
+    "No present-vintage history, original-release vintage, BTC response, candidate or OOS evidence exists for this closed fingerprint."
+  ],
+  "next_action": "Advance a different independent family only after its exact metric has prior no-key Community coverage proof. Do not retry, pay for, substitute or tune this active-supply family.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No source value was persisted, no BTC/DRA outcome was opened, and no paid API, credential, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

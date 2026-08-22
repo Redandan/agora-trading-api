@@ -1,0 +1,149 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_CFTC_TFF_OPTION_ASSET_MANAGER_ENTRY_ADMISSION_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "cftc-tff-option-asset-manager-dra-entry-admission-historical-v1",
+  "factor_identity": "CFTC_TFF_OPTION_ASSET_MANAGER_NET_PCT_OI_WEEKLY_CONTRACTION_168H_V1",
+  "status": "NO_CANDIDATE_CLOSE_CFTC_OPTION_ASSET_MANAGER_RAW_CHANGE_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_CFTC_OPTION_ASSET_MANAGER_RAW_CHANGE_FAMILY_WITHOUT_DIRECTION_FORMULA_LAG_HORIZON_RESIDUALIZATION_OR_STRATEGY_TUNING",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "artifact": {
+    "path": ".research-state/experiments/cftc-tff-option-asset-manager-dra-entry-admission-historical-v1/artifacts/run1.json",
+    "sha256": "3422e1547de1278831b62b96b2ce99bcb506fdf2c410e1812e8edd388f7374dc",
+    "bytes": 243982,
+    "reproducibility_run_path": ".research-state/experiments/cftc-tff-option-asset-manager-dra-entry-admission-historical-v1/artifacts/run2.json",
+    "reproducibility_run_sha256": "3422e1547de1278831b62b96b2ce99bcb506fdf2c410e1812e8edd388f7374dc",
+    "byte_identical": true
+  },
+  "bindings": {
+    "primary_prior_path": "research_pipeline/examples/dra-cftc-option-asset-manager-primary-prior.v1.json",
+    "primary_prior_sha256": "05d090fc4d51d732eae1349eeacc928ba2a924f790f3862a0fa2907e88f0d9e0",
+    "manifest_path": "research_pipeline/examples/cftc-tff-option-asset-manager-dra-entry-admission-historical.v1.manifest.json",
+    "manifest_sha256": "43a1b4781a9335024886c7ca022c83e7ff2d68eb02f5bfd572dafa6bd238ce39",
+    "runner_path": "research/btc_dra_cftc_tff_option_asset_manager_entry_admission_historical_v1.py",
+    "runner_sha256": "fc432f2aaf7ef0ae1872715eece2da0a9e2771f7037ec452e2bb80fe27e3c099",
+    "parser_erratum_path": "research_pipeline/examples/cftc-tff-option-asset-manager-preoutcome-parser-erratum.v1.json",
+    "parser_erratum_sha256": "2030e8c875d70f3e76e8d86b0456133121c044df1ba8f6b26e0d0ddc6ce7656f"
+  },
+  "dataset": {
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00",
+    "combined_source_rows": 261,
+    "combined_source_sha256": "d9fbae9c76ca7a830fa130e1c104cda911e66f61e6112ed4cf9b416584cd7239",
+    "eligible_factor_points": 246
+  },
+  "economic_summary": {
+    "design": {
+      "parent_realized_pnl_usdt": "122.11969534",
+      "candidate_realized_pnl_usdt": "32.40356993",
+      "realized_pnl_delta_usdt": "-89.71612541",
+      "parent_unrealized_pnl_usdt": "-79.12049441",
+      "candidate_unrealized_pnl_usdt": "-20.25458125",
+      "unrealized_pnl_delta_usdt": "58.86591316",
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "12.14898868",
+      "total_pnl_delta_usdt": "-30.85021225",
+      "parent_max_drawdown_pct": "18.673983",
+      "candidate_max_drawdown_pct": "6.595441",
+      "max_drawdown_delta_pp": "-12.078542",
+      "parent_median_hold_hours": 113,
+      "candidate_median_hold_hours": 61,
+      "parent_p90_hold_hours": 1266,
+      "candidate_p90_hold_hours": 788.6,
+      "parent_terminal_inventory_count": 5,
+      "candidate_terminal_inventory_count": 1,
+      "admitted_signals": 20,
+      "vetoed_signals": 223
+    },
+    "validation": {
+      "parent_realized_pnl_usdt": "89.41118307",
+      "candidate_realized_pnl_usdt": "55.41689091",
+      "realized_pnl_delta_usdt": "-33.99429216",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "candidate_unrealized_pnl_usdt": "-3.62496601",
+      "unrealized_pnl_delta_usdt": "-0.41676480",
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "51.79192490",
+      "total_pnl_delta_usdt": "-34.41105696",
+      "parent_max_drawdown_pct": "7.121498",
+      "candidate_max_drawdown_pct": "7.582501",
+      "max_drawdown_delta_pp": "0.461003",
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 159,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 2807,
+      "parent_maximum_underwater_duration_hours": 2397,
+      "candidate_maximum_underwater_duration_hours": 2397,
+      "parent_terminal_inventory_count": 1,
+      "candidate_terminal_inventory_count": 1,
+      "admitted_signals": 33,
+      "vetoed_signals": 83
+    },
+    "annual_total_pnl_deltas_usdt": {
+      "2020": "-56.19904224",
+      "2021": "-18.04012179",
+      "2022": "31.99257726",
+      "2023": "-20.67594459",
+      "2024": "-11.12237639"
+    },
+    "annual_total_wins": 1,
+    "annual_drawdown_non_worse": 4,
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "predictive_summary": {
+    "design": {
+      "episode_count": 84,
+      "median_signed_response_168h": "0.01123262601813184597483900886894785",
+      "positive_factor_median_raw_return_168h": "0.004724093987892878400088378528571",
+      "negative_factor_median_raw_return_168h": "-0.01660871338904765794937063507342425",
+      "one_sided_sign_test_p_value": "0.1149322034845601887519932153142025",
+      "failed_gates": [
+        "one_sided_sign_test_at_most_0_10"
+      ]
+    },
+    "validation": {
+      "episode_count": 94,
+      "median_signed_response_168h": "-0.0056353765961546530307087460290347",
+      "positive_factor_median_raw_return_168h": "0.0208068028377284689956227086945205",
+      "negative_factor_median_raw_return_168h": "0.009153533703757161711401028138183",
+      "one_sided_sign_test_p_value": "0.7647539425548147027448616626502897",
+      "signed_successes": 44,
+      "signed_failures": 50,
+      "failed_gates": [
+        "median_signed_response_positive",
+        "negative_factor_median_raw_return_negative",
+        "one_sided_sign_test_at_most_0_10"
+      ]
+    }
+  },
+  "failed_economic_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_p90_hold_non_worse",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_unrealized_non_worse"
+  ],
+  "scientific_claim": "The preregistered raw weekly contraction in CFTC TFF Asset Manager option net-percent-of-open-interest did not generalize as a DRA entry-admission factor. Design narrowly missed its one-sided predictive gate. Validation median signed response turned negative and its sign-test p-value was 0.7648. Validation total PnL fell 34.4111 USDT, realized PnL fell 33.9943 USDT, drawdown increased 0.4610 percentage points, P90 holding increased from 1418.3 to 2807 hours, and annual total PnL won only one of five years. The sole positive annual delta was concentrated in 2022. This exact raw-change family is not a candidate and is not a replication of the paper's unavailable non-momentum residual specification.",
+  "forbidden_followups": [
+    "DO_NOT_INVERT_THE_OPTION_POSITION_DIRECTION",
+    "DO_NOT_ADD_THRESHOLD_SMOOTHING_PERCENTILE_OR_RESIDUALIZATION_POST_OUTCOME",
+    "DO_NOT_CHANGE_CATEGORY_FORMULA_RELEASE_LAG_VALIDITY_OR_HORIZON",
+    "DO_NOT_BLEND_WITH_FUTURES_ONLY_PARTICIPANT_PRICE_OR_VOLATILITY_FEATURES",
+    "DO_NOT_CHANGE_PARENT_CAPITAL_FEES_SLIPPAGE_ENTRY_EXIT_OR_ACCOUNTING",
+    "DO_NOT_RERUN_OR_OPEN_OOS"
+  ],
+  "uncertainty": [
+    "This is historical Design and Validation evidence through 2024, not independent post-2024 OOS or prospective evidence.",
+    "The public accepted-manuscript formula for the paper's non-momentum residual could not be retrieved, so this transparent raw-change transfer test must not be described as a literal paper replication.",
+    "The study reuses the same sealed CFTC futures-only archives and BTC parent as prior TFF studies, while adding the official combined futures-and-options dataset to isolate option positions.",
+    "Two pre-outcome parser corrections were recorded before any factor-return outcome was produced; neither changed the frozen formula, direction, window, gates, or OOS denial.",
+    "No canonical state, server Research MCP write, second timer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+  ],
+  "recommended_next_action": "Keep the exact raw option-position change family permanently closed. Preserve the five open forward/source families and spend the next direct cycle only on an independent evidence-ready mechanism with a frozen formula and matched-capital economics."
+}

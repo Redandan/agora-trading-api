@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_FED_BALANCE_SHEET_GROWTH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_FED_BALANCE_SHEET_GROWTH_DRA_ADMISSION_HISTORICAL_AUDIT",
+  "claim_boundary": "Primary research supports time-varying Bitcoin sensitivity to U.S. monetary-policy shocks but does not establish that the Federal Reserve's weekly total-asset growth predicts BTC or DRA returns. Exactly one preregistered matched-capital audit may test whether a conservatively lagged positive four-week WALCL change is useful as a DRA entry-risk state; no causal or predictive claim is imported from the literature.",
+  "feature_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_agency": "Board of Governors of the Federal Reserve System (US)",
+    "release": "H.4.1 Factors Affecting Reserve Balances",
+    "series_id": "WALCL",
+    "observation": "WEEKLY_WEDNESDAY_TOTAL_ASSETS_MILLIONS_USD_NOT_SEASONALLY_ADJUSTED",
+    "decision_time": "OBSERVATION_WEDNESDAY_PLUS_THREE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_WALCL_STRICTLY_ABOVE_EXACT_WALCL_OBSERVATION_28_CALENDAR_DAYS_EARLIER",
+    "policy": "ADMIT_UNCHANGED_DRA_V1_PARENT_SIGNAL_ONLY_WHILE_LAGGED_FOUR_WEEK_BALANCE_SHEET_GROWTH_IS_POSITIVE_OTHERWISE_VETO",
+    "growth_lag_calendar_days": 28,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_GROWTH_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Karau, Monetary policy and Bitcoin, Journal of International Money and Finance 137 (2023)",
+      "primary_source": "https://doi.org/10.1016/j.jimonfin.2023.102880",
+      "finding": "High-frequency and structural-VAR evidence reports that Bitcoin's response to U.S. monetary policy changed over time: post-2020 tightening resembles other risky assets, while earlier responses differed and could have the opposite sign.",
+      "role": "TIME_VARYING_MONETARY_TRANSMISSION_AND_REGIME_INSTABILITY_PRIOR",
+      "transfer_boundary": "The study identifies monetary-policy shocks, not weekly Fed total-asset changes, a four-week sign rule, DRA entry admission or after-cost strategy performance."
+    },
+    {
+      "identity": "Ma, Tian, Hsiao and Deng, Monetary policy shocks and Bitcoin prices, Research in International Business and Finance 62 (2022)",
+      "primary_source": "https://doi.org/10.1016/j.ribaf.2022.101711",
+      "finding": "The event study reports strong and persistent Bitcoin responses following unexpected U.S. monetary-policy changes, with larger effects during bull markets.",
+      "role": "MONETARY_TRANSMISSION_MECHANISM_PRIOR",
+      "transfer_boundary": "FOMC surprise identification is not equivalent to balance-sheet expansion and does not determine the direction or profitability of this admission rule."
+    },
+    {
+      "identity": "FRED WALCL series and Federal Reserve H.4.1 release",
+      "primary_source": "https://fred.stlouisfed.org/series/WALCL",
+      "finding": "The official series is the weekly Wednesday level of Federal Reserve total assets, in millions of U.S. dollars, not seasonally adjusted, sourced from H.4.1. FRED marks the series public domain with citation requested and warns that observations are subject to revision.",
+      "role": "FREE_OFFICIAL_MACHINE_READABLE_SOURCE_TIMING_AND_UNIT_IDENTITY",
+      "transfer_boundary": "The current FRED CSV is a present-vintage series, not original release-vintage evidence, and total assets are a broad balance-sheet quantity rather than a pure exogenous liquidity shock."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact FRED CSV response for WALCL from 2018-01-01 through 2024-12-31; require unique Wednesday observations, exact 7-day spacing, positive integer values and no missing-value marker.",
+    "Make observation Wednesday D usable only at D plus three calendar days 00:00 UTC. This conservative Saturday boundary is later than the normal Thursday H.4.1 update and avoids daylight-saving ambiguity.",
+    "Compare each observation only with the exact observation 28 calendar days earlier; admit the unchanged DRA V1 parent signal only when the current value is strictly larger.",
+    "Use the frozen 250 USDT DRA V1 parent, 240 USDT slot capacity, 0.10% fee and 0.05% adverse slippage without changing entries, exits, lot size, capacity or accounting.",
+    "Require Design, Validation, 2020-2024 annual matched-capital economics, realized/unrealized/total PnL, drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth, concentration and independent 168-hour predictive diagnostics.",
+    "Do not add 1-, 13-, 26- or 52-week horizons, a magnitude threshold, z-score, rate interaction, liquidity subtraction, alternate Fed series, inverse rule, fractional sizing, short leg or post-outcome exception.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "The sign and strength of Bitcoin monetary-policy transmission changes across regimes.",
+    "WALCL total assets can change for operational reasons and is not an identified monetary-policy shock or a complete net-liquidity measure.",
+    "The present-vintage FRED series can contain revisions; original release values and revision history remain MISSING_PROOF.",
+    "The four-week horizon is a preregistered monthly-scale impulse convention, not a parameter validated by the cited papers.",
+    "No complete WALCL history, BTC/DRA outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T09:22:34Z"
+}

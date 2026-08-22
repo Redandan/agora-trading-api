@@ -1,0 +1,35 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_UNRATE_YOY_NONDETERIORATION_SOURCE_FEASIBILITY_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-unrate-yoy-nondeterioration-long-cash",
+  "experiment_id": "btc-fred-unrate-yoy-nondeterioration-long-cash-historical-v1",
+  "decided_at": "2026-08-21T02:20:49Z",
+  "status": "DATA_REJECT_CLOSE_BEFORE_HYPOTHESIS_MANIFEST_RUNNER_OR_BTC_OUTCOME_ACCESS",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_UNRATE_YOY_NONDETERIORATION_LONG_CASH_FAMILY",
+  "decision": "The exact free official present-vintage source passed identity, monthly-lattice and total-observation checks. Design had only two state transitions versus the frozen minimum of three, and Validation had only one versus the frozen minimum of two. Both state counts passed, but the contract denied partial admission. Close without economic testing.",
+  "pre_outcome_evidence": {
+    "whole_source": {"monthly_observations": 96, "evaluations": 84, "nondeteriorating_months": 54, "deteriorating_months": 30, "transitions": 3},
+    "design_2019_2022": {"evaluations": 48, "nondeteriorating_months": 35, "deteriorating_months": 13, "transitions": 2, "frozen_minimum_per_state": 10, "frozen_minimum_transitions": 3, "support_pass": false},
+    "validation_2023_2024": {"evaluations": 24, "nondeteriorating_months": 9, "deteriorating_months": 15, "transitions": 1, "frozen_minimum_per_state": 6, "frozen_minimum_transitions": 2, "support_pass": false}
+  },
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-unrate-yoy-nondeterioration-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "2680d4319bc43e82264e35ed4461f73af119699dd4b8a3fd81acdc26f42380d4"},
+    {"path": "research_pipeline/examples/btc-fred-unrate-yoy-nondeterioration-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "f73da8c2c2cc051727007242559e8a849341df156961fbaf8296bb1bf9623594"},
+    {"path": "research/fred_unrate_source_probe.py", "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE", "sha256": "6d22d87a37cbb383b42688faf860d4e92058a552ce1431645e2f51e6d67e07e3"},
+    {"path": ".research-state/experiments/btc-fred-unrate-yoy-nondeterioration-long-cash-historical-v1/inputs/unrate-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "fb3ffd325c0106353471bb7d1168b43d33c9d8392d8047a06914c6cfb61156c5"},
+    {"path": ".research-state/experiments/btc-fred-unrate-yoy-nondeterioration-long-cash-historical-v1/inputs/unrate-raw.csv", "role": "SEALED_EXACT_RAW_FRED_RESPONSE", "sha256": "c36d9a0e1453a4e59cfae0336b6b9430315b53d213fc84fd8cdec8c13debc81d"},
+    {"path": ".research-state/experiments/btc-fred-unrate-yoy-nondeterioration-long-cash-historical-v1/inputs/unrate-monthly-2017-2024.csv", "role": "SEALED_NORMALIZED_MONTHLY_FACTOR_SUBSET", "sha256": "0be3fe5e65bb6292b1ad5bb37347c6217f19989ef3e8cb330d3578fcbd5c7e65"}
+  ],
+  "prohibited_reopen": [
+    "Do not lower either frozen transition gate after observing factor values.",
+    "Do not exclude the 2020 shock, merge Design and Validation or treat two long state runs as independent support.",
+    "Do not scan payrolls, participation, claims, Sahm thresholds, levels, monthly changes, smoothing, alternate lags, thresholds or inverse direction as a rescue.",
+    "Do not combine UNRATE with another labor, activity, inflation or liquidity factor as a rescue.",
+    "Do not open BTC outcomes, create a hypothesis, manifest, economic runner, candidate or OOS for this closed family."
+  ],
+  "learning": "Both states can have enough months while still providing too few independent regime changes. Here the 72 Design and Validation months contain only three transitions in total, so a long-or-cash result would be driven by a few persistent labor regimes rather than repeatable decisions.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No BTC outcome, hypothesis, manifest, economic runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

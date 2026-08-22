@@ -1,0 +1,45 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-bitcoin-hashrate-growth-entry-admission-v1",
+  "title": "Lagged Bitcoin hash-rate growth DRA V1 entry admission",
+  "thesis": "A sustained contraction in estimated Bitcoin mining participation may identify network or miner stress behind otherwise valid DRA entries. Vetoing new parent entries while the latest conservatively lagged 28-day mean hash rate is not above the immediately preceding 28-day mean may improve equal-capital DRA path risk without changing exits or existing lots.",
+  "mechanism": "Aggregate reviewed daily BTC HashRate into complete Monday-through-Sunday weeks. At each week end D compare the current 28-day simple mean with the immediately preceding nonoverlapping 28-day mean. Beginning at D plus three calendar days 00:00 UTC and for at most 168 hours, admit an otherwise unchanged DRA V1 parent signal only when growth is strictly positive; otherwise veto the new entry.",
+  "economic_rationale": "The feature is useful only if it improves Design and Validation total and realized PnL while preserving unrealized PnL, drawdown, underwater duration, holding and terminal inventory, intervenes often enough, and has annual and predictive breadth. Reverse causality, one jurisdictional shock, fewer trades or terminal-inventory cleanup is insufficient.",
+  "source": "DRA_BITCOIN_HASHRATE_GROWTH_PRIMARY_PRIOR_V1_AND_TO_BE_SEALED_COIN_METRICS_HASHRATE_2018_2024",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+  "matched_comparator": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+  "required_capability": "dra-bitcoin-hashrate-growth-entry-admission-v1-direct-economic-runner",
+  "data_readiness": "OFFICIAL_METRIC_IDENTITY_AND_EXISTING_NO_KEY_SOURCE_PATTERN_CONFIRMED_FULL_HASHRATE_HISTORY_NOT_YET_ACCESSED",
+  "independence_semantics": "CRYPTO_NATIVE_PROOF_OF_WORK_MINER_PARTICIPATION_STATE",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "metric": "HashRate",
+      "current_window_days": 28,
+      "prior_window_days": 28,
+      "relation": "STRICTLY_ABOVE",
+      "threshold": "0"
+    }
+  ],
+  "expected_metrics": [
+    "parent_signal_admission_and_veto_accounting",
+    "fee_adjusted_realized_unrealized_and_total_pnl",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "median_and_p90_holding",
+    "utilization_and_capacity_blocks",
+    "terminal_inventory",
+    "annual_breadth_and_concentration",
+    "independent_168h_predictive_episode_breadth"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5,
+    "independence": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-20",
+  "created_at": "2026-08-19T10:15:03Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

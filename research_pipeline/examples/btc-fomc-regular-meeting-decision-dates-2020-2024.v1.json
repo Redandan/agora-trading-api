@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FOMC_REGULAR_MEETING_DECISION_DATES_2020_2024_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "FROZEN_BEFORE_BTC_EVENT_OUTCOME_ACCESS",
+  "calendar_rule": "FINAL_CALENDAR_DATE_OF_EACH_REGULARLY_SCHEDULED_FOMC_MEETING",
+  "decision_anchor": "00:00:00_UTC_ON_FINAL_MEETING_DATE",
+  "event_horizon": "COMPLETE_UTC_DAY_TO_NEXT_00:00:00_UTC",
+  "exclusions": [
+    "UNSCHEDULED_MEETINGS",
+    "NOTATION_VOTES",
+    "CANCELLED_MEETINGS",
+    "MINUTES_RELEASES",
+    "SPEECHES",
+    "PRESS_CONFERENCES_AS_SEPARATE_EVENTS",
+    "POST_EVENT_POLICY_CLASSIFICATION"
+  ],
+  "sources": [
+    {
+      "years": [2020],
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomchistorical2020.htm",
+      "use": "DISTINGUISH_SEVEN_REGULAR_MEETINGS_FROM_CANCELLED_UNSCHEDULED_AND_NOTATION_VOTE_EVENTS"
+    },
+    {
+      "years": [2021, 2022, 2023, 2024],
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "use": "OFFICIAL_REGULAR_MEETING_FINAL_DATES_AND_LINKED_POLICY_STATEMENTS"
+    }
+  ],
+  "windows": {
+    "design": {
+      "years": [2020, 2021, 2022],
+      "expected_event_count": 23
+    },
+    "validation": {
+      "years": [2023, 2024],
+      "expected_event_count": 16
+    }
+  },
+  "events": [
+    {"date": "2020-01-29", "window": "DESIGN"},
+    {"date": "2020-04-29", "window": "DESIGN"},
+    {"date": "2020-06-10", "window": "DESIGN"},
+    {"date": "2020-07-29", "window": "DESIGN"},
+    {"date": "2020-09-16", "window": "DESIGN"},
+    {"date": "2020-11-05", "window": "DESIGN"},
+    {"date": "2020-12-16", "window": "DESIGN"},
+    {"date": "2021-01-27", "window": "DESIGN"},
+    {"date": "2021-03-17", "window": "DESIGN"},
+    {"date": "2021-04-28", "window": "DESIGN"},
+    {"date": "2021-06-16", "window": "DESIGN"},
+    {"date": "2021-07-28", "window": "DESIGN"},
+    {"date": "2021-09-22", "window": "DESIGN"},
+    {"date": "2021-11-03", "window": "DESIGN"},
+    {"date": "2021-12-15", "window": "DESIGN"},
+    {"date": "2022-01-26", "window": "DESIGN"},
+    {"date": "2022-03-16", "window": "DESIGN"},
+    {"date": "2022-05-04", "window": "DESIGN"},
+    {"date": "2022-06-15", "window": "DESIGN"},
+    {"date": "2022-07-27", "window": "DESIGN"},
+    {"date": "2022-09-21", "window": "DESIGN"},
+    {"date": "2022-11-02", "window": "DESIGN"},
+    {"date": "2022-12-14", "window": "DESIGN"},
+    {"date": "2023-02-01", "window": "VALIDATION"},
+    {"date": "2023-03-22", "window": "VALIDATION"},
+    {"date": "2023-05-03", "window": "VALIDATION"},
+    {"date": "2023-06-14", "window": "VALIDATION"},
+    {"date": "2023-07-26", "window": "VALIDATION"},
+    {"date": "2023-09-20", "window": "VALIDATION"},
+    {"date": "2023-11-01", "window": "VALIDATION"},
+    {"date": "2023-12-13", "window": "VALIDATION"},
+    {"date": "2024-01-31", "window": "VALIDATION"},
+    {"date": "2024-03-20", "window": "VALIDATION"},
+    {"date": "2024-05-01", "window": "VALIDATION"},
+    {"date": "2024-06-12", "window": "VALIDATION"},
+    {"date": "2024-07-31", "window": "VALIDATION"},
+    {"date": "2024-09-18", "window": "VALIDATION"},
+    {"date": "2024-11-07", "window": "VALIDATION"},
+    {"date": "2024-12-18", "window": "VALIDATION"}
+  ],
+  "event_count": 39,
+  "point_in_time_limitation": "Official historical pages verify event identity, but original tentative calendar vintages and every pre-event revision timestamp remain MISSING_PROOF.",
+  "outcome_boundary": "No event-matched BTC return, path, strategy economics, post-2024 observation, candidate or OOS was used to construct this calendar.",
+  "frozen_at": "2026-08-20T14:55:30Z"
+}

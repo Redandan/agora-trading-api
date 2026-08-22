@@ -1,0 +1,28 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CORWIN_SCHULTZ_SPREAD_PREOUTCOME_SUPPORT_ACCEPTANCE_V2",
+  "accepted_at": "2026-08-21T05:35:44Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-corwin-schultz-spread-entry-admission",
+  "disposition": "PASS_PREOUTCOME_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+  "support_result": {
+    "path": ".research-state/experiments/dra-corwin-schultz-spread-entry-admission-historical-v1/inputs/feature-support.v2.run1.json",
+    "sha256": "8f607fc2e8e179410bc191a3d96526d706a0518f5b2e7e56597aced87ffe87c6",
+    "run2_path": ".research-state/experiments/dra-corwin-schultz-spread-entry-admission-historical-v1/inputs/feature-support.v2.run2.json",
+    "run2_sha256": "8f607fc2e8e179410bc191a3d96526d706a0518f5b2e7e56597aced87ffe87c6",
+    "byte_identical": true,
+    "support_pass": true,
+    "failed_gates": []
+  },
+  "spec_binding": {
+    "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-preoutcome.v2.spec.json",
+    "sha256": "b99461f861f3b5feaa931a4e6ecdc9e09b4d043e23a1afa498779214c44092f3"
+  },
+  "hypothesis_binding": {
+    "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-v1.hypothesis.json",
+    "sha256": "e92c4561dba8c880c053469f99c4bef885c098b21a6466fb2d7aca09644ac002",
+    "schema_valid": true
+  },
+  "decision_boundary": "This acceptance permits exactly one frozen matched-capital historical experiment with primary threshold 1.00 and rejection-only neighbors 0.80 and 1.20 under DRA declarative V2 gates. It is not performance evidence and does not permit gate changes, tuning, OOS or Trading activation.",
+  "scope_note": "No strategy economics, candidate, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

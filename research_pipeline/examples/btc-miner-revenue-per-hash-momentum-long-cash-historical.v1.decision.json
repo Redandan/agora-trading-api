@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MINER_REVENUE_PER_HASH_MOMENTUM_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-miner-revenue-per-hash-momentum-long-cash-historical-v1",
+  "decided_at": "2026-08-20T09:36:30Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DUPLICATE_REJECT_CLOSE_BTC_MINER_REVENUE_PER_HASH_MOMENTUM_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_MINER2_4_8_PROXY_FAMILY_BEFORE_ECONOMICS_WITHOUT_COMPONENT_OR_LOOKBACK_RETUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "economic_evidence_accessed": false,
+  "manifest": {
+    "path": "research_pipeline/examples/btc-miner-revenue-per-hash-momentum-long-cash-historical.v1.manifest.json",
+    "sha256": "88a3c4238b7e793a347eb63d87186f92ec50a2dc75cb1240133de453f06d65f4"
+  },
+  "runner": {
+    "path": "research/btc_miner_revenue_per_hash_momentum_long_cash_historical.py",
+    "sha256": "fbd90e730ba7b352ec25b5dcbfbb61bb69e2c1fc39e29c260d4508c1ae8aac22",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-miner-revenue-per-hash-momentum-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "572cac1d2d97c224fb3e9e3caa16340bf2e693f0ac5f8ebc7f28b1d1d884bff4"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-miner-revenue-per-hash-momentum-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "572cac1d2d97c224fb3e9e3caa16340bf2e693f0ac5f8ebc7f28b1d1d884bff4",
+    "byte_identical": true
+  },
+  "dataset_summary": {
+    "btc_hourly_rows": 52608,
+    "btc_complete_utc_days": 2192,
+    "fee_daily_rows": 2557,
+    "hashrate_daily_rows": 2557,
+    "complete_overlap_weeks": 312,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature_inventory": {
+    "primary_four_week_evaluations": 305,
+    "primary_positive": 147,
+    "primary_nonpositive": 158,
+    "primary_first_effective_time": "2019-03-06T00:00:00",
+    "primary_last_effective_time": "2025-01-01T00:00:00",
+    "two_week_evaluations": 309,
+    "eight_week_evaluations": 297
+  },
+  "nonredundancy_evidence": {
+    "limit": "0.80000000",
+    "design": {
+      "observations": 157,
+      "proxy_to_btc_price_growth_spearman": "0.79956152",
+      "proxy_to_hashrate_growth_spearman": "-0.05578675",
+      "proxy_to_fee_growth_spearman": "0.19063316"
+    },
+    "validation": {
+      "observations": 104,
+      "proxy_to_btc_price_growth_spearman": "0.84203563",
+      "proxy_to_hashrate_growth_spearman": "0.23286034",
+      "proxy_to_fee_growth_spearman": "0.38540489"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_proxy_growth_abs_spearman_to_btc_price_growth_at_most_0_80"
+  ],
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP"
+  },
+  "material_learning": "The theoretical subsidy-plus-fees per-hash proxy was not sufficiently independent from BTC price behavior. Design dependence was already borderline at 0.79956152 and Validation rose to 0.84203563, beyond the frozen 0.80 limit. The fee and hashrate legs were independently weaker, but they did not prevent the composite from becoming a price-momentum repackaging.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not remove or residualize the BTC price component after observing the failed Validation correlation.",
+    "Do not replace 144 expected blocks, change subsidy dates, promote the two/eight-week neighbors or scan another lookback, threshold, lag or source.",
+    "Do not calculate retrospective strategy PnL, drawdown, holding or terminal inventory for this closed family.",
+    "Do not combine the proxy with DRA, a closed factor, fractional sizing, leverage or shorting as a rescue and do not open OOS."
+  ],
+  "next_action": "SWITCH_TO_A_DIFFERENT_INDEPENDENT_MECHANISM_USING_EXISTING_FREE_SEALED_DATA_WITHOUT_MINER_PROXY_OR_PRICE_RESIDUALIZATION",
+  "claim_boundary": "Historical present-vintage feature-independence evidence only. The proxy is not actual miner revenue, no strategy economics were accessed, and no runtime action is authorized.",
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, strategy PnL access, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

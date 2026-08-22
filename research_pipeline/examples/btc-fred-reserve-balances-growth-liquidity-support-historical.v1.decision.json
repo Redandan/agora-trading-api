@@ -1,0 +1,111 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_RESERVE_BALANCES_GROWTH_LIQUIDITY_SUPPORT_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "btc-fred-reserve-balances-growth-liquidity-support-historical-v1",
+  "hypothesis_id": "btc-fred-reserve-balances-growth-liquidity-support-long-cash-v1",
+  "status": "NO_CANDIDATE_CLOSE_BTC_FRED_RESERVE_BALANCES_GROWTH_LIQUIDITY_SUPPORT_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_WRESBAL_FOUR_WEEK_GROWTH_FAMILY_WITHOUT_ECONOMIC_ACCESS_OR_TUNING",
+  "candidate_created": false,
+  "economic_evidence_accessed": false,
+  "oos_opened": false,
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-fred-reserve-balances-growth-liquidity-support-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-fred-reserve-balances-growth-liquidity-support-historical-v1/artifacts/run2.json",
+    "run1_sha256": "8125d8513354907c42d5a9e209cb697517ebb5a8d0fde2ca0daf02e54f789f8d",
+    "run2_sha256": "8125d8513354907c42d5a9e209cb697517ebb5a8d0fde2ca0daf02e54f789f8d",
+    "byte_identical": true
+  },
+  "frozen_bindings": {
+    "manifest_sha256": "90d4f7a37e22ac9933df2f57eda99070e07e341a58a35d14b945874dc3b5c495",
+    "runner_sha256": "8d9696f660cd09df006a55a0857877c2b893389d2b37b1aaadf97e72aac01755",
+    "source_bundle_sha256": "54984ab5b7f1066ad3a4db58c29f0b2fc57a429d3fc716337773b447fff76b86",
+    "normalized_wresbal_sha256": "d10bed3db65744c2de4c189ea5dffd2cc77b4fa63f88019e0b5dba534a2e0d1e",
+    "btc_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+  },
+  "source_feasibility": {
+    "weekly_observations": 365,
+    "factor_evaluations": 361,
+    "supportive_weeks": 187,
+    "other_weeks": 174,
+    "transitions": 68,
+    "design_support": "115_SUPPORTIVE_94_OTHER_PASS",
+    "validation_support": "59_SUPPORTIVE_45_OTHER_PASS"
+  },
+  "predictive_result": {
+    "failed_gate_count": 10,
+    "design": {
+      "episodes": 208,
+      "supportive_count": 115,
+      "other_count": 93,
+      "supportive_median_terminal_return_168h": "0.00773250",
+      "other_median_terminal_return_168h": "0.00119018",
+      "supportive_negative_terminal_rate": "0.44347826",
+      "other_negative_terminal_rate": "0.49462366",
+      "one_sided_fisher_negative_rate_p_value": "0.27577843",
+      "supportive_median_path_drawdown_168h": "0.09428943",
+      "other_median_path_drawdown_168h": "0.09135416",
+      "supportive_p75_path_drawdown_168h": "0.14116860",
+      "other_p75_path_drawdown_168h": "0.12284088",
+      "annual_direction_wins": "2_OF_4",
+      "top_positive_annual_delta_contribution_pct": "62.72750515"
+    },
+    "validation": {
+      "episodes": 103,
+      "supportive_count": 58,
+      "other_count": 45,
+      "supportive_median_terminal_return_168h": "0.01089747",
+      "other_median_terminal_return_168h": "0.01429111",
+      "supportive_negative_terminal_rate": "0.41379310",
+      "other_negative_terminal_rate": "0.42222222",
+      "one_sided_fisher_negative_rate_p_value": "0.54532368",
+      "supportive_median_path_drawdown_168h": "0.06530127",
+      "other_median_path_drawdown_168h": "0.07269605",
+      "supportive_p75_path_drawdown_168h": "0.08772867",
+      "other_p75_path_drawdown_168h": "0.09242594",
+      "annual_direction_wins": "1_OF_2",
+      "top_positive_annual_delta_contribution_pct": "100.00000000"
+    },
+    "material_interpretation": "Design showed an unconfirmed median-return difference but failed Fisher significance, both path-drawdown gates, annual breadth and concentration. Validation then reversed the median-return direction, improved negative-return rate by less than one percentage point, failed Fisher evidence, won only 2023, and concentrated all positive annual contribution in that one year. The mechanism does not generalize across the frozen windows."
+  },
+  "failed_pre_economic_gates": [
+    "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+    "design_supportive_median_path_drawdown_non_worse",
+    "design_supportive_p75_path_drawdown_non_worse",
+    "design_annual_median_return_direction_breadth",
+    "design_top_positive_annual_median_return_delta_contribution_at_most_60pct",
+    "validation_supportive_median_terminal_return_at_least_25bp_higher",
+    "validation_supportive_negative_terminal_rate_at_least_5pp_lower",
+    "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+    "validation_annual_median_return_direction_breadth",
+    "validation_top_positive_annual_median_return_delta_contribution_at_most_60pct"
+  ],
+  "permanent_tombstone": {
+    "duplicate_family_key": "btc-fred-reserve-balances-growth-liquidity-support-long-cash",
+    "closed_fingerprint_inputs": [
+      "FEDERAL_RESERVE_H41_RESH4R_XAW_N_WW",
+      "CURRENT_VALUE_STRICTLY_ABOVE_FOUR_OBSERVATIONS_EARLIER",
+      "FRIDAY_00_UTC_AVAILABILITY",
+      "168H_BTC_RESPONSE",
+      "FULL_BTC_LONG_OR_ZERO_YIELD_CASH_LATER_ECONOMIC_POLICY"
+    ],
+    "prohibited_reopen": [
+      "No direction inversion, magnitude threshold, smoothing or alternate lag.",
+      "No blend with WALCL, TGA, ON RRP, M2, rates, Treasury issuance or BTC technical state.",
+      "No economics, post-2024 OOS or forward trigger for this closed family."
+    ]
+  },
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "breadth_and_path_risk": "PREDICTIVE_PATH_RISK_FAILED_BEFORE_ECONOMICS"
+  },
+  "next_action": "REMOVE_FROM_OPEN_POOL_ADD_PERMANENT_TOMBSTONE_AND_ADMIT_ONE_DISTINCT_FREE_DATA_FAMILY_WITHOUT_REOPENING_CLOSED_LIQUIDITY_BALANCE_SHEET_BRANCHES",
+  "scope_note": "Historical pre-economic conclusion only. No strategy economics, candidate, OOS, paid API, second timer, second writer, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

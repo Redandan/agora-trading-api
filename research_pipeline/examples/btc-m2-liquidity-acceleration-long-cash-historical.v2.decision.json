@@ -1,0 +1,137 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_M2_LIQUIDITY_ACCELERATION_LONG_CASH_HISTORICAL_DECISION_V2",
+  "experiment_id": "btc-m2-liquidity-acceleration-long-cash-historical-v2",
+  "decided_at": "2026-08-20T10:36:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_M2_LIQUIDITY_ACCELERATION_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_M2_YOY_GROWTH_ACCELERATION_LONG_CASH_FAMILY_WITHOUT_TRANSFORMATION_LAG_THRESHOLD_OR_DIRECTION_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "v1_capability_erratum": {
+    "path": "research_pipeline/examples/btc-m2-liquidity-acceleration-long-cash-v1-runner-field-binding-erratum.json",
+    "sha256": "152fbd6243ec46d430d2170d1b26bf716fd538b6b506a9bdd466e9a21db8214e",
+    "v1_run_artifact_created": false,
+    "scientific_gate_change_in_v2": false
+  },
+  "manifest": {
+    "path": "research_pipeline/examples/btc-m2-liquidity-acceleration-long-cash-historical.v2.manifest.json",
+    "sha256": "f6c7373a20f80630fcb3fb24df4e18af16d1d699d992ce8732166cb08b9bec76"
+  },
+  "runner": {
+    "path": "research/btc_m2_liquidity_acceleration_long_cash_historical_v2.py",
+    "sha256": "7185242d8a912204eea4e8ec6d7d9c44da422cb38253da7650ba6a35edb305f1",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-m2-liquidity-acceleration-long-cash-historical-v2/artifacts/run1.json",
+    "sha256": "0674cd45f069663c4a61ad3d114f8cd9873c6a7d79666230646c70862a296ac1"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-m2-liquidity-acceleration-long-cash-historical-v2/artifacts/run2.json",
+    "sha256": "0674cd45f069663c4a61ad3d114f8cd9873c6a7d79666230646c70862a296ac1",
+    "byte_identical": true
+  },
+  "datasets": {
+    "btc": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "m2": {
+      "sha256": "383a0d5b4a95c95147e420801cb0a153a663c57776d171dc4134b07a55ec6c7c",
+      "rows": 96,
+      "first_month": "2017-01",
+      "last_month": "2024-12",
+      "present_vintage": true,
+      "original_release_vintages": "MISSING_PROOF"
+    }
+  },
+  "economic_summary": {
+    "design_normal": {
+      "realized_return_pct": "490.25948608",
+      "unrealized_return_pct": "0E-8",
+      "total_return_pct": "490.25948608",
+      "buy_hold_total_return_pct": "346.32062389",
+      "maximum_drawdown_pct": "67.72626734",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "calmar_ratio": "7.23883812",
+      "buy_hold_calmar_ratio": "4.48662523",
+      "upside_capture_ratio": "1.41562313",
+      "average_exposure_pct": "51.88227242",
+      "position_changes": 16,
+      "completed_episodes": 8,
+      "winning_episodes": 7,
+      "top_positive_episode_contribution_pct": "37.80744629"
+    },
+    "design_stress": {
+      "total_return_pct": "476.26187711",
+      "maximum_drawdown_pct": "67.82294362"
+    },
+    "validation_normal": {
+      "realized_return_pct": "53.32453065",
+      "unrealized_return_pct": "68.35879412",
+      "total_return_pct": "121.68332476",
+      "terminal_liquidation_adjusted_return_pct": "121.35091062",
+      "buy_hold_total_return_pct": "464.75475156",
+      "maximum_drawdown_pct": "34.42548508",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "calmar_ratio": "3.53468730",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.26182266",
+      "average_exposure_pct": "62.65389877",
+      "position_changes": 5,
+      "completed_episodes": 2,
+      "winning_episodes": 1,
+      "median_hold_hours": "3660.00000000",
+      "p90_hold_hours": "5397.60000000",
+      "top_positive_episode_contribution_pct": "100.00000000",
+      "terminal_position": true,
+      "terminal_holding_age_hours": "3672.00000000",
+      "terminal_liquidation_cost_pp": "0.33241415"
+    },
+    "validation_stress": {
+      "total_return_pct": "120.02732878",
+      "maximum_drawdown_pct": "34.62191418"
+    },
+    "annual_breadth": {
+      "normal_positive_years": "6_of_6",
+      "stress_positive_years": "5_of_6",
+      "normal_drawdown_non_worse_years": "5_of_6",
+      "normal_calmar_at_least_75pct_buy_hold_years": "3_of_6",
+      "normal_upside_capture_at_least_50pct_years": "2_of_6",
+      "top_year_positive_total_return_contribution_pct": "34.64405723"
+    }
+  },
+  "failed_gates": [
+    "validation_normal_drawdown_at_most_90pct_of_buy_hold",
+    "validation_normal_upside_capture_at_least_60pct",
+    "validation_normal_calmar_at_least_75pct_of_buy_hold",
+    "normal_annual_calmar_at_least_75pct_buy_hold_at_least_4_of_6",
+    "normal_annual_upside_capture_at_least_50pct_at_least_5_of_6",
+    "validation_top_positive_episode_contribution_at_most_60pct"
+  ],
+  "passed_evidence": [
+    "Design normal total return was 490.25948608 percent versus 346.32062389 percent for buy-and-hold, with drawdown lower by 9.46329191 percentage points and Calmar 7.23883812 versus 4.48662523.",
+    "Validation remained positive under normal and stress costs, had five position changes, and passed frozen holding, terminal-liquidation-cost and annual positive-return breadth gates.",
+    "Normal annual total return was positive in all six fair-reset years and drawdown was non-worse in five of six years; positive-year return contribution was not dominated by one year."
+  ],
+  "material_failure": [
+    "Validation total return was 121.68332476 percent versus 464.75475156 percent for passive BTC, capturing only 26.182266 percent of upside.",
+    "Validation drawdown was 34.42548508 percent versus 32.28416349 percent for passive BTC, so the liquidity filter increased drawdown by 2.14132159 percentage points instead of reducing it.",
+    "Validation Calmar was 3.53468730 versus 14.39575015 for passive BTC and reached at least seventy-five percent of passive Calmar in only three of six annual folds.",
+    "Validation had only two completed episodes and one winner; that single winner contributed 100 percent of positive completed-episode PnL.",
+    "Annual upside capture reached fifty percent in only two of six years, showing that positive aggregate return did not provide broad risk-adjusted participation."
+  ],
+  "material_learning": "U.S. M2 growth acceleration was a strong Design-era risk-on timing proxy and correctly avoided much of 2022, but it failed to transport into 2023-2024: it missed most upside, slightly worsened drawdown, and depended on one positive completed Validation episode. Positive PnL and broad positive-year counts are insufficient when matched-capital Calmar, upside participation and episode support collapse.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not invert the M2 direction after observing the result.",
+    "Do not scan M2 level, monthly growth, alternate 3/6/12/24-month transformations, lag, threshold, smoothing, publication timing or global-M2 variants.",
+    "Do not combine M2 with WALCL, rates, dollar, CFTC, Nasdaq, stablecoin, on-chain, trend or volatility factors as a rescue.",
+    "Do not relax Validation drawdown, upside, Calmar, annual breadth, concentration, holding or terminal-inventory gates and do not open OOS."
+  ],
+  "next_action": "SWITCH_TO_A_DISTINCT_FREE_EXECUTABLE_MECHANISM_WITH_PRE_OUTCOME_DIRECTION_AND_NO_M2_TRANSFORMATION_REUSE",
+  "claim_boundary": "Historical matched-capital present-vintage H.6 M2 evidence only. This is not independent OOS, point-in-time revision proof, a runtime strategy or permission to activate.",
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

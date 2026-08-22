@@ -1,0 +1,110 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-first-six-hour-direction-24h-state-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BTC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_LONG_CASH_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_SINGLE_VARIANT_FIRST_SIX_HOUR_DIRECTION_0600_UTC_24H_STATE_LONG_CASH_FAMILY_WITHOUT_FORMATION_CLOCK_SIGN_OR_THRESHOLD_TUNING",
+  "material_conclusion": "The signal was balanced and frequent but economically destructive. Design normal return was -58.61151271% versus 346.32062389% for buy-and-hold, with 88.81968563% drawdown and 764 position changes. Validation normal returned only 24.26601093% versus 464.75475156%, drawdown worsened to 38.48012706% and stress friction turned return negative at -29.51333627%. The exact first-six-hour direction is not delayed-information alpha after realistic turnover cost.",
+  "performance_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "-58.61151271",
+      "buy_hold_total_return_pct": "346.32062389",
+      "total_return_delta_pp": "-404.93213660",
+      "candidate_maximum_drawdown_pct": "88.81968563",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "candidate_calmar_ratio": "-0.65989327",
+      "buy_hold_calmar_ratio": "4.48662523",
+      "average_exposure_pct": "47.15947981",
+      "position_change_count": 764,
+      "completed_episode_count": 382,
+      "winning_episode_count": 160,
+      "median_hold_hours": "24.00000000",
+      "p90_hold_hours": "72.00000000",
+      "top_positive_episode_contribution_pct": "4.51656921"
+    },
+    "design_stress": {
+      "candidate_total_return_pct": "-86.84238403",
+      "buy_hold_total_return_pct": "345.65247924",
+      "candidate_maximum_drawdown_pct": "93.80204820"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "24.26601093",
+      "buy_hold_total_return_pct": "464.75475156",
+      "total_return_delta_pp": "-440.48874063",
+      "candidate_maximum_drawdown_pct": "38.48012706",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "candidate_calmar_ratio": "0.63061151",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.05221251",
+      "average_exposure_pct": "50.61559508",
+      "position_change_count": 378,
+      "completed_episode_count": 189,
+      "winning_episode_count": 84,
+      "median_hold_hours": "24.00000000",
+      "p90_hold_hours": "96.00000000",
+      "top_positive_episode_contribution_pct": "6.91129713"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "-29.51333627",
+      "buy_hold_total_return_pct": "463.90931032",
+      "candidate_maximum_drawdown_pct": "50.09978364",
+      "normal_to_stress_drawdown_increase_pp": "11.61965658"
+    },
+    "source_feature_counts": {
+      "design": {"evaluations": 1461, "positive": 689, "nonpositive": 772, "transitions": 764},
+      "validation": {"evaluations": 731, "positive": 370, "nonpositive": 361, "transitions": 378}
+    },
+    "breadth_and_concentration": {
+      "annual_normal_positive_delta_years": "1_of_6",
+      "annual_stress_positive_delta_years": "0_of_6",
+      "annual_drawdown_non_worse_years": "3_of_6",
+      "annual_calmar_non_worse_years": "1_of_6",
+      "top_positive_annual_delta_contribution_pct": "100.00000000"
+    }
+  },
+  "failed_gates_as_emitted": [
+    "design_normal_total_return_delta_vs_buy_hold_gt_0",
+    "design_stress_total_return_delta_vs_buy_hold_gt_0",
+    "design_normal_drawdown_non_worse_than_buy_hold",
+    "design_normal_calmar_at_least_buy_hold",
+    "design_normal_upside_capture_at_least_65pct",
+    "validation_normal_total_return_delta_vs_buy_hold_gt_0",
+    "validation_stress_total_return_delta_vs_buy_hold_gt_0",
+    "validation_normal_drawdown_non_worse_than_buy_hold",
+    "validation_normal_calmar_at_least_buy_hold",
+    "validation_normal_upside_capture_at_least_65pct",
+    "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+    "annual_normal_positive_delta_at_least_4_of_6",
+    "annual_stress_positive_delta_at_least_4_of_6",
+    "annual_drawdown_non_worse_at_least_5_of_6",
+    "annual_calmar_non_worse_at_least_4_of_6",
+    "top_positive_annual_delta_contribution_at_most_60pct",
+    "validation_terminal_liquidation_delta_vs_buy_hold_gt_0"
+  ],
+  "failure_attribution": [
+    "Balanced states and hundreds of transitions rule out sparsity as the explanation; the mechanism itself did not preserve subsequent return.",
+    "Normal friction on 764 Design position changes converted the policy to a 58.61% loss, while doubled friction deepened the loss to 86.84%.",
+    "Validation exposure was 50.62%, but the rule captured only 5.22% of passive upside and still worsened drawdown by 6.20 percentage points.",
+    "Stress drawdown rose 11.62 points above normal in Validation, showing strong cost-path fragility rather than a stable directional edge.",
+    "Episode concentration was low, so the failure is broad rather than caused by one unlucky trade."
+  ],
+  "sealed_evidence": {
+    "manifest": {"path": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-historical.v1.manifest.json", "sha256": "94308712760a9289b995914fd163ea8a2d6e469eb5501cc53bb0967b20c60eaf"},
+    "runner": {"path": "research/btc_first_six_hour_direction_24h_state_long_cash_historical.cjs", "sha256": "be75705bfaf472b1efc43e307a1d4fdd4d430712f2b2fd8c19a96e48fb86fc8f"},
+    "pre_execution_amendment": {"path": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-pre-execution-initial-state-amendment.v1.json", "sha256": "389cb2db45c44ec94eef8e312c439a7f4d8f2e120b79f2fde4d7930ae17de9f8"},
+    "run1": {"path": ".research-state/experiments/btc-first-six-hour-direction-24h-state-long-cash-historical-v1/artifacts/run1.json", "sha256": "5dee9dd1d8b25afafbabdc1338ea508fa6dc7c6d76d9934119721322c61e7e5f"},
+    "run2": {"path": ".research-state/experiments/btc-first-six-hour-direction-24h-state-long-cash-historical-v1/artifacts/run2.json", "sha256": "5dee9dd1d8b25afafbabdc1338ea508fa6dc7c6d76d9934119721322c61e7e5f"},
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "The study closes only the exact six-hour, 06:00 UTC, strict-positive rolling-state rule; it does not establish that every independently motivated intraday mechanism lacks value.",
+    "The initial cash amendment was frozen after a no-result start-boundary rejection and before any metric was emitted.",
+    "Historical Design and Validation through 2024 are not independent post-selection OOS."
+  ],
+  "next_action": "Add the exact family to the permanent tombstone catalog and advance a causally distinct mechanism without changing the formation length, clock, sign, threshold or state duration.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No paid API, second timer, second writer, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

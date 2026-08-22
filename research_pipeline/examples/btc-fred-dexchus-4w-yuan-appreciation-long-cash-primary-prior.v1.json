@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_DEXCHUS_4W_YUAN_APPRECIATION_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-dexchus-4w-yuan-appreciation-long-cash",
+  "created_at": "2026-08-21T03:38:48Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_dexchus_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_SOURCE_FEASIBILITY_GATE_IN_THE_NEXT_AUTONOMOUS_CYCLE",
+  "claim_boundary": "A falling DEXCHUS rate means renminbi appreciation against the U.S. dollar and may accompany stronger Chinese conditions or global risk appetite, but the managed exchange rate is not a direct China-growth, credit, liquidity or Bitcoin-demand measure. Capital controls, policy management and dollar-wide moves can break the sign. This supports one audit only.",
+  "primary_sources": [
+    {
+      "title": "Chinese Yuan Renminbi to U.S. Dollar Spot Exchange Rate",
+      "publisher": "Board of Governors of the Federal Reserve System via Federal Reserve Bank of St. Louis FRED",
+      "url": "https://fred.stlouisfed.org/series/DEXCHUS",
+      "use": "Official daily noon New York buying-rate identity, units, frequency and free present-vintage CSV source."
+    },
+    {
+      "title": "Foreign Exchange Rates - H.10",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/releases/h10/current/",
+      "use": "Official exchange-rate release and Chinese yuan per U.S. dollar convention."
+    },
+    {
+      "title": "What Happens in China Does Not Stay in China",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/econres/ifdp/what-happens-in-china-does-not-stay-in-china.htm",
+      "use": "Primary Federal Reserve research finds stronger Chinese growth can raise global risk sentiment and asset prices; DEXCHUS is only an imperfect proxy, not the paper's identified credit-impulse shock."
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "FRED_DEXCHUS_COMPLETE_WEEK_MEAN_STRICTLY_BELOW_MEAN_4_COMPLETE_WEEKS_EARLIER_FOLLOWING_THURSDAY_0000_UTC_V1",
+    "supportive_state": "CURRENT_COMPLETE_WEEK_MEAN_YUAN_PER_USD_STRICTLY_LESS_THAN_MEAN_FOUR_COMPLETE_WEEKS_EARLIER",
+    "other_state": "OTHERWISE",
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_YUAN_APPRECIATION_STATE_ZERO_YIELD_CASH_OTHERWISE",
+    "availability_floor": "THURSDAY_AFTER_COMPLETE_MONDAY_TO_FRIDAY_WEEK_AT_00_00_UTC",
+    "variant_count": 1
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_dexjpus": "DEXCHUS is a managed Chinese-growth and spillover axis with the opposite supportive sign, while closed DEXJPUS represented yen-funded carry appetite and failed only its exact complete weekday source lattice. The currency, causal mechanism and sign differ; DEXJPUS remains closed.",
+    "distinct_from_closed_broad_dollar_and_china_proxies": "The feature reads only lagged bilateral onshore renminbi spot history. It cannot use broad-dollar indices, Chinese credit impulse, equities, commodities, yields, volatility, BTC price or on-chain state.",
+    "prohibited_rescue": "Do not add offshore CNH, credit, GDP, policy events, fixing gaps, intervention labels, other currencies, broad-dollar indices, thresholds, smoothing, alternate horizons, inverse direction, fractional sizing or leverage after access."
+  },
+  "adversarial_prior": [
+    "China's exchange rate is actively managed and constrained by capital controls, so spot direction may not reveal market risk appetite.",
+    "DEXCHUS can move because of broad U.S. dollar changes rather than China-specific conditions.",
+    "A stronger renminbi can reflect policy action without improving global crypto demand.",
+    "Present-vintage daily history does not prove original-release availability or absence of revision.",
+    "A long-cash policy can improve apparent safety only by forfeiting BTC upside."
+  ],
+  "stop_conditions": [
+    "Do not execute the source probe or inspect 2018-2024 DEXCHUS values in this cycle; this cycle already advanced and closed one source family.",
+    "Stop DATA_REJECT before hypothesis or BTC access on any source, weekday identity, weekly-support, finite-value, state-support or transition failure.",
+    "If the source gate passes in a later cycle, freeze exactly one hypothesis and economic manifest before BTC outcomes.",
+    "Stop NO_CANDIDATE on any economic, drawdown, Calmar, upside, breadth, concentration or determinism failure.",
+    "Do not open post-2024 outcomes; a historical pass remains REPORTED_NOT_ACTIVATED."
+  ],
+  "missing_proof": [
+    "No exact DEXCHUS 2018-2024 source bundle, weekly aggregation or state-support result exists.",
+    "No hypothesis, runner, manifest, economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary official, research and adversarial prior only. No historical DEXCHUS factor value, BTC outcome, paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

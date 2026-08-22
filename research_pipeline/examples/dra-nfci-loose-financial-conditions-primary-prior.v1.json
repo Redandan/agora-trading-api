@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NFCI_LOOSE_FINANCIAL_CONDITIONS_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_NFCI_LOOSE_STATE_DRA_ADMISSION_HISTORICAL_AUDIT",
+  "claim_boundary": "Official documentation gives NFCI zero a publisher-defined economic meaning: positive is tighter-than-average and negative is looser-than-average U.S. financial conditions. Research also shows Bitcoin's monetary-policy response changes across regimes. Exactly one matched-capital audit may therefore test the static negative-NFCI admission state; neither the publisher nor the literature establishes BTC or DRA predictability.",
+  "feature_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_agency": "Federal Reserve Bank of Chicago",
+    "series_id": "NFCI",
+    "observation": "WEEKLY_ENDING_FRIDAY_INDEX_NOT_SEASONALLY_ADJUSTED",
+    "decision_time": "OBSERVATION_FRIDAY_PLUS_SEVEN_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_NFCI_STRICTLY_BELOW_PUBLISHER_DEFINED_ZERO",
+    "policy": "ADMIT_UNCHANGED_DRA_V1_PARENT_SIGNAL_ONLY_WHILE_LAGGED_NFCI_IS_NEGATIVE_OTHERWISE_VETO",
+    "factor_valid_hours": 168,
+    "threshold": "PUBLISHER_DEFINED_ZERO_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Federal Reserve Bank of Chicago, National Financial Conditions Index current data and methodology",
+      "primary_source": "https://www.chicagofed.org/research/data/nfci/current-data",
+      "finding": "The NFCI is a weekly dynamic-factor summary of money, debt, equity and banking conditions. It is released on Wednesday at 8:30 a.m. ET for the week ending the prior Friday, with Thursday publication possible around federal holidays. Positive readings are tighter than average and negative readings are looser than average.",
+      "role": "OFFICIAL_FEATURE_MEANING_AND_PUBLICATION_TIMING",
+      "transfer_boundary": "The NFCI was not designed as a Bitcoin or DRA signal, is historically below zero most of the time and may be revised. A conservative seven-calendar-day lag is used rather than reconstructing exact holiday and daylight-saving release clocks."
+    },
+    {
+      "identity": "Karau, Monetary policy and Bitcoin, Journal of International Money and Finance 137 (2023)",
+      "primary_source": "https://doi.org/10.1016/j.jimonfin.2023.102880",
+      "finding": "Bitcoin's response to U.S. monetary-policy shocks is time-varying: post-2020 tightening resembles other risky assets, while earlier responses differed and could have the opposite sign.",
+      "role": "ADVERSARIAL_TIME_VARIATION_AND_SIGN_INSTABILITY_PRIOR",
+      "transfer_boundary": "Identified monetary-policy surprises are not the NFCI level, and the paper does not establish a static zero-threshold admission rule or after-cost strategy performance."
+    },
+    {
+      "identity": "FRED NFCI series",
+      "primary_source": "https://fred.stlouisfed.org/series/NFCI",
+      "finding": "FRED publishes the Chicago Fed NFCI as a weekly Friday-ending, not-seasonally-adjusted index and requires source attribution. The series notes define positive as tighter-than-average and negative as looser-than-average conditions.",
+      "role": "FREE_OFFICIAL_MACHINE_READABLE_SOURCE_IDENTITY",
+      "transfer_boundary": "The downloaded CSV is a present-vintage snapshot rather than an archive of original weekly releases; original values and revision vintages remain MISSING_PROOF."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact FRED CSV response for NFCI from 2018-01-01 through 2024-12-31; require unique Friday observations, exact seven-day spacing, finite decimal values and no missing marker.",
+    "Make week-ending Friday D usable only at D plus seven calendar days 00:00 UTC and for at most 168 hours. This is later than normal Wednesday or holiday-Thursday publication and avoids reconstructing daylight-saving release times.",
+    "Admit an unchanged DRA V1 parent signal only when the latest eligible NFCI is strictly below zero; zero and positive values veto the new entry while leaving existing lots and exits untouched.",
+    "Use the frozen 250 USDT DRA V1 parent, 240 USDT slot capacity, 0.10% fee and 0.05% adverse slippage without changing entries, exits, lot size, capacity or accounting.",
+    "Require Design, Validation and 2020-2024 annual matched-capital economics, including realized, unrealized and total PnL, drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth, concentration and independent 168-hour predictive diagnostics.",
+    "Do not add ANFCI, NFCI subindexes, changes, moving averages, z-scores, alternate lags, nonzero thresholds, interactions, inverse rules, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Bitcoin's relationship with U.S. monetary and financial conditions changes across regimes and may reverse sign.",
+    "The NFCI contains market prices that can contemporaneously reflect BTC-relevant risk sentiment without necessarily forecasting future DRA paths.",
+    "The present-vintage FRED series can contain revisions; original release values and revision history remain MISSING_PROOF.",
+    "Negative NFCI is common, so the rule may intervene too rarely or simply reproduce broad risk-on participation.",
+    "No NFCI historical values, BTC/DRA outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T10:07:21Z"
+}

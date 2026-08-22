@@ -1,0 +1,19 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_H1_FOUR_DAY_VARIANCE_RATIO_PREOUTCOME_V2_RECURSION_ERRATUM",
+  "recorded_at": "2026-08-21T05:03:10Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
+  "failed_probe": {
+    "path": "research/btc_h1_four_day_variance_ratio_support_v2.py",
+    "sha256": "cfa11b31d461bfacc1ac5aa1cffb2fd098ef017ec3840b594c8c9e8eb49046b4"
+  },
+  "v2_spec_sha256": "69534ac53d7370a7e0b326c4927903aaded154d4661c4f2d8538aa0a843fba43",
+  "error": "RecursionError: maximum recursion depth exceeded",
+  "error_stage": "V2 support wrapper invocation after feature-loop entry and before any output creation or strategy economics",
+  "output_created": false,
+  "strategy_economics_accessed": false,
+  "oos_accessed": false,
+  "allowed_correction": "Capture the frozen V1 calculate_state callable before replacing base.calculate_state and make the precision-50 wrapper call only that captured callable. Do not change data, formula, context precision, windows, support gates or output path.",
+  "retry_contract": "ONE_CREATE_ONCE_RETRY_WITH_IDENTICAL_V2_SCIENTIFIC_CONTRACT"
+}

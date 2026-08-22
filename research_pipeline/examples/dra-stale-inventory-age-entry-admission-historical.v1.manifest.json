@@ -1,0 +1,120 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_STALE_INVENTORY_AGE_ENTRY_ADMISSION_MANIFEST_V1",
+  "experiment_id": "dra-stale-inventory-age-entry-admission-historical-v1",
+  "hypothesis_id": "dra-stale-inventory-age-entry-admission-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "parent_strategy": "BTC_DRA_V1_BASELINE_250_USDT_FIXED_30_USDT_LOTS",
+  "gate_set": "DRA_STALE_INVENTORY_AGE_ENTRY_ADMISSION_ECONOMIC_GATES_V1",
+  "oos_access": "DENY",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economics": {
+    "initial_equity_usdt": "250",
+    "maximum_open_cost_usdt": "240",
+    "maximum_open_lots": 8,
+    "lot_cost_usdt": "30",
+    "fee_rate_each_side": "0.0010",
+    "adverse_slippage_rate_each_side": "0.0005",
+    "fill": "UNCHANGED_NEXT_H1_OPEN",
+    "exit": "UNCHANGED_DRA_V1_PROFIT_ONLY_5PCT_NET_ESTIMATE"
+  },
+  "mechanism": {
+    "decision_clock": "UNCHANGED_DRA_SIGNAL_BEFORE_NEXT_H1_OPEN",
+    "capacity_first": true,
+    "age_clock": "DECISION_TIME_MINUS_OLDEST_OPEN_PARENT_LOT_ACTUAL_FILL_TIME_IN_HOURS",
+    "no_open_inventory": "ADMIT",
+    "relation": "VETO_AT_OR_ABOVE_THRESHOLD_HOURS",
+    "veto_reserves_cooldown": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL",
+    "capacity_block": "UNCHANGED_PARENT_BLOCK_WITHOUT_COOLDOWN_RESERVATION",
+    "inventory_pnl_read": "DENY",
+    "sell_or_resize_existing_lots": "DENY"
+  },
+  "variants": [
+    {
+      "role": "lower_threshold_neighbor",
+      "threshold_hours": "336",
+      "variant_id": "oldest-open-lot-age-at-least-336h-v1"
+    },
+    {
+      "role": "primary",
+      "threshold_hours": "720",
+      "variant_id": "oldest-open-lot-age-at-least-720h-v1"
+    },
+    {
+      "role": "upper_threshold_neighbor",
+      "threshold_hours": "1440",
+      "variant_id": "oldest-open-lot-age-at-least-1440h-v1"
+    }
+  ],
+  "gate_contract": {
+    "primary_all_required": [
+      "all_action_accounting_reconciles",
+      "design_total_pnl_improves",
+      "validation_total_pnl_improves",
+      "design_realized_pnl_improves",
+      "validation_realized_pnl_improves",
+      "validation_unrealized_non_worse",
+      "design_risk_adjusted_score_improves",
+      "validation_risk_adjusted_score_improves",
+      "design_drawdown_within_0_25pp",
+      "validation_drawdown_within_0_25pp",
+      "design_max_underwater_duration_non_worse",
+      "validation_max_underwater_duration_non_worse",
+      "validation_median_hold_non_worse",
+      "validation_p90_hold_non_worse",
+      "design_terminal_inventory_count_non_worse",
+      "validation_terminal_inventory_count_non_worse",
+      "validation_terminal_inventory_cost_non_worse",
+      "validation_terminal_unrealized_non_worse",
+      "design_interventions_at_least_8",
+      "validation_interventions_at_least_4",
+      "annual_total_wins_at_least_3_of_5",
+      "annual_drawdown_non_worse_at_least_4_of_5",
+      "annual_risk_adjusted_wins_at_least_3_of_5",
+      "top_year_positive_delta_contribution_at_most_60pct"
+    ],
+    "each_neighbor_all_required": [
+      "action_accounting_reconciles",
+      "validation_total_pnl_non_worse",
+      "validation_realized_non_worse",
+      "validation_risk_adjusted_score_non_worse",
+      "validation_drawdown_within_0_25pp",
+      "validation_max_underwater_duration_non_worse",
+      "validation_terminal_inventory_count_non_worse",
+      "validation_interventions_at_least_4"
+    ],
+    "drawdown_tolerance_percentage_points": "0.25",
+    "failure_disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_STALE_INVENTORY_AGE_FAMILY",
+    "pass_disposition": "CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED"
+  },
+  "forbidden_rescue_actions": [
+    "THRESHOLD_TUNING_AFTER_OUTCOME",
+    "AGE_CLOCK_OR_INVENTORY_STATE_TUNING_AFTER_OUTCOME",
+    "COOLDOWN_OR_CAPACITY_ROUTE_TUNING_AFTER_OUTCOME",
+    "PNL_AWARE_DECISION_FILTER_AFTER_OUTCOME",
+    "GATE_RELAXATION_AFTER_OUTCOME",
+    "OOS_ACCESS_DURING_HISTORICAL_SCREEN",
+    "FAMILY_REOPEN_AFTER_FAILED_FROZEN_SCREEN"
+  ],
+  "hypothesis_binding": {
+    "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-v1.hypothesis.json",
+    "sha256": "3aefaa65df7b6c0fc3faffef7c78014cfac2053849c46e570e8d32599dc07efb"
+  },
+  "prior_evidence": {
+    "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-preoutcome.v1.acceptance.json",
+    "sha256": "ebe99a66f8eb08b46aa2eca9a626f45e593bf4b29c5c1835bc9c6133a662dedb"
+  },
+  "runner_binding": {
+    "path": "research/btc_dra_stale_inventory_age_entry_admission_v1.py",
+    "sha256": "45d32cc379af6a9a5dd47575eb0362cc399c464e8c88ba0c22de9a79bb6eee29"
+  },
+  "support_runner_binding": {
+    "path": "research/dra_stale_inventory_age_support_v1.py",
+    "sha256": "949cc38130e4ea0412680e4b256deef1d3a3caa40ced7554241aa94041ceb9e9"
+  }
+}

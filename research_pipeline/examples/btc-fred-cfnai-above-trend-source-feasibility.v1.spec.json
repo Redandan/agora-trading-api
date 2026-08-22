@@ -1,0 +1,65 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_CFNAI_ABOVE_TREND_SOURCE_FEASIBILITY_SPEC_V1",
+  "created_at": "2026-08-21T04:23:13Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-cfnai-above-trend-long-cash",
+  "source_contract": {
+    "provider": "FRED",
+    "upstream_source": "FEDERAL_RESERVE_BANK_OF_CHICAGO",
+    "series": "CFNAI",
+    "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CFNAI&cosd=2018-01-01&coed=2024-12-31",
+    "transport": "HTTPS_GET_NO_REDIRECT_NO_RETRY_NO_CREDENTIAL",
+    "maximum_response_bytes": 65536,
+    "expected_header": "observation_date,CFNAI",
+    "expected_unique_ordered_month_rows": 84,
+    "required_first_date": "2018-01-01",
+    "required_last_date": "2024-12-01",
+    "required_calendar_step": "EVERY_CONSECUTIVE_CALENDAR_MONTH_EXACTLY_ON_DAY_1",
+    "missing_markers": ["", "."],
+    "required_finite_values": 84,
+    "revision_boundary": "PRESENT_VINTAGE_ONLY_NO_REAL_TIME_VINTAGE_CLAIM",
+    "license_boundary": "COPYRIGHTED_CITATION_REQUIRED_INTERNAL_REPRODUCIBILITY_ONLY"
+  },
+  "factor_contract": {
+    "factor_identity": "FRED_CFNAI_MONTHLY_VALUE_STRICTLY_GREATER_THAN_ZERO_PLUS_60D_V1",
+    "formula": "CFNAI_MONTH_t",
+    "comparison": "STRICTLY_GREATER_THAN_ZERO_WITH_EXACT_DECIMAL_COMPARISON",
+    "above_trend_state": "CURRENT_MONTH_VALUE_STRICTLY_GREATER_THAN_ZERO",
+    "other_state": "CURRENT_MONTH_VALUE_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "effective_time": "OBSERVATION_MONTH_START_PLUS_60_CALENDAR_DAYS_AT_0000_UTC",
+    "availability_reason": "The floor is intentionally later than the normal end-of-following-month release and remains a conservative present-vintage approximation, not real-time vintage proof.",
+    "warmup_months": 0,
+    "expected_evaluations": 84
+  },
+  "pre_outcome_support_gates": {
+    "design_effective_window": "2019-01-01T00:00:00Z_TO_2023-01-01T00:00:00Z_EXCLUSIVE",
+    "validation_effective_window": "2023-01-01T00:00:00Z_TO_2025-01-01T00:00:00Z_EXCLUSIVE",
+    "minimum_design_above_trend_states": 12,
+    "minimum_design_other_states": 12,
+    "minimum_design_state_transitions": 6,
+    "minimum_validation_above_trend_states": 6,
+    "minimum_validation_other_states": 6,
+    "minimum_validation_state_transitions": 3,
+    "failure_disposition": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS"
+  },
+  "execution_contract": {
+    "cycle_limit": "NEXT_RESEARCH_CYCLE_ONLY",
+    "maximum_source_attempts": 1,
+    "output_mode": "CREATE_ONCE_UNDER_RESEARCH_STATE",
+    "on_pass": "SEAL_SOURCE_BUNDLE_AND_ONLY_THEN_ALLOW_ONE_SCHEMA_VALID_HYPOTHESIS_AND_ONE_VARIANT_MANIFEST",
+    "on_fail": "SEAL_DATA_REJECT_DECISION_AND_CLOSE_WITHOUT_ALTERNATE_TRANSPORT_SOURCE_SERIES_THRESHOLD_OR_TIMING",
+    "oos": "DENY"
+  },
+  "prohibited_variants": [
+    "Do not add CFNAI-MA3, diffusion or component indices, GDP, labor, retail, housing, rates, equities, BTC price, trend, volatility or on-chain inputs.",
+    "Do not replace zero, invert direction, change the 60-day availability floor, add smoothing, alternate horizons, magnitude thresholds, fractional sizing, shorting or leverage.",
+    "Do not substitute another Chicago Fed path, FRED series, vendor, mirror or manually exported series after source access."
+  ],
+  "stop_conditions": [
+    "Stop before factor evaluation if transport, header, byte ceiling, exact monthly lattice, finite-value count, row count, date bounds or present-vintage identity fails.",
+    "Stop before BTC outcomes if either Design or Validation state and transition support fails.",
+    "Stop after one source attempt regardless of result; no same-cycle rescue or hypothesis is allowed for this newly admitted family."
+  ],
+  "scope_note": "No CFNAI source probe was executed and no historical factor value or BTC outcome was accessed; no hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

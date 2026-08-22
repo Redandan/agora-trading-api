@@ -1,0 +1,43 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-sma200-long-cash-v1",
+  "title": "Daily price above prior SMA200 full-capital long/cash timing",
+  "thesis": "A causal complete-day close above its prior-200-complete-day simple average may identify persistent BTC bull regimes slowly enough to avoid noise but early enough to preserve material upside, reduce bear-market drawdown and improve fee-adjusted Calmar over full-capital buy-and-hold.",
+  "mechanism": "For each complete UTC day, compare its close strictly with the arithmetic mean of exactly the prior 200 complete-day closes, excluding the current close. Hold full BTC when above and zero-yield cash otherwise, executing a changed target at the next H1 open.",
+  "economic_rationale": "The long horizon is intended to stay invested through persistent advances while exiting prolonged adverse regimes. It is useful only if SMA200 retains material after-cost upside, improves drawdown and Calmar, survives annual breadth, and remains stable at rejection-only SMA150 and SMA250 neighbors.",
+  "source": "BTC_DAILY_SMA200_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-sma200-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "independence_semantics": "ADJACENT_FEATURE_DISTINCT_ECONOMIC_POLICY",
+  "variants": [
+    {"role": "PRIMARY", "prior_complete_day_closes": 200},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "prior_complete_day_closes": 150},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "prior_complete_day_closes": 250}
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4,
+    "independence": 2
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-8",
+  "created_at": "2026-08-19T03:58:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

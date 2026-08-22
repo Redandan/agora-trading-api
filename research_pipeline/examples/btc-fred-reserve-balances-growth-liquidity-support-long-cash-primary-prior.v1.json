@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_RESERVE_BALANCES_GROWTH_LIQUIDITY_SUPPORT_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-reserve-balances-growth-liquidity-support-long-cash",
+  "created_at": "2026-08-20T12:47:00Z",
+  "status": "PRIMARY_PRIOR_AND_OFFICIAL_FREE_TRANSPORT_READY_SOURCE_NOT_SEALED",
+  "frozen_before_historical_wresbal_factor_or_btc_outcome_pairing_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_SOURCE_FEASIBILITY_IN_NEXT_RESEARCH_CYCLE",
+  "claim_boundary": "FRED identifies WRESBAL as weekly-average reserve balances held by depository institutions at Federal Reserve Banks. The Federal Reserve explains these are funds institutions hold on deposit at the Fed. These sources establish balance-sheet identity and publication timing, but they do not establish that a four-week increase improves tradable crypto liquidity, predicts BTC returns or supports a profitable long-or-cash policy.",
+  "primary_sources": [
+    {
+      "title": "Reserve Balances with Federal Reserve Banks: Week Average",
+      "publisher": "FRED, Federal Reserve Bank of St. Louis",
+      "url": "https://fred.stlouisfed.org/series/WRESBAL",
+      "use": "Primary series identity, weekly Wednesday-ending frequency, units, release and public-domain status."
+    },
+    {
+      "title": "The Federal Reserve's balance sheet",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/monetarypolicy/bst_fedsbalancesheet.htm",
+      "use": "Primary definition of reserve balances as depository-institution deposits and Thursday H.4.1 publication timing."
+    }
+  ],
+  "proposed_feature_for_next_cycle_only": {
+    "factor_identity": "FRED_WRESBAL_CURRENT_WEEKLY_VALUE_STRICTLY_ABOVE_VALUE_FOUR_WEEKLY_OBSERVATIONS_EARLIER_V1",
+    "support_state": "CURRENT_WRESBAL_STRICTLY_ABOVE_VALUE_FOUR_WEEKLY_OBSERVATIONS_EARLIER",
+    "other_state": "OTHERWISE",
+    "primary_direction": "SUPPORT_STATE_HAS_HIGHER_NEXT_168H_BTC_RETURN_AND_NO_WORSE_PATH_DRAWDOWN",
+    "availability_floor": "OBSERVATION_WEDNESDAY_PLUS_2_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "outcome_horizon_hours": 168,
+    "variant_count": 1,
+    "status": "PROPOSED_NOT_A_HYPOTHESIS_SOURCE_FEASIBILITY_AND_NEW_CYCLE_REQUIRED"
+  },
+  "future_economic_contract_if_and_only_if_predictive_screen_passes": {
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_RESERVE_BALANCE_GROWTH_STATE_ZERO_YIELD_CASH_OTHERWISE_NO_LEVERAGE_NO_SHORT",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "top_event_concentration"
+    ]
+  },
+  "data_path": {
+    "status": "READY_FOR_NEXT_CYCLE_SOURCE_SEALING_NO_PAID_API",
+    "download_url_template": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WRESBAL&cosd={YEAR}-01-01&coed={YEAR}-12-31",
+    "source_cost": "FRED_PUBLIC_CSV_NO_KEY_FREE",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "required_action_before_factor_access": "DOWNLOAD_ONCE_SEAL_EXACT_ANNUAL_RESPONSES_RECORD_SHA256_VALIDATE_SERIES_ID_WEEKLY_LATTICE_BOUNDARIES_AND_PRE_OUTCOME_BOTH_STATE_SUPPORT"
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_walcl": "WALCL is total Federal Reserve assets; WRESBAL is a specific liability held by depository institutions. Asset growth can be offset by TGA, ON RRP, currency or other liabilities, so the measures are not identical.",
+    "distinct_from_tga_and_on_rrp": "TGA and ON RRP measure cash held by Treasury or eligible money-market counterparties; WRESBAL measures bank reserve deposits directly.",
+    "prohibited_rescue": "Do not combine WRESBAL with WALCL, TGA, ON RRP, M2, rates, Treasury issuance or BTC price after source or outcome access. Do not change the four-week lag, strict growth direction or Friday availability."
+  },
+  "adversarial_prior": [
+    "Higher reserve balances do not prove that banks expand credit or that funds reach crypto markets.",
+    "Reserve demand, regulation, payment flows and the ample-reserves operating framework can weaken any risk-asset interpretation.",
+    "COVID-era balance-sheet expansion may dominate the historical result and fail annual or regime breadth.",
+    "The liability is jointly affected by Fed assets, Treasury deposits, currency, ON RRP and other balance-sheet items; a univariate relation may be confounded.",
+    "FRED data are subject to revision; the downloaded history will be a present-vintage source without original weekly vintages."
+  ],
+  "next_cycle_stop_conditions": [
+    "Do not create a second hypothesis in the current 2026-08-20 ON RRP research cycle.",
+    "In a new cycle, stop DATA_REJECT before hypothesis or BTC outcome access if the exact WRESBAL response cannot be sealed, weekly dates or identity fail, or either state lacks adequate Design and Validation support.",
+    "Freeze exactly one hypothesis and one pre-economic predictive manifest only after source feasibility passes and before joining a BTC outcome.",
+    "Stop NO_CANDIDATE before economics if either Design or Validation fails return direction, path-drawdown, annual-breadth or concentration gates.",
+    "Do not open post-2024 outcomes; any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed forward evidence."
+  ],
+  "missing_proof": [
+    "The complete 2018-2024 WRESBAL response has not been downloaded or sealed.",
+    "Both-state support and exact weekly boundaries have not been measured.",
+    "No hash-bound hypothesis, runner, manifest or deterministic run exists.",
+    "No Design or Validation predictive result, matched-capital economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior plus official free transport design only. No historical WRESBAL value or BTC outcome was retained in this artifact; no second hypothesis, runner, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

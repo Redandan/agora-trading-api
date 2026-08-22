@@ -176,10 +176,27 @@ def _git(root: Path, *arguments: str, ok_returncodes: set[int] | None = None) ->
 
 
 def _git_object(root: Path, commit: str, relative: str) -> bytes:
-    _repository_relative_path(relative, "Git object path")
+    relative = _repository_relative_path(relative, "Git object path")
     if len(commit) != 40 or any(character not in "0123456789abcdef" for character in commit):
         raise ValueError("Git object commit must be exact 40-hex")
-    return _git(root, "--no-pager", "show", f"{commit}:{relative}")
+    tree_entry = _git(root, "ls-tree", "-z", commit, "--", relative)
+    entries = [entry for entry in tree_entry.split(b"\0") if entry]
+    if len(entries) != 1 or b"\t" not in entries[0]:
+        raise ValueError("required exact Git proof failed")
+    metadata, object_path = entries[0].split(b"\t", 1)
+    fields = metadata.split(b" ")
+    expected_path = relative.encode("utf-8")
+    if len(fields) != 3 or fields[1] != b"blob" or object_path != expected_path:
+        raise ValueError("required exact Git proof failed")
+    try:
+        object_id = fields[2].decode("ascii")
+    except UnicodeDecodeError as error:
+        raise ValueError("required exact Git proof failed") from error
+    if len(object_id) != 40 or any(
+        character not in "0123456789abcdef" for character in object_id
+    ):
+        raise ValueError("required exact Git proof failed")
+    return _git(root, "cat-file", "blob", object_id)
 
 
 def _require_ancestor(root: Path, ancestor: str, descendant: str) -> None:

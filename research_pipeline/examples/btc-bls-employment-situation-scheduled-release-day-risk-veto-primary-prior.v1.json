@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BLS_EMPLOYMENT_SITUATION_SCHEDULED_RELEASE_DAY_RISK_VETO_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-bls-employment-situation-scheduled-release-day-risk-veto",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_FUTURE_PRE_ECONOMIC_OFFICIAL_EMPLOYMENT_SITUATION_RELEASE_DAY_AUDIT",
+  "claim_boundary": "BLS publishes calendar-known Employment Situation release dates and times, and payroll and unemployment information can affect policy and cross-asset expectations. The release combines two surveys, revisions and an unknown surprise direction, while primary Bitcoin-macro evidence reports muted or unstable responses. Exactly one future preregistered audit may test a full-UTC-day cash veto; the calendar and literature do not establish alpha.",
+  "feature_contract": {
+    "publisher": "U.S. Bureau of Labor Statistics",
+    "source": "OFFICIAL_BLS_EMPLOYMENT_SITUATION_RELEASE_CALENDAR_AND_ARCHIVED_NEWS_RELEASES",
+    "event_universe": "MONTHLY_NATIONAL_EMPLOYMENT_SITUATION_NEWS_RELEASES_ONLY",
+    "event_date": "OFFICIAL_RELEASE_DATE_FOR_EACH_MONTHLY_EMPLOYMENT_SITUATION_NEWS_RELEASE",
+    "decision_time": "EVENT_DATE_0000_UTC_USING_A_CALENDAR_PUBLISHED_BEFORE_THE_RELEASE",
+    "primary_feature": "COMPLETE_UTC_DAY_CONTAINS_AN_OFFICIAL_BLS_EMPLOYMENT_SITUATION_RELEASE",
+    "policy": "HOLD_ZERO_YIELD_CASH_FOR_THE_COMPLETE_EVENT_UTC_DAY_AND_FULL_CAPITAL_BTC_OTHERWISE",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "BLS Schedule of Selected Releases 2020",
+      "primary_source": "https://www.bls.gov/schedule/2020/",
+      "finding": "The official archived schedule lists the date, Eastern Time and identity of monthly Employment Situation releases.",
+      "role": "FREE_OFFICIAL_HISTORICAL_PRE_EVENT_CALENDAR",
+      "transfer_boundary": "A scheduled release date does not encode payroll, unemployment or earnings surprises and does not establish a negative BTC return."
+    },
+    {
+      "identity": "BLS Schedule of Selected Releases 2024",
+      "primary_source": "https://www.bls.gov/schedule/2024/",
+      "finding": "The official year archive lists recurring 08:30 Eastern Employment Situation releases for the Validation years.",
+      "role": "FREE_OFFICIAL_VALIDATION_WINDOW_CALENDAR",
+      "transfer_boundary": "Original point-in-time publication evidence must be cross-checked before BTC outcome access."
+    },
+    {
+      "identity": "BLS Employment Situation archived news releases",
+      "primary_source": "https://www.bls.gov/bls/news-release/empsit.htm",
+      "finding": "BLS retains monthly release archives that can verify release identity and the next scheduled release without a paid API.",
+      "role": "FREE_OFFICIAL_EVENT_IDENTITY_AND_PREANNOUNCEMENT_CROSS_CHECK",
+      "transfer_boundary": "Release contents, revisions and realized surprise values are prohibited features for the calendar-only audit."
+    },
+    {
+      "identity": "BLS Employment Situation methods quick guide",
+      "primary_source": "https://www.bls.gov/bls/empsitquickguide.htm",
+      "finding": "The release contains distinct household and establishment survey estimates with sampling, revision and measurement considerations.",
+      "role": "ADVERSARIAL_MEASUREMENT_AND_REVISION_PRIOR",
+      "transfer_boundary": "The calendar-only policy cannot know which survey component or revision will dominate market interpretation."
+    },
+    {
+      "identity": "Benigno and Rosa, The Bitcoin-Macro Disconnect, Federal Reserve Bank of New York Staff Report 1052",
+      "primary_source": "https://www.newyorkfed.org/medialibrary/media/research/staff_reports/sr1052.pdf",
+      "finding": "The study reports that Bitcoin reactions to macro news are often muted or unstable even when conventional assets respond.",
+      "role": "ADVERSARIAL_BITCOIN_MACRO_DISCONNECT_PRIOR",
+      "transfer_boundary": "High-frequency surprise regressions do not directly test a full-day long-or-cash policy, fees, drawdown or opportunity cost."
+    }
+  ],
+  "future_design_requirements": [
+    "Before BTC outcome access, freeze the exact official 2020-2024 monthly Employment Situation release-date list and verify point-in-time preannouncement through immediately preceding archived releases.",
+    "Use one complete UTC-day event interval and same-window non-event controls matched only to weekdays present in each frozen window.",
+    "Require Design and Validation support, return disadvantage, negative-rate difference, one-sided Fisher significance, drawdown path, annual breadth and loss concentration before economics.",
+    "Only after every predictive gate passes, run matched-capital BTC versus zero-yield-cash economics under normal and doubled adverse friction.",
+    "Do not add payroll, unemployment, earnings or revision surprise sign or magnitude, consensus forecasts, equities, yields, dollar, BTC trend, volatility, intraday windows, partial sizing, leverage or shorting.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "This family shares a broad scheduled U.S. macro-announcement mechanism with the closed CPI and FOMC full-day vetoes, so it receives a lower independence rank despite a different information release.",
+    "Most releases occur on Friday, making same-weekday controls plentiful but limiting weekday diversity.",
+    "A complete UTC day is much wider than the 08:30 Eastern release window and may forgo positive drift unrelated to labor news.",
+    "No Employment-Situation-matched BTC return, path, strategy economics, post-2024 observation, hypothesis, candidate or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T15:31:00Z"
+}

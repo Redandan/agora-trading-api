@@ -1,0 +1,54 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_CHAIKIN_MONEY_FLOW_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-daily-chaikin-money-flow-long-cash",
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_CMF20_STANDALONE_LONG_CASH_EXPERIMENT_WITH_14D_AND_28D_REJECTION_ONLY_NEIGHBORS",
+  "causal_hypothesis": "A rolling balance of where BTC closes inside each complete day's range, weighted by that day's traded base volume, may distinguish persistent accumulation from distribution before the next tradable hourly open.",
+  "economic_hypothesis": "A full-capital long-or-zero-yield-cash policy may retain sufficient BTC upside while avoiding enough distribution-state downside to improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold across Design, Validation and annual folds.",
+  "frozen_feature": {
+    "daily_aggregation": "EXACTLY_24_CONTIGUOUS_H1_BARS_PER_COMPLETE_UTC_DAY",
+    "money_flow_multiplier": "((DAILY_CLOSE_MINUS_DAILY_LOW)-(DAILY_HIGH_MINUS_DAILY_CLOSE))/(DAILY_HIGH_MINUS_DAILY_LOW)",
+    "zero_range_rule": "MONEY_FLOW_MULTIPLIER_ZERO",
+    "money_flow_volume": "MONEY_FLOW_MULTIPLIER_TIMES_DAILY_BASE_VOLUME",
+    "chaikin_money_flow": "SUM_MONEY_FLOW_VOLUME_DIVIDED_BY_SUM_BASE_VOLUME_OVER_EXACT_COMPLETE_DAYS",
+    "primary_lookback_complete_days": 20,
+    "rejection_only_neighbors_complete_days": [14, 28],
+    "long_condition": "CMF_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "CMF_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "NEXT_H1_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT",
+    "variants": 3
+  },
+  "independence_boundary": {
+    "not_obv": "The closed OBV family signs whole-day volume by close-to-close direction and compares moving averages of a cumulative series. CMF instead weights volume by the close's location inside each day's high-low range and tests the rolling flow balance around zero.",
+    "not_h1_vwap_close_location": "The closed DRA H1 volume-weighted close-location admission feature compared the daily close with an H1 volume-weighted close. CMF uses daily high, low, close and total base volume over a rolling standalone policy and does not modify DRA.",
+    "not_directional_volume": "The closed directional-volume DRA feature split hourly volume by positive hourly return. CMF does not classify hourly return signs.",
+    "not_price_only_trend": "CMF can be positive or negative independently of the price-only SMA, MACD, DMI, Supertrend, PSAR, Donchian and Bollinger states already closed."
+  },
+  "adversarial_prior": [
+    "A positive CMF state may merely proxy contemporaneous price strength and may not survive next-open execution costs.",
+    "BTC base-volume history is venue-specific and can change with market structure, so Design strength without Validation breadth is insufficient.",
+    "A long/cash filter can report lower drawdown simply by holding cash; it must preserve frozen upside and Calmar rather than pass on reduced participation alone.",
+    "The 14-day and 28-day variants are rejection-only stability checks and cannot replace a failed 20-day primary."
+  ],
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPUS",
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "source_cost": "FREE_ALREADY_SEALED"
+  },
+  "stop_conditions": [
+    "Stop before economics if corpus identity, H1 continuity, OHLCV validity, complete-day aggregation or source bindings fail.",
+    "Stop NO_CANDIDATE if the 20-day primary or either frozen rejection-only neighbor fails any Design, Validation, annual breadth, cost, drawdown, Calmar, upside, concentration, holding or terminal-inventory gate.",
+    "Do not scan another lookback, zero band, volume field, daily formula, delay, minimum hold, price confirmation, sizing rule, leverage or short leg after outcome access.",
+    "Do not combine CMF with a closed factor or DRA as a rescue."
+  ],
+  "missing_proof": [
+    "No CMF feature ledger or deterministic economic runner is sealed.",
+    "No matched-capital Design, Validation, stress, annual breadth or path-risk result exists.",
+    "No independent OOS or forward evidence exists."
+  ],
+  "scope_note": "Pre-outcome prior only. No CMF outcome, runner, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

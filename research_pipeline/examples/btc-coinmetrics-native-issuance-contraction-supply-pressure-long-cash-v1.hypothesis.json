@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash-v1",
+  "title": "Lagged Bitcoin native-issuance contraction supply-pressure support for BTC long or cash",
+  "thesis": "A complete-Sunday 28-day Bitcoin native-issuance sum strictly below the same-weekday 28-day sum ending 364 days earlier may identify a lower structural new-supply state with better subsequent BTC return and path-risk evidence than other weeks.",
+  "mechanism": "Use only Coin Metrics Community IssTotNtv for BTC, sum the 28 complete UTC days ending Sunday, compare with the 28-day sum ending exactly 364 days earlier, make the state usable Wednesday 00:00 UTC, and evaluate one non-overlapping 168-hour BTC response. No price input, block-count normalization, magnitude threshold, smoothing, alternate lookback, direction inversion or halving-event window is allowed.",
+  "economic_rationale": "If and only if both Design and Validation establish the preregistered predictive direction, a later matched-capital policy would hold full BTC during lower-issuance weeks and zero-yield cash otherwise. It must improve fee-adjusted Calmar and underwater duration while explicitly charging turnover, lost upside and capital utilization; protocol issuance is not assumed to equal miner selling.",
+  "source": "PRE_CANDIDATE_POOL:btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash:PRIMARY_PRIOR_SHA256_ce344daa3269a6b0c0b9bd3ab275f66a34c765d10ec03607647e2f551912ea46:SOURCE_BUNDLE_SHA256_05964036ded83834019078b7ea631fc4d7ffd9a746942bde4a545bb557c01a7e",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-coinmetrics-btc-native-issuance-year-paired-contraction-pre-economic-predictive-screen-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "supportive_and_other_weekly_episode_support",
+    "median_168h_terminal_return_and_negative_return_rate",
+    "median_and_p75_168h_peak_to_trough_path_drawdown",
+    "one_sided_fisher_negative_return_rate_p_value",
+    "annual_direction_breadth_and_top_year_positive_return_concentration",
+    "matched_capital_fee_drawdown_calmar_utilization_and_upside_opportunity_cost_only_after_predictive_pass"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 3
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-iss-tot-ntv-supply-pressure-1",
+  "created_at": "2026-08-20T13:36:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

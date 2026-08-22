@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_LAGGED_REALIZED_VARIANCE_SCALED_LOT_SIZING_PREOUTCOME_SPEC_V1",
+  "created_at": "2026-08-21T05:54:15Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-lagged-realized-variance-scaled-lot-sizing",
+  "stage": "FROZEN_PREOUTCOME_ACTION_DEDUPLICATION_AND_SUPPORT",
+  "objective": "Before any strategy PnL or valuation access, determine whether the proposed no-leverage downside-only DRA new-lot sizing rule is action-level distinct from two permanently closed volatility families, has a deterministic causal feature-to-size lattice, preserves every parent decision signal, respects fixed capital bounds and has enough Design, Validation and annual interventions to justify at most one later hypothesis.",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "prior_binding": {
+    "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-primary-prior.v1.json",
+    "role": "SEALED_PRIMARY_ACADEMIC_AND_ADVERSARIAL_PRIOR",
+    "sha256": "80149862b0e24dfaaa25338b07abdfeba382575fbd943accb4084c9566a4bc91"
+  },
+  "closed_family_bindings": [
+    {
+      "path": "research_pipeline/examples/dra-lagged-realized-volatility-entry-admission.v1.decision.json",
+      "role": "PERMANENT_CLOSED_DRA_ENTRY_ADMISSION_FAMILY",
+      "sha256": "7e1e5be639d0e361f7a0f2667ef7704d59b8c2847b04799e167189d0be01801c"
+    },
+    {
+      "path": "research_pipeline/examples/btc-monthly-30d-volatility-target-40pct-historical.v1.decision.json",
+      "role": "PERMANENT_CLOSED_MONTHLY_FULL_PORTFOLIO_VOLATILITY_TARGET_FAMILY",
+      "sha256": "ba1c31c4a17837869770ebc376397ab77bd99a698547abdfcff66e2cf2e6e123"
+    }
+  ],
+  "runner_binding": {
+    "path": "research/dra_lagged_realized_variance_scaled_lot_sizing_support_v1.py",
+    "sha256": "e13e994717aaaf312ee0f33f5e8fbd39f11601cce6fdcf1b56e3d1f11e414c82"
+  },
+  "action_fingerprints": {
+    "new_family": "ACTION_NEW_DRA_LOT_COST_ONLY|CLOCK_DRA_SIGNAL_ONLY|SIGNALS_PASS_THROUGH|SIZE_30_DIV_RV_RATIO_FLOOR_15_CAP_30|MAX_OPEN_COST_240|MAX_OPEN_LOTS_8|NO_LEVERAGE",
+    "closed_entry_admission": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_DRA_SIGNAL|HIGH_LAGGED_VOLATILITY_SIGNAL_COST_ZERO|THRESHOLD_1_0",
+    "closed_monthly_target": "ACTION_FULL_PORTFOLIO_TARGET_EXPOSURE|CLOCK_MONTHLY|TARGET_MIN_1_0_40_DIV_ANNUALIZED_30D_VOLATILITY"
+  },
+  "sizing_policy": {
+    "feature": "LATEST_COMPLETE_UTC_DAY_REALIZED_VARIANCE_TO_PRIOR_20_COMPLETE_DAY_MEDIAN",
+    "return": "H1_SIMPLE_CLOSE_TO_PREVIOUS_H1_CLOSE",
+    "primary_floor_usdt": "15",
+    "base_and_cap_usdt": "30",
+    "rejection_only_floor_neighbors_usdt": [
+      "10",
+      "20"
+    ],
+    "available_feature_mapping": "MAX_FLOOR_MIN_30_30_DIV_NORMALIZED_VARIANCE_RATIO_QUANTIZED_HALF_UP_1E_8",
+    "unavailable_feature_mapping": "UNCHANGED_30_USDT_SIGNAL_PRESERVED",
+    "maximum_open_cost_usdt": "240",
+    "maximum_open_lots": 8,
+    "leverage": "DENY",
+    "short": "DENY",
+    "variants": 3
+  },
+  "windows": {
+    "design": "2019-01-01T00:00:00_INCLUSIVE_TO_2023-01-01T00:00:00_EXCLUSIVE_WITH_UP_TO_90D_INDICATOR_WARMUP",
+    "validation": "2023-01-01T00:00:00_INCLUSIVE_TO_2025-01-01T00:00:00_EXCLUSIVE_WITH_90D_INDICATOR_WARMUP",
+    "annual_fair_reset": "2020_THROUGH_2024_EACH_WITH_UP_TO_90D_INDICATOR_WARMUP"
+  },
+  "gates": {
+    "annual_minimum_primary_signal_interventions": 2,
+    "design_minimum_normalized_rows": 1000,
+    "design_minimum_primary_signal_interventions": 8,
+    "maximum_top_year_primary_signal_intervention_share": "0.40",
+    "minimum_feature_available_signal_share": "0.95",
+    "minimum_neighbor_action_differences_each_window": 1,
+    "primary_scaled_day_share_maximum": "0.75",
+    "primary_scaled_day_share_minimum": "0.25",
+    "validation_minimum_normalized_rows": 650,
+    "validation_minimum_primary_signal_interventions": 4
+  },
+  "pass_disposition": "PASS_PREOUTCOME_DEDUP_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+  "fail_disposition": "DATA_REJECT_PERMANENTLY_CLOSE_ACTION_FAMILY_BEFORE_HYPOTHESIS_OR_ECONOMICS",
+  "stop_conditions": [
+    "Fail closed on any dataset, source hash, row, complete-day, prior, runner or closed-family binding mismatch; do not repair or substitute data.",
+    "Use exactly twenty prior complete variance observations, the 15 USDT primary floor, 10 and 20 USDT rejection-only floors, 30 USDT cap, 240 USDT maximum open cost and eight-lot limit.",
+    "Do not call any economic runner, value inventory, compute return, PnL, drawdown, fees, slippage, holding outcome or candidate metric in this screen.",
+    "Return the fail disposition and permanently close before hypothesis creation if any gate fails; do not change a threshold, floor, formula, action fingerprint or gate.",
+    "A pass authorizes at most one separately frozen hypothesis and matched-capital manifest. It is not alpha, a candidate, OOS, a strategy implementation or activation authority."
+  ],
+  "prohibited_actions": [
+    "OUTCOME_OR_ECONOMIC_ACCESS",
+    "HYPOTHESIS_OR_MANIFEST_CREATION_BEFORE_PASS",
+    "POST_FACTOR_SPEC_OR_GATE_CHANGE",
+    "CLOSED_FAMILY_REOPEN_OR_RECOMPUTATION",
+    "EXTERNAL_DOWNLOAD_OR_BACKFILL",
+    "PAID_API",
+    "SECOND_TIMER_OR_WRITER",
+    "CANONICAL_STATE_WRITE",
+    "PRODUCTION_TRADING_DATABASE_ORDER_FUND_OCO_GRID_SHADOW_PAPER_LIVE"
+  ]
+}

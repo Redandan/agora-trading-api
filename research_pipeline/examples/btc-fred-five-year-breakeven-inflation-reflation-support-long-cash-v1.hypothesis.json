@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-five-year-breakeven-inflation-reflation-support-long-cash-v1",
+  "title": "Lagged five-year inflation-compensation reflation support for BTC long or cash",
+  "thesis": "A complete-week T5YIE last value strictly above its value 28 calendar days earlier may identify a market-implied nominal-demand or reflation state with better subsequent BTC return and path-risk evidence than other weeks.",
+  "mechanism": "Use only the sealed official FRED T5YIE present-vintage responses, take the last actually published observation in each complete Monday-Friday week, make it usable on the following Wednesday 00:00 UTC, compare it with the exact week 28 calendar days earlier, and evaluate one non-overlapping 168-hour BTC response. The supportive state is a strict rise; no level, magnitude threshold, smoothing, alternate lag, direction inversion or combined macro factor is allowed.",
+  "economic_rationale": "If and only if both Design and Validation establish the preregistered predictive direction, a later matched-capital policy would hold full spot BTC during supportive weeks and zero-yield cash otherwise. It must improve fee-adjusted Calmar and underwater duration while explicitly charging turnover, lost upside and capital utilization.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-five-year-breakeven-inflation-reflation-support-long-cash:PRIMARY_PRIOR_SHA256_4da21176e950dfb8ae2f8b983e81c0e8240b46a8a38a45d4b3a83f7327e9785a:SOURCE_BUNDLE_SHA256_e65b4f0f06077469f7e796e4470ec4a05e8bf95891dec1c8feb4239e4cd29ffc",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-official-fred-t5yie-four-week-rise-pre-economic-predictive-screen-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "supportive_and_other_weekly_episode_support",
+    "median_168h_terminal_return_and_negative_return_rate",
+    "median_and_p75_168h_peak_to_trough_path_drawdown",
+    "one_sided_fisher_negative_return_rate_p_value",
+    "annual_direction_breadth_and_top_year_positive_return_concentration",
+    "matched_capital_fee_drawdown_calmar_utilization_and_upside_opportunity_cost_only_after_predictive_pass"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 3
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-t5yie-reflation-support-1",
+  "created_at": "2026-08-20T13:55:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

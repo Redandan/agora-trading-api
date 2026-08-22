@@ -1,0 +1,99 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_ADDRESS_BALANCE_COUNT_GROWTH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-address-balance-count-28d-growth-long-cash",
+  "created_at": "2026-08-20T12:22:00Z",
+  "status": "PRIMARY_PRIOR_AND_FREE_TRANSPORT_PREFLIGHT_READY_SOURCE_NOT_SEALED",
+  "frozen_before_historical_address_balance_factor_or_btc_outcome_pairing_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_SOURCE_FEASIBILITY_THEN_AT_MOST_ONE_HASH_BOUND_PRE_ECONOMIC_SCREEN",
+  "claim_boundary": "Coin Metrics defines AdrBalCnt as the count of unique addresses with a positive native-unit balance and describes address metrics as a proxy for network users. It also warns that one user can control many addresses and custodial addresses can represent many users. The source does not establish that four-week address-count growth predicts BTC returns or supports a profitable long-or-cash policy.",
+  "primary_sources": [
+    {
+      "title": "Addresses",
+      "publisher": "Coin Metrics Product Docs",
+      "url": "https://gitbook-docs.coinmetrics.io/network-data/network-data-overview/addresses",
+      "use": "Primary interpretation that address metrics are a proxy for network users and that increases can indicate more network users."
+    },
+    {
+      "title": "Coin Metrics FAQ",
+      "publisher": "Coin Metrics Product Docs",
+      "url": "https://docs.coinmetrics.io/resources/faqs",
+      "use": "Primary adversarial boundary: address balances only approximate users because users can have many addresses and custodians or exchanges can represent many users."
+    },
+    {
+      "title": "Coin Metrics Community API catalog",
+      "publisher": "Coin Metrics",
+      "url": "https://community-api.coinmetrics.io/v4/catalog/asset-metrics",
+      "use": "No-key catalog proof that AdrBalCnt is available for BTC at daily frequency on the community endpoint."
+    }
+  ],
+  "proposed_feature_for_next_cycle_only": {
+    "factor_identity": "COINMETRICS_BTC_ADRBALCNT_CURRENT_COMPLETE_SUNDAY_STRICTLY_ABOVE_VALUE_28_DAYS_EARLIER_V1",
+    "expansion_state": "CURRENT_COMPLETE_SUNDAY_ADRBALCNT_STRICTLY_GREATER_THAN_ADRBALCNT_28_CALENDAR_DAYS_EARLIER",
+    "nonexpansion_state": "OTHERWISE",
+    "primary_direction": "EXPANSION_STATE_HAS_HIGHER_NEXT_168H_BTC_RETURN_AND_NO_WORSE_PATH_DRAWDOWN",
+    "availability_floor": "SUNDAY_OBSERVATION_PLUS_3_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "outcome_horizon_hours": 168,
+    "variant_count": 1,
+    "status": "PROPOSED_NOT_A_HYPOTHESIS_SOURCE_FEASIBILITY_MUST_CONFIRM_BOTH_STATES_BEFORE_ALLOCATION"
+  },
+  "future_economic_contract_if_and_only_if_predictive_screen_passes": {
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_EXPANSION_STATE_ZERO_YIELD_CASH_OTHERWISE_NO_LEVERAGE_NO_SHORT",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "top_event_concentration"
+    ]
+  },
+  "data_path": {
+    "status": "READY_FOR_NEXT_CYCLE_SOURCE_SEALING_NO_PAID_API",
+    "transport_preflight": "HTTP_200_EXACT_ADRBALCNT_SCHEMA_THREE_DAY_VALUES_DISCARDED_NOT_USED_AS_RESEARCH_EVIDENCE",
+    "download_url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=AdrBalCnt&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000",
+    "source_cost": "COIN_METRICS_COMMUNITY_NO_KEY_FREE_NONCOMMERCIAL_RESEARCH_ONLY",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "required_action_before_factor_access": "DOWNLOAD_ONCE_SEAL_RAW_BYTES_RECORD_SHA256_VALIDATE_DAILY_CONTINUITY_EXACT_METRIC_IDENTITY_AND_PRE_OUTCOME_BOTH_STATE_SUPPORT"
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_mechanism": "This family measures the stock of funded addresses, not the closed daily active-address and transaction-count activity flow. A funded address can remain counted without current transaction activity.",
+    "closed_onchain_activity_boundary": "Do not reintroduce AdrActCnt, TxCnt, their breadth conjunction, annual comparison, DRA admission parent or any outcome-aware combination from the closed activity families.",
+    "prohibited_rescue": "Do not add wallet clustering, address-balance thresholds, USD thresholds, active addresses, transaction counts, price normalization, alternate lags or smoothing after source or outcome access."
+  },
+  "adversarial_prior": [
+    "A Bitcoin user can control many addresses, while an exchange or custodian address can represent many users.",
+    "UTXO wallet change-address and privacy behavior can increase funded-address count without economic adoption.",
+    "Dusting, consolidation and wallet software changes can create or remove addresses independently of investment demand.",
+    "The funded-address stock may trend upward so strongly that the nonexpansion state is too sparse for a valid test.",
+    "Present-vintage historical data lacks original daily publication and revision vintages; any historical pass remains discovery only."
+  ],
+  "next_cycle_stop_conditions": [
+    "Stop DATA_REJECT before hypothesis or BTC outcome access if the exact response cannot be sealed, daily dates are missing or duplicated, metric identity changes, or either four-week state lacks adequate Design and Validation support.",
+    "Freeze exactly one hypothesis and one pre-economic predictive manifest only after source feasibility passes and before joining a BTC outcome.",
+    "Stop NO_CANDIDATE before economics if either Design or Validation fails return direction, path-drawdown, annual-breadth or concentration gates.",
+    "Do not change the 28-day comparison, strict direction, Sunday evaluation, Wednesday availability, 168-hour horizon, parent or action after factor or outcome access.",
+    "Do not open post-2024 outcomes; any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed forward evidence."
+  ],
+  "missing_proof": [
+    "The complete 2018-2024 AdrBalCnt response has not been downloaded or sealed.",
+    "Both-state support has not been measured and may fail before hypothesis registration.",
+    "No hash-bound hypothesis, runner, manifest or deterministic run exists.",
+    "No Design or Validation predictive result, matched-capital economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior plus a free transport schema preflight only. Three-day response values were discarded and were not used for factor design or outcome pairing. No historical backfill was retained, no BTC outcome was accessed, and no hypothesis, runner, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

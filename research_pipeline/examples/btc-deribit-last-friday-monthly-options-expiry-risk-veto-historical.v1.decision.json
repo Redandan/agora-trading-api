@@ -1,0 +1,81 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DERIBIT_LAST_FRIDAY_MONTHLY_OPTIONS_EXPIRY_RISK_VETO_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-deribit-last-friday-monthly-options-expiry-risk-veto",
+  "experiment_id": "btc-deribit-last-friday-monthly-options-expiry-risk-veto-historical-v1",
+  "decided_at": "2026-08-20T14:34:12Z",
+  "status": "NO_CANDIDATE_CLOSE_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DERIBIT_LAST_FRIDAY_FULL_UTC_DAY_RISK_VETO_WITHOUT_CALENDAR_OR_WINDOW_TUNING",
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-deribit-last-friday-monthly-options-expiry-risk-veto-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-deribit-last-friday-monthly-options-expiry-risk-veto-historical-v1/artifacts/run2.json",
+    "run1_sha256": "16a4b60879b7f67689e6feb7ee6f77e6fe172198b3e414fb5e0d834eba350176",
+    "run2_sha256": "16a4b60879b7f67689e6feb7ee6f77e6fe172198b3e414fb5e0d834eba350176",
+    "byte_identical": true
+  },
+  "predictive_evidence": {
+    "design": {
+      "years": "2020-2022",
+      "friday_episodes": 157,
+      "monthly_expiry_events": 36,
+      "non_expiry_friday_controls": 121,
+      "expiry_median_return_24h": "-0.00231766",
+      "non_expiry_median_return_24h": "-0.00023215",
+      "expiry_negative_rate": "0.55555556",
+      "non_expiry_negative_rate": "0.50413223",
+      "one_sided_fisher_p": "0.36293534",
+      "expiry_median_path_drawdown_24h": "0.03648446",
+      "non_expiry_median_path_drawdown_24h": "0.03632412",
+      "annual_return_direction_wins": "1/3",
+      "annual_drawdown_direction_wins": "2/3",
+      "top1_negative_expiry_loss_contribution_pct": "15.34551517",
+      "top3_negative_expiry_loss_contribution_pct": "43.49283047"
+    },
+    "validation": {
+      "years": "2023-2024",
+      "friday_episodes": 104,
+      "monthly_expiry_events": 24,
+      "non_expiry_friday_controls": 80,
+      "expiry_median_return_24h": "-0.00436300",
+      "non_expiry_median_return_24h": "0.00373466",
+      "expiry_negative_rate": "0.58333333",
+      "non_expiry_negative_rate": "0.40000000",
+      "one_sided_fisher_p": "0.08851029",
+      "expiry_median_path_drawdown_24h": "0.02374088",
+      "non_expiry_median_path_drawdown_24h": "0.02642732",
+      "expiry_p75_path_drawdown_24h": "0.03583628",
+      "non_expiry_p75_path_drawdown_24h": "0.04072043",
+      "annual_return_direction_wins": "2/2",
+      "annual_drawdown_direction_wins": "1/2",
+      "top1_negative_expiry_loss_contribution_pct": "18.06196963",
+      "top3_negative_expiry_loss_contribution_pct": "42.55728433"
+    },
+    "failed_gates": [
+      "design_non_expiry_median_return_at_least_25bp_higher",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_annual_median_return_direction_breadth",
+      "validation_non_expiry_median_path_drawdown_non_worse",
+      "validation_non_expiry_p75_path_drawdown_non_worse",
+      "validation_annual_median_path_drawdown_direction_breadth"
+    ]
+  },
+  "material_conclusion": "The last-Friday return disadvantage appeared strongly in Validation but not in Design: the Design median difference was only 20.8551 basis points versus the frozen 25 basis-point gate, Fisher p was 0.36293534 and return-direction breadth was 1/3. Validation return gates passed, but the expiry-day median and p75 drawdown were lower than controls while annual drawdown direction won only 1/2. The frozen calendar proxy therefore does not provide stable joint return-and-path-risk evidence for a full-day BTC risk veto.",
+  "economic_evidence": "MISSING_PROOF_NOT_ACCESSED_BECAUSE_PRE_ECONOMIC_GATES_FAILED",
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_rescue": [
+    "Do not select only 2023-2024, a subset of months, quarter-end expiries or years with favorable return direction.",
+    "Do not tune the 25 basis-point, negative-rate, Fisher, drawdown, breadth or concentration gates.",
+    "Do not add option open interest, implied volatility, max-pain, strike, funding, basis, weekday interactions, partial sizing, shorting or leverage.",
+    "Do not open matched-capital economics or post-2024 OOS for this family."
+  ],
+  "evidence_bindings": {
+    "manifest_sha256": "02612726e05952fd0907f98e03ec8391f8bbedef05f4754bb9eb6b1c068357e0",
+    "runner_sha256": "049d2680ead6355d62406ed08c9655e56467998754dafbbe6173ef3f65d84d35",
+    "hypothesis_sha256": "2c7172fa78899770c6c5df30fb7649a1a41790041199f93b96e83b0258728201",
+    "prior_sha256": "7e79d6de48e1040a52649af1bbb538a41f2b722caab56e29359bd61551808b0c",
+    "btc_h1_corpus_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+  },
+  "scope_note": "Historical preregistered pre-economic screen only. No strategy economics, candidate, OOS, paid API, second timer, second writer, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

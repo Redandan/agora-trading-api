@@ -1,0 +1,98 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_BUSLOANS_YOY_GROWTH_ACCELERATION_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-busloans-yoy-growth-acceleration-long-cash",
+  "experiment_id": "btc-fred-busloans-yoy-growth-acceleration-long-cash-historical-v1",
+  "decided_at": "2026-08-21T02:56:00Z",
+  "status": "NO_CANDIDATE_CLOSE_AFTER_DESIGN_AND_VALIDATION_WITHOUT_OOS",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_BUSLOANS_YOY_GROWTH_ACCELERATION_LONG_CASH_FAMILY",
+  "decision": "The single preregistered variant failed ten frozen economic, drawdown, Calmar, upside and breadth gates. Design total return was negative under both cost scenarios. Validation was positive but captured only 12.1% of buy-and-hold upside while drawdown was 7.32 percentage points worse. Close without tuning or OOS.",
+  "determinism": {
+    "required_runs": 2,
+    "run1_sha256": "78277780f51b08dd5e59754a3b51e193f0b8734b1fd3b47310bbfa94ee3e7b67",
+    "run2_sha256": "78277780f51b08dd5e59754a3b51e193f0b8734b1fd3b47310bbfa94ee3e7b67",
+    "byte_identical": true
+  },
+  "economic_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "-2.78173242",
+      "buy_hold_total_return_pct": "346.32062389",
+      "candidate_realized_return_pct": "121.49373140",
+      "candidate_unrealized_return_pct": "-124.27546381",
+      "candidate_drawdown_pct": "72.49937393",
+      "buy_hold_drawdown_pct": "77.18955925",
+      "drawdown_delta_pp": "-4.69018532",
+      "upside_capture_ratio": "-0.00803225",
+      "candidate_calmar": "-0.03836905",
+      "buy_hold_calmar": "4.48662523",
+      "average_exposure_pct": "52.08761123"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "56.27301478",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_realized_return_pct": "56.27301478",
+      "candidate_unrealized_return_pct": "0E-8",
+      "candidate_drawdown_pct": "39.60573739",
+      "buy_hold_drawdown_pct": "32.28416349",
+      "drawdown_delta_pp": "7.32157389",
+      "upside_capture_ratio": "0.12108110",
+      "candidate_calmar": "1.42082987",
+      "buy_hold_calmar": "14.39575015",
+      "average_exposure_pct": "29.27496580"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "54.40894215",
+      "candidate_drawdown_pct": "39.96701867"
+    },
+    "annual_breadth": {
+      "normal_positive_years": "5_of_6",
+      "stress_positive_years": "5_of_6",
+      "drawdown_non_worse_years": "5_of_6",
+      "calmar_at_least_80pct_buy_hold_years": "2_of_6",
+      "upside_capture_at_least_50pct_years": "1_of_6",
+      "top_year_positive_contribution_pct": "38.63393991849601865837246558492932"
+    },
+    "path_and_inventory": {
+      "design_terminal_position": true,
+      "design_terminal_holding_age_hours": "5880.00000000",
+      "design_terminal_liquidation_adjusted_return_pct": "-2.92751121",
+      "validation_terminal_position": false,
+      "validation_p90_hold_hours": "1984.80000000",
+      "validation_top_positive_episode_contribution_pct": "57.52105161"
+    }
+  },
+  "failed_primary_gates": [
+    "design_normal_total_return_positive",
+    "design_stress_total_return_positive",
+    "design_drawdown_at_most_90pct_of_buy_hold",
+    "design_upside_capture_at_least_60pct",
+    "design_calmar_at_least_buy_hold",
+    "validation_drawdown_at_most_90pct_of_buy_hold",
+    "validation_upside_capture_at_least_60pct",
+    "validation_calmar_at_least_80pct_of_buy_hold",
+    "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+    "annual_upside_capture_at_least_50pct_at_least_4_of_6"
+  ],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-busloans-yoy-growth-acceleration-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "10af96339dd614c9f3d2bc9205142cef0863ab74cc9f1459f9ea7f403a25a59a"},
+    {"path": "research_pipeline/examples/btc-fred-busloans-yoy-growth-acceleration-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "c6d506613db49fbd22f05b102292921927a3f413a0e3ef355edc3d11f3a05cde"},
+    {"path": "research_pipeline/examples/btc-fred-busloans-yoy-growth-acceleration-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "93b0496705c1784809b8c175d6d9712b76a424e3025aa2b7758295c6e5eed574"},
+    {"path": "research_pipeline/examples/btc-fred-busloans-yoy-growth-acceleration-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "6ea26038813586f4a3e73508096550b364793b98ec4c020fae6bd0841ee8d135"},
+    {"path": "research/fred_busloans_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "b47b0e85519f6ebf101807fc130da90769d26a905e8b7f7e1648febda8c57cea"},
+    {"path": "research/btc_fred_busloans_yoy_growth_acceleration_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "8a9e2c9b1a42886a013de61002457d913d55681c3b784042cd0b78e5b30c8c62"},
+    {"path": ".research-state/experiments/btc-fred-busloans-yoy-growth-acceleration-long-cash-historical-v1/inputs/busloans-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "28056b5fcd067e33a8f18235d1d252e0f5b383b384ea78bcbc15d242cb75f87e"},
+    {"path": ".research-state/experiments/btc-fred-busloans-yoy-growth-acceleration-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "78277780f51b08dd5e59754a3b51e193f0b8734b1fd3b47310bbfa94ee3e7b67"}
+  ],
+  "prohibited_reopen": [
+    "Do not invert the acceleration sign, replace adjacent year-over-year acceleration with level or absolute growth, or alter the two-month availability floor.",
+    "Do not scan alternate banking-credit aggregates, thresholds, smoothing, lags, sizing or leverage as a rescue for this result.",
+    "Do not waive negative Design economics because Validation was positive.",
+    "Do not relax drawdown, Calmar, upside, breadth, concentration, holding, inventory or friction gates.",
+    "Do not open post-2024 OOS for this closed family."
+  ],
+  "learning": "The business-credit state had balanced support and frequent transitions, but participation timing failed. A positive Validation return did not compensate for a worse drawdown path and nearly ninety percent foregone passive upside; macro plausibility is not risk-adjusted alpha.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

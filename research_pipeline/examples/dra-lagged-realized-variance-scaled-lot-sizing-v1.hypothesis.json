@@ -1,0 +1,30 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-lagged-realized-variance-scaled-lot-sizing-v1",
+  "title": "Downside-only lagged realized-variance sizing for new DRA lots",
+  "thesis": "An unchanged BTC DRA entry made during unusually high lagged realized variance may deserve less new capital even when the signal remains economically valid; scaling only the new lot cost down from 30 USDT may improve equal-capital total PnL and path risk without deleting the signal or changing its exit.",
+  "mechanism": "At each unchanged DRA decision, divide the latest complete UTC day's sum of twenty-four squared H1 simple close-to-previous-close returns by the ordinary median of exactly the prior twenty complete-day values. Preserve the signal and next-open fill, but set the new lot cost to max(15, min(30, 30 divided by that normalized variance ratio)) USDT, rounded half-up to 1e-8. Missing warmup retains 30 USDT. Floors 10 and 20 USDT are rejection-only stability neighbors; total open cost remains at most 240 USDT, open lots at most eight, and size never exceeds 30 USDT.",
+  "economic_rationale": "The byte-identical pre-economic screen passed action-level deduplication, exact source and feature coverage, signal preservation, size and theoretical-capacity bounds, intervention breadth and concentration. It found 39 Design and 30 Validation primary scaled signals, with annual interventions 17, 6, 4, 14 and 16 and top-year share 29.824561 percent. This permits one matched-capital experiment but is not performance evidence. The mechanism succeeds only if the primary improves Design and Validation fee-adjusted total PnL and risk-adjusted path metrics without hiding losses in realized, unrealized or terminal inventory, while both frozen floor neighbors remain stable.",
+  "source": "PRE_CANDIDATE_POOL:dra-lagged-realized-variance-scaled-lot-sizing;PREOUTCOME_SUPPORT_SHA256:5346677054ebfa8cab589d303195bd89ce0c0fd4dfe89e7924956700b59f37b3",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITH_FIXED_30_USDT_LOTS_AND_240_USDT_OPEN_COST_CAP",
+  "required_capability": "dra-variable-lot-sizing-v1-with-exact-variable-cost-ledger-and-matched-capital-path-risk-gates",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_and_validation_signal_scaled_unscaled_blocked_and_filled_counts",
+    "normal_fee_and_adverse_slippage_realized_unrealized_and_total_pnl_usdt",
+    "matched_equal_capital_maximum_drawdown_calmar_and_maximum_underwater_duration",
+    "median_and_p90_holding_hours_terminal_inventory_count_cost_and_unrealized_pnl",
+    "capital_and_slot_utilization_with_maximum_open_cost_and_open_lot_count",
+    "annual_total_pnl_drawdown_and_risk_adjusted_breadth_with_top_year_positive_delta_concentration",
+    "primary_15_usdt_and_rejection_only_10_20_usdt_floor_neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-dra-rv-scaled-lot-sizing-1",
+  "created_at": "2026-08-21T05:56:19Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

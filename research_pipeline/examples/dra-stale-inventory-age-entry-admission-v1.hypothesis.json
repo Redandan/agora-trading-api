@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-stale-inventory-age-entry-admission-v1",
+  "title": "Oldest-open-lot age admission veto for DRA entries",
+  "thesis": "An otherwise valid BTC DRA entry signal arriving while the oldest existing parent lot has already remained open for at least 720 hours may be adding capital to a stale inventory path rather than exploiting an independent reversal opportunity; vetoing only that new entry may improve matched-capital total PnL and path risk without selling, resizing or reading the PnL of existing lots.",
+  "mechanism": "After the unchanged DRA signal and before its next-H1-open fill, first preserve the parent capacity check. If one 30 USDT lot can be accepted and no parent inventory is open, admit the signal. If parent inventory is open, compute decision time minus the oldest open parent lot's actual fill time. Veto the new entry when that age is at least 720 hours and reserve the unchanged seven-day cooldown from the original signal. Capacity-blocked signals remain parent blocks without cooldown reservation. Thresholds 336 and 1440 hours are rejection-only stability neighbors; lot cost remains 30 USDT, effective open-cost capacity 240 USDT and maximum open lots eight.",
+  "economic_rationale": "The byte-identical pre-economic screen passed exact parent-path parity, action deduplication, support, breadth, selectivity and concentration gates. The 720-hour primary veto fired 58 of 100 capacity-admissible Design signals and 17 of 51 Validation signals, with active support in all five annual folds, at least six primary vetoes in every fold, top-year share 27.450980 percent and Validation top-month share 11.764706 percent. This permits one matched-capital experiment but is not performance evidence. The mechanism succeeds only if avoided stale-inventory additions improve fee-adjusted Design and Validation total PnL with acceptable realized/unrealized, drawdown, underwater, holding, utilization, annual-breadth and terminal-inventory paths, while both frozen neighbors remain stable.",
+  "source": "PRE_CANDIDATE_POOL:dra-stale-inventory-age-entry-admission;PREOUTCOME_SUPPORT_SHA256:f78d44f5e6c9677741f07862e1e36e7ee0e24801e4d64fc14f8f0a21b99cc134",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITH_FIXED_30_USDT_LOTS_AND_240_USDT_OPEN_COST_CAP",
+  "required_capability": "dra-stale-inventory-age-entry-admission-v1-with-capacity-first-cooldown-routing-and-matched-capital-path-risk-gates",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_validation_and_annual_parent_signal_capacity_block_veto_fill_and_exit_counts",
+    "normal_fee_and_adverse_slippage_realized_unrealized_and_total_pnl_usdt",
+    "matched_equal_capital_maximum_drawdown_and_maximum_underwater_duration",
+    "median_and_p90_realized_holding_hours_and_terminal_open_age_hours",
+    "terminal_inventory_count_cost_and_unrealized_pnl_attribution",
+    "capital_and_slot_utilization_with_maximum_open_cost_and_open_lot_count",
+    "annual_total_pnl_drawdown_and_risk_adjusted_breadth_with_top_year_positive_delta_concentration",
+    "primary_720_hour_and_rejection_only_336_1440_hour_neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-dra-stale-inventory-age-1",
+  "created_at": "2026-08-21T07:12:48Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

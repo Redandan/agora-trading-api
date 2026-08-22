@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_MACD12_26_9_HISTOGRAM_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "DAILY_MACD_12_26_9_HISTOGRAM_MOMENTUM_LONG_CASH",
+  "reviewed_at": "2026-08-19T03:25:12Z",
+  "prior_matrix": [
+    {
+      "identity": "Zatwarnicki, Zatwarnicki and Stolarski, Effectiveness of the Relative Strength Index Signals in Timing the Cryptocurrency Market, Sensors 23(3), 2023, DOI 10.3390/s23031664",
+      "primary_source": "https://mdpi-res.com/d_attachment/sensors/sensors-23-01664/article_deploy/sensors-23-01664-v4.pdf?version=1675738046",
+      "publisher_record": "https://doi.org/10.3390/s23031664",
+      "role": "SUPPORTIVE_CRYPTO_LONG_ONLY_MACD_ECONOMIC_PRIOR",
+      "finding": "The authors compare long-only MACD with buy-and-hold and other technical rules. Their 2018-2022 BTC table reports 408.84 percent for MACD versus 243.79 percent for hold and says MACD was profitable for nine of ten studied cryptocurrencies.",
+      "parameter_boundary": "The article does not disclose enough MACD implementation detail to reproduce its exact tuple, initialization, fill timing or friction model. This experiment does not claim replication and obtains its formula and default tuple from first-party TradingView documentation.",
+      "transfer_boundary": "The paper uses different market data, portfolio construction, execution and no matched adverse-slippage path. Its result does not establish value on the sealed OKX 2019-2024 corpus or independent OOS."
+    },
+    {
+      "identity": "TradingView first-party MACD indicator documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000502344-moving-average-convergence-divergence-macd-indicator/",
+      "role": "FIRST_PARTY_FORMULA_AND_INTERPRETATION_PROOF",
+      "finding": "TradingView defines MACD as fast moving average minus slow moving average, signal as a moving average of MACD, and histogram as MACD minus signal. A positive histogram means MACD is above its signal line.",
+      "parameter_boundary": "The exact default tuple and trading state are frozen from the separate first-party strategy page."
+    },
+    {
+      "identity": "TradingView first-party MACD Strategy documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000644943-macd-strategy/",
+      "role": "FIRST_PARTY_DEFAULT_PARAMETER_AND_STATE_PRIOR",
+      "finding": "The built-in strategy uses histogram sign changes and identifies default EMA lengths 12, 26 and 9.",
+      "parameter_boundary": "The primary is EMA12 minus EMA26 with EMA9 signal. The first-party strategy switches between long and short; this spot-only experiment preregisters long while histogram is positive and zero-yield cash otherwise. Fast lengths 10 and 14 are symmetric rejection-only sensitivity neighbors and cannot replace a failed primary."
+    },
+    {
+      "identity": "TradingView first-party EMA documentation and Pine reference",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000592270-exponential-moving-average/",
+      "initialization_source": "https://in.tradingview.com/pine-script-reference/v4/",
+      "role": "FIRST_PARTY_SMOOTHING_AND_INITIALIZATION_PROOF",
+      "finding": "TradingView defines EMA as current close times alpha plus prior EMA times one minus alpha. Its Pine reference example uses alpha 2 divided by length plus one and initializes the first defined EMA with the same-length simple average.",
+      "parameter_boundary": "Both price EMAs and the MACD signal EMA use this exact initialization and recursion on consecutive complete UTC-day closes."
+    },
+    {
+      "identity": "Anghel, A reality check on trading rule performance in the cryptocurrency market: Machine Learning vs. Technical Analysis, Finance Research Letters 39, 2021, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_FRICTION_PRIOR",
+      "finding": "After controls for data snooping, risk and market frictions, statistically significant positive excess returns from cryptocurrency trading rules were rare.",
+      "transfer_boundary": "This does not directly reject the frozen MACD rule. It requires pre-outcome parameters, matched costs and capital, explicit path risk, annual breadth, rejection-only neighbors and permanent closure on failure."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": [
+      "open_time",
+      "close_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "decision_feature": "Complete UTC-day closes produce causal EMA fast, EMA26, MACD, EMA9 signal and histogram; the resulting long-or-cash target executes only at the next hourly open.",
+    "prospective_transport": "The existing sealed OKX BTC-USDT H1 source contains every required price and timestamp field. No credential, paid API, timer, writer, database, manual export or backfill is required.",
+    "status": "READY"
+  },
+  "independence_from_closed_families": [
+    "RSI14 measures separate recent gain and loss magnitudes; MACD compares two exponentially weighted price levels and then smooths their spread.",
+    "The closed OBV rule accumulates signed volume and compares simple averages; MACD uses no volume and its second-stage signal is an EMA of a price-EMA spread.",
+    "The closed monthly time-series momentum rule uses one twelve-month endpoint return and monthly decisions; MACD uses daily exponentially decaying path memory and daily state.",
+    "The closed Donchian and Supertrend rules require high-low extrema or true range and band state; MACD uses close only and no channel, ATR or stop."
+  ],
+  "real_time_design_requirements": [
+    "Aggregate exactly twenty-four contiguous H1 bars per UTC day and use only the completed day's close.",
+    "Use EMA alpha 2 divided by length plus one, initialize each EMA with its first same-length simple mean, and process every complete day consecutively.",
+    "Use primary fast/slow/signal 12/26/9 and rejection-only fast lengths 10 and 14 with slow 26 and signal 9; no neighbor may replace a failed primary.",
+    "Hold full BTC while the completed-day histogram is strictly positive and zero-yield cash otherwise, executing state changes at the next H1 open with no short, leverage, confirmation, minimum hold or DRA interaction.",
+    "Compare with full-capital BTC buy-and-hold under identical initial capital, hourly price path, fees, adverse slippage and valuation boundary.",
+    "Report total, realized and unrealized return, drawdown, underwater duration, Calmar, upside capture, exposure, turnover, holding age, episode concentration, annual breadth and terminal inventory."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_DAILY_MACD12_26_9_HISTOGRAM_LONG_CASH_EXPERIMENT",
+  "uncertainty": [
+    "The supportive paper does not expose the exact MACD implementation needed for direct replication.",
+    "MACD is an adjacent price-trend family and may repeat the regime dependence already seen in RSI and Supertrend.",
+    "The histogram can whipsaw around zero and repeated full-equity changes may lose value after costs.",
+    "Historical Design and Validation through 2024 cannot establish independent OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one preregistered historical three-fast-length MACD screen. It does not establish alpha, a candidate, OOS value, deployability or Trading authority."
+}

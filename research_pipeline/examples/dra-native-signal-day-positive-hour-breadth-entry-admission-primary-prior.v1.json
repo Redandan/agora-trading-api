@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_DAY_POSITIVE_HOUR_BREADTH_PRIMARY_PRIOR_V1",
+  "family_id": "dra-native-signal-day-positive-hour-breadth-entry-admission",
+  "created_at": "2026-08-21T08:50:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_SIGNAL_DAY_POSITIVE_HOUR_BREADTH_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "The frozen DRA parent requires a positive 24-hour net move, but that move can be carried by a few large positive H1 intervals. The unweighted count of positive close-to-previous-H1-close returns across the 24 complete signal-day bars may distinguish broad advancement from magnitude concentration. A fixed 13-of-24 primary boundary with 11-of-24 and 15-of-24 rejection-only neighbors may be screened once for causal availability, nonredundancy and intervention breadth before any hypothesis or candidate economics.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "first_hour_reference": "PRECEDING_COMPLETE_UTC_DAY_H1_23_CLOSE",
+    "formula": "COUNT_OF_EXACTLY_24_SIGNAL_DAY_H1_CLOSES_STRICTLY_ABOVE_THE_IMMEDIATELY_PRECEDING_H1_CLOSE",
+    "zero_return_treatment": "NONPOSITIVE",
+    "primary_relation": "ADMIT_AT_OR_ABOVE_13_OF_24_AND_VETO_BELOW_13_OF_24",
+    "rejection_only_neighbors": ["11_OF_24", "15_OF_24"],
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN"
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": "research_pipeline/examples/dra-native-prior-day-momentum-continuation-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "99451ebc2c14aaf466c87321388eeb97d0e02ded458fe189f81f149bf0e0aa8d",
+      "learning": "Signal-day open-to-close direction nearly duplicated the parent's positive 24-hour momentum. Positive-hour breadth ignores return magnitude and must prove a materially different action set rather than restate net direction."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-intraday-sign-persistence-entry-admission-v1.json",
+      "sha256": "613c08b1f97f8eb2372bf79d590d43f66c378a4598988a6f8d8aced6365006fb",
+      "learning": "Adjacent same-sign persistence failed. Positive-hour breadth counts positive signs regardless of adjacency and cannot inherit a persistence claim."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-directional-volume-participation-entry-admission-v1.json",
+      "sha256": "c7007ef318484033edaeb63e97ff0bb53964b3ed888e4aefb9956d20fd778ea4",
+      "learning": "Directional-volume participation failed. Positive-hour breadth gives every hour equal weight and contains no volume or order-flow claim."
+    },
+    {
+      "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.decision.json",
+      "sha256": "6cc6c1de7582306477250274ed9e8c055ba5627021a69370ff852a795d7c3189",
+      "learning": "Net-move-to-total-path efficiency failed. Breadth ignores both return magnitude and total absolute path length, but distinct syntax still requires action-support evidence."
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-day-ema20-occupancy-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "fc83e775c70acf390be420c35df874fae0ae847e4e29b8f3ba38c986d0e6c6ae",
+      "learning": "EMA20 occupancy failed support concentration. Positive-hour breadth measures the direction of each H1 change rather than time above a level and must independently pass breadth gates."
+    }
+  ],
+  "deduplication_conclusion": "The proposed count is formulaically distinct from net signal-day momentum, adjacent-sign persistence, directional-volume participation, price-path efficiency and level occupancy. It discards magnitude, adjacency, volume and reference levels. One preoutcome support run must establish materially different, broad and stable intervention under the frozen 11, 13 and 15 count lattice.",
+  "adversarial_risks": [
+    "Conditioning on the parent's positive net move may make 13 positive hours nearly universal or make the feature a noisy restatement of net direction.",
+    "A few large positive hours can be economically stronger than many small positive hours, so high breadth need not predict better outcomes.",
+    "Zero returns are classified as nonpositive and cannot be reassigned after support output.",
+    "Any later drawdown reduction may be participation suppression unless realized and total PnL, holding, underwater duration and annual breadth also pass.",
+    "Cooldown route substitution can invalidate economics unless each actionable veto reserves the original signal timestamp."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_CAUSAL_FEATURE_DEDUP_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No candidate PnL, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

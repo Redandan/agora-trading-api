@@ -1,0 +1,35 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_DEXJPUS_SOURCE_PARSER_MISSING_MARKER_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-dexjpus-4w-yen-depreciation-long-cash",
+  "created_at": "2026-08-21T03:35:52Z",
+  "status": "FROZEN_BEFORE_ANY_WEEKLY_FACTOR_OR_BTC_OUTCOME_WAS_COMPUTED",
+  "failed_attempt": {
+    "source_probe_sha256": "a8387868b9cc3f3a0abf0720627659ea37e53077282b91f7a7cfde7ca88ee8b9",
+    "failure": "SOURCE_REJECT:VALUE_FORMAT:9",
+    "sealed_output_count": 0,
+    "weekly_factor_computed": false,
+    "btc_outcome_accessed": false
+  },
+  "correction": "Treat an empty DEXJPUS CSV field as the same missing observation as the already accepted dot marker. A missing value remains excluded from the complete-week arithmetic mean and every week still requires at least three valid Monday-Friday observations.",
+  "unchanged_frozen_contract": [
+    "The exact official URL, weekday lattice and 2018-2024 boundaries remain unchanged.",
+    "The minimum three valid observations per complete week remains unchanged.",
+    "The four-complete-week direction, strictly-positive sign and following-Thursday availability remain unchanged.",
+    "Design, Validation, state-support and transition gates remain unchanged.",
+    "No direction inversion, threshold, smoothing, alternate horizon, sizing or additional factor is allowed."
+  ],
+  "retry_boundary": "Permit exactly one explicit post-erratum source probe. This is not an automatic transport retry. Any subsequent source, lattice, weekly-support or parser failure permanently closes the family as DATA_REJECT.",
+  "frozen_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-fred-dexjpus-4w-yen-depreciation-long-cash-primary-prior.v1.json",
+      "sha256": "4c192d631599201884a015d4c765006ff24048af39ebd76bba5e141010f338a2"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-dexjpus-4w-yen-depreciation-source-feasibility.v1.spec.json",
+      "sha256": "631aec9ca9f034fd7eb20fb81ff91fe51f1c4a89857c8b4cc119c3d42d5cbb43"
+    }
+  ],
+  "scope_note": "No factor value, weekly mean, BTC outcome, hypothesis, manifest, economics, OOS, canonical write, timer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

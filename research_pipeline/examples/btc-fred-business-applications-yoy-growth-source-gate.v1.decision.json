@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_BUSINESS_APPLICATIONS_YOY_GROWTH_SOURCE_GATE_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DATA_REJECT_CLOSE_BUSINESS_APPLICATIONS_YOY_GROWTH_FAMILY_BEFORE_BTC_OUTCOME_ACCESS",
+  "experiment_id": "btc-fred-business-applications-yoy-growth-historical-v1",
+  "decision_at": "2026-08-20T14:18:53Z",
+  "decision": "DATA_REJECT",
+  "material_conclusion": "The one permitted no-credential FRED annual-source sequence encountered a non-decimal BUSAPPWNSAUSYY observation at the 52nd parsed row of the 2020 response. The frozen source contract requires a complete finite weekly Saturday lattice and prohibits changing missing-value handling after factor access. The family is closed without retry, interpolation, alternate series or BTC outcome access.",
+  "source_gate": {
+    "series": "BUSAPPWNSAUSYY",
+    "attempt_contract": "ONE_REQUEST_PER_ANNUAL_PART_NO_AUTOMATIC_RETRY_NO_REDIRECT",
+    "attempted_year_sequence": "2017_THROUGH_2020_UNTIL_FIRST_TERMINAL_REJECT",
+    "observed_result": "SOURCE_REJECT:DECIMAL:2020:51",
+    "raw_response_sealed": false,
+    "normalized_subset_sealed": false,
+    "source_bundle_sealed": false,
+    "btc_outcome_accessed": false
+  },
+  "evidence_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-fred-business-applications-yoy-growth-source-feasibility.v1.spec.json",
+      "role": "FROZEN_PRE_FACTOR_SOURCE_FEASIBILITY_SPEC",
+      "sha256": "613650f6e385e4d2ebca0aa0235158fd87fd96a9252bbc146db4ba7bd39fdc98"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-business-applications-yoy-growth-long-cash-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "sha256": "710c82803802bb5f05d0cf0a82eee7e5f6c00bb13c08879aa1deb81966815c43"
+    },
+    {
+      "path": "research/fred_busappwnsausyy_source_probe.py",
+      "role": "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE",
+      "sha256": "2279427094ea7e6aa4ab4a438ceb727df1ebdb4b40dbfe503fbce469733d204e"
+    }
+  ],
+  "performance_evidence": {
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "NOT_OPENED"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not retry the fixed FRED annual-source sequence or reinterpret the non-decimal observation after seeing the response.",
+    "Do not interpolate, forward-fill, drop the week or relax the complete weekly lattice gate.",
+    "Do not substitute raw applications, high-propensity applications, planned-wage applications, corporation applications, sector or state series, another provider or manual export.",
+    "Do not open BTC outcomes or reinterpret a source-integrity rejection as evidence about predictive or economic value."
+  ],
+  "next_action": "Exclude this family permanently and select a deduplicated mechanism whose exact free history can satisfy a frozen complete-lattice contract.",
+  "concept_to_teach": "A free official source can still fail a research-grade point-in-time contract. Closing at the first unexpected missing value is cheaper and more credible than inventing a post-outcome data repair rule.",
+  "scope_note": "No hypothesis, manifest, strategy runner, BTC outcome, candidate, OOS, canonical state, scheduler, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

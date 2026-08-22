@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_INDPRO_YOY_GROWTH_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-indpro-yoy-growth-long-cash",
+  "created_at": "2026-08-21T04:38:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_indpro_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_SOURCE_FEASIBILITY_GATE_THEN_AT_MOST_ONE_HASH_BOUND_ECONOMIC_AUDIT",
+  "claim_boundary": "The Federal Reserve defines INDPRO as a monthly seasonally adjusted index of real output across U.S. manufacturing, mining and electric and gas utilities, and notes that the industrial sector is an important source of business-cycle output variation. This supports one broad real-activity state hypothesis, not a claim that industrial production causes or predicts BTC returns.",
+  "primary_sources": [
+    {
+      "title": "Industrial Production: Total Index (INDPRO)",
+      "publisher": "Federal Reserve Bank of St. Louis FRED",
+      "url": "https://fred.stlouisfed.org/series/INDPRO",
+      "use": "Official series identity, monthly seasonally adjusted frequency, Board of Governors provenance and public-domain citation boundary."
+    },
+    {
+      "title": "Industrial Production and Capacity Utilization - G.17",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/releases/g17/about.htm",
+      "use": "Primary scope and mechanism prior: the index measures real output across manufacturing, mining and utilities and is released around the middle of the following month."
+    },
+    {
+      "title": "Summary of Monthly Procedures",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/releases/g17/Meth/MethSum.htm",
+      "use": "Primary adversarial boundary that missing values may be estimated, improbable values replaced, seasonal factors applied and results reviewed before release."
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "FRED_INDPRO_CURRENT_MONTH_STRICTLY_ABOVE_SAME_MONTH_12_OBSERVATIONS_EARLIER_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC",
+    "risk_on_state": "CURRENT_MONTH_INDPRO_STRICTLY_ABOVE_INDPRO_12_MONTHLY_OBSERVATIONS_EARLIER",
+    "risk_off_state": "OTHERWISE",
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_RISK_ON_STATE_ZERO_YIELD_CASH_IN_RISK_OFF_STATE_NO_LEVERAGE_NO_SHORT",
+    "availability_floor": "FIRST_DAY_OF_SECOND_FOLLOWING_CALENDAR_MONTH_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "validity": "UNTIL_NEXT_MONTHLY_STATE_BECOMES_AVAILABLE",
+    "threshold": "STRICTLY_POSITIVE_YEAR_OVER_YEAR_GROWTH_NO_MAGNITUDE_SCAN",
+    "variant_count": 1
+  },
+  "future_economic_contract_if_and_only_if_source_gate_passes": {
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "calmar",
+      "upside_participation",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "episode_concentration"
+    ]
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_housing_permits": "PERMIT is a forward-looking, credit-sensitive authorization flow concentrated in housing construction. INDPRO is a coincident broad real-output index across manufacturing, mining and utilities. The prior PERMIT support failure cannot be rescued or recomputed through this family.",
+    "distinct_from_closed_business_applications_and_claims": "Business applications measure formation intent and initial claims measure labor-market stress. INDPRO measures realized industrial output and cannot combine either source.",
+    "distinct_from_closed_sentiment_and_price_families": "INDPRO contains neither survey sentiment nor BTC price. It may still proxy a broad risk-on macro regime, so independent value remains MISSING_PROOF.",
+    "prohibited_rescue": "Do not add capacity utilization, manufacturing-only series, diffusion indexes, month-over-month change, alternate release timing, magnitude thresholds, smoothing, inversion or another macro factor after source or outcome access."
+  },
+  "adversarial_prior": [
+    "Industrial production is a lagging or coincident real-economy measure and may arrive too late to add BTC trading value.",
+    "The 2020 shutdown and reopening can dominate state changes and apparent predictive power.",
+    "The Federal Reserve estimates missing components, revises seasonal factors and performs annual revisions, while the free FRED history is present-vintage rather than original release-vintage.",
+    "BTC can respond more to global liquidity, crypto-native leverage or regulation than to U.S. industrial output.",
+    "A long-or-cash rule can improve drawdown by sacrificing bull-market participation, so total PnL, Calmar, upside and annual breadth must pass together."
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before hypothesis or BTC outcome access if the exact no-key FRED CSV cannot be sealed, the monthly lattice fails, or either YoY state lacks frozen Design and Validation support and transitions.",
+    "If the source gate passes, freeze exactly one hypothesis and one direct economic manifest before joining BTC outcomes; no factor-direction or threshold variants are allowed.",
+    "Stop NO_CANDIDATE if either Design or Validation fails matched-capital total-PnL, drawdown, Calmar, upside-participation, annual-breadth or concentration gates.",
+    "Do not open post-2024 outcomes. Any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed OOS."
+  ],
+  "missing_proof": [
+    "The exact no-key FRED response, present-vintage revision boundary and normalized 2017-2024 subset have not been sealed.",
+    "Positive and non-positive YoY state support and transitions have not been measured.",
+    "No hash-bound hypothesis, manifest, runner or deterministic economic result exists.",
+    "No candidate, OOS, forward evidence or activation claim exists."
+  ],
+  "scope_note": "Primary and adversarial prior only. No historical INDPRO value or BTC outcome, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

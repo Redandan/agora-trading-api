@@ -1,0 +1,136 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_WEEKLY_EXCHANGE_NET_INFLOW_SELL_PRESSURE_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1",
+  "hypothesis_id": "btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "exchange_flows": {
+      "path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/inputs/coinmetrics-btc-exchange-net-flow-2018-2024.csv",
+      "sha256": "725bab20952e98c3c7cbb62a9d5bc3f96590a62ea2940fa3feb8bcd2f66e91c1",
+      "rows": 2557,
+      "first_date": "2018-01-01",
+      "last_date": "2024-12-31",
+      "present_vintage_status": "FLASH"
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/inputs/coinmetrics-source-bundle.json",
+      "sha256": "0b0ab780d3efd64b56e4a5d8d55b15ae225d12371659eef0e09123368119e918"
+    }
+  },
+  "predictive_policy": {
+    "factor_identity": "COINMETRICS_BTC_COMPLETE_UTC_WEEK_FLOWINEXNTV_MINUS_FLOWOUTEXNTV_STRICTLY_POSITIVE_SELL_PRESSURE_V1",
+    "high_sell_pressure_condition": "SEVEN_DAY_FLOWINEXNTV_SUM_MINUS_FLOWOUTEXNTV_SUM_STRICTLY_GREATER_THAN_ZERO",
+    "other_condition": "OTHERWISE",
+    "week": "MONDAY_00_00_UTC_THROUGH_NEXT_MONDAY_00_00_UTC_EXCLUSIVE",
+    "availability": "WEEK_END_MONDAY_PLUS_2_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "predictive_horizon_hours": 168,
+    "variants": 1,
+    "strategy_economics": "DENY_UNLESS_ALL_PRE_ECONOMIC_GATES_PASS"
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "predictive_horizon_hours": 168,
+    "predictive_overlap_rule": "WEEKLY_168H_EPISODES_NON_OVERLAPPING_BY_CONSTRUCTION"
+  },
+  "gate_set": {
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "exchange_flow_sha256_rows_daily_lattice_weekly_aggregation_and_day2_availability_match",
+      "source_bundle_runner_prior_erratum_hypothesis_and_probe_sha256_match",
+      "design_minimum_evaluable_episodes",
+      "design_minimum_high_sell_pressure_episodes",
+      "design_minimum_other_state_episodes",
+      "design_both_states_chronological_quartile_breadth",
+      "design_both_states_anchor_year_breadth",
+      "design_maximum_state_anchor_month_share",
+      "design_high_sell_pressure_median_terminal_return_at_least_25bp_lower",
+      "design_high_sell_pressure_negative_terminal_rate_at_least_5pp_higher",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_high_sell_pressure_median_path_drawdown_non_better",
+      "design_high_sell_pressure_p75_path_drawdown_non_better",
+      "design_annual_median_return_downside_direction_breadth",
+      "design_top_positive_annual_downside_delta_contribution_at_most_60pct",
+      "validation_minimum_evaluable_episodes",
+      "validation_minimum_high_sell_pressure_episodes",
+      "validation_minimum_other_state_episodes",
+      "validation_both_states_chronological_quartile_breadth",
+      "validation_both_states_anchor_year_breadth",
+      "validation_maximum_state_anchor_month_share",
+      "validation_high_sell_pressure_median_terminal_return_at_least_25bp_lower",
+      "validation_high_sell_pressure_negative_terminal_rate_at_least_5pp_higher",
+      "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "validation_high_sell_pressure_median_path_drawdown_non_better",
+      "validation_high_sell_pressure_p75_path_drawdown_non_better",
+      "validation_annual_median_return_downside_direction_breadth",
+      "validation_top_positive_annual_downside_delta_contribution_at_most_60pct"
+    ],
+    "pass": "PREDICTIVE_SCREEN_PASS_ECONOMIC_MANIFEST_REQUIRED_NO_CANDIDATE",
+    "failure": "PERMANENTLY_CLOSE_WITHOUT_STRATEGY_ECONOMIC_ACCESS_OR_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_PRE_ECONOMIC_RUNNER",
+      "path": "research/btc_coinmetrics_exchange_net_inflow_sell_pressure_historical.py",
+      "sha256": "df6fd54e08714af6ebed964c38e7649312b8112bbec5a7c0487dbe91671ea14e"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DETERMINISTIC_STATISTICS",
+      "path": "research/btc_cftc_dealer_net_position_change_long_cash_historical.py",
+      "sha256": "389efeb6583d7af32981704c649288f0a9395f4031f2c299931a56e582734a3e"
+    },
+    {
+      "role": "FROZEN_FAIL_CLOSED_COINMETRICS_SOURCE_PROBE",
+      "path": "research/coinmetrics_btc_exchange_net_flow_source_probe.cjs",
+      "sha256": "4343cf9f93596862557c175b989db61df9ea6943bbc784355ca79d2cc5716150"
+    },
+    {
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-primary-prior.v1.json",
+      "sha256": "1729b6339eedd68ee94c5330a9e754176fb0e8cc3e249a708ec7a40c50bef726"
+    },
+    {
+      "role": "SEALED_PRE_OUTCOME_TRANSPORT_ERRATUM",
+      "path": "research_pipeline/examples/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-primary-prior.v1.transport-erratum.json",
+      "sha256": "2620ba192905412024037b33b11bbb91945d9b691b20e561e2636340cfb82ab1"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-v1.hypothesis.json",
+      "sha256": "298e614a1d2aab86573cdbe4359d502ec521b2a8459f4da4df00a8d898face55"
+    },
+    {
+      "role": "SEALED_COINMETRICS_SOURCE_BUNDLE",
+      "path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/inputs/coinmetrics-source-bundle.json",
+      "sha256": "0b0ab780d3efd64b56e4a5d8d55b15ae225d12371659eef0e09123368119e918"
+    },
+    {
+      "role": "SEALED_NORMALIZED_EXCHANGE_NET_FLOW_CORPUS",
+      "path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/inputs/coinmetrics-btc-exchange-net-flow-2018-2024.csv",
+      "sha256": "725bab20952e98c3c7cbb62a9d5bc3f96590a62ea2940fa3feb8bcd2f66e91c1"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not change the complete seven-day aggregation, strict zero threshold, downside direction, Wednesday availability or 168-hour horizon after outcome access.",
+    "Do not add exchange supply, individual exchanges, USD flow, magnitude normalization, alternate windows, trend, volatility or other on-chain indicators as rescue variants.",
+    "Do not reinterpret flash present-vintage labels as point-in-time historical evidence or relax source revision limits.",
+    "Do not open matched-capital economics unless every Design and Validation predictive gate passes; do not open post-2024 OOS in this experiment."
+  ],
+  "revision_boundary": "Both flow histories carry 2026 flash status times. Original exchange address labels, coverage and daily vintages remain MISSING_PROOF, so even a predictive pass cannot create a candidate without untouched forward evidence.",
+  "scope_note": "Frozen pre-outcome predictive manifest only. No exchange-flow BTC outcome, strategy economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

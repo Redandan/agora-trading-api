@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/dra-native-trend-acceleration-entry-admission-manifest.v1.schema.json",
+  "title": "DRA native trend acceleration entry admission manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization", "dataset", "document_type", "economic_gate_helper_binding",
+    "economics", "experiment_id", "forbidden_rescue_actions", "gate_contract",
+    "gate_set", "hypothesis_binding", "hypothesis_id", "mechanism", "oos_access",
+    "parent_strategy", "prior_evidence", "runner_binding", "schema_version",
+    "support_runner_binding", "variants"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "DRA_NATIVE_TREND_ACCELERATION_ENTRY_ADMISSION_MANIFEST_V1"},
+    "experiment_id": {"const": "dra-native-trend-acceleration-entry-admission-historical-v1"},
+    "hypothesis_id": {"const": "dra-native-trend-acceleration-entry-admission-v1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "parent_strategy": {"const": "BTC_DRA_V1_BASELINE_250_USDT_FIXED_30_USDT_LOTS"},
+    "gate_set": {"const": "DRA_NATIVE_TREND_ACCELERATION_ENTRY_ADMISSION_ECONOMIC_GATES_V1"},
+    "oos_access": {"const": "DENY"},
+    "dataset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["canonical_sha256", "path", "rows", "selection_cutoff"],
+      "properties": {
+        "path": {"const": ".research-state/java-parity/selection-2019-2024.tsv"},
+        "canonical_sha256": {"const": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"},
+        "rows": {"const": 52608},
+        "selection_cutoff": {"const": "2025-01-01T00:00:00"}
+      }
+    },
+    "economics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adverse_slippage_rate_each_side", "exit", "fee_rate_each_side", "fill", "initial_equity_usdt", "lot_cost_usdt", "maximum_open_cost_usdt", "maximum_open_lots"],
+      "properties": {
+        "initial_equity_usdt": {"const": "250"},
+        "maximum_open_cost_usdt": {"const": "240"},
+        "maximum_open_lots": {"const": 8},
+        "lot_cost_usdt": {"const": "30"},
+        "fee_rate_each_side": {"const": "0.0010"},
+        "adverse_slippage_rate_each_side": {"const": "0.0005"},
+        "fill": {"const": "UNCHANGED_NEXT_H1_OPEN"},
+        "exit": {"const": "UNCHANGED_DRA_V1_PROFIT_ONLY_5PCT_NET_ESTIMATE"}
+      }
+    },
+    "mechanism": {
+      "type": "object", "additionalProperties": false,
+      "required": ["capacity_block", "capacity_first", "complete_day_offsets", "decision_clock", "feature", "feature_unavailable", "inventory_or_pnl_state_read", "relation", "sell_or_resize_existing_lots", "veto_reserves_cooldown"],
+      "properties": {
+        "decision_clock": {"const": "UNCHANGED_DRA_SIGNAL_AFTER_COMPLETE_DAY_BEFORE_NEXT_H1_OPEN"},
+        "capacity_first": {"const": true},
+        "feature": {"const": "EMA20_SECOND_FIVE_DAY_DIFFERENCE_DIV_UPDATED_ATR14"},
+        "complete_day_offsets": {
+          "type": "array", "minItems": 3, "maxItems": 3,
+          "prefixItems": [{"const": 0}, {"const": 5}, {"const": 10}],
+          "items": false
+        },
+        "relation": {"const": "VETO_BELOW_THRESHOLD_ATR"},
+        "veto_reserves_cooldown": {"const": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL"},
+        "feature_unavailable": {"const": "VETO_AND_RESERVE_ORIGINAL_SIGNAL_COOLDOWN"},
+        "capacity_block": {"const": "UNCHANGED_PARENT_BLOCK_WITHOUT_COOLDOWN_RESERVATION"},
+        "inventory_or_pnl_state_read": {"const": "DENY"},
+        "sell_or_resize_existing_lots": {"const": "DENY"}
+      }
+    },
+    "variants": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "prefixItems": [
+        {"$ref": "#/$defs/lowerVariant"},
+        {"$ref": "#/$defs/primaryVariant"},
+        {"$ref": "#/$defs/upperVariant"}
+      ],
+      "items": false
+    },
+    "gate_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["drawdown_tolerance_percentage_points", "each_neighbor_all_required", "failure_disposition", "pass_disposition", "primary_all_required"],
+      "properties": {
+        "primary_all_required": {"$ref": "#/$defs/primaryGates"},
+        "each_neighbor_all_required": {"$ref": "#/$defs/neighborGates"},
+        "drawdown_tolerance_percentage_points": {"const": "0.25"},
+        "failure_disposition": {"const": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_NATIVE_TREND_ACCELERATION_FAMILY"},
+        "pass_disposition": {"const": "CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED"}
+      }
+    },
+    "forbidden_rescue_actions": {
+      "type": "array", "minItems": 8, "maxItems": 8,
+      "prefixItems": [
+        {"const": "THRESHOLD_TUNING_AFTER_OUTCOME"},
+        {"const": "EMA20_WINDOW_ATR_UPDATE_OR_DIRECTION_TUNING_AFTER_OUTCOME"},
+        {"const": "COOLDOWN_OR_CAPACITY_ROUTE_TUNING_AFTER_OUTCOME"},
+        {"const": "INVENTORY_OR_PNL_AWARE_DECISION_FILTER_AFTER_OUTCOME"},
+        {"const": "PARENT_SIGNAL_OR_EXIT_CHANGE_AFTER_OUTCOME"},
+        {"const": "GATE_RELAXATION_AFTER_OUTCOME"},
+        {"const": "OOS_ACCESS_DURING_HISTORICAL_SCREEN"},
+        {"const": "FAMILY_REOPEN_AFTER_FAILED_FROZEN_SCREEN"}
+      ],
+      "items": false
+    },
+    "hypothesis_binding": {"$ref": "#/$defs/binding"},
+    "prior_evidence": {"$ref": "#/$defs/binding"},
+    "runner_binding": {"$ref": "#/$defs/binding"},
+    "support_runner_binding": {"$ref": "#/$defs/binding"},
+    "economic_gate_helper_binding": {"$ref": "#/$defs/binding"}
+  },
+  "$defs": {
+    "binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "lowerVariant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "threshold_atr", "variant_id"],
+      "properties": {
+        "role": {"const": "lower_threshold_neighbor"},
+        "threshold_atr": {"const": "-0.10"},
+        "variant_id": {"const": "ema20-acceleration-at-least-minus-0-10-v1"}
+      }
+    },
+    "primaryVariant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "threshold_atr", "variant_id"],
+      "properties": {
+        "role": {"const": "primary"},
+        "threshold_atr": {"const": "0.00"},
+        "variant_id": {"const": "ema20-acceleration-at-least-0-00-v1"}
+      }
+    },
+    "upperVariant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "threshold_atr", "variant_id"],
+      "properties": {
+        "role": {"const": "upper_threshold_neighbor"},
+        "threshold_atr": {"const": "0.10"},
+        "variant_id": {"const": "ema20-acceleration-at-least-plus-0-10-v1"}
+      }
+    },
+    "primaryGates": {
+      "type": "array", "minItems": 24, "maxItems": 24,
+      "prefixItems": [
+        {"const": "all_action_accounting_reconciles"},
+        {"const": "design_total_pnl_improves"},
+        {"const": "validation_total_pnl_improves"},
+        {"const": "design_realized_pnl_improves"},
+        {"const": "validation_realized_pnl_improves"},
+        {"const": "validation_unrealized_non_worse"},
+        {"const": "design_risk_adjusted_score_improves"},
+        {"const": "validation_risk_adjusted_score_improves"},
+        {"const": "design_drawdown_within_0_25pp"},
+        {"const": "validation_drawdown_within_0_25pp"},
+        {"const": "design_max_underwater_duration_non_worse"},
+        {"const": "validation_max_underwater_duration_non_worse"},
+        {"const": "validation_median_hold_non_worse"},
+        {"const": "validation_p90_hold_non_worse"},
+        {"const": "design_terminal_inventory_count_non_worse"},
+        {"const": "validation_terminal_inventory_count_non_worse"},
+        {"const": "validation_terminal_inventory_cost_non_worse"},
+        {"const": "validation_terminal_unrealized_non_worse"},
+        {"const": "design_interventions_at_least_8"},
+        {"const": "validation_interventions_at_least_4"},
+        {"const": "annual_total_wins_at_least_3_of_5"},
+        {"const": "annual_drawdown_non_worse_at_least_4_of_5"},
+        {"const": "annual_risk_adjusted_wins_at_least_3_of_5"},
+        {"const": "top_year_positive_delta_contribution_at_most_60pct"}
+      ],
+      "items": false
+    },
+    "neighborGates": {
+      "type": "array", "minItems": 8, "maxItems": 8,
+      "prefixItems": [
+        {"const": "action_accounting_reconciles"},
+        {"const": "validation_total_pnl_non_worse"},
+        {"const": "validation_realized_non_worse"},
+        {"const": "validation_risk_adjusted_score_non_worse"},
+        {"const": "validation_drawdown_within_0_25pp"},
+        {"const": "validation_max_underwater_duration_non_worse"},
+        {"const": "validation_terminal_inventory_count_non_worse"},
+        {"const": "validation_interventions_at_least_4"}
+      ],
+      "items": false
+    }
+  }
+}

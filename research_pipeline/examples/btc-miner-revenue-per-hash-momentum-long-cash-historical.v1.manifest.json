@@ -1,0 +1,181 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MINER_REVENUE_PER_HASH_MOMENTUM_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-miner-revenue-per-hash-momentum-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "expected_complete_utc_days": 2192,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "fees": {
+      "path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v1/inputs/coinmetrics-btc-fee-pressure-2018-2024.csv",
+      "sha256": "6dd78283ff476ddca7bed52bf01ad76a6b49d6bf1125c9e360ad95aa5787feed",
+      "rows": 2557,
+      "first_date": "2018-01-01",
+      "last_date": "2024-12-31",
+      "present_vintage": true
+    },
+    "hashrate": {
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-btc-hashrate-2018-2024.csv",
+      "sha256": "1dfdfde2f8806f912c6dc3c3d48e2bf244c40af94e9aeb4389ed2cc8337ec273",
+      "rows": 2557,
+      "first_date": "2018-01-01",
+      "last_date": "2024-12-31",
+      "present_vintage": true
+    }
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_MINER_REVENUE_PER_HASH_MOMENTUM_LONG_CASH_V1",
+    "daily_proxy": "((EXPECTED_144_BLOCKS_TIMES_PROTOCOL_BLOCK_SUBSIDY_BTC)+TOTAL_DAILY_FEES_BTC)_TIMES_BTC_COMPLETE_UTC_DAY_CLOSE_USD_DIVIDED_BY_HASH_RATE_TH_PER_S",
+    "block_subsidy_schedule": {
+      "through_2020_05_10": "12.5",
+      "from_2020_05_11_through_2024_04_19": "6.25",
+      "from_2024_04_20": "3.125"
+    },
+    "weekly_aggregation": "MEAN_OF_EXACTLY_SEVEN_COMPLETE_MONDAY_THROUGH_SUNDAY_DAILY_PROXY_VALUES",
+    "primary_current_and_previous_adjacent_complete_weeks": 4,
+    "rejection_only_neighbor_current_and_previous_adjacent_complete_weeks": [2, 8],
+    "component_growth": "CURRENT_N_WEEK_MEAN_DIVIDED_BY_PREVIOUS_ADJACENT_N_WEEK_MEAN_MINUS_ONE",
+    "availability": "WEEK_ENDING_SUNDAY_PLUS_THREE_CALENDAR_DAYS_AT_00_00_UTC",
+    "long_condition": "PROXY_GROWTH_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "PROXY_GROWTH_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "signal_validity_hours": 168,
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "gate_set": {
+    "id": "BTC_MINER_REVENUE_PER_HASH_MOMENTUM_GATES_V1",
+    "pre_economic_nonredundancy_required": [
+      "primary_design_proxy_growth_abs_spearman_to_btc_price_growth_at_most_0_80",
+      "primary_design_proxy_growth_abs_spearman_to_hashrate_growth_at_most_0_80",
+      "primary_design_proxy_growth_abs_spearman_to_fee_growth_at_most_0_80",
+      "primary_validation_proxy_growth_abs_spearman_to_btc_price_growth_at_most_0_80",
+      "primary_validation_proxy_growth_abs_spearman_to_hashrate_growth_at_most_0_80",
+      "primary_validation_proxy_growth_abs_spearman_to_fee_growth_at_most_0_80"
+    ],
+    "economic_required_only_after_nonredundancy_pass": [
+      "primary_design_normal_total_return_pct_gt_0",
+      "primary_design_stress_total_return_pct_gt_0",
+      "primary_design_normal_drawdown_at_most_95pct_of_buy_hold",
+      "primary_design_normal_calmar_at_least_buy_hold",
+      "primary_validation_normal_total_return_pct_gt_0",
+      "primary_validation_stress_total_return_pct_gt_0",
+      "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+      "primary_validation_normal_upside_capture_at_least_60pct",
+      "primary_validation_normal_calmar_at_least_buy_hold",
+      "primary_validation_position_changes_between_2_and_100",
+      "primary_validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "neighbor_miner2_validation_normal_total_return_pct_gt_0",
+      "neighbor_miner2_validation_stress_total_return_pct_gt_0",
+      "neighbor_miner2_validation_normal_drawdown_non_worse",
+      "neighbor_miner2_validation_normal_calmar_at_least_75pct_buy_hold",
+      "neighbor_miner2_validation_normal_upside_capture_at_least_50pct",
+      "neighbor_miner8_validation_normal_total_return_pct_gt_0",
+      "neighbor_miner8_validation_stress_total_return_pct_gt_0",
+      "neighbor_miner8_validation_normal_drawdown_non_worse",
+      "neighbor_miner8_validation_normal_calmar_at_least_75pct_buy_hold",
+      "neighbor_miner8_validation_normal_upside_capture_at_least_50pct",
+      "primary_normal_positive_annual_total_return_at_least_4_of_5",
+      "primary_stress_positive_annual_total_return_at_least_4_of_5",
+      "primary_normal_annual_drawdown_non_worse_at_least_4_of_5",
+      "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+      "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+      "primary_top_year_positive_total_return_contribution_at_most_60pct",
+      "primary_validation_top_positive_episode_contribution_at_most_60pct",
+      "primary_validation_p90_hold_at_most_17520_hours",
+      "primary_validation_terminal_holding_age_at_most_17520_hours",
+      "primary_validation_terminal_liquidation_adjusted_return_pct_gt_0",
+      "primary_validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "DUPLICATE_REJECT_BEFORE_ECONOMICS_OR_ALL_ECONOMIC_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_NONREDUNDANCY_AND_ECONOMIC_RUNNER",
+      "path": "research/btc_miner_revenue_per_hash_momentum_long_cash_historical.py",
+      "sha256": "fbd90e730ba7b352ec25b5dcbfbb61bb69e2c1fc39e29c260d4508c1ae8aac22"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_LEDGER_REFERENCE",
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_ACCOUNTING_AND_PASSIVE_REFERENCE",
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY",
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+      "path": "research_pipeline/examples/btc-miner-revenue-per-hash-momentum-long-cash-primary-prior.v1.json",
+      "sha256": "b29c41f17fac7ebe5f4edecc7e4883dde5f5ab699f2612cb96e8e5c716ecb2db"
+    },
+    {
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-miner-revenue-per-hash-momentum-long-cash-v1.hypothesis.json",
+      "sha256": "83e8f5fd674c0fd1048f895dd69c930308a5be22925ab977a40769676d259d32"
+    },
+    {
+      "role": "SEALED_FEE_SOURCE_METADATA",
+      "path": "research_pipeline/examples/coinmetrics-btc-fee-pressure-daily-2018-2024.v1.source.json",
+      "sha256": "03cf5e5c5f18c19597bcd5fd61024158ef25369da806f32820c632457281d17d"
+    },
+    {
+      "role": "SEALED_NORMALIZED_FEE_CORPUS",
+      "path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v1/inputs/coinmetrics-btc-fee-pressure-2018-2024.csv",
+      "sha256": "6dd78283ff476ddca7bed52bf01ad76a6b49d6bf1125c9e360ad95aa5787feed"
+    },
+    {
+      "role": "SEALED_HASHRATE_SOURCE_METADATA",
+      "path": "research_pipeline/examples/coinmetrics-btc-hashrate-daily-2018-2024.v1.source.json",
+      "sha256": "266e41fa72f8a612a9fc3327a5f31614d340d79a0ed4420925dc96151857ca08"
+    },
+    {
+      "role": "SEALED_NORMALIZED_HASHRATE_CORPUS",
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-btc-hashrate-2018-2024.csv",
+      "sha256": "1dfdfde2f8806f912c6dc3c3d48e2bf244c40af94e9aeb4389ed2cc8337ec273"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not access strategy PnL if any Design or Validation nonredundancy gate fails.",
+    "Do not remove price, fees, hashrate or the protocol subsidy schedule from the proxy after observing correlations.",
+    "Do not replace 144 expected blocks with realized blocks, change halving dates, promote two/eight weeks, scan another lookback, threshold, lag, holding interval or source.",
+    "Do not add DRA, a closed factor, fractional sizing, leverage or shorting as a rescue and do not open OOS unless every gate passes."
+  ],
+  "scope_note": "Frozen pre-outcome manifest only. No proxy correlation, strategy economics, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

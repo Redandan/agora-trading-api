@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-cfnai-above-trend-long-cash-v1",
+  "title": "Lagged CFNAI above-trend activity for BTC long or cash",
+  "thesis": "A conservatively delayed positive Chicago Fed National Activity Index may identify broad above-trend U.S. activity in which Bitcoin retains enough upside to improve matched-capital risk-adjusted economics versus passive exposure.",
+  "mechanism": "Using only the sealed present-vintage FRED CFNAI monthly series, make each observation usable exactly 60 calendar days after observation-month start. Hold full-capital unlevered BTC only when the current CFNAI value is strictly greater than the publisher's zero trend threshold, and zero-yield cash otherwise. No CFNAI-MA3, diffusion index, component, revision, alternate lag, alternate threshold, magnitude, smoothing, inversion, other macro or BTC input, fractional sizing, shorting or leverage is allowed.",
+  "economic_rationale": "CFNAI aggregates broad real-activity information and zero has a publisher-defined interpretation, but present-vintage levels may be revised or lag markets. The policy is useful only if its one frozen state rule preserves sufficient BTC upside while improving drawdown and Calmar under normal and doubled friction, with annual breadth and no concentrated episode or terminal inventory mark dominating the result.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-cfnai-above-trend-long-cash:PRIMARY_PRIOR_SHA256_05047b9163a84dbbb82a9c1e9df87e6a5688f307c81e270181fe70b5cb2d89ca:SOURCE_BUNDLE_SHA256_a07e750784f1f0cad86e0bbed7e5b124cc9dcdd5a00a24a03d64088d5aba31ef:NORMALIZED_CFNAI_SHA256_d547cfe99747168ce7b4ed08098fdde8b23c7da314de75452a89ebc404a8127f",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "monthly-official-fred-cfnai-above-trend-matched-capital-long-cash-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "monthly_signal_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_validation_positive_episode_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-cfnai-above-trend-1",
+  "created_at": "2026-08-21T04:32:50Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "1",
+  "document_type": "LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_CORPUS_PREOUTCOME_DECIMAL_DIAGNOSTIC_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRE_OUTCOME_DIAGNOSTIC_ONLY_NO_DATA_ACCEPTANCE_CHANGE",
+  "failed_source_manifest_sha256": "7578b39f09dd3ee84cc333d4739ad67ce18cf6db8e8553331ad2d1d69efa32a2",
+  "failed_corpus_builder_sha256": "94601950f8f40f225dbbd56eb694adc6eb28420ac6d461b4eb78cbbf3fdb911a",
+  "failure": {
+    "error": "DATA_REJECT:DECIMAL:base_volume:0",
+    "missing_diagnostic": "CONCURRENT_DOWNLOAD_TRACE_DID_NOT_IDENTIFY_SYMBOL_MONTH_OR_RAW_LEXICAL_FORM",
+    "sealed_outputs_created": false
+  },
+  "correction": "Add symbol and month context plus a safely escaped raw lexical representation to decimal rejection errors. Do not change the accepted decimal grammar, archive cohort, rows, costs, strategy, parent or gates.",
+  "stop_rule": "After the contextual rerun, accept no new lexical form without a separate pre-outcome identity-specific erratum. Blank, nonfinite, negative activity or structurally ambiguous values remain DATA_REJECT.",
+  "scope_note": "Diagnostic observability only. No price return, rank, strategy path, PnL, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

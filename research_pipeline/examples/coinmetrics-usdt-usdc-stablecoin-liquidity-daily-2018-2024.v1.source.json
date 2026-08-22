@@ -1,0 +1,46 @@
+{
+  "schema_version": "1",
+  "document_type": "COIN_METRICS_USDT_USDC_STABLECOIN_LIQUIDITY_DAILY_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_PRESENT_VINTAGE_SOURCE_READY_FOR_PREREGISTERED_HISTORICAL_AUDIT",
+  "publisher": "Coin Metrics",
+  "product": "Community API",
+  "endpoint": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics",
+  "request": "assets=usdt,usdc; metrics=CapMrktCurUSD; frequency=1d; start_time=2018-09-28; end_time=2024-12-31; page_size=10000; status=reviewed",
+  "captured_at": "2026-08-19T09:05:26.309Z",
+  "raw_response": {
+    "path": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/inputs/coinmetrics-usdt-usdc-stablecoin-liquidity-2018-2024-raw.json",
+    "sha256": "dc5b86c46d2db6b5df23625c112f84db0bd81651eb336665bcdefbdd586da433",
+    "bytes": 490846,
+    "rows": 4574
+  },
+  "normalized_subset": {
+    "path": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/inputs/coinmetrics-usdt-usdc-stablecoin-liquidity-2018-2024.csv",
+    "sha256": "144bd8a20d1954b09f20e85cdf8f16fd8befd201cb77da824ba57562573a7d81",
+    "rows": 2287,
+    "first_date": "2018-09-28",
+    "last_date": "2024-12-31",
+    "continuity": "BOTH_USDT_AND_USDC_PRESENT_ON_EVERY_CONSECUTIVE_UTC_DAY",
+    "columns": ["date", "usdt_cap_mrkt_cur_usd", "usdc_cap_mrkt_cur_usd"]
+  },
+  "source_bundle": {
+    "path": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/inputs/coinmetrics-source-bundle.json",
+    "sha256": "60f3db703af391ad7f1dfab22b089eb6a8a82f4ea7c6082fa702faa913707aad"
+  },
+  "pre_outcome_feasibility": {
+    "primary_combined": {"evaluations": 2259, "positive_days": 1682, "negative_days": 577, "transitions": 63},
+    "neighbor_usdt_only": {"evaluations": 2259, "positive_days": 1821, "negative_days": 438, "transitions": 89},
+    "neighbor_usdc_only": {"evaluations": 2259, "positive_days": 1458, "negative_days": 801, "transitions": 70},
+    "btc_outcome_accessed": false
+  },
+  "metric_identity": {
+    "name": "CapMrktCurUSD",
+    "definition": "Current supply multiplied by the current USD reference rate.",
+    "official_documentation": "https://docs.coinmetrics.io/asset-metrics/market/capact1yrusd",
+    "boundary": "This is a capitalization and liquidity proxy, not pure issuance; it may include depeg and reference-rate effects."
+  },
+  "publication_timing": "Observation day D is conservatively usable only from D plus two calendar days at 00:00 UTC.",
+  "revision_boundary": "The sealed response is a present-vintage reviewed snapshot. Original daily review timestamps, reference-rate vintages and original historical values remain MISSING_PROOF.",
+  "license_boundary": "Coin Metrics Community data is documented as no-key and free for non-commercial use under a Creative Commons license. Raw and normalized bytes remain internal under untracked .research-state; this audit does not authorize commercial reuse or redistribution.",
+  "scope_note": "No BTC outcome, paid API, key, second timer, second writer, canonical state write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed during source capture."
+}

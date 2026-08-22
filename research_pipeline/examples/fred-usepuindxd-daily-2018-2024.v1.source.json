@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "document_type": "FRED_USEPUINDXD_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Federal Reserve Bank of St. Louis FRED",
+  "series": "USEPUINDXD",
+  "series_page": "https://fred.stlouisfed.org/series/USEPUINDXD",
+  "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD&cosd=2018-01-01&coed=2024-12-31",
+  "captured_at": "2026-08-20T05:33:03.960431Z",
+  "source_probe": {
+    "path": "research/fred_usepuindxd_source_probe.py",
+    "sha256": "7c30bda8158435afe1ba42c282df157a2d586a40fb2e5bf651ad607b9c02083e"
+  },
+  "source_bundle": {
+    "path": ".research-state/experiments/dra-us-epu-hedge-entry-admission-historical-v1/inputs/fred-source-bundle.json",
+    "sha256": "52b43c8f7aeda54fcf16c75d269651070a6b6d440a3c737bbcaeadfdb56f21bd",
+    "request_count": 1,
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY"
+  },
+  "raw_response": {
+    "path": ".research-state/experiments/dra-us-epu-hedge-entry-admission-historical-v1/inputs/fred-usepuindxd-2018-2024-raw.csv",
+    "sha256": "25a827dfe05cfdafe7640327149b83bb9fff53e397a145013cef8270df7c7f0a",
+    "bytes": 45062,
+    "rows": 2557
+  },
+  "sealed_subset": {
+    "path": ".research-state/experiments/dra-us-epu-hedge-entry-admission-historical-v1/inputs/fred-usepuindxd-daily-2018-2024.csv",
+    "sha256": "c5e2ed9aa0cae08e5675e9325e0d5525959a34a063f9b1f709151483689c4a7d",
+    "bytes": 45062,
+    "rows": 2557,
+    "first_date": "2018-01-01",
+    "last_date": "2024-12-31",
+    "columns": ["observation_date", "usepuindxd"]
+  },
+  "pre_outcome_feature_feasibility": {
+    "complete_week_count": 365,
+    "evaluations": 313,
+    "first_evaluable_week_end": "2019-01-06",
+    "first_effective_time": "2019-01-13T00:00:00Z",
+    "primary_100_at_or_above": 156,
+    "primary_100_below": 157,
+    "primary_100_transitions": 84,
+    "neighbor_080_at_or_above": 221,
+    "neighbor_080_below": 92,
+    "neighbor_080_transitions": 72,
+    "neighbor_120_at_or_above": 86,
+    "neighbor_120_below": 227,
+    "neighbor_120_transitions": 70,
+    "btc_outcome_accessed": false
+  },
+  "publication_timing_boundary": "A complete Monday-Sunday mean ending D is usable only at D plus seven calendar days 00:00 UTC and remains valid for at most 168 hours.",
+  "feature_boundary": "Current complete-week mean divided by the median of the prior 52 non-overlapping complete-week means. The current week is excluded from its denominator; frozen thresholds are 0.80, 1.00 and 1.20.",
+  "revision_boundary": "The exact FRED response is a sealed present-vintage historical input. Original news-index release vintages and subsequent revisions remain MISSING_PROOF; a historical pass therefore requires untouched prospective evidence.",
+  "scope_note": "Free public historical source only. No BTC/DRA outcome, paid API, account, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed."
+}

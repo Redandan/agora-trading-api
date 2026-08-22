@@ -1,0 +1,118 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_NONREPORTABLE_NET_POSITION_CHANGE_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-cftc-nonreportable-net-position-change-long-cash-historical-v1",
+  "family_id": "btc-cftc-nonreportable-net-position-change-long-cash",
+  "decided_at": "2026-08-20T11:15:16Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_CFTC_NONREPORTABLE_NET_POSITION_CHANGE_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_NONREPORTABLE_WEEKLY_DELTA_CONTINUATION_FAMILY_WITHOUT_ECONOMIC_ACCESS_DIRECTION_INVERSION_OR_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "economic_evidence_accessed": false,
+  "determinism": {
+    "run1_sha256": "d80354a229e0be1b6ba329b2495aefbacc2f19004a168784489a278d071721f7",
+    "run2_sha256": "d80354a229e0be1b6ba329b2495aefbacc2f19004a168784489a278d071721f7",
+    "byte_identical": true
+  },
+  "factor_inventory": {
+    "eligible_points": 299,
+    "positive_points": 138,
+    "negative_points": 154,
+    "zero_points": 7
+  },
+  "nonredundancy_evidence": {
+    "absolute_spearman_limit": "0.80000000",
+    "design": {
+      "nonreportable_to_dealer": "-0.09977025",
+      "nonreportable_to_leveraged_money": "-0.38634370",
+      "nonreportable_to_asset_manager": "0.17647847",
+      "all_pass": true
+    },
+    "validation": {
+      "nonreportable_to_dealer": "-0.18901585",
+      "nonreportable_to_leveraged_money": "-0.29741510",
+      "nonreportable_to_asset_manager": "0.36828515",
+      "all_pass": true
+    },
+    "conclusion": "The factor is not rejected as a duplicate of the three frozen reportable-category weekly deltas."
+  },
+  "predictive_evidence": {
+    "design": {
+      "episode_count": 150,
+      "positive_factor_count": 69,
+      "negative_factor_count": 81,
+      "median_signed_response_168h": "0.00505234",
+      "positive_factor_median_raw_return_168h": "0.00920373",
+      "negative_factor_median_raw_return_168h": "0.00453683",
+      "one_sided_sign_test_p_value": "0.46748074"
+    },
+    "validation": {
+      "episode_count": 91,
+      "positive_factor_count": 43,
+      "negative_factor_count": 48,
+      "median_signed_response_168h": "0.00687192",
+      "positive_factor_median_raw_return_168h": "0.02150187",
+      "negative_factor_median_raw_return_168h": "0.00171867",
+      "one_sided_sign_test_p_value": "0.20090640"
+    },
+    "failed_gates": [
+      "design_negative_factor_median_raw_return_strictly_negative",
+      "design_one_sided_sign_test_p_value_at_most_0_10",
+      "validation_negative_factor_median_raw_return_strictly_negative",
+      "validation_one_sided_sign_test_p_value_at_most_0_10"
+    ]
+  },
+  "material_learning": "Nonreportable weekly net-position changes are empirically distinct from the three closed reportable-category deltas, but the preregistered continuation sign is not independently predictive in either window. BTC median next-week returns remained positive even after negative nonreportable changes, and neither one-sided sign test reached the frozen 0.10 threshold.",
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP"
+  },
+  "sealed_evidence_bindings": [
+    {
+      "path": ".research-state/experiments/btc-cftc-nonreportable-net-position-change-long-cash-historical-v1/artifacts/run1.json",
+      "role": "SEALED_DETERMINISTIC_RUN1",
+      "sha256": "d80354a229e0be1b6ba329b2495aefbacc2f19004a168784489a278d071721f7"
+    },
+    {
+      "path": ".research-state/experiments/btc-cftc-nonreportable-net-position-change-long-cash-historical-v1/artifacts/run2.json",
+      "role": "SEALED_DETERMINISTIC_RUN2",
+      "sha256": "d80354a229e0be1b6ba329b2495aefbacc2f19004a168784489a278d071721f7"
+    },
+    {
+      "path": "research_pipeline/examples/btc-cftc-nonreportable-net-position-change-long-cash-historical.v1.manifest.json",
+      "role": "FROZEN_PREREGISTRATION_MANIFEST",
+      "sha256": "30b7cd19bb170cb52e817439eb3810382a244fdf092aaccf85f829d69f628a1d"
+    },
+    {
+      "path": "research/btc_cftc_nonreportable_net_position_change_long_cash_historical.py",
+      "role": "FROZEN_HASH_BOUND_RUNNER",
+      "sha256": "5b622ef7661bf545cca7ef921028b2a3e0f9e70901f998cbf451d5d166a9430a"
+    },
+    {
+      "path": "research_pipeline/examples/btc-cftc-nonreportable-net-position-change-long-cash-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+      "sha256": "4e23a478a8f3cc8c59c6a238f4ee3b64b16024f3808c3a9ce6517239e4196729"
+    },
+    {
+      "path": "research_pipeline/examples/btc-cftc-nonreportable-net-position-change-long-cash-v1.hypothesis.json",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+      "sha256": "ffc20e150d2efb8ce48baa34502ac4a3b45a20bc86b8c3fbc830a80e5a3522c7"
+    }
+  ],
+  "prohibited_reopen": [
+    "Do not invert the continuation direction after observing outcomes.",
+    "Do not tune a level, threshold, lookback, lag, horizon, participant category, sizing rule or execution time.",
+    "Do not combine this failed family with BTC trend, basis, funding, volatility, another CFTC category or a closed strategy as a rescue.",
+    "Do not access the blocked strategy economics or post-2024 OOS for this family."
+  ],
+  "next_action": "REMOVE_THE_FAMILY_FROM_THE_OPEN_POOL_AND_ADMIT_ONE_DISTINCT_FREE_DATA_FAMILY_AT_PRIMARY_PRIOR_STAGE",
+  "scope_note": "Historical offline research only. No paid API, second timer, second writer, external backfill, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

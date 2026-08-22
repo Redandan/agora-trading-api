@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_RESERVE_BALANCES_GROWTH_SOURCE_TRANSPORT_FORMAT_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-reserve-balances-growth-liquidity-support-long-cash",
+  "created_at": "2026-08-20T13:24:00Z",
+  "status": "FROZEN_BEFORE_TARGET_OBSERVATION_VALUE_PARSING",
+  "observed_pre_value_format": {
+    "official_zip_entries": [
+      "H41_H41.xsd",
+      "H41_data.xml",
+      "H41_struct.xml",
+      "frb_common.xsd"
+    ],
+    "target_series_name": "RESH4R_XAW_N.WW",
+    "series_attribute_keys": [
+      "CATEGORY",
+      "COMPONENT",
+      "CURRENCY",
+      "DISTRIBUTION",
+      "FREQ",
+      "SERIESTYPE",
+      "SERIES_NAME",
+      "SUBCATEGORY",
+      "UNIT",
+      "UNIT_MULT"
+    ],
+    "observation_attribute_keys": [
+      "OBS_STATUS",
+      "OBS_VALUE",
+      "TIME_PERIOD"
+    ]
+  },
+  "minimal_transport_correction": "Parse only the exact target Series and its TIME_PERIOD, OBS_VALUE and OBS_STATUS attributes from the official H41_data.xml stream. Reject duplicate target series, different economic identity attributes, non-weekly dates, non-integral values or any unexpected archive path.",
+  "unchanged_scientific_contract": "Series meaning, 2018-2024 window, four-observation growth direction, Friday availability, Design/Validation support gates and prohibition on BTC outcome access remain unchanged.",
+  "scope_note": "Official archive structure and metadata only. No target OBS_VALUE was printed, retained or evaluated before this format contract; no BTC outcome, hypothesis, economics, candidate, OOS, canonical write or Trading action occurred."
+}

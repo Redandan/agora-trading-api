@@ -1,0 +1,176 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1",
+  "hypothesis_id": "btc-fred-umcsent-rising-consumer-sentiment-long-cash-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "expected_complete_utc_days": 2192,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "umcsent": {
+      "path": ".research-state/experiments/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1/inputs/umcsent-monthly-2017-2024.csv",
+      "sha256": "73f985132ce7c0afe229254e837ff032e74956ba7e59b5d970d746be83a346e8",
+      "rows": 96,
+      "first_month": "2017-01",
+      "last_month": "2024-12",
+      "present_vintage": true
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1/inputs/umcsent-source-bundle.json",
+      "sha256": "493e2a4600958fc731ca8bcb666f5f336ec5fbb1113e19420e2280e08bfc911b"
+    }
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_LONG_CASH_V1",
+    "source_series": "FRED_UMCSENT_FINAL_MONTHLY_PRESENT_VINTAGE",
+    "evaluation_frequency": "MONTHLY",
+    "availability": "OBSERVATION_MONTH_PLUS_TWO_MONTHS_FIRST_DAY_AT_00_00_UTC",
+    "formula": "UMCSENT_t_MINUS_UMCSENT_t_minus_1",
+    "long_condition": "CHANGE_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "CHANGE_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "missing_observation_rule": "FAIL_CLOSED_NO_INTERPOLATION_OR_SOURCE_REPAIR",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ]
+  },
+  "gate_set": {
+    "id": "BTC_FRED_UMCSENT_RISING_MATCHED_CAPITAL_GATES_V1",
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "umcsent_sha256_and_96_months_match",
+      "umcsent_source_bundle_sha256_matches",
+      "hourly_lattice_monthly_continuity_and_conservative_availability_pass",
+      "frozen_runner_kernel_ledger_reference_parser_prior_hypothesis_probe_and_spec_sha256_match",
+      "single_variant_strict_adjacent_month_increase_no_rescue_contract_pass",
+      "design_normal_total_return_pct_gt_0",
+      "design_stress_total_return_pct_gt_0",
+      "design_normal_drawdown_at_most_90pct_of_buy_hold",
+      "design_normal_upside_capture_at_least_50pct",
+      "design_normal_calmar_at_least_buy_hold",
+      "design_normal_position_changes_between_2_and_48",
+      "validation_normal_total_return_pct_gt_0",
+      "validation_stress_total_return_pct_gt_0",
+      "validation_normal_drawdown_at_most_90pct_of_buy_hold",
+      "validation_normal_upside_capture_at_least_60pct",
+      "validation_normal_calmar_at_least_75pct_of_buy_hold",
+      "validation_normal_signal_evaluations_at_least_24",
+      "validation_normal_position_changes_between_2_and_24",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_positive_annual_total_return_at_least_5_of_6",
+      "stress_positive_annual_total_return_at_least_5_of_6",
+      "normal_annual_drawdown_non_worse_at_least_5_of_6",
+      "normal_annual_calmar_at_least_75pct_buy_hold_at_least_4_of_6",
+      "normal_annual_upside_capture_at_least_50pct_at_least_5_of_6",
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_at_most_8760_hours",
+      "validation_terminal_holding_age_at_most_8760_hours",
+      "validation_terminal_liquidation_adjusted_return_pct_gt_0",
+      "validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER",
+      "path": "research/btc_fred_umcsent_rising_consumer_sentiment_long_cash_historical.py",
+      "sha256": "42fa36b863085eb68aa1872a5e84d1b0c09feab28bb2e5430723b2a0676ff974"
+    },
+    {
+      "role": "FROZEN_MATCHED_CAPITAL_ECONOMIC_KERNEL",
+      "path": "research/btc_m2_liquidity_acceleration_long_cash_historical.py",
+      "sha256": "eb059aed19f839f9b6c1f443df45e6611e7170b431904c6a28e35d7c2dc2eb09"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_LEDGER",
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"
+    },
+    {
+      "role": "FROZEN_PATH_AND_BUY_HOLD_REFERENCE",
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "role": "FROZEN_H1_PARSER",
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-primary-prior.v1.json",
+      "sha256": "65c9ed9f906956685f68b641839fec0ab5ebd20e7dd717c1ca0df205f9404028"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-v1.hypothesis.json",
+      "sha256": "78281cdfc3dc99880b2094b81e1b4e7e101dfe3e17745e629be38fa6f4847d27"
+    },
+    {
+      "role": "SEALED_OFFICIAL_UMCSENT_SOURCE_BUNDLE",
+      "path": ".research-state/experiments/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1/inputs/umcsent-source-bundle.json",
+      "sha256": "493e2a4600958fc731ca8bcb666f5f336ec5fbb1113e19420e2280e08bfc911b"
+    },
+    {
+      "role": "SEALED_NORMALIZED_UMCSENT_CORPUS",
+      "path": ".research-state/experiments/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1/inputs/umcsent-monthly-2017-2024.csv",
+      "sha256": "73f985132ce7c0afe229254e837ff032e74956ba7e59b5d970d746be83a346e8"
+    },
+    {
+      "role": "FROZEN_FAIL_CLOSED_UMCSENT_SOURCE_PROBE",
+      "path": "research/fred_umcsent_source_probe.py",
+      "sha256": "b4464b6f2984dac5ae980252c517ba422efb0de3e731611bc0ad31949eba4594"
+    },
+    {
+      "role": "FROZEN_PRE_FACTOR_SOURCE_FEASIBILITY_SPEC",
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-source-feasibility.v1.spec.json",
+      "sha256": "f43a5e53bc57badbc2d4c4d588050fd0ac96c2ff476921b45779330049b593f1"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not change the strict adjacent-month increase, second-following-month availability, full-capital long-cash sizing or one-variant contract after BTC outcome access.",
+    "Do not add consumer-expectations or current-conditions components, preliminary releases, surprises, a level threshold, percentile, magnitude, smoothing, alternate lag or direction inversion.",
+    "Do not combine UMCSENT with STLFSI4, VIX, NFCI, Nasdaq, rates, liquidity, CFTC, on-chain, trend, volatility or technical indicators as a rescue variant.",
+    "Do not relax any economic, drawdown, Calmar, upside, breadth, concentration, holding or terminal gate; do not open post-2024 OOS in this experiment."
+  ],
+  "revision_boundary": "This is one August 2026 present-vintage FRED history. Preliminary readings, original historical final-release values and revisions remain MISSING_PROOF, so a historical pass still requires independent sealed OOS.",
+  "measurement_boundary": "UMCSENT measures household sentiment and can move with inflation or politics without transmitting to BTC liquidity. The proposed risk-appetite mechanism is not uniquely identified.",
+  "scope_note": "Frozen pre-outcome matched-capital manifest only. No UMCSENT-BTC outcome, runner result, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

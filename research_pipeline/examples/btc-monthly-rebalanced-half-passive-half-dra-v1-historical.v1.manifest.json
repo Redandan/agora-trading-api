@@ -1,0 +1,181 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_REBALANCED_HALF_PASSIVE_HALF_DRA_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-monthly-rebalanced-half-passive-half-dra-v1-historical-v1",
+  "created_at": "2026-08-20T09:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_RETROSPECTIVE_NO_OOS",
+  "thesis": "An exact monthly reset to equal value between passive BTC and unchanged DRA V1 may preserve the sealed DRA return contribution while preventing passive BTC appreciation from drifting above the intended risk budget.",
+  "economic_rationale": "The sealed static equal-capital portfolio improved return over fifty-percent passive BTC plus cash but failed drawdown breadth because the passive sleeve drifted toward full BTC risk. Monthly rebalancing is useful only if it beats the same monthly-rebalanced passive-plus-cash parent after explicit turnover friction and passes all full-window, annual, path-risk, concentration and inventory gates.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-monthly-rebalanced-half-passive-half-dra-v1",
+    "sealed_parent_family": "btc-static-half-passive-half-dra-v1",
+    "distinct_mechanism": "This experiment changes only capital transfer between two frozen component indices. It does not change passive BTC entry or valuation and does not change any DRA entry, exit, capacity, route, volatility, inventory or accounting rule.",
+    "variants": 1,
+    "neighbors": "DENY"
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_monthly_rebalanced_half_passive_half_dra_v1_historical.py",
+      "sha256": "849d799628c49fe811fc700ed4672e1255e27b88bad8dff247f6cd7b2934a5fb",
+      "role": "DETERMINISTIC_MONTHLY_REBALANCE_RUNNER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-monthly-rebalanced-half-passive-half-dra-v1-primary-prior.v1.json",
+      "sha256": "30177194ef50b6b2e707b437665c2eca266bf75aece77faefe75e60a327ce6a7",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-monthly-rebalanced-half-passive-half-dra-v1.hypothesis.json",
+      "sha256": "cbd853554da3f019762e9d37e46712e40553d371976098eab7559dbb4539f835",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-static-half-passive-half-dra-v1-historical.v1.decision.json",
+      "sha256": "97a65de7393563e4d622de44936c7f016a222942e6aae546cded225a8a458635",
+      "role": "SEALED_STATIC_PARENT_DECISION"
+    },
+    {
+      "path": "research/btc_static_half_passive_half_dra_v1_historical.py",
+      "sha256": "ed0505777b344c2b97b90185fee98f7f978c32c6ba238e7def1c4450cf2b4eae",
+      "role": "SEALED_STATIC_PARENT_RUNNER"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_DRA_V1_ENGINE_AND_CHECKPOINTS"
+    },
+    {
+      "path": "src/main/java/com/agora/research/BtcDonchianStandaloneHistoricalCli.java",
+      "sha256": "4ce8133148e691793c2d21419e11b9c2afaf70f9c2442b83d3b9c67e0fc68760",
+      "role": "FROZEN_PASSIVE_BTC_BENCHMARK_VALUATION_REFERENCE"
+    }
+  ],
+  "portfolio_policy": {
+    "policy_id": "BTC_MONTHLY_REBALANCED_50_PASSIVE_50_DRA_V1",
+    "target_weights": ["0.50", "0.50"],
+    "rebalance_clock": "FIRST_H1_OPEN_OF_EACH_UTC_CALENDAR_MONTH",
+    "normal_rebalance_friction_per_traded_component_notional": "0.0015",
+    "stress_rebalance_friction_per_traded_component_notional": "0.0030",
+    "component_transfer": "SYNTHETIC_INVESTABLE_COMPONENT_INDEX_UNITS",
+    "leverage": "DENY",
+    "short": "DENY",
+    "variants": 1
+  },
+  "execution_and_valuation": {
+    "initial_total_equity_index": "1.0",
+    "passive_btc": "FROZEN_FULL_PASSIVE_BTC_INDEX_WITH_EXISTING_ENTRY_COST_AND_HOURLY_CLOSE_VALUATION",
+    "dra_v1": "UNCHANGED_FROZEN_DRA_V1_NORMALIZED_EQUITY_INDEX",
+    "rebalance_order": "AT_MONTH_BOUNDARY_AFTER_PREVIOUS_H1_CLOSE_AND_BEFORE_NEW_MONTH_FIRST_H1_RETURN",
+    "candidate_friction": "CHARGE_EACH_TRADED_PASSIVE_AND_DRA_COMPONENT_NOTIONAL",
+    "primary_friction": "CHARGE_ONLY_TRADED_PASSIVE_COMPONENT_NOTIONAL_BECAUSE_CASH_TRANSFER_IS_ZERO_COST",
+    "cash_return": "ZERO",
+    "rounding": "DECIMAL_INTERNAL_AND_EIGHT_DECIMAL_OUTPUT"
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "comparators": {
+    "primary": "MONTHLY_REBALANCED_50PCT_PASSIVE_BTC_50PCT_ZERO_YIELD_CASH",
+    "secondary": [
+      "FROZEN_DRA_V1_NORMALIZED_TO_SAME_INITIAL_EQUITY",
+      "ONE_HUNDRED_PERCENT_PASSIVE_BTC_SAME_ENTRY_COST_AND_HOURLY_PRICE_PATH"
+    ],
+    "capital_matching": "SAME_NORMALIZED_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "metrics": [
+    "normal_and_stress_total_return_pct",
+    "maximum_drawdown_pct",
+    "maximum_underwater_duration_hours",
+    "calmar_ratio",
+    "passive_and_total_market_exposure_pct",
+    "rebalance_count_turnover_and_cost",
+    "maximum_pre_rebalance_component_weight_pct",
+    "candidate_minus_primary_return_drawdown_and_calmar",
+    "candidate_upside_capture_vs_passive",
+    "dra_realized_unrealized_total_return_and_terminal_inventory",
+    "annual_return_and_drawdown_breadth",
+    "top_year_positive_incremental_return_contribution_pct"
+  ],
+  "gate_set": {
+    "id": "BTC_MONTHLY_REBALANCED_HALF_PASSIVE_HALF_DRA_ECONOMIC_GATES_V1",
+    "required": [
+      "dataset_sha256_and_52608_rows_match",
+      "hourly_lattice_and_ohlcv_invariants_pass",
+      "frozen_dra_source_passive_reference_static_parent_and_hypothesis_hashes_match",
+      "dra_design_and_validation_checkpoints_exact",
+      "normal_design_candidate_total_return_gt_primary",
+      "normal_validation_candidate_total_return_gt_primary",
+      "stress_design_candidate_total_return_gt_primary",
+      "stress_validation_candidate_total_return_gt_primary",
+      "normal_design_candidate_total_return_gt_dra",
+      "normal_validation_candidate_total_return_gt_dra",
+      "normal_design_drawdown_at_most_primary_plus_2pp",
+      "normal_validation_drawdown_at_most_primary_plus_2pp",
+      "normal_design_calmar_at_least_primary",
+      "normal_validation_calmar_at_least_primary",
+      "normal_design_drawdown_at_most_75pct_passive",
+      "normal_validation_drawdown_at_most_75pct_passive",
+      "normal_validation_upside_capture_at_least_45pct",
+      "stress_design_total_return_positive",
+      "stress_validation_total_return_positive",
+      "stress_validation_drawdown_within_normal_plus_2pp",
+      "normal_design_max_pre_rebalance_component_weight_at_most_70pct",
+      "normal_validation_max_pre_rebalance_component_weight_at_most_70pct",
+      "normal_validation_rebalance_cost_at_most_20pct_positive_incremental_return",
+      "candidate_positive_annual_total_return_at_least_4_of_5",
+      "candidate_total_return_gt_primary_at_least_4_of_5",
+      "candidate_annual_drawdown_at_most_primary_plus_2pp_at_least_4_of_5",
+      "candidate_annual_drawdown_at_most_passive_at_least_4_of_5",
+      "top_year_positive_incremental_return_contribution_at_most_60pct",
+      "validation_terminal_dra_unrealized_share_of_dra_total_return_at_most_40pct"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop before economics if any dataset, source binding, lattice, OHLCV, policy, window, gate-set or DRA checkpoint contract fails.",
+    "Stop NO_CANDIDATE and permanently close this exact monthly equal-weight family if any frozen Design, Validation, stress, breadth, drawdown, concentration, cost or inventory gate fails.",
+    "Do not test another weight, rebalance clock, drift band, threshold, fee, passive entry, DRA variant, cash yield, leverage or short direction after outcome access.",
+    "Do not treat the through-2024 corpus as independent OOS. A historical pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

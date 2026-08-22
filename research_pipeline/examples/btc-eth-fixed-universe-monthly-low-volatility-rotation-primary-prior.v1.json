@@ -1,0 +1,73 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_FIXED_UNIVERSE_MONTHLY_LOW_VOLATILITY_ROTATION_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-eth-fixed-universe-monthly-low-volatility-rotation",
+  "disposition": "OFFICIAL_FREE_SOURCE_AND_ADVERSARIAL_PRIOR_PERMIT_ONE_FUTURE_PREREGISTERED_HISTORICAL_AUDIT",
+  "claim_boundary": "Exactly one future audit may test whether selecting the lower trailing-90-calendar-day realized-volatility asset from a fixed BTC and ETH universe at each month end improves matched-capital risk-adjusted performance. Published low-volatility evidence and robust reference-rate availability establish a testable prior, not profitable alpha. A historical pass remains unactivated and requires untouched independent OOS.",
+  "feature_contract": {
+    "publisher": "Coin Metrics",
+    "source": "OFFICIAL_COINMETRICS_DATA_GITHUB_FREE_COMMUNITY_ARCHIVE",
+    "assets": ["btc", "eth"],
+    "source_field": "ReferenceRateUSD",
+    "universe": "FIXED_BTC_ETH_ONLY_SELECTED_BEFORE_OUTCOME_ACCESS",
+    "observation": "LAST_COMPLETE_UTC_CALENDAR_DAY_OF_MONTH",
+    "formation": "TRAILING_90_CALENDAR_DAILY_LOG_RETURN_REALIZED_VOLATILITY",
+    "selection": "FULL_CAPITAL_LOWER_VOLATILITY_ASSET_STRICT_COMPARISON_TIE_TO_CASH",
+    "decision_time": "OBSERVATION_DATE_PLUS_THREE_CALENDAR_DAYS_AT_00_00_UTC",
+    "holding": "UNTIL_NEXT_VALID_MONTHLY_DECISION",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Coin Metrics free data archives",
+      "primary_source": "https://github.com/coinmetrics/data",
+      "finding": "The official repository publishes per-asset CSV archives from the free Community tier and explicitly supports generation for BTC and ETH.",
+      "role": "FREE_NO_KEY_FIXED_UNIVERSE_SOURCE",
+      "transfer_boundary": "The exact repository commit and both raw CSV byte hashes must be frozen because assets and metric availability can change and no stability guarantee exists."
+    },
+    {
+      "identity": "Coin Metrics Reference Rates methodology",
+      "primary_source": "https://gitbook-docs.coinmetrics.io/market-data/methodologies/coin-metrics-prices-methodology",
+      "finding": "Coin Metrics describes daily reference rates as transparent multi-market prices intended for research, backtesting and valuation, with systematic market selection and robust aggregation.",
+      "role": "OFFICIAL_PRICE_SEMANTICS",
+      "transfer_boundary": "Present-vintage daily prices do not prove their original historical publication vintages; a three-day lag is conservative rather than a documented original latency."
+    },
+    {
+      "identity": "Revisiting the low-volatility anomaly in cryptocurrency markets",
+      "primary_source": "https://doi.org/10.1016/j.frl.2026.109851",
+      "finding": "The peer-reviewed study reports a negative cross-sectional volatility premium after 2017, strongest with two-to-three-month formation and one-month holding, including a fixed pre-2019 cohort robustness check.",
+      "role": "PRIMARY_CAUSAL_AND_HORIZON_PRIOR",
+      "transfer_boundary": "A broad crypto cross-section and published sample do not establish that a two-asset BTC-ETH rotation survives costs or beats fixed-universe benchmarks."
+    },
+    {
+      "identity": "Cryptocurrencies and momentum",
+      "primary_source": "https://doi.org/10.1016/j.econlet.2019.03.028",
+      "finding": "A peer-reviewed study of 143 cryptocurrencies found no significant cross-sectional or strong time-series momentum in its 2014-2018 sample.",
+      "role": "ADVERSARIAL_PRICE_SELECTION_PRIOR",
+      "transfer_boundary": "The future rule selects only by realized volatility, not past return; nevertheless apparent winner rotation can still be a sample-specific price-selection effect."
+    },
+    {
+      "identity": "Closed liquid-crypto cross-sectional momentum source family",
+      "primary_source": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-source-gate.v1.decision.json#sha256=af94de6fd54a0752966aad4faeccfab55826fce9cb35bb17b5ac8375fcfa1dbb",
+      "finding": "A Binance 2019 cohort momentum experiment was closed before outcomes because a checksum-valid BTT archive contained negative volume and dropping the asset would create post-source selection bias.",
+      "role": "SURVIVORSHIP_AND_DUPLICATION_PRIOR",
+      "transfer_boundary": "The fixed BTC-ETH universe is selected for pre-2019 continuous major-asset existence and requires no liquidity ranking, volume gate or current-survivor substitution; it does not reopen the closed many-asset momentum cohort."
+    }
+  ],
+  "future_design_requirements": [
+    "Before outcome access, freeze one exact official Coin Metrics repository commit, raw BTC and ETH CSV hashes, and a daily 2018-2024 ReferenceRateUSD intersection with no missing dates.",
+    "Use exactly one variant: trailing 90 calendar daily log-return volatility observed on the final complete UTC calendar day, plus a fixed three-day availability lag, selecting the strictly lower-volatility asset until the next decision.",
+    "Reject a tie, missing observation, nonpositive price, discontinuous intersection or fewer than 90 prior daily returns; do not add momentum, cash-trend, volatility target, leverage, shorting or alternate formation windows.",
+    "Compare against monthly rebalanced 50-50 BTC-ETH and separately reported BTC and ETH buy-and-hold under normal and doubled adverse friction, with total return, realized and unrealized PnL, drawdown, Calmar, exposure, turnover, annual breadth and concentration gates.",
+    "Treat published and present-vintage history as prior-informed historical research only. A pass remains REPORTED_NOT_ACTIVATED until separately sealed independent OOS succeeds."
+  ],
+  "uncertainty": [
+    "A two-asset universe is too small to inherit a broad cross-sectional anomaly mechanically and may merely favor BTC because its volatility is often lower than ETH.",
+    "The 2026 low-volatility study can overlap the intended 2019-2024 historical sample, so it is a horizon prior rather than independent validation.",
+    "Coin Metrics free archives are updated daily without original vintage preservation or guaranteed metric stability.",
+    "No BTC or ETH source row, return, volatility state, allocation, strategy path, candidate, post-2024 observation or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-21T00:25:00Z"
+}

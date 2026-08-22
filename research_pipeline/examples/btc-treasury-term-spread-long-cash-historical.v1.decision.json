@@ -1,0 +1,174 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_TREASURY_TERM_SPREAD_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-treasury-term-spread-long-cash-historical-v1",
+  "decided_at": "2026-08-19T08:12:49Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_TREASURY_TERM_SPREAD_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_LAGGED_US_TREASURY_TERM_SPREAD_NONINVERSION_LONG_CASH_FAMILY_WITHOUT_MATURITY_THRESHOLD_RELATION_TIMING_CASH_YIELD_INTERACTION_OR_SIZING_TUNING",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "artifact": {
+    "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "4ee3d680dd35795f0ee0fe12e207618b323f40f6d5c4f33bbc36ecc08d1e29a8",
+    "bytes": 60100,
+    "reproducibility_run_path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/artifacts/run2.json",
+    "reproducibility_run_sha256": "4ee3d680dd35795f0ee0fe12e207618b323f40f6d5c4f33bbc36ecc08d1e29a8",
+    "byte_identical": true
+  },
+  "bindings": {
+    "manifest_path": "research_pipeline/examples/btc-treasury-term-spread-long-cash-historical.v1.manifest.json",
+    "manifest_sha256": "6f8d90b34fae33505987093f547d7c29a76d98c4d2a2d9478c47f5fa668a5556",
+    "primary_prior_path": "research_pipeline/examples/btc-treasury-term-spread-primary-prior.v1.json",
+    "primary_prior_sha256": "90c0bd75cb641f031ae155aea7b56ac0b0dc2e952939c9e859af87c42832bc65",
+    "source_metadata_path": "research_pipeline/examples/us-treasury-par-yield-curve-2018-2024.v1.source.json",
+    "source_metadata_sha256": "0b66812eaf7f4da1b8c4a2b282887a256226b100048c98dce957f650f7bbc4b5",
+    "hypothesis_path": "research_pipeline/examples/btc-treasury-term-spread-long-cash-v1.hypothesis.json",
+    "hypothesis_sha256": "989ff5cba33c98ebff0e43dd78668a83ab446175a13c71debf4ba46c03f7afdb",
+    "runner_path": "research/btc_treasury_term_spread_long_cash_historical.cjs",
+    "runner_sha256": "cd375a15ed0f6cf5801f9fd26563753c06af895a81da34e6c23643c6e00320e9",
+    "base_git_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+    "source_commit_status": "HASH_BOUND_WORKTREE_ARTIFACTS_NOT_YET_COMMITTED"
+  },
+  "datasets": {
+    "btc_h1": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "treasury_par_yield_curve": {
+      "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/inputs/treasury-yield-curve-2018-2024.csv",
+      "sha256": "045ce4646a4595697fc16d8e32c0fd08efd431680e998c9f85d2dcac1732c82a",
+      "raw_bundle_sha256": "5eeda69a5b3a5ad289e0ee9aff6020638266d062d667b902a4b353e593b80965",
+      "rows": 1750,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31"
+    }
+  },
+  "policy": {
+    "feature": "LATEST_PUBLISHED_US_TREASURY_10_YEAR_MINUS_SHORT_MATURITY_PAR_YIELD",
+    "effective_time": "NEXT_CALENDAR_DAY_0000_UTC",
+    "missing_date_policy": "PERSIST_LATEST_STATE_NO_FILL_NO_INTERPOLATION",
+    "long_relation": "AT_OR_ABOVE_ZERO",
+    "primary_short_maturity": "3 Mo",
+    "rejection_neighbors": ["1 Yr", "2 Yr"],
+    "targets": ["BTC_100_PERCENT", "ZERO_YIELD_CASH_100_PERCENT"]
+  },
+  "economic_summary": {
+    "primary_10y_minus_3m": {
+      "design_normal": {
+        "total_return_pct": "215.92665945",
+        "realized_return_pct": "215.92665945",
+        "unrealized_return_pct": "0.00000000",
+        "maximum_drawdown_pct": "74.05097969",
+        "calmar_ratio": "2.91591901",
+        "buy_hold_total_return_pct": "129.60544229",
+        "buy_hold_maximum_drawdown_pct": "77.18955925",
+        "buy_hold_calmar_ratio": "1.67905405",
+        "upside_capture_ratio": "1.66603081",
+        "average_exposure_pct": "92.06204380",
+        "position_changes": 10,
+        "p90_hold_hours": "14107.20000000"
+      },
+      "design_stress": {
+        "total_return_pct": "211.22311609",
+        "maximum_drawdown_pct": "74.05097969",
+        "calmar_ratio": "2.85240137",
+        "buy_hold_total_return_pct": "129.26172157"
+      },
+      "validation_normal": {
+        "total_return_pct": "-7.86218115",
+        "realized_return_pct": "0.00000000",
+        "unrealized_return_pct": "-7.86218115",
+        "maximum_drawdown_pct": "15.12521833",
+        "calmar_ratio": "-0.51980613",
+        "buy_hold_total_return_pct": "464.75475156",
+        "buy_hold_maximum_drawdown_pct": "32.28416349",
+        "buy_hold_calmar_ratio": "14.39575015",
+        "upside_capture_ratio": "-0.01691684",
+        "average_exposure_pct": "2.46238030",
+        "position_changes": 1,
+        "terminal_position": true,
+        "terminal_holding_age_hours": "432.00000000",
+        "terminal_liquidation_adjusted_return_pct": "-8.00034181"
+      },
+      "validation_stress": {
+        "total_return_pct": "-8.00011202",
+        "maximum_drawdown_pct": "15.12521833",
+        "calmar_ratio": "-0.52892539",
+        "buy_hold_total_return_pct": "463.90931032",
+        "terminal_liquidation_adjusted_return_pct": "-8.27592768"
+      },
+      "annual_normal": {
+        "2020": {"total_return_pct": "352.17316063", "maximum_drawdown_pct": "55.04585694", "calmar_ratio": "6.39781412", "average_exposure_pct": "94.80874317"},
+        "2021": {"total_return_pct": "59.60909620", "maximum_drawdown_pct": "54.72348518", "calmar_ratio": "1.08927814", "average_exposure_pct": "100.00000000"},
+        "2022": {"total_return_pct": "-56.34920885", "maximum_drawdown_pct": "62.86938571", "calmar_ratio": "-0.89629011", "average_exposure_pct": "81.36986301"},
+        "2023": {"total_return_pct": "0.00000000", "maximum_drawdown_pct": "0.00000000", "calmar_ratio": null, "average_exposure_pct": "0.00000000"},
+        "2024": {"total_return_pct": "-7.86218115", "maximum_drawdown_pct": "15.12521833", "calmar_ratio": "-0.51980613", "average_exposure_pct": "4.91803279"}
+      },
+      "breadth": {
+        "normal_positive_years": "2_of_5",
+        "stress_positive_years": "2_of_5",
+        "drawdown_non_worse_years": "5_of_5",
+        "calmar_non_worse_years": "3_of_5",
+        "top_year_positive_return_contribution_pct": "85.52412222"
+      }
+    },
+    "neighbor_10y_minus_1y": {
+      "design_normal_total_return_pct": "167.86510754",
+      "validation_normal_total_return_pct": "7.70671366",
+      "validation_maximum_drawdown_pct": "15.12521833",
+      "validation_calmar_ratio": "0.50952743",
+      "validation_upside_capture_ratio": "0.01658232",
+      "normal_positive_years": "3_of_5",
+      "disposition": "FAILS_FROZEN_VALIDATION_CALMAR_NEIGHBOR_GATE"
+    },
+    "neighbor_10y_minus_2y": {
+      "design_normal_total_return_pct": "188.94870132",
+      "validation_normal_total_return_pct": "61.40449464",
+      "validation_maximum_drawdown_pct": "15.12521833",
+      "validation_calmar_ratio": "4.05974269",
+      "validation_upside_capture_ratio": "0.13212236",
+      "normal_positive_years": "3_of_5",
+      "disposition": "FAILS_FROZEN_VALIDATION_CALMAR_NEIGHBOR_GATE"
+    }
+  },
+  "failed_primary_gates": [
+    "primary_design_normal_drawdown_at_most_85pct_of_buy_hold",
+    "primary_validation_normal_total_return_pct_gt_0",
+    "primary_validation_stress_total_return_pct_gt_0",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "primary_validation_position_changes_between_2_and_50",
+    "primary_normal_positive_annual_return_at_least_4_of_5",
+    "primary_stress_positive_annual_return_at_least_4_of_5",
+    "primary_top_year_positive_return_contribution_at_most_60pct",
+    "primary_validation_terminal_liquidation_adjusted_return_pct_gt_0"
+  ],
+  "failed_neighbor_gates": {
+    "treasury-10y-1y-noninversion-v1": ["validation_calmar_at_least_75pct_of_buy_hold"],
+    "treasury-10y-2y-noninversion-v1": ["validation_calmar_at_least_75pct_of_buy_hold"]
+  },
+  "passed_evidence": [
+    "The exact sealed BTC corpus, official Treasury raw bundle and normalized subset, publication timing, series-break metadata, prior, hypothesis, manifest and runner hashes passed; two outputs were byte-identical.",
+    "The primary produced 215.92665945 percent Design return under normal costs versus passive 129.60544229 percent and remained positive under doubled friction.",
+    "The primary reduced annual drawdown relative to passive in all five fair-reset years, but this defensive property did not survive the opportunity-cost, breadth and Validation gates."
+  ],
+  "material_learning": "Treasury inversion is a real macroeconomic state but not a usable lagged BTC allocation rule in this sample. The primary 10Y-minus-3M definition captured a strong Design period yet reduced drawdown only from 77.18955925 to 74.05097969 percent, short of the frozen fifteen-percent relative reduction. During 2023-2024 it stayed almost entirely in cash, had only 2.46238030 percent average exposure, entered once, returned -7.86218115 percent while passive BTC returned 464.75475156 percent, and terminal liquidation worsened the result. The 10Y-minus-1Y and 10Y-minus-2Y neighbors retained only 1.658232 and 13.212236 percent of passive Validation upside and both failed their Calmar gates. The apparent Design success is period concentration, not stable alpha.",
+  "scientific_claim": "For the exact official Treasury present-vintage 2018-2024 source, next-calendar-day 00:00 UTC availability, 10Y-minus-3M primary non-inversion rule, frozen 10Y-minus-1Y and 10Y-minus-2Y rejection neighbors, zero-yield cash, matched capital, explicit normal and stress friction and historical Design/Validation through 2024, the evidence rejects candidate status.",
+  "forbidden_followups": [
+    "DO_NOT_SELECT_THE_BEST_MATURITY_POST_OUTCOME",
+    "DO_NOT_INVERT_THE_RELATION_OR_SCAN_ANOTHER_THRESHOLD",
+    "DO_NOT_ADD_MONTHLY_AVERAGING_SMOOTHING_CONFIRMATION_DELAY_OR_RECESSION_PROBABILITY",
+    "DO_NOT_ADD_BTC_INTERACTION_CASH_YIELD_PARTIAL_SIZING_LEVERAGE_OR_SHORTING",
+    "DO_NOT_RERUN_OR_OPEN_OOS"
+  ],
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-2024 OOS or prospective evidence.",
+    "The Treasury source is a sealed present-vintage archive and does not prove original daily vintage identity for every observation.",
+    "Treasury changed the curve methodology on 2021-12-06; the official series break was preserved rather than normalized.",
+    "The macroeconomic recession prior does not itself claim Bitcoin return predictability.",
+    "No canonical state, server Research MCP write, second timer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+  ],
+  "recommended_next_action": "Keep this exact Treasury term-spread family permanently closed. Do not rescue its Design-period success by changing maturity or timing. Preserve the five open forward/source families and allocate the next direct cycle only to an independent evidence-ready mechanism."
+}

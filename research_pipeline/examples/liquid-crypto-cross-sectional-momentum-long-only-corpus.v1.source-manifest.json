@@ -1,0 +1,104 @@
+{
+  "schema_version": "1",
+  "document_type": "LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_LONG_ONLY_CORPUS_SOURCE_MANIFEST_V1",
+  "experiment_id": "liquid-crypto-cross-sectional-momentum-long-only-v1",
+  "created_at": "2026-08-20T07:33:42Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_SOURCE_ACQUISITION_ONLY",
+  "thesis": "Acquire exactly one checksum-verified pre-2025 daily corpus for the already frozen point-in-time cross-sectional momentum hypothesis without computing price returns, rankings, strategy paths or PnL during source acquisition.",
+  "acquisition_policy": {
+    "source": "BINANCE_PUBLIC_DATA_SPOT_MONTHLY_1D_ARCHIVES",
+    "quote_asset": "USDT",
+    "cohort_month": "2019-12",
+    "first_corpus_month": "2018-01",
+    "last_corpus_month": "2024-12",
+    "cohort_rule": "ASCII_USDT_SYMBOL_WITH_2019_12_DAILY_ARCHIVE_AFTER_FROZEN_STABLE_FIAT_WRAPPED_AND_LEVERAGED_EXCLUSIONS",
+    "archive_checksum": "REQUIRE_EXACT_PUBLISHER_SHA256_FOR_EVERY_ZIP",
+    "partial_terminal_session": "EXCLUDE_ONLY_FINAL_UTC_ALIGNED_SUB_24H_ROW_AND_RECORD_IDENTITY",
+    "current_exchange_info": "DENY",
+    "price_or_return_selection": "DENY",
+    "strategy_outcome": "DENY"
+  },
+  "source_bindings": [
+    {
+      "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+      "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c",
+      "role": "FROZEN_CHECKSUMMED_CORPUS_BUILDER"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-corpus-preoutcome-decimal-diagnostic-erratum.v1.json",
+      "sha256": "c280eb5aa82a81c19f8ae16c21cef34084fef504df4e4185e10da9a443f2a699",
+      "role": "SEALED_PRE_OUTCOME_DECIMAL_FAILURE_CONTEXT_DIAGNOSTIC_ERRATUM"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-corpus-preoutcome-partial-session-erratum.v1.json",
+      "sha256": "cd375c87d37f57d86a301deed9199e35f12428df9905184e6ef0dbb804bc9ffa",
+      "role": "SEALED_PRE_OUTCOME_PARTIAL_TERMINAL_SESSION_PARSER_ERRATUM"
+    },
+    {
+      "path": "research/binance_spot_usdt_archive_inventory_probe.py",
+      "sha256": "d7ec23e5c4f026c5987d139b281df6785d757898b12ec9b566ecec15390f5a24",
+      "role": "FROZEN_ARCHIVE_ENUMERATION_AND_XML_PARSER"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-primary-prior.v1.json",
+      "sha256": "77245807cd200c1815f352c5da941c4085472520666e223d9a0e5d20aba3b721",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_FREE_SOURCE_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-source-feasibility.v1.acceptance.json",
+      "sha256": "658603dbab86e7deedb6de721f9e343ac56fd8831b0c5fbfc10f3a6ab06805db",
+      "role": "SEALED_SOURCE_FEASIBILITY_ACCEPTANCE"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-v1.hypothesis.json",
+      "sha256": "a6417aedc84786c1b421b41ead3ec6dd32214b26a5e6811be4504f49bbefbde4",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": ".research-state/experiments/liquid-crypto-cross-sectional-momentum-long-only-source-feasibility-v1/artifacts/run1.json",
+      "sha256": "9f8ee95df9b04595c83fcd341c97c77286884a39b4f96adc463de0aa02f84e6f",
+      "role": "SEALED_ALL_HISTORY_USDT_ARCHIVE_INVENTORY"
+    }
+  ],
+  "output_contract": {
+    "bundle": ".research-state/experiments/liquid-crypto-cross-sectional-momentum-long-only-v1/inputs/binance-spot-usdt-daily-corpus-v1.bundle.json",
+    "normalized_gzip": ".research-state/experiments/liquid-crypto-cross-sectional-momentum-long-only-v1/inputs/binance-spot-usdt-daily-2018-2024.v1.csv.gz",
+    "write_mode": "CREATE_ONCE_NO_OVERWRITE",
+    "raw_zip_retention": "DENY_RECORD_VERIFIED_PUBLISHER_SHA256_AND_NORMALIZED_ROWS_IN_SEALED_LEDGER"
+  },
+  "integrity_gates": [
+    "source_binding_hashes_match_before_network_access",
+    "cohort_size_between_20_and_300_without_price_or_return_selection",
+    "every_archive_matches_its_publisher_checksum",
+    "one_expected_csv_member_per_zip",
+    "pre_2025_millisecond_daily_clock",
+    "exclude_and_record_only_utc_aligned_final_sub_24h_exchange_session_rows",
+    "positive_valid_ohlc_and_nonnegative_quote_volume",
+    "no_duplicate_symbol_day_rows",
+    "deterministic_normalized_gzip_bytes"
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before writing either output if any binding, cohort, transport, checksum, zip, timestamp, row-schema, OHLCV or duplicate gate fails.",
+    "Do not retry with a different cohort month, asset taxonomy, archive window or source after observing any price bytes.",
+    "Do not compute returns, rankings, matched-capital paths or PnL in this acquisition stage.",
+    "Do not use current exchangeInfo, current listings, current winners or post-2024 archives."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "CURRENT_EXCHANGE_INFO",
+    "POST_2024_OUTCOME",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE"
+  ]
+}

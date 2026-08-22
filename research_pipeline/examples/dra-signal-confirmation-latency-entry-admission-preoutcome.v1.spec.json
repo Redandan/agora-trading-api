@@ -1,0 +1,102 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_SIGNAL_CONFIRMATION_LATENCY_PREOUTCOME_SPEC_V1",
+  "family_id": "dra-signal-confirmation-latency-entry-admission",
+  "created_at": "2026-08-21T07:31:30Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "runner_binding": {
+    "path": "research/dra_signal_confirmation_latency_support_v1.py",
+    "sha256": "dad48c65528981c655d62e3ecdfe5c4e9033ec53e4ca7d2825488770e01d9873"
+  },
+  "prior_binding": {
+    "path": "research_pipeline/examples/dra-signal-confirmation-latency-entry-admission-primary-prior.v1.json",
+    "sha256": "dce100c97d1711378696534f002171199af500d6d18dcd26974b2344666a6b7e"
+  },
+  "closed_family_bindings": [
+    {
+      "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-historical.v1.decision.json",
+      "role": "CLOSED_STALE_INVENTORY_AGE_ADMISSION",
+      "sha256": "1f9a4eb28dcb1f7ab4b0270cd42cf8b553277628814d4098b8ff2f89449965c8"
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-prior-24h-breakout-entry-admission-preoutcome.v1.decision.json",
+      "role": "CLOSED_PRIOR_24H_BREAKOUT_ADMISSION",
+      "sha256": "f0e149b8eea2b66c9ce7cfbf19d444c561eec62ba62dcc1edbd78722608af56d"
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-overextension-entry-admission-preoutcome.v1.decision.json",
+      "role": "CLOSED_SIGNAL_OVEREXTENSION_ADMISSION",
+      "sha256": "3646d41706903be7a16eb9279f8beab6d4e013c36d3fe24bee7ad5ad0a72c37c"
+    },
+    {
+      "path": "research_pipeline/examples/dra-underwater-inventory-congestion-entry-admission-preoutcome.v1.decision.json",
+      "role": "CLOSED_UNDERWATER_INVENTORY_CONGESTION_ADMISSION",
+      "sha256": "3ecd9132834265b2f6b8c9ced8e2e10b71d301d4bcad7dafec7d1904d599c02e"
+    },
+    {
+      "path": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
+      "role": "CLOSED_FLAT_REGIME_STALE_INVENTORY_VETO",
+      "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac"
+    }
+  ],
+  "action_fingerprints": {
+    "new_family": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_CAPACITY_ADMISSIBLE_DRA_SIGNAL|STATE_SIGNAL_TIME_MINUS_CURRENT_PARENT_ARMED_AT_GTE_168H|VETO_RESERVES_PARENT_7D_COOLDOWN|PRESERVE_PARENT_30D_ARM_WINDOW|LOT_30|CAP_240|NO_PRICE_OR_INVENTORY_STATE",
+    "closed_stale_inventory_age": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_CAPACITY_ADMISSIBLE_DRA_SIGNAL|STATE_OLDEST_OPEN_PARENT_LOT_AGE_GTE_720H|NO_OPEN_LOT_ADMITTED|VETO_RESERVES_PARENT_7D_COOLDOWN|LOT_30|CAP_240|NO_SELL_OR_RESIZE",
+    "closed_prior_24h_breakout": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_CAPACITY_ADMISSIBLE_DRA_SIGNAL|STATE_SIGNAL_CLOSE_MINUS_MAX_PRIOR_24_COMPLETE_H1_HIGHS_DIV_UPDATED_ATR14_LTE_0|VETO_RESERVES_PARENT_7D_COOLDOWN|LOT_30|CAP_240",
+    "closed_signal_overextension": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_CAPACITY_ADMISSIBLE_DRA_SIGNAL|STATE_SIGNAL_CLOSE_MINUS_UPDATED_EMA20_DIV_UPDATED_ATR14_GTE_1|VETO_RESERVES_PARENT_7D_COOLDOWN|LOT_30|CAP_240",
+    "closed_underwater_congestion": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_CAPACITY_ADMISSIBLE_DRA_SIGNAL|STATE_EXISTING_OPEN_COST_GTE_120_AND_AGGREGATE_ESTIMATED_NET_PNL_LTE_0|VETO_RESERVES_PARENT_7D_COOLDOWN|LOT_30|CAP_240",
+    "closed_flat_veto": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_DRA_SIGNAL|STATE_FLAT_REGIME_STALE_INVENTORY|VETO_RESERVES_PARENT_7D_COOLDOWN"
+  },
+  "admission_policy": {
+    "evaluate_only_after_parent_signal_and_before_next_h1_open_fill": true,
+    "evaluate_only_when_parent_capacity_can_accept_30_usdt": true,
+    "latency_clock": "SIGNAL_TIME_MINUS_CURRENT_PARENT_ARMED_AT_IN_HOURS",
+    "relation": "VETO_AT_OR_ABOVE_THRESHOLD_HOURS",
+    "primary_threshold_hours": "168",
+    "rejection_only_threshold_neighbors_hours": ["72", "336"],
+    "vetoed_signal_reserves_parent_cooldown": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL",
+    "armed_window_expiry_and_rearm": "UNCHANGED_PARENT_THIRTY_DAY_LIFECYCLE",
+    "capacity_block_behavior": "UNCHANGED_PARENT_BLOCK_WITHOUT_COOLDOWN_RESERVATION",
+    "lot_cost_usdt": "30",
+    "maximum_open_cost_usdt": "240",
+    "maximum_open_lots": 8,
+    "read_price_or_inventory_state": "DENY",
+    "sell_or_resize_existing_lots": "DENY",
+    "variants": 3
+  },
+  "gates": {
+    "design_minimum_parent_signals": 80,
+    "validation_minimum_parent_signals": 40,
+    "design_minimum_primary_actionable_vetoes": 8,
+    "validation_minimum_primary_actionable_vetoes": 4,
+    "validation_minimum_each_neighbor_actionable_vetoes": 4,
+    "minimum_active_annual_folds": 4,
+    "minimum_primary_vetoes_per_active_annual_fold": 2,
+    "maximum_top_year_primary_veto_share": "0.40",
+    "maximum_validation_top_month_primary_veto_share": "0.35",
+    "primary_action_share_minimum": "0.05",
+    "primary_action_share_maximum": "0.60",
+    "minimum_neighbor_action_hash_differences_each_window": 1
+  },
+  "decision_rule": {
+    "pass": "ALLOW_EXACTLY_ONE_SCHEMA_VALID_HYPOTHESIS_AND_ONE_FROZEN_MATCHED_CAPITAL_EXPERIMENT",
+    "fail": "PERMANENTLY_CLOSE_EXACT_ARMED_TO_SIGNAL_LATENCY_72_168_336_HOUR_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_CLOCK_WINDOW_OR_ROUTE_TUNING"
+  },
+  "forbidden_after_support_output": [
+    "CHANGE_72_168_336_HOUR_THRESHOLDS",
+    "CHANGE_CURRENT_ARMED_AT_TO_LAST_SIGNAL_ENTRY_OR_OTHER_CLOCK",
+    "ADD_PRICE_INVENTORY_PNL_OPEN_COST_OR_REGIME_CONDITIONS",
+    "CHANGE_PARENT_THIRTY_DAY_ARM_WINDOW_EXPIRY_OR_REARM",
+    "COUNT_CAPACITY_BLOCKED_SIGNALS_AS_VETOES",
+    "CHANGE_COOLDOWN_RESERVATION_OR_ROUTE_TIMING",
+    "RELAX_SUPPORT_GATES",
+    "READ_CANDIDATE_PNL_OR_OOS_TO_RESCUE_SUPPORT"
+  ],
+  "outcome_access": "DENY_CANDIDATE_ECONOMICS_AND_OOS"
+}

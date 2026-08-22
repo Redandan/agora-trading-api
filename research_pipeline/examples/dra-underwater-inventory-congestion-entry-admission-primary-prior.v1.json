@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_UNDERWATER_INVENTORY_CONGESTION_PRIMARY_PRIOR_V1",
+  "family_id": "dra-underwater-inventory-congestion-entry-admission",
+  "created_at": "2026-08-21T06:19:46Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_INVENTORY_CONGESTION_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "A fresh DRA confirmation may have lower incremental value when at least half of unchanged slot capacity is already tied in aggregate-underwater inventory. The next defensible question is whether this causal state occurs with enough independent breadth to justify one frozen matched-capital admission experiment; the prior alone is not strategy-performance evidence.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_H1_SIGNAL_BAR_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "known_state": "EXISTING_OPEN_LOT_COST_AND_CURRENT_COMPLETE_H1_CLOSE_ESTIMATED_NET_INVENTORY_PNL",
+    "primary_condition": "PARENT_CAPACITY_CAN_ACCEPT_30_USDT_AND_OPEN_COST_AT_LEAST_120_USDT_AND_AGGREGATE_ESTIMATED_NET_PNL_AT_MOST_ZERO",
+    "action": "VETO_ONLY_THE_NEW_ENTRY_AND_RESERVE_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN",
+    "unchanged": [
+      "30_USDT_FIXED_LOT_COST",
+      "240_USDT_MAXIMUM_OPEN_COST",
+      "EIGHT_LOT_LIMIT",
+      "NEXT_H1_OPEN_FILL",
+      "DRA_V1_PROFIT_ONLY_EXIT",
+      "FEES_AND_ADVERSE_SLIPPAGE",
+      "EXISTING_LOTS_AND_CAPITAL"
+    ]
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": ".research-state/experiments/one-slot-profitable-incumbent-signal-rotation-v1/artifacts/diagnostic.json",
+      "sha256": "44245c9b393f3c3fd08c58c455f80f52a8024832a52639185b33b678e13ee609",
+      "learning": "Removing capacity blocks by selling and rotating a profitable incumbent raised Validation total but reduced realized PnL, worsened drawdown and lengthened median holding. The new family must not sell or rotate inventory and must keep terminal-inventory attribution visible."
+    },
+    {
+      "path": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
+      "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac",
+      "learning": "A veto that changes the reservation calendar creates route substitution. Every actionable congestion veto must reserve the same seven-day cooldown as the rejected parent signal; capacity-blocked signals remain unchanged parent blocks."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-equal-capital-two-slot-capacity.v1.json",
+      "sha256": "1b72faba677e5e39ac1062f5d5d6488c279b82b1c88dcfb662d296d0983b1c17",
+      "learning": "Changing the number of open slots is a closed capacity family. This family keeps the 240 USDT and eight-lot parent capacity unchanged."
+    },
+    {
+      "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-historical.v1.decision.json",
+      "sha256": "f469fbd2659d356e4447c70c5139f6f0abfd275f89999fb045873c08f2db5168",
+      "learning": "Downsizing new lots during high realized variance removed profitable exposure and failed every annual total-PnL comparison. This family uses fixed 30 USDT lots and tests an internal inventory state rather than rescuing the closed volatility-sizing formula."
+    }
+  ],
+  "deduplication_conclusion": "The proposed fingerprint is not the closed one-slot sell-and-replace action, capacity expansion, flat-regime stale-inventory feature, or inverse-volatility lot sizing. It is a binary admission decision on a causal internal inventory-congestion state, evaluated only when the unchanged parent otherwise has capacity.",
+  "adversarial_risks": [
+    "The rule may merely suppress profitable averaging-down entries and reduce realized PnL.",
+    "The 120 USDT condition may be too sparse or concentrated in one year or month.",
+    "A veto can appear to improve total PnL by changing terminal inventory rather than realized alpha.",
+    "Incorrect cooldown handling can create route substitution and invalidate the causal comparison.",
+    "Inventory mark-to-market must use only the complete decision bar and the same fee and adverse-sell convention as the parent."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_PARENT_STATE_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No candidate PnL, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

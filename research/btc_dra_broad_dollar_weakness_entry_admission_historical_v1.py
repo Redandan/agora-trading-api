@@ -1,0 +1,318 @@
+#!/usr/bin/env python3
+"""Preregistered FRED broad-dollar weakness admission screen for BTC DRA V1."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+from datetime import date, datetime, timedelta
+from decimal import Decimal, InvalidOperation
+import io
+import json
+from pathlib import Path
+import sys
+from typing import Any
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
+
+import btc_dra_cftc_tff_entry_admission_historical_v1 as reused
+
+
+D = Decimal
+AUTHORIZATION = reused.AUTHORIZATION
+DOCUMENT_TYPE = "BTC_DRA_BROAD_DOLLAR_WEAKNESS_ENTRY_ADMISSION_MANIFEST_V1"
+RESULT_TYPE = "BTC_DRA_BROAD_DOLLAR_WEAKNESS_ENTRY_ADMISSION_SCREEN_V1"
+RUNNER_IDENTITY = "BTC_DRA_BROAD_DOLLAR_WEAKNESS_ENTRY_ADMISSION_RUNNER_V1"
+FACTOR_IDENTITY = "FRED_DTWEXBGS_STRICT_NEGATIVE_28D_CHANGE_CONTINUATION_168H_V1"
+EXPERIMENT_ID = "dra-broad-dollar-weakness-entry-admission-historical-v1"
+PARENT_STRATEGY = reused.PARENT_STRATEGY
+GATE_SET = reused.GATE_SET
+SELECTION_CUTOFF = reused.SELECTION_CUTOFF
+DESIGN = reused.DESIGN
+VALIDATION = reused.VALIDATION
+FOLDS = reused.FOLDS
+EXPECTED_ROWS = 365
+EXPECTED_FIRST = date(2018, 1, 5)
+EXPECTED_LAST = date(2024, 12, 27)
+CHANGE_LAG_DAYS = 28
+PUBLICATION_LAG_DAYS = 5
+FACTOR_VALID_HOURS = 168
+
+
+def _binding(value: Any, expected_path: str, label: str) -> dict[str, Any]:
+    return reused._validate_binding(value, expected_path, label)
+
+
+def validate_manifest(value: Any) -> dict[str, Any]:
+    manifest = reused._exact_keys(
+        value,
+        {
+            "authorization", "availability", "bindings", "dataset", "document_type",
+            "economics", "experiment_id", "factor", "gate_set", "oos_access",
+            "parent_strategy", "schema_version", "selection_cutoff", "source", "windows",
+        },
+        "manifest",
+    )
+    expected_scalars = {
+        "authorization": AUTHORIZATION,
+        "document_type": DOCUMENT_TYPE,
+        "experiment_id": EXPERIMENT_ID,
+        "gate_set": GATE_SET,
+        "oos_access": "DENY",
+        "parent_strategy": PARENT_STRATEGY,
+        "schema_version": "1",
+        "selection_cutoff": SELECTION_CUTOFF.isoformat(),
+    }
+    for key, expected in expected_scalars.items():
+        if manifest[key] != expected:
+            raise reused.ScreenReject("CONTRACT_REJECT", f"{key} drift")
+    if manifest["dataset"] != {"canonical_sha256": reused.base.SELECTION_SHA256, "rows": reused.base.SELECTION_ROWS}:
+        raise reused.ScreenReject("CONTRACT_REJECT", "dataset identity drift")
+    if manifest["economics"] != {
+        "fee_rate": "0.0010",
+        "initial_equity_usdt": "250",
+        "slippage_rate": "0.0005",
+        "slot_capacity_usdt": "240",
+    }:
+        raise reused.ScreenReject("CONTRACT_REJECT", "economic assumptions drift")
+    if manifest["factor"] != {
+        "admission_rule": "ADMIT_PARENT_SIGNAL_ONLY_WHEN_CURRENT_WEEKLY_DTWEXBGS_LT_EXACT_28D_PREDECESSOR",
+        "factor_identity": FACTOR_IDENTITY,
+        "formula": "prior_28d_dtwexbgs_mean-current_dtwexbgs_mean",
+        "negative_action": "HOLD_CASH",
+        "positive_action": "ADMIT",
+        "series_id": "DTWEXBGS",
+        "zero_action": "HOLD_CASH",
+    }:
+        raise reused.ScreenReject("CONTRACT_REJECT", "factor semantics drift")
+    if manifest["availability"] != {
+        "eligible_time": "WEEK_ENDING_FRIDAY_PLUS_5_CALENDAR_DAYS_AT_00_00_UTC",
+        "factor_valid_hours": FACTOR_VALID_HOURS,
+        "change_lag_calendar_days": CHANGE_LAG_DAYS,
+        "non_friday_action": "REJECT_SOURCE",
+        "publication_lag_calendar_days": PUBLICATION_LAG_DAYS,
+    }:
+        raise reused.ScreenReject("CONTRACT_REJECT", "availability policy drift")
+    if manifest["source"] != {
+        "first_week": EXPECTED_FIRST.isoformat(),
+        "last_week": EXPECTED_LAST.isoformat(),
+        "normalized_bytes": 7733,
+        "present_vintage": True,
+        "publisher": "Federal Reserve Bank of St. Louis FRED",
+        "rows": EXPECTED_ROWS,
+        "series_id": "DTWEXBGS",
+        "weekly_aggregation": "MEAN_OF_3_TO_5_ACTUALLY_PUBLISHED_WEEKDAY_OBSERVATIONS",
+    }:
+        raise reused.ScreenReject("CONTRACT_REJECT", "source identity drift")
+    if manifest["windows"] != {
+        "annual_folds": [str(year) for year in range(2020, 2025)],
+        "design": {"end_exclusive": DESIGN[1].isoformat(), "start_inclusive": DESIGN[0].isoformat()},
+        "outcome_horizon_hours": 168,
+        "validation": {"end_exclusive": VALIDATION[1].isoformat(), "start_inclusive": VALIDATION[0].isoformat()},
+    }:
+        raise reused.ScreenReject("CONTRACT_REJECT", "research windows drift")
+    bindings = reused._exact_keys(
+        manifest["bindings"],
+        {
+            "base_runner", "capacity_runner", "hypothesis", "manifest_schema",
+            "normalized_source", "preoutcome_source_format_erratum", "primary_prior",
+            "raw_source_archive", "reused_economic_runner", "runner", "source_bundle", "source_probe",
+        },
+        "bindings",
+    )
+    expected_paths = {
+        "base_runner": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+        "capacity_runner": "research/btc_dra_equal_capital_capacity_v1.py",
+        "hypothesis": "research_pipeline/examples/dra-broad-dollar-weakness-entry-admission-v1.hypothesis.json",
+        "manifest_schema": "research_pipeline/btc-dra-broad-dollar-weakness-entry-admission-manifest.v1.schema.json",
+        "normalized_source": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/inputs/fred-dtwexbgs-weekly-2018-2024.csv",
+        "preoutcome_source_format_erratum": "research_pipeline/examples/dra-broad-dollar-weakness-preoutcome-source-format-erratum.v1.json",
+        "primary_prior": "research_pipeline/examples/dra-broad-dollar-weakness-primary-prior.v1.json",
+        "raw_source_archive": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/inputs/fred-dtwexbgs-2018-2024-source-parts.zip",
+        "reused_economic_runner": "research/btc_dra_cftc_tff_entry_admission_historical_v1.py",
+        "runner": "research/btc_dra_broad_dollar_weakness_entry_admission_historical_v1.py",
+        "source_bundle": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/inputs/fred-source-bundle.json",
+        "source_probe": "research/fred_dtwexbgs_source_probe.py",
+    }
+    for key, path in expected_paths.items():
+        _binding(bindings[key], path, f"bindings.{key}")
+    return manifest
+
+
+def load_manifest(path: Path) -> tuple[dict[str, Any], bytes]:
+    raw = path.read_bytes()
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise reused.ScreenReject("CONTRACT_REJECT", "manifest must be strict UTF-8 JSON") from error
+    if raw != reused.canonical_document_bytes(value):
+        raise reused.ScreenReject("CONTRACT_REJECT", "manifest must use canonical JSON document bytes")
+    return validate_manifest(value), raw
+
+
+def _resolved_binding(bindings: dict[str, Any], name: str) -> Path:
+    path = REPOSITORY_ROOT.joinpath(*bindings[name]["path"].split("/"))
+    resolved = path.resolve(strict=True)
+    try:
+        resolved.relative_to(REPOSITORY_ROOT)
+    except ValueError as error:
+        raise reused.ScreenReject("DATA_REJECT", f"{name} escapes repository") from error
+    return resolved
+
+
+def load_weekly_dollar(bindings: dict[str, Any]) -> tuple[dict[date, D], dict[str, Any]]:
+    normalized_path = _resolved_binding(bindings, "normalized_source")
+    raw = normalized_path.read_bytes()
+    try:
+        csv_rows = list(csv.reader(io.StringIO(raw.decode("utf-8"), newline="")))
+    except UnicodeDecodeError as error:
+        raise reused.ScreenReject("DATA_REJECT", "normalized DTWEXBGS source is not UTF-8") from error
+    if not csv_rows or csv_rows[0] != ["week_ending_friday", "dtwexbgs_mean"]:
+        raise reused.ScreenReject("DATA_REJECT", "normalized DTWEXBGS header drift")
+    rows: dict[date, D] = {}
+    for index, row in enumerate(csv_rows[1:]):
+        if len(row) != 2:
+            raise reused.ScreenReject("DATA_REJECT", f"normalized DTWEXBGS row malformed: {index}")
+        try:
+            week_end = date.fromisoformat(row[0])
+            value = D(row[1])
+        except (ValueError, InvalidOperation) as error:
+            raise reused.ScreenReject("DATA_REJECT", f"normalized DTWEXBGS value malformed: {index}") from error
+        if week_end in rows or week_end.weekday() != 4 or not value.is_finite() or value <= 0:
+            raise reused.ScreenReject("DATA_REJECT", f"normalized DTWEXBGS identity drift: {index}")
+        rows[week_end] = value
+    ordered = sorted(rows)
+    if len(ordered) != EXPECTED_ROWS or ordered[0] != EXPECTED_FIRST or ordered[-1] != EXPECTED_LAST:
+        raise reused.ScreenReject("DATA_REJECT", "normalized DTWEXBGS sample boundary drift")
+    if any(current - prior != timedelta(days=7) for prior, current in zip(ordered, ordered[1:], strict=False)):
+        raise reused.ScreenReject("DATA_REJECT", "normalized DTWEXBGS weekly continuity drift")
+
+    bundle_path = _resolved_binding(bindings, "source_bundle")
+    bundle_raw = bundle_path.read_bytes()
+    try:
+        bundle = json.loads(bundle_raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise reused.ScreenReject("DATA_REJECT", "source bundle is not strict JSON") from error
+    if bundle_raw != reused.canonical_document_bytes(bundle):
+        raise reused.ScreenReject("DATA_REJECT", "source bundle is not canonical")
+    normalized = bundle.get("normalized_weekly_subset", {})
+    archive = bundle.get("raw_response_archive", {})
+    if (
+        bundle.get("status") != "SEALED_SOURCE_ONLY_NO_BTC_DRA_OUTCOME_ACCESS"
+        or normalized.get("path") != bindings["normalized_source"]["path"]
+        or normalized.get("sha256") != bindings["normalized_source"]["sha256"]
+        or normalized.get("rows") != EXPECTED_ROWS
+        or archive.get("path") != bindings["raw_source_archive"]["path"]
+        or archive.get("sha256") != bindings["raw_source_archive"]["sha256"]
+        or len(archive.get("parts", [])) != 7
+    ):
+        raise reused.ScreenReject("DATA_REJECT", "source bundle cross-binding drift")
+    return rows, {
+        "bundle_path": bindings["source_bundle"]["path"],
+        "bundle_sha256": bindings["source_bundle"]["sha256"],
+        "normalized_path": bindings["normalized_source"]["path"],
+        "normalized_sha256": bindings["normalized_source"]["sha256"],
+        "raw_archive_path": bindings["raw_source_archive"]["path"],
+        "raw_archive_sha256": bindings["raw_source_archive"]["sha256"],
+        "rows": len(rows),
+        "weekly_observation_counts": normalized.get("weekly_observation_counts"),
+        "present_vintage_revision_boundary": "ORIGINAL_H10_RELEASE_VALUES_AND_REVISION_VINTAGES_MISSING_PROOF",
+    }
+
+
+def build_factor_points(rows: dict[date, D]) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    points: list[dict[str, Any]] = []
+    exclusions = {"MISSING_EXACT_28D_PREDECESSOR": 0, "DECISION_AT_OR_AFTER_CUTOFF": 0}
+    for week_end in sorted(rows):
+        prior = week_end - timedelta(days=CHANGE_LAG_DAYS)
+        if prior not in rows:
+            exclusions["MISSING_EXACT_28D_PREDECESSOR"] += 1
+            continue
+        eligible_at = datetime.combine(week_end + timedelta(days=PUBLICATION_LAG_DAYS), datetime.min.time())
+        if eligible_at >= SELECTION_CUTOFF:
+            exclusions["DECISION_AT_OR_AFTER_CUTOFF"] += 1
+            continue
+        score = rows[prior] - rows[week_end]
+        points.append({
+            "report_date": week_end.isoformat(),
+            "prior_report_date": prior.isoformat(),
+            "eligible_at": eligible_at.isoformat(),
+            "factor_delta": str(score),
+            "factor_sign": 1 if score > 0 else -1 if score < 0 else 0,
+        })
+    return points, exclusions
+
+
+def run_screen(manifest_path: Path, input_path: Path, output_path: Path) -> dict[str, Any]:
+    if output_path.exists():
+        raise reused.ScreenReject("OUTPUT_SEAL_REJECT", "output already exists")
+    manifest, manifest_raw = load_manifest(manifest_path)
+    bindings = reused.verify_bindings(manifest)
+    bars = reused.load_selection(input_path, manifest)
+    dollar_rows, source_evidence = load_weekly_dollar(bindings)
+    factor_points, exclusions = build_factor_points(dollar_rows)
+    baseline = reused.parent_baseline(bars)
+    original_factor_identity = reused.FACTOR_IDENTITY
+    original_runner_identity = reused.RUNNER_IDENTITY
+    try:
+        reused.FACTOR_IDENTITY = FACTOR_IDENTITY
+        reused.RUNNER_IDENTITY = RUNNER_IDENTITY
+        economics = reused.economic_evidence(bars, baseline, factor_points)
+    finally:
+        reused.FACTOR_IDENTITY = original_factor_identity
+        reused.RUNNER_IDENTITY = original_runner_identity
+    economic_checks = reused.economic_gates(economics, baseline)
+    predictive = {
+        "design": reused.predictive_evidence(reused.build_predictive_episodes(bars, factor_points, DESIGN)),
+        "validation": reused.predictive_evidence(reused.build_predictive_episodes(bars, factor_points, VALIDATION)),
+    }
+    passed = all(economic_checks.values()) and all(all(window["gates"].values()) for window in predictive.values())
+    result = {
+        "authorization": AUTHORIZATION,
+        "baseline": baseline,
+        "bindings": bindings,
+        "dataset": {"canonical_sha256": reused.base.data_hash(bars), "rows": len(bars), "selection_cutoff": SELECTION_CUTOFF.isoformat()},
+        "document_type": RESULT_TYPE,
+        "economic_evidence": economics,
+        "economic_gates": economic_checks,
+        "experiment_id": EXPERIMENT_ID,
+        "factor_identity": FACTOR_IDENTITY,
+        "factor_points": factor_points,
+        "factor_point_exclusions": exclusions,
+        "gate_set": GATE_SET,
+        "manifest_sha256": reused.sha256_bytes(manifest_raw),
+        "oos_opened": False,
+        "parent_strategy": PARENT_STRATEGY,
+        "predictive_evidence": predictive,
+        "recommended_next_action": "REGISTER_ONE_FORMAL_CANDIDATE_FOR_INDEPENDENT_OOS" if passed else "PERMANENTLY_CLOSE_EXACT_BROAD_DOLLAR_WEAKNESS_FAMILY_WITHOUT_TUNING",
+        "runner_identity": RUNNER_IDENTITY,
+        "runner_sha256": reused.sha256_path(Path(__file__)),
+        "schema_version": "1",
+        "source_evidence": source_evidence,
+        "status": "DESIGN_VALIDATION_PASS_READY_FOR_ONE_CANDIDATE" if passed else "NO_CANDIDATE_CLOSE_BROAD_DOLLAR_WEAKNESS_FAMILY",
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_bytes(reused.canonical_document_bytes(result))
+    return result
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    try:
+        result = run_screen(args.manifest, args.input, args.output)
+    except (reused.ScreenReject, reused.base.ResearchReject, ValueError) as error:
+        print(json.dumps({"detail": getattr(error, "detail", str(error)), "status": getattr(error, "status", "DATA_REJECT")}, ensure_ascii=False))
+        return 2
+    print(json.dumps({"output": str(args.output), "status": result["status"]}, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,182 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FOMC_SCHEDULED_ANNOUNCEMENT_DAY_RISK_VETO_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-fomc-scheduled-announcement-day-risk-veto-historical-v1",
+  "hypothesis_id": "btc-fomc-scheduled-announcement-day-risk-veto-v1",
+  "created_at": "2026-08-20T14:59:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_PREDICTIVE_THEN_MATCHED_CAPITAL_DESIGN_VALIDATION_NO_OOS",
+  "oos_access": "DENY",
+  "variants": 1,
+  "thesis": "The complete UTC day containing the frozen final date of a regularly scheduled FOMC meeting may have worse BTC return and path risk than same-window non-event Wednesday and Thursday controls, making a full-day cash veto economically useful after matched fees and adverse slippage.",
+  "economic_rationale": "The event calendar is frozen before BTC outcome access and uses no fitted market feature. The mechanism matters only if independent Design and Validation event statistics first show worse event-day outcomes with annual breadth and low loss concentration; only then may the exact long-or-cash policy be compared with passive BTC under Normal and doubled Stress friction.",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "predictive_policy": {
+    "event": "COMPLETE_UTC_DAY_IS_FROZEN_REGULAR_FOMC_MEETING_FINAL_DATE",
+    "control": "NON_EVENT_COMPLETE_UTC_DAYS_WITH_EVENT_WEEKDAYS_IN_SAME_WINDOW",
+    "event_anchor": "FROZEN_EVENT_DATE_00_00_UTC_KNOWN_BEFORE_MARKET_OUTCOME",
+    "event_terminal": "FOLLOWING_UTC_DAY_00_00_UTC",
+    "event_horizon_hours": 24,
+    "supportive_state": "SAME_WEEKDAY_NON_EVENT_CONTROL",
+    "other_state": "SCHEDULED_FOMC_DECISION_DAY",
+    "variants": 1,
+    "strategy_economics": "DENY_UNLESS_ALL_PRE_ECONOMIC_GATES_PASS"
+  },
+  "economic_policy": {
+    "target_exposure": "ZERO_FOR_COMPLETE_FROZEN_FOMC_EVENT_UTC_DAY_OTHERWISE_ONE",
+    "exit": "FROZEN_EVENT_DATE_00_00_UTC_FIRST_H1_OPEN",
+    "reentry": "FOLLOWING_UTC_DAY_00_00_UTC_FIRST_H1_OPEN",
+    "sizing": "ONE_HUNDRED_PERCENT_PRE_TRADE_EQUITY_NO_LEVERAGE",
+    "normal_fee_rate_per_side": "0.0010",
+    "normal_adverse_slippage_rate_per_side": "0.0005",
+    "stress_fee_rate_per_side": "0.0020",
+    "stress_adverse_slippage_rate_per_side": "0.0010",
+    "cash_yield": "ZERO",
+    "variants": 1
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "expected_events": 23
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "expected_events": 16
+    },
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "gate_set": {
+    "predictive_required": [
+      "design_minimum_evaluable_matched_weekday_episodes",
+      "design_exact_scheduled_fomc_event_count",
+      "design_minimum_same_weekday_non_event_controls",
+      "design_both_states_anchor_year_breadth",
+      "design_control_median_return_at_least_25bp_higher",
+      "design_control_negative_rate_at_least_5pp_lower",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_control_median_path_drawdown_non_worse",
+      "design_control_p75_path_drawdown_non_worse",
+      "design_annual_median_return_direction_breadth",
+      "design_annual_median_path_drawdown_direction_breadth",
+      "design_top1_negative_event_loss_contribution_at_most_25pct",
+      "design_top3_negative_event_loss_contribution_at_most_50pct",
+      "validation_minimum_evaluable_matched_weekday_episodes",
+      "validation_exact_scheduled_fomc_event_count",
+      "validation_minimum_same_weekday_non_event_controls",
+      "validation_both_states_anchor_year_breadth",
+      "validation_control_median_return_at_least_25bp_higher",
+      "validation_control_negative_rate_at_least_5pp_lower",
+      "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "validation_control_median_path_drawdown_non_worse",
+      "validation_control_p75_path_drawdown_non_worse",
+      "validation_annual_median_return_direction_breadth",
+      "validation_annual_median_path_drawdown_direction_breadth",
+      "validation_top1_negative_event_loss_contribution_at_most_25pct",
+      "validation_top3_negative_event_loss_contribution_at_most_50pct"
+    ],
+    "economic_required": [
+      "design_normal_total_return_delta_gt_0",
+      "design_stress_total_return_delta_gt_0",
+      "design_normal_drawdown_non_worse",
+      "design_normal_calmar_at_least_buy_hold",
+      "design_normal_average_exposure_between_97pct_and_99pct",
+      "design_normal_signal_evaluations_exactly_47",
+      "design_normal_sell_trades_exactly_23",
+      "validation_normal_total_return_delta_gt_0",
+      "validation_stress_total_return_delta_gt_0",
+      "validation_normal_drawdown_non_worse",
+      "validation_stress_drawdown_non_worse",
+      "validation_normal_calmar_at_least_buy_hold",
+      "validation_normal_average_exposure_between_97pct_and_99pct",
+      "validation_normal_signal_evaluations_exactly_33",
+      "validation_normal_sell_trades_exactly_16",
+      "normal_positive_annual_total_return_delta_at_least_4_of_5",
+      "stress_positive_annual_total_return_delta_at_least_4_of_5",
+      "normal_annual_drawdown_non_worse_than_buy_hold_5_of_5",
+      "top_year_positive_total_return_delta_contribution_at_most_60pct",
+      "validation_normal_p90_realized_lot_hold_at_most_840_hours",
+      "validation_normal_terminal_oldest_lot_age_at_most_120_hours",
+      "validation_normal_terminal_liquidation_adjusted_return_delta_gt_0",
+      "validation_normal_terminal_liquidation_cost_at_most_0_5pp"
+    ],
+    "pass": "CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED_INDEPENDENT_OOS_REQUIRED",
+    "failure": "PERMANENTLY_CLOSE_WITHOUT_EVENT_DATE_OR_WINDOW_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_FOMC_PRE_ECONOMIC_AND_ECONOMIC_RUNNER",
+      "path": "research/btc_fomc_scheduled_announcement_day_risk_veto_historical.py",
+      "sha256": "f86370298fad306d3bd21c7b629892091d340dc0f7115f239e4dc19467bbceee"
+    },
+    {
+      "role": "FROZEN_MONTHLY_EVENT_RUNNER_REFERENCE",
+      "path": "research/btc_deribit_last_friday_monthly_options_expiry_risk_veto_historical.py",
+      "sha256": "049d2680ead6355d62406ed08c9655e56467998754dafbbe6173ef3f65d84d35"
+    },
+    {
+      "role": "FROZEN_CALENDAR_ECONOMIC_SIMULATION_KERNEL",
+      "path": "research/btc_turn_of_month_last_day_plus_three_historical.py",
+      "sha256": "a23699034fe081a959010543b0a0c43a8fd12b04c0a495dd9a89bc1642e3ae0b"
+    },
+    {
+      "role": "FROZEN_PREDICTIVE_STATISTICS_KERNEL",
+      "path": "research/btc_fred_on_rrp_drawdown_liquidity_support_historical.py",
+      "sha256": "2f958e0b0d481acbd4610cdc234d9ddc069713984c46c0690720ebe1c0192fc9"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE",
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "role": "FROZEN_PASSIVE_BENCHMARK_AND_PATH_METRIC_REFERENCE",
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-fomc-scheduled-announcement-day-risk-veto-primary-prior.v1.json",
+      "sha256": "ee57b53c4e3582c55ed9c4c77155ff3adc44b80f3556d4ab0be1c84cf3a9d630"
+    },
+    {
+      "role": "FROZEN_PRE_OUTCOME_OFFICIAL_EVENT_CALENDAR",
+      "path": "research_pipeline/examples/btc-fomc-regular-meeting-decision-dates-2020-2024.v1.json",
+      "sha256": "e122edcec53d93ce838e915b351564c422da11c0b6afc15f5271b587d32e5d2c"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-fomc-scheduled-announcement-day-risk-veto-v1.hypothesis.json",
+      "sha256": "a097682c028f3eea6daefb9cf1193d17e8212aaf22b0a1580ce5f96d24b04e26"
+    }
+  ],
+  "stop_conditions": [
+    "Stop before economic simulation if any Design or Validation predictive event gate fails.",
+    "Permanently close if any predictive or matched-capital economic gate fails; do not add, remove or shift event dates or alter the complete UTC-day interval.",
+    "Do not add policy direction, surprise magnitude, SEP status, rate level, inflation, yield, equity, dollar, BTC trend, volatility, month, weekday interaction, partial sizing, leverage or shorting variants.",
+    "Do not open post-2024 data. A historical pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

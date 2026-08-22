@@ -1,0 +1,43 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-psar002-002-02-long-cash-v1",
+  "title": "Daily Parabolic SAR 0.02/0.02/0.20 full-capital long/cash trend reversal",
+  "thesis": "A path-dependent Parabolic SAR stop that accelerates toward each BTC trend extreme may exit deteriorating trends faster than a slow moving average while remaining invested through persistent advances, preserving material after-cost upside and improving drawdown and Calmar versus continuous BTC ownership.",
+  "mechanism": "Compute original-style PSAR from complete UTC-day highs, lows and closes using start 0.02, increment 0.02 and maximum 0.20. Hold full BTC when the PSAR state is bullish and zero-yield cash when bearish, executing changed targets at the next H1 open.",
+  "economic_rationale": "The acceleration factor should tighten the reversal threshold as a trend ages without using a fixed lookback mean. It is useful only if the official primary preserves material upside, improves risk-adjusted performance, survives annual breadth and remains non-fragile at rejection-only 0.01 and 0.03 acceleration neighbors.",
+  "source": "BTC_DAILY_PSAR002_002_02_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-psar002-002-02-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "independence_semantics": "ADJACENT_TREND_FAMILY_DISTINCT_TIME_ACCELERATION_PATH_POLICY",
+  "variants": [
+    {"role": "PRIMARY", "start": "0.02", "increment": "0.02", "maximum": "0.20"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "start": "0.01", "increment": "0.01", "maximum": "0.20"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "start": "0.03", "increment": "0.03", "maximum": "0.20"}
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4,
+    "independence": 2
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-10",
+  "created_at": "2026-08-19T05:02:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

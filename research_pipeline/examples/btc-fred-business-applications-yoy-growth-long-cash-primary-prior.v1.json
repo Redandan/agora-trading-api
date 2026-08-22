@@ -1,0 +1,65 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_BUSINESS_APPLICATIONS_YOY_GROWTH_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_SOURCE_FEASIBILITY_THEN_PRE_ECONOMIC_HISTORICAL_AUDIT",
+  "claim_boundary": "U.S. business applications provide timely high-frequency information about entrepreneurial activity, but the weekly series is not seasonally adjusted, is revised and since late 2024 is published with the monthly BFS release. Positive year-over-year growth may identify broad economic risk-taking that supports Bitcoin demand, yet applications need not become operating businesses and can be driven by tax, legal or sector-composition changes. Exactly one preregistered long-or-cash audit may test the positive-growth sign; no causal or alpha claim is imported from the source definition.",
+  "feature_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_agency": "U.S. Census Bureau",
+    "release": "Weekly Business Formation Statistics",
+    "series_id": "BUSAPPWNSAUSYY",
+    "observation": "WEEKLY_ENDING_SATURDAY_PERCENT_CHANGE_FROM_YEAR_AGO_NOT_SEASONALLY_ADJUSTED_BUSINESS_APPLICATIONS",
+    "decision_time": "OBSERVATION_WEEK_ENDING_SATURDAY_PLUS_FORTY_FIVE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "PUBLISHED_YEAR_OVER_YEAR_PERCENT_CHANGE_STRICTLY_ABOVE_ZERO",
+    "policy": "HOLD_FULL_CAPITAL_SPOT_BTC_ONLY_WHILE_LAGGED_BUSINESS_APPLICATIONS_YEAR_OVER_YEAR_GROWTH_IS_POSITIVE_OTHERWISE_HOLD_ZERO_YIELD_CASH",
+    "publication_lag_calendar_days": 45,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "U.S. Census Bureau Business Applications via FRED",
+      "primary_source": "https://fred.stlouisfed.org/series/BUSAPPWNSAUSYY",
+      "finding": "The official series is weekly ending Saturday, percent change from year ago, not seasonally adjusted, sourced from the Census Weekly Business Formation Statistics release and tagged Public Domain: Citation Requested.",
+      "role": "FREE_OFFICIAL_MACHINE_READABLE_SOURCE_IDENTITY",
+      "transfer_boundary": "FRED states that all observations are subject to revision; the current-vintage series does not preserve what was first reported at each historical decision time."
+    },
+    {
+      "identity": "U.S. Census Bureau Business Formation Statistics data tables",
+      "primary_source": "https://www.census.gov/data/tables/time-series/econ/bfs/business-formation-statistics.html",
+      "finding": "The Census Bureau describes BFS as timely high-frequency information on new business applications and formations; weekly data start in 2006, contain only not-seasonally-adjusted application series, and are currently distributed with the monthly release.",
+      "role": "OFFICIAL_MECHANISM_FREQUENCY_AND_RELEASE_BOUNDARY",
+      "transfer_boundary": "An EIN application is an intent signal rather than a realized business formation, and current monthly publication makes historical weekly release timing non-uniform."
+    },
+    {
+      "identity": "U.S. Census Bureau Weekly BFS publication notice",
+      "primary_source": "https://www.census.gov/econ/bfs/data/weekly.html",
+      "finding": "The Census Bureau states that weekly estimates stopped being published weekly after August 29, 2024 and are now included in the monthly BFS release.",
+      "role": "CONSERVATIVE_POINT_IN_TIME_AVAILABILITY_PRIOR",
+      "transfer_boundary": "The fixed 45-calendar-day delay is a conservative research convention intended to avoid assuming earlier availability; it is not claimed to reproduce every historical release timestamp."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Before accessing any historical BUSAPPWNSAUSYY values, freeze a source-feasibility specification for exact FRED CSV identity, Saturday weekly lattice, missing-value handling, both-state support, transitions, annual breadth and concentration.",
+    "If the source gate permits continuation, seal exact annual FRED CSV responses from 2017-01-01 through 2024-12-31; reject duplicate, non-Saturday, missing, non-finite or discontinuous weekly observations.",
+    "Use only the published year-over-year percent-change series and classify values strictly above zero as supportive; equality belongs to the other state.",
+    "Make observation week ending Saturday D usable only at D plus 45 calendar days 00:00 UTC and valid for at most 168 hours, conservatively covering the monthly-publication regime.",
+    "Use the same historical BTC corpus, valuation clock, fee, adverse-slippage, cash-yield and capital conventions as the matched buy-and-hold comparator.",
+    "Require separate Design and Validation predictive gates before opening matched-capital economics; require return effect, negative-rate effect, drawdown path, annual breadth, support and concentration.",
+    "Do not add high-propensity applications, planned-wage applications, corporation applications, levels, sector or state splits, seasonal adjustment, magnitude cutoffs, moving averages, z-scores, alternate delays, direction inversion, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not reinterpret the closed labor, liquidity, yield, financial-condition, equity, credit or volatility branches as evidence for this family; entrepreneurial application growth is the only proposed mechanism.",
+    "Do not open post-2024 data; any historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Weekly BFS applications are not seasonally adjusted even though the selected FRED transformation is year over year; holiday timing and 52-versus-53-week alignment may still distort comparisons.",
+    "Applications are not formations, jobs, revenue or productive investment, so the economic link can be weak or composition-driven.",
+    "The present-vintage FRED series contains revisions and historical first-release values remain MISSING_PROOF.",
+    "Publication frequency changed during 2024; the fixed 45-day delay is conservative but may reduce relevance and does not reconstruct exact vintage timestamps.",
+    "The positive risk-demand interpretation is economically ambiguous and is a preregistered sign, not a conclusion from the official sources.",
+    "No historical BUSAPPWNSAUSYY value, BTC outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T14:10:28Z"
+}

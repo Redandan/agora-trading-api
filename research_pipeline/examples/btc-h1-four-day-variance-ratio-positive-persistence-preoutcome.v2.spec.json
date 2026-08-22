@@ -1,0 +1,58 @@
+{
+  "schema_version": "2",
+  "document_type": "BTC_H1_FOUR_DAY_VARIANCE_RATIO_POSITIVE_PERSISTENCE_PREOUTCOME_SPEC_V2",
+  "created_at": "2026-08-21T05:01:20Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
+  "supersedes": {
+    "v1_spec_path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-preoutcome.v1.spec.json",
+    "v1_spec_sha256": "bc0f2d39d8239ec828b2406aa92648c4982f3a4434e90df84d17fc16c337f781",
+    "v1_support_path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/inputs/feature-support.json",
+    "v1_support_sha256": "520c5f87b9187f535982d140b075e7e2a12f0c65fc543b3a8dfdfc2f11cad6de",
+    "invalidation_path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-preoutcome-v1-invalidation.json",
+    "reason": "PROCESS_GLOBAL_DECIMAL_PRECISION_DRIFT_BEFORE_STRATEGY_ECONOMICS"
+  },
+  "source_contract": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00",
+    "parser_path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+    "parser_sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+    "primary_prior_path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-primary-prior.v1.json",
+    "primary_prior_sha256": "d692e290fead48f5ff09ad8d39375cee4cececc85b01328fd34eb748fe2d6111"
+  },
+  "factor_contract": {
+    "factor_identity": "PRIOR_28_COMPLETE_UTC_DAY_POSITIVE_RETURN_AND_OVERLAPPING_FOUR_DAY_VARIANCE_RATIO_ABOVE_ONE_V1",
+    "decision_clock": "AFTER_LATEST_COMPLETE_UTC_DAY_BEFORE_SAME_TIMESTAMP_NEXT_H1_OPEN_FILL",
+    "window": "EXACTLY_29_CONSECUTIVE_COMPLETE_UTC_DAY_CLOSES_PRODUCING_28_LOG_RETURNS",
+    "one_day_variance": "UNBIASED_SAMPLE_VARIANCE_OF_28_ONE_DAY_LOG_RETURNS",
+    "four_day_variance": "UNBIASED_SAMPLE_VARIANCE_OF_25_OVERLAPPING_SUMS_OF_FOUR_CONSECUTIVE_ONE_DAY_LOG_RETURNS",
+    "variance_ratio": "FOUR_DAY_VARIANCE_DIVIDED_BY_FOUR_TIMES_ONE_DAY_VARIANCE",
+    "persistence_condition": "VARIANCE_RATIO_STRICTLY_GREATER_THAN_ONE",
+    "direction_condition": "LATEST_CLOSE_STRICTLY_GREATER_THAN_CLOSE_28_COMPLETE_DAYS_EARLIER",
+    "candidate_long_condition": "PERSISTENCE_AND_DIRECTION_BOTH_TRUE",
+    "trend_parent_long_condition": "DIRECTION_TRUE_WITHOUT_VARIANCE_RATIO_FILTER",
+    "arithmetic": "LOCAL_PYTHON_DECIMAL_CONTEXT_PRECISION_50_FOR_EVERY_LOG_VARIANCE_AND_RATIO_CALCULATION_WITH_NO_QUANTIZATION_BEFORE_COMPARISON",
+    "expected_total_feature_evaluations": 2164,
+    "expected_design_evaluations": 1432,
+    "expected_validation_evaluations": 731
+  },
+  "support_gates": {
+    "inherit_exactly_from_v1_spec_sha256": "bc0f2d39d8239ec828b2406aa92648c4982f3a4434e90df84d17fc16c337f781",
+    "no_gate_change": true,
+    "no_threshold_change": true,
+    "no_window_change": true
+  },
+  "execution_contract": {
+    "valid_v2_runs": 1,
+    "probe_path": "research/btc_h1_four_day_variance_ratio_support_v2.py",
+    "output_path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/inputs/feature-support.v2.json",
+    "output_mode": "CREATE_ONCE_UNDER_RESEARCH_STATE",
+    "on_pass": "ALLOW_THE_EXISTING_SINGLE_PRE_ECONOMIC_HYPOTHESIS_TO_BE_REBOUND_TO_V2_AND_ONE_VARIANT_MANIFEST_WITH_TREND_PARENT_ABLATION",
+    "on_fail": "CLOSE_WITHOUT_ALTERNATE_WINDOW_RATIO_HORIZON_THRESHOLD_DIRECTION_OR_SIZING",
+    "oos": "DENY"
+  },
+  "scope_note": "V2 corrects only an import-order Decimal context defect found before any strategy economics. The V1 support gates and strategy family remain unchanged."
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_REBALANCED_HALF_PASSIVE_HALF_DRA_V1_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-monthly-rebalanced-half-passive-half-dra-v1",
+  "decision": "PRIOR_SUPPORTS_ONE_EXACT_MONTHLY_50_50_RISK_BUDGET_EXPERIMENT_WITHOUT_WEIGHT_OR_CLOCK_NEIGHBORS",
+  "causal_hypothesis": "The static portfolio's failure was caused by passive BTC appreciation drifting far above its initial fifty-percent risk budget. Resetting both component sleeves to equal value at the first UTC hour of each month may preserve the DRA return contribution while preventing passive beta from dominating drawdown.",
+  "economic_hypothesis": "An exact monthly-rebalanced 50% passive BTC and 50% frozen DRA V1 component-index portfolio may retain broad incremental return over a monthly-rebalanced 50% passive BTC plus 50% cash comparator while bringing full-window and annual marginal drawdown inside the already frozen risk-budget gates after explicit rebalance friction.",
+  "sealed_parent_evidence": {
+    "path": "research_pipeline/examples/btc-static-half-passive-half-dra-v1-historical.v1.decision.json",
+    "sha256": "97a65de7393563e4d622de44936c7f016a222942e6aae546cded225a8a458635",
+    "material_facts": {
+      "design_incremental_return_pp": "18.15559466",
+      "validation_incremental_return_pp": "17.24059637",
+      "annual_incremental_return_wins": "4_OF_5",
+      "annual_drawdown_within_primary_plus_2pp": "1_OF_5",
+      "design_candidate_drawdown_as_pct_of_passive": "93.75",
+      "validation_candidate_drawdown_as_pct_of_passive": "79.80"
+    },
+    "claim_boundary": "The evidence supports the mechanism diagnosis only. It does not authorize choosing a weight or rebalance frequency from outcomes."
+  },
+  "frozen_contract": {
+    "component_1": "FULL_PASSIVE_BTC_INDEX_WITH_EXISTING_ENTRY_COST_AND_HOURLY_CLOSE_VALUATION",
+    "component_2": "UNCHANGED_FROZEN_DRA_V1_NORMALIZED_EQUITY_INDEX",
+    "target_weights": ["0.50", "0.50"],
+    "rebalance_clock": "FIRST_H1_OPEN_OF_EACH_UTC_CALENDAR_MONTH",
+    "normal_rebalance_friction_per_traded_component_notional": "0.0015",
+    "stress_rebalance_friction_per_traded_component_notional": "0.0030",
+    "primary_comparator": "MONTHLY_REBALANCED_50PCT_PASSIVE_BTC_50PCT_ZERO_YIELD_CASH",
+    "variants": 1,
+    "neighbors": "DENY"
+  },
+  "independence_boundary": "This is a capital-allocation mechanism that leaves passive BTC and DRA V1 unchanged. It is distinct from the closed no-rebalance static portfolio because it explicitly maintains the risk budget and pays turnover friction. It does not reopen or tune any DRA entry, exit, capacity, volatility, route or inventory family.",
+  "stop_conditions": [
+    "Stop before economics if the sealed BTC H1 corpus, DRA checkpoints, passive index or static-parent bindings fail.",
+    "Stop NO_CANDIDATE if monthly rebalancing does not pass all Design, Validation, annual breadth, drawdown, concentration, cost and terminal-inventory gates.",
+    "Do not test weekly, quarterly, threshold, drift-band or event-driven rebalancing after outcome access.",
+    "Do not test another weight, DRA variant, passive entry, leverage, short direction or cash yield."
+  ],
+  "missing_proof": [
+    "No monthly-rebalanced component-index runner or matched comparator is sealed.",
+    "No normal or stress Design, Validation, annual breadth, holding or inventory result exists.",
+    "No independent OOS or forward evidence exists."
+  ],
+  "scope_note": "Pre-outcome prior only. No runner, strategy outcome, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_H1_FOUR_DAY_VARIANCE_RATIO_POSITIVE_PERSISTENCE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "created_at": "2026-08-21T04:37:17Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
+  "claim_boundary": "The variance ratio is a statistical diagnostic of multi-period return dependence, not a trading rule or evidence about Bitcoin. Exactly one future preregistered audit may test whether conditioning an otherwise identical positive 28-complete-day BTC trend policy on a four-day-to-one-day variance ratio above one adds matched-capital value versus both the unconditioned trend parent and passive BTC. The academic equity evidence supplies only the measurement prior; no equity result, causal claim or alpha claim is transferred to BTC.",
+  "primary_sources": [
+    {
+      "identity": "Lo and MacKinlay, Stock Market Prices Do Not Follow Random Walks, NBER Working Paper 2168",
+      "url": "https://www.nber.org/papers/w2168",
+      "evidence": "The paper tests the random-walk hypothesis by comparing variance estimators derived from returns sampled at different frequencies.",
+      "boundary": "Its empirical sample is U.S. equities from 1962-1985, not Bitcoin, and rejection of a random walk does not by itself support a profitable directional rule."
+    },
+    {
+      "identity": "Lo and MacKinlay, The Size and Power of the Variance Ratio Test in Finite Samples, NBER Technical Working Paper 0066",
+      "url": "https://www.nber.org/papers/t0066",
+      "evidence": "The paper studies finite-sample behavior of the variance-ratio test under Gaussian and heteroscedastic random-walk nulls and several alternatives.",
+      "boundary": "Finite-sample reliability is a warning to freeze the window and ratio definition before observing strategy economics; it is not BTC evidence."
+    }
+  ],
+  "frozen_prior": {
+    "source": "EXISTING_SEALED_52608_ROW_BTC_H1_2019_2024_CORPUS",
+    "sampling": "COMPLETE_UTC_DAY_CLOSES_ONLY",
+    "feature_window": "PRIOR_28_COMPLETE_UTC_DAY_LOG_RETURNS_FROM_29_CLOSES",
+    "variance_ratio_horizon": "SAMPLE_VARIANCE_OF_25_OVERLAPPING_FOUR_DAY_LOG_RETURN_SUMS_DIVIDED_BY_FOUR_TIMES_SAMPLE_VARIANCE_OF_28_ONE_DAY_LOG_RETURNS",
+    "persistence_condition": "DESCRIPTIVE_OVERLAPPING_FOUR_DAY_VARIANCE_RATIO_STRICTLY_GREATER_THAN_ONE",
+    "direction_condition": "CLOSE_t_DIVIDED_BY_CLOSE_t_MINUS_28_STRICTLY_GREATER_THAN_ONE",
+    "availability": "NEXT_COMPLETE_UTC_DAY_0000_OPEN_WITHOUT_INTRADAY_LOOKAHEAD",
+    "policy": "FULL_CAPITAL_BTC_ONLY_WHEN_BOTH_CONDITIONS_PASS_ELSE_ZERO_YIELD_CASH",
+    "factor_ablation_parent": "FULL_CAPITAL_BTC_WHEN_PRIOR_28_COMPLETE_DAY_RETURN_IS_POSITIVE_ELSE_ZERO_YIELD_CASH",
+    "passive_reference": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "variants": 1
+  },
+  "adversarial_prior": [
+    "A variance ratio above one is nondirectional; the positive-return condition may merely recreate a noisy shorter-horizon trend filter.",
+    "Serial dependence can be unstable across volatility regimes and can disappear after fees and adverse slippage.",
+    "A twenty-eight-day window contains few independent four-day increments and may concentrate apparent support in one bull year.",
+    "Daily-close aggregation discards intraday path information and can still remain fully exposed during fast drawdowns."
+  ],
+  "prohibited_rescue": [
+    "Do not change the 28-day window, four-day ratio horizon, threshold one, positive direction, daily boundary or next-day execution after factor or outcome access.",
+    "Do not add alternate variance-ratio horizons, lag-one autocorrelation, volatility, volume, macro, on-chain or cross-asset inputs.",
+    "Do not invert to mean reversion, resize, short, leverage or waive matched-capital drawdown, Calmar, upside, breadth, concentration, holding, inventory or friction gates."
+  ],
+  "independence": {
+    "key": "daily-four-day-variance-ratio-conditioned-positive-persistence",
+    "distinct_from_closed_monthly_twelve_month_momentum": "The new state requires a preregistered multi-frequency variance relation over 28 complete days in addition to direction, rather than only the sign of a twelve-month return.",
+    "distinct_from_closed_h1_lag1_autocorrelation_admission": "The variance ratio aggregates covariance information over one through three daily lags and controls a standalone matched-capital BTC policy, rather than gating DRA entries with H1 lag-one correlation.",
+    "residual_overlap_risk": "The positive-return direction still overlaps the broad trend family, so independent incremental value and nonredundancy remain MISSING_PROOF."
+  },
+  "missing_proof": [
+    "No pre-outcome daily-lattice inventory, finite-sample support, variance-ratio state count, trend-parent intervention count, transition count or annual breadth has been sealed.",
+    "No schema-valid hypothesis, frozen manifest, deterministic runner, fees, slippage, PnL, drawdown, holding, inventory, concentration, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "No variance-ratio factor value or strategy outcome was computed; no hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

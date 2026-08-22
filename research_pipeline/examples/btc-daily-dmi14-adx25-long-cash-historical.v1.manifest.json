@@ -1,0 +1,253 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_DMI14_ADX25_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-dmi14-adx25-long-cash-historical-v1",
+  "created_at": "2026-08-19T03:47:37Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A complete-day bullish directional-movement state filtered by strong ADX may distinguish persistent BTC trends from weak noisy moves early enough that a causal next-open long/cash policy preserves material upside while reducing adverse paths and improving fee-adjusted risk-adjusted performance over full-capital buy-and-hold.",
+  "economic_rationale": "The mechanism requires directional high expansion to dominate directional low expansion while their true-range-normalized separation is persistently strong. It is useful only if DMI14 and ADX14 above 25 retain material after-cost upside, lower drawdown, improve Calmar, survive annual breadth and remain stable at the frozen 20 and 30 threshold neighbors. Reduced exposure alone cannot pass.",
+  "opportunity_cost": "Test one executable high-low directional-strength mechanism before allocating more research to another close-only trend rule, external data or waiting-only forward families.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-dmi14-adx14-thresholds-20-25-30-long-cash",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_CAUSAL_NEXT_H1_OPEN_POLICY",
+    "distinct_from_closed_families": [
+      "The closed prior-200-day DRA long-trend admission compares close with a long simple average; DMI uses adjacent-day competing extrema movement normalized by smoothed true range.",
+      "The closed RSI, MACD and monthly momentum rules derive direction from closes; DMI derives direction from high and low expansion and separately smooths unsigned directional strength.",
+      "The closed Supertrend rule uses an ATR-scaled ratcheted price band; DMI has no price band, crossing stop or trailing stop.",
+      "The closed Donchian rule uses fixed prior extrema breakouts; DMI uses adjacent-day directional movement before smoothing.",
+      "The closed OBV rule uses signed volume; DMI uses no volume."
+    ],
+    "excluded_reinterpretations": [
+      "DMI14 and ADX14 strictly above 25 is the primary policy. ADX thresholds 20 and 30 are rejection-only neighbors and cannot replace a failed primary.",
+      "No alternate DI or ADX length, threshold, smoothing, initialization, price basis, crossover-only rule, stop, trailing stop, confirmation, delay, minimum hold, cash yield, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires at most one independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_dmi14_adx25_long_cash_historical.py",
+      "sha256": "ee3af6598c20366c954175c703611740eb13d6d7cd93549cce53d5ed0889bd5d",
+      "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+      "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research/btc_daily_supertrend10x3_long_cash_historical.py",
+      "sha256": "46db811403ae61f70eff615e342d8c4d93e7d72c1bb8edc162c4cc6022d18213",
+      "role": "FROZEN_OHLC_AGGREGATION_GATE_AND_RESULT_SUPPORT"
+    },
+    {
+      "path": "research/btc_daily_obv_ma_long_cash_historical.py",
+      "sha256": "449f6790007cc0fc57298059f9f3f3dee812e37ec3539c9fc8c63593fe99a3d5",
+      "role": "FROZEN_DAILY_LONG_CASH_LEDGER_AND_PATH_RISK_SUPPORT"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_PASSIVE_REFERENCE_AND_ECONOMIC_PRIMITIVES"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-dmi14-adx25-long-cash-primary-prior.v1.json",
+      "sha256": "746534a4aa28ac4df1d9f124e8f3e0b546d5698abbea95620faea8b80931f11f",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-dmi14-adx25-long-cash-v1.hypothesis.json",
+      "sha256": "464e61702960db955f3e70d27b5213a9d81bacc46c20c8a4a1bde4212e84f8e4",
+      "role": "FROZEN_HYPOTHESIS"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_DMI14_ADX25_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_aggregation": "COMPLETE_UTC_DAY_24_CONTIGUOUS_H1_BARS",
+    "daily_input": "COMPLETE_UTC_DAY_HIGH_LOW_CLOSE",
+    "directional_movement_definition": "UP_MOVE_CURRENT_HIGH_MINUS_PREVIOUS_HIGH_DOWN_MOVE_PREVIOUS_LOW_MINUS_CURRENT_LOW_KEEP_ONLY_STRICTLY_LARGER_POSITIVE_SIDE",
+    "true_range_definition": "MAX_HIGH_LOW_ABS_HIGH_PREVIOUS_CLOSE_ABS_LOW_PREVIOUS_CLOSE",
+    "di_smoothing_definition": "FIRST_14_SUM_THEN_PRIOR_MINUS_PRIOR_DIVIDED_BY_14_PLUS_CURRENT",
+    "dx_definition": "100_TIMES_ABS_POSITIVE_DI_MINUS_NEGATIVE_DI_DIVIDED_BY_POSITIVE_DI_PLUS_NEGATIVE_DI_ZERO_IF_DENOMINATOR_ZERO",
+    "adx_smoothing_definition": "FIRST_14_DX_MEAN_THEN_PRIOR_TIMES_13_PLUS_CURRENT_DX_DIVIDED_BY_14",
+    "primary": {
+      "di_complete_days": 14,
+      "adx_complete_dx_values": 14,
+      "adx_threshold": "25"
+    },
+    "rejection_only_neighbors": [
+      {
+        "di_complete_days": 14,
+        "adx_complete_dx_values": 14,
+        "adx_threshold": "20"
+      },
+      {
+        "di_complete_days": 14,
+        "adx_complete_dx_values": 14,
+        "adx_threshold": "30"
+      }
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "long_condition": "POSITIVE_DI_STRICTLY_GT_NEGATIVE_DI_AND_ADX_STRICTLY_GT_THRESHOLD",
+    "cash_condition": "OTHERWISE",
+    "delay_complete_days": 0,
+    "minimum_hold": "UNTIL_DIFFERENT_SIGNAL",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "stop": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    }
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_ALL_IN_EPISODE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct",
+    "unrealized_return_pct",
+    "total_return_pct",
+    "total_return_delta_pp",
+    "terminal_liquidation_adjusted_return_pct",
+    "maximum_drawdown_pct",
+    "maximum_drawdown_delta_pp",
+    "maximum_underwater_duration_hours",
+    "calmar_ratio",
+    "calmar_ratio_to_buy_hold",
+    "upside_capture_ratio",
+    "average_exposure_pct",
+    "fees_equity_units",
+    "turnover_equity_units",
+    "signal_evaluation_count",
+    "position_change_count",
+    "completed_episode_count",
+    "median_hold_hours",
+    "p90_hold_hours",
+    "terminal_position",
+    "terminal_holding_age_hours",
+    "top_positive_episode_contribution_pct",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "gate_set": {
+    "id": "BTC_DAILY_DMI14_ADX25_LONG_CASH_MATCHED_CAPITAL_GATES_V1",
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_95pct_of_buy_hold",
+      "normal_calmar_at_least_buy_hold"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_90pct_of_buy_hold",
+      "normal_upside_capture_at_least_60pct",
+      "normal_calmar_at_least_buy_hold",
+      "position_changes_between_2_and_250",
+      "stress_drawdown_no_more_than_normal_plus_3pp",
+      "terminal_liquidation_adjusted_return_pct_gt_0",
+      "terminal_liquidation_cost_at_most_1pp"
+    ],
+    "neighbor_stability": [
+      "both_neighbors_have_positive_normal_and_stress_validation_total_return",
+      "both_neighbors_have_validation_normal_drawdown_non_worse_than_buy_hold",
+      "both_neighbors_have_validation_normal_calmar_at_least_75pct_of_buy_hold",
+      "both_neighbors_have_validation_normal_upside_capture_at_least_50pct",
+      "neighbors_are_rejection_only_and_cannot_replace_the_primary"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_at_least_4_of_5_years",
+      "normal_primary_calmar_at_least_75pct_of_buy_hold_at_least_3_of_5_years",
+      "normal_primary_upside_capture_at_least_50pct_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_THE_EXACT_DAILY_DMI14_ADX_THRESHOLDS_20_25_30_LONG_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset hash, hourly lattice, OHLCV or complete UTC-day inventory gate fails.",
+    "Stop and permanently close the exact DMI14 and ADX14 thresholds 20, 25 and 30 family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Do not scan another DI or ADX length, threshold, smoothing, initialization, crossover, stop, delay, holding period, confirmation, DRA combination or cost model after results.",
+    "Do not use post-2024 data in this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ONCHAIN_ACTIVITY_BREADTH_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-onchain-activity-breadth-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BTC_ONCHAIN_ACTIVITY_BREADTH_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_28D_VERSUS_52_WEEK_ONCHAIN_ACTIVITY_BREADTH_LONG_CASH_FAMILY_AND_SINGLE_AXIS_NEIGHBORS_WITHOUT_TUNING",
+  "material_conclusion": "Lagged transaction and active-address growth reduced some drawdown but failed to preserve Bitcoin participation. The primary earned 112.86900829% in Design versus buy-and-hold 129.60544229%, then only 71.58206970% in Validation versus 464.75475156%. Validation drawdown improved by just 3.81226381 percentage points, while upside capture was 15.402117% and Calmar was 2.51413044 versus buy-and-hold 14.39575015. The TxCnt-only neighbor nearly replicated passive exposure and return without improving Calmar enough to establish independent value; the AdrActCnt-only neighbor was identical to the failed primary in Validation. This is not a generalizable risk-adjusted alpha mechanism.",
+  "economic_evidence": {
+    "design_primary_normal": {
+      "candidate_realized_return_pct": "112.86900829",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "112.86900829",
+      "buy_hold_total_return_pct": "129.60544229",
+      "candidate_maximum_drawdown_pct": "58.34485877",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "candidate_calmar_ratio": "1.93451507",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "upside_capture_ratio": "0.87086627",
+      "position_change_count": 14,
+      "average_exposure_pct": "27.09854015",
+      "maximum_underwater_duration_hours": 15041
+    },
+    "validation_primary_normal": {
+      "candidate_realized_return_pct": "71.58206970",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "71.58206970",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_total_return_delta_pp": "-393.17268187",
+      "candidate_maximum_drawdown_pct": "28.47189968",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "candidate_drawdown_delta_pp": "-3.81226381",
+      "candidate_calmar_ratio": "2.51413044",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "calmar_ratio_to_buy_hold": "0.17464393",
+      "upside_capture_ratio": "0.15402117",
+      "position_change_count": 6,
+      "average_exposure_pct": "38.85088919",
+      "maximum_underwater_duration_hours": 9338,
+      "median_hold_hours": "1896.00000000",
+      "p90_hold_hours": "3969.60000000",
+      "terminal_position": false,
+      "top_positive_episode_contribution_pct": "85.42937901"
+    },
+    "validation_primary_stress": {
+      "candidate_realized_return_pct": "70.04475667",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "70.04475667",
+      "buy_hold_total_return_pct": "463.90931032",
+      "candidate_maximum_drawdown_pct": "28.68616281",
+      "upside_capture_ratio": "0.15098804"
+    },
+    "validation_neighbors_normal": {
+      "transaction_count_only": {
+        "candidate_total_return_pct": "447.91600376",
+        "buy_hold_total_return_pct": "464.75475156",
+        "maximum_drawdown_pct": "31.88287564",
+        "calmar_ratio": "14.04879563",
+        "calmar_ratio_to_buy_hold": "0.97589882",
+        "upside_capture_ratio": "0.96376853",
+        "average_exposure_pct": "94.25444596"
+      },
+      "active_address_count_only": {
+        "candidate_total_return_pct": "71.58206970",
+        "buy_hold_total_return_pct": "464.75475156",
+        "maximum_drawdown_pct": "28.47189968",
+        "calmar_ratio": "2.51413044",
+        "calmar_ratio_to_buy_hold": "0.17464393",
+        "upside_capture_ratio": "0.15402117",
+        "average_exposure_pct": "38.85088919"
+      }
+    },
+    "annual_primary_normal": {
+      "2020": {"candidate_total_return_pct": "49.75639499", "buy_hold_total_return_pct": "301.32276307", "candidate_drawdown_pct": "58.34485877", "buy_hold_drawdown_pct": "60.56916406", "candidate_calmar_ratio": "0.85279828", "buy_hold_calmar_ratio": "4.97485425"},
+      "2021": {"candidate_total_return_pct": "46.59732478", "buy_hold_total_return_pct": "59.60909620", "candidate_drawdown_pct": "28.74178832", "buy_hold_drawdown_pct": "54.72348518", "candidate_calmar_ratio": "1.62123958", "buy_hold_calmar_ratio": "1.08927814"},
+      "2022": {"candidate_total_return_pct": "-3.17100726", "buy_hold_total_return_pct": "-64.25634095", "candidate_drawdown_pct": "26.18545943", "buy_hold_drawdown_pct": "67.36039868", "candidate_calmar_ratio": "-0.12109802", "buy_hold_calmar_ratio": "-0.95391866"},
+      "2023": {"candidate_total_return_pct": "71.58206970", "buy_hold_total_return_pct": "155.16375107", "candidate_drawdown_pct": "28.47189968", "buy_hold_drawdown_pct": "21.72199642", "candidate_calmar_ratio": "2.51413044", "buy_hold_calmar_ratio": "7.14316254"},
+      "2024": {"candidate_total_return_pct": "0.00000000", "buy_hold_total_return_pct": "120.99348678", "candidate_drawdown_pct": "0.00000000", "buy_hold_drawdown_pct": "32.28416349", "candidate_calmar_ratio": null, "buy_hold_calmar_ratio": "3.74776589"}
+    },
+    "breadth_and_concentration": {
+      "primary_normal_positive_years": "3_of_5",
+      "primary_stress_positive_years": "3_of_5",
+      "primary_drawdown_non_worse_years": "4_of_5",
+      "primary_calmar_non_worse_years": "2_of_5",
+      "primary_top_year_positive_return_contribution_pct": "42.62466620",
+      "primary_validation_top_positive_episode_contribution_pct": "85.42937901",
+      "transaction_count_neighbor_normal_positive_years": "4_of_5",
+      "active_address_neighbor_normal_positive_years": "3_of_5"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_drawdown_at_most_85pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_adractcnt_only_validation_calmar_at_least_75pct_of_buy_hold",
+    "primary_normal_positive_annual_return_at_least_4_of_5",
+    "primary_stress_positive_annual_return_at_least_4_of_5",
+    "primary_annual_drawdown_non_worse_5_of_5",
+    "primary_annual_calmar_non_worse_at_least_3_of_5"
+  ],
+  "failure_attribution": [
+    "The conjunction was effectively governed by the active-address axis in Validation; both produced identical exposure, return, drawdown and Calmar, so adding transaction breadth did not create independent incremental value.",
+    "The primary avoided much of 2022 but missed all of 2024 and most of the 2023-2024 advance. Validation opportunity cost was 393.17268187 percentage points for only 3.81226381 points of drawdown relief.",
+    "Validation Calmar reached only 17.464393% of buy-and-hold and the primary failed both normal and stress annual positive-return breadth at 3 of 5 years.",
+    "The TxCnt-only neighbor held BTC 94.25444596% of Validation and earned 447.91600376%, but its Calmar remained below buy-and-hold. That near-pass is passive participation, not a separately valuable timing mechanism, and cannot replace the failed primary.",
+    "The top positive completed episode contributed 85.42937901% of positive episode PnL, leaving weak independent realized breadth despite zero terminal inventory."
+  ],
+  "sealed_evidence": {
+    "manifest": {
+      "path": "research_pipeline/examples/btc-onchain-activity-breadth-long-cash-historical.v1.manifest.json",
+      "sha256": "7b1bf143ebec6ac6c134b75405c99808b3d63f91a07d53b2b2aa1bc59e80f30d"
+    },
+    "runner": {
+      "path": "research/btc_onchain_activity_breadth_long_cash_historical.cjs",
+      "sha256": "53bcd85a4c1c1ee2a0f5e2a441a74edc4d80edf6228d08afdbe7d191ed8df3c1"
+    },
+    "run1": {
+      "path": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/artifacts/run1.json",
+      "sha256": "c829e8c7f6cd581f6f9e01cfa51de506b42503c2e5b8ac1e527945428c72516c"
+    },
+    "run2": {
+      "path": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/artifacts/run2.json",
+      "sha256": "c829e8c7f6cd581f6f9e01cfa51de506b42503c2e5b8ac1e527945428c72516c"
+    },
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "Coin Metrics Community data is a sealed present-vintage reviewed snapshot; original daily review timestamps and original vintages remain MISSING_PROOF.",
+    "Transactions and addresses can change meaning because of batching, inscriptions and usage composition, but failed preregistered economic and breadth gates prohibit retuning this family.",
+    "The test closes the exact 28-day versus 52-week TxCnt/AdrActCnt breadth policy, not all possible independently preregistered on-chain mechanisms."
+  ],
+  "next_action": "Exclude this exact family from the open pool and advance a different independent mechanism without changing the mean, comparison lag, axes or conjunction rule.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

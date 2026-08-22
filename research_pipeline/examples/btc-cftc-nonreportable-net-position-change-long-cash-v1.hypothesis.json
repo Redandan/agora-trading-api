@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-cftc-nonreportable-net-position-change-long-cash-v1",
+  "title": "Lagged CFTC nonreportable net-position change for BTC long or cash",
+  "thesis": "A strictly positive weekly change in nonreportable long-minus-short share of CME Bitcoin futures open interest may identify a smaller-participant demand state in which full-capital BTC exposure has better fee-adjusted risk economics than unconditional buy-and-hold.",
+  "mechanism": "For each eligible CFTC Tuesday report, subtract nonreportable short percent of open interest from nonreportable long percent, then subtract the exact prior Tuesday level. Make the state usable seven calendar days after the report at 00:00 UTC; hold BTC while the delta is strictly positive and zero-yield cash otherwise until the next eligible weekly update.",
+  "economic_rationale": "The rule tests whether a conservatively lagged increase in residual smaller-participant net demand persists rather than merely reacts to BTC. It must pass nonredundancy and independent next-week predictive gates before strategy economics, then preserve sufficient upside while improving drawdown and Calmar without leverage or shorting.",
+  "source": "PRE_CANDIDATE_POOL:btc-cftc-nonreportable-net-position-change-long-cash",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-cftc-nonreportable-net-position-change-long-cash-matched-capital-runner-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_and_validation_nonredundancy_against_closed_cftc_categories",
+    "design_and_validation_predictive_sample_sign_test_path_and_concentration",
+    "normal_and_stress_fee_adjusted_realized_unrealized_total_return_pct",
+    "matched_buy_and_hold_total_return_drawdown_upside_capture_and_calmar",
+    "exposure_position_changes_holding_age_and_terminal_inventory",
+    "annual_fair_reset_breadth_and_positive_episode_concentration"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-cftc-nonreportable-1",
+  "created_at": "2026-08-20T11:03:03Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

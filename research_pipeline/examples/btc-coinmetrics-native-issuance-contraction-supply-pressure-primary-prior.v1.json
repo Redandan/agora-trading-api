@@ -1,0 +1,100 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_NATIVE_ISSUANCE_CONTRACTION_SUPPLY_PRESSURE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash",
+  "created_at": "2026-08-20T13:18:00Z",
+  "status": "PRIMARY_PRIOR_AND_OFFICIAL_COMMUNITY_TRANSPORT_READY_SOURCE_NOT_SEALED",
+  "frozen_before_historical_issuance_factor_or_btc_outcome_pairing_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_SOURCE_FEASIBILITY_IN_NEXT_RESEARCH_CYCLE",
+  "claim_boundary": "Coin Metrics defines IssTotNtv as native units issued during an interval and its public Community catalog lists daily Bitcoin coverage. Bitcoin issuance is paid to miners, but the source identity alone does not establish actual miner sales, an unanticipated supply shock, subsequent BTC returns, or a profitable long-or-cash policy.",
+  "primary_sources": [
+    {
+      "title": "Community Asset Metrics Catalog",
+      "publisher": "Coin Metrics",
+      "url": "https://community-api.coinmetrics.io/v4/catalog/asset-metrics",
+      "use": "Primary no-key catalog identity confirming IssTotNtv, daily frequency and Bitcoin availability without accessing historical values."
+    },
+    {
+      "title": "Revenue",
+      "publisher": "Coin Metrics Data Encyclopedia",
+      "url": "https://docs.coinmetrics.io/asset-metrics/fees-and-revenue/revntv",
+      "use": "Primary boundary that consensus-participant revenue includes newly issued native units and that assuming miners sell for fiat is only a naive heuristic."
+    },
+    {
+      "title": "Getting Started with Coin Metrics Data",
+      "publisher": "Coin Metrics Data Encyclopedia",
+      "url": "https://docs.coinmetrics.io/getting-started",
+      "use": "Primary statement that some Community Data are offered free while most Coin Metrics data require an API key."
+    }
+  ],
+  "proposed_feature_for_next_cycle_only": {
+    "factor_identity": "COINMETRICS_BTC_ISS_TOT_NTV_COMPLETE_SUNDAY_TRAILING_28D_SUM_STRICTLY_BELOW_TRAILING_28D_SUM_ENDING_364D_EARLIER_V1",
+    "support_state": "CURRENT_COMPLETE_TRAILING_28D_NATIVE_ISSUANCE_SUM_STRICTLY_BELOW_SAME_WEEKDAY_TRAILING_28D_SUM_364_DAYS_EARLIER",
+    "other_state": "OTHERWISE",
+    "primary_direction": "LOWER_ISSUANCE_STATE_HAS_HIGHER_NEXT_168H_BTC_RETURN_AND_NO_WORSE_PATH_DRAWDOWN",
+    "availability_floor": "COMPLETE_SUNDAY_PLUS_3_CALENDAR_DAYS_AT_WEDNESDAY_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "outcome_horizon_hours": 168,
+    "variant_count": 1,
+    "status": "PROPOSED_NOT_A_HYPOTHESIS_SOURCE_FEASIBILITY_AND_NEW_CYCLE_REQUIRED"
+  },
+  "future_economic_contract_if_and_only_if_predictive_screen_passes": {
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_LOWER_NATIVE_ISSUANCE_STATE_ZERO_YIELD_CASH_OTHERWISE_NO_LEVERAGE_NO_SHORT",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "top_event_concentration"
+    ]
+  },
+  "data_path": {
+    "status": "OFFICIAL_COMMUNITY_CATALOG_CONFIRMED_NEXT_CYCLE_SOURCE_SEALING_REQUIRED_NO_PAID_API",
+    "download_url_template": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=IssTotNtv&frequency=1d&start_time=2017-01-01&end_time=2024-12-31&page_size=10000",
+    "source_cost": "COIN_METRICS_COMMUNITY_API_NO_KEY_FREE_AS_OF_2026_08_20_CATALOG_PREFLIGHT",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "required_action_before_factor_access": "DOWNLOAD_ONCE_SEAL_EXACT_RESPONSE_RECORD_SHA256_VALIDATE_DAILY_LATTICE_BOUNDARIES_REVISIONS_AND_PRE_OUTCOME_BOTH_STATE_SUPPORT"
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_miner_revenue_per_hash": "The closed miner-revenue-per-hash family measured miner economics per unit of hashpower. This family measures protocol-native unit creation and deliberately excludes USD price and hashrate.",
+    "distinct_from_fee_pressure_and_hashrate": "Fees measure transaction demand and congestion; hashrate measures computational security participation. IssTotNtv measures newly created native supply.",
+    "distinct_from_price_momentum": "The feature contains no BTC price or return input, although halving dates are public and the state may still proxy time or market regimes.",
+    "prohibited_rescue": "Do not add miner revenue, fees, hashrate, BTC price, USD issuance, block count, alternate lookbacks, magnitude thresholds, smoothing or halving-event windows after source or outcome access."
+  },
+  "adversarial_prior": [
+    "Bitcoin subsidy changes are deterministic and publicly anticipated, so a realized issuance state may contain no new information.",
+    "Issuance is not miner selling; miners may retain inventory, hedge elsewhere or sell on different schedules.",
+    "The 2018-2024 sample contains only two halvings and can be dominated by time trend, one cycle or one year.",
+    "Daily native issuance also varies with realized block production, which can add noise unrelated to sell pressure.",
+    "Coin Metrics can revise network data; a downloaded history is a present-vintage source rather than original daily vintages."
+  ],
+  "next_cycle_stop_conditions": [
+    "Do not create a second hypothesis in the current 2026-08-20 WRESBAL research cycle.",
+    "In a new cycle, stop DATA_REJECT before hypothesis or BTC outcome access if the no-key IssTotNtv response cannot be sealed, the daily lattice or identity fails, or either state lacks adequate Design and Validation support.",
+    "Reject before BTC outcome access if state changes are explained only by halving boundaries or either window lacks adequate annual support.",
+    "Freeze exactly one hypothesis and one pre-economic predictive manifest only after source feasibility passes and before joining a BTC outcome.",
+    "Stop NO_CANDIDATE before economics if either Design or Validation fails return direction, path-drawdown, annual-breadth or concentration gates.",
+    "Do not open post-2024 outcomes; any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed forward evidence."
+  ],
+  "missing_proof": [
+    "The complete free 2017-2024 IssTotNtv response has not been downloaded or sealed.",
+    "Daily lattice, revisions, both-state support and halving-boundary concentration have not been measured.",
+    "No hash-bound hypothesis, runner, manifest or deterministic run exists.",
+    "No Design or Validation predictive result, matched-capital economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior plus official free-catalog preflight only. No historical IssTotNtv value or BTC outcome was accessed for this family; no second hypothesis, runner, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

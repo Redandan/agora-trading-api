@@ -1,0 +1,50 @@
+{
+  "schema_version": "1",
+  "document_type": "LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_LONG_ONLY_SOURCE_FEASIBILITY_V1_ACCEPTANCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SOURCE_FEASIBILITY_PASS_READY_FOR_HYPOTHESIS",
+  "decided_at": "2026-08-20T07:33:42Z",
+  "family_id": "liquid-crypto-cross-sectional-momentum-long-only",
+  "candidate_created": false,
+  "oos_opened": false,
+  "prior": {
+    "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-primary-prior.v1.json",
+    "sha256": "77245807cd200c1815f352c5da941c4085472520666e223d9a0e5d20aba3b721"
+  },
+  "probe": {
+    "path": "research/binance_spot_usdt_archive_inventory_probe.py",
+    "sha256": "d7ec23e5c4f026c5987d139b281df6785d757898b12ec9b566ecec15390f5a24"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/liquid-crypto-cross-sectional-momentum-long-only-source-feasibility-v1/artifacts/run1.json",
+    "sha256": "9f8ee95df9b04595c83fcd341c97c77286884a39b4f96adc463de0aa02f84e6f"
+  },
+  "inventory_summary": {
+    "all_archive_symbol_prefixes": 3695,
+    "ascii_symbol_prefixes": 3690,
+    "excluded_non_ascii_prefixes": 5,
+    "usdt_symbol_prefixes": 722,
+    "known_retired_symbols_present": [
+      "MCOUSDT",
+      "BCCUSDT"
+    ],
+    "sampled_monthly_archives": 241,
+    "sampled_checksum_objects": 241,
+    "market_data_downloaded": false
+  },
+  "accepted_claim": "The official public archive exposes an all-history USDT symbol superset and retains complete daily-archive metadata for sampled active and known retired symbols. A historical universe can therefore be constructed from bar presence and prior quote volume without substituting current exchangeInfo or a present-day survivor list.",
+  "claim_limits": [
+    "The probe does not prove the bucket is globally exhaustive relative to every Binance listing event.",
+    "Only metadata and checksum-object presence were inspected; no price, volume, return or strategy outcome was downloaded or computed.",
+    "Every future downloaded zip still requires its own checksum verification and strict pre-2025 timestamp normalization.",
+    "Data redistribution or commercial data licensing is outside this private research acceptance."
+  ],
+  "next_gate": "FREEZE_ONE_POINT_IN_TIME_ELIGIBILITY_LIQUIDITY_FORMATION_HOLDING_PORTFOLIO_AND_COST_CONTRACT_BEFORE_ANY_KLINE_DOWNLOAD",
+  "stop_conditions": [
+    "Fail DATA_REJECT if the frozen corpus downloader cannot retain known retired symbols and all checksum identities.",
+    "Fail DATA_REJECT if fewer than the preregistered minimum eligible assets exist in Design or Validation without outcome-dependent relaxation.",
+    "Do not use current listings, current winners, hand-selected survivors or post-2024 data to repair historical coverage.",
+    "Do not compute OOS unless the exact preregistered Design and Validation economic and path-risk gates pass."
+  ],
+  "scope_note": "Free archive metadata only. No paid API, kline download, return, PnL, candidate, OOS, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

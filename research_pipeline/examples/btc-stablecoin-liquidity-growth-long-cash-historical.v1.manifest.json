@@ -1,0 +1,162 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_STABLECOIN_LIQUIDITY_GROWTH_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-stablecoin-liquidity-growth-long-cash-historical-v1",
+  "created_at": "2026-08-19T09:09:09Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "Growth in combined USDT and USDC current USD capitalization may identify expanding crypto-native transaction liquidity. Holding full BTC only while the conservatively lagged combined capitalization exceeds its level 28 calendar days earlier may reduce liquidity-contraction paths and improve drawdown and Calmar after costs.",
+  "economic_rationale": "The policy is valuable only if an independently measured liquidity state improves matched-capital BTC economics beyond passive holding. Positive aggregate PnL, structural stablecoin growth, one depeg exit, present-vintage correlation or terminal inventory appreciation is insufficient: Design, Validation, annual breadth, episode and year concentration, drawdown, Calmar, upside capture, realized/unrealized PnL, holding and both single-asset neighbors must support the same mechanism.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-stablecoin-usdt-usdc-capitalization-28d-growth-long-cash",
+    "independence_key": "crypto-native-stablecoin-liquidity-capitalization-growth",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_LAGGED_COMBINED_USDT_USDC_28D_CAPITALIZATION_GROWTH_POLICY",
+    "distinct_from_closed_families": [
+      "Closed BTC price-trend, oscillator, volatility, calendar and session families derive features from BTC price or time rather than stablecoin capitalization.",
+      "Closed on-chain activity breadth uses BTC transaction and active-address counts rather than crypto settlement liquidity.",
+      "Closed CFTC, VIX, Treasury, Nasdaq and Cboe SKEW families use traditional-market positioning, rates, equity or option-risk information.",
+      "Open crypto-carry, forward volume/range and three-percent shock families use derivatives or exchange-market states rather than stablecoin supply and reference-value capitalization."
+    ],
+    "excluded_reinterpretations": [
+      "No growth margin, smoothing, z-score, dominance ratio, alternate stablecoin, horizon, price interaction, delay, cash yield, fractional sizing, leverage or short leg may be added after outcome access.",
+      "USDT-only and USDC-only variants are rejection-only neighbors and cannot replace a failed combined primary.",
+      "A failure cannot be reinterpreted as support for issuance-event timing, transfer-flow, depeg, stablecoin-ratio, closed on-chain or market-price families.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-stablecoin-liquidity-growth-primary-prior.v1.json",
+      "sha256": "a9a6b1d64df7f7fb7d752d6777f9da46857b4a550c1f51455ff3c8fcf3f9fb4b",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/coinmetrics-usdt-usdc-stablecoin-liquidity-daily-2018-2024.v1.source.json",
+      "sha256": "6e0db2ea42b2694d275e3664d2ecac5b6d71fd06d27f31c39e1d05a2377b56f6",
+      "role": "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_METRIC_AND_LICENSE_IDENTITY"
+    },
+    {
+      "path": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/inputs/coinmetrics-source-bundle.json",
+      "sha256": "60f3db703af391ad7f1dfab22b089eb6a8a82f4ea7c6082fa702faa913707aad",
+      "role": "CREATE_ONCE_RAW_COIN_METRICS_SOURCE_BUNDLE"
+    },
+    {
+      "path": ".research-state/experiments/btc-stablecoin-liquidity-growth-long-cash-historical-v1/inputs/coinmetrics-usdt-usdc-stablecoin-liquidity-2018-2024.csv",
+      "sha256": "144bd8a20d1954b09f20e85cdf8f16fd8befd201cb77da824ba57562573a7d81",
+      "role": "SEALED_2018_2024_DAILY_DUAL_ASSET_CAPITALIZATION_SUBSET"
+    },
+    {
+      "path": "research_pipeline/examples/btc-stablecoin-liquidity-growth-long-cash-v1.hypothesis.json",
+      "sha256": "675d9a7ede556d2e153e9b799d9486fc785489fc8de2c9d86055174e10ebf0e4",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json",
+      "sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc",
+      "role": "FROZEN_MATCHED_BUY_HOLD_LEDGER_PARITY_REFERENCE"
+    },
+    {
+      "path": "research/btc_stablecoin_liquidity_growth_long_cash_historical.cjs",
+      "sha256": "7a49b0a471b1f45528c0ba9ffec670675def2bedb492faeffc2369a0666e0e7c",
+      "role": "FROZEN_DETERMINISTIC_STABLECOIN_LIQUIDITY_POLICY_AND_ECONOMIC_RUNNER"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_STABLECOIN_LIQUIDITY_GROWTH_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "SECOND_CALENDAR_DAY_0000_UTC_AFTER_OBSERVATION_DAY",
+    "source_series": ["usdt.CapMrktCurUSD", "usdc.CapMrktCurUSD"],
+    "growth_lag_days": 28,
+    "relation": "STRICTLY_ABOVE",
+    "long_target": "BTC_100_PERCENT",
+    "risk_off_target": "CASH_100_PERCENT",
+    "cash_yield": "ZERO",
+    "missing_date_policy": "REJECT_NON_CONSECUTIVE_OR_INCOMPLETE_DUAL_ASSET_SOURCE_NO_FILL_NO_INTERPOLATION",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AT_OR_AFTER_FROZEN_EFFECTIVE_TIME",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": [
+      {"variant_id": "stablecoin-liquidity-combined-v1", "role": "primary", "assets": ["usdt", "usdc"], "combination": "SUM"},
+      {"variant_id": "stablecoin-liquidity-usdt-only-v1", "role": "neighbor", "assets": ["usdt"], "combination": "SINGLE"},
+      {"variant_id": "stablecoin-liquidity-usdc-only-v1", "role": "neighbor", "assets": ["usdc"], "combination": "SINGLE"}
+    ]
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2020-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_ZERO_YIELD_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_LONG_EPISODES_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "gate_set": {
+    "id": "BTC_STABLECOIN_LIQUIDITY_GROWTH_LONG_CASH_ECONOMIC_GATES_V1",
+    "primary": [
+      "design_and_validation_normal_and_stress_total_return_positive",
+      "design_and_validation_drawdown_at_most_85pct_of_buy_hold",
+      "design_and_validation_upside_capture_at_least_60pct",
+      "design_and_validation_calmar_at_least_buy_hold",
+      "validation_at_least_400_signal_evaluations_and_2_to_60_position_changes",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "normal_and_stress_positive_annual_return_at_least_4_of_5",
+      "annual_drawdown_non_worse_5_of_5",
+      "annual_calmar_non_worse_at_least_3_of_5",
+      "top_year_positive_contribution_at_most_60pct",
+      "validation_terminal_liquidation_adjusted_return_positive_and_cost_at_most_1pp",
+      "validation_p90_and_terminal_holding_age_at_most_two_years"
+    ],
+    "neighbors": [
+      "design_normal_total_return_positive",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_non_worse_than_buy_hold",
+      "validation_calmar_at_least_75pct_of_buy_hold",
+      "normal_positive_annual_return_at_least_3_of_5"
+    ],
+    "decision": "PRIMARY_AND_BOTH_NEIGHBORS_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "runtime": "NODE_22_OR_COMPATIBLE",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any frozen hash, row count, dual-asset completeness, chronology, publication delay, policy, cost, window, comparator or parity binding differs.",
+    "Stop with NO_CANDIDATE and permanently close the exact family if any frozen primary or neighbor gate fails; do not tune or substitute a neighbor.",
+    "Do not open post-2024 OOS unless every frozen historical gate passes and a separate sealed OOS authorization exists.",
+    "Never activate SHADOW, PAPER or LIVE and never mutate Production, Trading, database, order, fund, OCO, Grid, scheduler or canonical research state."
+  ],
+  "oos_access": "DENY"
+}

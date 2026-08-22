@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_OTHER_REPORTABLES_NET_POSITION_CHANGE_LONG_CASH_PRIMARY_PRIOR_REJECT_V1",
+  "family_id": "btc-cftc-other-reportables-net-position-change-long-cash",
+  "evaluated_at": "2026-08-20T10:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "outcome_access": "DENY_NOT_ACCESSED",
+  "oos_access": "DENY",
+  "proposed_feature": "CFTC_TFF_OTHER_REPORTABLES_NET_PERCENT_OF_OPEN_INTEREST_WEEKLY_CHANGE",
+  "candidate_directions_considered_without_selection": [
+    "CONTINUATION_LONG_WHEN_WEEKLY_NET_POSITION_CHANGE_IS_POSITIVE",
+    "CONTRARIAN_LONG_WHEN_WEEKLY_NET_POSITION_CHANGE_IS_NEGATIVE"
+  ],
+  "primary_sources": [
+    {
+      "title": "Traders in Financial Futures Explanatory Notes",
+      "publisher": "U.S. Commodity Futures Trading Commission",
+      "url": "https://www.cftc.gov/idc/groups/public/%40commitmentsoftraders/documents/file/tfmexplanatorynotes.pdf",
+      "finding": "Other Reportables is the residual buy-side category for reportable traders not assigned to Dealer, Asset Manager or Leveraged Funds; it mostly contains business-risk hedgers such as corporate treasuries, central banks, smaller banks, mortgage originators and credit unions. Trader classifications may change and describe the trader rather than every trading activity."
+    },
+    {
+      "title": "Trading behavior in bitcoin futures: Following the smart money",
+      "authors": ["Dirk G. Baur", "Lee A. Smales"],
+      "doi": "10.1002/fut.22332",
+      "url": "https://doi.org/10.1002/fut.22332",
+      "finding": "The study attributes market-timing ability and profitable position-change strategies to Leveraged Money. It reports that other trader types adjust positions after Leveraged Money, but does not establish one standalone Other Reportables change direction that predicts subsequent Bitcoin returns."
+    },
+    {
+      "title": "Who Trades Bitcoin Futures and Why?",
+      "publisher": "U.S. Commodity Futures Trading Commission",
+      "url": "https://www.cftc.gov/sites/default/files/2021-11/WhoTradesBTC_V2_ada.pdf",
+      "finding": "Bitcoin futures participant composition changed materially after mid-2020 and the study sample ends before U.S. Bitcoin-futures ETFs began trading, limiting transport of an early-sample participant label into a fixed directional rule."
+    }
+  ],
+  "adversarial_prior": {
+    "causal_specificity": "FAIL_HETEROGENEOUS_RESIDUAL_CATEGORY",
+    "directional_identification": "FAIL_NO_UNIQUE_PRE_OUTCOME_DIRECTION",
+    "mechanism_independence": "MISSING_PROOF_LIKELY_FOLLOWER_OF_CLOSED_LEVERAGED_MONEY_FAMILY",
+    "data_readiness": "PASS_EXISTING_SEALED_CFTC_ARCHIVES_AND_BTC_H1_CORPUS",
+    "economic_path_readiness": "PASS_EXISTING_MATCHED_CAPITAL_LONG_CASH_LEDGER",
+    "net_research_roi": "FAIL_DIRECTION_SCAN_WOULD_DOMINATE_ANY_RESULT"
+  },
+  "decision": "PRIOR_REJECT_CLOSE_EXACT_OTHER_REPORTABLES_WEEKLY_NET_POSITION_CHANGE_DIRECTION_FAMILY_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
+  "disposition": "PRIOR_REJECT_CLOSE_BTC_CFTC_OTHER_REPORTABLES_NET_POSITION_CHANGE_LONG_CASH_FAMILY",
+  "candidate_created": false,
+  "hypothesis_created": false,
+  "manifest_created": false,
+  "runner_created": false,
+  "factor_value_accessed": false,
+  "btc_outcome_accessed": false,
+  "economic_evidence_accessed": false,
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not select continuation or contrarian direction after reading Other Reportables values or BTC outcomes.",
+    "Do not scan thresholds, lookbacks, levels, changes, long-short-spreading combinations or participant-category blends as a rescue.",
+    "Do not use the already closed Leveraged Money, Asset Manager, option Asset Manager or Dealer result to manufacture a composite CFTC rule.",
+    "A future CFTC family requires a genuinely distinct feature and an independent pre-outcome primary prior; it cannot reopen this fingerprint."
+  ],
+  "material_learning": "A free executable data path is not enough to justify an experiment. Other Reportables is a heterogeneous residual classification and the available primary evidence does not identify one directional return mechanism, so preregistration would be arbitrary rather than causal.",
+  "next_action": "SWITCH_TO_A_DISTINCT_EXISTING_SEALED_FACTOR_WITH_A_DIRECTIONALLY_IDENTIFIED_PRIMARY_PRIOR",
+  "claim_boundary": "Primary-source prior audit only. No CFTC factor values, BTC outcomes, PnL, drawdown, candidate evidence or OOS were accessed.",
+  "scope_note": "No paid API, external backfill, second timer, second writer, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

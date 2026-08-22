@@ -1,0 +1,75 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Peer-reviewed research documents both intraday Bitcoin momentum and reversal and shows that jumps, liquidity and regime alter predictability. It does not establish that a low complete-day H1 close-path maximum drawdown improves DRA V1 entry economics. Exactly one frozen equal-capital historical audit may test the current day's maximum running-peak-to-later-close drawdown divided by its prior-20-complete-day median at primary 1.00 with 0.80 and 1.20 neighbors. Any economic, predictive, breadth, drawdown, holding, inventory or neighbor failure closes the exact family without changing path, lookback, direction, thresholds, parent or accounting.",
+  "disposition": "PRIOR_SUPPORTS_ONE_DRA_INTRADAY_CLOSE_PATH_DRAWDOWN_ENTRY_ADMISSION_AUDIT",
+  "document_type": "DRA_INTRADAY_CLOSE_PATH_DRAWDOWN_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_H1_CLOSE_PATH_MAX_DRAWDOWN_TO_PRIOR_20D_MEDIAN",
+    "formula": "For the ordered path consisting of the UTC-day first H1 open followed by all 24 H1 closes, track the running maximum and take the largest (running_peak-current_close)/running_peak. Divide that complete-day maximum drawdown by the median of the preceding 20 complete-day values, excluding the current day.",
+    "relation": "AT_OR_BELOW",
+    "thresholds": ["0.80", "1.00", "1.20"],
+    "primary_threshold": "1.00",
+    "lookback_complete_days": 20,
+    "zero_prior_median_action": "FEATURE_UNAVAILABLE_NO_INTERPOLATION"
+  },
+  "independence_contract": {
+    "duplicate_family_key": "dra-intraday-h1-close-path-max-drawdown-entry-admission",
+    "independence_key": "complete-day-market-path-adverse-excursion",
+    "not_strategy_drawdown_recovery_rescue": "The closed 90-day drawdown-recovery family measured DRA-equity recovery across ninety days. This feature measures one complete market day's H1 close-path adverse excursion and cannot reopen or retune the equity-path family.",
+    "not_price_path_efficiency_rescue": "The closed price-path-efficiency family measured absolute net displacement divided by gross H1 movement. Maximum close-path drawdown uses only the worst ordered peak-to-later-close excursion and does not aggregate all movement."
+  },
+  "prior_matrix": [
+    {
+      "finding": "The study documents Bitcoin intraday time-series momentum and stronger predictability in high-volume or high-volatility sessions, with evidence consistent with liquidity provision.",
+      "identity": "Shen, Urquhart and Wang, Bitcoin intraday time series momentum, Financial Review 57 (2022) 319-344",
+      "primary_source": "https://doi.org/10.1111/fire.12290",
+      "role": "CRYPTO_INTRADAY_PATH_PRIOR",
+      "transfer_boundary": "Intraday continuation does not identify maximum close-path drawdown, its low-is-better direction or DRA entry economics."
+    },
+    {
+      "finding": "The study reports both intraday momentum and reversal in cryptocurrencies and finds that patterns vary with jumps, FOMC events, liquidity and the COVID period.",
+      "identity": "Wen, Bouri, Xu and Zhao, Intraday return predictability in the cryptocurrency markets: Momentum, reversal, or both, North American Journal of Economics and Finance 62, 101733 (2022)",
+      "primary_source": "https://doi.org/10.1016/j.najef.2022.101733",
+      "role": "ADVERSARIAL_INTRADAY_REVERSAL_AND_REGIME_PRIOR",
+      "transfer_boundary": "A large intraday drawdown can either signal fragile overreaction or a profitable recovery opportunity, so direction must remain preregistered and breadth visible."
+    },
+    {
+      "finding": "The existing immutable pre-2025 OKX BTCUSDT H1 selection corpus contains 52,608 complete H1 bars with exact OHLC and quote volume and has already supported deterministic DRA matched-capital research.",
+      "identity": "Agora sealed OKX BTCUSDT H1 selection corpus",
+      "primary_source": ".research-state/java-parity/selection-2019-2024.tsv",
+      "role": "EXECUTABLE_PRE_OUTCOME_FEATURE_DATA_PATH",
+      "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00",
+      "transfer_boundary": "Data completeness and deterministic executability do not establish predictive independence or economic value."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly the ordered UTC-day first H1 open plus all 24 H1 closes and execute no earlier than the unchanged next-bar open.",
+    "Use only running-peak-to-later-close drawdown; do not substitute H1 lows, daily high-low range, strategy equity, terminal inventory or unordered returns.",
+    "Exclude the current day from the exact prior-20-complete-day median and make a non-positive prior median unavailable rather than assigning a state.",
+    "Freeze primary ratio 1.00 and neighbors 0.80 and 1.20 before DRA outcome access.",
+    "Keep DRA parent side, entries, exits, lot cost, capacity, fee, adverse slippage, cooldown and next-bar fill clock unchanged.",
+    "Require gate set V2 Design and Validation total and realized PnL improvement, annual breadth, drawdown and underwater non-inferiority, holding support, terminal inventory, intervention support, concentration and both-neighbor stability; otherwise close the family.",
+    "Do not open post-2024 OOS or create a Trading runtime rule from this audit."
+  ],
+  "prohibited_substitutions": [
+    "Do not replace hourly closes with lows, change the day/session boundary, use another drawdown duration, or search a different lookback after outcome access.",
+    "Do not reverse the relation, add recovery, volume, range, volatility, trend or external factors, or combine it with the closed late-day activity feature.",
+    "Do not reopen the closed strategy-drawdown-recovery, price-path-efficiency, first-extreme-order, realized-performance or close-location families."
+  ],
+  "uncertainty": [
+    "Low intraday drawdown may merely select quiet days and remove profitable volatility, reducing total PnL despite a smoother local path.",
+    "H1 closes do not expose within-bar adverse excursions, so the metric intentionally measures only the observable close path and may understate true path risk.",
+    "The feature can remain correlated with realized volatility or path efficiency even though its exact ordered worst-excursion fingerprint is distinct.",
+    "No outcome for this exact feature, post-2024 evidence, OOS, candidate, runtime filter, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T06:30:00Z",
+  "source_access": {
+    "sealed_h1_dataset_hash_and_rows": "PASS",
+    "shen_urquhart_wang_publisher_identity_and_abstract": "PASS",
+    "wen_bouri_xu_zhao_publisher_identity_and_abstract": "PASS"
+  },
+  "status": "COMPLETED"
+}

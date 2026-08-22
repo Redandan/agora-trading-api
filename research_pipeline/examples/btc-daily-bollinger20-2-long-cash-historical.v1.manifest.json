@@ -1,0 +1,178 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_BOLLINGER20_2_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-bollinger20-2-long-cash-historical-v1",
+  "created_at": "2026-08-19T04:25:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A causal close crossing below its standard 20-day lower Bollinger band may identify a volatility-normalized BTC dislocation that subsequently reverts far enough to the upper band to preserve positive after-cost returns while materially reducing drawdown versus continuous BTC ownership.",
+  "economic_rationale": "The symmetric volatility scaling is useful only if the one frozen default rule produces enough independent completed episodes, positive normal and stress returns, broad annual contribution, materially lower drawdown and competitive Calmar after the opportunity cost of remaining out of BTC. A bear-year avoidance or one winning episode cannot pass.",
+  "opportunity_cost": "Resolve one independent, executable mean-reversion mechanism using the already sealed free history before adding another external source or indicator family. The exact 20/2 policy closes permanently on any gate failure.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-bollinger20-2-lower-cross-long-upper-cross-cash",
+    "independence_semantics": "INDEPENDENT_PRICE_DEVIATION_MEAN_REVERSION_POLICY",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_CAUSAL_COMPLETE_DAY_NEXT_H1_OPEN_POLICY",
+    "distinct_from_closed_families": [
+      "The closed SMA150/200/250 policy follows slow price-above-mean trend; this policy buys a short-horizon volatility-scaled downside deviation and exits an upside deviation.",
+      "The closed Donchian policy follows prior-extreme breakouts; this policy takes the opposite-direction lower-band event and uses a symmetric standard-deviation band.",
+      "The closed Supertrend policy uses ATR-ratcheted trend state; this policy has no ATR, ratchet or trend state.",
+      "The closed RSI14 midline policy follows oscillator momentum; this policy uses no RSI threshold or hysteresis."
+    ],
+    "excluded_reinterpretations": [
+      "Exactly one 20-day, two-population-standard-deviation primary is allowed; no neighbor, alternate parameter or outcome-selected variant exists.",
+      "No sample-standard-deviation substitution, middle-band exit, trend filter, persistence, delay, stop, minimum hold, cash yield, leverage, short leg, DRA interaction or ensemble may be added after outcome access.",
+      "No failed result may be reversed into a lower-band breakout short or upper-band momentum long."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_bollinger20_2_long_cash_historical.cjs",
+      "sha256": "e7a721fcea671a80074ffc418172e4acd779e641dc8e2f6f9b3c794f8b4ab284",
+      "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+      "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-bollinger20-2-long-cash-primary-prior.v1.json",
+      "sha256": "19b3be4627da6d4552dca2075a86bf5a6e2a0a7e55475f1b821dbde930c045f2",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_FINGERPRINT_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-bollinger20-2-long-cash-v1.hypothesis.json",
+      "sha256": "470033cb2019b28ab36b145b7109412b98a241c5a74aa07e141a6a7669c6c8e3",
+      "role": "FROZEN_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json",
+      "sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc",
+      "role": "FROZEN_BUY_HOLD_LEDGER_PARITY_ORACLE"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_BOLLINGER20_2_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_aggregation": "COMPLETE_UTC_DAY_24_CONTIGUOUS_H1_BARS",
+    "complete_day_closes": 20,
+    "population_standard_deviation_multiplier": 2,
+    "standard_deviation_denominator": "N_POPULATION",
+    "band_definition": "CURRENT_AND_PRIOR_19_COMPLETE_DAY_CLOSE_SMA_PLUS_OR_MINUS_2_TIMES_POPULATION_STANDARD_DEVIATION",
+    "long_event": "PREVIOUS_CLOSE_AT_OR_ABOVE_PREVIOUS_LOWER_BAND_AND_CURRENT_CLOSE_STRICTLY_BELOW_CURRENT_LOWER_BAND",
+    "cash_event": "PREVIOUS_CLOSE_AT_OR_BELOW_PREVIOUS_UPPER_BAND_AND_CURRENT_CLOSE_STRICTLY_ABOVE_CURRENT_UPPER_BAND",
+    "state_between_events": "HOLD_LAST_LONG_OR_CASH_TARGET",
+    "initial_state": "CASH_UNTIL_FIRST_POST_HISTORY_LONG_EVENT",
+    "window_reset": "EQUITY_AND_POSITION_RESET_TO_CASH_BUT_CAUSAL_PREWINDOW_INDICATOR_AND_TARGET_HISTORY_RETAINED",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "stop": "DENY",
+    "leverage": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_AND_POSITION_CASH_WITH_CAUSAL_PREWINDOW_FEATURE_AND_TARGET_HISTORY"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_AND_POSITION_CASH_WITH_CAUSAL_PREWINDOW_FEATURE_AND_TARGET_HISTORY"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_AND_POSITION_CASH_WITH_CAUSAL_PREWINDOW_FEATURE_AND_TARGET_HISTORY"
+    }
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY",
+    "ledger_parity": "REQUIRE_EXACT_8DP_BUY_HOLD_DESIGN_AND_VALIDATION_RETURN_DRAWDOWN_CALMAR_MATCH_TO_FROZEN_RESULT"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_ALL_IN_EPISODE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "gate_set": {
+    "id": "BTC_DAILY_BOLLINGER20_2_LONG_CASH_MATCHED_CAPITAL_GATES_V1",
+    "integrity": [
+      "exact_dataset_hash_rows_hourly_lattice_utc_days_and_source_hashes",
+      "exact_population_standard_deviation_formula_tests",
+      "exact_strict_lower_entry_and_upper_exit_cross_tests",
+      "exact_buy_hold_reference_ledger_parity_before_candidate_classification"
+    ],
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_80pct_of_buy_hold",
+      "normal_calmar_at_least_75pct_of_buy_hold"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_70pct_of_buy_hold",
+      "normal_upside_capture_at_least_40pct",
+      "normal_calmar_at_least_buy_hold",
+      "completed_episodes_between_4_and_50",
+      "position_changes_between_8_and_100",
+      "average_exposure_between_5_and_85pct",
+      "stress_drawdown_no_more_than_normal_plus_3pp",
+      "terminal_liquidation_adjusted_return_pct_gt_0",
+      "terminal_liquidation_cost_at_most_1pp"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_5_of_5_years",
+      "normal_primary_calmar_at_least_75pct_of_buy_hold_at_least_3_of_5_years",
+      "normal_primary_return_at_least_25pct_of_positive_buy_hold_or_non_worse_than_nonpositive_buy_hold_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct_and_at_least_one_positive_episode",
+      "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_THE_EXACT_DAILY_BOLLINGER20_2_LOWER_CROSS_LONG_UPPER_CROSS_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "runtime": "NODE_AVAILABLE_IN_CURRENT_LOCAL_RESEARCH_SANDBOX",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset hash, hourly lattice, OHLCV or complete UTC-day inventory gate fails.",
+    "Stop with FORMULA_REJECT if the exact 20-close population-standard-deviation or strict cross semantics fail synthetic tests.",
+    "Stop with ECONOMIC_REJECT if the same-capital buy-and-hold return, drawdown and Calmar do not match the frozen Python-ledger result at eight decimals.",
+    "Stop and permanently close the exact Bollinger20/2 lower-cross long and upper-cross cash family if any frozen gate fails.",
+    "Do not scan another length, deviation multiplier, deviation estimator, signal direction, exit band, trend filter, persistence, delay, holding period, stop, DRA combination or cost model after results.",
+    "Do not use post-2024 data in this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL",
+    "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO",
+    "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CORWIN_SCHULTZ_SPREAD_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-corwin-schultz-spread-entry-admission-historical-v1",
+  "decided_at": "2026-08-21T05:43:55Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_CORWIN_SCHULTZ_SPREAD_ENTRY_ADMISSION_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_CORWIN_SCHULTZ_TWO_DAY_HIGH_LOW_SPREAD_TO_PRIOR_20D_MEDIAN_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_TUNING",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-primary-prior.v1.json",
+      "sha256": "8c0f4594a92db5d2045aae4ba98f795ca1711567980206d01a95675e28bdf055"
+    },
+    "invalid_v1_support_spec": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "9630ac361000bb80d194351396ba02fa9923cbd4f40761f769fa4ac4cf7478d9"
+    },
+    "v1_invalidation": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-preoutcome-v1-invalidation.json",
+      "sha256": "0abbfe955c9e7b267b8ae59b54aa9d4c2151054c373b282ac10fa2ed5c9ba238",
+      "disposition": "INVALIDATED_BEFORE_OUTPUT_OR_STRATEGY_ECONOMICS_FOR_PYTHON_BOOLEAN_LITERAL_ERROR"
+    },
+    "valid_preoutcome_support_spec_v2": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-preoutcome.v2.spec.json",
+      "sha256": "b99461f861f3b5feaa931a4e6ecdc9e09b4d043e23a1afa498779214c44092f3"
+    },
+    "support_acceptance": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-preoutcome.v2.acceptance.json",
+      "sha256": "4f7181ea85eaa044b779aa218ef581d56944824d45d4422a9ac0e7206f8c1cf6"
+    },
+    "hypothesis": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-v1.hypothesis.json",
+      "sha256": "e92c4561dba8c880c053469f99c4bef885c098b21a6466fb2d7aca09644ac002"
+    },
+    "support_runner_v2": {
+      "path": "research/dra_corwin_schultz_spread_support_v2.py",
+      "sha256": "145b57d2d8bde9d2937c1a241b6ca1197dc26d715525b779c14bd0c6228c6ffc"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/dra-corwin-schultz-spread-entry-admission-historical-v1/inputs/feature-support.v2.run1.json",
+      "sha256": "8f607fc2e8e179410bc191a3d96526d706a0518f5b2e7e56597aced87ffe87c6"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/dra-corwin-schultz-spread-entry-admission-historical-v1/inputs/feature-support.v2.run2.json",
+      "sha256": "8f607fc2e8e179410bc191a3d96526d706a0518f5b2e7e56597aced87ffe87c6"
+    },
+    "manifest": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-historical.v1.manifest.json",
+      "sha256": "8e37cd3700611162f1dcdbd14abc898d7e7a54fb86126d9840a0e52f32fa7e21"
+    },
+    "economic_runner": {
+      "path": "research/btc_dra_declarative_entry_admission_v1.py",
+      "sha256": "648c0a9f96eccdf18852c87ff5acdaadf0cef929ca89244edcaf11707b5c41e1"
+    },
+    "economic_run1": {
+      "path": ".research-state/experiments/dra-corwin-schultz-spread-entry-admission-historical-v1/artifacts/economic-run1.json",
+      "sha256": "be581b54d83cbabb475bd6357af05c9a5c96b92f4add185432c6072aa3d03a79"
+    },
+    "economic_run2": {
+      "path": ".research-state/experiments/dra-corwin-schultz-spread-entry-admission-historical-v1/artifacts/economic-run2.json",
+      "sha256": "be581b54d83cbabb475bd6357af05c9a5c96b92f4add185432c6072aa3d03a79"
+    },
+    "determinism": "SUPPORT_AND_ECONOMIC_RUNS_BYTE_IDENTICAL"
+  },
+  "preoutcome_support": {
+    "status": "PASS_PREOUTCOME_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+    "feature_rows": 2099,
+    "raw_positive_spread_rows": 1490,
+    "raw_zero_spread_rows": 701,
+    "design": {
+      "normalized_rows": 1045,
+      "low_spread_rows": 543,
+      "high_spread_rows": 502,
+      "state_transitions": 516,
+      "top_month_high_spread_share": "0.03784861"
+    },
+    "validation": {
+      "normalized_rows": 721,
+      "low_spread_rows": 369,
+      "high_spread_rows": 352,
+      "state_transitions": 334,
+      "top_month_high_spread_share": "0.05397727"
+    },
+    "maximum_absolute_spearman_correlation": {
+      "design": "0.10806618",
+      "validation": "0.10831411"
+    },
+    "feature_lattice_sha256": "5b6c05a8e44a06e58fa878114bf8cd6f230f6cbb5292371282a4fad8754235d8"
+  },
+  "economic_summary": {
+    "parent": {
+      "design_total_pnl_usdt": "90.77797326",
+      "design_realized_pnl_usdt": "169.89846767",
+      "design_max_drawdown_pct": "29.530448",
+      "validation_total_pnl_usdt": "86.20298186",
+      "validation_realized_pnl_usdt": "89.41118307",
+      "validation_max_drawdown_pct": "7.121498",
+      "validation_median_hold_hours": 182.5,
+      "validation_p90_hold_hours": 1418.3
+    },
+    "primary_1_0": {
+      "design_total_pnl_usdt": "75.90494128",
+      "design_total_pnl_delta_usdt": "-14.87303198",
+      "design_realized_pnl_delta_usdt": "-48.62971519",
+      "design_max_drawdown_delta_pp": "-17.753513",
+      "validation_total_pnl_usdt": "68.17627368",
+      "validation_total_pnl_delta_usdt": "-18.02670818",
+      "validation_realized_pnl_delta_usdt": "-18.02670818",
+      "validation_max_drawdown_pct": "8.882511",
+      "validation_max_drawdown_delta_pp": "1.761013",
+      "validation_median_hold_hours": 178.0,
+      "validation_p90_hold_hours": 1285.4,
+      "annual_total_pnl_wins": "1_OF_5",
+      "annual_drawdown_non_worse": "3_OF_5",
+      "top_year_positive_delta_contribution_pct": "100.000000"
+    },
+    "lower_neighbor_0_8": {
+      "validation_total_pnl_delta_usdt": "-22.75250627",
+      "validation_max_drawdown_delta_pp": "1.903556",
+      "annual_total_pnl_wins": "1_OF_5"
+    },
+    "upper_neighbor_1_2": {
+      "validation_total_pnl_delta_usdt": "-14.42464205",
+      "validation_max_drawdown_delta_pp": "-0.697555",
+      "annual_total_pnl_wins": "1_OF_5"
+    }
+  },
+  "failed_primary_gates": [
+    "annual_drawdown_non_worse_at_least_4_of_5",
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "neighbor_failures": {
+    "lower_0_8": [
+      "validation_drawdown_within_0_25pp",
+      "validation_realized_non_worse",
+      "validation_total_pnl_non_worse"
+    ],
+    "upper_1_2": [
+      "validation_realized_non_worse",
+      "validation_total_pnl_non_worse"
+    ]
+  },
+  "material_learning": "The Corwin-Schultz proxy passed formula, support, breadth and nonredundancy checks, but measurement independence did not become economic value. The primary veto discarded 18.02670818 USDT of Validation realized and total PnL, increased Validation drawdown by 1.761013 percentage points, won only one of five annual total-PnL comparisons and concentrated all positive annual delta in 2021. Both frozen neighbors also lost Validation total and realized PnL. This is a permanent family closure, not an invitation to tune a spread threshold or substitute another liquidity estimator.",
+  "prohibited_reopen": [
+    "Do not rerun or tune the exact Corwin-Schultz two-day high-low spread proxy divided by its prior twenty-complete-day median as a DRA entry-admission family.",
+    "Do not change the formula, negative-estimate treatment, UTC boundary, lookback, normalization, threshold, relation, neighbors, fill timing, parent, capital, costs or gates.",
+    "Do not substitute Roll spread, Amihud, order-book spread, volume, another venue, intraday windows, smoothing, percentiles, sizing, leverage, shorts or an interaction as a rescue.",
+    "Do not open OOS, create a candidate, deploy, or activate SHADOW, PAPER or LIVE."
+  ],
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Historical development evidence only. No paid API, second timer, second writer, external backfill, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

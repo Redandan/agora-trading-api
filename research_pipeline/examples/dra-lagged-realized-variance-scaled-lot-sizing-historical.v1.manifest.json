@@ -1,0 +1,109 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_VARIABLE_LOT_SIZING_MANIFEST_V1",
+  "experiment_id": "dra-lagged-realized-variance-scaled-lot-sizing-historical-v1",
+  "hypothesis_id": "dra-lagged-realized-variance-scaled-lot-sizing-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "parent_strategy": "BTC_DRA_V1_BASELINE_250_USDT_FIXED_30_USDT_LOTS",
+  "gate_set": "DRA_VARIABLE_LOT_SIZING_ECONOMIC_GATES_V1",
+  "oos_access": "DENY",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economics": {
+    "initial_equity_usdt": "250",
+    "maximum_open_cost_usdt": "240",
+    "maximum_open_lots": 8,
+    "base_lot_cost_usdt": "30",
+    "fee_rate_each_side": "0.0010",
+    "adverse_slippage_rate_each_side": "0.0005",
+    "fill": "UNCHANGED_NEXT_H1_OPEN",
+    "exit": "UNCHANGED_DRA_V1_PROFIT_ONLY_5PCT_NET_ESTIMATE"
+  },
+  "feature": {
+    "key": "LATEST_COMPLETE_UTC_DAY_REALIZED_VARIANCE_TO_PRIOR_20_COMPLETE_DAY_MEDIAN",
+    "decision_time": "UNCHANGED_DRA_SIGNAL_AT_COMPLETE_UTC_DAY_23_00_BEFORE_NEXT_H1_OPEN",
+    "return": "H1_SIMPLE_CLOSE_TO_PREVIOUS_H1_CLOSE",
+    "mapping": "MAX_FLOOR_MIN_30_30_DIV_NORMALIZED_VARIANCE_RATIO_QUANTIZED_HALF_UP_1E_8",
+    "missing_value": "UNCHANGED_30_USDT_SIGNAL_PRESERVED"
+  },
+  "variants": [
+    {
+      "role": "lower_floor_neighbor",
+      "floor_usdt": "10",
+      "variant_id": "rv-scaled-new-lot-floor-10-v1"
+    },
+    {
+      "role": "primary",
+      "floor_usdt": "15",
+      "variant_id": "rv-scaled-new-lot-floor-15-v1"
+    },
+    {
+      "role": "upper_floor_neighbor",
+      "floor_usdt": "20",
+      "variant_id": "rv-scaled-new-lot-floor-20-v1"
+    }
+  ],
+  "gate_contract": {
+    "primary_all_required": [
+      "all_variable_sizing_accounting_reconciles",
+      "design_total_pnl_improves",
+      "validation_total_pnl_improves",
+      "design_risk_adjusted_score_improves",
+      "validation_risk_adjusted_score_improves",
+      "validation_realized_non_worse",
+      "validation_unrealized_non_worse",
+      "validation_drawdown_reduces_at_least_0_25pp",
+      "validation_max_underwater_duration_non_worse",
+      "validation_median_hold_non_worse",
+      "validation_p90_hold_non_worse",
+      "validation_terminal_inventory_count_non_worse",
+      "validation_terminal_inventory_cost_non_worse",
+      "validation_terminal_unrealized_non_worse",
+      "design_filled_scaled_lots_at_least_8",
+      "validation_filled_scaled_lots_at_least_4",
+      "annual_total_wins_at_least_3_of_5",
+      "annual_drawdown_improves_at_least_4_of_5",
+      "annual_risk_adjusted_wins_at_least_3_of_5",
+      "top_year_positive_delta_contribution_at_most_60pct"
+    ],
+    "each_neighbor_all_required": [
+      "validation_total_pnl_non_worse",
+      "validation_risk_adjusted_score_non_worse",
+      "validation_drawdown_strictly_improves",
+      "validation_realized_non_worse",
+      "validation_unrealized_non_worse",
+      "validation_filled_scaled_lots_at_least_4",
+      "variable_sizing_accounting_reconciles"
+    ],
+    "failure_disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_VARIABLE_LOT_SIZING_FAMILY",
+    "pass_disposition": "CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED"
+  },
+  "forbidden_rescue_actions": [
+    "FORMULA_TUNING_AFTER_OUTCOME",
+    "FLOOR_TUNING_AFTER_OUTCOME",
+    "CAP_TUNING_AFTER_OUTCOME",
+    "GATE_RELAXATION_AFTER_OUTCOME",
+    "OOS_ACCESS_DURING_HISTORICAL_SCREEN",
+    "FAMILY_REOPEN_AFTER_FAILED_FROZEN_SCREEN"
+  ],
+  "hypothesis_binding": {
+    "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-v1.hypothesis.json",
+    "sha256": "10fe350fc0f9286825c0ee0752ced3d5d5bcfdde4f118707d9f4d5b95b75500f"
+  },
+  "prior_evidence": {
+    "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-preoutcome.v1.acceptance.json",
+    "sha256": "9c4bba963688de0e783c39ad8688eeabaef01f38e819efacb2a8539f192c019a"
+  },
+  "runner_binding": {
+    "path": "research/btc_dra_variable_lot_sizing_v1.py",
+    "sha256": "963390fb2fa5bc8263a3ac84bde6f3d941eb969af15eb67d9b43e2b5156c9dac"
+  },
+  "support_runner_binding": {
+    "path": "research/dra_lagged_realized_variance_scaled_lot_sizing_support_v1.py",
+    "sha256": "e13e994717aaaf312ee0f33f5e8fbd39f11601cce6fdcf1b56e3d1f11e414c82"
+  }
+}

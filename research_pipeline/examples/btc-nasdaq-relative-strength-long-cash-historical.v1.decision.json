@@ -1,0 +1,142 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NASDAQ_RELATIVE_STRENGTH_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-nasdaq-relative-strength-long-cash-historical-v1",
+  "decided_at": "2026-08-20T09:20:49Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_NASDAQ_RELATIVE_STRENGTH_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_RS42_63_84_LONG_CASH_FAMILY_WITHOUT_LOOKBACK_THRESHOLD_OR_POLICY_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "manifest": {
+    "path": "research_pipeline/examples/btc-nasdaq-relative-strength-long-cash-historical.v1.manifest.json",
+    "sha256": "20ba045911a86309468942d8c538ffffcba2c2b95d4ca6618be6419f41cfc880"
+  },
+  "runner": {
+    "path": "research/btc_nasdaq_relative_strength_long_cash_historical.py",
+    "sha256": "c08a678bb9421b8fa0b0bb4f0bee9aacf04358d7b3c31d4cd78124b2b05dbe27",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-nasdaq-relative-strength-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "90248209d06e63407f7454f1aa9bdb9aa244d5fd79cdf2c98563fd8a9563a1da"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-nasdaq-relative-strength-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "90248209d06e63407f7454f1aa9bdb9aa244d5fd79cdf2c98563fd8a9563a1da",
+    "byte_identical": true
+  },
+  "datasets": {
+    "btc": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "complete_utc_days": 2192,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "nasdaq": {
+      "sha256": "3102d5caf63211caba467cd930feccd7f9672f5d03be57d77c8022c0c977228f",
+      "rows": 1762,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31",
+      "present_vintage": true
+    }
+  },
+  "economic_summary": {
+    "primary_rs63_design_normal": {
+      "realized_return_pct": "68.94685135",
+      "unrealized_return_pct": "0.00000000",
+      "total_return_pct": "68.94685135",
+      "buy_hold_total_return_pct": "129.60544229",
+      "maximum_drawdown_pct": "68.88243862",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "calmar_ratio": "1.00093511",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "upside_capture_ratio": "0.53197497",
+      "average_exposure_pct": "51.64233577",
+      "position_changes": 26,
+      "median_hold_hours": "336.00000000",
+      "p90_hold_hours": "2385.60000000"
+    },
+    "primary_rs63_design_stress": {
+      "total_return_pct": "62.48474301",
+      "maximum_drawdown_pct": "69.34571956"
+    },
+    "primary_rs63_validation_normal": {
+      "realized_return_pct": "164.32787947",
+      "unrealized_return_pct": "91.09157946",
+      "total_return_pct": "255.41945893",
+      "terminal_liquidation_adjusted_return_pct": "254.88650745",
+      "buy_hold_total_return_pct": "464.75475156",
+      "maximum_drawdown_pct": "22.67457429",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "calmar_ratio": "11.26457571",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.54957902",
+      "average_exposure_pct": "59.91792066",
+      "position_changes": 17,
+      "median_hold_hours": "420.00000000",
+      "p90_hold_hours": "2503.20000000",
+      "top_positive_episode_contribution_pct": "55.65541987",
+      "terminal_position": true,
+      "terminal_holding_age_hours": "1440.00000000"
+    },
+    "primary_rs63_validation_stress": {
+      "total_return_pct": "246.47147666",
+      "maximum_drawdown_pct": "22.67457429"
+    },
+    "validation_rejection_only_neighbors": {
+      "rs42": {
+        "total_return_pct": "192.53811791",
+        "maximum_drawdown_pct": "29.64653032",
+        "calmar_ratio": "6.49445705",
+        "upside_capture_ratio": "0.41427897"
+      },
+      "rs84": {
+        "total_return_pct": "277.13509557",
+        "maximum_drawdown_pct": "22.67457429",
+        "calmar_ratio": "12.22228440",
+        "upside_capture_ratio": "0.59630395"
+      }
+    },
+    "annual_breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_years": "4_of_5",
+      "normal_calmar_at_least_75pct_buy_hold_years": "1_of_5",
+      "normal_upside_capture_at_least_50pct_years": "2_of_5",
+      "top_year_positive_total_return_contribution_pct": "39.43346947"
+    }
+  },
+  "failed_gates": [
+    "primary_design_normal_calmar_at_least_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_rs42_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_rs42_validation_normal_upside_capture_at_least_50pct",
+    "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+    "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5"
+  ],
+  "passed_evidence": [
+    "RS63 produced positive normal and stress return in both Design and Validation and reduced Validation drawdown to 22.67457429 percent versus 32.28416349 percent for passive BTC.",
+    "Validation position changes, holding duration, episode concentration and terminal liquidation cost remained inside their frozen support gates.",
+    "RS63 produced positive normal and stress return in four of five annual folds and had non-worse drawdown in four of five years.",
+    "RS84 passed the frozen Validation neighbor economics but remains rejection-only and cannot replace the failed primary."
+  ],
+  "material_failure": [
+    "The primary reduced participation without sufficient economic compensation: Design Calmar was 1.00093511 versus 1.67905405 for passive BTC.",
+    "Validation RS63 captured only 54.957902 percent of passive upside and Calmar was 11.26457571 versus passive 14.39575015 despite the lower drawdown.",
+    "Annual risk-adjusted breadth failed: Calmar reached at least seventy-five percent of passive in only one of five years and upside capture reached fifty percent in only two of five years.",
+    "RS42 failed both Validation Calmar and upside support; the stronger post-outcome RS84 appearance cannot be selected under the frozen rejection-only contract."
+  ],
+  "material_learning": "BTC outperformance versus Nasdaq contained useful drawdown-state information, especially in 2023-2024, but the zero-threshold weekly long/cash policy discarded too much upside and did not beat passive BTC on Calmar. Lower drawdown alone is not a candidate when return efficiency and annual breadth fail.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not promote RS42 or RS84 after observing their outcomes.",
+    "Do not scan another lookback, threshold, normalization, smoothing, evaluation date, lag, holding interval, sizing rule, leverage or short direction.",
+    "Do not add BTC trend, Nasdaq trend, correlation, volatility, macro, DRA or any closed factor as a rescue.",
+    "Do not relax return, stress, drawdown, Calmar, upside, annual breadth, concentration, holding or terminal-inventory gates and do not open independent OOS."
+  ],
+  "next_action": "SWITCH_TO_A_DIFFERENT_INDEPENDENT_MECHANISM_WITH_EXISTING_FREE_SEALED_DATA_AND_NO_CROSS_MARKET_RELATIVE_STRENGTH_RETUNING",
+  "claim_boundary": "Historical matched-capital present-vintage BTC-minus-Nasdaq relative-strength evidence only. This is not independent OOS, a runtime strategy or permission to activate.",
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

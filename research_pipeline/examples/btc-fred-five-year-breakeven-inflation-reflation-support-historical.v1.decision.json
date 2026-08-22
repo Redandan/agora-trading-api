@@ -1,0 +1,126 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_FIVE_YEAR_BREAKEVEN_INFLATION_REFLATION_SUPPORT_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "btc-fred-five-year-breakeven-inflation-historical-v1",
+  "hypothesis_id": "btc-fred-five-year-breakeven-inflation-reflation-support-long-cash-v1",
+  "status": "NO_CANDIDATE_CLOSE_BTC_FRED_FIVE_YEAR_BREAKEVEN_INFLATION_REFLATION_SUPPORT_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_T5YIE_FOUR_WEEK_RISE_FAMILY_WITHOUT_ECONOMIC_ACCESS_OR_TUNING",
+  "candidate_created": false,
+  "economic_evidence_accessed": false,
+  "oos_opened": false,
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-fred-five-year-breakeven-inflation-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-fred-five-year-breakeven-inflation-historical-v1/artifacts/run2.json",
+    "run1_sha256": "d87db25e09edd787c4ae2f869ba75ed3eec4bcf3008675b8dcde524381d0c452",
+    "run2_sha256": "d87db25e09edd787c4ae2f869ba75ed3eec4bcf3008675b8dcde524381d0c452",
+    "byte_identical": true
+  },
+  "frozen_bindings": {
+    "manifest_sha256": "3b6f7f82d3a1f092e9ccaf67a4957a0debfff9c692dd4f16fd51fdd59ba57214",
+    "runner_sha256": "4d81f04a7d9b322cca24cef31444379e776f98b864d026db86aea6553ffd2590",
+    "source_probe_sha256": "86262c3411ef47ffc9891fd0bc0e6ae83f8fdb2ba7e4fc22f78d595c363a6442",
+    "source_bundle_sha256": "e65b4f0f06077469f7e796e4470ec4a05e8bf95891dec1c8feb4239e4cd29ffc",
+    "normalized_t5yie_sha256": "5080eee237a67dc286f51bfb968a29c92e49c2477c06bbd9f5f88cc77a1c8cfe",
+    "btc_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+  },
+  "source_feasibility": {
+    "daily_observations": 2000,
+    "weekly_observations": 417,
+    "factor_evaluations": 413,
+    "supportive_weeks": 209,
+    "other_weeks": 204,
+    "transitions": 108,
+    "design_support": "209_EVALUATIONS_113_SUPPORTIVE_96_OTHER_50_TRANSITIONS_4_YEARS_WITH_BOTH_STATES_PASS",
+    "validation_support": "104_EVALUATIONS_51_SUPPORTIVE_53_OTHER_30_TRANSITIONS_2_YEARS_WITH_BOTH_STATES_PASS",
+    "maximum_single_year_state_share": "DESIGN_0.32291667_VALIDATION_0.54901961_PASS"
+  },
+  "predictive_result": {
+    "failed_gate_count": 10,
+    "design": {
+      "episodes": 208,
+      "supportive_count": 113,
+      "other_count": 95,
+      "supportive_median_terminal_return_168h": "0.00721924",
+      "other_median_terminal_return_168h": "-0.01010949",
+      "supportive_negative_terminal_rate": "0.46017699",
+      "other_negative_terminal_rate": "0.55789474",
+      "one_sided_fisher_negative_rate_p_value": "0.10290005",
+      "supportive_median_path_drawdown_168h": "0.09164081",
+      "other_median_path_drawdown_168h": "0.09182332",
+      "supportive_p75_path_drawdown_168h": "0.13838652",
+      "other_p75_path_drawdown_168h": "0.11923360",
+      "annual_direction_wins": "3_OF_4",
+      "annual_median_return_deltas": {
+        "2019": "0.01108245",
+        "2020": "0.05542456",
+        "2021": "0.01264523",
+        "2022": "-0.06666743"
+      },
+      "top_positive_annual_delta_contribution_pct": "70.02273088"
+    },
+    "validation": {
+      "episodes": 103,
+      "supportive_count": 51,
+      "other_count": 52,
+      "supportive_median_terminal_return_168h": "0.00520634",
+      "other_median_terminal_return_168h": "0.01248801",
+      "supportive_negative_terminal_rate": "0.39215686",
+      "other_negative_terminal_rate": "0.32692308",
+      "one_sided_fisher_negative_rate_p_value": "0.81463037",
+      "supportive_median_path_drawdown_168h": "0.07053300",
+      "other_median_path_drawdown_168h": "0.06338213",
+      "supportive_p75_path_drawdown_168h": "0.09461401",
+      "other_p75_path_drawdown_168h": "0.08742863",
+      "annual_direction_wins": "1_OF_2",
+      "annual_median_return_deltas": {
+        "2023": "-0.01663083",
+        "2024": "0.01106207"
+      },
+      "top_positive_annual_delta_contribution_pct": "100.00000000"
+    },
+    "material_interpretation": "Design showed a large median-return difference but narrowly missed Fisher support, worsened p75 path drawdown and concentrated 70.02 percent of positive annual delta in one year. Validation reversed: supportive weeks had 72.82bp lower median return, a 6.52 percentage-point worse negative-return rate, worse median and p75 path drawdown, no Fisher support, only one winning year and all positive annual contribution in 2024. The proposed reflation-support sign does not generalize."
+  },
+  "failed_pre_economic_gates": [
+    "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+    "design_supportive_p75_path_drawdown_non_worse",
+    "design_top_positive_annual_median_return_delta_contribution_at_most_60pct",
+    "validation_supportive_median_terminal_return_at_least_25bp_higher",
+    "validation_supportive_negative_terminal_rate_at_least_5pp_lower",
+    "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+    "validation_supportive_median_path_drawdown_non_worse",
+    "validation_supportive_p75_path_drawdown_non_worse",
+    "validation_annual_median_return_direction_breadth",
+    "validation_top_positive_annual_median_return_delta_contribution_at_most_60pct"
+  ],
+  "permanent_tombstone": {
+    "duplicate_family_key": "btc-fred-five-year-breakeven-inflation-reflation-support-long-cash",
+    "closed_fingerprint_inputs": [
+      "FRED_T5YIE_PRESENT_VINTAGE",
+      "COMPLETE_WEEK_LAST_AVAILABLE_BUSINESS_DAY",
+      "STRICTLY_ABOVE_VALUE_28_CALENDAR_DAYS_EARLIER",
+      "FRIDAY_PLUS_5D_WEDNESDAY_00_UTC_AVAILABILITY",
+      "168H_BTC_RESPONSE",
+      "FULL_BTC_LONG_OR_ZERO_YIELD_CASH_LATER_ECONOMIC_POLICY"
+    ],
+    "prohibited_reopen": [
+      "No direction inversion, level or magnitude threshold, smoothing, alternate lag or alternate T5YIE aggregation.",
+      "No substitution with T10YIE, T5YIFR, nominal yields, real yields or another source or transport.",
+      "No blend with liquidity, labor, dollar, financial conditions, CFTC, on-chain, BTC price, trend or volatility state.",
+      "No economics, post-2024 OOS or forward trigger for this closed family."
+    ]
+  },
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_SCREEN",
+    "breadth_and_path_risk": "PREDICTIVE_PATH_RISK_FAILED_BEFORE_ECONOMICS"
+  },
+  "next_action": "REMOVE_FROM_OPEN_POOL_ADD_PERMANENT_TOMBSTONE_AND_ADMIT_ONE_DISTINCT_FREE_DATA_FAMILY_WITHOUT_REOPENING_CLOSED_MACRO_LIQUIDITY_OR_T5YIE_BRANCHES",
+  "scope_note": "Historical pre-economic conclusion only. No strategy economics, candidate, OOS, paid API, second timer, second writer, canonical state write, schedule change, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

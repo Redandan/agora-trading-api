@@ -1,0 +1,45 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-bitcoin-mvrv-relative-value-entry-admission-v1",
+  "title": "Lagged Bitcoin MVRV relative-value DRA V1 entry admission",
+  "thesis": "A Bitcoin market value below its own recent relationship to aggregate realized cost basis may distinguish accumulation opportunities from otherwise valid DRA entries occurring in expensive valuation states. Restricting new entries to the lower-MVRV state may improve equal-capital DRA path risk without changing exits or existing lots.",
+  "mechanism": "For each complete Sunday D, compare reviewed daily BTC CapMVRVCur at D with the median of exactly the immediately preceding 365 daily observations. Beginning at D plus three calendar days 00:00 UTC and for at most 168 hours, admit an otherwise unchanged DRA V1 parent signal only when current MVRV is strictly below that median; otherwise veto the new entry.",
+  "economic_rationale": "The feature is useful only if it improves Design and Validation total and realized PnL while preserving unrealized PnL, drawdown, underwater duration, holding and terminal inventory, intervenes often enough, and has annual and predictive breadth. Embedded price exposure, fewer trades, one cycle or terminal-inventory cleanup is insufficient.",
+  "source": "DRA_BITCOIN_MVRV_RELATIVE_VALUE_PRIMARY_PRIOR_V1_AND_TO_BE_SEALED_COIN_METRICS_CAPMVRVCUR_2018_2024",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+  "matched_comparator": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+  "required_capability": "dra-bitcoin-mvrv-relative-value-entry-admission-v1-direct-economic-runner",
+  "data_readiness": "OFFICIAL_METRIC_IDENTITY_AND_EXISTING_NO_KEY_SOURCE_PATTERN_CONFIRMED_FULL_MVRV_HISTORY_NOT_YET_ACCESSED",
+  "independence_semantics": "CRYPTO_NATIVE_MARKET_VALUE_RELATIVE_TO_REALIZED_AGGREGATE_COST_BASIS",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "metric": "CapMVRVCur",
+      "sampling": "SUNDAY",
+      "lookback_days": 365,
+      "reference": "PRIOR_WINDOW_MEDIAN",
+      "relation": "STRICTLY_BELOW"
+    }
+  ],
+  "expected_metrics": [
+    "parent_signal_admission_and_veto_accounting",
+    "fee_adjusted_realized_unrealized_and_total_pnl",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "median_and_p90_holding",
+    "utilization_and_capacity_blocks",
+    "terminal_inventory",
+    "annual_breadth_and_concentration",
+    "independent_168h_predictive_episode_breadth"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5,
+    "independence": 4
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-21",
+  "created_at": "2026-08-19T10:35:48Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

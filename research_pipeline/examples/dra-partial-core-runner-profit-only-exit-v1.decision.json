@@ -1,0 +1,169 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_PARTIAL_CORE_RUNNER_PROFIT_ONLY_EXIT_V1_DECISION",
+  "experiment_id": "dra-partial-core-runner-profit-only-exit-v1",
+  "decided_at": "2026-08-20T07:33:42Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_PARTIAL_CORE_RUNNER_EXIT_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_40_60_50_50_AND_60_40_PARTIAL_CORE_RUNNER_PROFIT_ONLY_EXIT_FAMILY_WITHOUT_SPLIT_TRIGGER_OR_GATE_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "specification": {
+    "path": "docs/btc-dra-partial-core-runner-profit-only-exit-v1-research.md",
+    "sha256": "797c82c2a8a79e86c4eba483c7019679a6ff172ee6f928cbc7bbed43e3eeada8"
+  },
+  "runner": {
+    "path": "research/btc_dra_partial_core_runner_profit_only_exit_v1.py",
+    "sha256": "003cee66753910be989d5c33284f5fb9e364db6e39313fcdf263ca21ea27407f",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-partial-core-runner-profit-only-exit-v1/artifacts/run1.json",
+    "sha256": "c0f06a6113cdd6a361cbb6bfdcd23e8da8f3c10e6695ee7559461949a8da9af0"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-partial-core-runner-profit-only-exit-v1/artifacts/run2.json",
+    "sha256": "c0f06a6113cdd6a361cbb6bfdcd23e8da8f3c10e6695ee7559461949a8da9af0",
+    "byte_identical": true
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "frozen_contract": {
+    "parent": "BTC_DRA_V1_EQUAL_CAPITAL_250_USDT",
+    "core_trigger": "ENTRY_PRICE_PLUS_1_00_ENTRY_ATR",
+    "runner_trigger": "V2A_1_50_ATR_RATCHET",
+    "variants": [
+      "CORE_0_40_RUNNER_0_60",
+      "CORE_0_50_RUNNER_0_50_PRIMARY",
+      "CORE_0_60_RUNNER_0_40"
+    ],
+    "minimum_allocated_sublot_cost_usdt": "10",
+    "exit_constraints": "PROFIT_ONLY_NO_STOP_NO_TIME_EXIT_NO_FINAL_LIQUIDATION"
+  },
+  "economic_summary": {
+    "v1_parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": 126.0,
+        "p90_hold_hours": 1818.6
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": 182.5,
+        "p90_hold_hours": 1418.3,
+        "ending_open_cost_usdt": "30.00000000",
+        "open_lots": 1
+      }
+    },
+    "v2a_runner_reference_validation": {
+      "total_pnl_usdt": "113.25094608",
+      "max_drawdown_pct": "8.945793",
+      "median_hold_hours": 401.0,
+      "p90_hold_hours": 1846.6
+    },
+    "primary_core_050_runner_050": {
+      "design": {
+        "realized_usdt": "215.42862832",
+        "unrealized_usdt": "-50.03227786",
+        "total_pnl_usdt": "165.39635046",
+        "max_drawdown_pct": "41.915663",
+        "capital_weighted_median_hold_hours": 263.0,
+        "capital_weighted_p90_hold_hours": 1646.0,
+        "final_parent_median_hold_hours": 348.5,
+        "final_parent_p90_hold_hours": 1727.9
+      },
+      "validation": {
+        "realized_usdt": "90.76272133",
+        "realized_delta_usdt": "1.35153826",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "87.55452012",
+        "total_pnl_delta_usdt": "1.35153826",
+        "max_drawdown_pct": "6.589715",
+        "drawdown_delta_pp": "-0.531783",
+        "capital_weighted_median_hold_hours": 291.0,
+        "capital_weighted_p90_hold_hours": 1471.2,
+        "final_parent_median_hold_hours": 401.0,
+        "final_parent_p90_hold_hours": 1846.6,
+        "ending_open_cost_usdt": "30.00000000",
+        "open_parent_count": 1,
+        "core_realized_usdt": "32.53314691",
+        "runner_realized_usdt": "58.22957442",
+        "sell_fees_paid_usdt": "1.59235507"
+      },
+      "annual_total_wins": "3_OF_5",
+      "annual_capital_weighted_median_hold_wins": "0_OF_5"
+    },
+    "neighbors": {
+      "core_040_runner_060_validation": {
+        "total_pnl_usdt": "92.69380524",
+        "realized_usdt": "95.90200645",
+        "max_drawdown_pct": "7.078214",
+        "capital_weighted_median_hold_hours": 311.0,
+        "capital_weighted_p90_hold_hours": 1608.0,
+        "annual_total_wins": "3_OF_5",
+        "annual_hold_wins": "0_OF_5"
+      },
+      "core_060_runner_040_validation": {
+        "total_pnl_usdt": "82.41523486",
+        "realized_usdt": "85.62343607",
+        "max_drawdown_pct": "6.599379",
+        "capital_weighted_median_hold_hours": 196.0,
+        "capital_weighted_p90_hold_hours": 1425.4,
+        "annual_total_wins": "3_OF_5",
+        "annual_hold_wins": "0_OF_5"
+      }
+    },
+    "primary_annual_deltas": {
+      "2020": {
+        "total_pnl_delta_usdt": "19.36322574",
+        "capital_weighted_median_hold_delta_hours": 141.0
+      },
+      "2021": {
+        "total_pnl_delta_usdt": "16.70841573",
+        "capital_weighted_median_hold_delta_hours": 236.5
+      },
+      "2022": {
+        "total_pnl_delta_usdt": "-6.88558271",
+        "capital_weighted_median_hold_delta_hours": 104.5
+      },
+      "2023": {
+        "total_pnl_delta_usdt": "-5.30565511",
+        "capital_weighted_median_hold_delta_hours": 117.5
+      },
+      "2024": {
+        "total_pnl_delta_usdt": "8.03618877",
+        "capital_weighted_median_hold_delta_hours": 42.0
+      }
+    }
+  },
+  "failed_primary_gates": [
+    "annual_capital_weighted_median_hold_wins_at_least_3_of_5",
+    "design_drawdown_within_v1_plus_2pp",
+    "validation_capital_weighted_median_hold_no_worse",
+    "validation_capital_weighted_p90_hold_no_worse"
+  ],
+  "passed_evidence": [
+    "The exact frozen specification, runner and 52,608-row pre-2025 dataset were hash-bound, and two independent runs were byte-identical.",
+    "The primary improved Validation realized and total PnL by 1.35153826 USDT while reducing Validation maximum drawdown by 0.531783 percentage points.",
+    "All three preregistered splits reconciled quantities, respected the 10 USDT minimum sublot cost, left Validation terminal inventory no worse than V1, and achieved three of five annual total-PnL wins."
+  ],
+  "material_learning": "Separating a fast core from a residual trend runner can improve aggregate Validation economics, so the full-lot binary exit diagnosis was directionally useful. It did not create a credible candidate: the primary worsened capital-weighted median holding from 182.5 to 291 hours and P90 from 1418.3 to 1471.2 hours, achieved zero of five annual holding wins, lost 6.88558271 USDT versus V1 in 2022, and increased Design maximum drawdown from 29.530448 to 41.915663 percent. Both neighbors preserved the same zero-of-five holding breadth failure. The exact split family is closed instead of tuning allocation or triggers around a small aggregate Validation uplift.",
+  "scientific_claim": "For the exact preregistered 40/60, 50/50 and 60/40 profit-only core/runner splits applied to unchanged equal-capital DRA V1 lots through 2024, aggregate Validation PnL improvement is not accompanied by acceptable Design drawdown or holding-path breadth. This evidence rejects candidate status and does not authorize OOS.",
+  "prohibited_reopen": true,
+  "uncertainty": [
+    "This is preregistered historical Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The conclusion closes only the exact frozen split fractions and triggers; a genuinely independent exit mechanism would require a new causal prior and preregistration, not local tuning.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

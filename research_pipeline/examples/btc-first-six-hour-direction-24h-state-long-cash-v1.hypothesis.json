@@ -1,0 +1,38 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-first-six-hour-direction-24h-state-long-cash-v1",
+  "title": "BTC first-six-hour direction rolling 24-hour long-or-cash state",
+  "thesis": "Positive BTC direction over the first six complete UTC hours may reflect delayed information diffusion that persists after the 06:00 decision, while a nonpositive first-six-hour direction may identify a lower-return or less favorable path for the following state interval.",
+  "mechanism": "The rule converts only the sign of the same day's already completed 00:00-05:59 price path into a daily 06:00 BTC-or-cash target held until the next 06:00 decision. The adversarial prior is that UTC is arbitrary, serial dependence is unstable, and frequent state changes can make trading costs dominate.",
+  "economic_rationale": "The policy is useful only if it exceeds matched passive BTC return after normal and doubled friction while improving or preserving drawdown and Calmar, retaining sufficient upside, surviving terminal liquidation, and showing annual and episode breadth rather than one concentrated interval.",
+  "source": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-primary-prior.v1.json#sha256=a1535b9429b97bd7a923b686a3b82fd49cb3351b747962b1ad4bf03ad972775b;.research-state/experiments/btc-first-six-hour-direction-24h-state-long-cash-historical-v1/inputs/first-six-hour-direction-state-feasibility.json#sha256=d698b2b1c734d42b1dc4958b9457828dc3dae1c310392b20a1e423ebd716b3fc",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_2019_2024_H1_CORPUS_COST_AND_VALUATION",
+  "required_capability": "DIRECT_DETERMINISTIC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_MATCHED_CAPITAL_ECONOMIC_RUNNER",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_and_validation_state_counts_and_transitions",
+    "normal_and_stress_fee_adjusted_total_return",
+    "buy_and_hold_total_return",
+    "realized_pnl",
+    "unrealized_pnl",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "capital_utilization",
+    "signal_evaluations_and_position_changes",
+    "median_and_p90_holding_hours",
+    "terminal_inventory_and_liquidation_adjustment",
+    "annual_return_drawdown_and_calmar_breadth",
+    "top_year_and_top_episode_positive_contribution"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-first-six-hour-1",
+  "created_at": "2026-08-21T00:43:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

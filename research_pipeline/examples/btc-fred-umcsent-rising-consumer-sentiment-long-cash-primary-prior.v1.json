@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-fred-umcsent-rising-consumer-sentiment-long-cash",
+  "disposition": "OFFICIAL_FREE_SOURCE_AND_ADVERSARIAL_PRIOR_PERMIT_ONE_FUTURE_PREREGISTERED_HISTORICAL_AUDIT",
+  "claim_boundary": "Exactly one future audit may test whether a conservatively lagged monthly improvement in the University of Michigan Consumer Sentiment Index supports a full-capital BTC-or-cash policy. The survey measures household sentiment, not crypto demand or alpha.",
+  "feature_contract": {
+    "publisher": "University of Michigan Surveys of Consumers via Federal Reserve Bank of St. Louis FRED",
+    "series": "UMCSENT",
+    "frequency": "MONTHLY",
+    "observation": "OFFICIAL_MONTHLY_VALUE",
+    "relation": "CURRENT_MONTH_STRICTLY_ABOVE_PREVIOUS_MONTH",
+    "decision_time": "FIRST_DAY_OF_SECOND_FOLLOWING_CALENDAR_MONTH_0000_UTC",
+    "validity": "ONE_CALENDAR_MONTH",
+    "policy": "FULL_CAPITAL_BTC_WHEN_RISING_ZERO_YIELD_CASH_OTHERWISE",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "University of Michigan Consumer Sentiment UMCSENT",
+      "primary_source": "https://fred.stlouisfed.org/series/UMCSENT",
+      "finding": "FRED identifies UMCSENT as a monthly, not-seasonally-adjusted University of Michigan index, states that the data are delayed by one month, requires citation and warns that graph data are subject to revision.",
+      "role": "OFFICIAL_IDENTITY_FREQUENCY_TIMING_REVISION_AND_LICENSE_PRIOR",
+      "transfer_boundary": "A delayed present-vintage monthly index is not original release-vintage evidence and a month-over-month rise need not predict BTC."
+    },
+    {
+      "identity": "University of Michigan Surveys of Consumers",
+      "primary_source": "https://www.sca.isr.umich.edu/",
+      "finding": "The publisher reports an Index of Consumer Sentiment together with current-conditions and expectations components and publishes preliminary and final monthly releases.",
+      "role": "OFFICIAL_SURVEY_AND_RELEASE_PRIOR",
+      "transfer_boundary": "The frozen family uses only the headline final monthly FRED series and may not switch to a component, preliminary reading or surprise after outcome access."
+    },
+    {
+      "identity": "Closed STLFSI4 below-normal stress long-cash family",
+      "primary_source": "research_pipeline/examples/btc-fred-stlfsi4-below-normal-stress-source-feasibility.v1.decision.json#sha256=86e149851777ec363b7cfcfaf3e876f4e7228f0c6d108397fc57b0f450c5c51e",
+      "finding": "The market-stress composite was closed before BTC outcomes because Validation had only two high-stress weeks.",
+      "role": "ADVERSARIAL_MACRO_STATE_PRIOR",
+      "transfer_boundary": "UMCSENT is a lower-frequency household survey change, not a threshold rename or rescue of STLFSI4, VIX or NFCI."
+    }
+  ],
+  "future_design_requirements": [
+    "Before BTC outcome access, freeze one exact no-credential FRED UMCSENT request contract, raw response and a 2017-2024 monthly subset with date, value, timing, revision and citation boundaries.",
+    "Use only the strict adjacent-month increase relation, first day of the second following calendar month at 00:00 UTC and one-calendar-month validity; no level threshold, moving average, percentile, alternate lag, component or surprise.",
+    "Require both rising and non-rising states with sufficient transitions in Design and Validation before direct economics.",
+    "Run deterministic matched-capital BTC versus zero-yield-cash Design and Validation economics under normal and doubled adverse friction with total, realized and unrealized return, drawdown, Calmar, upside, holding, terminal inventory, annual breadth and concentration gates.",
+    "Treat present-vintage history as historical research only. A pass remains REPORTED_NOT_ACTIVATED until separately sealed independent OOS succeeds."
+  ],
+  "uncertainty": [
+    "UMCSENT is revised and FRED exposes a delayed present-vintage history rather than the exact value available at each historical decision time.",
+    "Consumer sentiment can react to inflation and politics without transmitting to crypto liquidity or risk appetite.",
+    "Monthly switching may be too slow for BTC drawdowns and may create opportunity cost during rapid recoveries.",
+    "The series is copyrighted with citation required; raw and normalized data must remain internal research inputs unless separate reuse rights are verified.",
+    "No 2017-2024 UMCSENT value, state count, BTC outcome, strategy path, hypothesis, candidate, post-2024 observation or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-21T02:20:00Z"
+}

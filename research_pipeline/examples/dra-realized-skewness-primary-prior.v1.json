@@ -1,0 +1,78 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary evidence supports measuring realized skewness from intraday returns and testing it as a predecision distribution-shape variable. It does not establish a stable Bitcoin sign, the exact H1 estimator, a rolling percentile cutoff, or DRA entry economics. Exactly one separately frozen equal-capital historical screen may test whether admitting DRA entries only when the latest complete UTC day's realized skewness is not in the upper half of its own prior twenty-day distribution improves fee-adjusted economics and path risk. Feature redundancy or any frozen economic failure closes the exact family without changing estimator, lookback, relation or thresholds.",
+  "disposition": "PRIOR_SUPPORTS_ONE_REALIZED_SKEWNESS_ADMISSION_AUDIT",
+  "document_type": "DRA_REALIZED_SKEWNESS_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_INTRADAY_REALIZED_SKEWNESS_PRIOR_20D_PERCENTILE",
+    "formula": "For exactly twenty-four complete UTC-day H1 open-to-close log returns r_i, realized_skewness = sqrt(24) * sum(r_i^3) / sum(r_i^2)^(3/2); compare the latest value with exactly the prior twenty complete-day values using a midrank percentile.",
+    "relation": "AT_OR_BELOW",
+    "thresholds": ["0.3", "0.5", "0.7"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "The study uses intraday Bitcoin, Ethereum and Ripple prices and reports that realized skewness has statistically significant in-sample and out-of-sample predictive capability for subsequent cryptocurrency returns, with sensitivity varying across market states.",
+      "identity": "Ahmed and Al Mafrachi, Do higher-order realized moments matter for cryptocurrency returns?, International Review of Economics & Finance 72 (2021) 483-499",
+      "primary_source": "https://doi.org/10.1016/j.iref.2020.12.009",
+      "role": "CRYPTO_REALIZED_SKEWNESS_PREDICTIVE_PRIOR",
+      "transfer_boundary": "Quantile-regression evidence across three cryptocurrencies does not establish the exact single-BTC H1 formula, a low-skew admission direction, thresholds, or DRA economics."
+    },
+    {
+      "finding": "The Bitcoin study reports that conditional skewness predicts future returns, but the relationship is negative in its earlier subsample and positive during its later crisis subsample.",
+      "identity": "Atance and Serna, Time-varying expected returns, conditional skewness and Bitcoin return predictability, Quarterly Review of Economics and Finance 96 (2024) 101868",
+      "primary_source": "https://doi.org/10.1016/j.qref.2024.101868",
+      "role": "CO_EQUAL_SIGN_INSTABILITY_PRIOR",
+      "transfer_boundary": "A parametric conditional-skewness timing strategy is not the same as nonparametric H1 realized skewness or DRA entry admission; the sign reversal requires annual breadth and neighbor gates rather than sign extrapolation."
+    },
+    {
+      "finding": "The cross-sectional cryptocurrency study constructs daily realized moments from intraday returns and documents negative next-day return predictability for realized skewness, with extreme positive returns materially affecting the relation.",
+      "identity": "Liu, Li and Zeng, Higher moments, extreme returns, and cross-section of cryptocurrency returns, Finance Research Letters 39 (2021) 101536",
+      "primary_source": "https://doi.org/10.1016/j.frl.2020.101536",
+      "role": "LOW_SKEW_DIRECTIONAL_RATIONALE",
+      "transfer_boundary": "Cross-sectional long-short evidence over many cryptocurrencies does not prove time-series predictability for BTC, the exact percentile relation, or a matched-capital DRA veto."
+    },
+    {
+      "finding": "A distribution-wide realized-performance measure is reported to dominate individual realized variance, skewness and kurtosis for predicting Bitcoin and Ethereum daily returns.",
+      "identity": "Yang, Chiu and Yen, Does the Realized Distribution-Based Measure Dominate Particular Moments? Evidence from Cryptocurrency Markets (2022 working paper)",
+      "primary_source": "https://ssrn.com/abstract=4169993",
+      "role": "CO_EQUAL_REDUNDANCY_AND_FALSIFICATION_PRIOR",
+      "transfer_boundary": "The existing realized-performance DRA family is already closed; realized skewness must be demonstrably nonredundant before any economic result can be interpreted and cannot reopen that family."
+    }
+  ],
+  "pre_economic_redundancy_gate": {
+    "absolute_spearman_limit": "0.80",
+    "comparators": [
+      "DAILY_REALIZED_PERFORMANCE",
+      "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY"
+    ],
+    "required_windows": ["DESIGN_2019_2022", "VALIDATION_2023_2024"],
+    "failure_disposition": "DUPLICATE_REJECT_CLOSE_REALIZED_SKEWNESS_FAMILY_BEFORE_ECONOMICS"
+  },
+  "real_time_design_requirements": [
+    "Use exactly twenty-four H1 open-to-close log returns from the latest complete UTC day and execute no earlier than the unchanged next-bar open.",
+    "Require finite returns and strictly positive realized variance; missing or incomplete days fail closed.",
+    "Normalize only through the midrank percentile against exactly the prior twenty complete-day realized-skewness values.",
+    "Before economic interpretation, require absolute Spearman correlation at most 0.80 with both realized performance and intraday price-path efficiency in Design and Validation.",
+    "Keep DRA parent side, entries, exits, lot cost, capacity, fee, adverse slippage, cooldown and next-bar fill clock unchanged.",
+    "Freeze primary percentile 0.5 and neighbors 0.3 and 0.7 before outcome access; do not search another moment estimator, sampling interval, lookback, normalization, threshold or relation.",
+    "Require gate set V2 Design and Validation total and realized PnL improvement, annual breadth, drawdown and underwater non-inferiority, holding support, terminal inventory and neighbor stability; otherwise close the family.",
+    "Do not open post-2024 OOS or create a runtime rule from this prior audit."
+  ],
+  "reviewed_at": "2026-08-19T05:32:00Z",
+  "schema_version": "1",
+  "source_access": {
+    "ahmed_al_mafrachi_publisher_identity_and_abstract": "PASS",
+    "atance_serna_publisher_identity_and_abstract": "PASS",
+    "liu_li_zeng_publisher_identity_and_abstract": "PASS",
+    "yang_chiu_yen_ssrn_identity_and_abstract": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "No primary source directly validates this exact single-BTC H1 realized-skewness percentile DRA admission rule.",
+    "Published Bitcoin evidence reports time-varying or regime-dependent sign, so a fixed low-skew relation may fail across years.",
+    "H1 open-to-close sampling is coarser than the intraday frequencies used in much of the literature and may attenuate third-moment estimates.",
+    "Realized skewness may repackage the already closed realized-performance or price-path-efficiency families; the frozen correlation gate must close it before economics if so.",
+    "No strategy outcome, post-2024 evidence, OOS, candidate, runtime filter or Trading path was accessed while freezing this prior."
+  ]
+}

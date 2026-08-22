@@ -1,0 +1,112 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_TOP4_NET_CONCENTRATION_LEVEL_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-cftc-top4-net-concentration-level-long-cash-historical-v1",
+  "family_id": "btc-cftc-top4-net-concentration-level-long-cash",
+  "decided_at": "2026-08-20T11:27:40Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_CFTC_TOP4_NET_CONCENTRATION_LEVEL_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_TOP4_NET_CONCENTRATION_LEVEL_CONTINUATION_FAMILY_WITHOUT_ECONOMIC_ACCESS_DIRECTION_INVERSION_OR_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "economic_evidence_accessed": false,
+  "determinism": {
+    "run1_sha256": "05e3edcd1d8e813c383840c3f350d2e689c982d224505836bb3880e16f4f5fd4",
+    "run2_sha256": "05e3edcd1d8e813c383840c3f350d2e689c982d224505836bb3880e16f4f5fd4",
+    "byte_identical": true
+  },
+  "factor_inventory": {
+    "eligible_points": 303,
+    "positive_points": 159,
+    "nonpositive_points": 144
+  },
+  "predictive_evidence": {
+    "design": {
+      "episode_count": 38,
+      "positive_factor_count": 14,
+      "nonpositive_factor_count": 24,
+      "chronological_quartiles": [10, 9, 10, 9],
+      "anchor_month_count": 35,
+      "median_signed_response_672h": "-0.07985810",
+      "positive_factor_median_raw_return_672h": "-0.07480616",
+      "nonpositive_factor_median_raw_return_672h": "0.08451032",
+      "sign_test_successes": 16,
+      "sign_test_failures": 22,
+      "one_sided_sign_test_p_value": "0.87206246"
+    },
+    "validation": {
+      "episode_count": 25,
+      "positive_factor_count": 25,
+      "nonpositive_factor_count": 0,
+      "chronological_quartiles": [7, 6, 6, 6],
+      "anchor_month_count": 23,
+      "median_signed_response_672h": "0.02918729",
+      "positive_factor_median_raw_return_672h": "0.02918729",
+      "nonpositive_factor_median_raw_return_672h": null,
+      "sign_test_successes": 14,
+      "sign_test_failures": 11,
+      "one_sided_sign_test_p_value": "0.34501898"
+    },
+    "failed_gates": [
+      "design_median_signed_response_strictly_positive",
+      "design_positive_factor_median_raw_return_strictly_positive",
+      "design_nonpositive_factor_median_raw_return_strictly_negative",
+      "design_one_sided_sign_test_p_value_at_most_0_10",
+      "validation_minimum_required_nonpositive_factor_transitions",
+      "validation_nonpositive_factor_median_raw_return_strictly_negative",
+      "validation_one_sided_sign_test_p_value_at_most_0_10"
+    ]
+  },
+  "material_learning": "The peer-reviewed non-Bitcoin futures concentration formula does not transfer stably to BTC. Design evidence reverses the preregistered direction, while Validation contains no nonpositive non-overlapping episode and lacks significant directional breadth. A favorable Validation median therefore cannot rescue the family.",
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP"
+  },
+  "sealed_evidence_bindings": [
+    {
+      "path": ".research-state/experiments/btc-cftc-top4-net-concentration-level-long-cash-historical-v1/artifacts/run1.json",
+      "role": "SEALED_DETERMINISTIC_RUN1",
+      "sha256": "05e3edcd1d8e813c383840c3f350d2e689c982d224505836bb3880e16f4f5fd4"
+    },
+    {
+      "path": ".research-state/experiments/btc-cftc-top4-net-concentration-level-long-cash-historical-v1/artifacts/run2.json",
+      "role": "SEALED_DETERMINISTIC_RUN2",
+      "sha256": "05e3edcd1d8e813c383840c3f350d2e689c982d224505836bb3880e16f4f5fd4"
+    },
+    {
+      "path": "research_pipeline/examples/btc-cftc-top4-net-concentration-level-long-cash-historical.v1.manifest.json",
+      "role": "FROZEN_PREREGISTRATION_MANIFEST",
+      "sha256": "9ef2f5f5085c15642548847bace4b430fd94ded6d2543f25f2ad9eb5a5ebdcc4"
+    },
+    {
+      "path": "research/btc_cftc_top4_net_concentration_level_long_cash_historical.py",
+      "role": "FROZEN_HASH_BOUND_RUNNER",
+      "sha256": "db875c5cf21273aca5aaf102c8d3925846d9d5829661ae9e9f12f2e9b83d9956"
+    },
+    {
+      "path": "research_pipeline/examples/btc-cftc-top4-net-concentration-level-long-cash-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+      "sha256": "a25fc3e8dd8eb968694573e737744b42d79d8443022241f5d1d8b7ca5e458b21"
+    },
+    {
+      "path": "research_pipeline/examples/btc-cftc-top4-net-concentration-level-long-cash-v1.hypothesis.json",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+      "sha256": "800f63704dc713a4058b9dd278aa8eeaa52b410791d9d46c996762ca92bb8508"
+    }
+  ],
+  "prohibited_reopen": [
+    "Do not invert the continuation direction after observing outcomes.",
+    "Do not replace the normalized level with change, raw difference, gross or top-eight concentration, threshold, percentile, z-score or smoothing.",
+    "Do not tune the horizon, overlap rule, publication lag, position sizing or execution time.",
+    "Do not access the blocked strategy economics or post-2024 OOS for this family."
+  ],
+  "next_action": "REMOVE_THE_FAMILY_FROM_THE_OPEN_POOL_AND_ADMIT_ONE_DISTINCT_FREE_DATA_FAMILY_AT_HISTORICAL_PRIOR_STAGE",
+  "scope_note": "Historical offline research only. No paid API, second timer, second writer, external backfill, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

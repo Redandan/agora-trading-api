@@ -1,0 +1,45 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-real-yield-easing-entry-admission-v1",
+  "title": "Lagged ten-year U.S. real-yield easing DRA V1 entry admission",
+  "thesis": "A sustained decline in the market-implied ten-year U.S. real yield may reduce the discount rate applied to scarce speculative assets. Admitting new DRA entries only while the latest conservatively lagged weekly DFII10 mean is below its level four weeks earlier may improve equal-capital DRA economics without changing exits or existing lots.",
+  "mechanism": "Aggregate published daily DFII10 observations into calendar weeks ending Friday using the arithmetic mean of three to five available business-day observations. At week end D compare the current mean with the exact mean 28 calendar days earlier. Beginning at D plus five calendar days 00:00 UTC and for at most 168 hours, admit an otherwise unchanged DRA V1 parent signal only when the change is strictly negative; otherwise veto the new entry.",
+  "economic_rationale": "The feature is useful only if it improves Design and Validation total and realized PnL while preserving unrealized PnL, drawdown, underwater duration, holding and terminal inventory, intervenes often enough, and has annual and predictive breadth. A 2022-only benefit, lower exposure, terminal-inventory cleanup, contemporaneous risk-asset correlation or unstable macro sensitivity is insufficient.",
+  "source": "DRA_REAL_YIELD_EASING_PRIMARY_PRIOR_V1_AND_TO_BE_SEALED_FRED_DFII10_2018_2024",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+  "matched_comparator": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+  "required_capability": "dra-real-yield-easing-entry-admission-v1-direct-economic-runner",
+  "data_readiness": "OFFICIAL_SERIES_IDENTITY_AND_EXISTING_FRED_WEEKLY_SOURCE_PATTERN_CONFIRMED_FULL_DFII10_HISTORY_NOT_YET_ACCESSED",
+  "independence_semantics": "US_TEN_YEAR_REAL_DISCOUNT_RATE_TREND",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "series_id": "DFII10",
+      "weekly_aggregation": "MEAN_OF_PUBLISHED_BUSINESS_DAYS",
+      "comparison_lag_calendar_days": 28,
+      "relation": "STRICTLY_BELOW",
+      "threshold": "0"
+    }
+  ],
+  "expected_metrics": [
+    "parent_signal_admission_and_veto_accounting",
+    "fee_adjusted_realized_unrealized_and_total_pnl",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "median_and_p90_holding",
+    "utilization_and_capacity_blocks",
+    "terminal_inventory",
+    "annual_breadth_and_concentration",
+    "independent_168h_predictive_episode_breadth"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5,
+    "independence": 4
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-23",
+  "created_at": "2026-08-19T11:25:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

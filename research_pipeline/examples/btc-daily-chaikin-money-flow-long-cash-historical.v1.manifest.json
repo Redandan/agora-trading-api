@@ -1,0 +1,202 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_CHAIKIN_MONEY_FLOW_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-chaikin-money-flow-long-cash-historical-v1",
+  "created_at": "2026-08-20T09:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A positive rolling balance of where BTC closes inside each complete UTC day's range, weighted by daily base volume, may identify accumulation states with better next-open long/cash economics than unconditional buy-and-hold.",
+  "economic_rationale": "The feature is useful only if a fixed twenty-day primary remains positive under normal and stress costs, preserves material passive upside, improves drawdown and Calmar, survives annual breadth, and is stable at fourteen-day and twenty-eight-day rejection-only neighbors. Reduced participation alone cannot pass.",
+  "opportunity_cost": "Use the already sealed BTC H1 corpus to test one independent price-volume flow mechanism before acquiring another external source or extending the repeatedly failed DRA admission-filter tree.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-chaikin-money-flow-14-20-28-long-cash",
+    "primary": "CMF20_STRICTLY_ABOVE_ZERO",
+    "rejection_only_neighbors": ["CMF14_STRICTLY_ABOVE_ZERO", "CMF28_STRICTLY_ABOVE_ZERO"],
+    "distinct_from_closed_families": [
+      "The closed OBV family signs whole-day volume by close-to-close direction and compares moving averages of a cumulative series; CMF weights volume by the close location inside each day's high-low range.",
+      "The closed DRA H1 volume-weighted close-location family compares one daily close with an H1 volume-weighted close and modifies DRA admission; this is a rolling standalone long/cash policy.",
+      "The closed directional-volume family classifies hourly volume by hourly return sign; CMF does not use hourly return signs.",
+      "The price-only SMA, MACD, DMI, Supertrend, PSAR, Donchian and Bollinger families do not use range-position-weighted volume balance."
+    ],
+    "excluded_reinterpretations": [
+      "Fourteen and twenty-eight complete days are rejection-only neighbors and cannot replace a failed twenty-day primary.",
+      "No alternate lookback, threshold, zero band, formula, volume field, delay, hold period, price filter, sizing rule, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_LONG_CASH_LEDGER_PATH_AND_PASSIVE_REFERENCE"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-chaikin-money-flow-long-cash-primary-prior.v1.json",
+      "sha256": "2ddd3e5397816f425c1535f69de15315f637f44291635ce584d0906c6ba7002d",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-chaikin-money-flow-long-cash-v1.hypothesis.json",
+      "sha256": "449fcd2750d31190a12e76649de727b25bca0c369ca20f588f830c5e562a47e5",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_CHAIKIN_MONEY_FLOW_LONG_CASH_V1",
+    "primary_lookback_complete_days": 20,
+    "rejection_only_neighbor_lookbacks_complete_days": [14, 28],
+    "money_flow_multiplier": "((DAILY_CLOSE_MINUS_DAILY_LOW)-(DAILY_HIGH_MINUS_DAILY_CLOSE))/(DAILY_HIGH_MINUS_DAILY_LOW)",
+    "zero_range_rule": "MONEY_FLOW_MULTIPLIER_ZERO",
+    "money_flow_volume": "MONEY_FLOW_MULTIPLIER_TIMES_DAILY_BASE_VOLUME",
+    "chaikin_money_flow": "ROLLING_SUM_MONEY_FLOW_VOLUME_DIVIDED_BY_ROLLING_SUM_BASE_VOLUME",
+    "long_condition": "CMF_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "CMF_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "NEXT_H1_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "valuation": {
+    "candidate": "HOURLY_CLOSE_MARK_TO_MARKET_WITH_NEXT_OPEN_POSITION_CHANGES",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_EPISODE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct",
+    "unrealized_return_pct",
+    "total_return_pct",
+    "total_return_delta_pp",
+    "terminal_liquidation_adjusted_return_pct",
+    "maximum_drawdown_pct",
+    "maximum_underwater_duration_hours",
+    "calmar_ratio_and_ratio_to_buy_hold",
+    "upside_capture_ratio",
+    "average_exposure_pct",
+    "fees_and_turnover_equity_units",
+    "signal_and_position_change_counts",
+    "completed_and_winning_episode_counts",
+    "median_and_p90_hold_hours",
+    "terminal_position_and_holding_age",
+    "top_positive_episode_and_year_concentration",
+    "annual_return_drawdown_calmar_and_upside_breadth"
+  ],
+  "gate_set": {
+    "id": "BTC_DAILY_CHAIKIN_MONEY_FLOW_MATCHED_CAPITAL_GATES_V1",
+    "required": [
+      "dataset_sha256_and_52608_rows_match",
+      "hourly_lattice_ohlcv_and_2192_complete_utc_days_pass",
+      "frozen_runner_reference_parser_prior_and_hypothesis_sha256_match",
+      "primary_design_normal_total_return_pct_gt_0",
+      "primary_design_stress_total_return_pct_gt_0",
+      "primary_design_normal_drawdown_at_most_95pct_of_buy_hold",
+      "primary_design_normal_calmar_at_least_buy_hold",
+      "primary_validation_normal_total_return_pct_gt_0",
+      "primary_validation_stress_total_return_pct_gt_0",
+      "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+      "primary_validation_normal_upside_capture_at_least_60pct",
+      "primary_validation_normal_calmar_at_least_buy_hold",
+      "primary_validation_position_changes_between_2_and_200",
+      "primary_validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "neighbor_cmf14_validation_normal_total_return_pct_gt_0",
+      "neighbor_cmf14_validation_stress_total_return_pct_gt_0",
+      "neighbor_cmf14_validation_normal_drawdown_non_worse",
+      "neighbor_cmf14_validation_normal_calmar_at_least_75pct_buy_hold",
+      "neighbor_cmf14_validation_normal_upside_capture_at_least_50pct",
+      "neighbor_cmf28_validation_normal_total_return_pct_gt_0",
+      "neighbor_cmf28_validation_stress_total_return_pct_gt_0",
+      "neighbor_cmf28_validation_normal_drawdown_non_worse",
+      "neighbor_cmf28_validation_normal_calmar_at_least_75pct_buy_hold",
+      "neighbor_cmf28_validation_normal_upside_capture_at_least_50pct",
+      "primary_normal_positive_annual_total_return_at_least_4_of_5",
+      "primary_stress_positive_annual_total_return_at_least_4_of_5",
+      "primary_normal_annual_drawdown_non_worse_at_least_4_of_5",
+      "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+      "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+      "primary_top_year_positive_total_return_contribution_at_most_60pct",
+      "primary_validation_top_positive_episode_contribution_at_most_60pct",
+      "primary_validation_p90_hold_at_most_17520_hours",
+      "primary_validation_terminal_holding_age_at_most_17520_hours",
+      "primary_validation_terminal_liquidation_adjusted_return_pct_gt_0",
+      "primary_validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop before economics if any dataset, source binding, lattice, OHLCV, complete-day, policy, cost, window or gate-set contract fails.",
+    "Stop NO_CANDIDATE and permanently close this exact CMF14/20/28 family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor, change the lookback, threshold, formula, volume field, delay, hold period, price confirmation, sizing, leverage, short direction or comparator after outcome access.",
+    "Do not open post-2024 data. A historical pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with independent OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

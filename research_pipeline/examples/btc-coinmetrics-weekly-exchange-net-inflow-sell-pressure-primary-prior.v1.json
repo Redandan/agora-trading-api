@@ -1,0 +1,107 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_WEEKLY_EXCHANGE_NET_INFLOW_SELL_PRESSURE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-risk-veto",
+  "created_at": "2026-08-20T12:08:00Z",
+  "status": "PRIMARY_PRIOR_AND_FREE_TRANSPORT_PREFLIGHT_READY_SOURCE_NOT_SEALED",
+  "frozen_before_historical_exchange_flow_factor_or_btc_outcome_pairing_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_LATER_HASH_BOUND_PRE_ECONOMIC_PREDICTIVE_SCREEN",
+  "claim_boundary": "Coin Metrics defines exchange inflows and outflows from addresses it identifies as exchange-owned and documents a sell-pressure interpretation for BTC deposits. This does not establish that aggregate seven-day net inflow predicts BTC downside, that present-vintage entity labels were known historically, or that a long-or-cash policy improves risk-adjusted performance.",
+  "primary_sources": [
+    {
+      "title": "Exchange Deposits",
+      "publisher": "Coin Metrics Product Docs",
+      "url": "https://docs.coinmetrics.io/asset-metrics/exchange/flowinexusd",
+      "use": "Defines native-unit exchange deposits, address-ownership labeling and Bitcoin change-output exclusion; documents the interpretation that exchange deposits may precede downside pressure during stress."
+    },
+    {
+      "title": "Coin Metrics Community API catalog",
+      "publisher": "Coin Metrics",
+      "url": "https://community-api.coinmetrics.io/v4/catalog/asset-metrics",
+      "use": "No-key catalog proof that FlowInExNtv and FlowOutExNtv are available for BTC at daily frequency on the community endpoint."
+    },
+    {
+      "title": "Coin Metrics API v4",
+      "publisher": "Coin Metrics Product Docs",
+      "url": "https://docs.coinmetrics.io/api/v4/",
+      "use": "Primary endpoint and response-schema reference for deterministic source acquisition."
+    }
+  ],
+  "proposed_feature_for_next_cycle_only": {
+    "factor_identity": "COINMETRICS_BTC_COMPLETE_UTC_WEEK_FLOWINEXNTV_MINUS_FLOWOUTEXNTV_STRICTLY_POSITIVE_SELL_PRESSURE_V1",
+    "aggregation": "SUM_SEVEN_COMPLETE_DAILY_FLOWINEXNTV_VALUES_MINUS_SUM_SEVEN_COMPLETE_DAILY_FLOWOUTEXNTV_VALUES",
+    "week": "MONDAY_00_00_UTC_THROUGH_NEXT_MONDAY_00_00_UTC_EXCLUSIVE",
+    "high_sell_pressure_state": "WEEKLY_NET_INFLOW_NATIVE_UNITS_STRICTLY_GREATER_THAN_ZERO",
+    "other_state": "OTHERWISE",
+    "primary_direction": "HIGH_SELL_PRESSURE_STATE_HAS_LOWER_NEXT_168H_BTC_RETURN_AND_WORSE_PATH_DRAWDOWN",
+    "availability_floor": "WEEK_END_MONDAY_PLUS_2_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "outcome_horizon_hours": 168,
+    "variant_count": 1,
+    "status": "PROPOSED_NOT_A_HYPOTHESIS_NOT_AUTHORIZED_FOR_FACTOR_OR_OUTCOME_ACCESS_THIS_CYCLE"
+  },
+  "future_economic_contract_if_and_only_if_predictive_screen_passes": {
+    "policy": "FULL_CAPITAL_BTC_LONG_OUTSIDE_HIGH_SELL_PRESSURE_ZERO_YIELD_CASH_DURING_HIGH_SELL_PRESSURE_NO_LEVERAGE_NO_SHORT",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "top_event_concentration"
+    ]
+  },
+  "data_path": {
+    "status": "READY_FOR_NEXT_CYCLE_SOURCE_SEALING_NO_PAID_API",
+    "transport_preflight": {
+      "result": "HTTP_200_SCHEMA_ONLY_THREE_DAY_VALUES_DISCARDED_NOT_USED_AS_RESEARCH_EVIDENCE",
+      "credentials": "DENY",
+      "required_requests": "FETCH_FLOWINEXNTV_AND_FLOWOUTEXNTV_SEPARATELY_BECAUSE_A_COMBINED_COMMUNITY_QUERY_RETURNED_NO_ROWS",
+      "status_boundary": "CURRENT_RESPONSES_ARE_FLASH_PRESENT_VINTAGE_WITH_2026_STATUS_TIMES_ORIGINAL_DAILY_REVIEW_TIMES_MISSING"
+    },
+    "flow_in_url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=FlowInExNtv&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000",
+    "flow_out_url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=FlowOutExNtv&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000",
+    "source_cost": "COIN_METRICS_COMMUNITY_NO_KEY_FREE_NONCOMMERCIAL_RESEARCH_ONLY",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "required_action_before_factor_access": "DOWNLOAD_EACH_RESPONSE_ONCE_SEAL_RAW_BYTES_RECORD_SHA256_VALIDATE_DAILY_CONTINUITY_EXACT_METRIC_STATUS_AND_DATE_JOIN_THEN_FREEZE_HYPOTHESIS"
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_mechanism": "This family measures entity-labeled exchange custody flows and potential near-term sell-side pressure. It is not the closed address/transaction activity breadth, fee pressure, active supply, stablecoin growth, MVRV, hash rate, native OHLCV volume or CFTC family.",
+    "prohibited_rescue": "Do not add exchange supply level, individual exchanges, USD-valued flow, price normalization, alternate aggregation windows, trend, volatility or on-chain activity as variants after source or outcome access.",
+    "entity_label_risk": "Address ownership and exchange coverage can be revised retrospectively. A present-vintage historical pass is discovery only and must not become a candidate without untouched forward evidence."
+  },
+  "adversarial_prior": [
+    "Exchange deposits can support collateral, custody transfers, derivatives or internal wallet management rather than immediate spot selling.",
+    "Withdrawals can reflect address relabeling or exchange wallet reorganization rather than accumulation.",
+    "Coin Metrics entity labels and flash-status histories are present-vintage and can embed information unavailable at the historical decision time.",
+    "Netting aggregate inflow and outflow can hide simultaneous high gross flows and exchange-specific composition changes.",
+    "A risk veto may reduce drawdown only by withholding capital and can destroy upside; utilization and upside opportunity cost are mandatory if economics ever open."
+  ],
+  "next_cycle_stop_conditions": [
+    "Stop DATA_REJECT before factor access if either exact response cannot be sealed, any date or metric is missing or duplicated, statuses differ unexpectedly, or the two daily lattices cannot be joined one-to-one.",
+    "Freeze exactly one hypothesis and one pre-economic predictive manifest before aggregating any weekly factor or joining a BTC outcome.",
+    "Stop NO_CANDIDATE before economics if either Design or Validation fails support, downside direction, path-drawdown, annual-breadth or concentration gates.",
+    "Do not alter the seven-day aggregation, zero threshold, direction, availability floor, 168-hour horizon, parent or action after factor or outcome access.",
+    "Do not open post-2024 outcomes; any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed forward evidence."
+  ],
+  "missing_proof": [
+    "The complete 2018-2024 FlowInExNtv and FlowOutExNtv responses have not been downloaded or sealed.",
+    "No hash-bound hypothesis, runner, manifest or deterministic run exists.",
+    "No Design or Validation predictive result or matched-capital economics exists.",
+    "No candidate, independent OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior plus a free transport schema preflight only. Three-day response values were discarded and were not used for factor design or outcome pairing. No historical backfill was retained, no BTC outcome was accessed, and no hypothesis, runner, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

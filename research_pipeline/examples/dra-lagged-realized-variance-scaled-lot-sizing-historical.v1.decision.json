@@ -1,0 +1,159 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_LAGGED_REALIZED_VARIANCE_SCALED_LOT_SIZING_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-lagged-realized-variance-scaled-lot-sizing-historical-v1",
+  "decided_at": "2026-08-21T06:08:27Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_VARIABLE_LOT_SIZING_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_LAGGED_REALIZED_VARIANCE_INVERSE_SCALED_DRA_NEW_LOT_COST_FAMILY_WITHOUT_FORMULA_FLOOR_CAP_OR_GATE_TUNING",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-primary-prior.v1.json",
+      "sha256": "80149862b0e24dfaaa25338b07abdfeba382575fbd943accb4084c9566a4bc91"
+    },
+    "preoutcome_spec": {
+      "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-preoutcome.v1.spec.json",
+      "sha256": "09f69b7327813d34c8a2781a5910ec3fae6b2a7b028420fbed953608c00bc6c9"
+    },
+    "preoutcome_acceptance": {
+      "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-preoutcome.v1.acceptance.json",
+      "sha256": "9c4bba963688de0e783c39ad8688eeabaef01f38e819efacb2a8539f192c019a"
+    },
+    "hypothesis": {
+      "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-v1.hypothesis.json",
+      "sha256": "10fe350fc0f9286825c0ee0752ced3d5d5bcfdde4f118707d9f4d5b95b75500f"
+    },
+    "manifest_schema": {
+      "path": "research_pipeline/dra-variable-lot-sizing-manifest.v1.schema.json",
+      "sha256": "586dfddb42a2cf1497006a00255c09485bceaf0f1736ba33241e09d05807f124"
+    },
+    "manifest": {
+      "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-historical.v1.manifest.json",
+      "sha256": "63177649c3604593d178c4b406fc09128c27daa9a4bd1e779b7448b28ef4cf9c"
+    },
+    "support_runner": {
+      "path": "research/dra_lagged_realized_variance_scaled_lot_sizing_support_v1.py",
+      "sha256": "e13e994717aaaf312ee0f33f5e8fbd39f11601cce6fdcf1b56e3d1f11e414c82"
+    },
+    "economic_runner": {
+      "path": "research/btc_dra_variable_lot_sizing_v1.py",
+      "sha256": "963390fb2fa5bc8263a3ac84bde6f3d941eb969af15eb67d9b43e2b5156c9dac"
+    },
+    "preoutcome_support_run1_and_run2": {
+      "path": ".research-state/experiments/dra-lagged-realized-variance-scaled-lot-sizing-historical-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "5346677054ebfa8cab589d303195bd89ce0c0fd4dfe89e7924956700b59f37b3"
+    },
+    "economic_run1": {
+      "path": ".research-state/experiments/dra-lagged-realized-variance-scaled-lot-sizing-historical-v1/artifacts/economic-run1.json",
+      "sha256": "86341095d01838e428535e4463b75942d52315c0cab43a0665431e14a3dff368"
+    },
+    "economic_run2": {
+      "path": ".research-state/experiments/dra-lagged-realized-variance-scaled-lot-sizing-historical-v1/artifacts/economic-run2.json",
+      "sha256": "86341095d01838e428535e4463b75942d52315c0cab43a0665431e14a3dff368"
+    },
+    "determinism": "PREOUTCOME_SUPPORT_AND_ECONOMIC_RUNS_BYTE_IDENTICAL"
+  },
+  "preoutcome_support": {
+    "status": "PASS_PREOUTCOME_DEDUP_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+    "normalized_feature_rows": 2171,
+    "design_normalized_rows": 1440,
+    "validation_normalized_rows": 731,
+    "capacity_free_primary_scaled_signal_counts_design_validation": "39_AND_30",
+    "economic_filled_primary_scaled_lot_counts_design_validation": "40_AND_30",
+    "annual_capacity_free_primary_scaled_signal_counts_2020_2024": [17, 6, 4, 14, 16],
+    "top_year_capacity_free_primary_scaled_signal_share": "0.29824561",
+    "support_scope_note": "The preoutcome screen intentionally had no lot inventory and therefore estimated intervention breadth on a capacity-free signal clock. The frozen economic runner used the actual capacity-aware clock and reconciled all variable-cost fills; its one additional Design scaled fill does not alter the failed economic disposition."
+  },
+  "economic_summary": {
+    "parent": {
+      "design_total_pnl_usdt": "90.77797326",
+      "design_realized_pnl_usdt": "169.89846767",
+      "design_unrealized_pnl_usdt": "-79.12049441",
+      "design_max_drawdown_pct": "29.530448",
+      "validation_total_pnl_usdt": "86.20298186",
+      "validation_realized_pnl_usdt": "89.41118307",
+      "validation_unrealized_pnl_usdt": "-3.20820121",
+      "validation_max_drawdown_pct": "7.121498",
+      "validation_maximum_underwater_duration_hours": 2397,
+      "validation_median_hold_hours": 182.5,
+      "validation_p90_hold_hours": 1418.3
+    },
+    "primary_floor_15_usdt": {
+      "design_total_pnl_usdt": "64.64575114",
+      "design_total_pnl_delta_usdt": "-26.13222212",
+      "design_realized_pnl_delta_usdt": "-26.13222212",
+      "design_unrealized_pnl_delta_usdt": "0.00000000",
+      "design_max_drawdown_delta_pp": "-1.553476",
+      "validation_total_pnl_usdt": "65.59184526",
+      "validation_total_pnl_delta_usdt": "-20.61113660",
+      "validation_realized_pnl_delta_usdt": "-20.61113660",
+      "validation_unrealized_pnl_delta_usdt": "0.00000000",
+      "validation_max_drawdown_pct": "7.236337",
+      "validation_max_drawdown_delta_pp": "0.114839",
+      "validation_maximum_underwater_duration_hours": 2431,
+      "validation_median_hold_hours": 182.5,
+      "validation_p90_hold_hours": 1418.3,
+      "validation_terminal_inventory_count": 1,
+      "validation_terminal_inventory_cost_usdt": "30.00000000",
+      "annual_total_pnl_deltas_2020_2024": [
+        "-10.39337202",
+        "-2.81334663",
+        "-2.86676208",
+        "-9.44367547",
+        "-9.56039110"
+      ],
+      "annual_total_pnl_wins": "0_OF_5",
+      "annual_drawdown_improves": "2_OF_5",
+      "annual_risk_adjusted_wins": "1_OF_5"
+    },
+    "lower_neighbor_floor_10_usdt": {
+      "validation_total_pnl_delta_usdt": "-25.05275074",
+      "validation_realized_pnl_delta_usdt": "-25.05275074",
+      "validation_max_drawdown_delta_pp": "0.137177",
+      "annual_total_pnl_wins": "0_OF_5"
+    },
+    "upper_neighbor_floor_20_usdt": {
+      "validation_total_pnl_delta_usdt": "-15.11216508",
+      "validation_realized_pnl_delta_usdt": "-15.11216508",
+      "validation_max_drawdown_delta_pp": "0.084949",
+      "annual_total_pnl_wins": "0_OF_5"
+    }
+  },
+  "failed_primary_gates": [
+    "annual_drawdown_improves_at_least_4_of_5",
+    "annual_risk_adjusted_wins_at_least_3_of_5",
+    "annual_total_wins_at_least_3_of_5",
+    "design_risk_adjusted_score_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_reduces_at_least_0_25pp",
+    "validation_max_underwater_duration_non_worse",
+    "validation_realized_non_worse",
+    "validation_risk_adjusted_score_improves",
+    "validation_total_pnl_improves"
+  ],
+  "neighbor_failures": {
+    "floor_10_usdt": [
+      "validation_drawdown_strictly_improves",
+      "validation_realized_non_worse",
+      "validation_risk_adjusted_score_non_worse",
+      "validation_total_pnl_non_worse"
+    ],
+    "floor_20_usdt": [
+      "validation_drawdown_strictly_improves",
+      "validation_realized_non_worse",
+      "validation_risk_adjusted_score_non_worse",
+      "validation_total_pnl_non_worse"
+    ]
+  },
+  "material_learning": "The factor was causally available, broad and action-distinct, and all variable-cost accounting reconciled, but scaling down new DRA lots during high lagged realized variance systematically removed profitable exposure. The primary lost 20.61113660 USDT of Validation realized and total PnL, slightly increased Validation drawdown and underwater duration, and lost every annual total-PnL comparison. Both frozen floor neighbors had the same adverse economic direction. This is a permanent closure of the exact inverse realized-variance sizing family, not an invitation to tune its formula or floor.",
+  "prohibited_reopen": [
+    "Do not rerun or tune new DRA lot cost as max(floor, min(30, 30 divided by latest complete UTC day realized variance to its prior twenty-complete-day median)) for floors 10, 15 or 20 USDT.",
+    "Do not change return convention, UTC boundary, lookback, normalization, rounding, floor, cap, lot limit, fill, exit, costs, parent, windows or gates to rescue this family.",
+    "Do not reinterpret the Design drawdown reduction as success when Design and Validation PnL fell and Validation drawdown and underwater duration worsened.",
+    "Do not open OOS, create a candidate, deploy, or activate SHADOW, PAPER or LIVE."
+  ],
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Historical matched-capital research only. No paid API, second timer, second writer, external backfill, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

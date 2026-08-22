@@ -1,0 +1,120 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NASDAQ_COMPOSITE_TREND_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-nasdaq-composite-trend-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BTC_NASDAQ_COMPOSITE_TREND_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_NASDAQ_COMPOSITE_200D_TREND_LONG_CASH_FAMILY_AND_150D_250D_NEIGHBORS_WITHOUT_TUNING",
+  "material_conclusion": "The external Nasdaq trend policy produced an unusually strong Design result but failed to generalize economically. The primary 200-business-day rule earned 501.07755584% in Design with 54.72348518% drawdown versus buy-and-hold 129.60544229% and 77.18955925%, but Validation earned only 219.94804100% versus 464.75475156%, captured 47.325614% of upside, and retained exactly the same 32.28416349% drawdown as buy-and-hold. The 150-day and 250-day neighbors also failed Validation drawdown and Calmar gates. This is a 2022 crisis-avoidance effect with material 2023 opportunity cost, not a stable cross-asset alpha mechanism.",
+  "economic_evidence": {
+    "design_primary_normal": {
+      "candidate_total_return_pct": "501.07755584",
+      "buy_hold_total_return_pct": "129.60544229",
+      "candidate_maximum_drawdown_pct": "54.72348518",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "candidate_calmar_ratio": "9.15653589",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "upside_capture_ratio": "3.86617681",
+      "position_change_count": 8,
+      "average_exposure_pct": "64.87226277"
+    },
+    "validation_primary_normal": {
+      "candidate_realized_return_pct": "18.05821497",
+      "candidate_unrealized_return_pct": "201.88982603",
+      "candidate_total_return_pct": "219.94804100",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "candidate_calmar_ratio": "6.81287719",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.47325614",
+      "position_change_count": 11,
+      "average_exposure_pct": "94.39124487",
+      "median_hold_hours": "168.00000000",
+      "p90_hold_hours": "3484.80000000",
+      "terminal_position": true,
+      "top_positive_episode_contribution_pct": "99.10427755"
+    },
+    "validation_primary_stress": {
+      "candidate_realized_return_pct": "16.30055408",
+      "candidate_unrealized_return_pct": "198.41223962",
+      "candidate_total_return_pct": "214.71279370",
+      "buy_hold_total_return_pct": "463.90931032",
+      "candidate_maximum_drawdown_pct": "32.28416349"
+    },
+    "validation_neighbors_normal": {
+      "prior_150_business_days": {
+        "candidate_total_return_pct": "133.69167612",
+        "maximum_drawdown_pct": "37.61330572",
+        "calmar_ratio": "3.55437188",
+        "upside_capture_ratio": "0.28766070"
+      },
+      "prior_250_business_days": {
+        "candidate_total_return_pct": "254.28182552",
+        "maximum_drawdown_pct": "32.28416349",
+        "calmar_ratio": "7.87636407",
+        "upside_capture_ratio": "0.54713120"
+      }
+    },
+    "annual_primary_normal": {
+      "2020": {"candidate_total_return_pct": "311.05647757", "buy_hold_total_return_pct": "301.32276307", "candidate_drawdown_pct": "30.97812462", "buy_hold_drawdown_pct": "60.56916406"},
+      "2021": {"candidate_total_return_pct": "59.60909620", "buy_hold_total_return_pct": "59.60909620", "candidate_drawdown_pct": "54.72348518", "buy_hold_drawdown_pct": "54.72348518"},
+      "2022": {"candidate_total_return_pct": "-8.64346059", "buy_hold_total_return_pct": "-64.25634095", "candidate_drawdown_pct": "14.87858720", "buy_hold_drawdown_pct": "67.36039868"},
+      "2023": {"candidate_total_return_pct": "44.55680464", "buy_hold_total_return_pct": "155.16375107", "candidate_drawdown_pct": "21.82055830", "buy_hold_drawdown_pct": "21.72199642"},
+      "2024": {"candidate_total_return_pct": "120.99348678", "buy_hold_total_return_pct": "120.99348678", "candidate_drawdown_pct": "32.28416349", "buy_hold_drawdown_pct": "32.28416349"}
+    },
+    "breadth_and_concentration": {
+      "primary_normal_positive_years": "4_of_5",
+      "primary_stress_positive_years": "4_of_5",
+      "primary_drawdown_non_worse_years": "4_of_5",
+      "primary_calmar_non_worse_years": "4_of_5",
+      "primary_top_year_positive_return_contribution_pct": "58.00956252",
+      "primary_validation_top_positive_episode_contribution_pct": "99.10427755"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_drawdown_at_most_85pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_150d_validation_drawdown_non_worse_than_buy_hold",
+    "neighbor_150d_validation_calmar_at_least_75pct_of_buy_hold",
+    "neighbor_250d_validation_drawdown_non_worse_than_buy_hold",
+    "neighbor_250d_validation_calmar_at_least_75pct_of_buy_hold",
+    "primary_annual_drawdown_non_worse_5_of_5"
+  ],
+  "failure_attribution": [
+    "The primary rule's best risk reduction occurred in 2020 and 2022, but Validation drawdown was identical to buy-and-hold and 2023 drawdown was slightly worse.",
+    "The primary missed most of the 2023 BTC advance, earning 44.55680464% versus 155.16375107%; this opportunity cost dominated the apparent crisis protection.",
+    "Validation total PnL was mostly terminal unrealized inventory and the top positive completed episode contributed 99.10427755% of positive episode PnL, so the result lacked independent realized breadth.",
+    "The 150-day neighbor had worse Validation drawdown than buy-and-hold, while the 250-day neighbor preserved buy-and-hold drawdown but captured only 54.713120% of upside and less than 75% of buy-and-hold Calmar."
+  ],
+  "sealed_evidence": {
+    "manifest": {
+      "path": "research_pipeline/examples/btc-nasdaq-composite-trend-long-cash-historical.v1.manifest.json",
+      "sha256": "8a21197d226f6017bb83781ea7e063d71895684818468823ec23f7153e539664"
+    },
+    "runner": {
+      "path": "research/btc_nasdaq_composite_trend_long_cash_historical.cjs",
+      "sha256": "512865220125c6facc3205ced6c204b3fffba0092e18fb86fce3daf8a9d14373"
+    },
+    "run1": {
+      "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/artifacts/run1.json",
+      "sha256": "5b8661a721d9e292c4c4aee8b233f632e0b85b71f2b1877f2593efff0fd87be7"
+    },
+    "run2": {
+      "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/artifacts/run2.json",
+      "sha256": "5b8661a721d9e292c4c4aee8b233f632e0b85b71f2b1877f2593efff0fd87be7"
+    },
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "NASDAQCOM is a sealed present-vintage FRED research copy rather than original daily-vintage evidence and is subject to its copyright and revision boundary.",
+    "The historical relation may differ after 2024, but failed preregistered Validation and neighbor gates prohibit opening OOS or retuning this family.",
+    "The test closes only the exact Nasdaq Composite trend long-cash family; it does not reject all cross-asset equity information."
+  ],
+  "next_action": "Exclude this exact family from the open pool and advance a different independent mechanism without changing the 150, 200 or 250 business-day definitions.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

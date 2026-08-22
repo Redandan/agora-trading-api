@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-miner-revenue-per-hash-momentum-long-cash-v1",
+  "title": "Lagged theoretical miner revenue-per-hash momentum for BTC long or cash",
+  "thesis": "Improving price-valued protocol subsidy plus transaction fees per unit of network hash may identify declining miner selling pressure in which next-week BTC exposure has better risk-adjusted economics than unconditional buy-and-hold.",
+  "mechanism": "For every complete UTC day, multiply theoretical protocol BTC revenue at 144 expected blocks plus sealed total BTC fees by the same day's BTC close, divide by sealed network hashrate, and aggregate exactly seven Monday-through-Sunday observations. Beginning three calendar days after Sunday at 00:00 UTC, hold BTC for up to 168 hours only when the current four-week mean proxy is strictly above the previous adjacent four-week mean; otherwise hold zero-yield cash.",
+  "primary": {
+    "current_complete_weeks": 4,
+    "previous_adjacent_complete_weeks": 4,
+    "threshold": "STRICTLY_GREATER_THAN",
+    "action": "FULL_CAPITAL_LONG_ELSE_CASH"
+  },
+  "rejection_only_neighbors": [
+    {"current_and_previous_adjacent_complete_weeks": 2},
+    {"current_and_previous_adjacent_complete_weeks": 8}
+  ],
+  "required_pre_economic_gate": "ABSOLUTE_SPEARMAN_AT_MOST_0_80_VERSUS_BTC_PRICE_HASHRATE_AND_FEE_GROWTH_IN_DESIGN_AND_VALIDATION",
+  "sources": [
+    "EXISTING_SEALED_52608_ROW_BTC_H1_CORPUS",
+    "EXISTING_SEALED_2557_ROW_COIN_METRICS_FEE_CORPUS",
+    "EXISTING_SEALED_2557_ROW_COIN_METRICS_HASHRATE_CORPUS"
+  ],
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-miner-revenue-per-hash-nonredundancy-and-long-cash-matched-capital-runner-v1",
+  "data_readiness": "READY",
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-miner-revenue-per-hash-1",
+  "created_at": "2026-08-20T09:24:47Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

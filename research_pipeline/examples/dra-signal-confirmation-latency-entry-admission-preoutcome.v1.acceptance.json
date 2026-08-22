@@ -1,0 +1,40 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_SIGNAL_CONFIRMATION_LATENCY_PREOUTCOME_ACCEPTANCE_V1",
+  "accepted_at": "2026-08-21T07:32:56Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-signal-confirmation-latency-entry-admission",
+  "disposition": "PASS_PREOUTCOME_DEDUP_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+  "support_result": {
+    "path": ".research-state/experiments/dra-signal-confirmation-latency-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+    "sha256": "4277c21a421afa29469cb4c5d4035be91a66cfaaf5d88e27b3aa878a98a7f245",
+    "run2_path": ".research-state/experiments/dra-signal-confirmation-latency-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+    "run2_sha256": "4277c21a421afa29469cb4c5d4035be91a66cfaaf5d88e27b3aa878a98a7f245",
+    "byte_identical": true,
+    "support_pass": true,
+    "failed_gates": []
+  },
+  "spec_binding": {
+    "path": "research_pipeline/examples/dra-signal-confirmation-latency-entry-admission-preoutcome.v1.spec.json",
+    "sha256": "ed7c05ca08c535d6576b6cda204d8c4408496f6be24c40cef97d819a3a5de9b8"
+  },
+  "hypothesis_binding": {
+    "path": "research_pipeline/examples/dra-signal-confirmation-latency-entry-admission-v1.hypothesis.json",
+    "sha256": "99c1f6a2eb90220c5897e43e316bf5871d40f545d0c3a94f4c4f3b3a256d31ae",
+    "schema_valid": true
+  },
+  "support_summary": {
+    "design_parent_capacity_primary_veto_counts": "103_100_21",
+    "validation_parent_capacity_primary_veto_counts": "51_51_10",
+    "design_validation_latency_minimum_median_maximum_hours": "24_48_648__24_48_528",
+    "annual_primary_veto_counts_2020_2024": [3, 6, 7, 5, 5],
+    "top_year_primary_veto_share": "0.26923077",
+    "validation_top_month_primary_veto_share": "0.10000000",
+    "primary_design_validation_action_shares": "0.21000000_AND_0.19607843",
+    "exact_parent_path_parity": true,
+    "action_fingerprints_distinct": true,
+    "outcome_accessed": false
+  },
+  "decision_boundary": "This acceptance permits exactly one frozen matched-capital historical experiment with the 168-hour primary threshold and rejection-only 72-hour and 336-hour neighbors. It is not performance evidence and does not permit threshold, clock, armed-window lifecycle, cooldown route, gate, OOS or Trading changes.",
+  "scope_note": "No strategy economics, candidate, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

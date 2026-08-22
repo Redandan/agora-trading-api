@@ -1,0 +1,59 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary research supports intraday path dependence, time-of-day return predictability, and the use of daily high/low timing to test departures from an intraday random walk. It does not establish that the first H1 bar containing Bitcoin's final daily low preceding the first H1 bar containing its final daily high is stable alpha or improves DRA V1 economics. Exactly one frozen equal-capital historical screen may test this binary admission rule. Any frozen economic or path-risk failure closes the exact family without changing the bar interval, extreme definition, relation, threshold, parent, or accounting.",
+  "disposition": "PRIOR_SUPPORTS_ONE_H1_FIRST_EXTREME_ORDER_ADMISSION_AUDIT",
+  "document_type": "DRA_H1_FIRST_EXTREME_ORDER_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY",
+    "formula": "For one complete twenty-four-bar UTC day, record the first H1 bar containing the final daily low and the first H1 bar containing the final daily high. Return 1 only when the first-low hour is strictly earlier than the first-high hour; return 0 when the first-high hour is strictly earlier. If both final extremes first occur in the same H1 bar, the within-bar order is unobservable and the feature is unavailable.",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["1"]
+  },
+  "prior_matrix": [
+    {
+      "finding": "The study reports Bitcoin intraday return predictability from the first half-hour to the last half-hour, with stronger effects in high-volume and high-volatility periods and evidence consistent with liquidity provision.",
+      "identity": "Shen, Urquhart and Wang, Bitcoin intraday time series momentum, Financial Review 57 (2022) 319-344",
+      "primary_source": "https://doi.org/10.1111/fire.12290",
+      "role": "CRYPTO_INTRADAY_PATH_DEPENDENCE_PRIOR",
+      "transfer_boundary": "Half-hour return continuation does not prove a complete-day H1 extreme-order rule, its direction, or DRA entry economics."
+    },
+    {
+      "finding": "The study reports both intraday momentum and reversal across cryptocurrency markets, with patterns varying around jumps, FOMC announcements, liquidity conditions, and the COVID period.",
+      "identity": "Wen, Bouri, Xu and Zhao, Intraday Return Predictability in the Cryptocurrency Markets: Momentum, Reversal, or Both (2022 working paper)",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4080253",
+      "role": "CO_EQUAL_SIGN_AND_REGIME_INSTABILITY_PRIOR",
+      "transfer_boundary": "Mixed momentum and reversal evidence makes annual breadth and path-risk gates necessary and does not authorize choosing the direction after observing DRA outcomes."
+    },
+    {
+      "finding": "The study uses the timing of daily highs and lows to test deviations from an intraday random walk in index futures markets.",
+      "identity": "Mok, Lam and Li, Using Daily High/Low Time to Test for Intraday Random Walk in Two Index Futures Markets, Journal of Futures Markets 20 (2000) 87-103",
+      "primary_source": "https://doi.org/10.1023/A:1008323926951",
+      "role": "HIGH_LOW_TIMING_MEASUREMENT_PRIOR",
+      "transfer_boundary": "Index-futures random-walk diagnostics do not establish Bitcoin transferability, trading profitability, the H1 measurement resolution, or a DRA admission effect."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly one complete twenty-four-bar UTC day and execute no earlier than the unchanged next-bar open.",
+    "Freeze the first strict occurrence of the final daily high and final daily low; repeated equal extremes do not move their timestamps.",
+    "If the final high and low first occur in the same H1 bar, treat their within-bar order as unobservable and fail closed for the next parent signal.",
+    "Use exactly one binary variant: admit only when first-low hour is strictly earlier than first-high hour.",
+    "Keep DRA parent side, entries, exits, lot cost, capacity, fee, adverse slippage, cooldown and next-bar fill clock unchanged.",
+    "Require gate set V2 Design and Validation total and realized PnL improvement, annual breadth, drawdown and underwater non-inferiority, holding support, terminal inventory and intervention support; otherwise close the family.",
+    "Do not search a neighboring threshold, alternate extreme definition, lower bar interval, lookback, reverse relation, or post-2024 OOS after outcome access."
+  ],
+  "reviewed_at": "2026-08-19T11:45:00Z",
+  "source_access": {
+    "mok_lam_li_publisher_identity_and_abstract": "PASS",
+    "shen_urquhart_wang_publisher_identity_and_abstract": "PASS",
+    "wen_bouri_xu_zhao_ssrn_identity_and_abstract": "PASS"
+  },
+  "status": "COMPLETED",
+  "uncertainty": [
+    "No primary source directly validates this exact Bitcoin H1 first-extreme-order DRA admission rule.",
+    "H1 bars cannot reveal whether the daily high or low occurred first when both final extremes are contained in the same bar; those days must remain unavailable rather than inferred.",
+    "The binary feature may repackage daily return, close location, path efficiency, sign persistence, or momentum even though its exact fingerprint is absent from the existing pool.",
+    "Intraday momentum and reversal can coexist across regimes, so a single aggregate PnL improvement is insufficient without annual breadth and path-risk support.",
+    "No outcome for this exact feature, post-2024 evidence, OOS, candidate, runtime filter, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE path was accessed while freezing this prior."
+  ]
+}

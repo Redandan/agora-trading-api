@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BLS_EMPLOYMENT_SITUATION_SCHEDULED_RELEASE_DAY_RISK_VETO_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-bls-employment-situation-scheduled-release-day-risk-veto",
+  "experiment_id": "btc-bls-employment-situation-scheduled-release-day-risk-veto-historical-v1",
+  "decided_at": "2026-08-20T15:45:55Z",
+  "status": "NO_CANDIDATE_CLOSE_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_FROZEN_BLS_EMPLOYMENT_SITUATION_RELEASE_DATE_FULL_UTC_DAY_RISK_VETO_WITHOUT_EVENT_DATE_OR_WINDOW_TUNING",
+  "frozen_inputs": {
+    "primary_prior_sha256": "87411465603c9c7bea4f3adb4bec3161827cce4b6e3ab6b6d9617d163166af4f",
+    "calendar_sha256": "899c286c952c8a79c04336bd00852e0c81024a015ee20ec9ccbd644b501468d0",
+    "hypothesis_sha256": "fe74404190c8311e7cdab08b9e95bc2cb52ddd5ca3cd36cae0023e2e1d7c073a",
+    "runner_sha256": "ca9ec76592c575cb485cd33e8fdb45e398c5b476c76966308503021aa13ded96",
+    "manifest_sha256": "8b348fcc268100091a78f3b14ccd1744e27cacb88c20ed5bef5ac5cef42ae57e"
+  },
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-bls-employment-situation-scheduled-release-day-risk-veto-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-bls-employment-situation-scheduled-release-day-risk-veto-historical-v1/artifacts/run2.json",
+    "run1_sha256": "bac2db31e0daaad7d3a92d096ef613447f3de42ec6b5d1f3d82f2316c6faee7d",
+    "run2_sha256": "bac2db31e0daaad7d3a92d096ef613447f3de42ec6b5d1f3d82f2316c6faee7d",
+    "byte_identical": true
+  },
+  "predictive_evidence": {
+    "design": {
+      "years": "2020-2022",
+      "matched_weekday_episodes": 314,
+      "scheduled_employment_situation_events": 36,
+      "same_weekday_non_event_controls": 278,
+      "event_median_return_24h": "0.00205786",
+      "control_median_return_24h": "-0.00029730",
+      "event_negative_rate": "0.47222222",
+      "control_negative_rate": "0.52158273",
+      "one_sided_fisher_p": "0.76878437",
+      "event_median_path_drawdown_24h": "0.03707154",
+      "control_median_path_drawdown_24h": "0.03552668",
+      "event_p75_path_drawdown_24h": "0.04913225",
+      "control_p75_path_drawdown_24h": "0.05588091",
+      "annual_return_direction_wins": "2/3",
+      "annual_drawdown_direction_wins": "2/3",
+      "top1_negative_event_loss_contribution_pct": "18.43493707",
+      "top3_negative_event_loss_contribution_pct": "44.97577306"
+    },
+    "validation": {
+      "years": "2023-2024",
+      "matched_weekday_episodes": 104,
+      "scheduled_employment_situation_events": 24,
+      "same_weekday_non_event_controls": 80,
+      "event_median_return_24h": "-0.00130920",
+      "control_median_return_24h": "0.00297667",
+      "event_negative_rate": "0.54166667",
+      "control_negative_rate": "0.41250000",
+      "one_sided_fisher_p": "0.18841585",
+      "event_median_path_drawdown_24h": "0.02801766",
+      "control_median_path_drawdown_24h": "0.02511126",
+      "event_p75_path_drawdown_24h": "0.04234915",
+      "control_p75_path_drawdown_24h": "0.03844143",
+      "annual_return_direction_wins": "2/2",
+      "annual_drawdown_direction_wins": "1/2",
+      "top1_negative_event_loss_contribution_pct": "32.95909309",
+      "top3_negative_event_loss_contribution_pct": "66.31119053"
+    },
+    "failed_gate_count": 8,
+    "failed_gates": [
+      "design_control_median_return_at_least_25bp_higher",
+      "design_control_negative_rate_at_least_5pp_lower",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_control_p75_path_drawdown_non_worse",
+      "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "validation_annual_median_path_drawdown_direction_breadth",
+      "validation_top1_negative_event_loss_contribution_at_most_25pct",
+      "validation_top3_negative_event_loss_contribution_at_most_50pct"
+    ]
+  },
+  "economic_evidence": {
+    "status": "NOT_OPENED_PRE_ECONOMIC_GATE_FAILURE",
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED"
+  },
+  "material_conclusion": "The loss-avoidance premise reversed across windows. In Design, Employment Situation days had higher median return and a lower negative-return rate than same-weekday controls, directly contradicting the cash-veto thesis. Validation showed an adverse median-return and negative-rate gap, but Fisher p=0.18841585, drawdown breadth only 1/2 years, and top-one/top-three loss concentration of 32.96%/66.31% failed the frozen independence and breadth gates. The complete-day veto therefore lacks repeatable predictive support.",
+  "uncertainty": [
+    "The complete UTC day is a coarse window around the 08:30 Eastern release and does not causally isolate labor news from other information arriving that day.",
+    "The frozen design intentionally excludes payroll, unemployment, earnings and revision surprises, consensus forecasts and intraday timing; those would be different future hypotheses, not rescue variants for this family.",
+    "No matched-capital economics, post-2024 observation, independent OOS, candidate or forward evidence was opened."
+  ],
+  "next_action": "EXCLUDE_THIS_EXACT_BLS_EMPLOYMENT_SITUATION_FULL_UTC_DAY_RISK_VETO_FINGERPRINT_AND_RANK_THE_NEXT_INDEPENDENT_OPEN_FAMILY",
+  "concept_to_teach": "A pattern that appears only in Validation but points the opposite way in Design is not a robust factor. Statistical support, path-risk breadth and low loss concentration must agree before paying transition costs to avoid an event day.",
+  "prohibited_reopen": true,
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

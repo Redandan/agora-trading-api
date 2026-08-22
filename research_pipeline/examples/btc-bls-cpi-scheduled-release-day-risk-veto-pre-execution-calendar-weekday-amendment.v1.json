@@ -1,0 +1,44 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BLS_CPI_SCHEDULED_RELEASE_DAY_RISK_VETO_PRE_EXECUTION_CALENDAR_WEEKDAY_AMENDMENT_V1",
+  "experiment_id": "btc-bls-cpi-scheduled-release-day-risk-veto-historical-v1",
+  "created_at": "2026-08-20T15:25:21Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRE_RESULT_STRUCTURAL_AMENDMENT",
+  "trigger": "The first execution stopped before creating an output because the frozen 2023-2024 CPI calendar contains Tuesday, Wednesday and Thursday releases but no Friday release.",
+  "evidence_boundary": {
+    "output_created": false,
+    "predictive_metrics_reported": false,
+    "economic_simulation_opened": false,
+    "oos_opened": false
+  },
+  "old_bindings": {
+    "runner_sha256": "55272522a895e1675a1b7f6171511fd54b9f554e055c6f225e882bff1792f5a2",
+    "manifest_sha256": "5c6983af75fe7226cc7be950c7d1ebe5d56d4d754b50f09f8bce2900c33a81db",
+    "calendar_sha256": "78c42ced056df9608deed80444ec89203efffd75a958486b681ec24a27f99eba"
+  },
+  "frozen_calendar_weekday_support": {
+    "design_python_weekdays": [1, 2, 3, 4],
+    "validation_python_weekdays": [1, 2, 3]
+  },
+  "amendment": {
+    "weekday_assertion": "Validate each window against its own frozen event-weekday set.",
+    "design_minimum_evaluable_episodes": 600,
+    "design_minimum_controls": 560,
+    "validation_minimum_evaluable_episodes": 300,
+    "validation_minimum_controls": 275
+  },
+  "unchanged": [
+    "OFFICIAL_EVENT_DATES",
+    "FULL_UTC_DAY_EVENT_WINDOW",
+    "RETURN_EFFECT_SIZE_GATE",
+    "NEGATIVE_RATE_EFFECT_SIZE_GATE",
+    "FISHER_P_VALUE_GATE",
+    "PATH_DRAWDOWN_GATES",
+    "ANNUAL_BREADTH_GATES",
+    "LOSS_CONCENTRATION_GATES",
+    "MATCHED_CAPITAL_ECONOMIC_GATES",
+    "OOS_DENY"
+  ],
+  "scope_note": "This repairs a calendar support assertion before any result artifact. It does not use a BTC result to change a performance gate or strategy rule."
+}

@@ -1,0 +1,126 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_TREND_ACCELERATION_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "family_id": "dra-native-trend-acceleration-entry-admission",
+  "decided_at": "2026-08-21T08:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_NATIVE_TREND_ACCELERATION_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_CAPACITY_FIRST_EMA20_SECOND_FIVE_DAY_DIFFERENCE_DIV_UPDATED_ATR14_MINUS_0_10_ZERO_PLUS_0_10_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_WINDOW_ATR_DIRECTION_COOLDOWN_ROUTE_OR_GATE_RESCUE",
+  "evidence": {
+    "hypothesis": {
+      "path": "research_pipeline/examples/dra-native-trend-acceleration-entry-admission-v1.hypothesis.json",
+      "sha256": "5f9b0f7acde5b98bc36a03af8f20916f15988300c6505425cf1939f956da303d"
+    },
+    "preoutcome_acceptance": {
+      "path": "research_pipeline/examples/dra-native-trend-acceleration-entry-admission-preoutcome.v1.acceptance.json",
+      "sha256": "cd491c06f7f9e6e3ca7fdeff0f8ee9ddb5f90b3ae23c0d3e7d1c06f8a342887e"
+    },
+    "manifest": {
+      "path": "research_pipeline/examples/dra-native-trend-acceleration-entry-admission-historical.v1.manifest.json",
+      "sha256": "3172486656f2782fea9a44e5a3ee3e1c6e0584c32086867ff55b41024010fae4"
+    },
+    "manifest_schema": {
+      "path": "research_pipeline/dra-native-trend-acceleration-entry-admission-manifest.v1.schema.json",
+      "sha256": "751a15f9dc839792e4ccc41fcaa5e13805027d72424cfca61788c67171d3e0d0"
+    },
+    "economic_runner": {
+      "path": "research/btc_dra_native_trend_acceleration_entry_admission_v1.py",
+      "sha256": "eaad2c846ed2e46234d5919ee79f469921835e22425f82a351dd7810f619affb"
+    },
+    "support_runner": {
+      "path": "research/dra_native_trend_acceleration_support_v1.py",
+      "sha256": "a259fa826e3d853c689f171a54836f8aab2db008f5d44eedcd660f85ae1e6610"
+    },
+    "economic_gate_helper": {
+      "path": "research/btc_dra_stale_inventory_age_entry_admission_v1.py",
+      "sha256": "45d32cc379af6a9a5dd47575eb0362cc399c464e8c88ba0c22de9a79bb6eee29"
+    },
+    "economic_run1": {
+      "path": ".research-state/experiments/dra-native-trend-acceleration-entry-admission-historical-v1/artifacts/economic-screen.v1.run1.json",
+      "sha256": "da490c7fa04d3025cac0ebc3c2bba3d7c1bdd3ed368dad969370447e1816dd67"
+    },
+    "economic_run2": {
+      "path": ".research-state/experiments/dra-native-trend-acceleration-entry-admission-historical-v1/artifacts/economic-screen.v1.run2.json",
+      "sha256": "da490c7fa04d3025cac0ebc3c2bba3d7c1bdd3ed368dad969370447e1816dd67"
+    },
+    "determinism": "ECONOMIC_RUNS_BYTE_IDENTICAL"
+  },
+  "mechanism": {
+    "capacity_first": true,
+    "feature": "EMA20_SECOND_FIVE_DAY_DIFFERENCE_DIV_UPDATED_ATR14",
+    "complete_day_offsets": [0, 5, 10],
+    "primary_threshold_atr": "0.00",
+    "rejection_only_neighbors_atr": ["-0.10", "0.10"],
+    "relation": "ADMIT_AT_OR_ABOVE_THRESHOLD_VETO_BELOW_THRESHOLD",
+    "veto_reserves_parent_cooldown": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL",
+    "capacity_block_route": "UNCHANGED_WITHOUT_COOLDOWN_RESERVATION",
+    "inventory_or_pnl_state_read_for_decision": false,
+    "sell_or_resize_existing_lots": false
+  },
+  "primary_summary": {
+    "design": {
+      "parent_realized_unrealized_total_usdt": "169.89846767_-79.12049441_90.77797326",
+      "candidate_realized_unrealized_total_usdt": "100.51398603_-37.33838587_63.17560016",
+      "total_pnl_delta_usdt": "-27.60237310",
+      "realized_pnl_delta_usdt": "-69.38448164",
+      "parent_candidate_drawdown_pct": "29.530448_25.445570",
+      "parent_candidate_max_underwater_hours": "9878_6677",
+      "parent_candidate_median_p90_hold_hours": "126_1818.6__166_3003.2",
+      "parent_candidate_terminal_inventory_count": "5_3",
+      "vetoed_signals": 41
+    },
+    "validation": {
+      "parent_realized_unrealized_total_usdt": "89.41118307_-3.20820121_86.20298186",
+      "candidate_realized_unrealized_total_usdt": "42.00272149_-3.20820121_38.79452028",
+      "total_pnl_delta_usdt": "-47.40846158",
+      "realized_pnl_delta_usdt": "-47.40846158",
+      "parent_candidate_drawdown_pct": "7.121498_4.024340",
+      "parent_candidate_max_underwater_hours": "2397_1937",
+      "parent_candidate_median_p90_hold_hours": "182.5_1418.3__166_1118.6",
+      "parent_candidate_terminal_inventory_count": "1_1",
+      "vetoed_signals": 26
+    },
+    "annual_total_pnl_delta_usdt_2020_2024": {
+      "2020": "-23.87285670",
+      "2021": "-9.04052275",
+      "2022": "12.82423249",
+      "2023": "-22.61036578",
+      "2024": "-21.58395572"
+    },
+    "annual_total_wins": "1_OF_5",
+    "annual_drawdown_non_worse_with_0_25pp_tolerance": "4_OF_5",
+    "annual_risk_adjusted_wins": "3_OF_5",
+    "top_year_positive_delta_contribution_pct": "100.000000_SINGLE_POSITIVE_YEAR_2022"
+  },
+  "neighbor_summary": {
+    "minus_0_10_validation_total_pnl_usdt_parent_candidate_delta": "86.20298186_49.27527916_-36.92770270",
+    "plus_0_10_validation_total_pnl_usdt_parent_candidate_delta": "86.20298186_35.44589089_-50.75709097",
+    "both_neighbors_validation_realized_non_worse": false,
+    "both_neighbors_validation_total_pnl_non_worse": false,
+    "both_neighbors_validation_risk_adjusted_non_worse": false
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_risk_adjusted_score_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_realized_pnl_improves",
+    "validation_risk_adjusted_score_improves",
+    "validation_total_pnl_improves"
+  ],
+  "material_learning": "ATR-normalized EMA20 curvature is causal, decision-time available, selective and broad, but negative curvature is not a low-value DRA entry state. The zero threshold removed 26 of 51 capacity-admissible Validation signals and reduced realized and total PnL by 47.40846158 USDT. Validation drawdown improved by 3.097158 percentage points, maximum underwater duration fell by 460 hours and median/P90 holding improved, but this came from suppressing profitable participation rather than producing independent alpha. Only 2022 improved; 2020, 2021, 2023 and 2024 all lost total PnL, and both rejection-only neighbors also materially reduced Validation realized, total and risk-adjusted performance. A smoother equity path is not a strategy improvement when it discards most of the economic return.",
+  "prohibited_reopen": [
+    "Do not rerun or promote the minus 0.10, zero or plus 0.10 ATR curvature thresholds.",
+    "Do not search another EMA20 slope window, ATR normalization, threshold or feature direction, and do not invert the condition after seeing that vetoed entries were profitable.",
+    "Do not combine the observed result with MACD, V8 trend quality, breakout, overextension, latency, inventory, PnL, volatility or regime conditions as a post-outcome rescue.",
+    "Do not change capacity-first ordering, seven-day veto cooldown reservation, next-open fill, lot, cap, parent signal, exit, fees, slippage, windows or gates.",
+    "Do not open OOS, create a candidate, deploy or activate SHADOW, PAPER or LIVE from this result."
+  ],
+  "hypothesis_created": true,
+  "candidate_economics_accessed": true,
+  "candidate_created": false,
+  "oos_opened": false,
+  "activation": "REPORTED_NOT_ACTIVATED",
+  "scope_note": "Historical matched-capital research and permanent branch closure only. No paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_REPORTABLE_TRADER_BREADTH_GROWTH_LONG_CASH_PRIMARY_PRIOR_REJECT_ACCEPTANCE_V1",
+  "family_id": "btc-cftc-reportable-trader-breadth-growth-long-cash",
+  "accepted_at": "2026-08-20T11:42:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "accepted_artifact": {
+    "path": "research_pipeline/examples/btc-cftc-reportable-trader-breadth-growth-long-cash-primary-prior-reject.v1.json",
+    "sha256": "ea55db5c9cfcdc186aec6e1617e6afb01149540240dbcedd2dacd31c3d56606b",
+    "decision": "CLOSE_BEFORE_HYPOTHESIS_OR_FACTOR_ACCESS_BECAUSE_NO_PRIMARY_SOURCE_SUPPORTS_ONE_TRADABLE_DIRECTION"
+  },
+  "acceptance_checks": {
+    "primary_source_count_at_least_two": true,
+    "unique_pre_outcome_direction_identified": false,
+    "factor_values_accessed": false,
+    "btc_outcomes_accessed": false,
+    "economic_evidence_accessed": false,
+    "hypothesis_or_manifest_created": false,
+    "closed_before_direction_scan": true,
+    "prohibited_reopen_recorded": true
+  },
+  "disposition": "ACCEPT_PRIOR_REJECT_AND_PERMANENTLY_CLOSE_BTC_CFTC_REPORTABLE_TRADER_BREADTH_DIRECTION_FAMILY",
+  "claim_boundary": "Acceptance and hash binding only; no trader-count factor, BTC outcome, PnL, drawdown or OOS evidence was opened.",
+  "scope_note": "No paid API, external backfill, second timer, second writer, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

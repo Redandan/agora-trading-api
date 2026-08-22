@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_DEXJPUS_4W_YEN_DEPRECIATION_SOURCE_FEASIBILITY_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-dexjpus-4w-yen-depreciation-long-cash",
+  "decided_at": "2026-08-21T03:38:48Z",
+  "status": "DATA_REJECT_CLOSE_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_DEXJPUS_4W_YEN_DEPRECIATION_LONG_CASH_FAMILY",
+  "decision": "The first source probe failed before factor construction because the official CSV encoded a missing value as an empty field rather than the parser's accepted dot marker. A frozen parser erratum preserved every economic, timing and support gate and allowed exactly one explicit repair attempt. That attempt parsed the missing marker but returned 1,826 source rows instead of the frozen complete 1,827-weekday lattice. The family is therefore closed without another retry, hypothesis, BTC outcome or OOS access.",
+  "attempts": [
+    {
+      "attempt": 1,
+      "source_probe_sha256": "a8387868b9cc3f3a0abf0720627659ea37e53077282b91f7a7cfde7ca88ee8b9",
+      "result": "SOURCE_REJECT:VALUE_FORMAT:9",
+      "sealed_output_count": 0,
+      "factor_computed": false,
+      "btc_outcome_accessed": false
+    },
+    {
+      "attempt": 2,
+      "source_probe_sha256": "c8dd94daf56a5b42d2b6f9ab390969ca42d47c7dcc7cb820c2415b721719d6c1",
+      "result": "SOURCE_REJECT:ROWS:1826",
+      "expected_complete_weekday_rows": 1827,
+      "sealed_output_count": 0,
+      "factor_computed": false,
+      "btc_outcome_accessed": false
+    }
+  ],
+  "sealed_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-fred-dexjpus-4w-yen-depreciation-long-cash-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "sha256": "4c192d631599201884a015d4c765006ff24048af39ebd76bba5e141010f338a2"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-dexjpus-4w-yen-depreciation-source-feasibility.v1.spec.json",
+      "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC",
+      "sha256": "631aec9ca9f034fd7eb20fb81ff91fe51f1c4a89857c8b4cc119c3d42d5cbb43"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-dexjpus-source-parser-missing-marker-erratum.v1.json",
+      "role": "FROZEN_PRE_FACTOR_PARSER_ERRATUM",
+      "sha256": "ce1267ef66516644fdd3c2d799ac1fd2c31433967d65f612fe2f05015bdcbd6c"
+    },
+    {
+      "path": "research/fred_dexjpus_source_probe.py",
+      "role": "FINAL_FAILED_CREATE_ONCE_SOURCE_PROBE",
+      "sha256": "c8dd94daf56a5b42d2b6f9ab390969ca42d47c7dcc7cb820c2415b721719d6c1"
+    }
+  ],
+  "missing_proof": [
+    "The exact missing weekday identity is not retained because failed source bytes were never sealed.",
+    "No weekly DEXJPUS mean, direction-state support, hypothesis, economics, candidate, OOS or forward evidence exists.",
+    "This source-path rejection does not show that yen carry lacks predictive value; it only closes the exact frozen family and transport contract."
+  ],
+  "prohibited_reopen": [
+    "Do not retry or reconstruct the missing weekday, change the complete-week lattice, or substitute a different USDJPY source.",
+    "Do not invert direction, change the four-week horizon, add thresholds or use BOJ, Fed, rates, intervention, broad-dollar, volatility or BTC inputs as a rescue.",
+    "Do not create a hypothesis, economic runner or OOS experiment for this closed family."
+  ],
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No source output was sealed and no factor, BTC outcome, hypothesis, manifest, economics, paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

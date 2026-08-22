@@ -1,0 +1,78 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_NATIVE_ISSUANCE_CONTRACTION_SOURCE_FEASIBILITY_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash",
+  "created_at": "2026-08-20T13:31:00Z",
+  "status": "FROZEN_BEFORE_2017_2024_ISS_TOT_NTV_FACTOR_ACCESS",
+  "purpose": "Test only whether the official no-key IssTotNtv history has the frozen daily clock, enough observations in both weekly factor states, adequate transitions and non-concentrated calendar support before any BTC outcome is opened.",
+  "source_contract": {
+    "metric": "IssTotNtv",
+    "asset": "btc",
+    "publisher": "Coin Metrics Community API",
+    "frequency": "1d",
+    "start_date": "2017-01-01",
+    "end_date": "2024-12-31",
+    "expected_rows": 2922,
+    "expected_first_date": "2017-01-01",
+    "expected_last_date": "2024-12-31",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "retry": "DENY"
+  },
+  "feature_contract": {
+    "factor_identity": "COINMETRICS_BTC_ISS_TOT_NTV_COMPLETE_SUNDAY_TRAILING_28D_SUM_STRICTLY_BELOW_TRAILING_28D_SUM_ENDING_364D_EARLIER_V1",
+    "supportive_condition": "CURRENT_COMPLETE_SUNDAY_TRAILING_28D_NATIVE_ISSUANCE_SUM_STRICTLY_BELOW_SAME_WEEKDAY_TRAILING_28D_SUM_ENDING_364_DAYS_EARLIER",
+    "other_condition": "OTHERWISE",
+    "current_window_days": 28,
+    "comparison_end_lag_days": 364,
+    "availability": "COMPLETE_SUNDAY_PLUS_3_CALENDAR_DAYS_AT_WEDNESDAY_00_00_UTC",
+    "maximum_validity_hours": 168,
+    "direction_inversion": "DENY",
+    "threshold_or_smoothing_scan": "DENY",
+    "normalization_or_block_count_adjustment": "DENY"
+  },
+  "pre_outcome_support_gates": {
+    "design": {
+      "start": "2019-01-01T00:00:00Z",
+      "end_exclusive": "2023-01-01T00:00:00Z",
+      "minimum_evaluations": 180,
+      "minimum_per_state": 40,
+      "minimum_transitions": 8,
+      "minimum_calendar_years_per_state": 3,
+      "maximum_single_calendar_year_supportive_share": "0.60",
+      "minimum_supportive_weeks_outside_post_halving_364d": 40
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00Z",
+      "end_exclusive": "2025-01-01T00:00:00Z",
+      "minimum_evaluations": 90,
+      "minimum_per_state": 20,
+      "minimum_transitions": 4,
+      "minimum_calendar_years_per_state": 2,
+      "maximum_single_calendar_year_supportive_share": "0.75",
+      "minimum_supportive_weeks_outside_post_halving_364d": 20
+    }
+  },
+  "halving_concentration_contract": {
+    "calendar_boundaries": [
+      "2020-05-11",
+      "2024-04-20"
+    ],
+    "post_boundary_days": 364,
+    "interpretation": "A supportive state dominated by one deterministic halving interval is not adequate independent evidence. This source gate measures support inventory only; it does not test BTC outcomes."
+  },
+  "decision": {
+    "pass": "SOURCE_FEASIBILITY_PASS_MAY_FREEZE_EXACTLY_ONE_NEW_CYCLE_HYPOTHESIS_BEFORE_BTC_OUTCOME_ACCESS",
+    "failure": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+    "no_partial_pass": true
+  },
+  "prohibited_after_factor_access": [
+    "Do not change the 28-day current window, 364-day same-weekday comparison lag, strict contraction direction, Wednesday availability or support gates.",
+    "Do not add block-count normalization, miner revenue, fees, hashrate, USD issuance, BTC price, magnitude thresholds, alternate lookbacks or halving-event windows as rescue variants.",
+    "Do not access BTC outcomes unless this exact source feasibility contract passes every Design and Validation gate.",
+    "Do not treat present-vintage historical values as original point-in-time publication vintages or independent OOS."
+  ],
+  "scope_note": "No IssTotNtv historical factor value, BTC outcome, hypothesis, manifest, runner result, economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed by this specification."
+}

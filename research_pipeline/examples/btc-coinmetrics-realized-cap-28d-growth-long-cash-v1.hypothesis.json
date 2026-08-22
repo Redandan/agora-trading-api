@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-coinmetrics-realized-cap-28d-growth-long-cash-v1",
+  "title": "Lagged Bitcoin realized-cap 28-day growth long-or-cash policy",
+  "thesis": "Positive four-week growth in Bitcoin realized capitalization may identify sustained capital absorption and a rising aggregate holder cost basis, supporting better subsequent BTC returns and drawdown paths than nonpositive-growth weeks.",
+  "mechanism": "When coins move at progressively higher aggregate cost bases, the realized value of the network rises. A weekly, conservatively lagged signal may distinguish durable capital absorption from periods of cost-basis contraction, while an adversarial prior recognizes that the measure embeds BTC prices and can merely lag an existing bull market.",
+  "economic_rationale": "A full-capital long-or-cash policy is useful only if positive-growth weeks preserve sufficient BTC upside while nonpositive weeks avoid drawdown enough to beat passive BTC after normal and doubled fee plus adverse-slippage costs, with annual breadth and no single episode or terminal inventory mark dominating the result.",
+  "source": "research_pipeline/examples/btc-coinmetrics-realized-cap-28d-growth-long-cash-primary-prior.v1.json#sha256=6103cb5805abfb7bfadd5582b0b04074ea50522a332e2469448ba3d5443fc110;research_pipeline/examples/coinmetrics-btc-realized-cap-28d-growth-daily-2018-2024.v1.source.json#sha256=ea018692d18db827da8d2ae789766a985581edf9544d3024a2e3e60aa09a8559",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_2019_2024_H1_CORPUS_COST_AND_VALUATION",
+  "required_capability": "DIRECT_DETERMINISTIC_MATCHED_CAPITAL_WEEKLY_LONG_CASH_ECONOMIC_RUNNER",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_and_validation_state_counts_and_transitions",
+    "normal_and_stress_fee_adjusted_total_return",
+    "buy_and_hold_total_return",
+    "realized_pnl",
+    "unrealized_pnl",
+    "maximum_drawdown",
+    "calmar_ratio",
+    "upside_capture",
+    "capital_utilization",
+    "signal_evaluations_and_position_changes",
+    "p90_realized_lot_holding_hours",
+    "terminal_inventory_and_liquidation_adjustment",
+    "annual_return_and_drawdown_breadth",
+    "top_year_and_top_episode_positive_contribution"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-realized-cap-1",
+  "created_at": "2026-08-20T15:57:28Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

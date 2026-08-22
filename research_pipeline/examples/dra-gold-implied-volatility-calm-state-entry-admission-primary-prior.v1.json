@@ -1,0 +1,72 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Cboe defines GVZ as a 30-day expected-volatility index derived from GLD options, and peer-reviewed work documents time-varying implied-volatility connectedness between Bitcoin and traditional assets including gold. Neither source establishes that low lagged GVZ improves DRA V1 economics. Exactly one frozen source feasibility and matched-capital audit may test a weekly GVZ-to-prior-52-week-median ratio at primary 1.00 with 0.80 and 1.20 neighbors. Any source, timing, economic, predictive, breadth, drawdown, holding, inventory or neighbor failure closes the exact family without changing source, direction, aggregation, lag, thresholds, parent or accounting.",
+  "disposition": "PRIOR_SUPPORTS_ONE_DRA_GOLD_IMPLIED_VOLATILITY_CALM_STATE_ENTRY_ADMISSION_AUDIT",
+  "document_type": "DRA_GOLD_IMPLIED_VOLATILITY_CALM_STATE_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "source_series": "CBOE_GVZ",
+    "feature": "LAGGED_WEEKLY_GVZ_LAST_CLOSE_TO_PRIOR_52W_MEDIAN",
+    "formula": "For each Monday-through-Friday calendar week, use only the last published GVZ close. At the following calendar day 00:00 UTC, divide that close by the median of the immediately preceding 52 non-overlapping weekly last closes.",
+    "relation": "AT_OR_BELOW",
+    "thresholds": ["0.80", "1.00", "1.20"],
+    "primary_threshold": "1.00",
+    "factor_valid_hours": 168,
+    "missing_week_action": "NO_INTERPOLATION_AND_NO_SUBSTITUTION"
+  },
+  "prior_matrix": [
+    {
+      "finding": "Cboe defines GVZ as the Cboe Gold ETF Volatility Index and its selected-index methodology states that the covered volatility indices measure 30-day expected volatility conveyed by option prices.",
+      "identity": "Cboe Selected Broad-Based Index, Equity and ETF Volatility Indices Methodology",
+      "primary_source": "https://cdn.cboe.com/api/global/us_indices/governance/Volatility_Index_Methodology_Selected_Broad_Based_Index_Equity_and_ETF_Volatility_Indices.pdf",
+      "role": "OFFICIAL_FACTOR_IDENTITY",
+      "transfer_boundary": "GVZ measures GLD option-implied volatility, not Bitcoin volatility, future BTC return or a DRA admission state."
+    },
+    {
+      "finding": "The study reports time-varying implied-volatility spillovers between Bitcoin and traditional assets including gold and finds higher connectedness during COVID-19 than after vaccine availability.",
+      "identity": "COVID-19 vaccine and post-pandemic recovery: Evidence from Bitcoin cross-asset implied volatility spillover, Finance Research Letters 49, 103289 (2022)",
+      "primary_source": "https://doi.org/10.1016/j.frl.2022.103289",
+      "role": "BITCOIN_GOLD_IMPLIED_VOLATILITY_CONNECTEDNESS_PRIOR",
+      "transfer_boundary": "VAR connectedness and regime comparisons do not establish a low-GVZ direction, weekly median threshold, DRA timing or after-cost performance."
+    },
+    {
+      "finding": "Cboe publishes a direct historical GVZ CSV from its volatility-index historical data page.",
+      "identity": "Cboe Historical Data for Other Volatility Indices",
+      "primary_source": "https://www.cboe.com/tradable-products/vix/vix-historical-data",
+      "download_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/GVZ_History.csv",
+      "role": "OFFICIAL_FREE_SOURCE_PATH",
+      "transfer_boundary": "Cboe states historical index data is furnished for visitor convenience without guaranteed accuracy; exact 2018-2024 coverage and schema remain unsealed."
+    }
+  ],
+  "pre_outcome_source_feasibility": {
+    "method": "GET",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/GVZ_History.csv",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "expected_columns": ["DATE", "OPEN", "HIGH", "LOW", "CLOSE"],
+    "required_window": ["2018-01-01", "2024-12-31"],
+    "source_values_or_btc_outcomes_accessed": false
+  },
+  "real_time_design_requirements": [
+    "Seal one exact create-once official Cboe GVZ response before opening BTC outcomes; fail closed if the fixed response lacks complete 2018-2024 coverage or the required OHLC identity.",
+    "Use only the last published GVZ close in each Monday-through-Friday calendar week, apply next-calendar-day 00:00 UTC availability, and never interpolate a missing week.",
+    "Freeze primary ratio 1.00, 0.80 and 1.20 stability neighbors, and relation AT_OR_BELOW.",
+    "Keep DRA side, entries, exits, lot cost, capacity, fees, adverse slippage, cooldown and fill clock unchanged.",
+    "Require matched-capital Design and Validation economics, path risk, intervention support, annual breadth, concentration, independent predictive breadth and both-neighbor stability.",
+    "Any historical pass remains development evidence and requires untouched future evidence."
+  ],
+  "prohibited_substitutions": [
+    "Do not substitute VIX, VVIX, OVX, GLD realized volatility, gold price, another Cboe index or a paid source after access.",
+    "Do not change the weekly last-close aggregation, 52-week median denominator, direction, thresholds, lag or missing-week policy.",
+    "Do not reinterpret the closed equity VIX risk-state or VIX3M term-structure families as support; GVZ uses gold-option implied volatility but may still prove economically redundant.",
+    "Do not add BTC volatility, trend, correlation, EPU, dollar, equity or regime interactions."
+  ],
+  "uncertainty": [
+    "Gold implied volatility may simply duplicate broad risk stress already rejected by VIX-family research.",
+    "Low GVZ may suppress both drawdown and profitable volatility, creating a participation tradeoff rather than alpha.",
+    "The cited paper establishes connectedness, not a predictive low-GVZ trading direction.",
+    "No GVZ historical value, BTC strategy outcome, post-2024 evidence, OOS, candidate, canonical write or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T06:20:00Z",
+  "status": "COMPLETED"
+}

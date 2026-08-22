@@ -1,0 +1,41 @@
+{
+  "schema_version": "1",
+  "document_type": "CFTC_TFF_OPTION_ASSET_MANAGER_PREOUTCOME_PARSER_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "stage": "AFTER_FIXED_SOURCE_QUERY_BEFORE_ANY_FACTOR_SERIES_OR_RETURN_OUTCOME",
+  "failed_attempt": {
+    "manifest_sha256": "28d8c8a7f6aa24903ec83e0e73d5b0fe581e9cf4275f2384b20ecc483b4936bf",
+    "runner_sha256": "90d2cfc9241e23b19fb55fbfd22afbf8ed2bb55aa1061fba427cb175cb611b48",
+    "status": "DATA_REJECT",
+    "detail": "The parser rejected the complete response when it encountered the official 2020-12-21 holiday report date. No source receipt or economic output was written."
+  },
+  "correction": {
+    "runner_sha256": "146e1b2222f5de021226b76ae7a0cb5e114f33a16541888c093e297e315a1bac",
+    "behavior": "Load in-window official rows, then apply the already-frozen non_tuesday_action=EXCLUDE rule during factor-point construction.",
+    "test": "test_off_tuesday_holiday_report_is_loaded_then_excluded"
+  },
+  "second_failed_attempt": {
+    "manifest_sha256": "b5106398c5d2e481e07507371d05cd2368aa3fa47f7842cc819419464d3eb7e1",
+    "runner_sha256": "146e1b2222f5de021226b76ae7a0cb5e114f33a16541888c093e297e315a1bac",
+    "combined_source_receipt_sha256": "d9fbae9c76ca7a830fa130e1c104cda911e66f61e6112ed4cf9b416584cd7239",
+    "status": "DATA_REJECT",
+    "detail": "The existing official futures-only archive stores fixed-width integer strings with leading spaces. No economic output was written."
+  },
+  "second_correction": {
+    "runner_sha256": "fc432f2aaf7ef0ae1872715eece2da0a9e2771f7037ec452e2bb80fe27e3c099",
+    "behavior": "Trim source integer padding before applying the unchanged exact nonnegative-integer validation.",
+    "test": "test_option_net_pct_uses_combined_minus_futures"
+  },
+  "unchanged": [
+    "source locator and selection dates",
+    "factor formula and direction",
+    "seven-day decision clock and 168-hour validity",
+    "single variant",
+    "Design, Validation, annual folds and all predictive and economic gates",
+    "OOS denial and trading prohibition"
+  ],
+  "raw_source_values_observed_during_diagnosis": true,
+  "factor_values_used_for_correction": false,
+  "return_outcomes_accessed": false,
+  "oos_opened": false
+}

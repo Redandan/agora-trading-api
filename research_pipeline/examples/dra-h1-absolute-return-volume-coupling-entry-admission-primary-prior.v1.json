@@ -1,0 +1,84 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Peer-reviewed research establishes that Bitcoin intraday predictability varies with volume, volatility, liquidity and regime, while broader market research documents a positive relation between trading volume and the magnitude of price changes. It does not establish that a high within-day H1 absolute-return to log close-weighted-volume correlation improves DRA V1 entry economics. Exactly one frozen equal-capital historical audit may test the current complete UTC day's Pearson correlation percentile against the preceding 20 complete days at primary 0.50 with 0.30 and 0.70 neighbors. Any economic, predictive, breadth, drawdown, holding, inventory or neighbor failure closes the exact family without changing correlation, transform, lookback, direction, thresholds, parent or accounting.",
+  "disposition": "PRIOR_SUPPORTS_ONE_DRA_H1_ABSOLUTE_RETURN_VOLUME_COUPLING_ENTRY_ADMISSION_AUDIT",
+  "document_type": "DRA_H1_ABSOLUTE_RETURN_VOLUME_COUPLING_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "LATEST_COMPLETE_UTC_DAY_BEFORE_NEXT_BAR_FILL",
+    "feature": "DAILY_H1_ABSOLUTE_LOG_RETURN_TO_LOG_CLOSE_WEIGHTED_VOLUME_CORRELATION_PRIOR_20D_PERCENTILE",
+    "formula": "For each of the 24 H1 bars in the latest complete UTC day, pair abs(ln(close/open)) with ln(close*base_volume). Compute the Pearson correlation across the 24 ordered pairs, then compute its exact midrank percentile against the preceding 20 complete-day correlations, excluding the current day.",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.30", "0.50", "0.70"],
+    "primary_threshold": "0.50",
+    "lookback_complete_days": 20,
+    "non_positive_or_constant_action": "FEATURE_UNAVAILABLE_NO_INTERPOLATION"
+  },
+  "independence_contract": {
+    "duplicate_family_key": "dra-h1-absolute-return-log-close-weighted-volume-correlation-entry-admission",
+    "independence_key": "within-day-direction-neutral-movement-volume-coupling",
+    "not_directional_volume_participation_rescue": "The closed directional-volume family measured the share of close-weighted volume in positive-return hours. This feature ignores direction and tests cross-hour coupling between movement magnitude and volume.",
+    "not_volume_concentration_rescue": "The closed volume-concentration family measured whether quote volume was concentrated in a few hours. This feature instead tests whether higher-volume hours are also the hours with larger absolute returns.",
+    "not_total_volume_rescue": "The forward total-volume family measures the level of daily volume relative to history. This feature is scale invariant within each day and cannot replace or reopen that forward diagnostic."
+  },
+  "prior_matrix": [
+    {
+      "finding": "The study documents Bitcoin intraday time-series momentum and reports greater predictability when the first trading sessions have the highest volume or volatility.",
+      "identity": "Shen, Urquhart and Wang, Bitcoin intraday time series momentum, Financial Review 57 (2022) 319-344",
+      "primary_source": "https://doi.org/10.1111/fire.12290",
+      "role": "CRYPTO_INTRADAY_VOLUME_AND_VOLATILITY_PRIOR",
+      "transfer_boundary": "High-volume or high-volatility sessions do not identify the exact within-day correlation, its high-is-better direction or DRA entry economics."
+    },
+    {
+      "finding": "The study reports both intraday momentum and reversal in cryptocurrencies and finds that price jumps, liquidity and regime change predictability.",
+      "identity": "Wen, Bouri, Xu and Zhao, Intraday return predictability in the cryptocurrency markets: Momentum, reversal, or both, North American Journal of Economics and Finance 62, 101733 (2022)",
+      "primary_source": "https://doi.org/10.1016/j.najef.2022.101733",
+      "role": "ADVERSARIAL_INTRADAY_REVERSAL_AND_LIQUIDITY_PRIOR",
+      "transfer_boundary": "Strong movement-volume coupling may represent liquidation or overreaction rather than persistent informed participation."
+    },
+    {
+      "finding": "The survey documents a positive empirical relation between trading volume and the magnitude of price changes while emphasizing that price-volume relations are not one-to-one.",
+      "identity": "Karpoff, The Relation between Price Changes and Trading Volume: A Survey, Journal of Financial and Quantitative Analysis 22 (1987) 109-126",
+      "primary_source": "https://www.cambridge.org/core/journals/journal-of-financial-and-quantitative-analysis/article/relation-between-price-changes-and-trading-volume-a-survey/6839462E3D7809A5C37F16C9722605BE",
+      "role": "GENERAL_PRICE_VOLUME_RELATION_AND_NON_CAUSALITY_PRIOR",
+      "transfer_boundary": "A contemporaneous relation can reflect information arrival, disagreement or mechanical reaction and is not a causal forecast by itself."
+    },
+    {
+      "finding": "The existing immutable pre-2025 OKX BTCUSDT H1 selection corpus contains 52,608 complete H1 bars with exact OHLC and base volume and has already supported deterministic DRA matched-capital research.",
+      "identity": "Agora sealed OKX BTCUSDT H1 selection corpus",
+      "primary_source": ".research-state/java-parity/selection-2019-2024.tsv",
+      "role": "EXECUTABLE_PRE_OUTCOME_FEATURE_DATA_PATH",
+      "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00",
+      "transfer_boundary": "Close multiplied by base volume is a deterministic close-weighted volume proxy, not exchange-reported quote volume; data completeness does not establish predictive independence or economic value."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use exactly all 24 H1 open-to-close log returns and corresponding positive close-weighted base volumes from the latest complete UTC day; execute no earlier than the unchanged next-bar open.",
+    "Use Pearson correlation of absolute log return and natural-log close-weighted volume; do not substitute signed returns, levels, ranks, future bars or true quote-volume fields unavailable in the sealed corpus.",
+    "Exclude the current day from the exact prior-20-complete-day midrank percentile and make any incomplete, non-positive-volume or constant-axis day unavailable rather than assigning a state.",
+    "Freeze primary percentile 0.50 and neighbors 0.30 and 0.70 before DRA outcome access.",
+    "Keep DRA parent side, entries, exits, lot cost, capacity, fee, adverse slippage, cooldown and next-bar fill clock unchanged.",
+    "Require gate set V2 Design and Validation total and realized PnL improvement, annual breadth, drawdown and underwater non-inferiority, holding support, terminal inventory, intervention support, concentration and both-neighbor stability; otherwise close the family.",
+    "Do not open post-2024 OOS or create a Trading runtime rule from this audit."
+  ],
+  "prohibited_substitutions": [
+    "Do not change Pearson to Spearman, signed returns, high-low range, raw volume level, another volume transform, another day boundary or another lookback after outcome access.",
+    "Do not reverse the relation, search thresholds, add direction, session, volatility, trend, macro or on-chain factors, or combine the feature with a closed family.",
+    "Do not reopen the closed directional-volume, volume-concentration, session-volume, close-location or price-path families, and do not replace the independent forward total-volume diagnostic."
+  ],
+  "uncertainty": [
+    "High contemporaneous coupling may identify liquidation, forced flow or reaction to volatility rather than informed participation that persists into the next DRA fill.",
+    "Close-weighted base volume is an internally deterministic proxy; the sealed corpus does not contain exchange-reported quote volume or trade direction.",
+    "Correlation is unstable when either intraday axis has little dispersion; such days must fail closed instead of receiving an artificial score.",
+    "No outcome for this exact feature, post-2024 evidence, OOS, candidate, runtime filter, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T07:05:00Z",
+  "source_access": {
+    "sealed_h1_dataset_hash_and_rows": "PASS",
+    "karpoff_publisher_identity_and_abstract": "PASS",
+    "shen_urquhart_wang_publisher_identity_and_abstract": "PASS",
+    "wen_bouri_xu_zhao_publisher_identity_and_abstract": "PASS"
+  },
+  "status": "COMPLETED"
+}

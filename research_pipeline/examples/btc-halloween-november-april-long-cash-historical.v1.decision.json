@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-halloween-november-april-long-cash",
+  "experiment_id": "btc-halloween-november-april-long-cash-historical-v1",
+  "hypothesis_id": "btc-halloween-november-april-long-cash-v1",
+  "decided_at": "2026-08-21T05:54:00Z",
+  "status": "NO_CANDIDATE_CLOSE_BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_FAMILY",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_FAMILY",
+  "decision": "The exact fixed UTC November-April long and May-October cash policy failed four preregistered gates despite positive aggregate returns and materially lower full-window drawdowns. Design upside capture was 51.927871 percent versus a 60 percent gate, Design Calmar was only 66.177065 percent of buy-and-hold, annual Calmar breadth was 2 of 6 versus 4 of 6, and the largest positive Validation seasonal episode contributed 63.321808 percent versus the 60 percent cap. Permanently close without moving months, selecting years or adding another filter.",
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-halloween-november-april-long-cash-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-halloween-november-april-long-cash-historical-v1/artifacts/run2.json",
+    "run1_sha256": "2788054a058a2507607e62006c5de51478ac261a9b18648403638a366b70c44a",
+    "run2_sha256": "2788054a058a2507607e62006c5de51478ac261a9b18648403638a366b70c44a",
+    "byte_identical": true
+  },
+  "economic_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "179.83692719",
+      "buy_hold_total_return_pct": "346.32062389",
+      "candidate_maximum_drawdown_pct": "60.56916406",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "drawdown_delta_pp": "-16.62039519",
+      "upside_capture_ratio": "0.51927871",
+      "candidate_calmar": "2.96911688",
+      "buy_hold_calmar": "4.48662523",
+      "candidate_average_exposure_pct": "49.62354552"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "308.92954660",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_maximum_drawdown_pct": "21.72199642",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "drawdown_delta_pp": "-10.56216708",
+      "upside_capture_ratio": "0.66471520",
+      "candidate_calmar": "14.22196840",
+      "buy_hold_calmar": "14.39575015",
+      "top_positive_episode_contribution_pct": "63.32180788",
+      "candidate_average_exposure_pct": "49.65800274"
+    },
+    "annual_breadth": {
+      "normal_positive_years": "5_of_6",
+      "stress_positive_years": "5_of_6",
+      "normal_drawdown_non_worse_years": "6_of_6",
+      "normal_calmar_at_least_80pct_buy_hold_years": "2_of_6",
+      "normal_upside_capture_at_least_50pct_years": "4_of_6",
+      "top_year_positive_total_return_contribution_pct": "36.31224767"
+    }
+  },
+  "failed_gates": [
+    "design_upside_capture_at_least_60pct",
+    "design_calmar_at_least_buy_hold",
+    "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+    "validation_top_positive_episode_contribution_at_most_60pct"
+  ],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-halloween-november-april-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_ACADEMIC_AND_ADVERSARIAL_PRIOR", "sha256": "f97c34876bf180a046df1e65e4608884a5e870604735536eece80942b46776e1"},
+    {"path": "research_pipeline/examples/btc-halloween-november-april-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "f1e7dc9a0ab9809bb663d7407c2ac822f90d6a82d533b5d7676b9aff4712dadf"},
+    {"path": "research_pipeline/examples/btc-halloween-november-april-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST_WITH_SCOPED_ERRATUM", "sha256": "8846aef97ec87177777be878360b76d0bbeb6992f16bc32aaa5e57269f25d17a"},
+    {"path": "research_pipeline/examples/btc-halloween-november-april-long-cash-post-outcome-signal-count-binding-erratum.v1.json", "role": "SEALED_FIELD_BINDING_ONLY_IMPLEMENTATION_ERRATUM", "sha256": "b26c02322ae2c02c7361f4b11ae38827b8bb00898529686bca0381998880f579"},
+    {"path": "research/btc_halloween_november_april_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "fa4a01abb9470afb5b2eff2e295d6dd0e40c62803510836fd4819fd522e4907d"},
+    {"path": ".research-state/experiments/btc-halloween-november-april-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "2788054a058a2507607e62006c5de51478ac261a9b18648403638a366b70c44a"}
+  ],
+  "prohibited_reopen": [
+    "Do not change November-April or May-October boundaries, time zone, sizing, direction or cash return.",
+    "Do not select January, a quarter, a month subset, a year subset, weekday or intraday window after outcomes.",
+    "Do not add trend, volatility, macro, on-chain, event or another calendar filter as a rescue.",
+    "Do not relax upside, Calmar, annual breadth or episode-concentration gates and do not open post-2024 OOS for this closed family."
+  ],
+  "learning": "Cutting exposure roughly in half mechanically reduced full-window drawdown, but that was not a broad risk-adjusted edge: it forfeited almost half of Design upside, beat the annual Calmar threshold in only two of six years, and Validation profit remained too concentrated in one of two completed seasonal episodes.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Historical research only. No paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

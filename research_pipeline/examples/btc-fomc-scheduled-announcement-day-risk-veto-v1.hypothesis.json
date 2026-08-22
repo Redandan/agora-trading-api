@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fomc-scheduled-announcement-day-risk-veto-v1",
+  "title": "Scheduled FOMC decision-day full-UTC-day BTC risk veto",
+  "thesis": "The complete UTC day containing the final date of a regularly scheduled FOMC meeting may have worse BTC return and path risk than same-window non-event days because a calendar-known policy statement changes discount-rate expectations and concentrates uncertainty.",
+  "mechanism": "A scheduled policy decision can cause cross-asset repricing and liquidity withdrawal around the statement, increasing BTC downside incidence or intraday drawdown even though an adversarial macro-disconnect prior makes the direction and persistence uncertain.",
+  "economic_rationale": "A spot-only policy that exits BTC at 00:00 UTC on each frozen regular-meeting final date and reenters at the next 00:00 UTC is useful only if avoided event-day losses and drawdown exceed two fee-and-adverse-slippage transitions per event and foregone positive event-day upside under matched capital.",
+  "source": "research_pipeline/examples/btc-fomc-scheduled-announcement-day-risk-veto-primary-prior.v1.json#sha256=ee57b53c4e3582c55ed9c4c77155ff3adc44b80f3556d4ab0be1c84cf3a9d630;research_pipeline/examples/btc-fomc-regular-meeting-decision-dates-2020-2024.v1.json#sha256=e122edcec53d93ce838e915b351564c422da11c0b6afc15f5271b587d32e5d2c",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_2020_2024_H1_CORPUS_COST_AND_VALUATION",
+  "required_capability": "DIRECT_DETERMINISTIC_FROZEN_EVENT_DATE_PRE_ECONOMIC_SCREEN_THEN_MATCHED_CAPITAL_LONG_CASH_ECONOMIC_RUNNER",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "event_and_same_weekday_control_count",
+    "median_complete_day_return_delta",
+    "negative_return_rate_delta",
+    "one_sided_fisher_p_value",
+    "median_and_p75_intraday_path_drawdown",
+    "annual_direction_breadth",
+    "top_event_loss_concentration",
+    "fee_and_adverse_slippage_adjusted_total_return_delta",
+    "realized_pnl",
+    "unrealized_pnl",
+    "maximum_drawdown",
+    "capital_utilization",
+    "holding_age",
+    "terminal_inventory"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-fomc-1",
+  "created_at": "2026-08-20T14:56:30Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,137 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_LEVERAGED_FUND_NET_SHORT_LEVEL_CARRY_CRASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-cftc-leveraged-fund-net-short-level-carry-crash-risk-veto",
+  "created_at": "2026-08-20T11:40:00Z",
+  "status": "PRIOR_AND_EXECUTABLE_DATA_PATH_READY_FOR_ONE_PRE_ECONOMIC_PREDICTIVE_SCREEN",
+  "frozen_before_current_net_short_level_factor_or_new_btc_outcome_pairing_access": true,
+  "decision": "PERMIT_ONE_HASH_BOUND_PRE_ECONOMIC_CARRY_CRASH_PROXY_SCREEN_BEFORE_ANY_STRATEGY_ECONOMICS",
+  "claim_boundary": "The primary paper directly links CFTC leveraged-fund positioning to crypto carry and separately finds that high carry predicts future crypto price crashes. It does not establish that the public CFTC net-short level alone is a sufficient carry proxy, that the frozen threshold predicts BTC crashes in both windows, or that a BTC long-or-cash policy improves risk-adjusted performance.",
+  "primary_sources": [
+    {
+      "title": "Crypto carry",
+      "authors": "Maik Schmeling; Andreas Schrimpf; Karamfil Todorov",
+      "publication": "BIS Working Papers No 1087, revised October 2025",
+      "url": "https://www.bis.org/publ/work1087.pdf",
+      "use": "The paper reports that leveraged funds are net short CME Bitcoin futures on average, that their net-long positions are negatively correlated with crypto basis, and that high crypto carry predicts future price crashes. This fixes the risk direction before factor access."
+    },
+    {
+      "title": "Who Trades Bitcoin Futures and Why?",
+      "authors": "Alex Ferko; Amani Moin; Esen Onur; Michael Penick",
+      "publication": "Global Finance Journal 55 (2023)",
+      "url": "https://www.cftc.gov/sites/default/files/2021-11/WhoTradesBTC_V2_ada.pdf",
+      "use": "Bitcoin-specific structural warning: CME participant composition changed materially and public category aggregates do not reveal trader identity, motive or a stable population."
+    },
+    {
+      "title": "CFTC Commitments of Traders Explanatory Notes",
+      "url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/ExplanatoryNotes/index.htm",
+      "use": "Official TFF category and position semantics for the public weekly fields."
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "CFTC_TFF_LEVERAGED_FUND_NET_SHORT_PCT_OI_LEVEL_TOP_QUARTILE_CARRY_CRASH_PROXY_V1",
+    "market_identity": "BITCOIN - CHICAGO MERCANTILE EXCHANGE",
+    "cftc_contract_market_code": "133741",
+    "report_variant": "TRADERS_IN_FINANCIAL_FUTURES_FUTURES_ONLY",
+    "long_field": "Pct_of_OI_Lev_Money_Long_All",
+    "short_field": "Pct_of_OI_Lev_Money_Short_All",
+    "level_formula": "CURRENT_LEVERAGED_FUND_SHORT_PCT_OI_MINUS_CURRENT_LEVERAGED_FUND_LONG_PCT_OI",
+    "risk_state": "LEVEL_STRICTLY_GREATER_THAN_THE_75TH_PERCENTILE_OF_THE_PRIOR_52_ELIGIBLE_WEEKLY_LEVELS",
+    "normal_state": "OTHERWISE",
+    "percentile_rule": "NEAREST_RANK_ASCENDING_WITHOUT_CURRENT_OBSERVATION",
+    "warmup_rule": "UNEVALUABLE_UNTIL_EXACTLY_52_PRIOR_ELIGIBLE_LEVELS_EXIST_NO_BACKFILL_NO_SHORTER_WINDOW",
+    "primary_direction": "HIGH_NET_SHORT_LEVEL_PREDICTS_GREATER_NEXT_672H_CRASH_AND_PATH_DRAWDOWN_RISK",
+    "historical_availability": "REPORT_DATE_PLUS_7_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "outcome_horizon_hours": 672,
+    "variant_count": 1
+  },
+  "availability_exclusion": {
+    "start_inclusive": "2023-01-31",
+    "end_inclusive": "2023-03-14",
+    "reason": "CFTC_2023_ION_DELAYED_PUBLICATION",
+    "action": "EXCLUDE_WITHOUT_BACKFILL_OR_ALTERNATE_SOURCE"
+  },
+  "pre_economic_predictive_screen_boundary": {
+    "design": {
+      "start_inclusive": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start_inclusive": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "required_before_economic_access": [
+      "FREEZE_EXACT_CRASH_AND_PATH_DRAWDOWN_RESPONSES_BEFORE_FACTOR_EVALUATION",
+      "REQUIRE_MINIMUM_HIGH_RISK_AND_NORMAL_STATE_SUPPORT_IN_BOTH_WINDOWS",
+      "REQUIRE_HIGH_RISK_STATE_TO_HAVE_WORSE_CRASH_AND_PATH_DRAWDOWN_EVIDENCE_IN_BOTH_WINDOWS",
+      "REQUIRE_EVENT_AND_YEAR_CONCENTRATION_LIMITS_IN_BOTH_WINDOWS",
+      "FAIL_CLOSED_BEFORE_ECONOMICS_IF_ANY_PREDICTIVE_GATE_FAILS"
+    ]
+  },
+  "future_economic_contract_if_and_only_if_predictive_screen_passes": {
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_NORMAL_STATE_ZERO_YIELD_CASH_IN_HIGH_RISK_STATE_NO_LEVERAGE_NO_SHORT",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "top_event_concentration"
+    ]
+  },
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPORA_NO_NEW_DOWNLOAD",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "cftc_source_contract": {
+      "path": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.json",
+      "sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5"
+    },
+    "historical_archive_manifest": {
+      "path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json",
+      "sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a",
+      "archive_years": [2019, 2020, 2021, 2022, 2023, 2024],
+      "exact_contract_rows": 313
+    },
+    "source_cost": "OFFICIAL_FREE_ALREADY_SEALED"
+  },
+  "independence_and_duplicate_boundary": {
+    "closed_leveraged_money_delta_family": "The closed DRA family used the weekly change in leveraged-money net percent of OI with continuation admission over 168 hours. This family uses the current net-short level relative to an ex-ante 52-week distribution, a crash-risk direction, a 672-hour path response and a standalone long-or-cash parent. The closed delta factor may not be rerun, inverted, thresholded or used as a rescue variant.",
+    "closed_crypto_carry_source_family": "The closed direct crypto-carry family required fixed-maturity and perpetual carry source axes that were unavailable. This family does not claim to reconstruct direct carry; it tests one BIS-motivated public CFTC proxy and must close if the proxy does not independently predict crash risk.",
+    "shared_source_risk": "It reuses the same CFTC archive and BTC corpus as several closed families. A different field transformation is not independent source replication, so both Design and Validation predictive gates are mandatory before economics."
+  },
+  "adversarial_prior": [
+    "Leveraged-fund net shorts may represent directional bearish exposure, hedging or multiple relative-value trades rather than cash-and-carry.",
+    "The BIS crash result is for measured crypto carry, not this public CFTC proxy.",
+    "ETF-related structural change after October 2021 may alter category composition and proxy meaning.",
+    "A top-quartile risk veto can appear to reduce drawdown simply by withholding capital during volatile bull markets while destroying upside capture.",
+    "Weekly publication lag may leave little tradable information by the first eligible BTC H1 open."
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before factor evaluation if any archive hash, field identity, report date, ION exclusion, percentage grammar, 52-observation warmup or BTC corpus identity fails.",
+    "Stop NO_CANDIDATE before economics if the single frozen high-risk state fails any Design or Validation crash-risk, path-drawdown, support, annual-breadth or concentration gate.",
+    "Do not change the 52-week lookback, 75th-percentile threshold, net-short formula, seven-day availability, 672-hour horizon, direction, parent or action after factor or outcome access.",
+    "Do not add the closed weekly-delta factor, actual carry backfill, ETF flow, price trend, volatility, leverage, shorting, fractional sizing or another CFTC category as a rescue.",
+    "Do not open post-2024 outcomes. Any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed OOS."
+  ],
+  "missing_proof": [
+    "No current net-short level factor value or new BTC response pairing has been accessed.",
+    "No hash-bound hypothesis, predictive runner or frozen manifest exists.",
+    "No Design or Validation crash-risk result exists.",
+    "No matched-capital economics, annual breadth, path-risk result, candidate or independent OOS exists."
+  ],
+  "scope_note": "Primary and adversarial prior with executable sealed data-path proof only. No factor value, BTC outcome pairing, runner, manifest, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

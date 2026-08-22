@@ -1,0 +1,28 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-cftc-leveraged-fund-net-short-level-carry-crash-v1",
+  "title": "Lagged CFTC leveraged-fund net-short level as a BTC carry-crash risk proxy",
+  "thesis": "When the public CME Bitcoin TFF leveraged-fund net-short percentage-of-open-interest level is unusually high relative to its own prior 52 eligible weekly observations, the following 672 hours should exhibit greater BTC crash incidence and price-path drawdown than normal states.",
+  "mechanism": "BIS evidence links more negative leveraged-fund net-long positioning to higher crypto carry and separately links high carry to future crypto crashes. The frozen proxy is current leveraged-fund short percent of open interest minus long percent, available seven calendar days after each eligible Tuesday report; the high-risk state is strictly above the nearest-rank 75th percentile of the prior 52 eligible levels.",
+  "economic_rationale": "If the public proxy independently identifies future crash risk in both Design and Validation, a later separately frozen full-capital BTC long-or-zero-yield-cash veto may reduce drawdown and underwater duration enough to improve fee-adjusted Calmar versus matched buy-and-hold. No strategy economics may be opened unless every predictive gate passes.",
+  "source": "PRE_CANDIDATE_POOL:btc-cftc-leveraged-fund-net-short-level-carry-crash-risk-veto",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-cftc-leveraged-fund-net-short-level-carry-crash-predictive-runner-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_and_validation_high_risk_and_normal_state_support",
+    "next_672h_peak_to_trough_maximum_drawdown_and_terminal_return",
+    "next_672h_fifteen_percent_crash_rate_and_one_sided_fisher_exact_test",
+    "chronological_quartile_year_month_and_top_event_concentration",
+    "matched_capital_economics_only_after_all_predictive_gates_pass"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-cftc-carry-crash-1",
+  "created_at": "2026-08-20T11:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

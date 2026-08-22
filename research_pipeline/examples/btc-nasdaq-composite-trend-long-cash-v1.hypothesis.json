@@ -1,0 +1,43 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-nasdaq-composite-trend-long-cash-v1",
+  "title": "External Nasdaq Composite trend full-capital BTC long/cash timing",
+  "thesis": "Institutional participation has linked crypto risk appetite more closely to technology-oriented equity markets. Holding unlevered spot BTC only while the latest Nasdaq Composite close remains above its prior 200-business-day mean may avoid externally visible risk-off paths and improve drawdown and Calmar without forfeiting too much after-cost upside.",
+  "mechanism": "Use the latest valid NASDAQCOM market close only after 00:00 UTC on the following calendar day. Compare that close with the simple mean of exactly the prior 200 valid business-day closes, excluding the current close. Hold 100-percent BTC while the relation is strictly positive and zero-yield cash otherwise; execute changed targets at the next H1 open. Test prior 150 and 250 business days only as frozen rejection neighbors.",
+  "economic_rationale": "The policy is useful only if a technology-equity risk-appetite proxy avoids BTC drawdown and underwater paths enough to offset missed independent crypto rallies and repeated friction. Positive aggregate PnL or one successful 2022 exit is insufficient; Design, Validation, annual breadth, contribution concentration, realized/unrealized accounting, holding, terminal inventory and both neighboring horizons must support the same mechanism.",
+  "source": "BTC_NASDAQ_COMPOSITE_TREND_PRIMARY_PRIOR_V1_AND_SEALED_NASDAQ_COMPOSITE_DAILY_2018_2024",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-nasdaq-composite-trend-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "independence_semantics": "INDEPENDENT_EXTERNAL_TECH_EQUITY_RISK_APPETITE_FAMILY",
+  "variants": [
+    {"role": "PRIMARY", "lookback_business_days": 200, "relation": "STRICTLY_ABOVE_PRIOR_SIMPLE_MEAN"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "lookback_business_days": 150, "relation": "STRICTLY_ABOVE_PRIOR_SIMPLE_MEAN"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "lookback_business_days": 250, "relation": "STRICTLY_ABOVE_PRIOR_SIMPLE_MEAN"}
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4,
+    "independence": 4
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-15",
+  "created_at": "2026-08-19T08:28:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_DAY_EMA20_OCCUPANCY_PREOUTCOME_DECISION_V1",
+  "family_id": "dra-native-signal-day-ema20-occupancy-entry-admission",
+  "decided_at": "2026-08-21T08:25:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_EMA20_OCCUPANCY_AT_SUPPORT_GATE",
+  "decision": "PERMANENTLY_CLOSE_EXACT_24_SIGNAL_DAY_H1_CLOSE_OCCUPANCY_ABOVE_PRIOR_COMPLETE_DAY_EMA20_AT_0_50_0_75_1_00_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_REFERENCE_FORMULA_DIRECTION_OR_WINDOW_RESCUE",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-native-signal-day-ema20-occupancy-entry-admission-primary-prior.v1.json",
+      "sha256": "661928c62ffa58ae1db5df76a8c402adceaabb773506810e7ddf08a0bca0d8bf"
+    },
+    "preoutcome_spec": {
+      "path": "research_pipeline/examples/dra-native-signal-day-ema20-occupancy-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "ef28377cd396ef656718f908125c2076b402f822a4e04deed596b31a7bfde6f5"
+    },
+    "support_runner": {
+      "path": "research/dra_native_signal_day_ema20_occupancy_support_v1.py",
+      "sha256": "573cb64fc2e7e3d3ca644edbc5035362228c7337bdce53508976304f41b9d596"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/dra-native-signal-day-ema20-occupancy-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "c2c2e01a38bc247eada421309fda06490cfab87522c8754fb7e4420ca8ba3d88"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/dra-native-signal-day-ema20-occupancy-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+      "sha256": "c2c2e01a38bc247eada421309fda06490cfab87522c8754fb7e4420ca8ba3d88"
+    },
+    "determinism": "SUPPORT_RUNS_BYTE_IDENTICAL"
+  },
+  "deduplication": {
+    "status": "PASS_DISTINCT_FORMULA_AND_ACTION_FINGERPRINT",
+    "new_action": "Capacity-admissible DRA entry veto based on the share of exactly 24 signal-day H1 closes above the EMA20 frozen after the prior complete UTC day.",
+    "distinct_from": [
+      "signal-day open-to-close direction",
+      "adjacent H1 return-sign persistence",
+      "intraday price-path efficiency",
+      "complete-day candle close location",
+      "late-day absolute price activity"
+    ]
+  },
+  "support_summary": {
+    "parent_path_parity": "EXACT_ALL_DESIGN_VALIDATION_AND_ANNUAL_WINDOWS",
+    "feature_availability": {
+      "design": "1.00000000",
+      "validation": "1.00000000"
+    },
+    "design": {
+      "parent_signals": 103,
+      "capacity_admissible_signals": 100,
+      "primary_0_75_actionable_vetoes": 15,
+      "primary_action_share": "0.15000000",
+      "lower_0_50_actionable_vetoes": 8,
+      "upper_1_00_actionable_vetoes": 27,
+      "occupancy_minimum_median_maximum": ["0.04166667", "1.00000000", "1.00000000"]
+    },
+    "validation": {
+      "parent_signals": 51,
+      "capacity_admissible_signals": 51,
+      "primary_0_75_actionable_vetoes": 4,
+      "primary_action_share": "0.07843137",
+      "lower_0_50_actionable_vetoes": 2,
+      "upper_1_00_actionable_vetoes": 9,
+      "occupancy_minimum_median_maximum": ["0.25000000", "1.00000000", "1.00000000"]
+    },
+    "annual_primary_0_75_actionable_vetoes": {
+      "2020": 7,
+      "2021": 2,
+      "2022": 3,
+      "2023": 2,
+      "2024": 2
+    },
+    "active_annual_folds": 5,
+    "top_year_primary_veto_share": "0.43750000",
+    "validation_top_month_primary_veto_share": "0.50000000"
+  },
+  "failed_gates": [
+    "maximum_top_year_primary_veto_share",
+    "maximum_validation_top_month_primary_veto_share",
+    "validation_minimum_each_neighbor_actionable_vetoes"
+  ],
+  "material_learning": "Signal-day EMA20 occupancy is causal, fully available and action-distinct, but its sparse primary support is concentrated: 7 of 16 annual-fold vetoes come from one year, above the frozen 40 percent maximum, and 2 of only 4 Validation vetoes fall in one month, above the 35 percent maximum. The lower 0.50 rejection-only neighbor has only 2 Validation vetoes, below the frozen minimum of 4. The family therefore lacks stable breadth and closes before PnL access; the 1.00 neighbor cannot replace the failed primary after support output.",
+  "prohibited_reopen": [
+    "Do not promote the 0.50 or 1.00 rejection-only neighbor after seeing its support counts.",
+    "Do not rerun 0.50, 0.75 or 1.00 occupancy thresholds in this direction.",
+    "Do not change the prior-day EMA20 reference, strict close comparison, 24-hour denominator, signal clock, relation, capacity order, cooldown reservation, lot cost, cap, windows or support gates to rescue this family.",
+    "Do not convert the one-year or one-month concentration into a regime-specific rescue.",
+    "Do not create a hypothesis, economic manifest, candidate, OOS, deployment, SHADOW, PAPER or LIVE action from this support result."
+  ],
+  "hypothesis_created": false,
+  "candidate_economics_accessed": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Causal parent-state support and deduplication only. No candidate PnL, OOS, paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

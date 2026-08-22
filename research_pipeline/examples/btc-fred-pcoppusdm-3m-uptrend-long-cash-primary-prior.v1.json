@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_PCOPPUSDM_3M_UPTREND_LONG_CASH_PRIMARY_PRIOR_V1",
+  "created_at": "2026-08-21T03:54:18Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-pcoppusdm-3m-uptrend-long-cash",
+  "claim_boundary": "A rise in the IMF monthly global copper benchmark can reflect industrial demand, supply disruptions, dollar movements, inventories or speculative expectations. Exactly one preregistered long-or-cash audit may test whether the conservatively delayed three-month direction has matched-capital BTC value; no causal or alpha claim is imported from the sources.",
+  "primary_sources": [
+    {
+      "identity": "Federal Reserve Bank of St. Louis FRED, Global price of Copper [PCOPPUSDM]",
+      "url": "https://fred.stlouisfed.org/series/PCOPPUSDM",
+      "evidence": "The IMF-sourced series is monthly, not seasonally adjusted, in nominal U.S. dollars per metric ton, and represents period-average benchmark prices for the global market.",
+      "boundary": "FRED exposes a present-vintage transport and explicitly notes that observations are subject to revision; it does not establish real-time vintage availability or future Bitcoin returns."
+    },
+    {
+      "identity": "International Monetary Fund Primary Commodity Prices FAQ",
+      "url": "https://www.imf.org/external/np/res/commod/index.htm",
+      "evidence": "IMF documents monthly period-average nominal U.S.-dollar benchmark prices, a first-full-week publication cadence, and possible retroactive changes.",
+      "boundary": "The documented release cadence supports a conservative availability lag but cannot remove present-vintage revision risk."
+    },
+    {
+      "identity": "International Monetary Fund, End of the Supercycle and Growth of Commodity Producers",
+      "url": "https://www.elibrary.imf.org/view/journals/001/2015/242/article-A001-en.xml",
+      "evidence": "The paper associates long copper cycles with global demand booms while also modelling China growth, the dollar, market expectations and real rates as copper-price drivers.",
+      "boundary": "Copper direction is not a pure global-growth signal and its transmission to Bitcoin is unproven."
+    }
+  ],
+  "frozen_prior": {
+    "series_id": "PCOPPUSDM",
+    "frequency": "MONTHLY",
+    "factor": "PCOPPUSDM_MONTH_t_STRICTLY_ABOVE_PCOPPUSDM_MONTH_t_minus_3",
+    "availability": "OBSERVATION_MONTH_START_PLUS_75_CALENDAR_DAYS_AT_0000_UTC",
+    "policy": "FULL_CAPITAL_BTC_WHEN_UPTREND_ELSE_ZERO_YIELD_CASH",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "variants": 1
+  },
+  "adversarial_prior": [
+    "Copper prices can rise because of supply shocks or inflation pressure rather than stronger real activity or risk appetite.",
+    "Nominal U.S.-dollar copper direction can be dominated by broad-dollar movements already represented by a permanently closed family.",
+    "Energy-transition demand, inventories and speculative positioning can break a stable relation between copper direction and Bitcoin returns.",
+    "Monthly period averages and present-vintage revisions make precise real-time availability and historical replicability weaker than exchange-native data."
+  ],
+  "prohibited_rescue": [
+    "Do not add copper inventories, futures curves, China data, the dollar, equities, oil, inflation, BTC trend, volatility or on-chain inputs.",
+    "Do not change the three-month horizon, direction, 75-day availability floor, threshold, sizing or parent after source or outcome access.",
+    "Do not reinterpret the closed WTI, broad-dollar, China-FX, liquidity or macro-activity families as support for this one."
+  ],
+  "independence": {
+    "key": "monthly-global-industrial-metal-price-three-month-direction",
+    "distinct_from_closed_gold_volatility": "This is the direction of a physical industrial-metal benchmark, not implied volatility or a precious-metal calm-state filter.",
+    "distinct_from_closed_wti": "Copper has different end-use demand, supply and inventory structure from crude oil; no oil input or rescue is allowed.",
+    "distinct_from_closed_fx_and_us_macro": "The decision input is a global copper benchmark only, not an exchange rate or a U.S. activity release. Confounding by those variables remains an adversarial risk, not an added feature."
+  },
+  "missing_proof": [
+    "No exact 2018-2024 response, date lattice, missing-value audit, revision-safe vintage or conservative availability mapping has been sealed.",
+    "No state support, transition support, hypothesis, manifest, runner, fees, slippage, PnL, drawdown, holding, inventory, breadth, concentration, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "No PCOPPUSDM historical factor value or BTC outcome was accessed by an experiment; no hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

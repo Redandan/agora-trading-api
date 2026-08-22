@@ -1,0 +1,136 @@
+{
+  "schema_version": "2",
+  "document_type": "BTC_DRA_BITCOIN_FEE_PRESSURE_ENTRY_ADMISSION_HISTORICAL_DECISION_V2",
+  "experiment_id": "dra-bitcoin-fee-pressure-entry-admission-historical-v2",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BITCOIN_FEE_PRESSURE_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_PRESENT_VINTAGE_COIN_METRICS_BTC_FEETOTNTV_ADJACENT_28D_STRICT_POSITIVE_GROWTH_PLUS_3D_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_METRIC_WINDOW_THRESHOLD_DIRECTION_OR_INVERSE_TUNING",
+  "material_conclusion": "The exact lagged native-fee-pressure rule reduced exposure and drawdown but removed profitable DRA participation. Matched-capital Validation total PnL fell from 86.20298186 to 42.66744615 USDT and realized PnL fell from 89.41118307 to 42.66744615 USDT. Maximum drawdown improved by 2.427765 percentage points, yet maximum underwater duration worsened by 759 hours and only 2022 produced a positive annual total-PnL delta. Validation predictive evidence also reversed the intended interpretation: median sign-adjusted 168-hour response was negative, negative-fee-growth states had positive median returns, and the sign-test p-value was 0.653157. This is selective cash exposure, not independent risk-adjusted alpha.",
+  "performance_evidence": {
+    "design": {
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "22.83244797",
+      "total_pnl_delta_usdt": "-20.16675296",
+      "parent_realized_pnl_usdt": "122.11969534",
+      "candidate_realized_pnl_usdt": "64.45250653",
+      "realized_pnl_delta_usdt": "-57.66718881",
+      "parent_unrealized_pnl_usdt": "-79.12049441",
+      "candidate_unrealized_pnl_usdt": "-41.62005856",
+      "unrealized_pnl_delta_usdt": "37.50043585",
+      "parent_maximum_drawdown_pct": "18.673983",
+      "candidate_maximum_drawdown_pct": "12.935606",
+      "maximum_drawdown_delta_pp": "-5.738377",
+      "parent_maximum_underwater_duration_hours": 9878,
+      "candidate_maximum_underwater_duration_hours": 9878,
+      "parent_median_hold_hours": 113.0,
+      "candidate_median_hold_hours": 147.0,
+      "parent_p90_hold_hours": 1266.0,
+      "candidate_p90_hold_hours": 1468.2,
+      "parent_terminal_inventory_count": 5,
+      "candidate_terminal_inventory_count": 2,
+      "vetoed_parent_signals": 142
+    },
+    "validation": {
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "42.66744615",
+      "total_pnl_delta_usdt": "-43.53553571",
+      "parent_realized_pnl_usdt": "89.41118307",
+      "candidate_realized_pnl_usdt": "42.66744615",
+      "realized_pnl_delta_usdt": "-46.74373692",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "candidate_unrealized_pnl_usdt": "0.00000000",
+      "unrealized_pnl_delta_usdt": "3.20820121",
+      "parent_maximum_drawdown_pct": "7.121498",
+      "candidate_maximum_drawdown_pct": "4.693733",
+      "maximum_drawdown_delta_pp": "-2.427765",
+      "parent_maximum_underwater_duration_hours": 2397,
+      "candidate_maximum_underwater_duration_hours": 3156,
+      "underwater_duration_delta_hours": 759,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 160.0,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 615.7,
+      "parent_terminal_inventory_count": 1,
+      "candidate_terminal_inventory_count": 0,
+      "vetoed_parent_signals": 120
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-26.87926322",
+      "2021": "-15.95072143",
+      "2022": "7.57437206",
+      "2023": "-22.54332818",
+      "2024": "-23.38565874"
+    },
+    "breadth_and_concentration": {
+      "annual_total_wins": "1_of_5",
+      "annual_drawdown_non_worse": "5_of_5",
+      "top_year_positive_delta_contribution_pct": "100.000000",
+      "validation_realized_delta_contribution_pct": "0.000000"
+    },
+    "predictive_design": {
+      "episode_count": 156,
+      "positive_factor_count": 72,
+      "negative_factor_count": 84,
+      "median_signed_response_168h": "0.00115850572601096230711338728970335",
+      "positive_factor_median_raw_return_168h": "0.0012706345855594338656349479698675",
+      "negative_factor_median_raw_return_168h": "-0.0010343718243998810682541914586015",
+      "one_sided_sign_test_p_value": "0.3445271364657339848323239241870075",
+      "passed_gates": "10_of_11"
+    },
+    "predictive_validation": {
+      "episode_count": 103,
+      "positive_factor_count": 44,
+      "negative_factor_count": 59,
+      "median_signed_response_168h": "-0.0015345413230056266515176872977222",
+      "positive_factor_median_raw_return_168h": "0.016734980592461241866256659590399",
+      "negative_factor_median_raw_return_168h": "0.007120795550121212549562857364988",
+      "one_sided_sign_test_p_value": "0.6531570174877581679365548841415648",
+      "passed_gates": "8_of_11"
+    }
+  },
+  "failed_economic_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_underwater_duration_non_worse"
+  ],
+  "failed_predictive_gates": {
+    "design": ["one_sided_sign_test_at_most_0_10"],
+    "validation": [
+      "median_signed_response_positive",
+      "negative_factor_median_raw_return_negative",
+      "one_sided_sign_test_at_most_0_10"
+    ]
+  },
+  "failure_attribution": [
+    "The rule vetoed 120 parent signals in Validation and reduced average slot utilization by 14.783174 percentage points. Lower drawdown therefore came from withholding capital rather than preserving the parent return stream more efficiently.",
+    "Validation terminal inventory cleanup contributed only 3.20820121 USDT of unrealized improvement while realized PnL fell by 46.74373692 USDT; the economic loss is participation-driven.",
+    "Only 2022 improved total PnL, and that 7.57437206 USDT positive delta supplied 100% of positive annual contribution. All four other annual folds were worse, so the mechanism lacks temporal breadth.",
+    "Validation maximum underwater duration worsened from 2,397 to 3,156 hours despite the drawdown reduction, showing that a shallower equity path was not a faster recovery path.",
+    "The Validation predictive sign was not stable: its median signed response was negative and its negative-factor median raw return was positive. Fee growth is endogenous to congestion, urgency and market activity, and this result does not establish incremental directional information.",
+    "The retained V1 run was invalid because it emitted the HashRate family status string. V2 changed only document, runner and result identity; factor, source, windows, lag, economics, gates and outcome inputs remained frozen."
+  ],
+  "sealed_evidence": {
+    "manifest": {"path": "research_pipeline/examples/dra-bitcoin-fee-pressure-entry-admission-historical.v2.manifest.json", "sha256": "eac92118854f9c0999862eb3ba2cc8ca3f7efbdad59b5054b0a2947bba58844c"},
+    "runner": {"path": "research/btc_dra_bitcoin_fee_pressure_entry_admission_historical_v2.py", "sha256": "18e3b5477eeb914f7d7e37ea0a0e9bd42f096eb99c4254c27f20a685aa43a2b6"},
+    "source_bundle": {"path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v1/inputs/coinmetrics-source-bundle.json", "sha256": "17c2af2888356f531e20b6f23aab40647fa44997a0fb6fcfeb6ecbc1eabb8eb6"},
+    "invalid_v1_run": {"path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v1/artifacts/run1.json", "sha256": "ec6b0ce8552cb32888dd49273e99bae565391b84b6b62f17bba274672449f636", "disposition": "INVALID_IDENTITY_RETAINED_NOT_EVIDENCE"},
+    "run1": {"path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v2/artifacts/run1.json", "sha256": "d3c588d01da4cdf1ad1cbbe9b70a24d77c771e9c5a443332c38727695233e056"},
+    "run2": {"path": ".research-state/experiments/dra-bitcoin-fee-pressure-entry-admission-historical-v2/artifacts/run2.json", "sha256": "d3c588d01da4cdf1ad1cbbe9b70a24d77c771e9c5a443332c38727695233e056"},
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "FeeTotNtv combines blockspace demand, transaction composition, congestion and user urgency; it is not an exogenous demand measure.",
+    "The sealed Community API history is a present-vintage reviewed snapshot. Original daily review timestamps and original vintages remain MISSING_PROOF.",
+    "This closes the Bitcoin native transaction-fee-pressure admission family, including FeeTotNtv/FeeTotUSD/FeeMean/fee-per-byte/FeeRevPct nearby variants, alternate short smoothing windows, thresholds and post-outcome inverse directions. It does not convert the separate prospective mempool source-contract WAIT into readiness.",
+    "No post-2024 observation or independent OOS was opened."
+  ],
+  "next_action": "Add the exact family to the permanent tombstone catalog and advance a different independent mechanism without changing the fee metric, aggregation, lookback, threshold, lag, admission action or inverse rule.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, canonical state write, post-2024 data, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

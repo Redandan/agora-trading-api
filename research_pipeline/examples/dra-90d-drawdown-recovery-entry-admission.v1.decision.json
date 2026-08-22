@@ -1,0 +1,162 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_90D_DRAWDOWN_RECOVERY_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-90d-drawdown-recovery-entry-admission-v1",
+  "decided_at": "2026-08-20T05:20:25Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_90D_DRAWDOWN_RECOVERY_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_THE_EXACT_TRAILING_90_COMPLETE_UTC_DAY_FIRST_PEAK_TO_FIRST_POST_PEAK_TROUGH_RECOVERY_FRACTION_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_WINDOW_FORMULA_RELATION_THRESHOLD_OR_ACCOUNTING_TUNING",
+  "manifest_sha256": "588d4a63cf3723a52f0b0a88a4511ddd9c4ec11a39ebff798d22503a4e912391",
+  "hypothesis_sha256": "53c8515cfd98a775640f7722489ce14464cdf84770188f12ad90432afa5ea8c2",
+  "prior_sha256": "5bdf384786fd452771fe950787eb2029aae7f9220aba370addc73fa6805e248b",
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "f3edcf2e444928659121c5c01434de6ec5eb74b52d02818c1dfb3ab0b7cd4294",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-90d-drawdown-recovery-entry-admission-v1/artifacts/run1.json",
+    "sha256": "bcdf66cccd9a405c6279838919eb29a70548959b9687d738b081bd06a3c28c25"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-90d-drawdown-recovery-entry-admission-v1/artifacts/run2.json",
+    "sha256": "bcdf66cccd9a405c6279838919eb29a70548959b9687d738b081bd06a3c28c25",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature": {
+    "key": "PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION",
+    "formula": "Across exactly the latest ninety complete UTC days, use the first occurrence of the highest daily high and the first occurrence of the lowest daily low at or after that peak; divide latest close minus trough low by peak high minus trough low.",
+    "primary_threshold": "0.50",
+    "stability_neighbors": ["0.40", "0.60"],
+    "relation": "AT_OR_ABOVE",
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "economic_summary": {
+    "parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": 126.0,
+        "p90_hold_hours": 1818.6,
+        "maximum_underwater_duration_hours": 9878,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": 182.5,
+        "p90_hold_hours": 1418.3,
+        "maximum_underwater_duration_hours": 2397,
+        "terminal_inventory_count": 1
+      }
+    },
+    "primary_recovery_050": {
+      "design": {
+        "realized_usdt": "104.56326420",
+        "realized_pnl_delta_usdt": "-65.33520347",
+        "unrealized_usdt": "-27.21147711",
+        "unrealized_pnl_delta_usdt": "51.90901730",
+        "total_pnl_usdt": "77.35178709",
+        "total_pnl_delta_usdt": "-13.42618617",
+        "max_drawdown_pct": "12.662927",
+        "drawdown_delta_pp": "-16.867521",
+        "median_hold_hours": 134.0,
+        "p90_hold_hours": 1209.1,
+        "maximum_underwater_duration_hours": 6530,
+        "parent_signals": 186,
+        "admitted_signals": 62,
+        "vetoed_signals": 124,
+        "feature_unavailable_signals": 33,
+        "terminal_inventory_count": 2
+      },
+      "validation": {
+        "realized_usdt": "73.83704880",
+        "realized_pnl_delta_usdt": "-15.57413427",
+        "unrealized_usdt": "0E-8",
+        "unrealized_pnl_delta_usdt": "3.20820121",
+        "total_pnl_usdt": "73.83704880",
+        "total_pnl_delta_usdt": "-12.36593306",
+        "max_drawdown_pct": "8.949950",
+        "drawdown_delta_pp": "1.828452",
+        "median_hold_hours": 183.0,
+        "p90_hold_hours": 2696.6,
+        "maximum_underwater_duration_hours": 2444,
+        "parent_signals": 80,
+        "admitted_signals": 43,
+        "vetoed_signals": 37,
+        "feature_unavailable_signals": 0,
+        "terminal_inventory_count": 0
+      },
+      "annual_total_pnl_delta_usdt": {
+        "2020": "-12.41083254",
+        "2021": "5.68163456",
+        "2022": "-9.27585643",
+        "2023": "-16.25070676",
+        "2024": "1.51941307"
+      },
+      "annual_total_wins": "2_of_5",
+      "annual_drawdown_non_worse": "4_of_5",
+      "top_positive_year_delta_contribution_pct": "78.900111"
+    },
+    "neighbor_validation": {
+      "recovery_040": {
+        "total_pnl_usdt": "83.03718602",
+        "total_pnl_delta_usdt": "-3.16579584",
+        "max_drawdown_pct": "7.229724",
+        "vetoed_signals": 15
+      },
+      "recovery_060": {
+        "total_pnl_usdt": "65.78521806",
+        "total_pnl_delta_usdt": "-20.41776380",
+        "max_drawdown_pct": "9.064938",
+        "vetoed_signals": 55
+      }
+    }
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "failed_neighbor_gates": {
+    "recovery_040": [
+      "validation_max_underwater_duration_non_worse",
+      "validation_realized_non_worse",
+      "validation_total_pnl_non_worse"
+    ],
+    "recovery_060": [
+      "validation_drawdown_within_0_25pp",
+      "validation_max_underwater_duration_non_worse",
+      "validation_realized_non_worse",
+      "validation_total_pnl_non_worse"
+    ]
+  },
+  "material_learning": "The 0.50 recovery gate reduced Design drawdown by 16.87 percentage points and removed three terminal lots, but did so by excluding 124 of 186 parent signals and losing 65.34 USDT of realized Design PnL. In Validation it lost 12.37 USDT of total PnL, worsened drawdown by 1.83 percentage points, almost doubled P90 holding from 1418.3 to 2696.6 hours, and had only two positive annual folds. Both frozen neighbors also underperformed Validation total PnL, so the result is not a threshold cliff that warrants tuning.",
+  "scientific_claim": "For the exact first-peak to post-peak-trough trailing-90-day recovery fraction applied only to unchanged equal-capital DRA V1 entries, historical Design and Validation evidence through 2024 rejects candidate status. The result does not authorize changing the window, extrema definition, relation or thresholds.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is preregistered historical Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The large Design drawdown reduction is a participation tradeoff, not independent alpha, because realized and total PnL fell materially.",
+    "The exact family may overlap economically with trend and close-location states, but failed primary and both-neighbor economic gates make an additional redundancy computation unnecessary for closure.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

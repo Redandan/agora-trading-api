@@ -1,0 +1,23 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-chaikin-money-flow-long-cash-v1",
+  "title": "Complete-day Chaikin money-flow state for BTC long or cash",
+  "thesis": "A positive twenty-complete-day volume-weighted close-location balance may identify accumulation periods in which next-open BTC exposure has better risk-adjusted economics than unconditional buy-and-hold.",
+  "mechanism": "Aggregate the sealed BTC H1 corpus into complete UTC-day high, low, close and base volume. Compute each day's money-flow multiplier from its close location in the daily range, multiply by daily base volume, and divide the rolling sum of money-flow volume by rolling total base volume. Hold BTC from the next H1 open only when the primary twenty-day CMF is strictly positive; otherwise hold zero-yield cash.",
+  "primary": {
+    "lookback_complete_days": 20,
+    "threshold": "STRICTLY_GREATER_THAN_ZERO",
+    "action": "FULL_CAPITAL_LONG_ELSE_CASH"
+  },
+  "rejection_only_neighbors": [
+    {"lookback_complete_days": 14},
+    {"lookback_complete_days": 28}
+  ],
+  "source": "EXISTING_SEALED_52608_ROW_BTC_H1_CORPUS",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "daily-cmf-long-cash-matched-capital-runner-v1",
+  "data_readiness": "READY",
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-cmf-1",
+  "created_at": "2026-08-20T08:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,158 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_H1_ABSOLUTE_RETURN_VOLUME_COUPLING_ENTRY_ADMISSION_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_MECHANISM_CLOSE_FEATURE_FAMILY",
+  "experiment_id": "dra-h1-absolute-return-volume-coupling-entry-admission-v1",
+  "decision": "PERMANENTLY_CLOSE_EXACT_COMPLETE_DAY_H1_ABSOLUTE_LOG_RETURN_TO_LOG_CLOSE_WEIGHTED_VOLUME_PEARSON_CORRELATION_PRIOR_20D_PERCENTILE_FAMILY_WITHOUT_CORRELATION_TRANSFORM_LOOKBACK_DIRECTION_THRESHOLD_PARENT_OR_ACCOUNTING_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "manifest": {
+    "path": "research_pipeline/examples/dra-h1-absolute-return-volume-coupling-entry-admission.v1.manifest.json",
+    "sha256": "2a4b5bb801d2a91a6d99056f62a8a6754fe275098de7883eca5bbdfc4876b2d0"
+  },
+  "prior": {
+    "path": "research_pipeline/examples/dra-h1-absolute-return-volume-coupling-entry-admission-primary-prior.v1.json",
+    "sha256": "f77ea8fe2c09b3dc2258967e840286b80ad101d547d6d4fc1a7e73e01b545371"
+  },
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "1e480141880d7ea88890a209244e5a9e9498e10b4eb11592a3ddf7864de0a079",
+    "identity": "BTC_DRA_DECLARATIVE_ENTRY_ADMISSION_RUNNER_V1",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "manifest_schema": {
+    "path": "research_pipeline/dra-declarative-entry-admission-manifest.v1.schema.json",
+    "sha256": "9538753e31e9ee07137cc95723aa8f3c894813f657898e55d2f4bccbdd7c1c8d"
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-h1-absolute-return-volume-coupling-entry-admission-v1/artifacts/run1.json",
+    "sha256": "16ab465b0d205b99d5efafc63277dc13bf5e7a8460f77ea974e197ffb187d945"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-h1-absolute-return-volume-coupling-entry-admission-v1/artifacts/run2.json",
+    "sha256": "16ab465b0d205b99d5efafc63277dc13bf5e7a8460f77ea974e197ffb187d945",
+    "byte_identical": true
+  },
+  "policy": {
+    "feature": "DAILY_H1_ABSOLUTE_LOG_RETURN_TO_LOG_CLOSE_WEIGHTED_VOLUME_CORRELATION_PRIOR_20D_PERCENTILE",
+    "formula": "PEARSON_CORRELATION_OF_24_ABSOLUTE_H1_LOG_RETURNS_AND_LOG_CLOSE_WEIGHTED_BASE_VOLUMES",
+    "relation": "AT_OR_ABOVE",
+    "primary_threshold": "0.50",
+    "neighbors": ["0.30", "0.70"],
+    "parent_strategy": "BTC_DRA_V1",
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "primary_economic_summary": {
+    "design": {
+      "parent_signals": 151,
+      "admitted_signals": 74,
+      "vetoed_signals": 77,
+      "feature_unavailable_signals": 2,
+      "parent_realized_usdt": "169.89846767",
+      "candidate_realized_usdt": "119.35401521",
+      "parent_unrealized_usdt": "-79.12049441",
+      "candidate_unrealized_usdt": "-120.05699009",
+      "parent_total_pnl_usdt": "90.77797326",
+      "candidate_total_pnl_usdt": "-0.70297488",
+      "total_pnl_delta_usdt": "-91.48094814",
+      "parent_max_drawdown_pct": "29.530448",
+      "candidate_max_drawdown_pct": "32.482712",
+      "drawdown_delta_pp": "2.952264",
+      "parent_max_underwater_hours": 9878,
+      "candidate_max_underwater_hours": 9990,
+      "parent_median_hold_hours": 126.0,
+      "candidate_median_hold_hours": 127.0,
+      "parent_p90_hold_hours": 1818.6,
+      "candidate_p90_hold_hours": 1641.8,
+      "parent_open_lots": 5,
+      "candidate_open_lots": 7
+    },
+    "validation": {
+      "parent_signals": 79,
+      "admitted_signals": 45,
+      "vetoed_signals": 34,
+      "feature_unavailable_signals": 0,
+      "parent_realized_usdt": "89.41118307",
+      "candidate_realized_usdt": "75.68042059",
+      "parent_unrealized_usdt": "-3.20820121",
+      "candidate_unrealized_usdt": "-3.60947416",
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "72.07094643",
+      "total_pnl_delta_usdt": "-14.13203543",
+      "parent_max_drawdown_pct": "7.121498",
+      "candidate_max_drawdown_pct": "6.429616",
+      "drawdown_delta_pp": "-0.691882",
+      "parent_max_underwater_hours": 2397,
+      "candidate_max_underwater_hours": 2364,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 177.5,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 1265.8,
+      "parent_open_lots": 1,
+      "candidate_open_lots": 1
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-13.14595718",
+      "2021": "-22.50194398",
+      "2022": "-27.64675044",
+      "2023": "-8.52312370",
+      "2024": "-7.73967882"
+    },
+    "annual_total_wins": "0_OF_5",
+    "annual_drawdown_non_worse": "4_OF_5",
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "neighbor_summary": {
+    "lower_030": {
+      "validation_total_pnl_usdt": "83.99800445",
+      "validation_total_delta_usdt": "-2.20497741",
+      "validation_realized_usdt": "87.20620566",
+      "validation_realized_delta_usdt": "-2.20497741",
+      "validation_max_drawdown_pct": "8.517040",
+      "drawdown_delta_pp": "1.395542",
+      "annual_total_wins": "0_OF_5",
+      "disposition": "FAILS_TOTAL_REALIZED_DRAWDOWN_HOLDING_AND_ANNUAL_BREADTH_GATES"
+    },
+    "upper_070": {
+      "validation_total_pnl_usdt": "59.33695404",
+      "validation_total_delta_usdt": "-26.86602782",
+      "validation_realized_usdt": "59.33695404",
+      "validation_realized_delta_usdt": "-30.07422903",
+      "validation_max_drawdown_pct": "12.106193",
+      "drawdown_delta_pp": "4.984695",
+      "annual_total_wins": "0_OF_5",
+      "disposition": "FAILS_TOTAL_REALIZED_DRAWDOWN_UNDERWATER_HOLDING_AND_ANNUAL_BREADTH_GATES"
+    }
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_max_underwater_duration_non_worse",
+    "design_realized_pnl_improves",
+    "design_terminal_inventory_count_non_worse",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_realized_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_unrealized_non_worse"
+  ],
+  "material_learning": "High within-day movement-volume coupling is not an independent DRA entry-quality signal. The primary removed 34 of 79 Validation signals and modestly reduced drawdown, underwater duration and holding, but lost 14.13203543 USDT of total PnL and 13.73076248 USDT of realized PnL; every calendar year lost total PnL. Design also lost 91.48094814 USDT, worsened drawdown, added two terminal lots and extended underwater duration. The permissive 0.30 neighbor came closest but still lost total and realized PnL, worsened drawdown and won zero years, while the restrictive 0.70 neighbor deteriorated further. The evidence is consistent with contemporaneous reaction or liquidation volume rather than persistent participation alpha.",
+  "reproducibility_note": "The first pre-economic execution attempt stopped with DATA_REJECT because the sealed corpus contains non-positive-volume hours. Before any economic result was emitted, the runner was corrected to apply the already frozen FEATURE_UNAVAILABLE_NO_INTERPOLATION rule at the complete-day level. Final run1 and run2 use the runner hash bound above and are byte-identical.",
+  "prohibited_reopen": [
+    "Do not change Pearson to Spearman, signed returns, raw volumes, true quote-volume substitution, high-low range or another transform to rescue the result.",
+    "Do not reverse the relation, tune thresholds or lookback, change UTC day boundary, add direction/session/regime filters or change the parent/accounting.",
+    "Do not reinterpret lower Validation drawdown or holding as alpha because total and realized PnL fail in both windows and annual total wins are zero of five."
+  ],
+  "uncertainty": [
+    "Close-weighted base volume is not exchange-reported quote volume, but substituting another field after outcome access would be a new preregistered family rather than a rescue.",
+    "The result covers the exact pre-2025 H1 Pearson-coupling family only; post-2024 OOS was not opened.",
+    "No canonical state, schedule, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE path was changed."
+  ]
+}

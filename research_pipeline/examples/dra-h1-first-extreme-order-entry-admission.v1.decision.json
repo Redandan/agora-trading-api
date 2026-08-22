@@ -1,0 +1,137 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_H1_FIRST_EXTREME_ORDER_ENTRY_ADMISSION_DECISION_V1",
+  "experiment_id": "dra-h1-first-extreme-order-entry-admission-v1",
+  "decided_at": "2026-08-20T04:22:32Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_DRA_H1_FIRST_EXTREME_ORDER_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_COMPLETE_UTC_DAY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY_DRA_ADMISSION_FAMILY_WITHOUT_BAR_INTERVAL_EXTREME_DEFINITION_DIRECTION_THRESHOLD_OR_SAME_BAR_INFERENCE_TUNING",
+  "manifest_sha256": "f9447b9ddef002f141ef13330f58c842eafedac3308b1cd1efb089eef13784be",
+  "hypothesis_sha256": "30f892613d5a84312c60b46417209042fc528df5901783d742794f8805d93a4a",
+  "prior_sha256": "a1e5df44c1bb5ce21074ab4ae93c809be92b8e0436d7dfde7580442d8de0dbdf",
+  "runner": {
+    "path": "research/btc_dra_declarative_entry_admission_v1.py",
+    "sha256": "ab6d0a524173cf26156bc81da3b776f74875b9427cc43018db913525a0d8b048",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-h1-first-extreme-order-entry-admission-v1/artifacts/run1.json",
+    "sha256": "e3bbcbc8df6db6339315ed7fc5afcd629cbbe68e6e295ef613e533c33386cbfc"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-h1-first-extreme-order-entry-admission-v1/artifacts/run2.json",
+    "sha256": "e3bbcbc8df6db6339315ed7fc5afcd629cbbe68e6e295ef613e533c33386cbfc",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "feature": {
+    "key": "DAILY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY",
+    "formula": "Return 1 only when the first H1 bar containing the complete UTC day's final low is strictly earlier than the first H1 bar containing its final high; return 0 for the reverse order and unavailable when both final extremes first occur in the same H1 bar.",
+    "primary_threshold": "1",
+    "relation": "AT_OR_ABOVE",
+    "gate_set": "DRA_DECLARATIVE_ENTRY_ADMISSION_GATES_V2"
+  },
+  "economic_summary": {
+    "parent": {
+      "design": {
+        "realized_usdt": "169.89846767",
+        "unrealized_usdt": "-79.12049441",
+        "total_pnl_usdt": "90.77797326",
+        "max_drawdown_pct": "29.530448",
+        "median_hold_hours": 126.0,
+        "p90_hold_hours": 1818.6,
+        "maximum_underwater_duration_hours": 9878,
+        "terminal_inventory_count": 5
+      },
+      "validation": {
+        "realized_usdt": "89.41118307",
+        "unrealized_usdt": "-3.20820121",
+        "total_pnl_usdt": "86.20298186",
+        "max_drawdown_pct": "7.121498",
+        "median_hold_hours": 182.5,
+        "p90_hold_hours": 1418.3,
+        "maximum_underwater_duration_hours": 2397,
+        "terminal_inventory_count": 1
+      }
+    },
+    "primary_low_before_high": {
+      "design": {
+        "realized_usdt": "162.68102028",
+        "realized_pnl_delta_usdt": "-7.21744739",
+        "unrealized_usdt": "-54.09356240",
+        "unrealized_pnl_delta_usdt": "25.02693201",
+        "total_pnl_usdt": "108.58745788",
+        "total_pnl_delta_usdt": "17.80948462",
+        "max_drawdown_pct": "23.515823",
+        "drawdown_delta_pp": "-6.014625",
+        "median_hold_hours": 168.0,
+        "p90_hold_hours": 1372.0,
+        "maximum_underwater_duration_hours": 6677,
+        "parent_signals": 108,
+        "admitted_signals": 95,
+        "vetoed_signals": 13,
+        "feature_unavailable_signals": 1,
+        "terminal_inventory_count": 4
+      },
+      "validation": {
+        "realized_usdt": "89.44465952",
+        "realized_pnl_delta_usdt": "0.03347645",
+        "unrealized_usdt": "-3.60947416",
+        "unrealized_pnl_delta_usdt": "-0.40127295",
+        "total_pnl_usdt": "85.83518536",
+        "total_pnl_delta_usdt": "-0.36779650",
+        "max_drawdown_pct": "8.543955",
+        "drawdown_delta_pp": "1.422457",
+        "median_hold_hours": 199.5,
+        "p90_hold_hours": 2610.2,
+        "maximum_underwater_duration_hours": 2397,
+        "parent_signals": 56,
+        "admitted_signals": 51,
+        "vetoed_signals": 5,
+        "feature_unavailable_signals": 1,
+        "terminal_inventory_count": 1
+      },
+      "annual_total_pnl_delta_usdt": {
+        "2020": "-2.47911519",
+        "2021": "7.20903673",
+        "2022": "0.85760195",
+        "2023": "-4.96702920",
+        "2024": "-0.35865963"
+      },
+      "annual_total_wins": "2_of_5",
+      "annual_drawdown_non_worse": "4_of_5",
+      "top_positive_year_delta_contribution_pct": "89.368534"
+    }
+  },
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_total_pnl_improves",
+    "validation_unrealized_non_worse"
+  ],
+  "passed_evidence": [
+    "The exact 52,608-row pre-2025 H1 corpus, primary-source prior, hypothesis, canonical manifest and runner hashes passed, and two independent runs were byte-identical.",
+    "The feature remained causal at the next unchanged fill: one complete UTC day was required, repeated equal extremes kept their first timestamp, and same-H1 final extremes failed closed without an inferred order.",
+    "The primary materially intervened while retaining matched-capital realized, unrealized, total PnL, drawdown, holding, utilization, underwater and terminal-inventory ledgers."
+  ],
+  "material_learning": "Low-before-high H1 extreme order did not create transferable risk-adjusted DRA value. The 17.81 USDT Design total-PnL uplift was carried by 25.03 USDT less negative terminal unrealized inventory while realized PnL fell 7.22 USDT. In Validation, realized PnL improved only 0.03 USDT, total PnL fell 0.37 USDT, drawdown worsened by 1.42 percentage points, median holding rose from 182.5 to 199.5 hours, and P90 holding rose from 1418.3 to 2610.2 hours. Only two of five annual folds improved total PnL, with 89.37 percent of positive annual uplift concentrated in 2021.",
+  "scientific_claim": "For the exact complete-UTC-day H1 first-low-before-first-high binary rule applied only to unchanged equal-capital DRA V1 entries, historical Design and Validation evidence through 2024 rejects candidate status. The result does not authorize reversing the order, changing bar interval or extreme definition, inferring within-bar order, or tuning a threshold.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is preregistered historical Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "H1 bars cannot reveal the order of final daily extremes when both occur in the same bar; failing closed avoids leakage but may remove a small number of otherwise valid parent signals.",
+    "The exact rule may overlap with daily return, close location, path efficiency or momentum, but failed economic and path-risk gates make an additional redundancy computation unnecessary for closing this family.",
+    "The conclusion closes only this exact DRA admission transfer and does not dispute intraday path dependence in other assets, horizons or strategies.",
+    "No post-2024 evidence, canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

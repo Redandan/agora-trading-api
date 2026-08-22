@@ -13,6 +13,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from research_pipeline.local_dispatch import canonical_json_bytes, canonical_json_document_bytes
 from research_pipeline.local_weekly_output_classification import (
     AUTHORIZATION,
+    _git_object,
     canonical_weekly_output_classification_bytes,
     validate_weekly_output_classification,
     validate_weekly_output_classification_record,
@@ -452,6 +453,26 @@ class LocalWeeklyOutputClassificationTest(unittest.TestCase):
         invalid["task_path"] = "records/task with space.json"
         with self.assertRaisesRegex(ValueError, "repository-relative POSIX path"):
             validate_weekly_output_classification_record(invalid)
+
+    def test_git_object_reads_long_repository_path_and_missing_path_fails_closed(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        _run(root, "init", "-b", "main")
+        _run(root, "config", "user.email", "local@example.invalid")
+        _run(root, "config", "user.name", "Local Fixture")
+        relative = "records/" + ("long-evidence-segment-" * 8) + "proof.json"
+        raw = b'{"proof":"exact-long-path-blob"}\n'
+        path = root.joinpath(*relative.split("/"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+        _run(root, "add", ".")
+        _run(root, "commit", "-m", "long-path-proof")
+        commit = _run(root, "rev-parse", "HEAD")
+
+        self.assertEqual(_git_object(root, commit, relative), raw)
+        with self.assertRaisesRegex(ValueError, "Git proof"):
+            _git_object(root, commit, "records/missing-proof.json")
 
     def test_positive_lifecycle_is_deterministic_and_writes_nothing(self) -> None:
         repository = SyntheticRepository(self)

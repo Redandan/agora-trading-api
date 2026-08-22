@@ -1,0 +1,79 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CORWIN_SCHULTZ_SPREAD_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "created_at": "2026-08-21T05:22:21Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-corwin-schultz-spread-entry-admission",
+  "status": "PRIMARY_PRIOR_AND_EXISTING_SEALED_FEATURE_DATA_PATH_READY_HYPOTHESIS_NOT_FROZEN",
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_LATER_HASH_BOUND_PRE_ECONOMIC_NONREDUNDANCY_AND_SUPPORT_SCREEN",
+  "claim_boundary": "Corwin and Schultz derive a low-frequency bid-ask spread estimator from one-day and two-day high-low ratios. That establishes a measurement prior for daily high and low prices, not a Bitcoin spread estimate, causal trading signal or performance claim. Exactly one future preregistered screen may test whether a low estimated-spread state has enough independent support to justify one matched-capital DRA entry-admission experiment.",
+  "primary_sources": [
+    {
+      "identity": "Corwin and Schultz, A Simple Way to Estimate Bid-Ask Spreads from Daily High and Low Prices, Journal of Finance 67(2), 2012",
+      "url": "https://doi.org/10.1111/j.1540-6261.2012.01729.x",
+      "evidence": "The paper derives a spread estimator from the different scaling of the variance and spread components in one-day and two-day high-low ratios.",
+      "boundary": "The empirical and modelling setting is not 24-hour Bitcoin. Transfer to BTC H1-aggregated UTC days, DRA entries and future returns remains unproven."
+    },
+    {
+      "identity": "American Finance Association Journal of Finance Volume 67 Issue 2 record",
+      "url": "https://afajof.org/issue/volume-67-issue-2/",
+      "evidence": "The journal record identifies the estimator as a high-low based bid-ask spread measurement method.",
+      "boundary": "Publication identity does not validate exchange-specific crypto microstructure or strategy economics."
+    }
+  ],
+  "frozen_prior": {
+    "source": "EXISTING_SEALED_52608_ROW_BTC_H1_2019_2024_CORPUS",
+    "source_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "source_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "daily_aggregation": "COMPLETE_UTC_DAY_HIGH_IS_MAX_H1_HIGH_AND_LOW_IS_MIN_H1_LOW",
+    "feature": "CORWIN_SCHULTZ_TWO_DAY_HIGH_LOW_SPREAD_ESTIMATE_FOR_LATEST_COMPLETE_UTC_DAY",
+    "normalization": "LATEST_ESTIMATE_DIVIDED_BY_ORDINARY_MEDIAN_OF_PRIOR_20_COMPLETE_DAY_ESTIMATES",
+    "primary_relation": "AT_OR_BELOW_1_00",
+    "rejection_only_neighbors": ["0.80", "1.20"],
+    "availability": "BEFORE_THE_UNCHANGED_NEXT_H1_DRA_FILL_WITHOUT_INTRADAY_LOOKAHEAD",
+    "policy": "ADMIT_AN_OTHERWISE_IDENTICAL_DRA_ENTRY_ONLY_WHEN_THE_NORMALIZED_SPREAD_ESTIMATE_IS_AT_OR_BELOW_THE_FROZEN_THRESHOLD",
+    "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_SPREAD_ADMISSION_FILTER",
+    "variants": 3
+  },
+  "mechanism_prior": "If the high-low spread proxy captures a high-friction or impaired-liquidity state distinct from ordinary range and realized volatility, rejecting DRA entries in unusually wide-spread states may reduce adverse entry paths and implementation shortfall without removing enough profitable participation to lower total PnL.",
+  "adversarial_prior": [
+    "The estimator was derived for markets with trading-day structure and may be mostly a volatility proxy when applied to arbitrary 24-hour Bitcoin UTC days.",
+    "H1 aggregation loses transaction-level bid and ask information, so the output must be called a spread proxy and never a measured executable spread.",
+    "The feature may be redundant with the open complete-day range family or the closed realized-volatility, Amihud, jumpiness and price-path families.",
+    "A low-spread admission rule can remove high-convexity breakout entries and improve apparent drawdown only by sacrificing participation or terminal inventory marks."
+  ],
+  "future_preoutcome_requirements": [
+    "Freeze the exact Corwin-Schultz formula, negative-estimate handling, daily lattice, twenty-day normalization and missing-value rules before factor or outcome access.",
+    "Require deterministic source hash, 2,192 complete UTC days, nonnegative finite spread proxies, sufficient Design and Validation states, annual breadth and intervention counts.",
+    "Before economics, reject unless the primary state is nonredundant versus complete-day range, realized volatility, Amihud illiquidity and bipower jumpiness under frozen correlation and intervention-overlap gates.",
+    "Only if all pre-economic gates pass, run the unchanged DRA parent under identical capital, fees, adverse slippage, fills and exits for the primary plus two rejection-only neighbors.",
+    "Require Design and Validation total-PnL improvement, drawdown non-inferiority, annual breadth, holding and terminal-inventory support, concentration control and neighbor stability; otherwise permanently close."
+  ],
+  "prohibited_rescue": [
+    "Do not change the two-day estimator, twenty-day median, threshold direction, primary threshold, neighbors, UTC boundary, fill timing or parent after factor or outcome access.",
+    "Do not substitute Roll spread, Amihud, order-book spread, volume, another venue, intraday window, smoothing, percentile search, shorts, leverage or fractional sizing.",
+    "Do not reinterpret a source or support pass as alpha, and do not open OOS unless the later frozen matched-capital experiment passes every gate."
+  ],
+  "independence": {
+    "key": "corwin-schultz-two-day-high-low-spread-proxy-dra-entry-admission",
+    "distinct_from_closed_amihud": "Amihud used absolute return per volume as a price-impact proxy; this family uses only the one-day and two-day high-low scaling relation as a spread proxy.",
+    "distinct_from_open_range_confirmation": "The open range family asks whether unusually large total daily range confirms participation and admits high-range entries; this family estimates a two-day spread component and vetoes unusually high-friction states.",
+    "residual_overlap_risk": "Both are functions of daily high-low data, so nonredundancy must pass before any economics or the family closes."
+  },
+  "evidence_readiness": {
+    "feature_data_path_exists_locally": true,
+    "external_download_required": false,
+    "paid_api_required": false,
+    "existing_strategy_parent_available": true,
+    "hypothesis_created": false,
+    "factor_computed": false,
+    "outcome_accessed": false
+  },
+  "missing_proof": [
+    "The exact formula implementation, negative-estimate rule, support counts and nonredundancy gates have not been frozen or executed.",
+    "No hypothesis, manifest, deterministic runner, fees, slippage, PnL, drawdown, holding, inventory, concentration, candidate, OOS or forward evidence exists."
+  ],
+  "next_action": "In a later research cycle, freeze and run only the source-lattice, formula-reproduction, support and nonredundancy screen. Stop before economics on any failure.",
+  "scope_note": "Literature and local source-path prior only. No external market-data acquisition, factor value, strategy outcome, hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

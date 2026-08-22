@@ -1,0 +1,80 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Coin Metrics provides rules-based BTC and ETH USD reference rates and peer-reviewed evidence reports bidirectional BTC-ETH return spillovers. Neither establishes that ETH relative strength improves DRA V1 economics. Exactly one source-first audit may test the lagged difference between ETH and BTC 28-day returns at primary zero percentage points with minus-five and plus-five percentage-point neighbors. Any source, timing, economic, predictive, breadth, drawdown, holding, inventory or neighbor failure closes the exact family without changing assets, rates, lookback, direction, thresholds, lag, parent or accounting.",
+  "disposition": "PRIOR_SUPPORTS_ONE_DRA_ETH_RELATIVE_STRENGTH_BREADTH_ENTRY_ADMISSION_AUDIT",
+  "document_type": "DRA_ETH_RELATIVE_STRENGTH_BREADTH_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "source_series": ["COIN_METRICS_BTC_REFERENCERATEUSD", "COIN_METRICS_ETH_REFERENCERATEUSD"],
+    "feature": "LAGGED_SUNDAY_ETH_28D_RETURN_MINUS_BTC_28D_RETURN",
+    "formula": "For each complete Sunday D, calculate ETH ReferenceRateUSD(D)/ETH ReferenceRateUSD(D-28)-1 minus BTC ReferenceRateUSD(D)/BTC ReferenceRateUSD(D-28)-1.",
+    "relation": "AT_OR_ABOVE",
+    "thresholds_percentage_points": ["-5.00", "0.00", "5.00"],
+    "primary_threshold_percentage_points": "0.00",
+    "effective_time": "D_PLUS_1_CALENDAR_DAY_0000_UTC",
+    "factor_valid_hours": 168,
+    "missing_day_action": "NO_INTERPOLATION_AND_NO_SUBSTITUTION"
+  },
+  "independence_contract": {
+    "duplicate_family_key": "dra-coinmetrics-eth-minus-btc-28d-relative-strength-entry-admission",
+    "independence_key": "intra-crypto-eth-relative-strength-breadth",
+    "not_nasdaq_correlation_rescue": "The closed Nasdaq diversification family measured rolling BTC-equity return correlation. This feature measures ETH-versus-BTC return breadth inside crypto and does not reopen or retune that family.",
+    "not_volume_or_range_confirmation": "The active forward families use same-asset BTC volume and range expansion. This feature is a separately sourced cross-asset relative-return state."
+  },
+  "prior_matrix": [
+    {
+      "finding": "Coin Metrics documents BTC and ETH ReferenceRateUSD as rules-based reference prices using a 61-minute calculation window, volume-weighted medians and a time-weighted average for daily frequency.",
+      "identity": "Coin Metrics Reference Rate methodology FAQ",
+      "primary_source": "https://docs.coinmetrics.io/resources/faqs",
+      "role": "OFFICIAL_FACTOR_PRICE_IDENTITY_AND_CLOCK",
+      "transfer_boundary": "A reproducible reference rate does not prove that relative return breadth predicts DRA entry economics."
+    },
+    {
+      "finding": "Coin Metrics documents its Community API as no-key, free for non-commercial use, machine-readable and rate-limited.",
+      "identity": "Coin Metrics API conventions",
+      "primary_source": "https://docs.coinmetrics.io/api",
+      "role": "OFFICIAL_FREE_SOURCE_PATH",
+      "transfer_boundary": "Free-tier documentation does not prove exact BTC and ETH ReferenceRateUSD 2018-2024 coverage; one schema-bound request must decide that before outcome access."
+    },
+    {
+      "finding": "A peer-reviewed DCC-MGARCH study reports bidirectional return spillovers between BTC and ETH and long-term volatility spillovers, with short-term volatility transmission asymmetric from BTC to ETH.",
+      "identity": "Volatility Spillovers among Cryptocurrencies, Journal of Risk and Financial Management 14(10), 493 (2021)",
+      "primary_source": "https://doi.org/10.3390/jrfm14100493",
+      "role": "INTRA_CRYPTO_CONNECTEDNESS_PRIOR",
+      "transfer_boundary": "Connectedness does not identify ETH relative outperformance as positive breadth, the 28-day horizon, thresholds, DRA timing or after-cost performance."
+    }
+  ],
+  "pre_outcome_source_feasibility": {
+    "method": "GET",
+    "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc,eth&metrics=ReferenceRateUSD&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "expected_envelope": ["data"],
+    "expected_row_fields": ["ReferenceRateUSD", "asset", "time"],
+    "required_assets": ["btc", "eth"],
+    "required_window": ["2018-01-01", "2024-12-31"],
+    "source_values_or_btc_outcomes_accessed": false
+  },
+  "real_time_design_requirements": [
+    "Seal one exact create-once Community API response before opening DRA outcomes; fail closed on forbidden access, pagination, missing asset-days, wrong metric identity or incomplete 2018-2024 coverage.",
+    "Use only Sunday D after exact paired D and D-28 values, make D usable at D plus one calendar day 00:00 UTC, and never interpolate or carry a missing asset-day.",
+    "Freeze primary excess return 0.00 percentage points, minus-five and plus-five percentage-point stability neighbors, and relation AT_OR_ABOVE.",
+    "Keep DRA side, entries, exits, lot cost, capacity, fees, adverse slippage, cooldown and fill clock unchanged.",
+    "Require matched-capital Design and Validation economics, path risk, intervention support, annual breadth, concentration, independent predictive breadth and both-neighbor stability.",
+    "Any historical pass remains development evidence and requires untouched future evidence."
+  ],
+  "prohibited_substitutions": [
+    "Do not substitute ETH/BTC exchange candles, another altcoin, market cap dominance, volume, volatility, correlation, a different provider, manual export or paid source after access.",
+    "Do not change the 28-day return horizon, Sunday aggregation, direction, thresholds, lag or missing-day policy.",
+    "Do not add BTC trend, volatility, volume, GVZ, VIX, dollar, equity, EPU or regime interactions.",
+    "Do not reopen the closed BTC-Nasdaq correlation family or active BTC volume/range families."
+  ],
+  "uncertainty": [
+    "ETH relative strength can reflect speculative late-cycle risk rather than healthy market breadth, so the preregistered positive direction may fail.",
+    "BTC and ETH reference-rate methodologies and constituent markets can be revised; a present-vintage historical pass still needs untouched prospective evidence.",
+    "Shared USD denominators and strong crypto connectedness can make the feature economically redundant with BTC momentum already inside DRA.",
+    "No BTC or ETH historical value, DRA strategy outcome, post-2024 evidence, OOS, candidate, canonical write or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T06:20:00Z",
+  "status": "COMPLETED"
+}

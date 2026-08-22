@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-on-rrp-drawdown-liquidity-support-long-cash-v1",
+  "title": "Lagged Fed overnight reverse-repo drawdown liquidity support for BTC long or cash",
+  "thesis": "A complete-week ON RRP endpoint strictly below its value four complete weeks earlier may identify an all-else-equal private-liquidity support state with better subsequent BTC return and path-risk evidence than other weeks.",
+  "mechanism": "Use official FRED RRPONTSYD observations, select the last non-missing value inside each complete Monday-through-Sunday UTC week, make it usable only on Wednesday 00:00 UTC, compare it with the endpoint exactly four complete weeks earlier, and evaluate one non-overlapping 168-hour BTC response. The supportive state is strictly lower ON RRP; no threshold, smoothing, alternate lag, direction inversion or combined macro factor is allowed.",
+  "economic_rationale": "If and only if both Design and Validation establish predictive direction, a later matched-capital policy would hold full BTC during supportive weeks and zero-yield cash otherwise. It must improve fee-adjusted Calmar and underwater duration while explicitly charging lost upside and capital utilization.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-on-rrp-drawdown-liquidity-support-long-cash:PRIMARY_PRIOR_SHA256_e1df8f64645caa79809065f0053f7e486cb91e8f78f10ea3d400a01d158ced93:SOURCE_BUNDLE_SHA256_21b4ad77c0a37413aa0524aac7b3e18188740e51bc3d70682795330c39dae9d5",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-fred-rrpontsyd-four-week-drawdown-pre-economic-predictive-screen-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "supportive_and_other_weekly_episode_support",
+    "median_168h_terminal_return_and_negative_return_rate",
+    "median_168h_peak_to_trough_path_drawdown",
+    "one_sided_fisher_negative_return_rate_p_value",
+    "annual_direction_breadth_and_top_year_positive_return_concentration",
+    "matched_capital_fee_drawdown_calmar_utilization_and_upside_opportunity_cost_only_after_predictive_pass"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 3
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-on-rrp-liquidity-support-1",
+  "created_at": "2026-08-20T12:42:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

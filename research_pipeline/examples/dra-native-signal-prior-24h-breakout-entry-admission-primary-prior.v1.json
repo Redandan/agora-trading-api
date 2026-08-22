@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_PRIOR_24H_BREAKOUT_PRIMARY_PRIOR_V1",
+  "family_id": "dra-native-signal-prior-24h-breakout-entry-admission",
+  "created_at": "2026-08-21T06:56:47Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_NATIVE_SIGNAL_PRIOR_24H_BREAKOUT_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "The frozen DRA confirmation already requires positive daily trend and momentum, but a confirmation that still closes inside the preceding twenty-four complete hourly highs may reflect stale or range-bound continuation. A support-only audit can test whether actual one-day breakout clearance is causal, sufficiently selective and broad enough for one matched-capital admission experiment. This prior is not performance evidence.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "formula": "SIGNAL_BAR_CLOSE_MINUS_MAX_HIGH_OF_PRIOR_24_COMPLETE_H1_BARS_DIVIDED_BY_CAUSALLY_UPDATED_ATR14",
+    "primary_relation": "ADMIT_STRICTLY_ABOVE_0_00_ATR_AND_VETO_AT_OR_BELOW_0_00_ATR",
+    "rejection_only_neighbors": ["-0.25", "0.25"],
+    "prior_window_excludes_signal_bar": true,
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN"
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-long-trend-entry-admission.v1.json",
+      "sha256": "63cc4a07761702fe0945cad0ac23798dc560d54e30adea93d42f8b4c172eb920",
+      "learning": "The prior-200-complete-day long-trend admission reduced participation and failed matched-capital transfer. The new feature is an event-time one-day breakout clearance rather than a slow regime state, but it must still prove selectivity and annual breadth before economics."
+    },
+    {
+      "path": "research_pipeline/examples/btc-donchian-20d-10d-standalone-historical.v1.decision.json",
+      "sha256": "9032a111eb8288aa45d016f044b2823c06e003d6f9f0f06be00202d150d2e67c",
+      "learning": "The closed standalone Donchian 20-day entry and 10-day exit policy failed upside-capture, concentration and terminal-inventory gates. The new family is a parent-bound DRA admission using only the prior twenty-four hourly highs; it cannot inherit Donchian's historical return claim or rescue that family."
+    },
+    {
+      "path": "research_pipeline/examples/dra-close-location-entry-admission.v1.decision.json",
+      "sha256": "62d727e7f25434dbfc2185fb876918d74a0b3a4537801e7964b6128c8977fa58",
+      "learning": "Complete-day close location did not produce a candidate. Prior-high clearance is a level-crossing condition rather than close position within the current day's range, but must remain distinct at the action fingerprint level."
+    },
+    {
+      "path": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.decision.json",
+      "sha256": "6cc6c1de7582306477250274ed9e8c055ba5627021a69370ff852a795d7c3189",
+      "learning": "Intraday path efficiency lost Design and Validation realized and total PnL and worsened Validation path risk. A breakout family cannot claim value from participation suppression or smoother terminal inventory marks."
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-overextension-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "3646d41706903be7a16eb9279f8beab6d4e013c36d3fe24bee7ad5ad0a72c37c",
+      "learning": "EMA20-normalized overextension was causal and broad but vetoed 66.67 percent of Validation capacity-admissible signals, above its frozen selectivity limit. Prior-high clearance reverses neither that formula nor its relation; it uses a different reference level and must independently pass the same anti-participation gate."
+    }
+  ],
+  "deduplication_conclusion": "The proposed feature tests whether the completed DRA signal bar closes strictly above the maximum high of the immediately preceding twenty-four complete hourly bars, normalized only for rejection-neighbor stability by updated ATR14. It is not a standalone 20-day Donchian strategy, a prior-200-day trend state, current-day close location, intraday path efficiency, or signal distance from EMA20.",
+  "adversarial_risks": [
+    "The frozen DRA signal may already imply enough momentum that prior-24-hour breakout clearance adds no independent information.",
+    "Actual breakout signals may be too rare, while non-breakout vetoes may exceed the sixty-percent selectivity cap and merely suppress participation.",
+    "A positive clearance can be a short-lived liquidity sweep rather than durable continuation.",
+    "The zero threshold or its rejection-only neighbors may be concentrated in one year or month.",
+    "Cooldown route substitution can invalidate a later economic comparison unless every actionable veto reserves the original signal timestamp.",
+    "Lower drawdown without realized and total PnL breadth may be participation suppression or terminal-inventory cleanup rather than alpha."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_CAUSAL_FEATURE_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No candidate PnL, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

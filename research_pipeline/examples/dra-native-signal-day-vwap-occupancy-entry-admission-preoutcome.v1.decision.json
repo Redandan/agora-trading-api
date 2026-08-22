@@ -1,0 +1,94 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_DAY_VWAP_OCCUPANCY_PREOUTCOME_DECISION_V1",
+  "family_id": "dra-native-signal-day-vwap-occupancy-entry-admission",
+  "decided_at": "2026-08-21T08:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_VWAP_OCCUPANCY_AT_SUPPORT_GATE",
+  "decision": "PERMANENTLY_CLOSE_EXACT_24_SIGNAL_DAY_H1_CLOSE_OCCUPANCY_ABOVE_COMPLETE_DAY_TYPICAL_PRICE_BASE_VOLUME_VWAP_AT_8_12_16_COUNTS_WITHOUT_THRESHOLD_REFERENCE_PRICE_WEIGHT_FORMULA_DIRECTION_OR_WINDOW_RESCUE",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-native-signal-day-vwap-occupancy-entry-admission-primary-prior.v1.json",
+      "sha256": "16d1d9c150cfae0f95725bdfa2e10bebbe4534609e3edfd08bfc5f4d46471f12"
+    },
+    "preoutcome_spec": {
+      "path": "research_pipeline/examples/dra-native-signal-day-vwap-occupancy-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "f4291fc73329be460c85f19e65b44f4cb185005d871d07ce9f9f92d544bc4c54"
+    },
+    "support_runner": {
+      "path": "research/dra_native_signal_day_vwap_occupancy_support_v1.py",
+      "sha256": "7726dd612db1f205a907c416a3fbe99989d320c5fea1d14e055e8f29264d89ec"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/dra-native-signal-day-vwap-occupancy-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "806e179d424c6bed59452f8c586da25a780692d8fa897c41d6a169bc1df37197"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/dra-native-signal-day-vwap-occupancy-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+      "sha256": "806e179d424c6bed59452f8c586da25a780692d8fa897c41d6a169bc1df37197"
+    },
+    "determinism": "SUPPORT_RUNS_BYTE_IDENTICAL"
+  },
+  "deduplication": {
+    "status": "PASS_DISTINCT_FORMULA_AND_ACTION_FINGERPRINT",
+    "new_action": "Capacity-admissible DRA entry veto based on the count of exactly 24 signal-day H1 closes above the complete signal day's H1 typical-price/base-volume VWAP.",
+    "distinct_from": [
+      "signal-day occupancy above prior complete-day EMA20",
+      "final close relative to same-day H1 volume-weighted close",
+      "positive-return directional-volume participation",
+      "intraday price-path efficiency",
+      "complete-day candle close location"
+    ]
+  },
+  "support_summary": {
+    "parent_path_parity": "EXACT_ALL_DESIGN_VALIDATION_AND_ANNUAL_WINDOWS",
+    "feature_availability": {
+      "design": "1.00000000",
+      "validation": "1.00000000"
+    },
+    "design": {
+      "parent_signals": 103,
+      "capacity_admissible_signals": 100,
+      "primary_12_of_24_actionable_vetoes": 45,
+      "primary_action_share": "0.45000000",
+      "lower_8_of_24_actionable_vetoes": 12,
+      "upper_16_of_24_actionable_vetoes": 86,
+      "above_vwap_count_minimum_median_maximum": [3, "12", 19]
+    },
+    "validation": {
+      "parent_signals": 51,
+      "capacity_admissible_signals": 51,
+      "primary_12_of_24_actionable_vetoes": 34,
+      "primary_action_share": "0.66666667",
+      "lower_8_of_24_actionable_vetoes": 12,
+      "upper_16_of_24_actionable_vetoes": 46,
+      "above_vwap_count_minimum_median_maximum": [4, "10", 18]
+    },
+    "annual_primary_12_of_24_actionable_vetoes": {
+      "2020": 10,
+      "2021": 5,
+      "2022": 10,
+      "2023": 16,
+      "2024": 18
+    },
+    "active_annual_folds": 5,
+    "top_year_primary_veto_share": "0.30508475",
+    "validation_top_month_primary_veto_share": "0.08823529"
+  },
+  "failed_gates": [
+    "primary_action_share_validation"
+  ],
+  "material_learning": "Signal-day VWAP occupancy is causal, fully available, action-distinct and broad across years and months, but the frozen 12-of-24 primary is too suppressive in historical Validation: it vetoes 34 of 51 capacity-admissible parent signals, or 66.67 percent, above the preregistered 60 percent maximum. The feature therefore fails before candidate economics because most apparent drawdown or inventory improvement could be achieved mechanically by not participating. The lower 8-of-24 neighbor cannot replace the failed primary after support output, and no PnL was accessed.",
+  "prohibited_reopen": [
+    "Do not promote the 8-of-24 or 16-of-24 rejection-only neighbor after seeing support counts.",
+    "Do not rerun the 8, 12 or 16 count thresholds in this direction.",
+    "Do not change the complete-day typical-price/base-volume VWAP, representative price, weight, strict close comparison, 24-hour denominator, signal clock, relation, capacity order, cooldown reservation, lot cost, cap, windows or support gates to rescue this family.",
+    "Do not reinterpret broad annual or monthly coverage as permission to ignore excessive participation suppression.",
+    "Do not create a hypothesis, economic manifest, candidate, OOS, deployment, SHADOW, PAPER or LIVE action from this support result."
+  ],
+  "hypothesis_created": false,
+  "candidate_economics_accessed": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Causal parent-state support and deduplication only. No candidate PnL, OOS, paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

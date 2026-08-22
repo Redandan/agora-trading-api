@@ -1,0 +1,78 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_HIGH_YIELD_OAS_SOURCE_FEASIBILITY_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "reviewed_at": "2026-08-19T07:49:46Z",
+  "status": "DATA_PATH_REJECT_INSUFFICIENT_FREE_HISTORICAL_COVERAGE",
+  "disposition": "CLOSE_BTC_HIGH_YIELD_OAS_RISK_STATE_FAMILY_BEFORE_OUTCOME_ACCESS",
+  "duplicate_family_key": "btc-ice-bofa-us-high-yield-oas-risk-state-long-cash",
+  "proposed_feature": "LAGGED_ICE_BOFA_US_HIGH_YIELD_INDEX_OPTION_ADJUSTED_SPREAD_RISK_STATE",
+  "proposed_parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
+  "required_historical_window": {
+    "source_start": "2018-01-01",
+    "design": ["2020-01-01", "2023-01-01"],
+    "validation": ["2023-01-01", "2025-01-01"],
+    "purpose": "Matched-capital Design, Validation, annual breadth and path-risk gates require complete point-in-time source coverage before any BTC outcome is opened."
+  },
+  "official_source": {
+    "series_id": "BAMLH0A0HYM2",
+    "series_page": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2",
+    "publisher": "Ice Data Indices, LLC via Federal Reserve Bank of St. Louis FRED",
+    "frequency": "DAILY_CLOSE",
+    "units": "PERCENT_NOT_SEASONALLY_ADJUSTED",
+    "official_current_limit": "Starting in April 2026 the FRED series includes only three years of observations; more data requires going to the ICE source.",
+    "revision_boundary": "FRED states that observations and series can be revised and that historical information-as-known requires real-time or vintage retrieval."
+  },
+  "pre_outcome_source_probes": [
+    {
+      "id": "NO_KEY_CURRENT_CSV",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=2018-01-01&coed=2024-12-31",
+      "http_status": 200,
+      "content_type": "application/csv",
+      "bytes": 5822,
+      "csv_rows": 363,
+      "valid_observations": 359,
+      "first_observation": "2023-08-21",
+      "last_observation": "2024-12-31",
+      "result": "REJECT_MISSING_2018_TO_2023_08_20"
+    },
+    {
+      "id": "NO_KEY_GRAPH_CSV_WITH_2025_VINTAGE_PARAMETER",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=2018-01-01&coed=2024-12-31&vintage_date=2025-01-02",
+      "http_status": 200,
+      "content_type": "application/csv",
+      "bytes": 5822,
+      "csv_rows": 363,
+      "valid_observations": 359,
+      "first_observation": "2023-08-21",
+      "last_observation": "2024-12-31",
+      "result": "REJECT_VINTAGE_PARAMETER_DID_NOT_RESTORE_REQUIRED_HISTORY"
+    },
+    {
+      "id": "OFFICIAL_OBSERVATIONS_API_WITHOUT_KEY",
+      "url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&observation_start=2018-01-01&observation_end=2024-12-31&file_type=json",
+      "http_status": 400,
+      "result": "REJECT_REGISTERED_API_KEY_REQUIRED"
+    }
+  ],
+  "decision": {
+    "historical_source_executable": false,
+    "prospective_source_executable_without_manual_export": false,
+    "point_in_time_revision_identity_proven": false,
+    "btc_outcome_opened": false,
+    "runner_created": false,
+    "manifest_created": false,
+    "candidate_created": false,
+    "oos_opened": false,
+    "reason": "The only official no-key machine-readable path tested lacks the full Design window, the vintage parameter returns the same truncated bytes, and the official observation/vintage API requires a registered key. No already-sealed lawful historical copy or unattended full-history source exists in the repository."
+  },
+  "forbidden_followups": [
+    "DO_NOT_USE_AN_UNLICENSED_MIRROR_OR_MANUAL_EXPORT",
+    "DO_NOT_FILL_THE_MISSING_DESIGN_WINDOW_FROM_ANOTHER_SERIES",
+    "DO_NOT_TREAT_2023_TO_2024_ONLY_AS_DESIGN_AND_VALIDATION",
+    "DO_NOT_REQUEST_A_PAID_SOURCE_OR_USER_OPERATED_DOWNLOAD",
+    "DO_NOT_CREATE_A_RUNNER_MANIFEST_CANDIDATE_OR_OOS_FOR_THIS_FAMILY"
+  ],
+  "reopen_condition": "A future already-sealed, legally usable, no-paid-API, machine-readable point-in-time source must independently cover the full frozen pre-2025 window and prospective publication timing before any new family can be proposed. This record itself remains immutable.",
+  "scope_note": "Only official source metadata and bounded source-only HTTP probes were read. No BTC outcome, paid API, API key, manual export, external mirror, runner, experiment, canonical write, second timer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

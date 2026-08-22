@@ -1,0 +1,69 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NASDAQ_COMPOSITE_TREND_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "PRIOR_SUPPORTS_ONE_NASDAQ_COMPOSITE_TREND_LONG_CASH_HISTORICAL_AUDIT",
+  "claim_boundary": "Primary research supports stronger post-2020 co-movement between crypto and global technology equities as institutional participation increased, and independent asset-pricing research supports medium-horizon time-series momentum across equity indexes. Neither source validates Nasdaq trend as a Bitcoin timing rule. Exactly one preregistered matched-capital historical audit may test the frozen 200-business-day Nasdaq Composite trend state; 150 and 250 business days are rejection-only stability neighbors, never alternatives selected after outcome access.",
+  "feature_contract": {
+    "publisher": "Nasdaq, Inc., redistributed by Federal Reserve Bank of St. Louis FRED",
+    "series_id": "NASDAQCOM",
+    "observation": "DAILY_NASDAQ_COMPOSITE_MARKET_CLOSE",
+    "decision_time": "NEXT_CALENDAR_DAY_0000_UTC_AFTER_NASDAQ_TRADING_DATE",
+    "primary_feature": "LATEST_NASDAQ_CLOSE_STRICTLY_ABOVE_PRIOR_200_BUSINESS_DAY_SIMPLE_MEAN",
+    "neighbor_features": [
+      "LATEST_NASDAQ_CLOSE_STRICTLY_ABOVE_PRIOR_150_BUSINESS_DAY_SIMPLE_MEAN",
+      "LATEST_NASDAQ_CLOSE_STRICTLY_ABOVE_PRIOR_250_BUSINESS_DAY_SIMPLE_MEAN"
+    ],
+    "policy": "LONG_BTC_WHILE_EXTERNAL_NASDAQ_TREND_IS_POSITIVE_OTHERWISE_ZERO_YIELD_CASH",
+    "state_persistence": "LATEST_NASDAQ_STATE_PERSISTS_ACROSS_WEEKENDS_HOLIDAYS_AND_MISSING_SOURCE_DATES"
+  },
+  "prior_matrix": [
+    {
+      "identity": "Che, Copestake, Furceri and Terracciano, The Crypto Cycle and US Monetary Policy, IMF Working Paper 2023/163",
+      "primary_source": "https://www.imf.org/en/publications/wp/issues/2023/08/04/the-crypto-cycle-and-us-monetary-policy-534834",
+      "finding": "The study reports that crypto's correlation with global equities increased with institutional participation after 2020, is strongest with technology and small-cap equity factors, and that monetary tightening reduces the crypto factor through a risk-taking channel.",
+      "role": "CRYPTO_EQUITY_RISK_APPETITE_MECHANISM_PRIOR",
+      "transfer_boundary": "Co-movement and monetary-policy sensitivity do not prove that a Nasdaq trend filter improves Bitcoin PnL, drawdown or Calmar after trading costs."
+    },
+    {
+      "identity": "Moskowitz, Ooi and Pedersen, Time Series Momentum, Journal of Financial Economics 104 (2012)",
+      "primary_source": "https://pages.stern.nyu.edu/~lpederse/papers/TimeSeriesMomentum.pdf",
+      "finding": "The paper documents return persistence over one to twelve months across equity-index, currency, commodity and bond futures, with partial reversal at longer horizons.",
+      "role": "EXTERNAL_EQUITY_TREND_MECHANISM_PRIOR",
+      "transfer_boundary": "The paper does not study a 200-day moving average, Nasdaq Composite spot index timing, Bitcoin, or long-cash implementation costs."
+    },
+    {
+      "identity": "Nasdaq Composite official index description",
+      "primary_source": "https://www.nasdaq.com/products/global-indexes/nasdaq-composite",
+      "finding": "Nasdaq describes the Composite as a market-capitalization-weighted index of thousands of Nasdaq-listed stocks with substantial technology and innovation exposure and daily refresh.",
+      "role": "OFFICIAL_EXTERNAL_FEATURE_IDENTITY",
+      "transfer_boundary": "Index composition and technology exposure do not establish predictive value for Bitcoin."
+    },
+    {
+      "identity": "Federal Reserve Bank of St. Louis FRED series NASDAQCOM",
+      "primary_source": "https://fred.stlouisfed.org/series/NASDAQCOM",
+      "finding": "FRED identifies NASDAQCOM as the daily market-close Nasdaq Composite value, sourced from Nasdaq, Inc., with normal market close at 4 PM Eastern.",
+      "role": "FREE_HISTORICAL_DATA_AND_PUBLICATION_TIMING_IDENTITY",
+      "transfer_boundary": "FRED labels the series copyrighted and subject to revision. The audit may use only one sealed present-vintage research copy; it cannot claim original-vintage or redistribution rights."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact no-key FRED CSV response covering 2018-01-01 through 2024-12-31 and retain only finite positive NASDAQCOM observations; preserve but do not fill explicit market-holiday gaps.",
+    "Make every Nasdaq observation effective no earlier than 00:00 UTC on the following calendar day, after the normal 4 PM Eastern market close, and persist the latest state until a later valid observation.",
+    "For each observation compare the current close with the simple mean of exactly the prior N valid business-day closes, excluding the current close; do not evaluate before N prior observations exist.",
+    "Freeze N=200 as primary and N=150 and N=250 as the only rejection neighbors before any BTC outcome access.",
+    "Use long-only 100-percent BTC or zero-yield cash, next-H1-open fills, normal and doubled stress friction, and matched-capital buy-and-hold.",
+    "Require Design, Validation, annual breadth, concentration, realized/unrealized/total PnL, drawdown, Calmar, upside capture, holding, terminal inventory and both-neighbor stability.",
+    "Do not add a Nasdaq return threshold, slope, confirmation, volatility condition, BTC interaction, alternate equity index, fractional sizing, leverage, short leg or cash yield after outcome access.",
+    "Do not open post-2024 BTC or Nasdaq data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "The causal papers support equity-crypto co-movement and trend persistence, not this exact cross-asset timing policy.",
+    "NASDAQCOM is a copyrighted index redistributed by FRED; raw bytes stay in untracked research state and are not a reusable public dataset.",
+    "FRED warns that observations are subject to revision, so this is a sealed present-vintage historical screen rather than original daily-vintage evidence.",
+    "The 150/200/250-day trend states overlap heavily and may only restate the 2022 technology-equity drawdown.",
+    "No BTC performance result, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T08:24:14Z"
+}

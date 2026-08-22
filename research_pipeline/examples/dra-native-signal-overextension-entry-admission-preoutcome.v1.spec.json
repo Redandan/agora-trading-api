@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_OVEREXTENSION_PREOUTCOME_SPEC_V1",
+  "family_id": "dra-native-signal-overextension-entry-admission",
+  "created_at": "2026-08-21T06:31:01Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "runner_binding": {
+    "path": "research/dra_native_signal_overextension_support_v1.py",
+    "sha256": "500c7a0b8bcee37981a5cb1a106272f7d4f00e279c2e5259a3c9332b974dfdf5"
+  },
+  "prior_binding": {
+    "path": "research_pipeline/examples/dra-native-signal-overextension-entry-admission-primary-prior.v1.json",
+    "sha256": "9d3744d2aee78114e05d900a1ce3c2d4729c547990abe179717860b04ae74d5e"
+  },
+  "closed_family_bindings": [
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-long-trend-entry-admission.v1.json",
+      "role": "CLOSED_PRIOR_200_DAY_LONG_TREND_ADMISSION",
+      "sha256": "63cc4a07761702fe0945cad0ac23798dc560d54e30adea93d42f8b4c172eb920"
+    },
+    {
+      "path": "research_pipeline/examples/dra-late-day-price-activity-entry-admission.v1.decision.json",
+      "role": "CLOSED_FINAL_SIX_HOUR_PRICE_ACTIVITY_ADMISSION",
+      "sha256": "16e526df0814c8bd27558da23e8ffc5bb99c458c8aa74931c250b475d8a01aa6"
+    },
+    {
+      "path": "research_pipeline/examples/dra-intraday-close-path-drawdown-entry-admission.v1.decision.json",
+      "role": "CLOSED_COMPLETE_DAY_CLOSE_PATH_DRAWDOWN_ADMISSION",
+      "sha256": "be27bbf91828c907a830f9a5f6dc7f2805543a1577d411994321128f85a88886"
+    }
+  ],
+  "action_fingerprints": {
+    "new_family": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_CAPACITY_ADMISSIBLE_DRA_SIGNAL|FEATURE_SIGNAL_CLOSE_MINUS_UPDATED_EMA20_DIV_UPDATED_ATR14_AT_OR_BELOW_1_00|VETO_OVEREXTENSION_RESERVES_PARENT_7D_COOLDOWN|LOT_30|CAP_240",
+    "closed_long_trend": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_DRA_SIGNAL|FEATURE_PRIOR_200_COMPLETE_DAY_LONG_TREND_STATE|HARD_INCEPTION_FALLBACK",
+    "closed_late_day_activity": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_DRA_SIGNAL|FEATURE_FINAL_SIX_UTC_HOUR_ABSOLUTE_LOG_RETURN_SHARE_TO_PRIOR_20D_MEDIAN",
+    "closed_intraday_drawdown": "ACTION_DRA_ENTRY_ADMISSION|CLOCK_DRA_SIGNAL|FEATURE_COMPLETE_DAY_H1_CLOSE_PATH_MAX_DRAWDOWN_TO_PRIOR_20D_MEDIAN"
+  },
+  "feature_policy": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_BEFORE_NEXT_H1_OPEN_FILL",
+    "formula": "SIGNAL_BAR_CLOSE_MINUS_CAUSALLY_UPDATED_EMA20_DIVIDED_BY_CAUSALLY_UPDATED_ATR14",
+    "relation": "ADMIT_AT_OR_BELOW_THRESHOLD_VETO_ABOVE_THRESHOLD",
+    "primary_threshold": "1.00",
+    "rejection_only_neighbors": ["0.75", "1.25"],
+    "feature_unavailable": "VETO_AND_RESERVE_ORIGINAL_SIGNAL_COOLDOWN",
+    "evaluate_only_when_parent_capacity_can_accept_30_usdt": true,
+    "vetoed_signal_reserves_parent_cooldown": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL",
+    "capacity_block_behavior": "UNCHANGED_PARENT_BLOCK_WITHOUT_COOLDOWN_RESERVATION",
+    "lot_cost_usdt": "30",
+    "maximum_open_cost_usdt": "240",
+    "maximum_open_lots": 8,
+    "variants": 3
+  },
+  "gates": {
+    "design_minimum_parent_signals": 80,
+    "validation_minimum_parent_signals": 40,
+    "minimum_feature_available_signal_share": "0.98",
+    "design_minimum_primary_actionable_vetoes": 8,
+    "validation_minimum_primary_actionable_vetoes": 4,
+    "validation_minimum_each_neighbor_actionable_vetoes": 4,
+    "minimum_active_annual_folds": 4,
+    "minimum_primary_vetoes_per_active_annual_fold": 2,
+    "maximum_top_year_primary_veto_share": "0.40",
+    "maximum_validation_top_month_primary_veto_share": "0.35",
+    "primary_action_share_minimum": "0.05",
+    "primary_action_share_maximum": "0.60",
+    "minimum_neighbor_action_hash_differences_each_window": 1
+  },
+  "decision_rule": {
+    "pass": "ALLOW_EXACTLY_ONE_SCHEMA_VALID_HYPOTHESIS_AND_ONE_FROZEN_MATCHED_CAPITAL_EXPERIMENT",
+    "fail": "PERMANENTLY_CLOSE_EXACT_NATIVE_SIGNAL_OVEREXTENSION_FAMILY_WITHOUT_THRESHOLD_FORMULA_OR_DIRECTION_TUNING"
+  },
+  "forbidden_after_support_output": [
+    "CHANGE_0_75_1_00_1_25_THRESHOLDS",
+    "INVERT_ADMISSION_RELATION_TO_REQUIRE_OVEREXTENSION",
+    "CHANGE_EMA_ATR_UPDATE_OR_DECISION_CLOCK",
+    "COUNT_CAPACITY_BLOCKED_SIGNALS_AS_VETOES",
+    "CHANGE_COOLDOWN_RESERVATION_OR_ROUTE_TIMING",
+    "RELAX_SUPPORT_GATES",
+    "READ_CANDIDATE_PNL_OR_OOS_TO_RESCUE_SUPPORT"
+  ],
+  "outcome_access": "DENY_CANDIDATE_ECONOMICS_AND_OOS"
+}

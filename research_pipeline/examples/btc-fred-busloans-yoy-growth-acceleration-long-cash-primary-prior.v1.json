@@ -1,0 +1,47 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_BUSLOANS_YOY_GROWTH_ACCELERATION_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-busloans-yoy-growth-acceleration-long-cash",
+  "created_at": "2026-08-21T02:40:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_busloans_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_SOURCE_FEASIBILITY_GATE_IN_THE_NEXT_AUTONOMOUS_CYCLE",
+  "claim_boundary": "Commercial and industrial loan balances combine credit supply, borrower demand, repayments and bank reporting effects; they are not a direct measure of investable liquidity or a Bitcoin predictor. Strict acceleration in their year-over-year growth may proxy broadening business credit, but contraction, crisis borrowing and monetary reactions can reverse the sign. This supports one audit only.",
+  "primary_sources": [
+    {"title": "Commercial and Industrial Loans, All Commercial Banks", "publisher": "Board of Governors of the Federal Reserve System via FRED", "url": "https://fred.stlouisfed.org/series/BUSLOANS", "use": "Official monthly seasonally adjusted C&I loan-balance identity and free present-vintage CSV source."},
+    {"title": "H.8 Assets and Liabilities of Commercial Banks in the United States", "publisher": "Board of Governors of the Federal Reserve System", "url": "https://www.federalreserve.gov/releases/h8/about.htm", "use": "Official release, reporting and revision boundary for commercial-bank asset data."}
+  ],
+  "frozen_feature": {
+    "factor_identity": "FRED_BUSLOANS_CURRENT_YOY_GROWTH_STRICTLY_GREATER_THAN_PREVIOUS_MONTH_YOY_GROWTH_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC_V1",
+    "accelerating_state": "CURRENT_MONTH_YOY_GROWTH_STRICTLY_GREATER_THAN_PREVIOUS_MONTH_YOY_GROWTH",
+    "nonaccelerating_state": "OTHERWISE",
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_ACCELERATING_STATE_ZERO_YIELD_CASH_OTHERWISE",
+    "availability_floor": "FIRST_DAY_OF_SECOND_FOLLOWING_CALENDAR_MONTH_AT_00_00_UTC",
+    "variant_count": 1
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_household_income": "BUSLOANS is a commercial-bank business-credit balance. DSPIC96 measured household after-tax real income; its closed result cannot be reopened or combined with this one.",
+    "distinct_from_closed_central_bank_liquidity": "BUSLOANS is neither the Federal Reserve balance sheet, reserves, TGA, ON RRP nor stablecoin supply. Those closed families cannot be rescued.",
+    "prohibited_rescue": "Do not add total loans, consumer loans, standards surveys, deposits, spreads, rates, levels, absolute growth, smoothing, alternate lags, thresholds, direction inversion or another factor after access."
+  },
+  "adversarial_prior": [
+    "Loan balances can rise because distressed firms draw credit lines rather than because risk-bearing capacity improves.",
+    "Bank-reporting revisions and mergers can change present-vintage history.",
+    "Credit expansion can lag financial markets or precede tighter monetary policy.",
+    "U.S. business credit may have weak relevance for global crypto demand.",
+    "A long-cash rule can reduce drawdown only by forfeiting upside."
+  ],
+  "stop_conditions": [
+    "Do not execute the source probe until the next autonomous cycle because this cycle already consumed its one-hypothesis budget.",
+    "Stop DATA_REJECT before hypothesis or BTC access on any source, lattice or support failure.",
+    "If the source gate passes in a later cycle, freeze exactly one hypothesis and economic manifest before BTC outcomes.",
+    "Stop NO_CANDIDATE on any economic, drawdown, Calmar, upside, breadth, concentration or determinism failure.",
+    "Do not open post-2024 outcomes; a historical pass remains REPORTED_NOT_ACTIVATED."
+  ],
+  "missing_proof": [
+    "No exact BUSLOANS 2017-2024 source bundle or state-support result exists.",
+    "No hypothesis, runner, manifest, economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior only. No historical BUSLOANS factor value, BTC outcome, paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

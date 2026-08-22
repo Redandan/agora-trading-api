@@ -1,0 +1,151 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_DMI14_ADX25_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-daily-dmi14-adx25-long-cash-historical-v1",
+  "decided_at": "2026-08-19T03:51:52Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DAILY_DMI14_ADX25_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DAILY_DMI14_ADX_THRESHOLDS_20_25_30_LONG_CASH_FAMILY_WITHOUT_TUNING",
+  "manifest_sha256": "b978f2c9d35dda1b46f6d7540fee1ccaa38fae08a30c25f45396270f306b9f50",
+  "runner": {
+    "path": "research/btc_daily_dmi14_adx25_long_cash_historical.py",
+    "sha256": "ee3af6598c20366c954175c703611740eb13d6d7cd93549cce53d5ed0889bd5d",
+    "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+    "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "pre_outcome_capability_recovery": {
+    "initial_runner_sha256": "b284d38b373ba919ab76d57fb670b8a07f3e5202976e9af9f16656ed1eb14276",
+    "initial_manifest_sha256": "9a8de97c53682be919b6fff2a0122c057d5210b116a96cb5eb587661a9c1ef78",
+    "failure": "DAILY_OHLC_AGGREGATION_MISSING_HIGH_LOW_FIELDS",
+    "sealed_output_created": false,
+    "repair": "REBOUND_UNCHANGED_DMI_POLICY_AND_GATES_TO_FROZEN_SUPERTREND_OHLC_AGGREGATION_AND_ECONOMIC_LEDGER",
+    "scientific_parameters_changed": false
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-daily-dmi14-adx25-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "2b895c555ecf0a9d5136f11f1a9390978e151717d5652d7711a5476991172769"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-daily-dmi14-adx25-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "2b895c555ecf0a9d5136f11f1a9390978e151717d5652d7711a5476991172769",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "primary_dmi14_adx25_design_normal": {
+      "candidate_total_return_pct": "313.56865170",
+      "candidate_maximum_drawdown_pct": "31.67615695",
+      "candidate_calmar_ratio": "9.89920123",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "total_return_delta_pp": "183.96320941",
+      "maximum_drawdown_delta_pp": "-45.51340230",
+      "upside_capture_ratio": "2.41940960",
+      "calmar_ratio_to_buy_hold": "5.89570134",
+      "average_exposure_pct": "28.46715328",
+      "position_changes": 38,
+      "completed_episodes": 19,
+      "median_hold_hours": "144.00000000",
+      "p90_hold_hours": "950.40000000",
+      "terminal_position": false
+    },
+    "primary_dmi14_adx25_design_stress": {
+      "candidate_total_return_pct": "290.65445671",
+      "candidate_maximum_drawdown_pct": "32.08487334",
+      "buy_hold_total_return_pct": "129.26172157"
+    },
+    "primary_dmi14_adx25_validation_normal": {
+      "candidate_total_return_pct": "140.78344100",
+      "candidate_maximum_drawdown_pct": "20.56501281",
+      "candidate_calmar_ratio": "6.84577453",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "total_return_delta_pp": "-323.97131057",
+      "maximum_drawdown_delta_pp": "-11.71915068",
+      "upside_capture_ratio": "0.30291985",
+      "calmar_ratio_to_buy_hold": "0.47554136",
+      "average_exposure_pct": "39.39808482",
+      "position_changes": 22,
+      "completed_episodes": 11,
+      "median_hold_hours": "816.00000000",
+      "p90_hold_hours": "1176.00000000",
+      "terminal_position": false,
+      "top_positive_episode_contribution_pct": "34.97232850"
+    },
+    "primary_dmi14_adx25_validation_stress": {
+      "candidate_total_return_pct": "132.96725022",
+      "candidate_maximum_drawdown_pct": "21.74764775",
+      "buy_hold_total_return_pct": "463.90931032"
+    },
+    "rejection_only_neighbor_dmi14_adx20_validation_normal": {
+      "candidate_total_return_pct": "119.15660194",
+      "candidate_maximum_drawdown_pct": "41.49057454",
+      "candidate_calmar_ratio": "2.87189568",
+      "total_return_delta_pp": "-345.59814963",
+      "maximum_drawdown_delta_pp": "9.20641105",
+      "upside_capture_ratio": "0.25638598",
+      "calmar_ratio_to_buy_hold": "0.19949608"
+    },
+    "rejection_only_neighbor_dmi14_adx30_validation_normal": {
+      "candidate_total_return_pct": "105.94377363",
+      "candidate_maximum_drawdown_pct": "19.24298717",
+      "candidate_calmar_ratio": "5.50557835",
+      "total_return_delta_pp": "-358.81097793",
+      "maximum_drawdown_delta_pp": "-13.04117632",
+      "upside_capture_ratio": "0.22795630",
+      "calmar_ratio_to_buy_hold": "0.38244470"
+    },
+    "annual_primary_normal": {
+      "2020": {"candidate_total_return_pct": "185.06503117", "candidate_maximum_drawdown_pct": "17.45879628", "buy_hold_total_return_pct": "301.32276307", "upside_capture_ratio": "0.61417541"},
+      "2021": {"candidate_total_return_pct": "68.55528554", "candidate_maximum_drawdown_pct": "31.67615695", "buy_hold_total_return_pct": "59.60909620", "upside_capture_ratio": "1.15008094"},
+      "2022": {"candidate_total_return_pct": "-14.04607960", "candidate_maximum_drawdown_pct": "21.89539518", "buy_hold_total_return_pct": "-64.25634095", "total_return_delta_pp": "50.21026135"},
+      "2023": {"candidate_total_return_pct": "65.34322835", "candidate_maximum_drawdown_pct": "20.56501281", "buy_hold_total_return_pct": "155.16375107", "upside_capture_ratio": "0.42112431"},
+      "2024": {"candidate_total_return_pct": "45.62643019", "candidate_maximum_drawdown_pct": "19.09197778", "buy_hold_total_return_pct": "120.99348678", "upside_capture_ratio": "0.37709823"}
+    },
+    "breadth": {
+      "normal_positive_years": "4_of_5",
+      "stress_positive_years": "4_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "5_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "3_of_5",
+      "normal_upside_capture_at_least_50pct_years": "2_of_5",
+      "top_year_positive_total_return_contribution_pct": "50.75976953",
+      "validation_top_positive_episode_contribution_pct": "34.97232850"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_dmi14_adx20_validation_normal_drawdown_non_worse",
+    "neighbor_dmi14_adx20_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_dmi14_adx20_validation_normal_upside_capture_at_least_50pct",
+    "neighbor_dmi14_adx30_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_dmi14_adx30_validation_normal_upside_capture_at_least_50pct",
+    "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5"
+  ],
+  "passed_evidence": [
+    "The exact dataset, frozen sources, hourly lattice, 2192 complete UTC days and two byte-identical runs passed every integrity gate.",
+    "Design exceeded buy-and-hold by 183.96320941 percentage points, reduced maximum drawdown by 45.51340230 percentage points and achieved 5.89570134 times passive Calmar.",
+    "The primary produced positive Normal and Stress returns in Design and Validation, ended flat and stayed within the frozen holding, turnover, stress-drawdown and episode-concentration limits.",
+    "The primary reduced drawdown versus buy-and-hold in all five annual windows, passed annual Calmar breadth in three of five years and did not fail the frozen top-year concentration gate."
+  ],
+  "material_learning": "DMI14 with ADX14 above 25 was an exceptionally strong Design-period high-low trend state and reduced maximum drawdown in every annual fold, but its economic edge did not generalize to 2023-2024. Validation captured only 30.291985 percent of passive upside and reached 47.554136 percent of passive Calmar. Lowering ADX to 20 increased exposure but worsened Validation drawdown by 9.20641105 percentage points and reached only 19.949608 percent of passive Calmar; raising it to 30 reduced drawdown but captured only 22.795630 percent of upside. Only two of five years captured at least half of passive upside. The family therefore identifies selective historical trend bursts and bear-loss avoidance, not stable independent risk-adjusted alpha.",
+  "scientific_claim": "The exact daily complete-UTC-day DMI14 and ADX14 bullish-state policy using primary threshold 25 and preregistered rejection-only thresholds 20 and 30 produced positive after-cost historical returns but failed frozen Validation upside-capture, Calmar, neighbor-stability and annual-upside-breadth gates. None is a candidate, and the result does not authorize selecting threshold 30, changing any length or smoothing, adding a crossover stop, trailing stop, confirmation, DRA interaction or ensemble.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The literature prior covers broad technical-rule families rather than this exact DMI implementation and reports negative Bitcoin OOS performance for its selected rules.",
+    "Another DMI or ADX tuple would be a new fingerprint and cannot rescue this closed family without a genuinely independent pre-outcome prior.",
+    "The current sandbox prevented recording the wrapper in a new Git commit; source, manifest and output SHA-256 bindings preserve the pre-outcome freeze, but this result should be committed before canonical Worker deployment.",
+    "The result establishes no deployability or Trading authority."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_DMI14_ADX25_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "DAILY_DMI14_DIRECTION_AND_ADX14_TREND_STRENGTH_LONG_CASH",
+  "reviewed_at": "2026-08-19T03:43:34Z",
+  "prior_matrix": [
+    {
+      "identity": "TradingView first-party Directional Movement (DMI) documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000502250-directional-movement-dmi/",
+      "role": "FIRST_PARTY_DIRECTION_DEFAULT_AND_THRESHOLD_PRIOR",
+      "finding": "TradingView defines DMI as ADX plus the positive and negative directional indicators. Its general interpretation labels a strong bullish trend when ADX is above 25 and positive DI is above negative DI, and lists 14 as the default ADX and DI length.",
+      "parameter_boundary": "The primary uses DI length 14, ADX smoothing 14 and strict ADX above 25. Thresholds 20 and 30 are symmetric rejection-only sensitivity neighbors and cannot replace a failed primary.",
+      "transfer_boundary": "TradingView presents an indicator interpretation, not matched-capital BTC evidence. This prior establishes a reproducible pre-outcome policy only."
+    },
+    {
+      "identity": "TradingView first-party Average Directional Index documentation",
+      "primary_source": "https://www.tradingview.com/support/solutions/43000589099-average-directional-index-adx/",
+      "role": "FIRST_PARTY_FORMULA_INITIALIZATION_AND_LIMITATION_PROOF",
+      "finding": "TradingView specifies directional movement, true range, Wilder-style smoothed sums, positive and negative DI, DX, the first ADX as the mean of the first length DX values, and subsequent ADX as prior ADX times length minus one plus current DX divided by length. It also warns that frequent crosses can create false signals, especially below 25.",
+      "parameter_boundary": "The experiment follows those exact complete-day calculations and uses the finished daily state only at the next H1 open. It does not add the documented crossover stop, trailing stop or short leg."
+    },
+    {
+      "identity": "Hudson and Urquhart, Technical trading and cryptocurrencies, Annals of Operations Research, 2019, DOI 10.1007/s10479-019-03357-1",
+      "primary_source": "https://d-nb.info/1202710646/34",
+      "publisher_record": "https://doi.org/10.1007/s10479-019-03357-1",
+      "role": "MIXED_TECHNICAL_TRADING_AND_BITCOIN_OOS_PRIOR",
+      "finding": "The authors report that large families of technical rules can reduce cryptocurrency drawdown and improve risk-adjusted measures after multiple-testing controls, but their selected Bitcoin rules had no positive return in the separate out-of-sample period.",
+      "transfer_boundary": "The paper does not test this exact DMI tuple, OKX path, spot-only long/cash policy or cost model. Its mixed result motivates strict Validation, breadth, concentration and independent OOS gates rather than a replication claim."
+    },
+    {
+      "identity": "Anghel, A Reality Check on Trading Rule Performance in the Cryptocurrency Market: Machine Learning vs. Technical Analysis, Finance Research Letters 39, 2021, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_RISK_AND_FRICTION_PRIOR",
+      "finding": "After controlling for data snooping, risk and market frictions, statistically significant positive excess returns from cryptocurrency trading rules were rare.",
+      "transfer_boundary": "This does not directly reject DMI. It requires pre-outcome parameters, matched costs and capital, explicit path risk, annual breadth, rejection-only neighbors and permanent closure on failure."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": [
+      "open_time",
+      "close_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "decision_feature": "Complete UTC-day high, low and close values produce causal directional movement, true range, DI and ADX; the resulting long-or-cash target executes only at the next hourly open.",
+    "prospective_transport": "The existing sealed OKX BTC-USDT H1 source contains every required price and timestamp field. No credential, paid API, timer, writer, database, manual export or backfill is required.",
+    "status": "READY"
+  },
+  "independence_from_closed_families": [
+    "The closed 200-day DRA long-trend admission compares close with a prior long simple average; DMI uses one-day directional high-low movement normalized by smoothed true range and an independently smoothed trend-strength index.",
+    "The closed RSI, MACD and monthly momentum rules derive direction from close returns or close averages; DMI direction comes from competing high expansion and low expansion while ADX ignores sign and measures directional separation.",
+    "The closed Supertrend rule uses ATR-scaled price bands and a ratcheted crossing state; DMI has no price band or stop and normalizes directional movement by true range.",
+    "The closed Donchian rule uses prior fixed extrema breakouts; DMI uses only adjacent-day directional movement before smoothing.",
+    "The closed OBV rule uses signed volume; DMI uses no volume."
+  ],
+  "real_time_design_requirements": [
+    "Aggregate exactly twenty-four contiguous H1 bars per UTC day and use only complete-day high, low and close.",
+    "Compute positive and negative directional movement from current versus prior day extrema, set the weaker or non-positive side to zero, and compute gap-aware true range.",
+    "Initialize 14-day smoothed TR and DM with their first fourteen-value sums, then apply Wilder recursive subtraction of one fourteenth plus the current value.",
+    "Compute DI, DX, initialize ADX14 with the first fourteen DX mean, and recursively smooth subsequent DX values.",
+    "Use primary ADX strictly above 25 with positive DI strictly above negative DI; thresholds 20 and 30 are rejection-only neighbors.",
+    "Hold full BTC only in that completed-day bullish strong-trend state and zero-yield cash otherwise, executing state changes at the next H1 open with no short, leverage, stop, confirmation, minimum hold or DRA interaction.",
+    "Compare with full-capital BTC buy-and-hold under identical initial capital, hourly price path, fees, adverse slippage and valuation boundary."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_DAILY_DMI14_ADX25_LONG_CASH_EXPERIMENT",
+  "uncertainty": [
+    "The supportive literature covers broad technical-rule families rather than this exact DMI policy.",
+    "DMI remains an adjacent trend mechanism and may repeat the participation trade-off seen in other closed trend families.",
+    "ADX can lag trend onset, and a threshold may miss large portions of persistent BTC upside.",
+    "Historical Design and Validation through 2024 cannot establish independent OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one preregistered historical three-threshold DMI14 and ADX14 screen. It does not establish alpha, a candidate, OOS value, deployability or Trading authority."
+}

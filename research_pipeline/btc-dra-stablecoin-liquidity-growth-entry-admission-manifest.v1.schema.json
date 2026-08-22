@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/btc-dra-stablecoin-liquidity-growth-entry-admission-manifest.v1.schema.json",
+  "title": "BTC DRA stablecoin-liquidity growth entry-admission manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["authorization", "availability", "bindings", "dataset", "document_type", "economics", "experiment_id", "factor", "gate_set", "oos_access", "parent_strategy", "schema_version", "selection_cutoff", "source", "windows"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_DRA_STABLECOIN_LIQUIDITY_GROWTH_ENTRY_ADMISSION_MANIFEST_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "experiment_id": {"const": "dra-stablecoin-liquidity-growth-entry-admission-historical-v1"},
+    "parent_strategy": {"const": "BTC_DRA_V1"},
+    "gate_set": {"const": "BTC_DRA_CFTC_TFF_HISTORICAL_ENTRY_ADMISSION_GATES_V1"},
+    "oos_access": {"const": "DENY"},
+    "selection_cutoff": {"const": "2025-01-01T00:00:00"},
+    "dataset": {"const": {"canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd", "rows": 52608}},
+    "economics": {"const": {"fee_rate": "0.0010", "initial_equity_usdt": "250", "slippage_rate": "0.0005", "slot_capacity_usdt": "240"}},
+    "factor": {
+      "const": {
+        "admission_rule": "ADMIT_PARENT_SIGNAL_ONLY_WHEN_LAGGED_28D_STABLECOIN_CAPITALIZATION_GROWTH_IS_POSITIVE",
+        "factor_identity": "COIN_METRICS_USDT_USDC_CAPMRKTCURUSD_POSITIVE_28D_GROWTH_D_PLUS_2_DRA_ENTRY_ADMISSION_V1",
+        "growth_lag_calendar_days": 28,
+        "neighbor_modes": ["USDT_ONLY", "USDC_ONLY"],
+        "negative_action": "HOLD_CASH",
+        "positive_action": "ADMIT",
+        "primary_mode": "COMBINED_USDT_USDC",
+        "series_id": "CapMrktCurUSD",
+        "zero_action": "HOLD_CASH"
+      }
+    },
+    "availability": {
+      "const": {
+        "eligible_time": "OBSERVATION_DAY_PLUS_2_CALENDAR_DAYS_AT_00_00_UTC",
+        "factor_valid_hours": 24,
+        "predictive_sampling": "SUNDAY_OBSERVATION_ONLY_FOR_NON_OVERLAPPING_168H_EPISODES",
+        "publication_lag_calendar_days": 2,
+        "reference_window_days": 28
+      }
+    },
+    "source": {
+      "const": {
+        "first_date": "2018-09-28",
+        "last_date": "2024-12-31",
+        "metric": "CapMrktCurUSD",
+        "normalized_bytes": 172992,
+        "present_vintage": true,
+        "publisher": "Coin Metrics Community API",
+        "rows": 2287,
+        "sampling": "DAILY_BOTH_USDT_AND_USDC_PRESENT"
+      }
+    },
+    "windows": {
+      "const": {
+        "annual_folds": ["2020", "2021", "2022", "2023", "2024"],
+        "design": {"end_exclusive": "2023-01-01T00:00:00", "start_inclusive": "2020-01-01T00:00:00"},
+        "outcome_horizon_hours": 168,
+        "validation": {"end_exclusive": "2025-01-01T00:00:00", "start_inclusive": "2023-01-01T00:00:00"}
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_runner", "capacity_runner", "manifest_schema", "negative_long_cash_decision", "normalized_source", "primary_prior", "raw_source_response", "reused_economic_runner", "runner", "source_bundle", "source_metadata", "source_probe"],
+      "properties": {
+        "base_runner": {"$ref": "#/$defs/binding"},
+        "capacity_runner": {"$ref": "#/$defs/binding"},
+        "manifest_schema": {"$ref": "#/$defs/binding"},
+        "negative_long_cash_decision": {"$ref": "#/$defs/binding"},
+        "normalized_source": {"$ref": "#/$defs/binding"},
+        "primary_prior": {"$ref": "#/$defs/binding"},
+        "raw_source_response": {"$ref": "#/$defs/binding"},
+        "reused_economic_runner": {"$ref": "#/$defs/binding"},
+        "runner": {"$ref": "#/$defs/binding"},
+        "source_bundle": {"$ref": "#/$defs/binding"},
+        "source_metadata": {"$ref": "#/$defs/binding"},
+        "source_probe": {"$ref": "#/$defs/binding"}
+      }
+    }
+  },
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

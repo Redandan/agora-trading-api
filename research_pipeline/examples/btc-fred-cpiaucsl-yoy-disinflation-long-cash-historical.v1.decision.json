@@ -1,0 +1,34 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_CPIAUCSL_YOY_DISINFLATION_LONG_CASH_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-cpiaucsl-yoy-disinflation-long-cash",
+  "experiment_id": "btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical-v1",
+  "hypothesis_id": "btc-fred-cpiaucsl-yoy-disinflation-long-cash-v1",
+  "decided_at": "2026-08-21T06:10:00Z",
+  "status": "NO_CANDIDATE_CLOSE_BTC_FRED_CPIAUCSL_YOY_DISINFLATION_LONG_CASH_FAMILY",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_CPIAUCSL_YOY_DISINFLATION_LONG_CASH_FAMILY",
+  "decision": "The exact lagged CPI year-over-year disinflation long-cash policy failed seven preregistered gates. Design captured only 21.510789 percent of passive upside and 29.984493 percent of passive Calmar. Validation captured 39.162926 percent of upside and 41.401561 percent of Calmar, while drawdown fell only 1.745646 percentage points and missed the required ten-percent relative reduction. Annual Calmar and upside breadth also failed. Close without changing inflation index, lag, sign, threshold or sizing.",
+  "determinism": {"run1_sha256": "145b7d0f71f20ae008b43de849a40b329dc493be75bf16546dd5410fd916ec37", "run2_sha256": "145b7d0f71f20ae008b43de849a40b329dc493be75bf16546dd5410fd916ec37", "byte_identical": true},
+  "economic_evidence": {
+    "design_normal": {"candidate_total_return_pct": "74.49629971", "buy_hold_total_return_pct": "346.32062389", "candidate_drawdown_pct": "55.37556937", "buy_hold_drawdown_pct": "77.18955925", "upside_capture_ratio": "0.21510789", "calmar_ratio_to_buy_hold": "0.29984493", "average_exposure_pct": "41.75222450"},
+    "validation_normal": {"candidate_total_return_pct": "182.01155767", "buy_hold_total_return_pct": "464.75475156", "candidate_drawdown_pct": "30.53851721", "buy_hold_drawdown_pct": "32.28416349", "upside_capture_ratio": "0.39162926", "calmar_ratio_to_buy_hold": "0.41401561", "average_exposure_pct": "70.99863201"},
+    "annual_breadth": {"normal_positive_years": "4_of_6", "stress_positive_years": "4_of_6", "drawdown_non_worse_years": "5_of_6", "calmar_at_least_80pct_buy_hold_years": "2_of_6", "upside_at_least_50pct_years": "3_of_6", "top_year_positive_contribution_pct": "46.31924556"}
+  },
+  "failed_gates": ["design_upside_capture_at_least_60pct", "design_calmar_at_least_buy_hold", "validation_drawdown_at_most_90pct_of_buy_hold", "validation_upside_capture_at_least_60pct", "validation_calmar_at_least_80pct_of_buy_hold", "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6", "annual_upside_capture_at_least_50pct_at_least_4_of_6"],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "e86c32227e501f5e4196dd811d4953a1062003bc7d33017db29732ccd2b6c791"},
+    {"path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_ACADEMIC_AND_ADVERSARIAL_PRIOR", "sha256": "bf7ce3266109c68b5530b70bc5677c547bfa5404f5754f484a77e71a0a0d1504"},
+    {"path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "15795a809448f854c9f08838580ccebb0abbde8887fc64c5e436a90483d24c7c"},
+    {"path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "5446551dc74adb9c04d07281242a8f1bae90cd65010ec6ada3c1fdfe86b1b0ab"},
+    {"path": "research/fred_cpiaucsl_disinflation_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "694e2c55d79efceec72741798fe9503ccc71f0f30130d84a06d91cf6d75f8ea3"},
+    {"path": "research/btc_fred_cpiaucsl_yoy_disinflation_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "3cdcf2d9687ff99892932634b6d6b3103049a0642377de2dced9e2a80a3bd88e"},
+    {"path": ".research-state/experiments/btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical-v1/inputs/cpiaucsl-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "7b144ff464c3f8cbb9c211d453deac008804a6b0795f2e9737518d355840c312"},
+    {"path": ".research-state/experiments/btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "145b7d0f71f20ae008b43de849a40b329dc493be75bf16546dd5410fd916ec37"}
+  ],
+  "prohibited_reopen": ["Do not substitute core CPI, PCE, inflation surprises or expected inflation.", "Do not change the second-following-month lag, adjacent YoY comparison, strict disinflation direction, threshold or sizing.", "Do not combine with rates, liquidity, activity, trend or volatility as a rescue.", "Do not relax drawdown, upside, Calmar or breadth gates and do not open post-2024 OOS for this family."],
+  "learning": "Disinflation participation produced positive aggregate returns and lower Design drawdown, but mostly by spending too much time in cash. Validation retained 71 percent average exposure yet removed little drawdown and forfeited most upside, so the mechanism did not improve risk-adjusted performance broadly.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Historical research only. No paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,137 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_BOLLINGER20_2_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-daily-bollinger20-2-long-cash-historical-v1",
+  "decided_at": "2026-08-19T04:34:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DAILY_BOLLINGER20_2_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DAILY_BOLLINGER20_2_LOWER_CROSS_LONG_UPPER_CROSS_CASH_FAMILY_WITHOUT_TUNING",
+  "manifest_sha256": "bc5ca56875dad4c9caf2da6921814d9d45d8770ef91f4b6d43987364c03fa21d",
+  "runner": {
+    "path": "research/btc_daily_bollinger20_2_long_cash_historical.cjs",
+    "sha256": "e7a721fcea671a80074ffc418172e4acd779e641dc8e2f6f9b3c794f8b4ab284",
+    "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+    "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-daily-bollinger20-2-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "c75e1870190dcf46ce0e8acabf80a5e973be088a24cc69525a0d0e647b4062c8"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-daily-bollinger20-2-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "c75e1870190dcf46ce0e8acabf80a5e973be088a24cc69525a0d0e647b4062c8",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "integrity_evidence": {
+    "source_and_manifest_hashes_match": true,
+    "hourly_lattice_and_utc_day_inventory_pass": true,
+    "population_standard_deviation_and_strict_cross_formula_tests": true,
+    "buy_hold_python_ledger_parity_at_8dp": true,
+    "formula_tests_before_outcome_access": true,
+    "oos_opened": false
+  },
+  "economic_summary": {
+    "primary_bollinger20_2_design_normal": {
+      "candidate_realized_return_pct": "-60.61059367",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "-60.61059367",
+      "candidate_maximum_drawdown_pct": "71.61452250",
+      "candidate_calmar_ratio": "-0.84634501",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "total_return_delta_pp": "-190.21603596",
+      "maximum_drawdown_delta_pp": "-5.57503675",
+      "upside_capture_ratio": "-0.46765470",
+      "average_exposure_pct": "38.86861314",
+      "position_changes": 20,
+      "completed_episodes": 10,
+      "winning_episodes": 3,
+      "median_hold_hours": "924.00000000",
+      "p90_hold_hours": "1977.60000000",
+      "top_positive_episode_contribution_pct": "59.87624328"
+    },
+    "primary_bollinger20_2_validation_normal": {
+      "candidate_realized_return_pct": "55.76112763",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "55.76112763",
+      "candidate_maximum_drawdown_pct": "26.25579519",
+      "candidate_calmar_ratio": "2.12376457",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "total_return_delta_pp": "-408.99362393",
+      "maximum_drawdown_delta_pp": "-6.02836830",
+      "upside_capture_ratio": "0.11997968",
+      "calmar_ratio_to_buy_hold": "0.14752719",
+      "average_exposure_pct": "28.04377565",
+      "position_changes": 14,
+      "completed_episodes": 7,
+      "winning_episodes": 5,
+      "median_hold_hours": "744.00000000",
+      "p90_hold_hours": "1065.60000000",
+      "terminal_position": false,
+      "top_positive_episode_contribution_pct": "36.98950259"
+    },
+    "primary_bollinger20_2_validation_stress": {
+      "candidate_total_return_pct": "52.52424451",
+      "candidate_maximum_drawdown_pct": "26.91651648",
+      "candidate_calmar_ratio": "1.95137601",
+      "buy_hold_total_return_pct": "463.90931032",
+      "terminal_liquidation_cost_pp": "0.00000000"
+    },
+    "annual_primary_normal": {
+      "2020": {"candidate_total_return_pct": "-17.91021247", "buy_hold_total_return_pct": "301.32276307", "candidate_maximum_drawdown_pct": "55.91242224"},
+      "2021": {"candidate_total_return_pct": "-26.59184379", "buy_hold_total_return_pct": "59.60909620", "candidate_maximum_drawdown_pct": "50.75117869"},
+      "2022": {"candidate_total_return_pct": "-34.73056528", "buy_hold_total_return_pct": "-64.25634095", "candidate_maximum_drawdown_pct": "50.94834274"},
+      "2023": {"candidate_total_return_pct": "27.79412358", "buy_hold_total_return_pct": "155.16375107", "candidate_maximum_drawdown_pct": "21.72199642"},
+      "2024": {"candidate_total_return_pct": "21.88442103", "buy_hold_total_return_pct": "120.99348678", "candidate_maximum_drawdown_pct": "22.07891874"}
+    },
+    "breadth": {
+      "normal_positive_years": "2_of_5",
+      "stress_positive_years": "2_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "5_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "1_of_5",
+      "normal_opportunity_value_years": "1_of_5",
+      "top_year_positive_total_return_contribution_pct": "55.94794251",
+      "validation_top_positive_episode_contribution_pct": "36.98950259"
+    }
+  },
+  "failed_gates": [
+    "primary_design_normal_total_return_pct_gt_0",
+    "primary_design_stress_total_return_pct_gt_0",
+    "primary_design_normal_drawdown_at_most_80pct_of_buy_hold",
+    "primary_design_normal_calmar_at_least_75pct_of_buy_hold",
+    "primary_validation_normal_drawdown_at_most_70pct_of_buy_hold",
+    "primary_validation_normal_upside_capture_at_least_40pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "primary_normal_positive_annual_total_return_at_least_4_of_5",
+    "primary_stress_positive_annual_total_return_at_least_4_of_5",
+    "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+    "primary_normal_annual_opportunity_value_at_least_4_of_5"
+  ],
+  "passed_evidence": [
+    "The exact dataset, source bindings, hourly lattice, complete UTC-day inventory, population-deviation formula, strict-cross semantics, buy-and-hold parity and two byte-identical runs passed every integrity requirement.",
+    "Validation produced seven completed episodes, five winners, no terminal inventory and positive Normal and Stress returns without excessive episode concentration.",
+    "The strategy reduced maximum drawdown relative to buy-and-hold in all five annual fair-reset diagnostics."
+  ],
+  "material_learning": "The standard lower-band mean-reversion story does not survive matched-capital opportunity cost. The rule lost 60.61059367 percent in Design despite 38.86861314 percent exposure and lost money in 2020, 2021 and 2022. It later earned 55.76112763 percent in Validation with acceptable episode breadth, but passive BTC earned 464.75475156 percent; the rule captured only 11.997968 percent of upside and its Calmar was 14.752719 percent of buy-and-hold. Avoiding exposure reduced drawdown by only 6.02836830 percentage points in Validation, far too little to compensate for the 408.99362393 percentage-point return opportunity cost. This is regime dependence, not robust risk-adjusted alpha.",
+  "scientific_claim": "The exact complete-UTC-day Bollinger20/2 population-standard-deviation lower-cross long and upper-cross cash policy produced deterministic historical evidence but failed Design profitability, Validation drawdown, upside and Calmar, and annual breadth gates. It is not a candidate and the exact family is permanently closed without parameter, estimator, exit-band or trend-filter rescue.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The cited platform documentation contains native stop-order semantics; this experiment froze a causal complete-day event and next-H1-open spot translation and does not claim fill-level parity with that platform.",
+    "The current sandbox could not launch the system Python runtime. The frozen Node runner matched the independent buy-and-hold Python ledger at eight decimals and was byte deterministic, but the Bollinger candidate path was not independently cross-implemented in Python today.",
+    "The failed gates have very wide economic margins; runtime rounding or population-deviation precision cannot plausibly rescue the family, but exact cross-runtime candidate parity remains MISSING_PROOF.",
+    "A genuinely different mean-reversion construction would require a new pre-outcome mechanism and fingerprint; it cannot be introduced as a Bollinger rescue variant."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

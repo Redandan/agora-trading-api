@@ -1,0 +1,138 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_BITCOIN_MVRV_RELATIVE_VALUE_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-bitcoin-mvrv-relative-value-entry-admission-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BITCOIN_MVRV_RELATIVE_VALUE_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_PRESENT_VINTAGE_COIN_METRICS_BTC_MVRV_SUNDAY_STRICT_BELOW_PRIOR_365D_MEDIAN_PLUS_3D_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_WINDOW_THRESHOLD_METRIC_OR_INVERSE_TUNING",
+  "material_conclusion": "The exact lagged MVRV relative-value rule reduced exposure and path risk but destroyed economic participation. Matched-capital Validation total PnL fell from 86.20298186 to 13.15285938 USDT and realized PnL fell from 89.41118307 to 13.15285938 USDT. Maximum drawdown improved by 4.654358 percentage points, maximum underwater duration fell by 1,596 hours and holding shortened, but no annual fold produced a positive total-PnL delta. This is cash-like risk suppression, not risk-adjusted DRA alpha.",
+  "performance_evidence": {
+    "design": {
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "-3.45842456",
+      "total_pnl_delta_usdt": "-46.45762549",
+      "parent_realized_pnl_usdt": "122.11969534",
+      "candidate_realized_pnl_usdt": "53.21717969",
+      "realized_pnl_delta_usdt": "-68.90251565",
+      "parent_unrealized_pnl_usdt": "-79.12049441",
+      "candidate_unrealized_pnl_usdt": "-56.67560425",
+      "unrealized_pnl_delta_usdt": "22.44489016",
+      "parent_maximum_drawdown_pct": "18.673983",
+      "candidate_maximum_drawdown_pct": "16.871623",
+      "maximum_drawdown_delta_pp": "-1.802360",
+      "parent_maximum_underwater_duration_hours": 9878,
+      "candidate_maximum_underwater_duration_hours": 7765,
+      "parent_median_hold_hours": 113.0,
+      "candidate_median_hold_hours": 108.0,
+      "parent_p90_hold_hours": 1266.0,
+      "candidate_p90_hold_hours": 624.0,
+      "parent_terminal_inventory_count": 5,
+      "candidate_terminal_inventory_count": 4,
+      "vetoed_parent_signals": 165
+    },
+    "validation": {
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "13.15285938",
+      "total_pnl_delta_usdt": "-73.05012248",
+      "parent_realized_pnl_usdt": "89.41118307",
+      "candidate_realized_pnl_usdt": "13.15285938",
+      "realized_pnl_delta_usdt": "-76.25832369",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "candidate_unrealized_pnl_usdt": "0.00000000",
+      "unrealized_pnl_delta_usdt": "3.20820121",
+      "parent_maximum_drawdown_pct": "7.121498",
+      "candidate_maximum_drawdown_pct": "2.467140",
+      "maximum_drawdown_delta_pp": "-4.654358",
+      "parent_maximum_underwater_duration_hours": 2397,
+      "candidate_maximum_underwater_duration_hours": 801,
+      "underwater_duration_delta_hours": -1596,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 147.5,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 774.8,
+      "parent_terminal_inventory_count": 1,
+      "candidate_terminal_inventory_count": 0,
+      "vetoed_parent_signals": 186
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-39.59748577",
+      "2021": "-18.25651424",
+      "2022": "0.00000000",
+      "2023": "-40.71755202",
+      "2024": "-29.11843038"
+    },
+    "breadth_and_concentration": {
+      "annual_total_wins": "0_of_5",
+      "annual_drawdown_non_worse": "5_of_5",
+      "top_year_positive_delta_contribution_pct": "100.000000",
+      "validation_realized_delta_contribution_pct": "0.000000"
+    },
+    "predictive_design": {
+      "episode_count": 156,
+      "positive_factor_count": 91,
+      "negative_factor_count": 65,
+      "median_signed_response_168h": "-0.0096127993105175474281929558508381",
+      "positive_factor_median_raw_return_168h": "-0.0071563660748432252893194117739510",
+      "negative_factor_median_raw_return_168h": "0.014555545609166592068749440515621",
+      "one_sided_sign_test_p_value": "0.9133546909171336873503621998086269",
+      "passed_gates": "7_of_11"
+    },
+    "predictive_validation": {
+      "episode_count": 103,
+      "positive_factor_count": 11,
+      "negative_factor_count": 92,
+      "median_signed_response_168h": "-0.004100275081745990553796647116832",
+      "positive_factor_median_raw_return_168h": "0.047991118312479371080505296006241",
+      "negative_factor_median_raw_return_168h": "0.006318957694200501445445947483745",
+      "one_sided_sign_test_p_value": "0.8377606098559670708204560216898184",
+      "passed_gates": "8_of_11"
+    }
+  },
+  "failed_economic_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "failed_predictive_gates": {
+    "design": [
+      "median_signed_response_positive",
+      "negative_factor_median_raw_return_negative",
+      "one_sided_sign_test_at_most_0_10",
+      "positive_factor_median_raw_return_positive"
+    ],
+    "validation": [
+      "median_signed_response_positive",
+      "negative_factor_median_raw_return_negative",
+      "one_sided_sign_test_at_most_0_10"
+    ]
+  },
+  "failure_attribution": [
+    "The rule vetoed 186 parent signals in Validation and cut average utilization by 19.677839 percentage points. Lower drawdown therefore came from withholding capital, not from preserving the parent return stream more efficiently.",
+    "Validation terminal inventory cleanup added only 3.20820121 USDT of unrealized improvement while realized PnL fell by 76.25832369 USDT; the economic loss is participation-driven.",
+    "No annual fold improved total PnL. The 2022 tie reflects identical behavior rather than a positive regime contribution, so annual breadth is zero.",
+    "Both Design and Validation had negative median sign-adjusted 168-hour responses, and non-undervalued states also had positive forward returns. The proposed relative-value direction failed independent predictive diagnostics.",
+    "Because MVRV embeds current market capitalization, the result cannot establish incremental information beyond price. The evidence instead rejects this exact valuation-state admission rule without testing an inverse."
+  ],
+  "sealed_evidence": {
+    "manifest": {"path": "research_pipeline/examples/dra-bitcoin-mvrv-relative-value-entry-admission-historical.v1.manifest.json", "sha256": "a73ea5d36d0ead2650cfe002758c6db1401aec6a45a2cbfa53de29d9aecc3b1b"},
+    "runner": {"path": "research/btc_dra_bitcoin_mvrv_relative_value_entry_admission_historical_v1.py", "sha256": "466bb1b5b3a67f63f4f3770f35c71a567c70b9564d8afadb0fed6cb0861fd907"},
+    "source_bundle": {"path": ".research-state/experiments/dra-bitcoin-mvrv-relative-value-entry-admission-historical-v1/inputs/coinmetrics-source-bundle.json", "sha256": "d23af0c8ec73070af7127284e5234a72e7a50d31623074df3e1cfc665074c7d8"},
+    "run1": {"path": ".research-state/experiments/dra-bitcoin-mvrv-relative-value-entry-admission-historical-v1/artifacts/run1.json", "sha256": "0ce943e88a385695d050ebb23817b4cf6ec1e89ce5b9bcb4e7ea77651de72ee2"},
+    "run2": {"path": ".research-state/experiments/dra-bitcoin-mvrv-relative-value-entry-admission-historical-v1/artifacts/run2.json", "sha256": "0ce943e88a385695d050ebb23817b4cf6ec1e89ce5b9bcb4e7ea77651de72ee2"},
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "MVRV embeds current BTC price and realized capitalization is an approximate aggregate cost basis; the test cannot isolate causal on-chain information.",
+    "The sealed Community API history is a present-vintage reviewed snapshot. Original daily review timestamps and original vintages remain MISSING_PROOF.",
+    "This closes only the exact Sunday MVRV below prior-365-day-median, plus-three-day DRA V1 admission rule. MVRV Z-score, NUPL and independently preregistered non-price valuation mechanisms are not evaluated here.",
+    "No post-2024 observation or independent OOS was opened."
+  ],
+  "next_action": "Add the exact family to the permanent tombstone catalog and advance a different independent mechanism without changing the MVRV metric, lookback, threshold, sampling, lag, admission action or inverse rule.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, canonical state write, post-2024 data, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_DSPIC96_YOY_GROWTH_ACCELERATION_SOURCE_FEASIBILITY_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-dspic96-yoy-growth-acceleration-long-cash",
+  "created_at": "2026-08-21T02:22:00Z",
+  "status": "FROZEN_BEFORE_2017_2024_DSPIC96_FACTOR_ACCESS",
+  "purpose": "Test only whether official no-key present-vintage DSPIC96 has the frozen monthly lattice and enough accelerating and nonaccelerating adjacent year-over-year-growth states in Design and Validation before BTC outcomes.",
+  "source_contract": {
+    "series": "DSPIC96",
+    "frequency": "MONTHLY",
+    "publisher": "U.S. Bureau of Economic Analysis via Federal Reserve Bank of St. Louis FRED",
+    "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DSPIC96&cosd=2017-01-01&coed=2024-12-31",
+    "expected_rows": 96,
+    "expected_first_date": "2017-01-01",
+    "expected_last_date": "2024-12-01",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "maximum_response_bytes": 32768
+  },
+  "feature_contract": {
+    "factor_identity": "FRED_DSPIC96_CURRENT_YOY_GROWTH_STRICTLY_GREATER_THAN_PREVIOUS_MONTH_YOY_GROWTH_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC_V1",
+    "formula": "(DSPIC96_t/DSPIC96_t_minus_12-1)-(DSPIC96_t_minus_1/DSPIC96_t_minus_13-1)",
+    "accelerating_condition": "ADJACENT_YOY_GROWTH_CHANGE_STRICTLY_GREATER_THAN_ZERO",
+    "nonaccelerating_condition": "OTHERWISE",
+    "lookback_observations": 13,
+    "availability": "FIRST_DAY_OF_SECOND_FOLLOWING_CALENDAR_MONTH_AT_00_00_UTC",
+    "direction_inversion": "DENY",
+    "threshold_or_smoothing_scan": "DENY"
+  },
+  "windows": {
+    "design": {"start": "2019-01-01T00:00:00Z", "end_exclusive": "2023-01-01T00:00:00Z", "minimum_evaluations": 48, "minimum_per_state": 10, "minimum_transitions": 4},
+    "validation": {"start": "2023-01-01T00:00:00Z", "end_exclusive": "2025-01-01T00:00:00Z", "minimum_evaluations": 24, "minimum_per_state": 6, "minimum_transitions": 3}
+  },
+  "decision": {
+    "pass": "SOURCE_FEASIBILITY_PASS_MAY_FREEZE_EXACTLY_ONE_HYPOTHESIS_BEFORE_BTC_OUTCOME_ACCESS",
+    "failure": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+    "no_partial_pass": true
+  },
+  "prohibited_after_factor_access": [
+    "Do not change the adjacent year-over-year growth formula, acceleration direction, second-following-month availability or support gates.",
+    "Do not add transfers, savings, consumption, payrolls, levels, absolute growth, smoothing, alternate lags, thresholds or another factor.",
+    "Do not access BTC outcomes unless every source gate passes.",
+    "Do not treat present-vintage history as original release vintage or independent OOS."
+  ],
+  "scope_note": "No historical DSPIC96 factor value, BTC outcome, hypothesis, manifest, runner, economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

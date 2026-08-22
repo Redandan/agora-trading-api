@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-signal-confirmation-latency-entry-admission-v1",
+  "title": "Armed-window signal-confirmation latency admission veto for DRA entries",
+  "thesis": "An otherwise valid BTC DRA signal that first confirms at least 168 hours after the current parent armed window began may represent slow drift or an exhausted recovery rather than prompt continuation; vetoing only that late new entry may improve matched-capital realized and total PnL without reading price distance, inventory state or PnL.",
+  "mechanism": "At the unchanged DRA signal and before its next-H1-open fill, preserve the parent capacity check first. For a capacity-admissible signal, compute signal time minus the current parent armed_at timestamp. Veto when elapsed time is at least 168 hours and reserve the unchanged seven-day cooldown from the original signal. Preserve the parent thirty-day arm expiry and same-bar rearm lifecycle. Capacity-blocked signals remain parent blocks without cooldown reservation. Thresholds 72 and 336 hours are rejection-only stability neighbors; lot cost remains 30 USDT, effective open-cost capacity 240 USDT and maximum open lots eight.",
+  "economic_rationale": "The byte-identical pre-economic screen passed exact parent-path parity, action deduplication, support, breadth, selectivity and concentration gates. The 168-hour primary veto fired 21 of 100 capacity-admissible Design signals and 10 of 51 Validation signals, with three to seven actions in every annual fold, top-year share 26.923077 percent and Validation top-month share 10 percent. This permits one matched-capital experiment but is not performance evidence. The mechanism succeeds only if excluding late confirmations improves fee-adjusted Design and Validation realized and total PnL with acceptable unrealized, drawdown, underwater, holding, utilization, annual-breadth and terminal-inventory paths, while both frozen neighbors remain stable.",
+  "source": "PRE_CANDIDATE_POOL:dra-signal-confirmation-latency-entry-admission;PREOUTCOME_SUPPORT_SHA256:4277c21a421afa29469cb4c5d4035be91a66cfaaf5d88e27b3aa878a98a7f245",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITH_FIXED_30_USDT_LOTS_AND_240_USDT_OPEN_COST_CAP",
+  "required_capability": "dra-signal-confirmation-latency-entry-admission-v1-with-capacity-first-cooldown-routing-and-matched-capital-path-risk-gates",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_validation_and_annual_signal_capacity_block_latency_veto_fill_and_exit_counts",
+    "normal_fee_and_adverse_slippage_realized_unrealized_and_total_pnl_usdt",
+    "matched_equal_capital_maximum_drawdown_and_maximum_underwater_duration",
+    "median_and_p90_realized_holding_hours_and_terminal_open_age_hours",
+    "terminal_inventory_count_cost_and_unrealized_pnl_attribution",
+    "capital_and_slot_utilization_with_maximum_open_cost_and_open_lot_count",
+    "annual_total_pnl_drawdown_and_risk_adjusted_breadth_with_top_year_positive_delta_concentration",
+    "primary_168_hour_and_rejection_only_72_336_hour_neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-dra-signal-confirmation-latency-1",
+  "created_at": "2026-08-21T07:32:56Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-btc-nasdaq-diversification-state-entry-admission-v1",
+  "title": "Lagged BTC-Nasdaq low-correlation diversification-state DRA V1 entry admission",
+  "thesis": "When recent Bitcoin returns are weakly or negatively correlated with Nasdaq Composite returns, Bitcoin may supply valued diversification rather than merely expressing growth-risk exposure. That state may improve the forward path of otherwise unchanged DRA V1 entries.",
+  "mechanism": "For each ISO week, use only that week's final published NASDAQCOM business date. Compute simple close-to-close returns for NASDAQCOM and the BTC complete UTC day on each matching date, then calculate a Decimal Pearson correlation across the latest 63 paired returns. Beginning at report date D plus one calendar day 00:00 UTC and for at most 168 hours, admit an unchanged parent signal only when the correlation is at or below the frozen threshold; otherwise hold cash without changing existing lots or exits.",
+  "economic_rationale": "The feature is useful only if the primary zero threshold improves Design and Validation total and realized PnL while preserving unrealized PnL, drawdown, underwater duration, holding and terminal inventory, has annual and predictive breadth, and the -0.10 and +0.10 neighbors retain positive matched-capital economics. A 2022-only crisis filter, lower participation, terminal-inventory cleanup or reuse of the closed Nasdaq trend result is insufficient.",
+  "source": "REUSED_SEALED_FRED_NASDAQCOM_2018_2024_AND_UNCHANGED_PRE2025_BTC_H1_SELECTION",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+  "matched_comparator": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_BTC_NASDAQ_DIVERSIFICATION_ADMISSION",
+  "required_capability": "btc-dra-btc-nasdaq-diversification-state-entry-admission-historical-v1-thin-adapter-over-existing-matched-capital-economic-runner",
+  "data_readiness": "SEALED_1762_NASDAQCOM_BUSINESS_DAYS_AND_52608_BTC_HOURLY_ROWS_NO_NEW_DOWNLOAD_REQUIRED",
+  "independence_semantics": "JOINT_EXTERNAL_EQUITY_CRYPTO_DIVERSIFICATION_STATE_NOT_EXTERNAL_EQUITY_TREND",
+  "variants": [
+    {"role": "STABILITY_NEIGHBOR_LOW", "relation": "AT_OR_BELOW", "threshold": "-0.10"},
+    {"role": "PRIMARY", "relation": "AT_OR_BELOW", "threshold": "0.00"},
+    {"role": "STABILITY_NEIGHBOR_HIGH", "relation": "AT_OR_BELOW", "threshold": "0.10"}
+  ],
+  "frozen_gates": {
+    "primary": "All inherited matched-capital economic and independent 168-hour predictive gates must pass in both Design and Validation.",
+    "neighbors": "Each neighbor must improve Design total PnL, Validation total and realized PnL, keep Validation drawdown within plus 0.25 percentage points, and veto at least four Validation parent signals.",
+    "failure_action": "Permanently close the exact BTC-Nasdaq diversification-state entry-admission family without changing source, pairing, correlation window, weekly evaluation, lag, direction, thresholds, parent, windows, accounting or gates."
+  },
+  "expected_metrics": [
+    "paired_date_and_weekly_decision_accounting",
+    "parent_signal_admission_and_veto_accounting",
+    "fee_adjusted_realized_unrealized_and_total_pnl",
+    "maximum_drawdown_and_underwater_duration",
+    "median_and_p90_holding",
+    "terminal_inventory",
+    "annual_breadth_and_positive_delta_concentration",
+    "independent_168h_predictive_episode_breadth",
+    "fixed_neighbor_stability"
+  ],
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-diversification-1",
+  "created_at": "2026-08-20T06:05:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

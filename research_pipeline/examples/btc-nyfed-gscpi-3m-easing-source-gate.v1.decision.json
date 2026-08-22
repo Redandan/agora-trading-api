@@ -1,0 +1,36 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NYFED_GSCPI_3M_EASING_SOURCE_GATE_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-nyfed-gscpi-3m-easing-long-cash",
+  "decided_at": "2026-08-21T04:23:13Z",
+  "status": "DATA_REJECT_CLOSE_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_NYFED_GSCPI_3M_EASING_LONG_CASH_FAMILY",
+  "decision": "The one allowed no-credential source attempt returned a ZIP-readable response without the frozen OOXML xl/workbook.xml member. The preregistered workbook identity therefore failed before factor values, support states, a hypothesis or BTC outcomes could be admitted.",
+  "source_attempt": {
+    "maximum_attempts": 1,
+    "attempts_used": 1,
+    "request_url": "https://www.newyorkfed.org/medialibrary/research/interactives/gscpi/downloads/gscpi_data.xlsx",
+    "transport": "HTTPS_GET_NO_REDIRECT_NO_RETRY_NO_CREDENTIAL",
+    "failure": "SOURCE_REJECT:XLSX_MEMBER_MISSING:xl/workbook.xml",
+    "raw_output_written": false,
+    "normalized_output_written": false,
+    "bundle_output_written": false
+  },
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-nyfed-gscpi-3m-easing-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "470a2e7d5fe3b9f0001035176c937777420a672f51dcea95ba4927ebe2718687"},
+    {"path": "research_pipeline/examples/btc-nyfed-gscpi-3m-easing-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "782cfd0dab359ff33ca2664c66377907c798cc0b49f49ec5f186a63b9c3d50b1"},
+    {"path": "research/nyfed_gscpi_source_probe.py", "role": "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE", "sha256": "31c6a4e09c5888183986d03fce8319c97aff3e2a14e73f827ca1026bfaeb124e"}
+  ],
+  "prohibited_reopen": [
+    "Do not add a legacy XLS, HTML, alternate ZIP-layout or content-sniffing parser after this source result.",
+    "Do not retry the URL, follow a redirect, use another New York Fed path, FRED mirror, vendor, cache, browser export or manual file.",
+    "Do not change the three-month direction, 45-day timing, workbook identity, schema or source gate.",
+    "Do not create a GSCPI hypothesis, inspect BTC outcomes or open OOS for this closed family."
+  ],
+  "learning": "An official download label is not an executable point-in-time data path until its exact machine-readable container identity passes. Source-format failure closes the family before outcome mining and prevents a convenient mirror from becoming a post-hoc rescue.",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No factor value, BTC outcome, paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

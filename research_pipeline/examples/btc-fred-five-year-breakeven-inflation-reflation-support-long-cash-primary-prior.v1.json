@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_FIVE_YEAR_BREAKEVEN_INFLATION_REFLATION_SUPPORT_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_SOURCE_FEASIBILITY_THEN_PRE_ECONOMIC_HISTORICAL_AUDIT",
+  "claim_boundary": "The difference between nominal and inflation-indexed Treasury yields is a market measure of inflation compensation, not pure expected inflation. A four-week rise could coincide with stronger nominal-demand or reflation conditions that support Bitcoin, but it can also reflect inflation-risk and liquidity premia. Exactly one preregistered long-or-cash audit may test this sign; no causal or alpha claim is imported from the source definition.",
+  "feature_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_agency": "Board of Governors of the Federal Reserve System (US)",
+    "series_id": "T5YIE",
+    "observation": "DAILY_5_YEAR_BREAKEVEN_INFLATION_RATE_PERCENT_NOT_SEASONALLY_ADJUSTED",
+    "weekly_aggregation": "LAST_AVAILABLE_PUBLISHED_MONDAY_THROUGH_FRIDAY_OBSERVATION_LABELLED_BY_CALENDAR_FRIDAY_REQUIRE_3_TO_5_OBSERVATIONS",
+    "decision_time": "WEEK_ENDING_FRIDAY_PLUS_FIVE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_COMPLETE_WEEK_LAST_AVAILABLE_VALUE_STRICTLY_ABOVE_EXACT_COMPLETE_WEEK_VALUE_28_CALENDAR_DAYS_EARLIER",
+    "policy": "HOLD_FULL_CAPITAL_SPOT_BTC_ONLY_WHILE_FIVE_YEAR_BREAKEVEN_INFLATION_FOUR_WEEK_CHANGE_IS_POSITIVE_OTHERWISE_HOLD_ZERO_YIELD_CASH",
+    "change_lag_calendar_days": 28,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_CHANGE_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Federal Reserve Bank of St. Louis FRED, Five-Year Breakeven Inflation Rate",
+      "primary_source": "https://fred.stlouisfed.org/series/T5YIE",
+      "finding": "The official series is daily, percent, not seasonally adjusted, and is calculated from five-year nominal Treasury and five-year inflation-indexed Treasury yields.",
+      "role": "FREE_OFFICIAL_MACHINE_READABLE_SOURCE_IDENTITY",
+      "transfer_boundary": "The series is derived rather than directly observed and its present-vintage history may be revised; it is not a Bitcoin-specific demand measure."
+    },
+    {
+      "identity": "Board of Governors of the Federal Reserve System, TIPS Yield Curve and Inflation Compensation",
+      "primary_source": "https://www.federalreserve.gov/data/tips-yield-curve-and-inflation-compensation.htm",
+      "finding": "Inflation compensation is inferred from the difference between nominal Treasury and TIPS yields and can be decomposed conceptually into expected inflation plus an inflation-risk premium.",
+      "role": "OFFICIAL_MEASUREMENT_AND_CAUSAL_AMBIGUITY_PRIOR",
+      "transfer_boundary": "A rise can reflect expected inflation, inflation-risk compensation, market liquidity or term-premium changes; the sign does not establish stronger real activity or future Bitcoin returns."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Before accessing any historical T5YIE values, freeze a source-feasibility specification for exact FRED CSV identity, weekday lattice, missing-value handling, both-state support, transition count, annual breadth and concentration.",
+    "If the source gate permits continuation, seal exact annual FRED CSV responses for T5YIE from 2017-01-01 through 2024-12-31; require unique weekday dates, finite decimal values and explicit holiday blanks.",
+    "Construct each calendar week ending Friday from actually published Monday-Friday observations, require three to five observations, take the last available value and do not interpolate holidays.",
+    "Make week-ending Friday D usable only at D plus five calendar days 00:00 UTC and valid for at most 168 hours.",
+    "Compare each weekly value only with the exact weekly value 28 calendar days earlier; hold the unchanged full-capital spot-BTC parent only when the current value is strictly higher.",
+    "Use the same historical BTC corpus, valuation clock, fee, adverse-slippage, cash-yield and capital conventions as the matched buy-and-hold comparator.",
+    "Require separate Design and Validation predictive gates before opening matched-capital economics; require return effect, negative-rate effect, drawdown path, annual breadth, support and concentration.",
+    "Do not add T10YIE, T5YIFR, nominal yields, real yields, yield-curve spreads, Fed balance sheet, dollar, financial conditions, moving averages, z-scores, magnitude cutoffs, alternate lags, inverse rules, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not reinterpret the closed real-yield, term-spread, broad-dollar, Fed balance-sheet, Treasury-liquidity, M2 or NFCI branches as evidence for this family; their mechanisms remain permanently closed.",
+    "Do not open post-2024 data; any historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "T5YIE combines expected inflation with inflation-risk and potentially liquidity premia, so the proposed reflation-support interpretation is not uniquely identified.",
+    "The present-vintage FRED series can contain revisions; original release values and a complete revision history remain MISSING_PROOF.",
+    "Bitcoin sensitivity to macro conditions can vary across monetary, liquidity and risk regimes.",
+    "The four-week horizon and positive sign are preregistered economic conventions, not parameters established by the official sources.",
+    "No historical T5YIE values, BTC outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T13:30:00Z"
+}

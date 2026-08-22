@@ -1,0 +1,148 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_US_TREASURY_3M_YIELD_EASING_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-us-treasury-3m-yield-easing-long-cash-historical-v1",
+  "decided_at": "2026-08-20T09:47:16Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_US_TREASURY_3M_YIELD_EASING_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_YIELD42_63_84_LONG_CASH_FAMILY_WITHOUT_LOOKBACK_THRESHOLD_OR_POLICY_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "manifest": {
+    "path": "research_pipeline/examples/btc-us-treasury-3m-yield-easing-long-cash-historical.v1.manifest.json",
+    "sha256": "53902d9d38875f85fa8779e21f923e0cb77447ead20cd1d459ab7d6f0e38a15d"
+  },
+  "runner": {
+    "path": "research/btc_us_treasury_3m_yield_easing_long_cash_historical.py",
+    "sha256": "7cb17d6fb8b409fdfdb1862987c0b462e20066530f0f99f0373a38218dd2527b",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-us-treasury-3m-yield-easing-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "d78b2b66eafb74ba9866fab35833928403b96452334f658107fedb98405fa7fd"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-us-treasury-3m-yield-easing-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "d78b2b66eafb74ba9866fab35833928403b96452334f658107fedb98405fa7fd",
+    "byte_identical": true
+  },
+  "datasets": {
+    "btc": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "complete_utc_days": 2192,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "treasury": {
+      "sha256": "045ce4646a4595697fc16d8e32c0fd08efd431680e998c9f85d2dcac1732c82a",
+      "rows": 1750,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31",
+      "present_vintage": true
+    }
+  },
+  "economic_summary": {
+    "primary_yield63_design_normal": {
+      "realized_return_pct": "147.91068443",
+      "unrealized_return_pct": "0.00000000",
+      "total_return_pct": "147.91068443",
+      "buy_hold_total_return_pct": "129.60544229",
+      "maximum_drawdown_pct": "58.58376650",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "calmar_ratio": "2.52477253",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "upside_capture_ratio": "1.14123822",
+      "average_exposure_pct": "47.17153285",
+      "position_changes": 16,
+      "median_hold_hours": "996.00000000",
+      "p90_hold_hours": "3158.40000000",
+      "top_positive_episode_contribution_pct": "55.31281905"
+    },
+    "primary_yield63_design_stress": {
+      "total_return_pct": "142.03164834",
+      "maximum_drawdown_pct": "58.58376650"
+    },
+    "primary_yield63_validation_normal": {
+      "realized_return_pct": "80.24931651",
+      "unrealized_return_pct": "110.66182353",
+      "total_return_pct": "190.91114004",
+      "terminal_liquidation_adjusted_return_pct": "190.47491878",
+      "buy_hold_total_return_pct": "464.75475156",
+      "maximum_drawdown_pct": "28.62642558",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "calmar_ratio": "6.66905267",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.41077824",
+      "average_exposure_pct": "43.63885089",
+      "position_changes": 7,
+      "completed_episodes": 3,
+      "winning_episodes": 1,
+      "median_hold_hours": "336.00000000",
+      "p90_hold_hours": "2486.40000000",
+      "top_positive_episode_contribution_pct": "100.00000000",
+      "terminal_position": true,
+      "terminal_holding_age_hours": "4128.00000000"
+    },
+    "primary_yield63_validation_stress": {
+      "total_return_pct": "187.87308803",
+      "maximum_drawdown_pct": "28.62642558"
+    },
+    "validation_rejection_only_neighbors": {
+      "yield42": {
+        "total_return_pct": "121.20637818",
+        "maximum_drawdown_pct": "28.62642558",
+        "calmar_ratio": "4.23407309",
+        "upside_capture_ratio": "0.26079643"
+      },
+      "yield84": {
+        "total_return_pct": "161.48974418",
+        "maximum_drawdown_pct": "28.62642558",
+        "calmar_ratio": "5.64128217",
+        "upside_capture_ratio": "0.34747304"
+      }
+    },
+    "annual_breadth": {
+      "normal_positive_years": "3_of_5",
+      "stress_positive_years": "3_of_5",
+      "normal_drawdown_non_worse_years": "5_of_5",
+      "normal_calmar_at_least_75pct_buy_hold_years": "2_of_5",
+      "normal_upside_capture_at_least_50pct_years": "2_of_5",
+      "top_year_positive_total_return_contribution_pct": "55.59615383"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_yield42_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_yield42_validation_normal_upside_capture_at_least_50pct",
+    "neighbor_yield84_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_yield84_validation_normal_upside_capture_at_least_50pct",
+    "primary_normal_positive_annual_total_return_at_least_4_of_5",
+    "primary_stress_positive_annual_total_return_at_least_4_of_5",
+    "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+    "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+    "primary_validation_top_positive_episode_contribution_at_most_60pct"
+  ],
+  "passed_evidence": [
+    "The primary passed every frozen Design economic gate: 147.91068443 percent total return versus 129.60544229 percent passive, with 58.58376650 percent drawdown versus 77.18955925 percent passive.",
+    "Validation remained positive under normal and stress costs and reduced drawdown by 3.65773791 percentage points versus passive BTC.",
+    "The primary had non-worse drawdown in all five annual fair-reset folds and stayed inside frozen position-change, holding and terminal-liquidation-cost gates."
+  ],
+  "material_failure": [
+    "Validation captured only 41.077824 percent of passive upside and Calmar was 6.66905267 versus 14.39575015 for passive BTC despite the modest drawdown reduction.",
+    "Validation support was sparse and concentrated: only three completed episodes, one winning episode and 100 percent of positive completed-episode contribution from that single winner.",
+    "Annual breadth failed with positive return in only three of five years, at least seventy-five percent of passive Calmar in only two of five years and at least fifty percent upside capture in only two of five years.",
+    "Both preregistered neighbors also failed Validation Calmar and upside-capture support, so neither can replace the primary."
+  ],
+  "material_learning": "A falling nominal three-month Treasury yield was a strong Design-era risk filter and consistently reduced annual drawdown, but the exact weekly long/cash mechanism sat out too much of Validation upside and its positive episode evidence collapsed to one winner. Drawdown reduction is not sufficient when Calmar, participation and support breadth fail.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not promote YIELD42 or YIELD84 after observing their outcomes.",
+    "Do not scan another lookback, zero-zone threshold, smoothing rule, evaluation date, availability lag, holding interval, sizing rule, leverage or short direction.",
+    "Do not add long-yield spread, real-yield conversion, BTC trend, volatility, DRA or any closed factor as a rescue.",
+    "Do not relax return, stress, drawdown, Calmar, upside, annual breadth, concentration, holding or terminal-inventory gates and do not open independent OOS."
+  ],
+  "next_action": "SWITCH_TO_A_DIFFERENT_INDEPENDENT_MECHANISM_WITH_EXISTING_FREE_SEALED_DATA_AND_NO_SHORT_RATE_DIRECTION_RETUNING",
+  "claim_boundary": "Historical matched-capital present-vintage nominal three-month Treasury yield-change evidence only. This is not independent OOS, a runtime strategy or permission to activate.",
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

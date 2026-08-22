@@ -1,0 +1,130 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_TGA_DRAWDOWN_LIQUIDITY_SUPPORT_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-fred-tga-drawdown-liquidity-support-historical-v1",
+  "hypothesis_id": "btc-fred-tga-drawdown-liquidity-support-long-cash-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "wtregen": {
+      "path": ".research-state/experiments/btc-fred-tga-drawdown-liquidity-support-historical-v1/inputs/fred-wtregen-weekly-2018-2024.csv",
+      "sha256": "592d8c89716f62e7cc1b86558b3f5ee838ebc03f643648a8b72ade066f5666a4",
+      "rows": 365,
+      "first_date": "2018-01-03",
+      "last_date": "2024-12-25",
+      "present_vintage": true
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-fred-tga-drawdown-liquidity-support-historical-v1/inputs/fred-wtregen-source-bundle.json",
+      "sha256": "25afa9a3f660b6ee457bf5b751e13d4b6a986c77a0ea3101f1fee399e75c5e47"
+    }
+  },
+  "predictive_policy": {
+    "factor_identity": "FRED_WTREGEN_CURRENT_VALUE_STRICTLY_BELOW_VALUE_FOUR_ELIGIBLE_WEEKLY_OBSERVATIONS_EARLIER",
+    "supportive_condition": "CURRENT_WTREGEN_STRICTLY_BELOW_VALUE_FOUR_WEEKLY_OBSERVATIONS_EARLIER",
+    "other_condition": "OTHERWISE",
+    "availability": "OBSERVATION_WEDNESDAY_PLUS_2_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "predictive_horizon_hours": 168,
+    "variants": 1,
+    "strategy_economics": "DENY_UNLESS_ALL_PRE_ECONOMIC_GATES_PASS"
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "predictive_horizon_hours": 168,
+    "predictive_overlap_rule": "WEEKLY_168H_EPISODES_NON_OVERLAPPING_BY_CONSTRUCTION"
+  },
+  "gate_set": {
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "wtregen_sha256_rows_weekly_lattice_and_day2_availability_match",
+      "source_bundle_runner_prior_hypothesis_and_probe_sha256_match",
+      "design_minimum_evaluable_episodes",
+      "design_minimum_supportive_episodes",
+      "design_minimum_drain_or_neutral_episodes",
+      "design_both_states_chronological_quartile_breadth",
+      "design_both_states_anchor_year_breadth",
+      "design_maximum_state_anchor_month_share",
+      "design_supportive_median_terminal_return_at_least_25bp_higher",
+      "design_supportive_negative_terminal_rate_at_least_5pp_lower",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_supportive_median_path_drawdown_non_worse",
+      "design_supportive_p75_path_drawdown_non_worse",
+      "design_annual_median_return_direction_breadth",
+      "design_top_positive_annual_median_return_delta_contribution_at_most_60pct",
+      "validation_minimum_evaluable_episodes",
+      "validation_minimum_supportive_episodes",
+      "validation_minimum_drain_or_neutral_episodes",
+      "validation_both_states_chronological_quartile_breadth",
+      "validation_both_states_anchor_year_breadth",
+      "validation_maximum_state_anchor_month_share",
+      "validation_supportive_median_terminal_return_at_least_25bp_higher",
+      "validation_supportive_negative_terminal_rate_at_least_5pp_lower",
+      "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "validation_supportive_median_path_drawdown_non_worse",
+      "validation_supportive_p75_path_drawdown_non_worse",
+      "validation_annual_median_return_direction_breadth",
+      "validation_top_positive_annual_median_return_delta_contribution_at_most_60pct"
+    ],
+    "pass": "PREDICTIVE_SCREEN_PASS_ECONOMIC_MANIFEST_REQUIRED_NO_CANDIDATE",
+    "failure": "PERMANENTLY_CLOSE_WITHOUT_STRATEGY_ECONOMIC_ACCESS_OR_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_PRE_ECONOMIC_RUNNER",
+      "path": "research/btc_fred_tga_drawdown_liquidity_support_historical.py",
+      "sha256": "959b54fcf632f25b5f07b001f6a5f26f8b4f11e3405ca485050b5b946a3d8515"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DETERMINISTIC_STATISTICS",
+      "path": "research/btc_cftc_dealer_net_position_change_long_cash_historical.py",
+      "sha256": "389efeb6583d7af32981704c649288f0a9395f4031f2c299931a56e582734a3e"
+    },
+    {
+      "role": "FROZEN_FAIL_CLOSED_WTREGEN_SOURCE_PROBE",
+      "path": "research/fred_wtregen_source_probe.py",
+      "sha256": "78d0225b2ea44d18d9661e2c64da80ad26490d1c6cbcddf337326fdb5f6a0b4a"
+    },
+    {
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-fred-tga-drawdown-liquidity-support-long-cash-primary-prior.v1.json",
+      "sha256": "053a6cc8b22f2053527c3b2b36adb1b30d8480168ca635acd88791a246737f56"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-fred-tga-drawdown-liquidity-support-long-cash-v1.hypothesis.json",
+      "sha256": "2468423d9b381d712084408c33a34162825560cced13810005400d843f15fb86"
+    },
+    {
+      "role": "SEALED_OFFICIAL_WTREGEN_SOURCE_BUNDLE",
+      "path": ".research-state/experiments/btc-fred-tga-drawdown-liquidity-support-historical-v1/inputs/fred-wtregen-source-bundle.json",
+      "sha256": "25afa9a3f660b6ee457bf5b751e13d4b6a986c77a0ea3101f1fee399e75c5e47"
+    },
+    {
+      "role": "SEALED_NORMALIZED_WTREGEN_CORPUS",
+      "path": ".research-state/experiments/btc-fred-tga-drawdown-liquidity-support-historical-v1/inputs/fred-wtregen-weekly-2018-2024.csv",
+      "sha256": "592d8c89716f62e7cc1b86558b3f5ee838ebc03f643648a8b72ade066f5666a4"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not change the four-observation comparison, strict direction, Friday availability, 168-hour horizon or one-variant contract after outcome access.",
+    "Do not add ON RRP, WALCL, M2, rates, dollar, credit, CFTC, on-chain, trend, volatility or technical indicators as rescue variants.",
+    "Do not invert the direction, add a magnitude threshold, smooth WTREGEN, scan alternate lags or use the daily Treasury statement as a replacement.",
+    "Do not open matched-capital economics unless every Design and Validation predictive gate passes; do not open post-2024 OOS in this experiment."
+  ],
+  "revision_boundary": "This is one August 2026 present-vintage WTREGEN history. Original H.4.1 release vintages remain MISSING_PROOF, so even a predictive pass cannot establish point-in-time alpha or create a candidate.",
+  "scope_note": "Frozen pre-outcome predictive manifest only. No TGA-BTC outcome, strategy economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

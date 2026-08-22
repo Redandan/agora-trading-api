@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-native-trend-acceleration-entry-admission-v1",
+  "title": "ATR-normalized EMA20 trend-acceleration admission for DRA entries",
+  "thesis": "An otherwise valid BTC DRA signal whose causally updated EMA20 remains above its five-day-ago value but has negative five-day slope acceleration may represent a decelerating trend approaching exhaustion; vetoing only that new entry may improve matched-capital realized and total PnL without changing the parent signal, exits or existing inventory.",
+  "mechanism": "At the unchanged DRA signal and before its next-H1-open fill, preserve the parent capacity check first. For a capacity-admissible signal, compute ((EMA20[t]-EMA20[t-5])-(EMA20[t-5]-EMA20[t-10]))/ATR14[t] from complete UTC days after the signal day's indicators update. Admit at or above zero and veto below zero, reserving the unchanged seven-day cooldown from the original signal. Missing feature inputs veto fail-closed. Thresholds -0.10 and +0.10 ATR are rejection-only stability neighbors; lot cost remains 30 USDT, effective open-cost capacity 240 USDT and maximum open lots eight. Existing lots, the parent thirty-day arm lifecycle and the DRA V1 profit-only exit remain unchanged.",
+  "economic_rationale": "The byte-identical pre-economic screen passed exact parent-path parity, action deduplication, feature availability, support, breadth, selectivity and concentration gates. The zero-curvature primary veto fired 40 of 100 capacity-admissible Design signals and 26 of 51 Validation signals, with 5 to 14 actions in every annual fold, top-year share 25 percent and Validation top-month share 15.384615 percent. This permits one matched-capital experiment but is not performance evidence. The mechanism succeeds only if excluding decelerating signals improves fee-adjusted Design and Validation realized and total PnL with acceptable unrealized, drawdown, underwater, holding, utilization, annual-breadth and terminal-inventory paths, while both frozen neighbors remain stable.",
+  "source": "PRE_CANDIDATE_POOL:dra-native-trend-acceleration-entry-admission;PREOUTCOME_SUPPORT_SHA256:fbf98a7a30223aa9c14a1cbddcb16ccbf506d1ba80e2069ad49f633e58674e10",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITH_FIXED_30_USDT_LOTS_AND_240_USDT_OPEN_COST_CAP",
+  "required_capability": "dra-native-trend-acceleration-entry-admission-v1-with-capacity-first-cooldown-routing-and-matched-capital-path-risk-gates",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_validation_and_annual_signal_capacity_feature_veto_fill_and_exit_counts",
+    "normal_fee_and_adverse_slippage_realized_unrealized_and_total_pnl_usdt",
+    "matched_equal_capital_maximum_drawdown_and_maximum_underwater_duration",
+    "median_and_p90_realized_holding_hours_and_terminal_open_age_hours",
+    "terminal_inventory_count_cost_and_unrealized_pnl_attribution",
+    "capital_and_slot_utilization_with_maximum_open_cost_and_open_lot_count",
+    "annual_total_pnl_drawdown_and_risk_adjusted_breadth_with_top_year_positive_delta_concentration",
+    "primary_zero_and_rejection_only_minus_0_10_plus_0_10_atr_neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-dra-native-trend-acceleration-1",
+  "created_at": "2026-08-21T08:05:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

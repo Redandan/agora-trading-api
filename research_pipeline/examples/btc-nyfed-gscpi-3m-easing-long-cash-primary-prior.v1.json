@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NYFED_GSCPI_3M_EASING_LONG_CASH_PRIMARY_PRIOR_V1",
+  "created_at": "2026-08-21T04:13:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-nyfed-gscpi-3m-easing-long-cash",
+  "claim_boundary": "A fall in the New York Fed Global Supply Chain Pressure Index can reflect easing logistics and input bottlenecks, weaker goods demand, changing transportation costs, manufacturing-survey conditions or data revisions. Exactly one future preregistered long-or-cash audit may test whether the conservatively delayed three-month direction has matched-capital BTC value; no causal or alpha claim is imported from the sources.",
+  "primary_sources": [
+    {
+      "identity": "Federal Reserve Bank of New York Global Supply Chain Pressure Index",
+      "url": "https://www.newyorkfed.org/research/policy/gscpi",
+      "evidence": "The New York Fed publishes the monthly GSCPI and an official downloadable workbook.",
+      "boundary": "The current workbook is a present-vintage research product and does not establish unrevised real-time historical vintages or future Bitcoin returns."
+    },
+    {
+      "identity": "Federal Reserve Bank of New York GSCPI launch announcement",
+      "url": "https://www.newyorkfed.org/newsevents/news/research/2022/20220518",
+      "evidence": "The index integrates transportation-cost data and manufacturing indicators and is scheduled for 10:00 ET on the fourth business day of each month.",
+      "boundary": "A regular release schedule supports a conservative availability lag but does not remove revisions or guarantee tradable publication latency."
+    },
+    {
+      "identity": "Federal Reserve Bank of New York Staff Report 1017",
+      "url": "https://www.newyorkfed.org/research/staff_reports/sr1017",
+      "evidence": "The paper defines the GSCPI as a common global supply-chain component built from transportation and manufacturing variables and studies its relation to inflation.",
+      "boundary": "The paper does not test Bitcoin timing, and lower supply-chain pressure may arise from weaker demand rather than benign normalization."
+    }
+  ],
+  "frozen_prior": {
+    "series_id": "NYFED_GSCPI",
+    "frequency": "MONTHLY",
+    "factor": "GSCPI_MONTH_t_STRICTLY_BELOW_GSCPI_MONTH_t_minus_3",
+    "availability": "OBSERVATION_MONTH_START_PLUS_45_CALENDAR_DAYS_AT_0000_UTC",
+    "policy": "FULL_CAPITAL_BTC_WHEN_PRESSURE_EASING_ELSE_ZERO_YIELD_CASH",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "variants": 1
+  },
+  "adversarial_prior": [
+    "Lower supply-chain pressure can be caused by falling goods demand or recession risk rather than healthier productive capacity.",
+    "The index combines many inputs and can change when source histories or model estimates are revised.",
+    "Its inflation channel can overlap with already closed inflation and financial-conditions families without adding independent BTC timing value.",
+    "A monthly composite may react too slowly to preserve BTC upside or avoid fast drawdown paths."
+  ],
+  "prohibited_rescue": [
+    "Do not add component shipping rates, manufacturing surveys, CPI, PPI, commodities, the dollar, equities, rates, BTC trend, volatility or on-chain inputs.",
+    "Do not change the three-month horizon, easing direction, 45-day availability floor, threshold, sizing or parent after source or outcome access.",
+    "Do not reinterpret closed CPI-disinflation, financial-conditions, oil, copper or macro-activity families as support for this one."
+  ],
+  "independence": {
+    "key": "monthly-global-supply-chain-pressure-three-month-easing-direction",
+    "distinct_from_closed_inflation": "The decision input is an upstream common component of transportation and manufacturing conditions, not a consumer-price level or release-day event.",
+    "distinct_from_closed_commodities": "The decision input is a multi-source supply-chain pressure index, not the direction of copper, crude oil or another single commodity price.",
+    "distinct_from_closed_financial_conditions": "The input is designed to measure physical supply-chain pressures, not credit spreads, market volatility or a broad financial-conditions index."
+  },
+  "missing_proof": [
+    "No exact official-workbook transport, workbook schema, 2018-2024 date lattice, missing-value audit, revision-safe vintage or conservative availability mapping has been sealed.",
+    "No easing-state support, transition support, hypothesis, manifest, runner, fees, slippage, PnL, drawdown, holding, inventory, breadth, concentration, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "No GSCPI workbook or historical factor value was accessed by an experiment; no hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

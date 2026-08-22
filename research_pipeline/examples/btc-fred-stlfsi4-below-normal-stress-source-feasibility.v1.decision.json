@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_STLFSI4_BELOW_NORMAL_STRESS_SOURCE_FEASIBILITY_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-stlfsi4-below-normal-stress-long-cash",
+  "experiment_id": "btc-fred-stlfsi4-below-normal-stress-long-cash-historical-v1",
+  "decided_at": "2026-08-21T02:12:00Z",
+  "status": "DATA_REJECT_CLOSE_BEFORE_HYPOTHESIS_MANIFEST_RUNNER_OR_BTC_OUTCOME_ACCESS",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_STLFSI4_BELOW_NORMAL_STRESS_LONG_CASH_FAMILY",
+  "decision": "The exact free official present-vintage source passed identity, weekly-lattice and Design support checks, but Validation contained only two at-or-above-zero weeks and two state transitions versus frozen minima of eight weeks and four transitions. The policy would be indistinguishable from passive BTC for 102 of 104 Validation weeks, so direct economics cannot establish an independent, repeatable stress-state mechanism. Close before opening BTC outcomes.",
+  "pre_outcome_evidence": {
+    "whole_source": {
+      "weekly_observations": 365,
+      "below_zero_weeks": 301,
+      "at_or_above_zero_weeks": 64,
+      "transitions": 38
+    },
+    "design_2019_2022": {
+      "evaluations": 209,
+      "below_zero_weeks": 158,
+      "at_or_above_zero_weeks": 51,
+      "transitions": 24,
+      "support_pass": true
+    },
+    "validation_2023_2024": {
+      "evaluations": 104,
+      "below_zero_weeks": 102,
+      "at_or_above_zero_weeks": 2,
+      "transitions": 2,
+      "longest_below_zero_run_weeks": 91,
+      "frozen_minimum_per_state": 8,
+      "frozen_minimum_transitions": 4,
+      "support_pass": false
+    }
+  },
+  "sealed_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-fred-stlfsi4-below-normal-stress-source-feasibility.v1.spec.json",
+      "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC",
+      "sha256": "1666b1db3b7e531f719572ec7ef7d93dc5e30bdf2bc67fcdde48ff814a3de03d"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-stlfsi4-below-normal-stress-long-cash-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "sha256": "5cfeeae2b297852c5003568bd33f719197a88a6a34fa0d0ef6328df2b9ebe869"
+    },
+    {
+      "path": "research/fred_stlfsi4_source_probe.py",
+      "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE",
+      "sha256": "ba67f551d1250b6724746b93ec3623da5d289cf02dd96e5b2a12dcf9c6bbbfbc"
+    },
+    {
+      "path": ".research-state/experiments/btc-fred-stlfsi4-below-normal-stress-long-cash-historical-v1/inputs/stlfsi4-source-bundle.json",
+      "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
+      "sha256": "bca8a839dc9dcd9fef3841921b650c951d9090804a0030b7bc1f9ebdadc26e28"
+    },
+    {
+      "path": ".research-state/experiments/btc-fred-stlfsi4-below-normal-stress-long-cash-historical-v1/inputs/stlfsi4-raw.csv",
+      "role": "SEALED_EXACT_RAW_FRED_RESPONSE",
+      "sha256": "45874772c226fb39f6a9291ef1fbaff21b7bb9a4238c237668bc998aa9bab9df"
+    },
+    {
+      "path": ".research-state/experiments/btc-fred-stlfsi4-below-normal-stress-long-cash-historical-v1/inputs/stlfsi4-weekly-2018-2024.csv",
+      "role": "SEALED_NORMALIZED_WEEKLY_FACTOR_SUBSET",
+      "sha256": "d585e11b5a66771dceb551dee37fafec43d0f3a1a8579fd468a42f4aedf54909"
+    }
+  ],
+  "prohibited_reopen": [
+    "Do not lower the Validation minimum-state or transition gates after observing the factor values.",
+    "Do not scan another threshold, percentile, lag, smoothing rule, direction or STLFSI revision.",
+    "Do not combine STLFSI4 with VIX, NFCI or another factor to rescue this family.",
+    "Do not open BTC outcomes, create a hypothesis, manifest, runner, candidate or OOS for this closed family."
+  ],
+  "learning": "A public macro series can be technically available yet economically untestable. When one policy state occurs only twice in Validation, a backtest mostly measures passive BTC and cannot identify repeatable risk reduction.",
+  "scope_note": "No BTC outcome, hypothesis, manifest, economic runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

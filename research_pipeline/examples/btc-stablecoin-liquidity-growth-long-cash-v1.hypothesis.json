@@ -1,0 +1,44 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-stablecoin-liquidity-growth-long-cash-v1",
+  "title": "Lagged broad stablecoin liquidity growth full-capital BTC long/cash timing",
+  "thesis": "Growth in combined USDT and USDC current USD capitalization may identify expanding crypto-native transaction liquidity. Holding unlevered BTC only while the lagged combined capitalization exceeds its level 28 calendar days earlier may reduce liquidity-contraction paths without forfeiting too much after-cost upside.",
+  "mechanism": "For complete UTC observation day D, sum USDT and USDC CapMrktCurUSD and compare it with the combined value exactly 28 calendar days earlier. At D plus two calendar days 00:00 UTC, hold 100-percent BTC only if growth is strictly positive; otherwise hold zero-yield cash. USDT-only and USDC-only policies are frozen rejection neighbors.",
+  "economic_rationale": "The policy is useful only if an independently observed liquidity state improves drawdown and Calmar enough to offset missed BTC participation and switching costs. Aggregate PnL, structural stablecoin growth, one depeg exit, present-vintage correlation or terminal inventory appreciation is insufficient.",
+  "source": "BTC_STABLECOIN_LIQUIDITY_GROWTH_PRIMARY_PRIOR_V1_AND_TO_BE_SEALED_COIN_METRICS_COMMUNITY_USDT_USDC_DAILY_2018_2024",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-stablecoin-liquidity-growth-long-cash-v1-direct-economic-runner",
+  "data_readiness": "SOURCE_ENDPOINT_AND_EARLIEST_IDENTITY_CONFIRMED_FULL_HISTORY_NOT_YET_ACCESSED",
+  "independence_semantics": "CRYPTO_NATIVE_STABLECOIN_LIQUIDITY_GROWTH_FAMILY",
+  "variants": [
+    {"role": "PRIMARY", "assets": ["usdt", "usdc"], "combination": "SUM", "growth_lag_days": 28, "relation": "STRICTLY_ABOVE"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "assets": ["usdt"], "combination": "SINGLE", "growth_lag_days": 28, "relation": "STRICTLY_ABOVE"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "assets": ["usdc"], "combination": "SINGLE", "growth_lag_days": 28, "relation": "STRICTLY_ABOVE"}
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "episode_and_year_concentration",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4,
+    "independence": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-17",
+  "created_at": "2026-08-19T09:02:31Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,134 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_CFTC_TFF_ASSET_MANAGER_CONTRARIAN_ENTRY_ADMISSION_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "cftc-tff-asset-manager-contrarian-dra-entry-admission-historical-v1",
+  "factor_identity": "CFTC_TFF_ASSET_MANAGER_NET_PCT_OI_WEEKLY_CONTRACTION_CONTRARIAN_168H_V1",
+  "status": "NO_CANDIDATE_CLOSE_CFTC_ASSET_MANAGER_CONTRARIAN_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_CFTC_ASSET_MANAGER_CONTRARIAN_FAMILY_WITHOUT_DIRECTION_CATEGORY_FORMULA_LAG_HORIZON_OR_STRATEGY_TUNING",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "artifact": {
+    "path": ".research-state/experiments/cftc-tff-asset-manager-contrarian-dra-entry-admission-historical-v1/artifacts/run1.json",
+    "sha256": "2508e5856707a94829ea62ed7f851a8e869f2f088158a4c33f9168d721516d39",
+    "bytes": 237217,
+    "reproducibility_run_path": ".research-state/experiments/cftc-tff-asset-manager-contrarian-dra-entry-admission-historical-v1/artifacts/run2.json",
+    "reproducibility_run_sha256": "2508e5856707a94829ea62ed7f851a8e869f2f088158a4c33f9168d721516d39",
+    "byte_identical": true
+  },
+  "bindings": {
+    "primary_prior_path": "research_pipeline/examples/dra-cftc-asset-manager-contrarian-primary-prior.v1.json",
+    "primary_prior_sha256": "c576320e5a72cbe2ea12efec7855ce82e7ec032cdabe2b6ea6dbc06572199338",
+    "manifest_path": "research_pipeline/examples/cftc-tff-asset-manager-contrarian-dra-entry-admission-historical.v1.manifest.json",
+    "manifest_sha256": "da5637b10ab543af14174ad2ef02307e92de3c5250ec274b7ce3fb8c56d224cf",
+    "runner_path": "research/btc_dra_cftc_tff_asset_manager_contrarian_entry_admission_historical_v1.py",
+    "runner_sha256": "cc92f597ba66fafda5dffcd7a3c81a37942d526d44a8eeda7eeddaabd222c974"
+  },
+  "dataset": {
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00",
+    "eligible_factor_points": 298
+  },
+  "economic_summary": {
+    "design": {
+      "parent_realized_pnl_usdt": "122.11969534",
+      "candidate_realized_pnl_usdt": "76.09342627",
+      "realized_pnl_delta_usdt": "-46.02626907",
+      "parent_unrealized_pnl_usdt": "-79.12049441",
+      "candidate_unrealized_pnl_usdt": "-27.47315652",
+      "unrealized_pnl_delta_usdt": "51.64733789",
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "48.62026975",
+      "total_pnl_delta_usdt": "5.62106882",
+      "parent_max_drawdown_pct": "18.673983",
+      "candidate_max_drawdown_pct": "10.541796",
+      "parent_terminal_inventory_count": 5,
+      "candidate_terminal_inventory_count": 2,
+      "vetoed_signals": 106
+    },
+    "validation": {
+      "parent_realized_pnl_usdt": "89.41118307",
+      "candidate_realized_pnl_usdt": "55.01195215",
+      "realized_pnl_delta_usdt": "-34.39923092",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "candidate_unrealized_pnl_usdt": "0E-8",
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "55.01195215",
+      "total_pnl_delta_usdt": "-31.19102971",
+      "parent_max_drawdown_pct": "7.121498",
+      "candidate_max_drawdown_pct": "7.493085",
+      "max_drawdown_delta_pp": "0.371587",
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 197,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 2783,
+      "parent_maximum_underwater_duration_hours": 2397,
+      "candidate_maximum_underwater_duration_hours": 2431,
+      "parent_terminal_inventory_count": 1,
+      "candidate_terminal_inventory_count": 0,
+      "vetoed_signals": 96
+    },
+    "annual_total_pnl_deltas_usdt": {
+      "2020": "-21.13974695",
+      "2021": "-4.21081047",
+      "2022": "2.68273316",
+      "2023": "-23.55551771",
+      "2024": "-9.76692509"
+    },
+    "annual_total_wins": 1,
+    "annual_drawdown_non_worse": 3,
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "predictive_summary": {
+    "design": {
+      "episode_count": 151,
+      "median_signed_response_168h": "0.011488811676316183636071133366741",
+      "positive_factor_median_raw_return_168h": "0.0183193643710203448314774986976125",
+      "negative_factor_median_raw_return_168h": "-0.0042466368380852688933851610254054",
+      "one_sided_sign_test_p_value": "0.09636295508771465967850992159171822",
+      "all_gates_passed": true
+    },
+    "validation": {
+      "episode_count": 93,
+      "median_signed_response_168h": "0.001563260317326518335740805308955",
+      "positive_factor_median_raw_return_168h": "0.0164547237412074464641835915089405",
+      "negative_factor_median_raw_return_168h": "0.011191790581208039559066613790223",
+      "one_sided_sign_test_p_value": "0.3392660068266625559072556521633318",
+      "signed_successes": 49,
+      "signed_failures": 44,
+      "failed_gates": [
+        "negative_factor_median_raw_return_negative",
+        "one_sided_sign_test_at_most_0_10"
+      ]
+    }
+  },
+  "failed_economic_gates": [
+    "annual_drawdown_non_worse_at_least_4_of_5",
+    "annual_total_wins_at_least_3_of_5",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_underwater_duration_non_worse"
+  ],
+  "scientific_claim": "The preregistered Asset Manager/Institutional net-percent-of-open-interest weekly-contraction contrarian score passed every Design predictive gate but did not generalize. Validation negative-score episodes had a positive rather than negative median return and the one-sided sign test was 0.3393. The apparent Design total-PnL improvement of 5.6211 USDT came entirely from 51.6473 USDT less-negative terminal inventory while realized PnL fell 46.0263 USDT. Validation total PnL fell 31.1910 USDT, realized PnL fell 34.3992 USDT, drawdown increased 0.3716 percentage points, median and P90 holding worsened, underwater duration lengthened, and annual total PnL won only one of five years. This exact family is not a candidate.",
+  "forbidden_followups": [
+    "DO_NOT_INVERT_THE_ASSET_MANAGER_DIRECTION",
+    "DO_NOT_SWITCH_TO_LEVEL_PERCENTILE_THRESHOLD_OR_SMOOTHING",
+    "DO_NOT_CHANGE_CATEGORY_FORMULA_RELEASE_LAG_VALIDITY_OR_HORIZON",
+    "DO_NOT_BLEND_WITH_LEVERAGED_MONEY_DEALER_OTHER_REPORTABLE_OR_PRICE_FEATURES",
+    "DO_NOT_CHANGE_PARENT_CAPITAL_FEES_SLIPPAGE_ENTRY_EXIT_OR_ACCOUNTING",
+    "DO_NOT_RERUN_OR_OPEN_OOS"
+  ],
+  "uncertainty": [
+    "This is historical Design and Validation evidence through 2024, not independent post-2024 OOS or prospective evidence.",
+    "The conclusion closes only the exact Asset Manager/Institutional net-percent-of-open-interest weekly-contraction contrarian admission family. It does not claim every possible CFTC participant category is ineffective.",
+    "The study reuses the same sealed TFF source and BTC parent as the earlier Leveraged Money family, so it is a distinct participant mechanism but not an independent data-source replication.",
+    "No canonical state, server Research MCP write, second timer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+  ],
+  "recommended_next_action": "Keep the exact family permanently closed. Preserve the five open forward/source families, do not spend another cycle on a post-outcome CFTC category variant without a separately independent prior and untouched evidence, and continue the highest-ranked evidence-ready family when its sealed source gate becomes available."
+}

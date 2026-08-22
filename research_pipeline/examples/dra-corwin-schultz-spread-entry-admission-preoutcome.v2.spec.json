@@ -1,0 +1,106 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CORWIN_SCHULTZ_SPREAD_PREOUTCOME_SUPPORT_SPEC_V2",
+  "created_at": "2026-08-21T05:30:59Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-corwin-schultz-spread-entry-admission",
+  "research_classification": "PRE_ECONOMIC_FEATURE_SUPPORT_AND_NONREDUNDANCY_ONLY",
+  "claim_boundary": "This screen may establish only deterministic feature availability, state breadth and nonredundancy. It must not compute a DRA strategy path, fees, slippage, PnL, drawdown, holding, inventory, candidate or OOS result.",
+  "prior_binding": {
+    "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-primary-prior.v1.json",
+    "sha256": "8c0f4594a92db5d2045aae4ba98f795ca1711567980206d01a95675e28bdf055"
+  },
+  "runner_binding": {
+    "path": "research/dra_corwin_schultz_spread_support_v2.py",
+    "sha256": "145b57d2d8bde9d2937c1a241b6ca1197dc26d715525b779c14bd0c6228c6ffc"
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "daily_lattice": {
+    "required_hours": "EXACTLY_00_THROUGH_23_UTC_WITH_CONTIGUOUS_ONE_HOUR_BARS",
+    "open": "FIRST_H1_OPEN",
+    "high": "MAXIMUM_H1_HIGH",
+    "low": "MINIMUM_H1_LOW",
+    "close": "FINAL_H1_CLOSE",
+    "partial_days": "REJECT",
+    "gaps_or_duplicates": "REJECT"
+  },
+  "formula": {
+    "version": "CORWIN_SCHULTZ_TWO_DAY_HIGH_LOW_SPREAD_ZERO_FLOOR_NO_OVERNIGHT_ADJUSTMENT_V1",
+    "beta": "ln(H_t_minus_1/L_t_minus_1)^2_plus_ln(H_t/L_t)^2",
+    "gamma": "ln(max(H_t_minus_1,H_t)/min(L_t_minus_1,L_t))^2",
+    "denominator": "3_minus_2_times_sqrt(2)",
+    "alpha": "(sqrt(2_times_beta)_minus_sqrt(beta))/denominator_minus_sqrt(gamma/denominator)",
+    "raw_spread": "2_times_(exp(alpha)_minus_1)_divided_by_(1_plus_exp(alpha))",
+    "negative_handling": "SET_NEGATIVE_TWO_DAY_SPREAD_TO_ZERO_BEFORE_ANY_ROLLING_MEDIAN",
+    "overnight_adjustment": "NONE_BECAUSE_SOURCE_IS_CONTIGUOUS_24_HOUR_BITCOIN_AND_UTC_DAY_IS_ONLY_THE_FROZEN_AGGREGATION_BOUNDARY",
+    "normalization": "CURRENT_SPREAD_DIVIDED_BY_ORDINARY_MEDIAN_OF_EXACTLY_PRIOR_20_COMPLETE_DAY_SPREADS",
+    "zero_prior_median": "FEATURE_UNAVAILABLE_FOR_THAT_DAY_NO_EPSILON_NO_DELETION"
+  },
+  "comparators": {
+    "daily_range": "(daily_high_minus_daily_low)_divided_by_daily_open_then_prior_20d_median_ratio",
+    "realized_volatility": "sqrt(sum_of_24_hourly_close_to_close_simple_returns_squared)_then_prior_20d_median_ratio",
+    "amihud_illiquidity": "abs(daily_close/daily_open_minus_1)_divided_by_sum(H1_close_times_H1_base_volume)_then_prior_20d_median_ratio",
+    "bipower_jumpiness": "sum_squared_hourly_returns_divided_by_pi_over_two_times_sum_adjacent_absolute_return_products_then_prior_20d_median_ratio",
+    "correlation": "SPEARMAN_MIDRANK_ON_COMMON_AVAILABLE_DAYS_SEPARATELY_IN_DESIGN_AND_VALIDATION"
+  },
+  "windows": {
+    "warmup": "2019-01-01_TO_2020-01-01_EXCLUSIVE",
+    "design": "2020-01-01_TO_2023-01-01_EXCLUSIVE",
+    "validation": "2023-01-01_TO_2025-01-01_EXCLUSIVE",
+    "annual_breadth_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ]
+  },
+  "gates": {
+    "design_minimum_normalized_rows": 1040,
+    "validation_minimum_normalized_rows": 690,
+    "design_minimum_positive_raw_share": "0.30",
+    "validation_minimum_positive_raw_share": "0.30",
+    "primary_state_minimum_share": "0.20",
+    "primary_state_maximum_share": "0.80",
+    "design_minimum_transitions": 24,
+    "validation_minimum_transitions": 12,
+    "annual_minimum_each_state": 30,
+    "maximum_single_month_high_state_share": "0.15",
+    "all_correlations_abs_at_most": "0.80"
+  },
+  "decision": {
+    "all_pass": "ALLOW_EXACTLY_ONE_LATER_SCHEMA_VALID_HYPOTHESIS_AND_AT_MOST_THREE_FROZEN_ECONOMIC_VARIANTS",
+    "any_fail": "DATA_REJECT_PERMANENTLY_CLOSE_BEFORE_HYPOTHESIS_OR_STRATEGY_ECONOMICS",
+    "oos_access": "DENY",
+    "outcome_tuning": "DENY"
+  },
+  "stop_conditions": [
+    "Stop on any source hash, row, daily lattice, numeric, formula or binding failure.",
+    "Stop before economics if any availability, positive-support, coverage, transition, annual breadth, concentration or nonredundancy gate fails.",
+    "Do not change zero flooring, lookback, threshold, comparators, gates or relation after factor values are observed.",
+    "Do not use the support result to reopen Amihud, range, volatility, jumpiness, price-path or microstructure tombstones."
+  ],
+  "scope_note": "No factor value or outcome was accessed while freezing this spec. No hypothesis, economic manifest, strategy runner, candidate, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred.",
+  "supersedes": {
+    "v1_spec": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "9630ac361000bb80d194351396ba02fa9923cbd4f40761f769fa4ac4cf7478d9"
+    },
+    "v1_runner": {
+      "path": "research/dra_corwin_schultz_spread_support_v1.py",
+      "sha256": "99b15b0ed86b3c6d0fda8bce0a82b42155b88d86f4d048b186f6d4e18ad26d51"
+    },
+    "invalidation": {
+      "path": "research_pipeline/examples/dra-corwin-schultz-spread-entry-admission-preoutcome-v1-invalidation.json",
+      "sha256": "0abbfe955c9e7b267b8ae59b54aa9d4c2151054c373b282ac10fa2ed5c9ba238"
+    },
+    "permitted_change": "PYTHON_BOOLEAN_LITERAL_AND_V2_DOCUMENT_IDENTITIES_ONLY",
+    "scientific_contract_changed": false
+  }
+}

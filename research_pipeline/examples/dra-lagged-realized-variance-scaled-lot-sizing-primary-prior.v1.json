@@ -1,0 +1,86 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_LAGGED_REALIZED_VARIANCE_SCALED_LOT_SIZING_PRIMARY_PRIOR_V1",
+  "created_at": "2026-08-21T05:43:55Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-lagged-realized-variance-scaled-lot-sizing",
+  "status": "PRIMARY_PRIOR_AND_EXISTING_SEALED_FEATURE_DATA_PATH_READY_HYPOTHESIS_NOT_FROZEN",
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_LATER_HASH_BOUND_DEDUPLICATION_SUPPORT_AND_ACCOUNTING_FEASIBILITY_SCREEN",
+  "claim_boundary": "Moreira and Muir show that inverse-variance scaling can improve risk-adjusted returns in several conventional factor portfolios. That is a mechanism prior for exposure management, not evidence that variable DRA lot costs improve Bitcoin PnL, drawdown or inventory paths. Exactly one future preregistered screen may establish whether a no-leverage, downside-only sizing rule is operationally distinct and sufficiently supported before any matched-capital economics.",
+  "primary_sources": [
+    {
+      "identity": "Moreira and Muir, Volatility-Managed Portfolios, Journal of Finance 72(4), 2017",
+      "url": "https://doi.org/10.1111/jofi.12513",
+      "evidence": "The paper studies portfolios scaled inversely with recent variance and reports improved risk-adjusted performance for several conventional factors.",
+      "boundary": "The evidence is not about Bitcoin, DRA signals, sparse lots, fee-bearing inventory or a no-leverage downside-only cap."
+    },
+    {
+      "identity": "NBER Working Paper 22208, Volatility Managed Portfolios",
+      "url": "https://www.nber.org/papers/w22208",
+      "evidence": "The working-paper record provides the primary authors' economic argument and empirical design for volatility-managed exposure.",
+      "boundary": "A conventional-factor result cannot be transferred into a DRA strategy claim without frozen matched-capital evidence."
+    }
+  ],
+  "frozen_prior": {
+    "source": "EXISTING_SEALED_52608_ROW_BTC_H1_2019_2024_CORPUS",
+    "source_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "source_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "decision_clock": "UNCHANGED_DRA_COMPLETE_UTC_DAY_DECISION_BEFORE_NEXT_OPEN_FILL",
+    "variance_measure": "SUM_OF_24_SQUARED_H1_SIMPLE_CLOSE_TO_PREVIOUS_CLOSE_RETURNS_FOR_LATEST_COMPLETE_UTC_DAY",
+    "normalization": "LATEST_COMPLETE_DAY_REALIZED_VARIANCE_DIVIDED_BY_ORDINARY_MEDIAN_OF_PRIOR_20_COMPLETE_DAY_REALIZED_VARIANCES",
+    "primary_sizing": "NEW_LOT_COST_EQUALS_MAX_15_USDT_MIN_30_USDT_30_USDT_DIVIDED_BY_NORMALIZED_VARIANCE_RATIO_WITH_NO_SIZE_INCREASE_ABOVE_30_USDT",
+    "rejection_only_floor_neighbors_usdt": [
+      "10",
+      "20"
+    ],
+    "parent_signal_and_exit_policy": "UNCHANGED_BTC_DRA_V1_SIGNAL_COOLDOWN_NEXT_OPEN_FILL_AND_PROFIT_ONLY_EXIT",
+    "capital": "250_USDT_INITIAL_EQUITY_240_USDT_MAX_OPEN_COST_EIGHT_OPEN_LOT_LIMIT",
+    "leverage": "DENY",
+    "short": "DENY",
+    "variants": 3
+  },
+  "mechanism_prior": "The DRA accumulator can commit the same 30 USDT during both ordinary and extreme variance states even though adverse paths and inventory duration are unlikely to scale linearly. A causal downside-only size rule preserves every signal and exit while reducing only the new capital committed during unusually high lagged variance. It is useful only if lower risk is not merely purchased through excessive PnL and upside loss.",
+  "adversarial_prior": [
+    "The closed lagged-realized-volatility entry-admission family already showed that vetoing high-volatility DRA entries destroyed total PnL and worsened Validation drawdown; that result is not positive evidence for resizing and must not be recomputed or reinterpreted.",
+    "The closed monthly BTC 30-day volatility-target family showed that conventional volatility scaling need not survive Bitcoin opportunity cost; sparse DRA lot sizing is distinct but receives no inherited performance credit.",
+    "Variable lot cost changes slot occupancy, utilization, realized PnL scale and terminal inventory composition, so per-trade win rate or lower nominal drawdown cannot establish value.",
+    "A floor, cap or inverse mapping can become a hidden parameter search unless all three variants and economic gates are frozen before outcome access."
+  ],
+  "independence": {
+    "key": "lagged-realized-variance-downside-only-dra-new-lot-cost-scaling",
+    "distinct_from_closed_entry_admission": "Every valid DRA signal remains admitted; only the new lot cost is reduced during high normalized realized variance. The closed family used the same state to veto entries entirely.",
+    "distinct_from_closed_monthly_volatility_target": "The closed policy continuously resized a full BTC portfolio at monthly boundaries toward a forty-percent annualized target. This family acts only when a sparse DRA entry occurs, never raises size above 30 USDT and preserves the 240 USDT open-cost cap and eight-lot limit.",
+    "residual_overlap_risk": "Both closed families use lagged Bitcoin volatility to reduce exposure, so the next cycle must fail closed unless action-path, accounting and intervention diagnostics establish a genuinely different executable mechanism before any PnL is read."
+  },
+  "future_preoutcome_requirements": [
+    "Freeze the exact H1 return, complete-day variance, prior-twenty-day median, ratio, inverse mapping, 15 USDT floor, 30 USDT cap, missing-value and Decimal rounding rules before any outcome access.",
+    "Prove that every otherwise valid DRA signal is preserved, size never exceeds 30 USDT, total open cost never exceeds 240 USDT, open-lot count never exceeds eight and parent timing and exits remain unchanged.",
+    "Deduplicate against both permanent volatility closures using action-path fingerprints; close immediately if the proposed rule is only a renamed veto or monthly volatility target.",
+    "Require sufficient Design, Validation and annual high-variance sizing interventions and deterministic feature-to-size lattice parity before creating a hypothesis.",
+    "Only after a full pre-economic pass may one hypothesis and one manifest compare identical initial equity, fees, slippage, signals and exits for the primary plus two rejection-only floors.",
+    "Require Design and Validation total-PnL and risk-adjusted improvement, drawdown and underwater-duration improvement, adequate upside capture, annual breadth, realized/unrealized attribution, terminal-inventory control and neighbor stability; otherwise permanently close."
+  ],
+  "prohibited_rescue": [
+    "Do not reopen, rerun or reinterpret the closed lagged-volatility entry-admission or monthly volatility-target families.",
+    "Do not change the variance estimator, twenty-day baseline, inverse mapping, primary floor, cap, neighbor floors, timing, parent, lot-count limit, open-cost cap, costs or gates after factor or outcome access.",
+    "Do not add leverage, size above 30 USDT, shorts, volatility forecasts, GARCH, ATR, high-low estimators, trend filters, entry vetoes, exit changes, portfolio overlays or another data source.",
+    "Do not infer alpha from lower exposure, lower nominal drawdown, a support pass or the primary literature, and do not open OOS unless every later frozen economic gate passes."
+  ],
+  "evidence_readiness": {
+    "feature_data_path_exists_locally": true,
+    "external_download_required": false,
+    "paid_api_required": false,
+    "existing_strategy_parent_available": true,
+    "hypothesis_created": false,
+    "factor_computed": false,
+    "outcome_accessed": false
+  },
+  "missing_proof": [
+    "No deduplication, size-lattice, support, accounting-feasibility or intervention-breadth result exists.",
+    "No hypothesis, manifest, deterministic variable-sizing runner, matched-capital economics, candidate, OOS or forward evidence exists.",
+    "It remains possible that this is an impermissible action-level rescue of already closed volatility management families; the next pre-economic gate must decide that before PnL access."
+  ],
+  "next_action": "In a later research cycle, freeze and run only the deduplication, feature-to-size lattice, accounting-feasibility and intervention-support screen. Stop before economics on any failure.",
+  "scope_note": "Literature and local source-path prior only. No factor value, strategy outcome, hypothesis, manifest, variable-sizing runner, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BITCOIN_ACTIVE_SUPPLY_CONTRACTION_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_BITCOIN_ACTIVE_SUPPLY_CONTRACTION_DRA_ADMISSION_HISTORICAL_AUDIT",
+  "claim_boundary": "Bitcoin one-year active-supply percentage measures the fraction of current supply represented by outputs created during the trailing year. Exactly one preregistered audit may test whether a conservatively lagged contraction in that fraction improves DRA V1 entry economics. The official interpretation that declining activity can accompany holding behavior is a mechanism prior, not predictive or causal proof.",
+  "feature_contract": {
+    "publisher": "Coin Metrics Community API",
+    "asset": "btc",
+    "metric": "SplyActPct1yr",
+    "observation": "REVIEWED_DAILY_PERCENT_OF_CURRENT_SUPPLY_ACTIVE_IN_TRAILING_ONE_YEAR",
+    "sampling": "SUNDAY_OBSERVATION_ONLY",
+    "decision_time": "SUNDAY_OBSERVATION_PLUS_THREE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_28_DAY_MEAN_ENDING_SUNDAY_STRICTLY_BELOW_IMMEDIATELY_PRECEDING_ADJACENT_28_DAY_MEAN",
+    "policy": "ADMIT_UNCHANGED_DRA_V1_PARENT_SIGNAL_ONLY_WHILE_LAGGED_ONE_YEAR_ACTIVE_SUPPLY_PERCENT_IS_CONTRACTING_OTHERWISE_VETO",
+    "current_window_days": 28,
+    "reference_window_days": 28,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_CHANGE_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Coin Metrics Active Supply documentation",
+      "primary_source": "https://gitbook-docs.coinmetrics.io/network-data/network-data-overview/supply/active-supply",
+      "finding": "Coin Metrics defines SplyActPct1yr as the percentage of current supply active in the trailing year. For UTXO chains, activity is based on outputs created in the period, and the documentation notes that rising dormant-supply activation can accompany rallies while declining activity has historically accompanied holding through weak markets.",
+      "role": "FREE_MACHINE_READABLE_METRIC_IDENTITY_AND_DIRECTIONAL_MECHANISM_PRIOR",
+      "transfer_boundary": "The documentation does not validate adjacent 28-day means, a DRA admission action, a three-day availability lag, after-cost economics or independent predictive value."
+    },
+    {
+      "identity": "Deciphering Bitcoin Blockchain Data by Cohort Analysis, Scientific Data 9, 136 (2022)",
+      "primary_source": "https://doi.org/10.1038/s41597-022-01254-0",
+      "finding": "The peer-reviewed cohort construction shows how Bitcoin UTXO birth, spending and age can form daily activity and dormancy series, while explicitly warning that old outputs may reflect lost keys or uneconomic dust rather than deliberate store-of-value behavior.",
+      "role": "MEASUREMENT_CONSTRUCTION_AND_ADVERSARIAL_LIMITATION_PRIOR",
+      "transfer_boundary": "Its cohort datasets and descriptive currency-function interpretation do not establish return prediction, DRA causality or the exact Coin Metrics series."
+    },
+    {
+      "identity": "Bitcoin Average Dormancy: A Measure of Turnover and Trading Activity, Ledger 3 (2018)",
+      "primary_source": "https://doi.org/10.5195/ledger.2018.99",
+      "finding": "The paper derives average dormancy from bitcoin-days-destroyed and transaction volume as a turnover measure, but states that the interpretation holds only under limited conditions.",
+      "role": "TURNOVER_MECHANISM_AND_LIMITATION_PRIOR",
+      "transfer_boundary": "Average dormancy is not SplyActPct1yr, and neither the mathematical relationship nor historical turnover establishes this exact admission rule."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact no-key Community API reviewed SplyActPct1yr response for BTC from 2018-01-01 through 2024-12-31; reject pagination residue, missing dates, non-positive or above-100 values, or identity drift.",
+    "For each complete Sunday D, compare the arithmetic mean of D minus 27 through D with the immediately preceding D minus 55 through D minus 28 mean. D becomes usable only at D plus three calendar days 00:00 UTC for at most 168 hours.",
+    "Admit an unchanged DRA V1 signal only when the current 28-day mean is strictly below the preceding 28-day mean; equality or expansion holds cash.",
+    "Use the frozen 250 USDT DRA V1 parent, 240 USDT slot capacity, 0.10% fee and 0.05% adverse slippage without changing entries, exits, lot size, capacity or accounting.",
+    "Require Design, Validation and 2020-2024 annual matched-capital economics, including realized, unrealized and total PnL, drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth, concentration and independent 168-hour predictive diagnostics.",
+    "Do not add active-supply levels, other age cohorts, price normalization, MVRV, active addresses, transaction counts, quantiles, magnitude thresholds, inverse rules, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "UTXO movement is not equivalent to beneficial-owner selling; exchange custody changes, wallet consolidation and self-transfers can mark supply active.",
+    "The trailing one-year window can change when old outputs mechanically age out even without new holder behavior, and the adjacent 28-day comparison may be slow or sparse.",
+    "Dormant outputs may include lost keys or uneconomic dust, so contraction need not represent deliberate conviction or tradable scarcity.",
+    "The Community API response would be a present-vintage reviewed snapshot; original daily review timestamps and vintages remain MISSING_PROOF.",
+    "No SplyActPct1yr value, BTC/DRA outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T11:35:00Z"
+}

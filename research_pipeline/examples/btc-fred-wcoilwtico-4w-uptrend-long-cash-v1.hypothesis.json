@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-wcoilwtico-4w-uptrend-long-cash-v1",
+  "title": "Lagged WTI four-week uptrend for BTC long or cash",
+  "thesis": "A conservatively lagged positive four-week direction in weekly WTI spot prices may identify broad growth, reflation or risk appetite with better subsequent Bitcoin risk-adjusted economics than nonuptrend weeks.",
+  "mechanism": "Using only the sealed present-vintage WCOILWTICO weekly Friday-ending series, compare each observation with the value exactly four weekly observations earlier. Make the state usable on the following Thursday at 00:00 UTC. Hold full-capital unlevered BTC only when the four-week WTI change is strictly positive, and zero-yield cash otherwise. No Brent, natural gas, futures curve, inventories, equities, inflation data, BTC interaction, magnitude threshold, smoothing, alternate horizon, inverse direction or combined factor is allowed.",
+  "economic_rationale": "If rising WTI reflects broadening demand and risk appetite rather than an adverse supply shock, the policy may avoid nonuptrend BTC drawdowns while preserving enough upside to improve matched-capital Calmar after explicit normal and doubled friction. Because the sign can reverse across supply, inflation and crisis regimes, Design, Validation, annual breadth, episode concentration and terminal inventory must all pass.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-wcoilwtico-4w-uptrend-long-cash:PRIMARY_PRIOR_SHA256_e8e89e0a581760eea788944750d936bc0a3699a1817bc73fd7eee000b05735be:SOURCE_BUNDLE_SHA256_3c4ec6f5fea3725a5d5eacd8edb68046c1acd53fc760c958ee1ddf4b239b93b5:NORMALIZED_WCOILWTICO_SHA256_c10c52f1b093b477aed9dcec61d07f057ce3bdc83bc35f88a22fbc37b34a0f49",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-official-fred-wcoilwtico-four-week-direction-matched-capital-long-cash-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "weekly_signal_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_validation_positive_episode_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-wti-four-week-direction-1",
+  "created_at": "2026-08-21T03:23:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

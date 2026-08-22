@@ -1,0 +1,41 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-daily-bollinger20-2-long-cash-v1",
+  "title": "Daily Bollinger20/2 lower-cross to upper-cross full-capital long/cash mean reversion",
+  "thesis": "A causal close crossing below its standard 20-day lower Bollinger band may identify a volatility-normalized BTC dislocation that subsequently reverts far enough to the upper band to preserve positive after-cost returns while materially reducing drawdown versus continuous BTC ownership.",
+  "mechanism": "From exactly twenty complete UTC-day closes including the current day, compute the close SMA and population standard deviation. Enter full BTC on a strict cross below SMA minus two standard deviations; exit to zero-yield cash on a strict cross above SMA plus two standard deviations; execute changed targets at the next H1 open.",
+  "economic_rationale": "The symmetric volatility scaling should avoid fixed-distance thresholds and reserve participation for large downside dislocations. It is useful only if the single default rule produces enough independent episodes, positive normal and stress returns, broad annual contribution, materially lower drawdown and competitive risk-adjusted return after opportunity cost versus buy-and-hold.",
+  "source": "BTC_DAILY_BOLLINGER20_2_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-daily-bollinger20-2-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "independence_semantics": "INDEPENDENT_PRICE_DEVIATION_MEAN_REVERSION_POLICY",
+  "variants": [
+    {"role": "PRIMARY", "complete_day_closes": 20, "population_standard_deviation_multiplier": 2}
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "episode_concentration"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4,
+    "independence": 4
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-9",
+  "created_at": "2026-08-19T04:25:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

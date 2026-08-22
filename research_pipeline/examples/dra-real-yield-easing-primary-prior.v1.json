@@ -1,0 +1,72 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_REAL_YIELD_EASING_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_REAL_YIELD_EASING_DRA_ADMISSION_HISTORICAL_AUDIT",
+  "claim_boundary": "Lower long-term real discount rates provide a plausible risk-asset valuation channel, and monetary-policy surprise studies sometimes find negative BTC responses to tightening. Other primary empirical work finds Bitcoin largely orthogonal to macroeconomic and monetary news. Exactly one preregistered matched-capital audit may test whether a four-week decline in the official ten-year TIPS real yield improves DRA entry economics; no causal or alpha claim is imported from the literature.",
+  "feature_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_agency": "Board of Governors of the Federal Reserve System (US)",
+    "release": "H.15 Selected Interest Rates",
+    "series_id": "DFII10",
+    "observation": "DAILY_10_YEAR_TREASURY_INFLATION_INDEXED_CONSTANT_MATURITY_MARKET_YIELD_PERCENT_NOT_SEASONALLY_ADJUSTED",
+    "weekly_aggregation": "ARITHMETIC_MEAN_OF_ALL_PUBLISHED_MONDAY_THROUGH_FRIDAY_OBSERVATIONS_LABELLED_BY_CALENDAR_FRIDAY_REQUIRE_3_TO_5_OBSERVATIONS",
+    "decision_time": "WEEK_ENDING_FRIDAY_PLUS_FIVE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_WEEKLY_MEAN_STRICTLY_BELOW_EXACT_WEEKLY_MEAN_28_CALENDAR_DAYS_EARLIER",
+    "policy": "ADMIT_UNCHANGED_DRA_V1_PARENT_SIGNAL_ONLY_WHILE_TEN_YEAR_REAL_YIELD_FOUR_WEEK_CHANGE_IS_NEGATIVE_OTHERWISE_VETO",
+    "change_lag_calendar_days": 28,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_CHANGE_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Board of Governors of the Federal Reserve System, ten-year inflation-indexed Treasury constant maturity yield via FRED",
+      "primary_source": "https://fred.stlouisfed.org/series/DFII10",
+      "finding": "The official DFII10 series is a daily market yield on ten-year inflation-indexed Treasury securities, quoted on an investment basis in percent, not seasonally adjusted, sourced from the Federal Reserve H.15 release and tagged Public Domain: Citation Requested.",
+      "role": "FREE_OFFICIAL_MACHINE_READABLE_SOURCE_IDENTITY",
+      "transfer_boundary": "DFII10 is a smoothed constant-maturity market estimate, not an exogenous policy surprise, direct funding rate or Bitcoin-specific discount rate."
+    },
+    {
+      "identity": "Kyriazis, Ofeidis, Palaiokrassas and Tassiulas, Monetary Policy, Digital Assets, and DeFi Activity (2023)",
+      "primary_source": "https://doi.org/10.2139/ssrn.4362546",
+      "finding": "The event-study evidence reports that unexpected U.S. monetary-policy tightening negatively affects BTC and ETH returns and increases digital-asset volatility around FOMC communications.",
+      "role": "MONETARY_DISCOUNT_RATE_CHANNEL_PRIOR",
+      "transfer_boundary": "A high-frequency surprise is not a four-week trend in a ten-year real yield, and the study does not validate DRA admission, after-cost economics or weekly predictability."
+    },
+    {
+      "identity": "Benigno and Rosa, The Bitcoin-Macro Disconnect, Federal Reserve Bank of New York Staff Report 1052 (2023)",
+      "primary_source": "https://www.newyorkfed.org/medialibrary/media/research/staff_reports/sr1052.pdf",
+      "finding": "The paper derives a real-interest-rate discounting channel for a speculative asset but empirically finds Bitcoin largely unresponsive to short-rate surprises and most macroeconomic news, with future-policy-path sensitivity not robust.",
+      "role": "ADVERSARIAL_MACRO_DISCONNECT_PRIOR",
+      "transfer_boundary": "The theoretical discount-rate sign is insufficient when the measured Bitcoin response is unstable. Only matched-capital Design and Validation evidence can rescue this exact weekly rule."
+    },
+    {
+      "identity": "Karau, Monetary policy and Bitcoin, Journal of International Money and Finance 137 (2023)",
+      "primary_source": "https://doi.org/10.1016/j.jimonfin.2023.102880",
+      "finding": "Bitcoin's response to U.S. monetary tightening changes over time and became more similar to conventional risky assets in the later sample.",
+      "role": "TIME_VARYING_TRANSMISSION_PRIOR",
+      "transfer_boundary": "Regime-varying responses can make a fixed four-week real-yield sign fail annual breadth even if aggregate correlation appears favorable."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal exact annual FRED CSV responses for DFII10 from 2018-01-01 through 2024-12-31; require unique weekday dates, signed finite decimal values and explicit holiday blanks.",
+    "Construct each calendar week ending Friday from all available Monday-Friday observations; require three to five observations and do not interpolate holidays.",
+    "Make week-ending Friday D usable only at D plus five calendar days 00:00 UTC and valid for at most 168 hours.",
+    "Compare each weekly mean only with the exact weekly mean 28 calendar days earlier; admit the unchanged DRA V1 signal only when the current mean is strictly lower.",
+    "Use the frozen 250 USDT DRA V1 parent, 240 USDT slot capacity, 0.10% fee and 0.05% adverse slippage without changing entries, exits, lot size, capacity or accounting.",
+    "Require Design, Validation, 2020-2024 annual matched-capital economics, realized/unrealized/total PnL, drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth, concentration and independent non-overlapping 168-hour predictive diagnostics.",
+    "Do not add nominal yields, breakeven inflation, yield-curve spreads, Fed balance sheet, dollar index, policy-event dummies, 1/8/13/26/52-week horizons, moving averages, level thresholds, z-scores, magnitude cutoffs, inverse rules, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not reinterpret the closed Treasury term-spread, broad-dollar, Fed balance-sheet or NFCI branches as support. They use different mechanisms and remain permanently closed.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "DFII10 is a fitted constant-maturity TIPS market yield and can reflect growth, inflation-risk, liquidity and term-premium changes in addition to real discount rates.",
+    "Bitcoin-macro sensitivity is time-varying and may be weak or absent outside policy-announcement windows.",
+    "The present-vintage FRED series can contain revisions; original H.15 release values and revision history remain MISSING_PROOF.",
+    "The four-week horizon is a preregistered monthly-scale convention, not a parameter established by the cited papers.",
+    "No complete DFII10 history, BTC/DRA outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T11:25:00Z"
+}

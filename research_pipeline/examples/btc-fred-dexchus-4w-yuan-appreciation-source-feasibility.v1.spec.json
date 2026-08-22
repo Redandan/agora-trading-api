@@ -1,0 +1,54 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_DEXCHUS_4W_YUAN_APPRECIATION_SOURCE_FEASIBILITY_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-dexchus-4w-yuan-appreciation-long-cash",
+  "created_at": "2026-08-21T03:38:48Z",
+  "status": "FROZEN_BEFORE_2018_2024_DEXCHUS_FACTOR_ACCESS",
+  "purpose": "Test only whether official no-key present-vintage DEXCHUS provides unique in-range weekday rows, at least three valid observations per complete Monday-Friday week, and enough appreciation and other four-week weekly-mean direction states in Design and Validation before BTC outcomes.",
+  "source_contract": {
+    "series": "DEXCHUS",
+    "frequency": "DAILY_WEEKDAYS_AGGREGATED_TO_COMPLETE_WEEK_MEAN",
+    "publisher": "Board of Governors of the Federal Reserve System via Federal Reserve Bank of St. Louis FRED",
+    "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXCHUS&cosd=2018-01-01&coed=2024-12-31",
+    "calendar_start": "2018-01-01",
+    "calendar_end": "2024-12-31",
+    "minimum_unique_weekday_rows": 1820,
+    "maximum_unique_weekday_rows": 1830,
+    "minimum_valid_daily_observations_per_complete_week": 3,
+    "minimum_complete_week_means": 360,
+    "missing_marker_policy": "EMPTY_OR_DOT_IS_MISSING_AND_EXCLUDED_FROM_WEEKLY_MEAN",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "maximum_response_bytes": 65536
+  },
+  "feature_contract": {
+    "factor_identity": "FRED_DEXCHUS_COMPLETE_WEEK_MEAN_STRICTLY_BELOW_MEAN_4_COMPLETE_WEEKS_EARLIER_FOLLOWING_THURSDAY_0000_UTC_V1",
+    "daily_to_weekly_formula": "ARITHMETIC_MEAN_OF_3_TO_5_VALID_MONDAY_TO_FRIDAY_DEXCHUS_OBSERVATIONS",
+    "factor_formula": "DEXCHUS_COMPLETE_WEEK_MEAN_t-DEXCHUS_COMPLETE_WEEK_MEAN_t_minus_4",
+    "yuan_appreciation_condition": "FOUR_WEEK_WEEKLY_MEAN_CHANGE_STRICTLY_LESS_THAN_ZERO",
+    "other_condition": "OTHERWISE",
+    "lookback_complete_weeks": 4,
+    "availability": "THURSDAY_AFTER_THE_COMPLETE_MONDAY_TO_FRIDAY_WEEK_AT_00_00_UTC",
+    "direction_inversion": "DENY",
+    "threshold_or_smoothing_scan": "DENY"
+  },
+  "windows": {
+    "design": {"start": "2019-01-01T00:00:00Z", "end_exclusive": "2023-01-01T00:00:00Z", "minimum_evaluations": 208, "minimum_per_state": 40, "minimum_transitions": 12},
+    "validation": {"start": "2023-01-01T00:00:00Z", "end_exclusive": "2025-01-01T00:00:00Z", "minimum_evaluations": 104, "minimum_per_state": 20, "minimum_transitions": 6}
+  },
+  "decision": {
+    "pass": "SOURCE_FEASIBILITY_PASS_MAY_FREEZE_EXACTLY_ONE_HYPOTHESIS_IN_A_LATER_AUTONOMOUS_CYCLE_BEFORE_BTC_OUTCOME_ACCESS",
+    "failure": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+    "no_partial_pass": true
+  },
+  "prohibited_after_factor_access": [
+    "Do not change the valid-row policy, daily-to-weekly aggregation, four-week direction, following-Thursday availability or support gates.",
+    "Do not add offshore CNH, Chinese credit or GDP, other currencies, central-bank events, intervention labels, broad-dollar indices, volatility, BTC interactions, thresholds, smoothing or alternate horizons.",
+    "Do not access BTC outcomes unless every source gate passes and a later cycle freezes its only hypothesis first.",
+    "Do not treat present-vintage history as original release vintage or independent OOS."
+  ],
+  "scope_note": "No historical DEXCHUS factor value, BTC outcome, hypothesis, manifest, runner, economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -88,7 +88,1447 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 33)
+        self.assertEqual(len(catalog["closed_families"]), 134)
+        mfi14 = next(
+            family
+            for family in catalog["families"]
+            if family["family_id"]
+            == "btc-daily-money-flow-index-14-midline-long-cash"
+        )
+        self.assertEqual(mfi14["base_stage"], "PREREGISTRATION_READY")
+        self.assertEqual(
+            [binding["role"] for binding in mfi14["evidence_bindings"]],
+            [
+                "SEALED_ADVERSARIAL_CHAIKIN_MONEY_FLOW_DECISION",
+                "SEALED_ADVERSARIAL_OBV_MOVING_AVERAGE_DECISION",
+                "SEALED_ADVERSARIAL_RSI14_MIDLINE_DECISION",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR",
+            ],
+        )
+        closed_positive_hour_breadth = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-native-signal-day-positive-hour-breadth-entry-admission"
+        )
+        self.assertEqual(
+            closed_positive_hour_breadth["disposition"],
+            "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_POSITIVE_HOUR_BREADTH_AT_SUPPORT_GATE",
+        )
+        self.assertTrue(closed_positive_hour_breadth["prohibited_reopen"])
+        closed_vwap_occupancy = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-native-signal-day-vwap-occupancy-entry-admission"
+        )
+        self.assertEqual(
+            closed_vwap_occupancy["disposition"],
+            "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_VWAP_OCCUPANCY_AT_SUPPORT_GATE",
+        )
+        self.assertTrue(closed_vwap_occupancy["prohibited_reopen"])
+        closed_ema20_occupancy = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-native-signal-day-ema20-occupancy-entry-admission"
+        )
+        self.assertEqual(
+            closed_ema20_occupancy["disposition"],
+            "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_EMA20_OCCUPANCY_AT_SUPPORT_GATE",
+        )
+        self.assertTrue(closed_ema20_occupancy["prohibited_reopen"])
+        closed_prior_day_momentum = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-native-prior-day-momentum-continuation-entry-admission"
+        )
+        self.assertEqual(
+            closed_prior_day_momentum["disposition"],
+            "NO_HYPOTHESIS_CLOSE_PRIOR_DAY_MOMENTUM_DUPLICATE_AT_SUPPORT_GATE",
+        )
+        self.assertTrue(closed_prior_day_momentum["prohibited_reopen"])
+        closed_trend_acceleration = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-native-trend-acceleration-entry-admission"
+        )
+        self.assertEqual(
+            closed_trend_acceleration["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_NATIVE_TREND_ACCELERATION_FAMILY",
+        )
+        self.assertTrue(closed_trend_acceleration["prohibited_reopen"])
+        closed_signal_latency = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-signal-confirmation-latency-entry-admission"
+        )
+        self.assertEqual(
+            closed_signal_latency["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_SIGNAL_CONFIRMATION_LATENCY_FAMILY",
+        )
+        self.assertTrue(closed_signal_latency["prohibited_reopen"])
+        closed_stale_inventory = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-stale-inventory-age-entry-admission"
+        )
+        self.assertEqual(
+            closed_stale_inventory["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_STALE_INVENTORY_AGE_FAMILY",
+        )
+        self.assertTrue(closed_stale_inventory["prohibited_reopen"])
+        closed_breakout = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-native-signal-prior-24h-breakout-entry-admission"
+        )
+        self.assertEqual(
+            closed_breakout["disposition"],
+            "NO_HYPOTHESIS_CLOSE_PRIOR_24H_BREAKOUT_AT_SUPPORT_GATE",
+        )
+        self.assertTrue(closed_breakout["prohibited_reopen"])
+        closed_signal_margin = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-native-signal-overextension-entry-admission"
+        )
+        self.assertEqual(
+            closed_signal_margin["disposition"],
+            "NO_HYPOTHESIS_CLOSE_NATIVE_SIGNAL_OVEREXTENSION_AT_SUPPORT_GATE",
+        )
+        self.assertTrue(closed_signal_margin["prohibited_reopen"])
+        closed_inventory = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-underwater-inventory-congestion-entry-admission"
+        )
+        self.assertEqual(
+            closed_inventory["disposition"],
+            "NO_HYPOTHESIS_CLOSE_INVENTORY_CONGESTION_FAMILY_AT_SUPPORT_GATE",
+        )
+        self.assertTrue(closed_inventory["prohibited_reopen"])
+        closed_rotation = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-one-slot-profitable-incumbent-signal-rotation"
+        )
+        self.assertEqual(closed_rotation["disposition"], "NO_CANDIDATE_KEEP_ONE_SLOT_DRA_V1")
+        self.assertTrue(closed_rotation["prohibited_reopen"])
+        closed_flat_veto = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-flat-veto-cooldown-route-substitution"
+        )
+        self.assertEqual(closed_flat_veto["disposition"], "NO_CANDIDATE_KEEP_DRA_V1")
+        self.assertTrue(closed_flat_veto["prohibited_reopen"])
+        closed_sizing = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-lagged-realized-variance-scaled-lot-sizing"
+        )
+        self.assertEqual(
+            closed_sizing["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_VARIABLE_LOT_SIZING_FAMILY",
+        )
+        self.assertTrue(closed_sizing["prohibited_reopen"])
+        closed_spread = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-corwin-schultz-spread-entry-admission"
+        )
+        self.assertEqual(
+            closed_spread["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_CORWIN_SCHULTZ_SPREAD_ENTRY_ADMISSION_FAMILY",
+        )
+        self.assertTrue(closed_spread["prohibited_reopen"])
+        closed_taker_buy = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-binance-spot-seven-day-taker-buy-imbalance-long-cash"
+        )
+        self.assertEqual(
+            closed_taker_buy["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BINANCE_SPOT_TAKER_BUY_IMBALANCE_FAMILY_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
+        )
+        self.assertTrue(closed_taker_buy["prohibited_reopen"])
+        closed_variance_ratio = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-h1-four-day-variance-ratio-positive-persistence-long-cash"
+        )
+        self.assertEqual(
+            closed_variance_ratio["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_H1_FOUR_DAY_VARIANCE_RATIO_POSITIVE_PERSISTENCE_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_variance_ratio["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "SEALED_PRIMARY_ACADEMIC_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_VALID_PREOUTCOME_SUPPORT_SPEC_V2",
+                "RECORDED_PRE_ECONOMIC_V1_SUPPORT_INVALIDATION",
+                "FROZEN_IMPORT_ORDER_INDEPENDENT_SUPPORT_PROBE_V2",
+                "SEALED_VALID_PREOUTCOME_FEATURE_SUPPORT_V2",
+                "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_variance_ratio["prohibited_reopen"])
+        closed_cfnai = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-cfnai-above-trend-long-cash"
+        )
+        self.assertEqual(
+            closed_cfnai["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_CFNAI_ABOVE_TREND_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_cfnai["prohibited_reopen"])
+        closed_gscpi = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-nyfed-gscpi-3m-easing-long-cash"
+        )
+        self.assertEqual(
+            closed_gscpi["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_NYFED_GSCPI_3M_EASING_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_gscpi["prohibited_reopen"])
+        closed_copper = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-pcoppusdm-3m-uptrend-long-cash"
+        )
+        self.assertEqual(
+            closed_copper["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_PCOPPUSDM_3M_UPTREND_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_copper["prohibited_reopen"])
+        closed_yuan = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-dexchus-4w-yuan-appreciation-long-cash"
+        )
+        self.assertEqual(
+            closed_yuan["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_DEXCHUS_4W_YUAN_APPRECIATION_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_yuan["prohibited_reopen"])
+        closed_yen = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-dexjpus-4w-yen-depreciation-long-cash"
+        )
+        self.assertEqual(
+            closed_yen["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_DEXJPUS_4W_YEN_DEPRECIATION_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_yen["prohibited_reopen"])
+        closed_wti = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-wcoilwtico-4w-uptrend-long-cash"
+        )
+        self.assertEqual(
+            closed_wti["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_WCOILWTICO_4W_UPTREND_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_wti["prohibited_reopen"])
+        closed_busloans = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-busloans-yoy-growth-acceleration-long-cash"
+        )
+        self.assertEqual(
+            closed_busloans["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_BUSLOANS_YOY_GROWTH_ACCELERATION_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_busloans["prohibited_reopen"])
+        closed_dspic96 = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-dspic96-yoy-growth-acceleration-long-cash"
+        )
+        self.assertEqual(
+            closed_dspic96["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_DSPIC96_YOY_GROWTH_ACCELERATION_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_dspic96["prohibited_reopen"])
+        closed_unrate = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-unrate-yoy-nondeterioration-long-cash"
+        )
+        self.assertEqual(
+            closed_unrate["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_UNRATE_YOY_NONDETERIORATION_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_unrate["prohibited_reopen"])
+        closed_cpi = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-fred-cpiaucsl-yoy-disinflation-long-cash"
+        )
+        self.assertEqual(closed_cpi["disposition"], "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_CPIAUCSL_YOY_DISINFLATION_LONG_CASH_FAMILY")
+        self.assertTrue(closed_cpi["prohibited_reopen"])
+        closed_halloween = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-halloween-november-april-long-cash"
+        )
+        self.assertEqual(
+            closed_halloween["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_halloween["prohibited_reopen"])
+        closed_rrsfs = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-fred-rrsfs-yoy-growth-long-cash"
+        )
+        self.assertEqual(
+            closed_rrsfs["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_RRSFS_YOY_GROWTH_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_rrsfs["prohibited_reopen"])
+        closed_dvol = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-deribit-dvol-rising-half-risk"
+        )
+        self.assertEqual(
+            closed_dvol["disposition"],
+            "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_DERIBIT_DVOL_RISING_HALF_RISK_FAMILY",
+        )
+        self.assertTrue(closed_dvol["prohibited_reopen"])
+        closed_indpro = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-fred-indpro-yoy-growth-long-cash"
+        )
+        self.assertEqual(
+            closed_indpro["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_INDPRO_YOY_GROWTH_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_indpro["prohibited_reopen"])
+        closed_rctc = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-coinmetrics-rctc-market-top-risk-veto-long-cash"
+        )
+        self.assertEqual(
+            closed_rctc["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_COINMETRICS_RCTC_MARKET_TOP_RISK_VETO_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_rctc["prohibited_reopen"])
+        closed_permit = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-housing-permits-yoy-growth-long-cash"
+        )
+        self.assertEqual(
+            closed_permit["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_HOUSING_PERMITS_YOY_GROWTH_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_permit["prohibited_reopen"])
+        closed_umcsent = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-umcsent-rising-consumer-sentiment-long-cash"
+        )
+        self.assertEqual(
+            closed_umcsent["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_umcsent["prohibited_reopen"])
+        closed_stlfsi4 = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-stlfsi4-below-normal-stress-long-cash"
+        )
+        self.assertEqual(
+            closed_stlfsi4["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_STLFSI4_BELOW_NORMAL_STRESS_LONG_CASH_FAMILY",
+        )
+        self.assertTrue(closed_stlfsi4["prohibited_reopen"])
+        closed_first_six_hour_direction = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-first-six-hour-direction-24h-state-long-cash"
+        )
+        self.assertEqual(
+            closed_first_six_hour_direction["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_first_six_hour_direction["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ACADEMIC_AND_ADVERSARIAL_PRIOR",
+                "SEALED_PRE_OUTCOME_FEATURE_SUPPORT",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "SEALED_PRE_RESULT_INITIAL_CASH_BOUNDARY_AMENDMENT",
+                "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_first_six_hour_direction["prohibited_reopen"])
+        closed_low_volatility_rotation = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-eth-fixed-universe-monthly-low-volatility-rotation"
+        )
+        self.assertEqual(
+            closed_low_volatility_rotation["disposition"],
+            "DUPLICATE_SOURCE_BOUNDARY_REJECT_CLOSE_BEFORE_SOURCE_OR_OUTCOME",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_low_volatility_rotation["evidence_bindings"]],
+            [
+                "SEALED_PRE_SOURCE_DUPLICATE_BOUNDARY_DECISION",
+                "SEALED_PRE_SOURCE_OFFICIAL_ACADEMIC_AND_ADVERSARIAL_PRIOR",
+                "PREEXISTING_TERMINAL_BTC_ETH_REFERENCE_RATE_SOURCE_BOUNDARY",
+            ],
+        )
+        self.assertTrue(closed_low_volatility_rotation["prohibited_reopen"])
+        closed_realized_cap_growth = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-coinmetrics-realized-cap-28d-growth-long-cash"
+        )
+        self.assertEqual(
+            closed_realized_cap_growth["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_REALIZED_CAP_28D_GROWTH_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_realized_cap_growth["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+                "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_METRIC_AND_LICENSE_IDENTITY",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
+                "SEALED_COINMETRICS_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_realized_cap_growth["prohibited_reopen"])
+        fee_pressure = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-bitcoin-fee-pressure-entry-admission"
+        )
+        self.assertEqual(
+            fee_pressure["disposition"],
+            "NO_CANDIDATE_CLOSE_BITCOIN_FEE_PRESSURE_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in fee_pressure["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_IDENTITY_CORRECTED_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_METRIC_AND_LICENSE_IDENTITY",
+            ],
+        )
+        self.assertTrue(fee_pressure["prohibited_reopen"])
+        real_yield = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-real-yield-easing-entry-admission"
+        )
+        self.assertEqual(
+            real_yield["disposition"],
+            "DATA_REJECT_CLOSE_REAL_YIELD_SOURCE_TRANSPORT_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in real_yield["evidence_bindings"]],
+            [
+                "SEALED_PRE_OUTCOME_DATA_REJECT_DECISION",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "FROZEN_FAILED_SOURCE_PROBE",
+            ],
+        )
+        self.assertTrue(real_yield["prohibited_reopen"])
+        active_supply = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-bitcoin-active-supply-contraction-entry-admission"
+        )
+        self.assertEqual(
+            active_supply["disposition"],
+            "DATA_REJECT_CLOSE_BITCOIN_ACTIVE_SUPPLY_CONTRACTION_FREE_SOURCE_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in active_supply["evidence_bindings"]],
+            [
+                "SEALED_PRE_OUTCOME_DATA_REJECT_DECISION",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "FROZEN_FAILED_SOURCE_PROBE",
+            ],
+        )
+        self.assertTrue(active_supply["prohibited_reopen"])
+        mvrv = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-bitcoin-mvrv-relative-value-entry-admission"
+        )
+        self.assertEqual(
+            mvrv["disposition"],
+            "NO_CANDIDATE_CLOSE_BITCOIN_MVRV_RELATIVE_VALUE_FAMILY",
+        )
+        self.assertTrue(mvrv["prohibited_reopen"])
+        hashrate = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-bitcoin-hashrate-growth-entry-admission"
+        )
+        self.assertEqual(
+            hashrate["disposition"],
+            "NO_CANDIDATE_CLOSE_BITCOIN_HASHRATE_GROWTH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in hashrate["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_METRIC_AND_LICENSE_IDENTITY",
+            ],
+        )
+        self.assertTrue(hashrate["prohibited_reopen"])
+        carry = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-dra-crypto-carry-risk-veto"
+        )
+        self.assertEqual(
+            carry["disposition"],
+            "NO_SOURCE_CLOSE_DRA_CRYPTO_CARRY_RISK_VETO_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in carry["evidence_bindings"]],
+            [
+                "SEALED_V3R1_SCHEMA_ONLY_SOURCE_FAILURE",
+                "FROZEN_V3R1_PUBLIC_SOURCE_CONTRACT",
+                "PREACCESS_V3_TO_V3R1_SUPERSESSION_DECISION",
+            ],
+        )
+        self.assertTrue(carry["prohibited_reopen"])
+        drawdown_recovery = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-90d-drawdown-recovery-entry-admission"
+        )
+        self.assertEqual(
+            drawdown_recovery["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_90D_DRAWDOWN_RECOVERY_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in drawdown_recovery["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+            ],
+        )
+        self.assertTrue(drawdown_recovery["prohibited_reopen"])
+        partial_core_runner = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-partial-core-runner-profit-only-exit"
+        )
+        self.assertEqual(
+            partial_core_runner["disposition"],
+            "NO_CANDIDATE_CLOSE_PARTIAL_CORE_RUNNER_EXIT_FAMILY",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in partial_core_runner["evidence_bindings"]
+            ],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PRE_PERFORMANCE_SPECIFICATION",
+                "SPEC_HASH_BOUND_DETERMINISTIC_RUNNER",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_EVIDENCE",
+            ],
+        )
+        self.assertTrue(partial_core_runner["prohibited_reopen"])
+        closed_fomc_announcement_day = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fomc-scheduled-announcement-day-risk-veto"
+        )
+        self.assertEqual(
+            closed_fomc_announcement_day["disposition"],
+            "NO_CANDIDATE_CLOSE_FOMC_SCHEDULED_ANNOUNCEMENT_DAY_RISK_VETO_FAMILY",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_fomc_announcement_day["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "FROZEN_PRE_OUTCOME_OFFICIAL_EVENT_CALENDAR",
+                "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_fomc_announcement_day["prohibited_reopen"])
+        closed_monthly_options_expiry = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-deribit-last-friday-monthly-options-expiry-risk-veto"
+        )
+        self.assertEqual(
+            closed_monthly_options_expiry["disposition"],
+            "NO_CANDIDATE_CLOSE_DERIBIT_MONTHLY_OPTIONS_EXPIRY_RISK_VETO_FAMILY",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_monthly_options_expiry["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_monthly_options_expiry["prohibited_reopen"])
+        closed_bls_cpi = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-bls-cpi-scheduled-release-day-risk-veto"
+        )
+        self.assertEqual(
+            closed_bls_cpi["disposition"],
+            "NO_CANDIDATE_CLOSE_BLS_CPI_SCHEDULED_RELEASE_DAY_RISK_VETO_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_bls_cpi["evidence_bindings"]],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "FROZEN_PRE_OUTCOME_OFFICIAL_EVENT_CALENDAR",
+                "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "SEALED_PRE_RESULT_CALENDAR_WEEKDAY_AMENDMENT",
+                "SEALED_PRE_RESULT_TERMINAL_BOUNDARY_AMENDMENT",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_bls_cpi["prohibited_reopen"])
+        closed_bls_employment = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-bls-employment-situation-scheduled-release-day-risk-veto"
+        )
+        self.assertEqual(
+            closed_bls_employment["disposition"],
+            "NO_CANDIDATE_CLOSE_BLS_EMPLOYMENT_SITUATION_SCHEDULED_RELEASE_DAY_RISK_VETO_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_bls_employment["evidence_bindings"]],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "FROZEN_PRE_OUTCOME_OFFICIAL_EVENT_CALENDAR",
+                "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_bls_employment["prohibited_reopen"])
+        closed_breakeven_reflation = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-five-year-breakeven-inflation-reflation-support-long-cash"
+        )
+        self.assertEqual(
+            closed_breakeven_reflation["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_FRED_FIVE_YEAR_BREAKEVEN_INFLATION_REFLATION_SUPPORT_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_breakeven_reflation["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "FROZEN_PRE_OUTCOME_SOURCE_FEASIBILITY_SPEC",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
+                "SEALED_FRED_T5YIE_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_breakeven_reflation["prohibited_reopen"])
+        closed_initial_claims = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-initial-claims-easing-labor-resilience-long-cash"
+        )
+        self.assertEqual(
+            closed_initial_claims["disposition"],
+            "DATA_REJECT_CLOSE_ICSA_LABOR_RESILIENCE_FAMILY_BEFORE_BTC_OUTCOME_ACCESS",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_initial_claims["evidence_bindings"]],
+            [
+                "SEALED_PRE_OUTCOME_SOURCE_GATE_DECISION",
+                "FROZEN_PRE_FACTOR_SOURCE_FEASIBILITY_SPEC",
+                "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
+                "SEALED_FRED_ICSA_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
+            ],
+        )
+        self.assertTrue(closed_initial_claims["prohibited_reopen"])
+        closed_business_applications = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-business-applications-yoy-growth-long-cash"
+        )
+        self.assertEqual(
+            closed_business_applications["disposition"],
+            "DATA_REJECT_CLOSE_BUSINESS_APPLICATIONS_YOY_GROWTH_FAMILY_BEFORE_BTC_OUTCOME_ACCESS",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_business_applications["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_OUTCOME_SOURCE_GATE_DECISION",
+                "FROZEN_PRE_FACTOR_SOURCE_FEASIBILITY_SPEC",
+                "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE",
+            ],
+        )
+        self.assertTrue(closed_business_applications["prohibited_reopen"])
+        closed_native_issuance = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash"
+        )
+        self.assertEqual(
+            closed_native_issuance["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_NATIVE_ISSUANCE_CONTRACTION_SUPPLY_PRESSURE_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_native_issuance["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_OFFICIAL_COMMUNITY_TRANSPORT_PRIOR",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "FROZEN_PRE_OUTCOME_SOURCE_FEASIBILITY_SPEC",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
+                "SEALED_COINMETRICS_ISS_TOT_NTV_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_native_issuance["prohibited_reopen"])
+        closed_address_balance_growth = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-coinmetrics-address-balance-count-28d-growth-long-cash"
+        )
+        self.assertEqual(
+            closed_address_balance_growth["disposition"],
+            "DATA_REJECT_CLOSE_BTC_COINMETRICS_ADDRESS_BALANCE_COUNT_GROWTH_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_address_balance_growth["evidence_bindings"]],
+            [
+                "SEALED_PRE_HYPOTHESIS_PRE_OUTCOME_DATA_REJECT_DECISION",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_FREE_TRANSPORT_PREFLIGHT_PRIOR",
+                "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
+                "SEALED_COINMETRICS_ADRBALCNT_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
+            ],
+        )
+        self.assertTrue(closed_address_balance_growth["prohibited_reopen"])
+        closed_on_rrp_drawdown = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-on-rrp-drawdown-liquidity-support-long-cash"
+        )
+        self.assertEqual(
+            closed_on_rrp_drawdown["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_FRED_ON_RRP_DRAWDOWN_LIQUIDITY_SUPPORT_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in closed_on_rrp_drawdown["evidence_bindings"]],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
+                "SEALED_OFFICIAL_RRPONTSYD_SOURCE_BUNDLE",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_on_rrp_drawdown["prohibited_reopen"])
+        closed_reserve_balances_growth = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-reserve-balances-growth-liquidity-support-long-cash"
+        )
+        self.assertEqual(
+            closed_reserve_balances_growth["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_FRED_RESERVE_BALANCES_GROWTH_LIQUIDITY_SUPPORT_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_reserve_balances_growth["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
+                "SEALED_OFFICIAL_WRESBAL_SOURCE_BUNDLE",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_reserve_balances_growth["prohibited_reopen"])
+        closed_cftc_carry_crash_proxy = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-cftc-leveraged-fund-net-short-level-carry-crash-risk-veto"
+        )
+        self.assertEqual(
+            closed_cftc_carry_crash_proxy["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_CFTC_LEVERAGED_FUND_NET_SHORT_CARRY_CRASH_PROXY_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_cftc_carry_crash_proxy["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_cftc_carry_crash_proxy["prohibited_reopen"])
+        closed_tga_liquidity_support = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-tga-drawdown-liquidity-support-long-cash"
+        )
+        self.assertEqual(
+            closed_tga_liquidity_support["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_FRED_TGA_DRAWDOWN_LIQUIDITY_SUPPORT_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_tga_liquidity_support["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
+                "SEALED_OFFICIAL_WTREGEN_SOURCE_BUNDLE",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_tga_liquidity_support["prohibited_reopen"])
+        closed_exchange_net_inflow = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-risk-veto"
+        )
+        self.assertEqual(
+            closed_exchange_net_inflow["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_WEEKLY_EXCHANGE_NET_INFLOW_SELL_PRESSURE_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_exchange_net_inflow["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "SEALED_PRE_OUTCOME_TRANSPORT_ERRATUM",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
+                "FROZEN_FAIL_CLOSED_COINMETRICS_SOURCE_PROBE",
+                "SEALED_COINMETRICS_SOURCE_BUNDLE",
+                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+            ],
+        )
+        self.assertTrue(closed_exchange_net_inflow["prohibited_reopen"])
+        cftc_trader_breadth = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-cftc-reportable-trader-breadth-growth-long-cash"
+        )
+        self.assertEqual(
+            cftc_trader_breadth["disposition"],
+            "PRIOR_REJECT_CLOSE_BTC_CFTC_REPORTABLE_TRADER_BREADTH_GROWTH_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in cftc_trader_breadth["evidence_bindings"]],
+            [
+                "SEALED_PRE_FACTOR_PRE_OUTCOME_PRIMARY_PRIOR_REJECT",
+                "HASH_BOUND_PRIOR_REJECT_ACCEPTANCE",
+            ],
+        )
+        self.assertTrue(cftc_trader_breadth["prohibited_reopen"])
+        cftc_concentration = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-cftc-top4-net-concentration-level-long-cash"
+        )
+        self.assertEqual(
+            cftc_concentration["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_CFTC_TOP4_NET_CONCENTRATION_LEVEL_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertTrue(cftc_concentration["prohibited_reopen"])
+        cftc_nonreportable = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-cftc-nonreportable-net-position-change-long-cash"
+        )
+        self.assertEqual(
+            cftc_nonreportable["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_CFTC_NONREPORTABLE_NET_POSITION_CHANGE_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertTrue(cftc_nonreportable["prohibited_reopen"])
+        m2_liquidity = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-m2-liquidity-acceleration-long-cash"
+        )
+        self.assertEqual(
+            m2_liquidity["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_M2_LIQUIDITY_ACCELERATION_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in m2_liquidity["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRE_OUTCOME_PRIOR",
+                "FROZEN_V1_CAPABILITY_ERRATUM_WITHOUT_SCIENTIFIC_CHANGE",
+                "SEALED_OFFICIAL_H6_SOURCE_IDENTITY_TIMING_AND_REVISION_BUNDLE",
+            ],
+        )
+        self.assertTrue(m2_liquidity["prohibited_reopen"])
+        cftc_open_interest = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-cftc-total-open-interest-growth-long-cash"
+        )
+        self.assertEqual(
+            cftc_open_interest["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_CFTC_TOTAL_OPEN_INTEREST_GROWTH_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in cftc_open_interest["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRE_ECONOMIC_HISTORICAL_DECISION",
+                "FROZEN_V2_CAPABILITY_AMENDMENT_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRE_OUTCOME_PRIOR",
+                "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+                "FROZEN_V1_CAPABILITY_ERRATUM_WITHOUT_SCIENTIFIC_CHANGE",
+            ],
+        )
+        self.assertTrue(cftc_open_interest["prohibited_reopen"])
+        other_reportables = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-cftc-other-reportables-net-position-change-long-cash"
+        )
+        self.assertEqual(
+            other_reportables["disposition"],
+            "PRIOR_REJECT_CLOSE_BTC_CFTC_OTHER_REPORTABLES_NET_POSITION_CHANGE_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in other_reportables["evidence_bindings"]],
+            [
+                "SEALED_PRE_FACTOR_PRE_OUTCOME_PRIMARY_PRIOR_REJECT",
+                "HASH_BOUND_PRIOR_REJECT_ACCEPTANCE",
+            ],
+        )
+        self.assertTrue(other_reportables["prohibited_reopen"])
+        dealer_positioning = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-cftc-dealer-net-position-change-long-cash"
+        )
+        self.assertEqual(
+            dealer_positioning["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_CFTC_DEALER_NET_POSITION_CHANGE_FAMILY_PRE_ECONOMIC",
+        )
+        self.assertTrue(dealer_positioning["prohibited_reopen"])
+        short_rate = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-us-treasury-3m-yield-easing-long-cash"
+        )
+        self.assertEqual(
+            short_rate["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_US_TREASURY_3M_YIELD_EASING_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in short_rate["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+                "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
+            ],
+        )
+        self.assertTrue(short_rate["prohibited_reopen"])
+        miner_revenue = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-miner-revenue-per-hash-momentum-long-cash"
+        )
+        self.assertEqual(
+            miner_revenue["disposition"],
+            "DUPLICATE_REJECT_CLOSE_BTC_MINER_REVENUE_PER_HASH_MOMENTUM_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in miner_revenue["evidence_bindings"]],
+            [
+                "SEALED_PRE_ECONOMIC_DUPLICATE_REJECT_DECISION",
+                "FROZEN_PREREGISTRATION_AND_NONREDUNDANCY_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+                "SEALED_BYTE_IDENTICAL_PRE_ECONOMIC_NONREDUNDANCY_RUN",
+            ],
+        )
+        self.assertTrue(miner_revenue["prohibited_reopen"])
+        relative_strength = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-nasdaq-relative-strength-long-cash"
+        )
+        self.assertEqual(
+            relative_strength["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_NASDAQ_RELATIVE_STRENGTH_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in relative_strength["evidence_bindings"]
+            ],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+                "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
+            ],
+        )
+        self.assertTrue(relative_strength["prohibited_reopen"])
+        cmf = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-daily-chaikin-money-flow-long-cash"
+        )
+        self.assertEqual(
+            cmf["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_DAILY_CHAIKIN_MONEY_FLOW_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in cmf["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+                "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
+            ],
+        )
+        self.assertTrue(cmf["prohibited_reopen"])
+        monthly_rebalanced = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-monthly-rebalanced-half-passive-half-dra-v1"
+        )
+        self.assertEqual(
+            monthly_rebalanced["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_MONTHLY_REBALANCED_HALF_PASSIVE_HALF_DRA_V1_FAMILY",
+        )
+        self.assertTrue(monthly_rebalanced["prohibited_reopen"])
+        cross_sectional_momentum = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-liquid-crypto-cross-sectional-momentum-long-only-source-reject"
+        )
+        self.assertEqual(
+            cross_sectional_momentum["disposition"],
+            "DATA_REJECT_CLOSE_LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_FREE_ARCHIVE_FAMILY",
+        )
+        self.assertTrue(cross_sectional_momentum["prohibited_reopen"])
+        movement_volume = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-h1-absolute-return-volume-coupling-entry-admission"
+        )
+        self.assertEqual(
+            movement_volume["disposition"],
+            "NO_MECHANISM_CLOSE_FEATURE_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in movement_volume["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+                "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
+            ],
+        )
+        self.assertTrue(movement_volume["prohibited_reopen"])
+        onchain_activity = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-onchain-activity-breadth-entry-admission"
+        )
+        self.assertEqual(
+            onchain_activity["disposition"],
+            "NO_CANDIDATE_CLOSE_ONCHAIN_ACTIVITY_BREADTH_DRA_ADMISSION_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in onchain_activity["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+                "REUSED_SEALED_SOURCE_NO_NEW_DOWNLOAD",
+            ],
+        )
+        self.assertTrue(onchain_activity["prohibited_reopen"])
+        stablecoin_liquidity = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-stablecoin-liquidity-growth-entry-admission"
+        )
+        self.assertEqual(
+            stablecoin_liquidity["disposition"],
+            "NO_CANDIDATE_CLOSE_STABLECOIN_LIQUIDITY_DRA_ADMISSION_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in stablecoin_liquidity["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+                "REUSED_SEALED_SOURCE_NO_NEW_DOWNLOAD",
+            ],
+        )
+        self.assertTrue(stablecoin_liquidity["prohibited_reopen"])
+        intraday_close_path_drawdown = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-intraday-close-path-drawdown-entry-admission"
+        )
+        self.assertEqual(
+            intraday_close_path_drawdown["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_INTRADAY_CLOSE_PATH_DRAWDOWN_FAMILY",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in intraday_close_path_drawdown["evidence_bindings"]
+            ],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+            ],
+        )
+        self.assertTrue(intraday_close_path_drawdown["prohibited_reopen"])
+        late_day_activity = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-late-day-price-activity-entry-admission"
+        )
+        self.assertEqual(
+            late_day_activity["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_LATE_DAY_PRICE_ACTIVITY_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in late_day_activity["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+            ],
+        )
+        self.assertTrue(late_day_activity["prohibited_reopen"])
+        eth_relative_strength = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-eth-relative-strength-breadth-entry-admission"
+        )
+        self.assertEqual(
+            eth_relative_strength["disposition"],
+            "DATA_REJECT_CLOSE_BTC_ETH_REFERENCE_RATE_FREE_SOURCE_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in eth_relative_strength["evidence_bindings"]],
+            [
+                "SEALED_PRE_OUTCOME_DATA_REJECT_DECISION",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
+                "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE",
+            ],
+        )
+        self.assertTrue(eth_relative_strength["prohibited_reopen"])
+        bitcoin_nvt = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-bitcoin-nvt-relative-utility-entry-admission"
+        )
+        self.assertEqual(
+            bitcoin_nvt["disposition"],
+            "DATA_REJECT_CLOSE_NVTADJ_FREE_SOURCE_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in bitcoin_nvt["evidence_bindings"]],
+            [
+                "SEALED_PRE_OUTCOME_DATA_REJECT_DECISION",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
+                "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE",
+            ],
+        )
+        self.assertTrue(bitcoin_nvt["prohibited_reopen"])
+        gold_implied_volatility = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-gold-implied-volatility-calm-state-entry-admission"
+        )
+        self.assertEqual(
+            gold_implied_volatility["disposition"],
+            "DATA_REJECT_CLOSE_GVZ_SOURCE_SCHEMA_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in gold_implied_volatility["evidence_bindings"]],
+            [
+                "SEALED_PRE_OUTCOME_DATA_REJECT_DECISION",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
+                "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE",
+            ],
+        )
+        self.assertTrue(gold_implied_volatility["prohibited_reopen"])
+        nasdaq_diversification = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-btc-nasdaq-diversification-state-entry-admission"
+        )
+        self.assertEqual(
+            nasdaq_diversification["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_NASDAQ_DIVERSIFICATION_STATE_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in nasdaq_diversification["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_FACTOR_BOUNDARY_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "REUSED_SEALED_NASDAQCOM_SOURCE_NO_NEW_DOWNLOAD",
+            ],
+        )
+        self.assertTrue(nasdaq_diversification["prohibited_reopen"])
+        epu = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-dra-us-epu-hedge-entry-admission"
+        )
+        self.assertEqual(
+            epu["disposition"],
+            "NO_CANDIDATE_CLOSE_US_EPU_HEDGE_ENTRY_ADMISSION_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in epu["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_FEASIBILITY_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+                "SEALED_CREATE_ONCE_FRED_SOURCE_NO_BTC_OUTCOME",
+            ],
+        )
+        self.assertTrue(epu["prohibited_reopen"])
+        realized_skewness = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-intraday-realized-skewness-entry-admission"
+        )
+        self.assertEqual(
+            realized_skewness["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_REALIZED_SKEWNESS_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in realized_skewness["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+            ],
+        )
+        self.assertTrue(realized_skewness["prohibited_reopen"])
+        h1_first_extreme_order = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-h1-first-extreme-order-entry-admission"
+        )
+        self.assertEqual(
+            h1_first_extreme_order["disposition"],
+            "NO_CANDIDATE_CLOSE_DRA_H1_FIRST_EXTREME_ORDER_FAMILY",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in h1_first_extreme_order["evidence_bindings"]
+            ],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+            ],
+        )
+        self.assertTrue(h1_first_extreme_order["prohibited_reopen"])
+        cftc_asset_manager = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-cftc-asset-manager-contrarian-entry-admission"
+        )
+        self.assertEqual(
+            cftc_asset_manager["disposition"],
+            "NO_CANDIDATE_CLOSE_CFTC_ASSET_MANAGER_CONTRARIAN_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in cftc_asset_manager["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "SEALED_CITATION_METADATA_ERRATUM",
+            ],
+        )
+        self.assertTrue(cftc_asset_manager["prohibited_reopen"])
         volatility_instability = next(
             family
             for family in catalog["closed_families"]
@@ -127,6 +1567,86 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
         )
         self.assertTrue(vix_risk_state["prohibited_reopen"])
+        vix_term_structure = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-vix-vix3m-term-structure-long-cash"
+        )
+        self.assertEqual(
+            vix_term_structure["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_VIX_TERM_STRUCTURE_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in vix_term_structure["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "SEALED_SOURCE_PROVENANCE_ALIGNMENT_AND_TIMING",
+            ],
+        )
+        self.assertTrue(vix_term_structure["prohibited_reopen"])
+        high_yield_oas = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-high-yield-oas-risk-state-source-unavailable"
+        )
+        self.assertEqual(
+            high_yield_oas["disposition"],
+            "DATA_PATH_REJECT_INSUFFICIENT_FREE_HISTORICAL_COVERAGE",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in high_yield_oas["evidence_bindings"]],
+            [
+                "SEALED_PRE_OUTCOME_SOURCE_FEASIBILITY_REJECT",
+                "MANAGER_EXCLUDE_ACCEPTANCE",
+            ],
+        )
+        self.assertTrue(high_yield_oas["prohibited_reopen"])
+        treasury_term_spread = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-us-treasury-term-spread-noninversion-long-cash"
+        )
+        self.assertEqual(
+            treasury_term_spread["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_TREASURY_TERM_SPREAD_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in treasury_term_spread["evidence_bindings"]
+            ],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "SEALED_SOURCE_PROVENANCE_TIMING_SERIES_BREAK_AND_REVISION_IDENTITY",
+            ],
+        )
+        self.assertTrue(treasury_term_spread["prohibited_reopen"])
+        nasdaq_trend = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-nasdaq-composite-external-trend-long-cash"
+        )
+        self.assertEqual(
+            nasdaq_trend["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_NASDAQ_COMPOSITE_TREND_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in nasdaq_trend["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+                "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_AND_COPYRIGHT_IDENTITY",
+            ],
+        )
+        self.assertTrue(nasdaq_trend["prohibited_reopen"])
         intraday_price_path = next(
             family
             for family in catalog["closed_families"]
@@ -359,6 +1879,80 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
         )
         self.assertTrue(lagged_volatility["prohibited_reopen"])
+        sma200 = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-daily-sma200-long-cash"
+        )
+        self.assertEqual(
+            sma200["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_DAILY_SMA200_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in sma200["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_FINGERPRINT_PRIOR",
+            ],
+        )
+        self.assertTrue(sma200["prohibited_reopen"])
+        bollinger = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-daily-bollinger20-2-long-cash"
+        )
+        self.assertEqual(
+            bollinger["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_DAILY_BOLLINGER20_2_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in bollinger["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_FINGERPRINT_PRIOR",
+            ],
+        )
+        self.assertTrue(bollinger["prohibited_reopen"])
+        psar = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-daily-psar-long-cash"
+        )
+        self.assertEqual(
+            psar["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_DAILY_PSAR_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in psar["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_ADVERSARIAL_AND_FINGERPRINT_PRIOR",
+            ],
+        )
+        self.assertTrue(psar["prohibited_reopen"])
+        intraday_session = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-intraday-fixed-utc-session-long-cash"
+        )
+        self.assertEqual(
+            intraday_session["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_INTRADAY_FIXED_UTC_SESSION_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in intraday_session["evidence_bindings"]],
+            [
+                "SEALED_HISTORICAL_ECONOMIC_DECISION",
+                "FROZEN_PREREGISTRATION_MANIFEST",
+                "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+            ],
+        )
+        self.assertTrue(intraday_session["prohibited_reopen"])
         self.assertTrue(
             all(
                 binding["verified"]
@@ -376,7 +1970,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 34)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 135)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

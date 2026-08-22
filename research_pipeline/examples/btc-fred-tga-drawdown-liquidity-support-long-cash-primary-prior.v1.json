@@ -1,0 +1,104 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_TGA_DRAWDOWN_LIQUIDITY_SUPPORT_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-tga-drawdown-liquidity-support-long-cash",
+  "created_at": "2026-08-20T11:52:44Z",
+  "status": "PRIMARY_PRIOR_AND_FREE_EXECUTABLE_SOURCE_PATH_READY_HYPOTHESIS_NOT_YET_FROZEN",
+  "frozen_before_wtregen_factor_or_new_btc_outcome_pairing_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_LATER_HASH_BOUND_PRE_ECONOMIC_PREDICTIVE_SCREEN",
+  "claim_boundary": "Federal Reserve sources establish the balance-sheet mechanism: all else equal, a decline in the Treasury General Account increases depository-institution reserves, while an increase drains reserves. They do not establish that this reserve movement predicts Bitcoin returns, survives publication lag, or supports a profitable BTC long-or-cash policy. Those are unproven and require a fail-closed predictive screen before economics.",
+  "primary_sources": [
+    {
+      "title": "Background on Selected Assets",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/monetarypolicy/bsd-background-202008.htm",
+      "use": "Primary balance-sheet direction: Treasury payments reduce the TGA and, all else equal, increase depository-institution reserves; flows into the TGA drain reserves."
+    },
+    {
+      "title": "A Return to Operating with Abundant Reserves",
+      "publisher": "Federal Reserve Bank of New York",
+      "url": "https://www.newyorkfed.org/newsevents/speeches/2020/log201201",
+      "use": "Primary institutional mechanism and adversarial warning: TGA increases reduce reserves, while TGA cash management is driven by precautionary and fiscal needs rather than a Bitcoin signal."
+    },
+    {
+      "title": "Treasury General Account: Week Average (WTREGEN)",
+      "publisher": "Federal Reserve Bank of St. Louis FRED; source Board of Governors H.4.1",
+      "url": "https://fred.stlouisfed.org/series/WTREGEN",
+      "use": "Official free weekly, Wednesday-ending, not-seasonally-adjusted TGA series and executable CSV download identity."
+    }
+  ],
+  "proposed_feature_for_next_cycle_only": {
+    "factor_identity": "FRED_WTREGEN_CURRENT_VALUE_STRICTLY_BELOW_VALUE_FOUR_ELIGIBLE_WEEKLY_OBSERVATIONS_EARLIER",
+    "supportive_state": "CURRENT_TGA_WEEK_AVERAGE_STRICTLY_BELOW_PRIOR_FOUR_WEEK_VALUE",
+    "drain_or_neutral_state": "OTHERWISE",
+    "primary_direction": "SUPPORTIVE_STATE_HAS_HIGHER_NEXT_168H_BTC_TERMINAL_RETURN_AND_NO_WORSE_PATH_DRAWDOWN",
+    "availability_floor": "OBSERVATION_DATE_WEDNESDAY_PLUS_2_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "outcome_horizon_hours": 168,
+    "variant_count": 1,
+    "status": "PROPOSED_NOT_A_HYPOTHESIS_NOT_AUTHORIZED_FOR_FACTOR_OR_OUTCOME_ACCESS_THIS_CYCLE"
+  },
+  "future_economic_contract_if_and_only_if_predictive_screen_passes": {
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_SUPPORTIVE_STATE_ZERO_YIELD_CASH_OTHERWISE_NO_LEVERAGE_NO_SHORT",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "top_event_concentration"
+    ]
+  },
+  "data_path": {
+    "status": "READY_FOR_NEXT_CYCLE_SOURCE_SEALING_NO_PAID_API",
+    "tga": {
+      "series_id": "WTREGEN",
+      "source_release": "H4.1_FACTORS_AFFECTING_RESERVE_BALANCES",
+      "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WTREGEN",
+      "source_cost": "OFFICIAL_FREE",
+      "expected_frequency": "WEEKLY_ENDING_WEDNESDAY",
+      "expected_units": "MILLIONS_OF_US_DOLLARS_NOT_SEASONALLY_ADJUSTED",
+      "required_action_before_factor_access": "DOWNLOAD_ONCE_SEAL_RAW_BYTES_RECORD_SHA256_AND_VALIDATE_IDENTITY_DATE_ORDER_MISSING_VALUES_AND_AVAILABILITY"
+    },
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    }
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_mechanism": "This family measures Treasury cash-account flows that mechanically change reserve supply. It is not the closed Federal Reserve asset-balance growth, M2 acceleration, real-yield change, nominal-yield easing, term-spread, dollar, credit-spread or NFCI family.",
+    "prohibited_rescue": "Do not combine TGA with ON RRP, WALCL, M2, price trend, volatility, CFTC, on-chain or technical indicators; do not alter the four-observation comparison, direction, lag or horizon after factor or outcome access.",
+    "shared_macro_risk": "The mechanism is macro-liquidity adjacent to several closed families. A clean source and distinct accounting identity do not imply independent Bitcoin alpha, so both Design and Validation predictive gates are mandatory before economics."
+  },
+  "adversarial_prior": [
+    "TGA changes reflect taxes, debt issuance, debt-limit episodes and fiscal cash management; they are not policy surprises and may be anticipated.",
+    "The reserve effect is explicitly all-else-equal and may be offset by Federal Reserve assets, currency, ON RRP or other liabilities.",
+    "A weekly average plus conservative publication floor may leave no tradable information by the first eligible BTC H1 open.",
+    "The 2020 pandemic and later debt-limit episodes may dominate apparent results, so annual breadth and event concentration must fail closed.",
+    "A long-or-cash rule can appear safer merely because it withholds capital; risk-adjusted improvement must include utilization and upside opportunity cost."
+  ],
+  "next_cycle_stop_conditions": [
+    "Stop DATA_REJECT before factor access if the downloaded raw bytes cannot be sealed, the series identity or units differ, weekly dates are unordered or duplicated, or the conservative availability rule cannot be enforced.",
+    "Freeze exactly one hypothesis and one pre-economic predictive manifest before joining any TGA observation to a BTC outcome.",
+    "Stop NO_CANDIDATE before economics if either Design or Validation fails support, return direction, path-drawdown, annual-breadth or concentration gates.",
+    "Do not change the four-observation comparison, direction, availability floor, 168-hour horizon, parent or action after factor or outcome access.",
+    "Do not open post-2024 outcomes; any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed OOS."
+  ],
+  "missing_proof": [
+    "The WTREGEN source has not been downloaded or sealed for this family.",
+    "No hash-bound hypothesis, runner, manifest or deterministic run exists.",
+    "No Design or Validation predictive result or matched-capital economics exists.",
+    "No candidate, independent OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior plus an executable official-free source path only. No WTREGEN factor value, BTC outcome pairing, hypothesis, runner, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

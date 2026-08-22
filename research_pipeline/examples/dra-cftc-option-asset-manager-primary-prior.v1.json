@@ -1,0 +1,52 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CFTC_OPTION_ASSET_MANAGER_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "frozen_before_factor_value_or_outcome_access": true,
+  "primary_source": {
+    "title": "Option positions, non-momentum trading, and Bitcoin futures returns",
+    "authors": ["Jiayu Shen", "Youwei Li", "Xingguo Luo"],
+    "doi": "10.1016/j.frl.2026.110300",
+    "accepted_manuscript_url": "https://hull-repository.worktribe.com/output/5680567/option-positions-non-momentum-trading-and-bitcoin-futures-returns",
+    "evidence_boundary": "The peer-reviewed paper reports that CFTC asset-manager Bitcoin option positioning selectively predicts second-week-ahead futures returns and that the non-momentum component drives the result. The present raw-change factor is a deliberately simpler transfer test, not a replication of the unavailable residual formula."
+  },
+  "source_contract": {
+    "publisher": "U.S. COMMODITY FUTURES TRADING COMMISSION",
+    "combined_dataset_id": "yw9f-hn96",
+    "combined_minus_futures_semantics": "Option positions are derived as futures-and-options-combined futures-equivalent positions minus futures-only positions for the identical report date.",
+    "credentials": "NONE",
+    "historical_window": "2020-01-01_TO_2024-12-31"
+  },
+  "factor": {
+    "factor_identity": "CFTC_TFF_OPTION_ASSET_MANAGER_NET_PCT_OI_WEEKLY_CONTRACTION_168H_V1",
+    "formula": "prior_option_asset_manager_net_pct_oi-current_option_asset_manager_net_pct_oi",
+    "option_asset_manager_net_pct_oi": "100*((combined_asset_long-futures_asset_long)-(combined_asset_short-futures_asset_short))/(combined_open_interest-futures_open_interest)",
+    "admission_rule": "ADMIT_PARENT_SIGNAL_ONLY_WHEN_FACTOR_SCORE_GT_ZERO",
+    "decision_time": "REPORT_DATE_PLUS_7_CALENDAR_DAYS_AT_00_00_UTC",
+    "valid_hours": 168,
+    "post_outcome_dependency": "DENY"
+  },
+  "performance_case": {
+    "causal_mechanism": "A weekly contraction in asset-manager option net exposure may indicate that the adverse residual positioning pressure documented in the primary study is absent before the second-week decision window.",
+    "performance_hypothesis": "Admitting unchanged equal-capital DRA entries only during option-position contraction may improve fee-adjusted realized and total PnL.",
+    "drawdown_hypothesis": "The filter may avoid adverse second-week paths without increasing maximum drawdown, underwater duration, holding age or terminal inventory.",
+    "opportunity_cost": "If contraction removes profitable DRA participation or the raw change does not inherit the paper's residual predictability, the family must close without residualization or threshold tuning."
+  },
+  "variant_count": 1,
+  "neighbors": [],
+  "frozen_gates": {
+    "predictive": "REUSE_CFTC_TFF_DESIGN_AND_VALIDATION_DIRECTIONAL_GATES",
+    "economics": "REUSE_MATCHED_CAPITAL_DRA_CFTC_TFF_GATES",
+    "fees_and_slippage": "REQUIRED",
+    "realized_unrealized_total_pnl": "REQUIRED",
+    "drawdown_holding_underwater_inventory_breadth": "REQUIRED"
+  },
+  "stop_conditions": [
+    "Stop on any source, schema, row identity, exact-date join or pre-outcome availability mismatch.",
+    "Stop and close if any frozen Design or Validation predictive or economic gate fails.",
+    "Do not residualize, invert, normalize differently, change the seven-day decision clock, tune a threshold or inspect OOS after outcome access."
+  ],
+  "oos_access": "DENY",
+  "candidate_limit": 1,
+  "scientific_claim": "RAW_OPTION_POSITION_CHANGE_TRANSFER_TEST_NOT_NON_MOMENTUM_RESIDUAL_REPLICATION"
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_FED_BALANCE_SHEET_GROWTH_SOURCE_FETCH_AMENDMENT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "FROZEN_BEFORE_ANY_BTC_OR_DRA_OUTCOME_ACCESS",
+  "hypothesis_id": "dra-fed-balance-sheet-growth-entry-admission-v1",
+  "reason": "The official FRED endpoint timed out twice when asked for the full 2018-2024 interval, at 30 and 120 seconds, while a single-year official request completed successfully. This is a source-transport amendment, not a factor or outcome amendment.",
+  "amended_source_contract": {
+    "requests": "SEVEN_NON_OVERLAPPING_CALENDAR_YEAR_FREDGRAPH_CSV_REQUESTS_FOR_WALCL_2018_THROUGH_2024",
+    "raw_preservation": "STORE_EACH_EXACT_HTTP_RESPONSE_BODY_IN_A_DETERMINISTIC_UNCOMPRESSED_ZIP",
+    "normalization": "REQUIRE_IDENTICAL_HEADERS_THEN_MERGE_AND_SORT_UNIQUE_OBSERVATION_DATES",
+    "whole_sample_gates": "REQUIRE_365_ROWS_FROM_2018_01_03_THROUGH_2024_12_25_WITH_EXACT_SEVEN_DAY_WEDNESDAY_CONTINUITY_AND_POSITIVE_INTEGER_VALUES",
+    "credentials": "DENY",
+    "retry_per_request": "DENY"
+  },
+  "unchanged_contract": [
+    "WALCL_ONLY",
+    "STRICT_POSITIVE_CHANGE_VERSUS_EXACTLY_28_CALENDAR_DAYS_EARLIER",
+    "OBSERVATION_DAY_PLUS_THREE_CALENDAR_DAYS_0000_UTC",
+    "168_HOUR_VALIDITY",
+    "ONE_PRIMARY_VARIANT",
+    "FROZEN_DRA_V1_MATCHED_CAPITAL_PARENT",
+    "DESIGN_2020_2022_VALIDATION_2023_2024",
+    "NO_POST_2024_DATA",
+    "NO_OOS_OR_TRADING_PATH"
+  ],
+  "known_pre_outcome_access": "Only a 2018 annual WALCL response was fetched as a transport feasibility check. No BTC price, DRA event, PnL, drawdown, holding, annual strategy result, post-2024 observation or candidate outcome was accessed.",
+  "frozen_at": "2026-08-19T09:31:30Z"
+}

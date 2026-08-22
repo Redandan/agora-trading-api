@@ -1,0 +1,103 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "liquid-crypto-cross-sectional-momentum-long-only-v1",
+  "title": "Point-in-time liquid-crypto prior-day-skipped cross-sectional momentum long-only allocation",
+  "thesis": "Among a fixed pre-Design cohort of historically available Binance Spot USDT assets, gradual information diffusion and constrained arbitrage may cause liquid recent relative winners to outperform an equal-weight liquid-crypto market portfolio after executable fees and adverse slippage.",
+  "mechanism": "At each 00:00 UTC rebalance, use only complete bars ending before that instant. Build a point-in-time eligible set from a frozen pre-Design all-history archive cohort, rank the eligible set by prior 30-complete-day median quote volume, retain the top 20, then rank those assets by the complete-day close return from T-12 to T-2, deliberately skipping T-1. Hold the top six equal-weight until the next daily rebalance; hold cash if fewer than 20 assets are eligible.",
+  "economic_rationale": "A liquid long-only top-momentum bucket is useful only if it beats both cash and the same-cost equal-weight top-20 liquidity parent in Design and Validation, survives normal and stressed trading costs, controls drawdown and stale inventory, and distributes improvement across years and assets rather than relying on one token or terminal mark.",
+  "source": "LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_LONG_ONLY_PRIMARY_PRIOR_V1_AND_SEALED_BINANCE_ARCHIVE_SOURCE_ACCEPTANCE",
+  "parent": "DAILY_EQUAL_WEIGHT_POINT_IN_TIME_TOP_20_PRIOR_30D_MEDIAN_QUOTE_VOLUME_PORTFOLIO",
+  "required_capability": "checksummed-binance-spot-usdt-daily-corpus-and-direct-matched-capital-economic-runner-v1",
+  "data_readiness": "SOURCE_FEASIBILITY_PASS_CORPUS_NOT_YET_DOWNLOADED",
+  "independence_semantics": "MULTI_ASSET_RELATIVE_RETURN_ALLOCATION_DISTINCT_FROM_SINGLE_BTC_DRA_FILTERS_AND_EXITS",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "formation_return": "CLOSE_T_MINUS_2_DIVIDED_BY_CLOSE_T_MINUS_12_MINUS_1",
+      "liquidity_lookback_complete_days": 30,
+      "liquid_universe_size": 20,
+      "selected_asset_count": 6,
+      "rebalance_frequency": "DAILY_00_00_UTC"
+    }
+  ],
+  "expected_metrics": [
+    "normal_and_stress_fee_slippage_adjusted_realized_unrealized_and_total_return",
+    "matched_parent_total_return_delta",
+    "maximum_drawdown_and_underwater_duration",
+    "turnover_and_trading_cost",
+    "daily_and_annual_breadth",
+    "top_asset_and_top_year_incremental_contribution",
+    "stale_or_delisted_inventory_and_zero_recovery_stress",
+    "tail_loss_and_crash_path_attribution",
+    "terminal_inventory"
+  ],
+  "pre_outcome_constraints": {
+    "cohort": "ASCII_BINANCE_SPOT_USDT_SYMBOLS_WITH_A_VALID_1D_ARCHIVE_FOR_2019_12_DISCOVERED_FROM_THE_ALL_HISTORY_BUCKET_BEFORE_ANY_PRICE_OUTCOME_ACCESS",
+    "cohort_use": "FIXED_SUPERSET_NO_POST_2019_LISTING_ADDITIONS_NO_CURRENT_EXCHANGE_INFO_NO_HAND_SELECTED_SURVIVORS",
+    "minimum_history": "365_CONTIGUOUS_COMPLETE_DAILY_BARS_BEFORE_REBALANCE",
+    "current_availability": "A_COMPLETE_T_MINUS_1_BAR_IS_REQUIRED_WITHOUT_LOOKING_FOR_A_FUTURE_T_PLUS_1_BAR",
+    "momentum_return": "CLOSE_T_MINUS_2_DIVIDED_BY_CLOSE_T_MINUS_12_MINUS_1",
+    "liquidity": "MEDIAN_QUOTE_VOLUME_OF_T_MINUS_30_THROUGH_T_MINUS_1_COMPLETE_DAYS",
+    "ranking_ties": "DESCENDING_SIGNAL_THEN_DESCENDING_LIQUIDITY_THEN_ASCENDING_SYMBOL",
+    "execution": "TARGET_AT_DAY_T_OPEN_USING_INFORMATION_COMPLETE_BEFORE_T",
+    "sizing": "EQUAL_WEIGHT_SIX_SELECTED_ASSETS_NO_LEVERAGE_NO_SHORT",
+    "insufficient_universe": "HOLD_ZERO_YIELD_CASH_WHEN_FEWER_THAN_20_ASSETS_ARE_ELIGIBLE",
+    "missing_future_bar": "DO_NOT_ASSUME_A_LIQUIDATION_PRINT_KEEP_STALE_INVENTORY_AND_REPORT_BOTH_LAST_MARK_AND_ZERO_RECOVERY_AFTER_SEVEN_MISSING_COMPLETE_DAYS",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2020-01-01T00:00:00Z",
+      "2023-01-01T00:00:00Z"
+    ],
+    "validation": [
+      "2023-01-01T00:00:00Z",
+      "2025-01-01T00:00:00Z"
+    ],
+    "annual_fair_reset_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "independent_oos": "POST_2024_DENY_UNTIL_ALL_DESIGN_AND_VALIDATION_GATES_PASS"
+  },
+  "frozen_primary_gates": [
+    "exact_source_prior_hypothesis_corpus_checksum_and_runner_hashes",
+    "no_current_listing_or_future_bar_membership_leakage",
+    "at_least_20_eligible_assets_on_at_least_80pct_of_rebalance_days_in_both_design_and_validation",
+    "normal_and_stress_design_total_return_strictly_above_zero_and_same_cost_parent",
+    "normal_and_stress_validation_total_return_strictly_above_zero_and_same_cost_parent",
+    "normal_design_and_validation_max_drawdown_no_more_than_parent_plus_2_percentage_points",
+    "stress_validation_max_drawdown_no_more_than_normal_plus_3_percentage_points",
+    "validation_zero_recovery_stale_inventory_total_return_strictly_above_parent",
+    "annual_normal_total_return_delta_above_parent_at_least_3_of_5_years",
+    "annual_normal_drawdown_non_worse_than_parent_at_least_3_of_5_years",
+    "top_asset_positive_incremental_contribution_at_most_40pct",
+    "top_year_positive_incremental_contribution_at_most_60pct",
+    "validation_turnover_cost_at_most_35pct_of_gross_positive_pnl",
+    "no_unreconciled_position_cash_fee_or_terminal_inventory_ledger",
+    "two_independent_runs_byte_identical"
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics if the 2019-12 cohort, checksum ledger, daily bar schema, timestamps, OHLCV, duplicate keys or completeness gates fail.",
+    "Stop DATA_REJECT without relaxing the threshold if fewer than 20 assets are eligible on 80 percent of days in either Design or Validation.",
+    "Stop NO_CANDIDATE and permanently close the exact family if any frozen economic, drawdown, stale-inventory, annual-breadth, asset-concentration or cost gate fails.",
+    "Do not scan another cohort date, formation horizon, skip period, liquidity lookback, universe size, selected count, rebalance frequency, weighting, cost model or delisting treatment after outcome access.",
+    "Do not use post-2024 archives unless this exact historical experiment passes and becomes CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED."
+  ],
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-cross-sectional-1",
+  "created_at": "2026-08-20T07:33:42Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

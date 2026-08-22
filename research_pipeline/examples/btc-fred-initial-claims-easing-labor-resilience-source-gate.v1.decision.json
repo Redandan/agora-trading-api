@@ -1,0 +1,95 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_INITIAL_CLAIMS_EASING_LABOR_RESILIENCE_SOURCE_GATE_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DATA_REJECT_CLOSE_ICSA_LABOR_RESILIENCE_FAMILY_BEFORE_BTC_OUTCOME_ACCESS",
+  "experiment_id": "btc-fred-initial-claims-easing-labor-resilience-historical-v1",
+  "decision_at": "2026-08-20T14:08:51Z",
+  "decision": "DATA_REJECT",
+  "material_conclusion": "The official free present-vintage FRED ICSA source supplied the exact 417-row Saturday lattice for 2017 through 2024, but the frozen pre-outcome Design concentration gate failed. The other-state observations were 40.540541 percent concentrated in one year versus the preregistered maximum of 40 percent. Validation support passed. The exact family is closed without opening BTC outcomes, creating a hypothesis or relaxing the gate.",
+  "source_gate": {
+    "series": "ICSA",
+    "weekly_rows": 417,
+    "first_week": "2017-01-07",
+    "last_week": "2024-12-28",
+    "evaluations": 410,
+    "attempt_contract": "ONE_REQUEST_PER_ANNUAL_PART_NO_AUTOMATIC_RETRY_NO_REDIRECT",
+    "design": {
+      "evaluations": 209,
+      "supportive_weeks": 135,
+      "other_weeks": 74,
+      "transitions": 28,
+      "years_with_both_states": 4,
+      "maximum_single_year_supportive_share": 0.34814815,
+      "maximum_single_year_other_share": 0.40540541,
+      "maximum_single_year_state_share_gate": 0.40,
+      "support_pass": false
+    },
+    "validation": {
+      "evaluations": 104,
+      "supportive_weeks": 48,
+      "other_weeks": 56,
+      "transitions": 17,
+      "years_with_both_states": 2,
+      "maximum_single_year_supportive_share": 0.56250000,
+      "maximum_single_year_other_share": 0.55357143,
+      "maximum_single_year_state_share_gate": 0.70,
+      "support_pass": true
+    },
+    "admission_status": "DATA_REJECT_INADEQUATE_STATE_TRANSITIONS_OR_ANNUAL_BREADTH_BEFORE_BTC_OUTCOME_ACCESS",
+    "btc_outcome_accessed": false
+  },
+  "evidence_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-fred-initial-claims-easing-labor-resilience-source-feasibility.v1.spec.json",
+      "role": "FROZEN_PRE_FACTOR_SOURCE_FEASIBILITY_SPEC",
+      "sha256": "e94aad7ff0898372dd8eed8ff65c77b19bd193509593b2ec2d23141678082d60"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-initial-claims-easing-labor-resilience-long-cash-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "sha256": "344c4a9bcbd6e099b535d3288680c3264093be771e14f34192433342a1d3f68a"
+    },
+    {
+      "path": "research/fred_icsa_source_probe.py",
+      "role": "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
+      "sha256": "ccc5ec6b11562c773db79e2205c2fff9e9680a6c808d03b511e11aaecee7e956"
+    },
+    {
+      "path": ".research-state/experiments/btc-fred-initial-claims-easing-labor-resilience-historical-v1/inputs/fred-icsa-source-bundle.json",
+      "role": "SEALED_FRED_ICSA_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
+      "sha256": "e30dc059a7f0f438c744c063212102e5d8c0dc5cd523230b89f8c42b23b37767"
+    },
+    {
+      "path": ".research-state/experiments/btc-fred-initial-claims-easing-labor-resilience-historical-v1/inputs/fred-icsa-2017-2024.raw.zip",
+      "role": "SEALED_EXACT_ANNUAL_FRED_RESPONSE_ARCHIVE",
+      "sha256": "7d51df6fdbdfe2176f7b979a94a2f0db1bf75dfecb63c599c4802bbba5726821"
+    },
+    {
+      "path": ".research-state/experiments/btc-fred-initial-claims-easing-labor-resilience-historical-v1/inputs/fred-icsa-2017-2024.normalized.csv",
+      "role": "SEALED_NORMALIZED_WEEKLY_FACTOR_INPUT",
+      "sha256": "5ae3f1b576c52ab05811afc6cbd998f807cf5242e62b95a92af77240be60e219"
+    }
+  ],
+  "performance_evidence": {
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "SOURCE_SUPPORT_GATE_FAILED_BEFORE_BTC_OUTCOME"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not relax the 40 percent Design concentration gate to admit the observed 40.540541 percent result.",
+    "Do not change the four-week mean, lag, sign, level threshold, smoothing, factor validity or publication delay.",
+    "Do not substitute continued claims, non-seasonally-adjusted claims, unemployment rate, payrolls, JOLTS, another source or manual export.",
+    "Do not open BTC outcomes or reinterpret a source-support failure as evidence about predictive or economic value."
+  ],
+  "next_action": "Exclude this exact labor-resilience family permanently and return the single research allocation to a deduplicated mechanism with a separately executable free source path.",
+  "concept_to_teach": "A near miss is still a miss when the gate was frozen first. Preserving a 40 percent concentration threshold against a 40.54 percent result prevents the research process from converting hindsight into apparent alpha.",
+  "scope_note": "No hypothesis, manifest, strategy runner, BTC outcome, candidate, OOS, canonical state, scheduler, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

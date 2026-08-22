@@ -1,0 +1,113 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_MONEY_FLOW_INDEX_14_MIDLINE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED_PREREGISTRATION_READY_NO_OUTCOME_ACCESS",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-daily-money-flow-index-14-midline-long-cash",
+  "reviewed_at": "2026-08-21T08:56:07Z",
+  "decision": "PRIOR_SUPPORTS_AT_MOST_ONE_FROZEN_MFI14_MIDLINE_EXPERIMENT_AFTER_NEXT_HYPOTHESIS_ELIGIBILITY",
+  "causal_hypothesis": "A fourteen-complete-day balance of positive versus negative typical-price money flow may identify a demand regime that is not fully represented by close-only RSI, cumulative signed-volume OBV or close-location-weighted Chaikin Money Flow.",
+  "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using the prior complete day's MFI14 state may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold only if it preserves frozen upside, annual breadth and neighbor stability rather than merely reducing exposure.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Quong and Soudack, Volume-Weighted RSI: Money Flow, Technical Analysis of Stocks and Commodities 7(3), 1989",
+      "publisher_record": "https://store.traders.com/-v07-c03-volumew-pdf.html",
+      "implementation_record": "https://ta-lib.org/functions/mfi.html",
+      "role": "SUPPORTIVE_EXACT_FEATURE_AND_DEFAULT_LOOKBACK_PRIOR",
+      "finding": "The creators introduced MFI to add volume to RSI-like momentum because price-only RSI omits large volume variation near market tops and bottoms. TA-Lib's reference definition uses typical price, typical price times volume, positive or negative classification by typical-price direction, a default fourteen-period window and an oscillator from zero to one hundred; its official implementation emits zero when total positive plus negative money flow is too small to divide safely.",
+      "parameter_boundary": "This supports the exact MFI14 formula and the economic relevance of volume-weighted positive versus negative flow. The original use emphasizes extremes and reversals, while TA-Lib documents conventional 80 and 20 levels; neither source proves a standalone BTC long/cash rule at 50. The primary 50 threshold is therefore frozen only as the formula's outcome-independent equal-flow boundary, with 45 and 55 as rejection-only neighbors."
+    },
+    {
+      "identity": "Yen and Hsu, Profitability of technical analysis in financial and commodity futures markets - A reality check, Decision Support Systems 50(1), 2010, DOI 10.1016/j.dss.2010.07.008",
+      "publisher_record": "https://doi.org/10.1016/j.dss.2010.07.008",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_OOS_PERSISTENCE_PRIOR",
+      "finding": "The study tested 8061 rules, including MFI-RSI hybrids, with SPA data-snooping control. Selected in-sample winners generally failed to retain relative performance out of sample and most produced negative cumulative excess return.",
+      "transfer_boundary": "The assets, hybrid rule and futures accounting differ from BTC spot MFI14. The result does not reject this exact policy, but it forbids threshold search, winner substitution and relaxed breadth or path-risk gates."
+    },
+    {
+      "identity": "Li et al., Bitcoin price forecasting method based on CNN-LSTM hybrid neural network model, The Journal of Engineering, 2020, DOI 10.1049/joe.2019.1203",
+      "publisher_record": "https://doi.org/10.1049/joe.2019.1203",
+      "role": "BITCOIN_SPECIFIC_BUT_NON_STANDALONE_PRIOR",
+      "finding": "The Bitcoin forecasting study included MFI together with RSI, OBV, OHLCV, macro variables and attention data inside a 51-dimensional three-day machine-learning input; its final test contained twenty samples.",
+      "transfer_boundary": "It shows that MFI is a plausible Bitcoin feature, not that MFI14 above 50 has standalone after-cost timing value, drawdown benefit, broad support or independent OOS value."
+    },
+    {
+      "identity": "Varedi and Boostani, A Novel Feature Selection Method for Risk Management in High-Dimensional Time Series of Cryptocurrency Market, ACM Journal of Data and Information Quality 15(3), 2023, DOI 10.1145/3597309",
+      "publisher_record": "https://doi.org/10.1145/3597309",
+      "role": "CRYPTO_FEATURE_SELECTION_AND_REDUNDANCY_PRIOR",
+      "finding": "The study treated MFI, RSI and other indicators as competing inputs and explicitly optimized information gain while minimizing similarity among selected features for cryptocurrency direction classification.",
+      "transfer_boundary": "This supports measuring incremental information and redundancy before promotion. It provides no standalone MFI trading rule, matched-capital PnL, fees, drawdown or BTC buy-and-hold comparison."
+    }
+  ],
+  "closed_family_adversarial_matrix": [
+    {
+      "family": "BTC_DAILY_CHAIKIN_MONEY_FLOW_14_20_28_LONG_CASH",
+      "decision_path": "research_pipeline/examples/btc-daily-chaikin-money-flow-long-cash-historical.v1.decision.json",
+      "decision_sha256": "5cfba79d03d867ac63e66bd69f9d6d1221d6c96928560a8812e0011c0f57b0e4",
+      "learning": "CMF20 Validation captured only 25.225826 percent of passive upside while drawdown rose to 44.05135660 percent versus 32.28416349 percent for buy-and-hold; CMF14 and CMF28 rejection-only neighbors also failed frozen stability gates."
+    },
+    {
+      "family": "BTC_DAILY_OBV_2_18_24_30_LONG_CASH",
+      "decision_path": "research_pipeline/examples/btc-daily-obv-ma-long-cash-historical.v1.decision.json",
+      "decision_sha256": "66a165857032233a29b9e59b8fe077f82235b4607bf7e91126343e83dce930ce",
+      "learning": "OBV 2/24 Validation captured 41.022945 percent of passive upside, drawdown was 9.37063649 percentage points worse and Calmar was 31.794450 percent of buy-and-hold."
+    },
+    {
+      "family": "BTC_DAILY_RSI14_45_50_55_LONG_CASH",
+      "decision_path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json",
+      "decision_sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc",
+      "learning": "RSI14 above 50 Validation captured 51.132423 percent of passive upside and only slightly reduced drawdown; Calmar was 52.738139 percent of buy-and-hold, while the 55 neighbor's better drawdown came with sub-gate upside capture."
+    }
+  ],
+  "independence_assessment": {
+    "mathematically_distinct": true,
+    "not_cmf": "MFI signs each day's typical-price-times-volume by typical-price direction; CMF weights volume by the close's location within the same day's range.",
+    "not_obv": "MFI is a bounded rolling ratio of raw money flow; OBV is a path-dependent cumulative series signed by close-to-close direction and then compared through moving averages.",
+    "not_rsi": "MFI weights the sign of typical-price changes by absolute typical-price-times-volume; the closed simple RSI weights positive and negative close-change magnitudes without volume.",
+    "residual_risk": "All four families are single-venue price-volume or short-horizon momentum state filters. Mathematical distinction does not establish independent economic alpha, and the three closest closed families all failed 2023-2024 risk-adjusted transfer."
+  },
+  "frozen_pre_outcome_contract": {
+    "daily_aggregation": "EXACTLY_24_CONTIGUOUS_H1_BARS_PER_COMPLETE_UTC_DAY",
+    "typical_price": "(DAILY_HIGH_PLUS_DAILY_LOW_PLUS_DAILY_CLOSE)_DIVIDED_BY_3",
+    "raw_money_flow": "TYPICAL_PRICE_TIMES_DAILY_BASE_VOLUME",
+    "direction": "POSITIVE_IF_CURRENT_TYPICAL_PRICE_GT_PREVIOUS_TYPICAL_PRICE_NEGATIVE_IF_LT_NEITHER_IF_EQUAL",
+    "lookback_complete_days": 14,
+    "required_complete_days_for_first_value": 15,
+    "initialization": "FOR_TARGET_DAY_D_CLASSIFY_EXACTLY_D_MINUS_13_THROUGH_D_USING_D_MINUS_14_AS_THE_PREDECESSOR_TYPICAL_PRICE",
+    "mfi": "100_TIMES_POSITIVE_FLOW_DIVIDED_BY_POSITIVE_PLUS_NEGATIVE_FLOW",
+    "zero_denominator_rule": "MFI_EQUALS_ZERO_AND_TARGET_IS_CASH_WHEN_EXACT_POSITIVE_PLUS_NEGATIVE_FLOW_EQUALS_ZERO",
+    "primary_long_condition": "MFI14_STRICTLY_GREATER_THAN_50",
+    "primary_cash_condition": "MFI14_LESS_THAN_OR_EQUAL_TO_50",
+    "rejection_only_neighbors": [
+      "MFI14_STRICTLY_GREATER_THAN_45",
+      "MFI14_STRICTLY_GREATER_THAN_55"
+    ],
+    "execution": "NEXT_H1_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT_ZERO_CASH_YIELD",
+    "maximum_variants": 3,
+    "outcome_tuning": "DENY",
+    "neighbor_substitution": "DENY"
+  },
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPUS_NO_OUTCOME_OPENED",
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "source_cost": "FREE_ALREADY_SEALED"
+  },
+  "admission_and_stop_conditions": [
+    "Do not create a hypothesis, manifest or runner while canonical preview remains WAITING_FOR_EVIDENCE or any active evidence-integrity alert is unresolved.",
+    "Before hypothesis registration, freeze exact daily initialization, next-open causality, same-capital buy-and-hold ledger and Design/Validation boundaries without reading MFI outcomes.",
+    "Run at most the primary 50 policy and the rejection-only 45 and 55 neighbors. No alternate length, threshold, smoothing, hysteresis, divergence, overbought or oversold rule, minimum hold, confirmation, stop, leverage, short leg, DRA interaction or ensemble may replace a failure.",
+    "Require positive normal and stress returns, materially non-worse Validation drawdown and Calmar, frozen upside capture, annual breadth, bounded turnover and holding, low episode and year concentration and no terminal-inventory uplift; otherwise permanently close the family.",
+    "A positive historical result may create at most one REPORTED_NOT_ACTIVATED candidate and one independent sealed OOS gate; it authorizes no Trading action."
+  ],
+  "missing_proof": [
+    "No primary source establishes standalone BTC MFI14 above 50 long/cash economic value.",
+    "No schema-valid hypothesis, manifest or deterministic runner is frozen.",
+    "No MFI feature support, matched-capital Design or Validation economics, fees, slippage, realized or unrealized PnL, drawdown, Calmar, holding, inventory, breadth, concentration, candidate, OOS or forward evidence has been observed."
+  ],
+  "next_gate": "WAIT_FOR_NEXT_HYPOTHESIS_ELIGIBILITY_THEN_FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_MFI14_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
+  "claim_boundary": "This prior makes one exact MFI14 45/50/55 family preregistration-ready only. It establishes formula identity and a data path, not alpha, a candidate, OOS value, deployability or Trading authority.",
+  "scope_note": "No outcome data, MFI value, backtest, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

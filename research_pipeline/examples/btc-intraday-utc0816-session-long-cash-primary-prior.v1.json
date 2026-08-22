@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_INTRADAY_UTC0816_SESSION_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "mechanism_label": "FIXED_UTC_08_TO_16_SESSION_RETURN_CONCENTRATION_LONG_CASH",
+  "reviewed_at": "2026-08-19T04:57:11Z",
+  "prior_matrix": [
+    {
+      "identity": "Eross, McGroarty, Urquhart and Wolfe, The Intraday Dynamics of Bitcoin, Research in International Business and Finance 49, 2019, DOI 10.1016/j.ribaf.2019.01.008",
+      "primary_source": "https://pure.hw.ac.uk/ws/portalfiles/portal/24209229/AEross_2019_Intraday_Dynamics_of_Bitcoin_2_.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.ribaf.2019.01.008",
+      "role": "SUPPORTIVE_FIXED_UTC_SESSION_RETURN_AND_MARKET_PARTICIPATION_PRIOR",
+      "finding": "The GMT-timestamped single-exchange study reports intraday structure and identifies its strongest return interval around 08:00 to 16:00 while activity and liquidity align with European and North American market hours.",
+      "transfer_boundary": "The sample predates the sealed 2019-2024 OKX corpus, is not a matched-capital strategy test and does not establish persistence after daily fees and adverse slippage."
+    },
+    {
+      "identity": "Baur, Cahill, Godfrey and Liu, Bitcoin time-of-day, day-of-week and month-of-year effects in returns and trading volume, Finance Research Letters 31, 2019, DOI 10.1016/j.frl.2019.04.023",
+      "primary_source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3088472",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2019.04.023",
+      "role": "ADVERSARIAL_CROSS_EXCHANGE_PERSISTENCE_PRIOR",
+      "finding": "Across more than fifteen million observations from seven exchanges, time-specific return anomalies were not persistent across time even though activity patterns were more stable.",
+      "transfer_boundary": "This does not prove failure on OKX, but requires annual breadth, neighboring-window stability and permanent closure rather than selecting a favorable session after outcome access."
+    },
+    {
+      "identity": "Su, Wang and Yuan, The intraday dynamics and intraday price discovery of Bitcoin, Research in International Business and Finance 62, 2022, DOI 10.1016/j.ribaf.2022.101625",
+      "primary_source": "https://www.sciencedirect.com/science/article/pii/S0275531922000137",
+      "publisher_record": "https://doi.org/10.1016/j.ribaf.2022.101625",
+      "role": "SUPPORTIVE_LONDON_NEW_YORK_OVERLAP_MECHANISM_PRIOR",
+      "finding": "The multi-rate study reports that overlapping London and New York hours dominate intraday Bitcoin price discovery and have elevated activity, volatility and liquidity.",
+      "transfer_boundary": "Price discovery and activity do not imply a positive tradable return premium. The present experiment must pay two-sided costs every day and cannot infer alpha from liquidity."
+    },
+    {
+      "identity": "Catania and Sandholdt, Bitcoin at High Frequency, Journal of Risk and Financial Management 12(1), 2019, DOI 10.3390/jrfm12010036",
+      "primary_source": "https://doi.org/10.3390/jrfm12010036",
+      "role": "ADVERSARIAL_TIME_VARIATION_AND_VENUE_TRANSFER_PRIOR",
+      "finding": "The authors find smooth intraday seasonality but emphasize that return predictability is time-varying and venue activity patterns differ between Bitstamp and Coinbase.",
+      "transfer_boundary": "A fixed clock window must generalize across Design, Validation, years and one-hour shifts; venue or subperiod variation cannot be hidden."
+    },
+    {
+      "identity": "Anghel, A reality check on trading rule performance in the cryptocurrency market: Machine Learning vs. Technical Analysis, Finance Research Letters 39, 2021, DOI 10.1016/j.frl.2020.101655",
+      "primary_source": "https://2024.igem.wiki/lcg-global/static/10.1016%40j.frl.2020.101655.pdf",
+      "publisher_record": "https://doi.org/10.1016/j.frl.2020.101655",
+      "role": "ADVERSARIAL_DATA_SNOOPING_AND_FRICTION_PRIOR",
+      "finding": "After data-snooping, risk and friction controls, positive excess returns from cryptocurrency trading rules were rare.",
+      "transfer_boundary": "This requires pre-outcome session boundaries, normal and stress costs, matched capital, path risk and no post-result timezone rescue."
+    }
+  ],
+  "executable_data_path_proof": {
+    "dataset_path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "fields": [
+      "open_time",
+      "close_time",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "decision_feature": "The UTC hour is known before every fill. Buy at the fixed session-start H1 open and sell at the fixed session-end H1 open without using price, volume or future data.",
+    "prospective_transport": "The existing sealed OKX BTC-USDT H1 corpus contains every required timestamp and price. No credential, paid API, timer, writer, database, manual export or backfill is required.",
+    "status": "READY"
+  },
+  "independence_from_closed_families": [
+    "The closed DRA US-session family gates DRA entries using prior-day 15:00-20:59 UTC quote-volume share; this policy ignores DRA and volume and instead holds BTC during one fixed daily interval.",
+    "The closed weekend and turn-of-month families select dates; this policy trades every complete UTC day and selects only a fixed within-day clock interval.",
+    "The closed intraday sign-persistence family computes a lagged path statistic before a DRA entry; this policy has no return lookback or signal state.",
+    "The closed trend, oscillator, volatility and band families depend on price-derived states; this policy is known from the clock alone."
+  ],
+  "real_time_design_requirements": [
+    "Use every complete H1 bar in the sealed 2019-2024 corpus without selecting a day, direction or regime.",
+    "Primary buys full available equity at each 08:00 UTC open and sells all at the same day's 16:00 UTC open.",
+    "Rejection-only stability windows are 07:00-15:00 UTC and 09:00-17:00 UTC. They cannot replace a failed primary.",
+    "Charge 0.10 percent fee plus 0.05 percent adverse slippage per side in NORMAL and twice both amounts in STRESS.",
+    "Compare with full-capital BTC buy-and-hold under the same initial capital, hourly path and valuation boundary.",
+    "Report realized, unrealized and total return, drawdown, underwater duration, Calmar, upside capture, exposure, turnover, episode concentration, annual breadth and terminal inventory."
+  ],
+  "disposition": "PRIOR_SUPPORTS_ONE_PREREGISTERED_FIXED_UTC_08_TO_16_SESSION_LONG_CASH_EXPERIMENT",
+  "uncertainty": [
+    "Supportive evidence is largely older, venue-specific and not an after-cost trading test.",
+    "The broadest cited study finds no persistent return pattern across years.",
+    "Two-sided daily fees and adverse slippage may dominate a small session return premium.",
+    "Historical Design and Validation through 2024 cannot establish independent OOS value or activation authority."
+  ],
+  "claim_boundary": "This prior authorizes exactly one preregistered 08:00-16:00 UTC historical screen with two one-hour rejection-only neighbors. It does not establish alpha, a candidate, OOS value, deployability or Trading authority."
+}

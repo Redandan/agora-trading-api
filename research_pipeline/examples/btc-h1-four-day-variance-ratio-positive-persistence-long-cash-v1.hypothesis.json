@@ -1,0 +1,30 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash-v1",
+  "title": "Four-day variance-ratio conditioned positive persistence for BTC long or cash",
+  "thesis": "Conditioning a positive prior-28-complete-day BTC trend state on a descriptive overlapping four-day variance ratio strictly above one may retain enough upside while avoiding trend states whose path dependence is too weak to justify exposure.",
+  "mechanism": "At each complete UTC-day close, use exactly 29 closes to form 28 one-day log returns and 25 overlapping four-day log-return sums. Divide the unbiased sample variance of the four-day sums by four times the unbiased sample variance of the one-day returns. At the immediately following H1 open, hold full-capital unlevered BTC only when this ratio is strictly greater than one and the latest close is strictly greater than the close 28 days earlier; otherwise hold zero-yield cash. Exactly one variant is allowed.",
+  "economic_rationale": "The variance-ratio condition is economically useful only if it adds risk-adjusted value beyond the simpler positive-28-day-trend parent under identical capital, execution, valuation and costs, while also retaining meaningful passive-BTC upside. Positive aggregate return alone is insufficient: Design, Validation, doubled friction, annual breadth, drawdown path, Calmar, concentration, holding and terminal inventory must all pass frozen gates.",
+  "source": "PRE_CANDIDATE_POOL:btc-h1-four-day-variance-ratio-positive-persistence-long-cash:PRIMARY_PRIOR_SHA256_d692e290fead48f5ff09ad8d39375cee4cececc85b01328fd34eb748fe2d6111:VALID_PREOUTCOME_SUPPORT_V2_SHA256_b102c7d421fdd1593b9904684a38e730f2269b91f05c03a63ea9c025de6ef293:V1_INVALIDATED_BEFORE_ECONOMICS",
+  "parent": "BTC_28_COMPLETE_DAY_POSITIVE_TREND_LONG_CASH_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "daily-four-day-variance-ratio-conditioned-trend-parent-ablation-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_candidate_and_trend_parent_total_realized_and_unrealized_return",
+    "candidate_incremental_total_return_drawdown_and_calmar_versus_trend_parent",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "daily_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_candidate_parent_and_passive_breadth",
+    "top_year_validation_episode_and_incremental_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-variance-ratio-1",
+  "created_at": "2026-08-21T04:55:30Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

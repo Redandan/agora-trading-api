@@ -1,0 +1,35 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BLS_CPI_SCHEDULED_RELEASE_DAY_RISK_VETO_PRE_EXECUTION_TERMINAL_BOUNDARY_AMENDMENT_V1",
+  "experiment_id": "btc-bls-cpi-scheduled-release-day-risk-veto-historical-v1",
+  "created_at": "2026-08-20T15:26:44Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRE_RESULT_STRUCTURAL_AMENDMENT",
+  "trigger": "The second execution stopped before creating an output because the final complete control day ended exactly at the sealed corpus boundary and therefore had no following H1 bar object.",
+  "evidence_boundary": {
+    "output_created": false,
+    "predictive_metrics_reported": false,
+    "economic_simulation_opened": false,
+    "oos_opened": false
+  },
+  "old_bindings": {
+    "runner_sha256": "7e56f918313663d5b072915dbd943bdabdec87dd150db2bb64eba05d51a14649",
+    "manifest_sha256": "be0b4a20920ca4dcf019049eb8e9f19d8198ab4d53015cde67ef8548839b72df",
+    "calendar_weekday_amendment_sha256": "4470b3a5bfe0082dd402795b6ced85707d4e5de5874679e3f710daded91ffd26"
+  },
+  "amendment": "When a complete 24-hour path ends exactly at the sealed corpus boundary, use the final H1 bar close as the terminal 00:00 UTC price; otherwise continue requiring the next bar open.",
+  "equivalence_condition": "The H1 corpus is gap-free and every preceding bar close_time equals the next bar open_time; the fallback is allowed only when the final path bar close_time exactly equals the requested terminal timestamp.",
+  "unchanged": [
+    "EVENT_AND_CONTROL_DAY_SELECTION",
+    "SAMPLE_SUPPORT_THRESHOLDS",
+    "RETURN_EFFECT_SIZE_GATE",
+    "NEGATIVE_RATE_EFFECT_SIZE_GATE",
+    "FISHER_P_VALUE_GATE",
+    "PATH_DRAWDOWN_GATES",
+    "ANNUAL_BREADTH_GATES",
+    "LOSS_CONCENTRATION_GATES",
+    "MATCHED_CAPITAL_ECONOMIC_GATES",
+    "OOS_DENY"
+  ],
+  "scope_note": "This repairs an exact corpus-end representation before any result artifact. It does not select or remove a day based on its BTC outcome."
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_POST_OUTCOME_SIGNAL_COUNT_BINDING_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1",
+  "created_at": "2026-08-21T02:55:00Z",
+  "status": "FROZEN_AFTER_TRANSIENT_OUTCOME_CALCULATION_BEFORE_RESULT_SERIALIZATION",
+  "observed_failure": "KeyError 'signal_evaluations' occurred while evaluating the already frozen validation_normal_signal_evaluations_at_least_24 gate. The deterministic simulation had completed in process memory, but neither run output existed and no metric value was printed or serialized.",
+  "source_contract_evidence": "The frozen long-cash ledger exposes the unique public candidate count as scenarios.NORMAL.candidate.signal_evaluation_count. Its raw economic dictionary intentionally contains position_changes but not signal_evaluations.",
+  "frozen_correction": "For exactly the existing validation_normal_signal_evaluations_at_least_24 gate, read validation_output.scenarios.NORMAL.candidate.signal_evaluation_count and compare it with the unchanged integer threshold 24. Change no other code, data, feature, policy, cost, window, gate, threshold, decision or output field.",
+  "output_state": {
+    "run1_exists": false,
+    "run2_exists": false,
+    "serialized_metric_or_result_exposed": false,
+    "transient_outcome_calculation_occurred": true
+  },
+  "immutable_bindings": [
+    {
+      "path": "research/btc_fred_umcsent_rising_consumer_sentiment_long_cash_historical.py",
+      "role": "FAILED_POST_SIMULATION_V2_RUNNER",
+      "sha256": "f4ea889783b7742acbd32bb942cef7a1cdb6937b464d7597f53ed1d012883a4b"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical.v2.manifest.json",
+      "role": "FAILED_POST_SIMULATION_V2_MANIFEST",
+      "sha256": "8ca62ed14c4034be82ed3c35ce165a7865ed59b78c8f0f4ccc73cabc72d9e1a3"
+    },
+    {
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "role": "FROZEN_LEDGER_WITH_UNIQUE_SIGNAL_EVALUATION_COUNT_FIELD",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"
+    }
+  ],
+  "prohibited_changes": [
+    "Do not change or remove the signal-evaluation gate or its threshold 24.",
+    "Do not inspect, log or use transient metric values to change any decision rule.",
+    "Do not repair any other field opportunistically; another failure must fail closed under a separate immutable record.",
+    "Do not overwrite V1 or V2 manifests or reuse a partially created result."
+  ],
+  "scope_note": "This erratum authorizes one field-binding correction only. It does not authorize a gate change, tuning, OOS, paid API, canonical write, second timer, second writer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action."
+}

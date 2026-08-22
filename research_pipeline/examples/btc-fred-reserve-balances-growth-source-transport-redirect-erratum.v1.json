@@ -1,0 +1,19 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_RESERVE_BALANCES_GROWTH_SOURCE_TRANSPORT_REDIRECT_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-reserve-balances-growth-liquidity-support-long-cash",
+  "created_at": "2026-08-20T13:18:00Z",
+  "status": "FROZEN_BEFORE_DDP_OUTPUT_ZIP_ACCESS",
+  "observed_pre_factor_behavior": "The official Board DDP review form accepted the frozen request and returned HTTP 302 before any output ZIP or target-series value was received. The initial transport adapter correctly failed closed because redirects were denied.",
+  "minimal_transport_correction": {
+    "redirect_count": 1,
+    "allowed_scheme": "https",
+    "allowed_host": "www.federalreserve.gov",
+    "allowed_stage": "REVIEW_FORM_POST_TO_OFFICIAL_DOWNLOAD_PAGE_ONLY",
+    "cross_origin_redirect": "DENY",
+    "http_downgrade": "DENY"
+  },
+  "unchanged_scientific_contract": "The official package, target series, 2018-2024 window, four-observation growth feature, Friday availability and both-state support gates remain byte-for-byte unchanged. No BTC outcome is authorized by this correction.",
+  "scope_note": "Transport redirect correction only. No output ZIP, WRESBAL value, BTC outcome, hypothesis, manifest, economics, candidate, OOS, canonical write or Trading action was accessed by this artifact."
+}

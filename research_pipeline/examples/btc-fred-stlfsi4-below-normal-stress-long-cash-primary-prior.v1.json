@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_STLFSI4_BELOW_NORMAL_STRESS_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-fred-stlfsi4-below-normal-stress-long-cash",
+  "disposition": "OFFICIAL_FREE_SOURCE_AND_ADVERSARIAL_PRIOR_PERMIT_ONE_FUTURE_PREREGISTERED_HISTORICAL_AUDIT",
+  "claim_boundary": "Exactly one future audit may test whether a conservatively lagged St. Louis Fed Financial Stress Index below its official zero normal-stress level supports a full-capital BTC-or-cash policy. The index definition establishes a broad stress state, not BTC predictability or economic alpha.",
+  "feature_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis",
+    "series": "STLFSI4",
+    "frequency": "WEEKLY_ENDING_FRIDAY",
+    "observation": "OFFICIAL_WEEKLY_VALUE",
+    "relation": "STRICTLY_BELOW_ZERO",
+    "decision_time": "FOLLOWING_THURSDAY_0000_UTC",
+    "validity": "168_HOURS",
+    "policy": "FULL_CAPITAL_BTC_WHEN_BELOW_ZERO_ZERO_YIELD_CASH_OTHERWISE",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "St. Louis Fed Financial Stress Index STLFSI4",
+      "primary_source": "https://fred.stlouisfed.org/series/STLFSI4",
+      "finding": "The official weekly index combines 18 series across interest rates, yield spreads and other stress indicators. Zero represents normal conditions; negative values indicate below-average stress and positive values above-average stress.",
+      "role": "OFFICIAL_SEMANTICS_THRESHOLD_AND_CAUSAL_PRIOR",
+      "transfer_boundary": "A broad U.S. financial stress state need not predict BTC, and present-vintage STLFSI4 history incorporates revisions and version changes."
+    },
+    {
+      "identity": "St. Louis Fed Financial Stress Index construction",
+      "primary_source": "https://files.stlouisfed.org/research/datatrends/pdfs/net/NETJan2010Appendix.pdf",
+      "finding": "The index methodology uses principal-components analysis so co-movement across financial variables summarizes a common stress factor.",
+      "role": "OFFICIAL_MECHANISM_PRIOR",
+      "transfer_boundary": "Principal-component aggregation improves breadth but does not ensure stable crypto transmission or point-in-time constituent vintages."
+    },
+    {
+      "identity": "Closed BTC VIX risk-state long-cash family",
+      "primary_source": "research_pipeline/examples/btc-vix-risk-state-long-cash-historical.v1.decision.json#sha256=84e428870134aaf75834b38c2dabfbc04504651be94bab36f97ec8ae83e91a2e",
+      "finding": "A lagged VIX percentile risk-state BTC long-cash family already failed and is permanently closed.",
+      "role": "ADVERSARIAL_DUPLICATION_PRIOR",
+      "transfer_boundary": "STLFSI4 is a fixed official zero-threshold composite of rates, spreads and other indicators rather than a tuned VIX percentile; it may not reopen, combine with or rescue VIX."
+    },
+    {
+      "identity": "Closed DRA NFCI loose-financial-conditions source family",
+      "primary_source": "research_pipeline/examples/dra-nfci-loose-financial-conditions-entry-admission-historical.v1.decision.json#sha256=5291fd1a1902e7e4c0ea907134e3adca1097308c6ad76b8dd887eda2b1b23f63",
+      "finding": "The exact NFCI family closed before outcomes after its frozen FRED transport and one recovery both failed.",
+      "role": "SOURCE_RETRY_AND_ADJACENT_INDEX_PRIOR",
+      "transfer_boundary": "STLFSI4 is a different official series and standalone parent selected before any request. It cannot retry, rename, proxy or reconstruct NFCI."
+    }
+  ],
+  "future_design_requirements": [
+    "Before BTC outcome access, freeze one exact no-credential FRED STLFSI4 request contract, raw responses and a 2018-2024 weekly subset with date, value, source timing, revision and citation boundaries.",
+    "Use only the official strict zero threshold, Friday observations, following-Thursday 00:00 UTC availability and 168-hour validity; no percentile, change, smoothing, alternate lag, VIX interaction or neighbor.",
+    "Require both below-zero and at-or-above-zero states with sufficient transitions in Design and Validation before direct economics.",
+    "Run deterministic matched-capital BTC versus zero-yield-cash Design and Validation economics under normal and doubled adverse friction with total, realized and unrealized return, drawdown, Calmar, upside, holding, terminal inventory, annual breadth and concentration gates.",
+    "Treat present-vintage history as historical research only. A pass remains REPORTED_NOT_ACTIVATED until separately sealed independent OOS succeeds."
+  ],
+  "uncertainty": [
+    "STLFSI4 is a revised composite and the current historical series may differ from values available at original decision times.",
+    "Below-zero stress can be the dominant state for long periods, making the policy nearly passive and reducing independent information.",
+    "The series is copyrighted with citation required; raw and normalized data must remain internal research inputs unless separate reuse rights are verified.",
+    "No STLFSI4 data value, state count, BTC outcome, strategy path, candidate, post-2024 observation or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-21T01:02:00Z"
+}

@@ -1,0 +1,158 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_M2_LIQUIDITY_ACCELERATION_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-m2-liquidity-acceleration-long-cash-historical-v1",
+  "hypothesis_id": "btc-m2-liquidity-acceleration-long-cash-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "expected_complete_utc_days": 2192,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "m2": {
+      "path": ".research-state/experiments/btc-m2-liquidity-acceleration-long-cash-historical-v1/inputs/federal-reserve-h6-m2-monthly-2017-2024.csv",
+      "sha256": "383a0d5b4a95c95147e420801cb0a153a663c57776d171dc4134b07a55ec6c7c",
+      "rows": 96,
+      "first_month": "2017-01",
+      "last_month": "2024-12",
+      "present_vintage": true
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-m2-liquidity-acceleration-long-cash-historical-v1/inputs/federal-reserve-h6-m2-source-bundle.json",
+      "sha256": "e570684156387e96c63243d9ce913c7a1a83ebf0edfe181f4546c4640950bb55"
+    }
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_M2_LIQUIDITY_ACCELERATION_LONG_CASH_V1",
+    "source_series": "FEDERAL_RESERVE_H6_H6_M2_M2_M_SEASONALLY_ADJUSTED",
+    "evaluation_frequency": "MONTHLY",
+    "availability": "OBSERVATION_MONTH_PLUS_TWO_MONTHS_FIRST_DAY_AT_00_00_UTC",
+    "formula": "((M2_t/M2_t_minus_12)-1)-((M2_t_minus_1/M2_t_minus_13)-1)",
+    "long_condition": "ACCELERATION_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "ACCELERATION_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "missing_observation_rule": "FAIL_CLOSED_NO_INTERPOLATION_OR_SOURCE_REPAIR",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [2019, 2020, 2021, 2022, 2023, 2024]
+  },
+  "gate_set": {
+    "id": "BTC_M2_LIQUIDITY_ACCELERATION_MATCHED_CAPITAL_GATES_V1",
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "m2_sha256_and_96_months_match",
+      "h6_source_bundle_sha256_matches",
+      "hourly_lattice_monthly_continuity_and_conservative_availability_pass",
+      "frozen_runner_ledger_reference_parser_prior_hypothesis_and_source_sha256_match",
+      "single_variant_zero_threshold_no_rescue_contract_pass",
+      "design_normal_total_return_pct_gt_0",
+      "design_stress_total_return_pct_gt_0",
+      "design_normal_drawdown_at_most_90pct_of_buy_hold",
+      "design_normal_upside_capture_at_least_50pct",
+      "design_normal_calmar_at_least_buy_hold",
+      "design_normal_position_changes_between_2_and_48",
+      "validation_normal_total_return_pct_gt_0",
+      "validation_stress_total_return_pct_gt_0",
+      "validation_normal_drawdown_at_most_90pct_of_buy_hold",
+      "validation_normal_upside_capture_at_least_60pct",
+      "validation_normal_calmar_at_least_75pct_of_buy_hold",
+      "validation_normal_signal_evaluations_at_least_24",
+      "validation_normal_position_changes_between_2_and_24",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_positive_annual_total_return_at_least_5_of_6",
+      "stress_positive_annual_total_return_at_least_5_of_6",
+      "normal_annual_drawdown_non_worse_at_least_5_of_6",
+      "normal_annual_calmar_at_least_75pct_buy_hold_at_least_4_of_6",
+      "normal_annual_upside_capture_at_least_50pct_at_least_5_of_6",
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_at_most_8760_hours",
+      "validation_terminal_holding_age_at_most_8760_hours",
+      "validation_terminal_liquidation_adjusted_return_pct_gt_0",
+      "validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER",
+      "path": "research/btc_m2_liquidity_acceleration_long_cash_historical.py",
+      "sha256": "eb059aed19f839f9b6c1f443df45e6611e7170b431904c6a28e35d7c2dc2eb09"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_LEDGER",
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"
+    },
+    {
+      "role": "FROZEN_PATH_AND_BUY_HOLD_REFERENCE",
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "role": "FROZEN_H1_PARSER",
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "role": "SEALED_PRIMARY_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-m2-liquidity-acceleration-long-cash-primary-prior.v1.json",
+      "sha256": "128f64cf503274ceb9c94359944f28f2dcaf6ea55befef64b0ced04d041df6c9"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-m2-liquidity-acceleration-long-cash-v1.hypothesis.json",
+      "sha256": "a1c14f2c8ad7dc8d3e9654f2cd9c646e1e8ec6251cab0925ec24e15e03f1342b"
+    },
+    {
+      "role": "SEALED_OFFICIAL_H6_SOURCE_BUNDLE",
+      "path": ".research-state/experiments/btc-m2-liquidity-acceleration-long-cash-historical-v1/inputs/federal-reserve-h6-m2-source-bundle.json",
+      "sha256": "e570684156387e96c63243d9ce913c7a1a83ebf0edfe181f4546c4640950bb55"
+    },
+    {
+      "role": "SEALED_NORMALIZED_H6_M2_CORPUS",
+      "path": ".research-state/experiments/btc-m2-liquidity-acceleration-long-cash-historical-v1/inputs/federal-reserve-h6-m2-monthly-2017-2024.csv",
+      "sha256": "383a0d5b4a95c95147e420801cb0a153a663c57776d171dc4134b07a55ec6c7c"
+    },
+    {
+      "role": "FROZEN_FAIL_CLOSED_H6_SOURCE_PROBE",
+      "path": "research/federal_reserve_h6_m2_source_probe.py",
+      "sha256": "c33e1a9bcc74e9988d622c21e37b60916fe051ab1f6da17a9b818e48911bd1df"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not change the adjacent twelve-month-growth acceleration formula, strict zero threshold, two-month availability lag, monthly evaluation or long/cash action after outcome access.",
+    "Do not invert the direction, add M2 level or growth variants, scan alternate 3/6/12/24-month horizons, smooth the series, add a magnitude threshold or shorten the publication lag.",
+    "Do not combine this rule with WALCL, interest rates, dollar, CFTC, Nasdaq, stablecoin, on-chain, trend, volatility, leverage, shorting or fractional sizing as a rescue.",
+    "Do not relax return, stress, drawdown, Calmar, upside, annual breadth, concentration, holding or terminal-inventory gates and do not open OOS unless every historical gate passes."
+  ],
+  "revision_boundary": "The factor corpus is one July 2026 present-vintage H.6 history. Original release vintages and annual seasonal revisions remain MISSING_PROOF; a historical pass cannot by itself establish point-in-time alpha.",
+  "scope_note": "Frozen pre-outcome manifest only. No BTC factor outcome, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

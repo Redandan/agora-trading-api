@@ -1,0 +1,43 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NFCI_LOOSE_FINANCIAL_CONDITIONS_SOURCE_FETCH_AMENDMENT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "dra-nfci-loose-financial-conditions-entry-admission-historical-v1",
+  "recorded_at": "2026-08-19T10:10:52Z",
+  "status": "PRE_OUTCOME_TRANSPORT_RECOVERY_FROZEN",
+  "failed_attempt": {
+    "transport": "PYTHON_STDLIB_DIRECT_HTTPS",
+    "timeout_seconds": 30,
+    "failure": "FIRST_ANNUAL_RESPONSE_READ_TIMEOUT",
+    "source_values_persisted": false,
+    "staged_response_count": 0,
+    "btc_or_dra_outcome_accessed": false
+  },
+  "permitted_recovery": {
+    "transport": "CURL_EXE",
+    "timeout_seconds": 60,
+    "request_urls": [
+      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=2018-01-01&coed=2018-12-31",
+      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=2019-01-01&coed=2019-12-31",
+      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=2020-01-01&coed=2020-12-31",
+      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=2021-01-01&coed=2021-12-31",
+      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=2022-01-01&coed=2022-12-31",
+      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=2023-01-01&coed=2023-12-31",
+      "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=2024-01-01&coed=2024-12-31"
+    ],
+    "redirects": "DENY",
+    "credentials": "DENY",
+    "reuse_any_existing_staged_bytes": "REQUIRE_EXACT_REUSE",
+    "additional_retry_after_recovery": "DENY"
+  },
+  "immutable_scientific_contract": {
+    "series_id": "NFCI",
+    "sample": "2018-01-01_THROUGH_2024-12-31",
+    "publication_lag_calendar_days": 7,
+    "admission_rule": "STRICTLY_NEGATIVE_NFCI_ADMITS_OTHERWISE_HOLD_CASH",
+    "variants": 1,
+    "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+    "gates": "UNCHANGED_MATCHED_CAPITAL_AND_PREDICTIVE_GATES"
+  },
+  "scope_note": "This amendment changes only the zero-byte failed transport attempt. It does not change the source identity, feature, sign, threshold, lag, variant count, economics, gates or outcome boundary. No BTC/DRA outcome, OOS, canonical write, second timer, second writer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

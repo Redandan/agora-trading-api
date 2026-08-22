@@ -1,0 +1,167 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NASDAQ_COMPOSITE_TREND_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-nasdaq-composite-trend-long-cash-historical-v1",
+  "created_at": "2026-08-19T08:31:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "The latest published Nasdaq Composite trend may expose institutional technology-equity risk appetite before a BTC position decision. Holding full BTC only while the Nasdaq close is strictly above the simple mean of its prior 200 valid business-day closes may avoid externally visible risk-off paths and improve drawdown and Calmar after costs while retaining sufficient upside.",
+  "economic_rationale": "The policy is valuable only if this external equity-risk state improves matched-capital BTC economics beyond passive holding after normal and doubled friction. Positive aggregate PnL or avoiding one 2022 drawdown is insufficient: Design, Validation, annual breadth, contribution concentration, drawdown, Calmar, upside capture, realized and unrealized PnL, holding, terminal inventory and the 150-day and 250-day rejection neighbors must support the same mechanism.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-nasdaq-composite-external-trend-long-cash",
+    "independence_key": "external-technology-equity-risk-appetite-trend",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_LAGGED_NASDAQ_COMPOSITE_200D_TREND_POLICY",
+    "distinct_from_closed_families": [
+      "The closed BTC SMA, MACD, DMI, PSAR, Bollinger, Donchian and time-series-momentum families used BTC-derived prices; this policy derives no feature from BTC.",
+      "The closed VIX, VIX3M and Cboe SKEW families used equity option-implied risk rather than the realized direction of a broad technology-oriented cash-equity index.",
+      "The closed Treasury term-spread and high-yield OAS families used interest-rate or credit conditions rather than an external equity trend.",
+      "The open crypto-carry and forward volume/range families use crypto derivatives or BTC market features rather than an independently published equity index."
+    ],
+    "excluded_reinterpretations": [
+      "No Nasdaq return threshold, trend slope, confirmation, volatility state, alternate equity index, BTC interaction, timing delay, cash yield, fractional sizing, leverage or short leg may be added after outcome access.",
+      "The 150-day and 250-day variants are rejection-only stability neighbors and cannot replace a failed 200-day primary.",
+      "A failure cannot be reinterpreted as support for the closed BTC trend, VIX, Treasury, high-yield, calendar or session families.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-nasdaq-composite-trend-primary-prior.v1.json",
+      "sha256": "c5902d92f06b51f8fddc6a0898a725c44c7efb6b70d0b57b951a6134e7c7cc7b",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/nasdaq-composite-daily-2018-2024.v1.source.json",
+      "sha256": "cff232ebe8f87a67cbb47a6a51894b82f0d11b1122e77ff3a5d4bb70a5d0f90a",
+      "role": "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_AND_COPYRIGHT_IDENTITY"
+    },
+    {
+      "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/inputs/nasdaq-source-bundle.json",
+      "sha256": "afb35c75d03713b876a1e13f75ef5d3ef86a41f095f04543b93c0e92c88fe9cd",
+      "role": "CREATE_ONCE_RAW_FRED_SOURCE_BUNDLE"
+    },
+    {
+      "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/inputs/nasdaq-composite-2018-2024.csv",
+      "sha256": "3102d5caf63211caba467cd930feccd7f9672f5d03be57d77c8022c0c977228f",
+      "role": "SEALED_2018_2024_NASDAQ_COMPOSITE_SUBSET"
+    },
+    {
+      "path": "research_pipeline/examples/btc-nasdaq-composite-trend-long-cash-v1.hypothesis.json",
+      "sha256": "bab4cddee30b76a92abb7cfe114c02332701bdbdf53de5e577e91cb3e7a958b7",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json",
+      "sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc",
+      "role": "FROZEN_MATCHED_BUY_HOLD_LEDGER_PARITY_REFERENCE"
+    },
+    {
+      "path": "research/btc_nasdaq_composite_trend_long_cash_historical.cjs",
+      "sha256": "512865220125c6facc3205ced6c204b3fffba0092e18fb86fce3daf8a9d14373",
+      "role": "FROZEN_DETERMINISTIC_EXTERNAL_EQUITY_TREND_POLICY_AND_ECONOMIC_RUNNER"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_NASDAQ_COMPOSITE_EXTERNAL_TREND_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "NEXT_CALENDAR_DAY_0000_UTC_AFTER_NASDAQ_TRADING_DATE",
+    "source_series": "NASDAQCOM",
+    "relation": "STRICTLY_ABOVE",
+    "current_close_in_prior_mean": "EXCLUDED",
+    "long_target": "BTC_100_PERCENT",
+    "risk_off_target": "CASH_100_PERCENT",
+    "cash_yield": "ZERO",
+    "state_persistence": "LATEST_NASDAQ_TARGET_PERSISTS_ACROSS_WEEKENDS_HOLIDAYS_AND_EXPLICIT_MISSING_ROWS",
+    "missing_date_policy": "NO_FILL_NO_INTERPOLATION_NO_SUBSTITUTION",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AT_OR_AFTER_FROZEN_EFFECTIVE_TIME",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": [
+      {"variant_id": "nasdaq-prior-200d-trend-v1", "role": "primary", "lookback_business_days": 200},
+      {"variant_id": "nasdaq-prior-150d-trend-v1", "role": "neighbor", "lookback_business_days": 150},
+      {"variant_id": "nasdaq-prior-250d-trend-v1", "role": "neighbor", "lookback_business_days": 250}
+    ]
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2020-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_ZERO_YIELD_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_LONG_EPISODES_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "gate_set": {
+    "id": "BTC_NASDAQ_COMPOSITE_TREND_LONG_CASH_ECONOMIC_GATES_V1",
+    "primary": [
+      "design_normal_and_stress_total_return_positive",
+      "design_drawdown_at_most_85pct_of_buy_hold",
+      "design_upside_capture_at_least_60pct",
+      "design_calmar_at_least_buy_hold",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_at_most_85pct_of_buy_hold",
+      "validation_upside_capture_at_least_60pct",
+      "validation_calmar_at_least_buy_hold",
+      "validation_at_least_400_signals_and_2_to_60_position_changes",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_and_stress_positive_annual_return_at_least_4_of_5",
+      "annual_drawdown_non_worse_5_of_5",
+      "annual_calmar_non_worse_at_least_3_of_5",
+      "top_year_positive_contribution_at_most_60pct",
+      "validation_terminal_liquidation_adjusted_return_positive_and_cost_at_most_1pp",
+      "validation_p90_and_terminal_holding_age_at_most_two_years"
+    ],
+    "neighbors": [
+      "design_normal_total_return_positive",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_non_worse_than_buy_hold",
+      "validation_calmar_at_least_75pct_of_buy_hold",
+      "normal_positive_annual_return_at_least_3_of_5"
+    ],
+    "decision": "PRIMARY_AND_BOTH_NEIGHBORS_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "runtime": "NODE_22_OR_COMPATIBLE",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any BTC corpus, Nasdaq source, raw bundle, metadata, prior, hypothesis, parser, runner, ordering, lookback, publication timing, revision boundary or source binding fails.",
+    "Stop and permanently close the exact Nasdaq Composite 200-day external trend long-cash family if any primary or neighbor gate fails.",
+    "Do not choose the best lookback, add a return threshold, slope, confirmation, volatility rule, alternate index, BTC interaction, timing delay, cash yield, exposure, leverage or short rule after outcome access.",
+    "Do not use post-2024 BTC or Nasdaq data in this historical decision; a pass requires separately sealed independent OOS and remains REPORTED_NOT_ACTIVATED."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": ["PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL", "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO", "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"]
+}

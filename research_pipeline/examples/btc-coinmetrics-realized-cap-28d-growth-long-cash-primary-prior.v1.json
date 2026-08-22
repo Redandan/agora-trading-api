@@ -1,0 +1,66 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_REALIZED_CAP_28D_GROWTH_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-coinmetrics-realized-cap-28d-growth-long-cash",
+  "disposition": "OFFICIAL_FREE_SOURCE_AND_ADVERSARIAL_PRIOR_PERMIT_ONE_FUTURE_PREREGISTERED_HISTORICAL_AUDIT",
+  "claim_boundary": "Coin Metrics defines realized capitalization as the USD value of native units at the price when each unit last moved and describes it as an aggregate holder cost-basis measure. Its official free archive exposes daily CapMrktCurUSD and CapMVRVCur, allowing CapRealUSD to be derived from the documented identity CapMrktCurUSD divided by CapMVRVCur. Exactly one later audit may test whether lagged positive four-week realized-cap growth identifies sustained capital absorption; source availability and accounting identity do not establish predictive alpha.",
+  "feature_contract": {
+    "publisher": "Coin Metrics",
+    "source": "OFFICIAL_COINMETRICS_DATA_GITHUB_FREE_COMMUNITY_ARCHIVE",
+    "asset": "btc",
+    "source_fields": ["CapMrktCurUSD", "CapMVRVCur"],
+    "derived_field": "CapRealUSD_EQUALS_CapMrktCurUSD_DIVIDED_BY_CapMVRVCur",
+    "observation": "SUNDAY_DAILY_OBSERVATION_AFTER_EXACTLY_28_PRIOR_DAILY_OBSERVATIONS",
+    "primary_feature": "DERIVED_REALIZED_CAP_28_CALENDAR_DAY_GROWTH_STRICTLY_POSITIVE",
+    "decision_time": "OBSERVATION_DATE_PLUS_THREE_CALENDAR_DAYS_AT_00_00_UTC",
+    "validity": "168_HOURS",
+    "policy": "FULL_CAPITAL_BTC_WHEN_FEATURE_TRUE_AND_ZERO_YIELD_CASH_OTHERWISE",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Coin Metrics Realized Market Cap metric definition",
+      "primary_source": "https://docs.coinmetrics.io/asset-metrics/market/capact1yrusd",
+      "finding": "CapRealUSD is a daily USD measure based on the price when each native unit last moved and can be interpreted as an aggregate cost-basis measure.",
+      "role": "OFFICIAL_METRIC_SEMANTICS_AND_CAUSAL_PRIOR",
+      "transfer_boundary": "A rising aggregate cost basis can reflect both genuine capital absorption and coins moving after price appreciation; it does not isolate new external cash inflow."
+    },
+    {
+      "identity": "Coin Metrics MVRV formula",
+      "primary_source": "https://docs.coinmetrics.io/asset-metrics/market/capact1yrusd",
+      "finding": "Coin Metrics documents CapMVRVCur as CapMrktCurUSD divided by CapRealUSD, making the reverse derivation explicit and deterministic when both free fields are present.",
+      "role": "OFFICIAL_DERIVATION_IDENTITY",
+      "transfer_boundary": "Both fields must be non-null, positive, same-date and frozen from one exact archive version before any outcome access."
+    },
+    {
+      "identity": "Coin Metrics free data archives",
+      "primary_source": "https://github.com/coinmetrics/data",
+      "finding": "The official repository publishes daily-updated CSV archives generated from the free Community tier under CC BY-NC 4.0 without guaranteeing stable metric availability.",
+      "role": "FREE_NO_KEY_HISTORICAL_SOURCE",
+      "transfer_boundary": "The exact repository commit and BTC CSV bytes must be frozen; present-vintage history lacks original publication vintages and remains forward-OOS-limited."
+    },
+    {
+      "identity": "Closed DRA Bitcoin MVRV relative-value family",
+      "primary_source": "research_pipeline/examples/dra-bitcoin-mvrv-relative-value-entry-admission-historical.v1.decision.json#sha256=9fa546266ea17871f4b0002b9252d8fd13013ff131984bec8604657c007d383e",
+      "finding": "A lagged MVRV-below-prior-365-day-median DRA admission rule already failed and is permanently closed.",
+      "role": "ADVERSARIAL_DUPLICATION_AND_OPPORTUNITY_COST_PRIOR",
+      "transfer_boundary": "This new family uses the directional growth of derived realized cap, a full-capital standalone parent and one 28-day horizon; it must not reopen or rescue the closed MVRV valuation filter."
+    }
+  ],
+  "future_design_requirements": [
+    "Before BTC outcome access, freeze one exact official Coin Metrics repository commit, raw btc.csv SHA-256 and a 2018-2024 subset containing only date, CapMrktCurUSD and CapMVRVCur.",
+    "Reject any row with missing, nonpositive or mismatched fields; derive CapRealUSD only through the official accounting identity and freeze all feasibility counts before outcomes.",
+    "Use Sunday observations, exactly 28 calendar-day growth, a fixed three-day availability lag and a 168-hour decision validity; no neighboring horizons, thresholds or daily timing variants.",
+    "Run deterministic Design and Validation matched-capital BTC versus zero-yield-cash economics under normal and doubled adverse friction with realized, unrealized, total PnL, drawdown, exposure, holding, terminal inventory, annual breadth and concentration gates.",
+    "Treat present-vintage reviewed history as historical research only. A pass remains REPORTED_NOT_ACTIVATED until an independent sealed forward or OOS evaluation exists."
+  ],
+  "uncertainty": [
+    "Realized cap embeds historical BTC prices and coin-movement behavior, so positive growth may be a lagging bull-market proxy rather than independent capital inflow.",
+    "The free archive is updated daily and does not preserve original daily vintages or guarantee a stable metric set; exact source bytes and revision boundaries must be sealed.",
+    "The three-day lag is a conservative reproducibility convention, not proof of Coin Metrics original publication latency.",
+    "No derived historical series, feature-state count, BTC return, path, economics, candidate, post-2024 observation or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T15:50:09Z"
+}

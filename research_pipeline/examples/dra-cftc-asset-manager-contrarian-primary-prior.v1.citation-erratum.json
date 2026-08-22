@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "document_type": "SEALED_PRIOR_CITATION_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "prior_path": "research_pipeline/examples/dra-cftc-asset-manager-contrarian-primary-prior.v1.json",
+  "prior_sha256": "c576320e5a72cbe2ea12efec7855ce82e7ec032cdabe2b6ea6dbc06572199338",
+  "erratum_timestamp_utc": "2026-08-19T06:43:00Z",
+  "field": "literature_prior[2].url",
+  "original_url": "https://doi.org/10.1016/j.jbankfin.2024.107344",
+  "corrected_url": "https://doi.org/10.1016/j.irfa.2024.103810",
+  "title": "Market impact of the bitcoin ETF introduction on bitcoin futures",
+  "verification_url": "https://www.sciencedirect.com/science/article/pii/S1057521924007427",
+  "impact": "CITATION_METADATA_ONLY",
+  "strategy_semantics_changed": false,
+  "factor_direction_changed": false,
+  "manifest_changed": false,
+  "gates_changed": false,
+  "outcome_or_decision_changed": false,
+  "note": "The prior title, structural-break warning and selected factor semantics were correct. The original DOI pointed to the wrong journal identifier. The sealed prior is not rewritten; this erratum preserves its original hash and corrects only the reader-facing citation locator."
+}

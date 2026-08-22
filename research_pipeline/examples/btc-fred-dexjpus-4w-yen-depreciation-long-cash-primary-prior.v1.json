@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_DEXJPUS_4W_YEN_DEPRECIATION_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-dexjpus-4w-yen-depreciation-long-cash",
+  "created_at": "2026-08-21T03:38:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_dexjpus_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_SOURCE_FEASIBILITY_GATE_IN_THE_NEXT_AUTONOMOUS_CYCLE",
+  "claim_boundary": "A rising DEXJPUS rate means yen depreciation against the U.S. dollar and may proxy global carry risk appetite, but it is not a direct measure of leverage, funding or Bitcoin demand. Monetary-policy divergence, intervention and safe-haven flows can break the sign. This supports one audit only.",
+  "primary_sources": [
+    {
+      "title": "Japanese Yen to U.S. Dollar Spot Exchange Rate",
+      "publisher": "Board of Governors of the Federal Reserve System via Federal Reserve Bank of St. Louis FRED",
+      "url": "https://fred.stlouisfed.org/series/DEXJPUS",
+      "use": "Official daily noon New York buying-rate identity, units, frequency and free present-vintage CSV source."
+    },
+    {
+      "title": "Foreign Exchange Rates - H.10",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/releases/h10/current/",
+      "use": "Official weekly release and currency-unit convention for Japanese yen per U.S. dollar."
+    },
+    {
+      "title": "Taxonomy of Global Risk, Uncertainty, and Volatility Measures",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/econres/ifdp/files/ifdp1216.pdf",
+      "use": "Primary Federal Reserve research classifies yen depreciation as a risk-on foreign-exchange signal; this is a mechanism prior, not Bitcoin performance evidence."
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "FRED_DEXJPUS_COMPLETE_WEEK_MEAN_STRICTLY_ABOVE_MEAN_4_COMPLETE_WEEKS_EARLIER_FOLLOWING_THURSDAY_0000_UTC_V1",
+    "risk_on_state": "CURRENT_COMPLETE_WEEK_MEAN_YEN_PER_USD_STRICTLY_GREATER_THAN_MEAN_FOUR_COMPLETE_WEEKS_EARLIER",
+    "risk_off_state": "OTHERWISE",
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_YEN_DEPRECIATION_STATE_ZERO_YIELD_CASH_OTHERWISE",
+    "availability_floor": "THURSDAY_AFTER_COMPLETE_MONDAY_TO_FRIDAY_WEEK_AT_00_00_UTC",
+    "variant_count": 1
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_broad_dollar": "DEXJPUS is a bilateral yen carry and safe-haven axis, while the closed DTWEXBGS family used a trade-weighted broad-dollar change as DRA entry admission. Parent, comparator and causal mechanism differ.",
+    "distinct_from_closed_rates_and_financial_conditions": "The feature reads only a lagged bilateral FX price and cannot use yields, inflation, NFCI, VIX, WTI, BTC price or on-chain state.",
+    "prohibited_rescue": "Do not add other currencies, carry-rate differentials, BOJ or Fed decisions, intervention labels, broad-dollar indices, volatility, thresholds, smoothing, alternate horizons, inverse direction, fractional sizing or leverage after access."
+  },
+  "adversarial_prior": [
+    "USDJPY can rise because of U.S.-Japan policy divergence rather than broad risk appetite.",
+    "Official intervention and safe-haven demand can abruptly reverse the yen relationship.",
+    "Weekly aggregation and conservative release lag may discard faster information.",
+    "Present-vintage daily history does not prove original-release availability or absence of revision.",
+    "A long-cash rule can improve apparent safety only by forfeiting BTC upside."
+  ],
+  "stop_conditions": [
+    "Do not execute the source probe or inspect 2018-2024 DEXJPUS values in this cycle because this cycle already consumed its one-hypothesis budget.",
+    "Stop DATA_REJECT before hypothesis or BTC access on any source, weekday, weekly-aggregation, finite-value, support or transition failure.",
+    "If the source gate passes in a later cycle, freeze exactly one hypothesis and economic manifest before BTC outcomes.",
+    "Stop NO_CANDIDATE on any economic, drawdown, Calmar, upside, breadth, concentration or determinism failure.",
+    "Do not open post-2024 outcomes; a historical pass remains REPORTED_NOT_ACTIVATED."
+  ],
+  "missing_proof": [
+    "No exact DEXJPUS 2018-2024 source bundle, weekly aggregation or state-support result exists.",
+    "No hypothesis, runner, manifest, economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary official, research and adversarial prior only. No historical DEXJPUS factor value, BTC outcome, paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

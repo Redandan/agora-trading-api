@@ -1,0 +1,65 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_TREASURY_TERM_SPREAD_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "PRIOR_SUPPORTS_ONE_TREASURY_TERM_SPREAD_LONG_CASH_HISTORICAL_AUDIT",
+  "claim_boundary": "Official Treasury material identifies daily constant-maturity par yields and their publication timing. Federal Reserve Bank of New York research supports the 10-year minus 3-month term spread as a real-time macroeconomic recession indicator, while Federal Reserve research notes 10-year minus 1-year or 2-year spreads as common but weaker alternatives. None of these sources validates Bitcoin timing. Exactly one preregistered matched-capital historical audit may test the frozen non-inversion policy; any failed primary or neighboring economic gate permanently closes this exact family without maturity, threshold, relation or timing search.",
+  "feature_contract": {
+    "publisher": "U.S. Department of the Treasury",
+    "source_fields": ["3 Mo", "1 Yr", "2 Yr", "10 Yr"],
+    "decision_time": "NEXT_CALENDAR_DAY_0000_UTC_AFTER_TREASURY_TRADING_DATE",
+    "primary_feature": "TEN_YEAR_CMT_MINUS_THREE_MONTH_CMT",
+    "neighbor_features": ["TEN_YEAR_CMT_MINUS_ONE_YEAR_CMT", "TEN_YEAR_CMT_MINUS_TWO_YEAR_CMT"],
+    "policy": "LONG_BTC_WHEN_SPREAD_AT_OR_ABOVE_ZERO_OTHERWISE_CASH",
+    "threshold_pct": "0.00",
+    "state_persistence": "LATEST_TREASURY_STATE_PERSISTS_ACROSS_WEEKENDS_AND_HOLIDAYS"
+  },
+  "prior_matrix": [
+    {
+      "identity": "U.S. Department of the Treasury, Treasury Yield Curve Methodology",
+      "primary_source": "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology",
+      "finding": "Treasury derives official constant-maturity par yields from indicative bid-side quotations near 3:30 PM Eastern and normally publishes the daily curve by 6:00 PM Eastern.",
+      "role": "OFFICIAL_FEATURE_AND_PUBLICATION_IDENTITY",
+      "transfer_boundary": "An official yield curve and publication clock do not prove an investable Bitcoin return signal."
+    },
+    {
+      "identity": "U.S. Department of the Treasury, Daily Treasury Rate Archives",
+      "primary_source": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rate-archives",
+      "finding": "Treasury publishes official CSV archives for daily par yield curve rates, preserves the December 2021 methodology series break and states that earlier rates remain official.",
+      "role": "OFFICIAL_HISTORICAL_DATA_AND_SERIES_BREAK_IDENTITY",
+      "transfer_boundary": "The sealed present-vintage bytes remain historical evidence and are not prospective OOS."
+    },
+    {
+      "identity": "Estrella and Mishkin, The Yield Curve as a Predictor of U.S. Recessions, Federal Reserve Bank of New York, 1996",
+      "primary_source": "https://www.newyorkfed.org/medialibrary/media/research/current_issues/ci2-7.pdf",
+      "finding": "The paper identifies the 10-year Treasury minus 3-month Treasury spread as a simple predictor of U.S. recessions two to six quarters ahead.",
+      "role": "PRIMARY_MACRO_RISK_MECHANISM_PRIOR",
+      "transfer_boundary": "Recession prediction is not next-day Bitcoin return prediction and does not establish that cashing out during inversion improves after-cost PnL or drawdown."
+    },
+    {
+      "identity": "Engstrom and Sharpe, Don't Fear the Yield Curve, Federal Reserve, 2018",
+      "primary_source": "https://www.federalreserve.gov/econres/notes/feds-notes/dont-fear-the-yield-curve-20180628.html",
+      "finding": "The note describes 10-year minus 1-year or 2-year yields as commonly cited long-term spreads but argues they can be statistically dominated by a near-term forward spread for recession prediction.",
+      "role": "ADVERSARIAL_AND_NEIGHBOR_PRIOR",
+      "transfer_boundary": "The two alternative short maturities are stability checks, not independently supported Bitcoin strategies or permission to choose the best result."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Use only the four named fields from the exact sealed Treasury source bundle; never fill, interpolate, revise or substitute a missing date or maturity.",
+    "Make each Treasury observation effective at 00:00 UTC on the following calendar day, after Treasury's normal 6:00 PM Eastern publication time, and persist the latest state until the next observation.",
+    "Freeze 10Y minus 3M as primary and 10Y minus 1Y and 10Y minus 2Y as the only neighboring definitions before BTC outcome access.",
+    "Use one zero-percent spread boundary for every variant, long-only 100-percent BTC or cash, next-H1-open fills, normal and doubled stress friction and zero cash yield.",
+    "Require matched-capital realized, unrealized and total PnL, drawdown, Calmar, upside capture, holding, terminal inventory, annual breadth, contribution concentration and both-neighbor stability.",
+    "Do not use the New York Fed fitted recession probability, monthly averaging, another maturity, threshold, smoothing, confirmation delay, BTC interaction, cash yield, fractional sizing, leverage or short leg after outcome access.",
+    "Do not open post-2024 data or create a Trading runtime rule from this audit."
+  ],
+  "uncertainty": [
+    "The cited recession literature concerns U.S. macroeconomic activity, not Bitcoin returns.",
+    "Treasury rates are indicative par-curve estimates rather than executable transactions, and the methodology changed on 2021-12-06.",
+    "The source bundle is a sealed present-vintage historical download, not an original daily vintage archive or independent OOS.",
+    "A binary inversion state may remain unchanged for long periods and can sacrifice substantial BTC upside.",
+    "No BTC performance result, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T08:01:52Z"
+}

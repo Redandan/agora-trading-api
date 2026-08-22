@@ -1,0 +1,148 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_REALIZED_CAP_28D_GROWTH_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1",
+  "created_at": "2026-08-20T16:18:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "Conservatively lagged positive four-week growth in Coin Metrics derived Bitcoin realized capitalization may identify durable capital absorption. A weekly full-capital BTC-or-cash policy should beat matched passive BTC after costs while preserving annual and path-risk breadth if the mechanism is economically useful.",
+  "economic_rationale": "Realized capitalization can also be a lagging BTC bull-market proxy. Therefore aggregate profit is insufficient: the one frozen variant must exceed matched buy-and-hold returns in Design and Validation under normal and doubled friction, avoid worse drawdown, preserve Calmar and upside, survive terminal liquidation, and pass annual and episode concentration gates.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-coinmetrics-derived-realized-cap-sunday-28d-growth-long-cash",
+    "independence_key": "bitcoin-aggregate-holder-cost-basis-growth",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_SINGLE_VARIANT_POLICY",
+    "distinct_from_closed_mvrv_family": "The closed DRA MVRV relative-value admission filter compares valuation to a 365-day median inside another strategy. This experiment uses directional 28-day growth of derived realized cap as a standalone full-capital BTC-or-cash policy and cannot reopen or rescue the MVRV family.",
+    "excluded_reinterpretations": [
+      "No alternate horizon, weekday, threshold, smoothing, z-score, MVRV level, price interaction, fractional sizing, leverage, short leg or cash yield may be added after outcome access.",
+      "No neighboring variant exists; a failed primary permanently closes this exact family without tuning.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed untouched independent OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-realized-cap-28d-growth-long-cash-primary-prior.v1.json",
+      "sha256": "6103cb5805abfb7bfadd5582b0b04074ea50522a332e2469448ba3d5443fc110",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/coinmetrics-btc-realized-cap-28d-growth-daily-2018-2024.v1.source.json",
+      "sha256": "ea018692d18db827da8d2ae789766a985581edf9544d3024a2e3e60aa09a8559",
+      "role": "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_METRIC_AND_LICENSE_IDENTITY"
+    },
+    {
+      "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/inputs/coinmetrics-realized-cap-source-bundle.json",
+      "sha256": "e097f4c7da2153ab2f1387d54f0400ef745972bda645a4202d83783ac812d33b",
+      "role": "CREATE_ONCE_RAW_COIN_METRICS_SOURCE_BUNDLE"
+    },
+    {
+      "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/inputs/coinmetrics-btc-realized-cap-2018-2024.csv",
+      "sha256": "d24ab2b1445226894feb8fef0f7843485f9fc520d79992b2ecb14a825c96056a",
+      "role": "SEALED_2018_2024_DAILY_REALIZED_CAP_SUBSET"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-realized-cap-28d-growth-long-cash-v1.hypothesis.json",
+      "sha256": "75a929314ccd787593ee5bdd5badc604ed9bbe1a88a4bd7184541893387c9cc1",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": "research/btc_treasury_term_spread_long_cash_historical.cjs",
+      "sha256": "cd375a15ed0f6cf5801f9fd26563753c06af895a81da34e6c23643c6e00320e9",
+      "role": "FROZEN_DETERMINISTIC_MATCHED_CAPITAL_ECONOMIC_ENGINE"
+    },
+    {
+      "path": "research/btc_coinmetrics_realized_cap_28d_growth_long_cash_historical.cjs",
+      "sha256": "8934c7fb34bb224e829a03df4bf089f48f61e3958872d8dda2eedc7bd303f141",
+      "role": "FROZEN_SINGLE_VARIANT_FEATURE_POLICY_AND_RESULT_RUNNER"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_COINMETRICS_REALIZED_CAP_28D_GROWTH_LONG_CASH_V1",
+    "variant_id": "coinmetrics-realized-cap-28d-growth-v1",
+    "variants": 1,
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "source_series": ["btc.CapMrktCurUSD", "btc.CapMVRVCur"],
+    "derived_series": "CapRealUSD_EQUALS_CapMrktCurUSD_DIVIDED_BY_CapMVRVCur",
+    "observation_clock": "SUNDAY_0000_UTC_DAILY_ROW",
+    "growth_lag_days": 28,
+    "relation": "STRICTLY_ABOVE",
+    "decision_clock": "OBSERVATION_PLUS_THREE_CALENDAR_DAYS_0000_UTC",
+    "signal_validity_hours": 168,
+    "execution": "NEXT_HOURLY_BAR_OPEN_AT_OR_AFTER_FROZEN_EFFECTIVE_TIME",
+    "long_target": "BTC_100_PERCENT",
+    "risk_off_target": "CASH_100_PERCENT",
+    "cash_yield": "ZERO",
+    "missing_date_policy": "REJECT_NON_CONSECUTIVE_OR_INCOMPLETE_SOURCE_NO_FILL_NO_INTERPOLATION",
+    "short": "DENY",
+    "leverage": "DENY"
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2019-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "annual_breadth": {
+      "years": [2019, 2020, 2021, 2022, 2023, 2024],
+      "state": "FAIR_RESET_EACH_CALENDAR_YEAR_TO_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_ZERO_YIELD_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_LONG_EPISODES_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "frozen_gates": {
+    "direct_total_return_delta_pp_strictly_positive_design_normal_and_stress": true,
+    "direct_total_return_delta_pp_strictly_positive_validation_normal_and_stress": true,
+    "maximum_drawdown_non_worse_than_buy_hold_design_and_validation_normal": true,
+    "calmar_at_least_buy_hold_design_and_validation_normal": true,
+    "upside_capture_at_least": 0.6,
+    "source_feature_counts": {
+      "design": {"evaluations": 209, "positive": 128, "nonpositive": 81, "transitions": 12},
+      "validation": {"evaluations": 104, "positive": 89, "nonpositive": 15, "transitions": 9}
+    },
+    "validation_position_changes_min": 2,
+    "validation_position_changes_max": 30,
+    "validation_stress_drawdown_max_above_normal_pp": 3,
+    "top_positive_episode_contribution_max_pct": 60,
+    "annual_normal_positive_delta_min_years_of_6": 4,
+    "annual_stress_positive_delta_min_years_of_6": 4,
+    "annual_drawdown_non_worse_min_years_of_6": 5,
+    "annual_calmar_non_worse_min_years_of_6": 4,
+    "top_positive_annual_delta_contribution_max_pct": 60,
+    "validation_terminal_liquidation_delta_pp_strictly_positive": true,
+    "validation_terminal_liquidation_cost_max_pp": 1,
+    "validation_p90_hold_max_hours": 17520,
+    "validation_terminal_holding_age_max_hours": 17520
+  },
+  "determinism": {
+    "runtime": "NODE_22_OR_COMPATIBLE",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any frozen hash, row count, chronology, derivation identity, Sunday clock, publication lag, validity, cost, window, comparator, gate or policy binding differs.",
+    "Stop with NO_CANDIDATE and permanently close the exact single-variant family if any frozen gate fails; do not tune, rescue or add a neighbor.",
+    "Do not open post-2024 OOS unless every frozen historical gate passes and a separate sealed OOS authorization exists.",
+    "Never activate SHADOW, PAPER or LIVE and never mutate Production, Trading, database, order, fund, OCO, Grid, scheduler or canonical research state."
+  ],
+  "oos_access": "DENY"
+}

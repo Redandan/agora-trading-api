@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_WCOILWTICO_4W_UPTREND_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-wcoilwtico-4w-uptrend-long-cash",
+  "created_at": "2026-08-21T03:01:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_wti_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_SOURCE_FEASIBILITY_GATE_IN_THE_NEXT_AUTONOMOUS_CYCLE",
+  "claim_boundary": "WTI is an observable global growth, inflation and supply-shock price, not a direct Bitcoin-liquidity measure or established Bitcoin predictor. A positive four-week WTI direction may coincide with broad risk appetite and reflation, but oil-specific supply shocks can reverse that sign. This weak but causally distinct prior supports one audit only.",
+  "primary_sources": [
+    {
+      "title": "Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma",
+      "publisher": "U.S. Energy Information Administration via Federal Reserve Bank of St. Louis FRED",
+      "url": "https://fred.stlouisfed.org/series/WCOILWTICO",
+      "use": "Official weekly Friday-ending WTI spot-price identity, units, frequency and free present-vintage CSV source."
+    },
+    {
+      "title": "Spot Prices for Crude Oil and Petroleum Products",
+      "publisher": "U.S. Energy Information Administration",
+      "url": "https://www.eia.gov/dnav/pet/pet_pri_spt_s1_w.htm",
+      "use": "Official source and weekly aggregation boundary; EIA calculates weekly prices as unweighted averages of daily closing spot prices."
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "FRED_WCOILWTICO_CURRENT_COMPLETE_WEEK_STRICTLY_ABOVE_VALUE_4_COMPLETE_WEEKS_EARLIER_FOLLOWING_THURSDAY_0000_UTC_V1",
+    "uptrend_state": "CURRENT_WEEKLY_WTI_STRICTLY_GREATER_THAN_WTI_FOUR_WEEKLY_OBSERVATIONS_EARLIER",
+    "nonuptrend_state": "OTHERWISE",
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_UPTREND_STATE_ZERO_YIELD_CASH_OTHERWISE",
+    "availability_floor": "THURSDAY_AFTER_THE_SERIES_FRIDAY_AT_00_00_UTC",
+    "variant_count": 1
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_broad_dollar_and_real_yield": "WTI is a physical commodity spot-price direction, not the broad dollar, a Treasury yield, breakeven inflation or a financial-conditions index.",
+    "distinct_from_closed_btc_native_price_factors": "The decision reads only lagged WTI weekly prices and cannot use BTC momentum, volatility, volume, drawdown, valuation or on-chain state.",
+    "prohibited_rescue": "Do not add Brent, natural gas, futures curves, inventories, equities, inflation data, BTC interactions, thresholds, smoothing, alternate horizons, direction inversion, fractional sizing or leverage after access."
+  },
+  "adversarial_prior": [
+    "WTI can rise because of adverse supply shocks while risk assets fall.",
+    "WTI can turn negative or behave discontinuously during storage and contract-market stress, so level continuity is not guaranteed.",
+    "The weekly series is present-vintage and can be revised; it is not an original-release-vintage archive.",
+    "Commodity and Bitcoin co-movement may be unstable across inflation, growth and crisis regimes.",
+    "A long-cash rule can appear safer only because it forfeits most BTC upside."
+  ],
+  "stop_conditions": [
+    "Do not execute the source probe or inspect 2018-2024 WTI values in this cycle; this cycle already consumed its one-hypothesis budget.",
+    "Stop DATA_REJECT before hypothesis or BTC access on any source, lattice, finite-value, support or transition failure.",
+    "If the source gate passes in a later cycle, freeze exactly one hypothesis and economic manifest before BTC outcomes.",
+    "Stop NO_CANDIDATE on any economic, drawdown, Calmar, upside, breadth, concentration or determinism failure.",
+    "Do not open post-2024 outcomes; a historical pass remains REPORTED_NOT_ACTIVATED."
+  ],
+  "missing_proof": [
+    "No exact WCOILWTICO 2018-2024 source bundle or state-support result exists.",
+    "No hypothesis, runner, manifest, economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary official source and adversarial prior only. No historical WTI factor value, BTC outcome, paid API, second timer, second writer, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

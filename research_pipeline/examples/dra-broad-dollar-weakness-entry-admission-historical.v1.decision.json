@@ -1,0 +1,152 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_BROAD_DOLLAR_WEAKNESS_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-broad-dollar-weakness-entry-admission-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BROAD_DOLLAR_WEAKNESS_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_PRESENT_VINTAGE_DTWEXBGS_WEEKLY_MEAN_STRICT_NEGATIVE_28_DAY_CHANGE_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_HORIZON_THRESHOLD_INDEX_OR_INVERSE_TUNING",
+  "material_conclusion": "The rule failed both economic and independent directional evidence. Matched-capital Validation total PnL fell from 86.20298186 to 55.74492565 USDT, realized PnL fell from 89.41118307 to 55.74492565 USDT, maximum drawdown rose from 7.121498% to 14.795081%, maximum underwater duration rose from 2,397 to 2,449 hours, median holding rose from 182.5 to 332.0 hours and P90 holding rose from 1,418.3 to 3,580.0 hours. Only 2022 improved across five annual folds. Design and Validation 168-hour directional diagnostics both had negative median signed responses and failed sign tests. Broad-dollar weakness under this exact rule is not independent risk-adjusted DRA alpha.",
+  "performance_evidence": {
+    "design": {
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "37.89303506",
+      "total_pnl_delta_usdt": "-5.10616587",
+      "parent_realized_pnl_usdt": "122.11969534",
+      "candidate_realized_pnl_usdt": "69.67977902",
+      "realized_pnl_delta_usdt": "-52.43991632",
+      "parent_unrealized_pnl_usdt": "-79.12049441",
+      "candidate_unrealized_pnl_usdt": "-31.78674396",
+      "parent_maximum_drawdown_pct": "18.673983",
+      "candidate_maximum_drawdown_pct": "18.008053",
+      "parent_maximum_underwater_duration_hours": 9878,
+      "candidate_maximum_underwater_duration_hours": 9878,
+      "parent_median_hold_hours": 113.0,
+      "candidate_median_hold_hours": 208.0,
+      "parent_p90_hold_hours": 1266.0,
+      "candidate_p90_hold_hours": 1381.0,
+      "parent_terminal_inventory_count": 5,
+      "candidate_terminal_inventory_count": 2,
+      "vetoed_parent_signals": 121
+    },
+    "validation": {
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "55.74492565",
+      "total_pnl_delta_usdt": "-30.45805621",
+      "parent_realized_pnl_usdt": "89.41118307",
+      "candidate_realized_pnl_usdt": "55.74492565",
+      "realized_pnl_delta_usdt": "-33.66625742",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "candidate_unrealized_pnl_usdt": "0.00000000",
+      "parent_maximum_drawdown_pct": "7.121498",
+      "candidate_maximum_drawdown_pct": "14.795081",
+      "maximum_drawdown_delta_pp": "7.673583",
+      "parent_maximum_underwater_duration_hours": 2397,
+      "candidate_maximum_underwater_duration_hours": 2449,
+      "underwater_duration_delta_hours": 52,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 332.0,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 3580.0,
+      "parent_terminal_inventory_count": 1,
+      "candidate_terminal_inventory_count": 0,
+      "vetoed_parent_signals": 102
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-13.77220521",
+      "2021": "-21.76825649",
+      "2022": "12.95487310",
+      "2023": "-14.80202844",
+      "2024": "-15.65602777"
+    },
+    "breadth_and_concentration": {
+      "annual_total_wins": "1_of_5",
+      "annual_drawdown_non_worse": "3_of_5",
+      "top_year_positive_delta_contribution_pct": "100.000000"
+    },
+    "predictive_design": {
+      "episode_count": 156,
+      "positive_factor_count": 79,
+      "negative_factor_count": 77,
+      "median_signed_response_168h": "-0.0012952496816892702758978553576485",
+      "positive_factor_median_raw_return_168h": "-0.0010848438276906387018035528635357",
+      "negative_factor_median_raw_return_168h": "0.001358331739047254639372488999426",
+      "one_sided_sign_test_p_value": "0.7643569483901969776156818005114157",
+      "passed_gates": "7_of_11"
+    },
+    "predictive_validation": {
+      "episode_count": 103,
+      "positive_factor_count": 52,
+      "negative_factor_count": 51,
+      "median_signed_response_168h": "-0.0015345413230056266515176872977222",
+      "positive_factor_median_raw_return_168h": "0.006075915579699613135284532243422",
+      "negative_factor_median_raw_return_168h": "0.021975634988715811485941705108995",
+      "one_sided_sign_test_p_value": "0.6531570174877581679365548841415648",
+      "passed_gates": "8_of_11"
+    }
+  },
+  "failed_economic_gates": [
+    "annual_drawdown_non_worse_at_least_4_of_5",
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_drawdown_within_0_25pp",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_underwater_duration_non_worse"
+  ],
+  "failed_predictive_gates": {
+    "design": [
+      "median_signed_response_positive",
+      "negative_factor_median_raw_return_negative",
+      "one_sided_sign_test_at_most_0_10",
+      "positive_factor_median_raw_return_positive"
+    ],
+    "validation": [
+      "median_signed_response_positive",
+      "negative_factor_median_raw_return_negative",
+      "one_sided_sign_test_at_most_0_10"
+    ]
+  },
+  "failure_attribution": [
+    "Removing entries during broad-dollar non-weakness did not buy a safer path: Validation drawdown more than doubled while PnL fell by 30.45805621 USDT.",
+    "Terminal inventory cleanup improved unrealized PnL by 3.20820121 USDT, but realized PnL fell by 33.66625742 USDT, so the total effect is not inventory-independent alpha.",
+    "The only positive annual delta occurred in 2022. Losses versus the parent returned in both 2023 and 2024, so the mechanism lacks annual breadth.",
+    "Balanced positive and negative factor counts still produced negative median signed responses in both windows, rejecting the proposed directional link rather than merely failing from sparse events."
+  ],
+  "sealed_evidence": {
+    "manifest": {
+      "path": "research_pipeline/examples/dra-broad-dollar-weakness-entry-admission-historical.v1.manifest.json",
+      "sha256": "5794e72af27d53627ecf42f16db1822a56f4ea0b02fb74aaf2349095fbff19ec"
+    },
+    "runner": {
+      "path": "research/btc_dra_broad_dollar_weakness_entry_admission_historical_v1.py",
+      "sha256": "21c0da670ff06f5c72df3434d3c202aebd4ff22a0afdd7edb0b3a6536b956ffb"
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/inputs/fred-source-bundle.json",
+      "sha256": "6dd739ad97acf3a0958753387ce0194663803a8f3aa5585b1d137c3a4e5e898b"
+    },
+    "run1": {
+      "path": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/artifacts/run1.json",
+      "sha256": "d2fc9bc56b70221f780f922f3b503976a43de7c1fcf2bf7b9a05b2753371e05e"
+    },
+    "run2": {
+      "path": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/artifacts/run2.json",
+      "sha256": "d2fc9bc56b70221f780f922f3b503976a43de7c1fcf2bf7b9a05b2753371e05e"
+    },
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "The sealed FRED data is a present-vintage snapshot. Original H.10 release values and revision vintages remain MISSING_PROOF.",
+    "DTWEXBGS is a broad trade-weighted Federal Reserve index and is not compositionally identical to ICE DXY.",
+    "This closes only the exact weekly-mean negative 28-day DTWEXBGS change admission rule. Independently preregistered dollar-volatility, surprise or cross-sectional mechanisms are not evaluated here."
+  ],
+  "next_action": "Add the exact family to the permanent tombstone catalog and advance a different independent mechanism without changing the dollar index, weekly aggregation, horizon, sign, threshold, admission action or inverse rule.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, canonical state write, post-2024 data, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

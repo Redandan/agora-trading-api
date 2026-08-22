@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "COIN_METRICS_BTC_ONCHAIN_ACTIVITY_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Coin Metrics Community API",
+  "asset": "btc",
+  "metrics": ["TxCnt", "AdrActCnt"],
+  "api_documentation": "https://docs.coinmetrics.io/api/v4/",
+  "download_url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=TxCnt%2CAdrActCnt&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000&status=reviewed",
+  "captured_at": "2026-08-19T08:46:22.749Z",
+  "source_probe": {
+    "path": "research/coinmetrics_btc_onchain_activity_source_probe.cjs",
+    "sha256": "0ec6689367bfd35311e000c537bfc7729c3f90e942e8769a35439b8e501b1491"
+  },
+  "raw_bundle": {
+    "path": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/inputs/coinmetrics-source-bundle.json",
+    "sha256": "41ed62da5ca1fdc7e36361db9318939ede775993958175cc6e7181cfb90f0aca",
+    "bytes": 2796,
+    "request_count": 1,
+    "request_origin": "https://community-api.coinmetrics.io",
+    "credentials": "DENY",
+    "requested_status": "reviewed"
+  },
+  "raw_response": {
+    "path": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/inputs/coinmetrics-btc-onchain-activity-2018-2024-raw.json",
+    "sha256": "66517ef80ed0ea5badfc5541d735763fe9c97d8e0854254ae8a138f153831748",
+    "bytes": 240810,
+    "rows": 2557,
+    "pagination_remaining": false
+  },
+  "sealed_subset": {
+    "path": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/inputs/coinmetrics-btc-onchain-activity-2018-2024.csv",
+    "sha256": "f47e2c082f21683befa4092f7bdc83de92c3717859fee5ec70f9b52117e4f669",
+    "bytes": 64411,
+    "rows": 2557,
+    "first_date": "2018-01-01",
+    "last_date": "2024-12-31",
+    "columns": ["date", "active_address_count", "transaction_count"],
+    "annual_rows": {
+      "2018": 365,
+      "2019": 365,
+      "2020": 366,
+      "2021": 365,
+      "2022": 365,
+      "2023": 365,
+      "2024": 366
+    }
+  },
+  "pre_outcome_feature_feasibility": {
+    "mean_days": 28,
+    "comparison_lag_days": 364,
+    "first_evaluable_observation_day": "2019-01-27",
+    "first_effective_time": "2019-01-29T00:00:00Z",
+    "primary_both": {"evaluations": 2166, "positive_days": 857, "negative_days": 1309, "transitions": 20},
+    "neighbor_txcnt_only": {"evaluations": 2166, "positive_days": 1351, "negative_days": 815, "transitions": 18},
+    "neighbor_adractcnt_only": {"evaluations": 2166, "positive_days": 1233, "negative_days": 933, "transitions": 18},
+    "btc_outcome_accessed": false
+  },
+  "publication_timing_boundary": "Treat UTC observation day D as usable no earlier than D plus two calendar days at 00:00 UTC. The extra day is a conservative confirmation allowance; no current incomplete day is used.",
+  "revision_boundary": "The exact Community API response is a sealed present-vintage reviewed historical input. Original daily review timestamps and original vintages are not exposed and remain MISSING_PROOF; a historical pass therefore requires untouched sealed forward OOS.",
+  "license_boundary": "Coin Metrics documents Community API data as no-key and free for non-commercial use under a Creative Commons license. Raw and normalized bytes remain untracked internal research inputs; commercial reuse and redistribution remain unauthorized by this audit.",
+  "scope_note": "Free historical source only. No BTC outcome, paid API, account, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed."
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_CPIAUCSL_YOY_DISINFLATION_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical-v1",
+  "hypothesis_id": "btc-fred-cpiaucsl-yoy-disinflation-long-cash-v1",
+  "created_at": "2026-08-21T06:06:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A conservatively lagged monthly decline in CPI year-over-year inflation can be useful only if full-capital BTC participation improves matched-capital risk-adjusted economics broadly after explicit costs.",
+  "dataset": {"path": ".research-state/java-parity/selection-2019-2024.tsv", "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd", "rows": 52608, "selection_cutoff": "2025-01-01T00:00:00"},
+  "source_bindings": [
+    {"key": "normalized_cpi", "path": ".research-state/experiments/btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical-v1/inputs/cpiaucsl-monthly-2017-2024.csv", "sha256": "ecbdf60fdfbb3de3e7d7b9e0e54913a6f64a17f3b452aa4c840374c8f4825e4b"},
+    {"key": "source_bundle", "path": ".research-state/experiments/btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical-v1/inputs/cpiaucsl-source-bundle.json", "sha256": "7b144ff464c3f8cbb9c211d453deac008804a6b0795f2e9737518d355840c312"},
+    {"key": "economic_kernel", "path": "research/btc_m2_liquidity_acceleration_long_cash_historical.py", "sha256": "eb059aed19f839f9b6c1f443df45e6611e7170b431904c6a28e35d7c2dc2eb09"},
+    {"key": "long_cash_ledger", "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py", "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"},
+    {"key": "path_reference", "path": "research/btc_monthly_12m_time_series_momentum_historical.py", "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"},
+    {"key": "h1_parser", "path": "research/btc_dra_reversal_confirmed_exit_v2c.py", "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"},
+    {"key": "primary_prior", "path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-long-cash-primary-prior.v1.json", "sha256": "bf7ce3266109c68b5530b70bc5677c547bfa5404f5754f484a77e71a0a0d1504"},
+    {"key": "source_spec", "path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-source-feasibility.v1.spec.json", "sha256": "5446551dc74adb9c04d07281242a8f1bae90cd65010ec6ada3c1fdfe86b1b0ab"},
+    {"key": "source_probe", "path": "research/fred_cpiaucsl_disinflation_source_probe.py", "sha256": "694e2c55d79efceec72741798fe9503ccc71f0f30130d84a06d91cf6d75f8ea3"},
+    {"key": "hypothesis", "path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-long-cash-v1.hypothesis.json", "sha256": "15795a809448f854c9f08838580ccebb0abbde8887fc64c5e436a90483d24c7c"}
+  ],
+  "runner_binding": {"path": "research/btc_fred_cpiaucsl_yoy_disinflation_long_cash_historical.py", "sha256": "3cdcf2d9687ff99892932634b6d6b3103049a0642377de2dced9e2a80a3bd88e", "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"},
+  "strategy_policy": {"policy_id": "BTC_FRED_CPIAUCSL_YOY_DISINFLATION_LONG_CASH_V1", "availability": "OBSERVATION_MONTH_PLUS_TWO_MONTHS_FIRST_DAY_AT_00_00_UTC", "formula": "(CPI_t/CPI_t_minus_12-1)-(CPI_t_minus_1/CPI_t_minus_13-1)", "long_condition": "ADJACENT_YOY_CHANGE_STRICTLY_LESS_THAN_ZERO", "cash_condition": "OTHERWISE", "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE", "cash_return": "0", "short": "DENY", "leverage": "DENY", "variants": 1},
+  "cost_scenarios": {"NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"}, "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}},
+  "windows": {"design": {"start": "2019-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00"}, "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00"}, "annual_fair_reset_years": [2019, 2020, 2021, 2022, 2023, 2024]},
+  "gate_set": {
+    "id": "BTC_FRED_CPIAUCSL_YOY_DISINFLATION_MATCHED_CAPITAL_GATES_V1",
+    "required": [
+      "btc_sha256_and_52608_rows_match", "cpi_sha256_bundle_and_96_months_match", "hourly_lattice_monthly_continuity_and_conservative_availability_pass",
+      "frozen_runner_kernel_ledger_reference_parser_prior_hypothesis_probe_and_spec_sha256_match", "single_variant_strict_adjacent_yoy_disinflation_no_rescue_contract_pass",
+      "design_signals_exactly_48_with_20_disinflation_and_28_other", "validation_signals_exactly_24_with_17_disinflation_and_7_other",
+      "design_position_changes_between_6_and_48", "validation_position_changes_between_4_and_24",
+      "design_normal_total_return_positive", "design_stress_total_return_positive", "design_drawdown_at_most_90pct_of_buy_hold", "design_upside_capture_at_least_60pct", "design_calmar_at_least_buy_hold",
+      "validation_normal_total_return_positive", "validation_stress_total_return_positive", "validation_drawdown_at_most_90pct_of_buy_hold", "validation_upside_capture_at_least_60pct", "validation_calmar_at_least_80pct_of_buy_hold", "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_positive_annual_return_at_least_4_of_6", "stress_positive_annual_return_at_least_4_of_6", "annual_drawdown_non_worse_at_least_5_of_6", "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6", "annual_upside_capture_at_least_50pct_at_least_4_of_6", "top_year_positive_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct", "validation_p90_hold_at_most_8760_hours", "validation_terminal_holding_age_at_most_8760_hours", "validation_terminal_liquidation_adjusted_return_positive", "validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {"reruns": 2, "required": "BYTE_IDENTICAL_OUTPUTS"},
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics on any dataset, source, lattice, runner or frozen hash failure.",
+    "Stop NO_CANDIDATE and permanently close on any Design, Validation, annual breadth, concentration, holding or inventory failure.",
+    "Do not add core CPI, PCE, surprise, level, threshold, smoothing, alternate lag, inverse direction, sizing or another factor after outcomes.",
+    "Do not open post-2024 data or OOS. A pass remains REPORTED_NOT_ACTIVATED."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": ["PAID_API", "SECOND_TIMER", "SECOND_WRITER", "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO", "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"]
+}

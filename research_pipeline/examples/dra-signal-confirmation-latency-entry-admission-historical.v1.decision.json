@@ -1,0 +1,128 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_SIGNAL_CONFIRMATION_LATENCY_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "family_id": "dra-signal-confirmation-latency-entry-admission",
+  "decided_at": "2026-08-21T07:39:29Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_SIGNAL_CONFIRMATION_LATENCY_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_CAPACITY_FIRST_CURRENT_PARENT_ARMED_TO_SIGNAL_LATENCY_72_168_336_HOUR_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_CLOCK_ARM_WINDOW_COOLDOWN_ROUTE_OR_GATE_RESCUE",
+  "evidence": {
+    "hypothesis": {
+      "path": "research_pipeline/examples/dra-signal-confirmation-latency-entry-admission-v1.hypothesis.json",
+      "sha256": "99c1f6a2eb90220c5897e43e316bf5871d40f545d0c3a94f4c4f3b3a256d31ae"
+    },
+    "preoutcome_acceptance": {
+      "path": "research_pipeline/examples/dra-signal-confirmation-latency-entry-admission-preoutcome.v1.acceptance.json",
+      "sha256": "2828d66bfc077aeaa728ad8bf101e8d242088224e8df2a2f3df8362de8017923"
+    },
+    "manifest": {
+      "path": "research_pipeline/examples/dra-signal-confirmation-latency-entry-admission-historical.v1.manifest.json",
+      "sha256": "40e412edcfae23284ef062e8063b5d2715b5847ec6bdbd7207e217ba6e2eb257"
+    },
+    "manifest_schema": {
+      "path": "research_pipeline/dra-signal-confirmation-latency-entry-admission-manifest.v1.schema.json",
+      "sha256": "c3ec52e2f5a11e790c59a1bdd17179da3286ec3e46fd03bb5465604a56bbd513"
+    },
+    "economic_runner": {
+      "path": "research/btc_dra_signal_confirmation_latency_entry_admission_v1.py",
+      "sha256": "6f720b0b0310876e2f4aec51ba242d715b0e4ff20aed90bc1477713b35bab4c2"
+    },
+    "support_runner": {
+      "path": "research/dra_signal_confirmation_latency_support_v1.py",
+      "sha256": "dad48c65528981c655d62e3ecdfe5c4e9033ec53e4ca7d2825488770e01d9873"
+    },
+    "economic_gate_helper": {
+      "path": "research/btc_dra_stale_inventory_age_entry_admission_v1.py",
+      "sha256": "45d32cc379af6a9a5dd47575eb0362cc399c464e8c88ba0c22de9a79bb6eee29"
+    },
+    "economic_run1": {
+      "path": ".research-state/experiments/dra-signal-confirmation-latency-entry-admission-historical-v1/artifacts/economic-screen.v1.run1.json",
+      "sha256": "bfb47872201d5223635729d7c0312d90abca7d623260479ce07a2a110dcd8e22"
+    },
+    "economic_run2": {
+      "path": ".research-state/experiments/dra-signal-confirmation-latency-entry-admission-historical-v1/artifacts/economic-screen.v1.run2.json",
+      "sha256": "bfb47872201d5223635729d7c0312d90abca7d623260479ce07a2a110dcd8e22"
+    },
+    "determinism": "ECONOMIC_RUNS_BYTE_IDENTICAL"
+  },
+  "mechanism": {
+    "capacity_first": true,
+    "latency_clock": "SIGNAL_TIME_MINUS_CURRENT_PARENT_ARMED_AT_IN_HOURS",
+    "primary_threshold_hours": "168",
+    "rejection_only_neighbors_hours": ["72", "336"],
+    "veto_reserves_parent_cooldown": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL",
+    "armed_window_expiry_and_rearm": "UNCHANGED_PARENT_THIRTY_DAY_LIFECYCLE",
+    "capacity_block_route": "UNCHANGED_WITHOUT_COOLDOWN_RESERVATION",
+    "price_or_inventory_state_read_for_decision": false,
+    "sell_or_resize_existing_lots": false
+  },
+  "primary_summary": {
+    "design": {
+      "parent_realized_unrealized_total_usdt": "169.89846767_-79.12049441_90.77797326",
+      "candidate_realized_unrealized_total_usdt": "137.28410778_-71.78990790_65.49419988",
+      "total_pnl_delta_usdt": "-25.28377338",
+      "realized_pnl_delta_usdt": "-32.61435989",
+      "parent_candidate_drawdown_pct": "29.530448_23.925903",
+      "parent_candidate_max_underwater_hours": "9878_9878",
+      "parent_candidate_median_p90_hold_hours": "126_1818.6__112.5_1478",
+      "vetoed_signals": 21
+    },
+    "validation": {
+      "parent_realized_unrealized_total_usdt": "89.41118307_-3.20820121_86.20298186",
+      "candidate_realized_unrealized_total_usdt": "72.87058831_-3.20820121_69.66238710",
+      "total_pnl_delta_usdt": "-16.54059476",
+      "realized_pnl_delta_usdt": "-16.54059476",
+      "parent_candidate_drawdown_pct": "7.121498_7.314607",
+      "parent_candidate_max_underwater_hours": "2397_2431",
+      "parent_candidate_median_p90_hold_hours": "182.5_1418.3__187_2610.2",
+      "parent_candidate_terminal_inventory_count": "1_1",
+      "vetoed_signals": 10
+    },
+    "annual_total_pnl_delta_usdt_2020_2024": {
+      "2020": "-4.82917639",
+      "2021": "-10.28984059",
+      "2022": "-1.94173034",
+      "2023": "-8.85696964",
+      "2024": "-7.68362512"
+    },
+    "annual_total_wins": "0_OF_5",
+    "annual_drawdown_non_worse_with_0_25pp_tolerance": "5_OF_5",
+    "annual_risk_adjusted_wins": "1_OF_5",
+    "top_year_positive_delta_contribution_pct": "100.000000_NO_POSITIVE_YEAR"
+  },
+  "neighbor_summary": {
+    "72h_validation_total_pnl_usdt_parent_candidate_delta": "86.20298186_50.15117899_-36.05180287",
+    "336h_validation_total_pnl_usdt_parent_candidate_delta": "86.20298186_78.48535572_-7.71762614",
+    "both_neighbors_validation_realized_non_worse": false,
+    "both_neighbors_validation_total_pnl_non_worse": false,
+    "both_neighbors_validation_risk_adjusted_non_worse": false
+  },
+  "failed_primary_gates": [
+    "annual_risk_adjusted_wins_at_least_3_of_5",
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_risk_adjusted_score_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_risk_adjusted_score_improves",
+    "validation_total_pnl_improves"
+  ],
+  "material_learning": "Armed-to-signal latency is causal, decision-time available, selective and broad across all five annual folds, but late confirmations are not low-value DRA entries. The 168-hour veto reduced Validation realized and total PnL by 16.54059476 USDT, slightly increased drawdown by 0.193109 percentage points, increased maximum underwater duration by 34 hours and extended P90 holding by 1191.9 hours. Every annual total-PnL delta was negative, and both rejection-only neighbors also reduced Validation realized and total PnL. Waiting longer inside the parent armed window is not an adverse-quality factor for this strategy.",
+  "prohibited_reopen": [
+    "Do not rerun or promote the 72-hour, 168-hour or 336-hour thresholds.",
+    "Do not search another armed-to-signal latency threshold or replace current armed_at with last signal, last entry, cooldown expiry or another clock.",
+    "Do not add price, trend, volatility, inventory, PnL or regime conditions to the observed result; each would be a new post-outcome compound family requiring independent prior justification.",
+    "Do not change parent thirty-day arm expiry, same-bar rearm, capacity-first ordering, seven-day veto cooldown reservation, next-open fill, lot, cap, exit, fees, slippage, windows or gates.",
+    "Do not open OOS, create a candidate, deploy or activate SHADOW, PAPER or LIVE from this result."
+  ],
+  "hypothesis_created": true,
+  "candidate_economics_accessed": true,
+  "candidate_created": false,
+  "oos_opened": false,
+  "activation": "REPORTED_NOT_ACTIVATED",
+  "scope_note": "Historical matched-capital research and permanent branch closure only. No paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

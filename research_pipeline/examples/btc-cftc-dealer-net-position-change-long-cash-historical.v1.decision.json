@@ -1,0 +1,114 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_DEALER_NET_POSITION_CHANGE_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-cftc-dealer-net-position-change-long-cash-historical-v1",
+  "decided_at": "2026-08-20T10:08:41Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_CFTC_DEALER_NET_POSITION_CHANGE_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DEALER_WEEKLY_DELTA_FAMILY_WITHOUT_ECONOMIC_ACCESS_DIRECTION_INVERSION_OR_TUNING",
+  "candidate_created": false,
+  "economic_evidence_accessed": false,
+  "oos_opened": false,
+  "manifest": {
+    "path": "research_pipeline/examples/btc-cftc-dealer-net-position-change-long-cash-historical.v1.manifest.json",
+    "sha256": "10e84c79956dca91bf61a96fb6cf0b013b2649bf06b4c1bc6101f46dd1adfd28"
+  },
+  "runner": {
+    "path": "research/btc_cftc_dealer_net_position_change_long_cash_historical.py",
+    "sha256": "389efeb6583d7af32981704c649288f0a9395f4031f2c299931a56e582734a3e",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-cftc-dealer-net-position-change-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "90b7b8a3a33f5fc78eeaa3650191e692d8d5b301aa09a130876b6c47b679f1e1"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-cftc-dealer-net-position-change-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "90b7b8a3a33f5fc78eeaa3650191e692d8d5b301aa09a130876b6c47b679f1e1",
+    "byte_identical": true
+  },
+  "datasets": {
+    "btc": {
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "cftc": {
+      "historical_source_manifest_sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a",
+      "exact_contract_rows": 313,
+      "eligible_factor_points": 299,
+      "positive_points": 141,
+      "negative_points": 131,
+      "zero_points": 27
+    }
+  },
+  "nonredundancy_summary": {
+    "design_dealer_to_leveraged_money_abs_spearman": "0.05104278",
+    "design_dealer_to_asset_manager_abs_spearman": "0.29070962",
+    "validation_dealer_to_leveraged_money_abs_spearman": "0.12297082",
+    "validation_dealer_to_asset_manager_abs_spearman": "0.25881348",
+    "all_below_frozen_0_80_limit": true
+  },
+  "predictive_summary": {
+    "design": {
+      "episodes": 137,
+      "positive_factor_episodes": 67,
+      "negative_factor_episodes": 70,
+      "median_signed_response_168h": "0.00920373",
+      "positive_factor_median_raw_return_168h": "0.00765366",
+      "negative_factor_median_raw_return_168h": "-0.01119579",
+      "sign_test_successes": 74,
+      "sign_test_failures": 63,
+      "one_sided_sign_test_p_value": "0.19649378"
+    },
+    "validation": {
+      "episodes": 93,
+      "positive_factor_episodes": 51,
+      "negative_factor_episodes": 42,
+      "median_signed_response_168h": "-0.00382281",
+      "positive_factor_median_raw_return_168h": "0.00744838",
+      "negative_factor_median_raw_return_168h": "0.02101878",
+      "sign_test_successes": 40,
+      "sign_test_failures": 53,
+      "one_sided_sign_test_p_value": "0.92691149"
+    }
+  },
+  "failed_pre_economic_gates": [
+    "design_one_sided_sign_test_p_value_at_most_0_10",
+    "validation_median_signed_response_strictly_positive",
+    "validation_negative_factor_median_raw_return_strictly_negative",
+    "validation_one_sided_sign_test_p_value_at_most_0_10"
+  ],
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "holding_age": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP"
+  },
+  "passed_evidence": [
+    "Dealer weekly net-position change was independent enough from the closed Leveraged Money and Asset Manager deltas in both frozen windows.",
+    "Both windows had broad support across signs, chronological quartiles and months, so the rejection is not caused by a sparse sample or one-event concentration.",
+    "The deterministic replication was byte-identical and the economic ledger remained unopened after the pre-economic failure."
+  ],
+  "material_failure": [
+    "Design directional evidence was not significant at the preregistered one-sided 0.10 level despite a positive median signed response.",
+    "Validation median signed response reversed to -0.382281 percent and only 40 of 93 non-overlapping weekly episodes had the expected sign.",
+    "Validation negative Dealer changes were followed by a positive 2.101878 percent median BTC return rather than the preregistered negative response."
+  ],
+  "material_learning": "Dealer positioning change is distinct from the already closed CFTC participant factors, but distinctness is not predictive validity. The preregistered continuation relation weakened from an insignificant Design tendency to an adverse Validation relation, so opening PnL would only invite outcome-driven rescue.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not invert Dealer continuation after observing the failed Validation direction.",
+    "Do not scan another threshold, horizon, predecessor interval, availability lag, smoothing rule, participant combination, sizing rule, leverage or short direction.",
+    "Do not open the skipped strategy economics, independent OOS or prospective candidate path for this exact family.",
+    "Do not relax nonredundancy, predictive significance, breadth, concentration or economic gates."
+  ],
+  "next_action": "SWITCH_TO_A_DIFFERENT_PREOUTCOME_INDEPENDENT_MECHANISM_USING_EXISTING_FREE_SEALED_DATA",
+  "claim_boundary": "Historical present-vintage CME TFF Dealer-positioning and pre-2025 BTC predictive evidence only. No strategy economic performance was accessed or claimed.",
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

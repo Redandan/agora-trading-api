@@ -1,0 +1,84 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_SPOT_SEVEN_DAY_TAKER_BUY_IMBALANCE_LONG_CASH_SOURCE_GATE_V1_DECISION",
+  "created_at": "2026-08-21T05:19:46Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-binance-spot-seven-day-taker-buy-imbalance-long-cash",
+  "status": "DATA_REJECT_CLOSE_BEFORE_HYPOTHESIS_FACTOR_OR_BTC_OUTCOME_ACCESS",
+  "decision": "PERMANENTLY_CLOSE_THE_EXACT_BINANCE_SPOT_BTCUSDT_SEVEN_COMPLETE_DAY_TAKER_BUY_QUOTE_VOLUME_SHARE_LONG_CASH_FAMILY",
+  "candidate_created": false,
+  "oos_opened": false,
+  "source_bindings": [
+    {
+      "path": "docs/autonomous-research-charter.md",
+      "sha256": "4324ca6dd4ac3cd1a8942e178f1934e8147d97de96a4289f306f8355963240f7",
+      "role": "ACTIVE_AUTONOMOUS_RESEARCH_CHARTER"
+    },
+    {
+      "path": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6",
+      "role": "ACTIVE_RESEARCH_POLICY_V3"
+    },
+    {
+      "path": "research_pipeline/examples/btc-binance-spot-seven-day-taker-buy-imbalance-long-cash-primary-prior.v1.json",
+      "sha256": "a82ad7e196d9054db67fd971816d6ca6d2e20548223a8826941054e6edf16959",
+      "role": "SEALED_PRIMARY_OFFICIAL_SOURCE_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": ".research-state/experiments/liquid-crypto-cross-sectional-momentum-long-only-source-feasibility-v1/artifacts/run1.json",
+      "sha256": "9f8ee95df9b04595c83fcd341c97c77286884a39b4f96adc463de0aa02f84e6f",
+      "role": "SEALED_BINANCE_ARCHIVE_INVENTORY_ONLY"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-source-gate.v1.decision.json",
+      "sha256": "af94de6fd54a0752966aad4faeccfab55826fce9cb35bb17b5ac8375fcfa1dbb",
+      "role": "PRIOR_PERMANENT_BINANCE_ARCHIVE_SOURCE_FAMILY_TOMBSTONE"
+    },
+    {
+      "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+      "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c",
+      "role": "NETWORK_DEPENDENT_CORPUS_BUILDER_NOT_EXECUTED"
+    }
+  ],
+  "source_path_audit": {
+    "sealed_archive_inventory_present": true,
+    "local_btcusdt_daily_archive_files_present": false,
+    "local_checksum_bound_taker_buy_corpus_present": false,
+    "expected_cross_sectional_corpus_bundle_present": false,
+    "expected_cross_sectional_normalized_gzip_present": false,
+    "builder_requires_external_archive_enumeration_and_download": true,
+    "external_download_or_backfill_authorized_by_active_charter": false,
+    "executable_feature_data_path": false
+  },
+  "terminal_failure": {
+    "classification": "SOURCE_PATH_NOT_EXECUTABLE_UNDER_ACTIVE_CHARTER",
+    "reason": "Only Binance archive metadata is sealed locally. The required BTCUSDT kline rows containing taker-buy quote volume are absent, and the available builder would have to enumerate and download external archives. The active charter forbids external imports or backfills for this local historical cycle.",
+    "prior_tombstone_conflict": "The earlier Binance archive family is permanently closed after a checksum-valid negative-volume source defect and forbids changing field, cohort, source or validity rules to rescue that family.",
+    "hypothesis_created": false,
+    "manifest_created": false,
+    "factor_computed": false,
+    "btc_outcome_accessed": false,
+    "strategy_runner_executed": false
+  },
+  "scientific_claim": "No taker-buy factor support or profitability was tested. The exact family is rejected because its required feature data are not already available as sealed, local, checksum-bound evidence under the current research boundary.",
+  "performance_evidence": {
+    "fees": "MISSING_PROOF_NOT_OPENED",
+    "adverse_slippage": "MISSING_PROOF_NOT_OPENED",
+    "realized_pnl": "MISSING_PROOF_NOT_OPENED",
+    "unrealized_pnl": "MISSING_PROOF_NOT_OPENED",
+    "total_pnl": "MISSING_PROOF_NOT_OPENED",
+    "maximum_drawdown": "MISSING_PROOF_NOT_OPENED",
+    "holding_age": "MISSING_PROOF_NOT_OPENED",
+    "terminal_inventory": "MISSING_PROOF_NOT_OPENED",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_OPENED"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not download or backfill Binance archives to reopen this family under the active charter.",
+    "Do not substitute futures, aggregate trades, another venue, base-volume ratios, current exchangeInfo, an unsealed cache or a different taker-share window or threshold.",
+    "Do not reinterpret the prior archive inventory as row-level taker-buy evidence or alpha.",
+    "Do not relax the earlier Binance source-integrity tombstone after observing its failure."
+  ],
+  "next_action": "REPLENISH_THE_OPEN_POOL_WITH_ONE_DISTINCT_PRIMARY_PRIOR_WHOSE_FEATURE_DATA_PATH_ALREADY_EXISTS_LOCALLY_AND_REQUIRES_NO_EXTERNAL_ACQUISITION",
+  "scope_note": "Read-only source-path audit only. No archive download, external backfill, factor value, strategy return, PnL, hypothesis, manifest, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

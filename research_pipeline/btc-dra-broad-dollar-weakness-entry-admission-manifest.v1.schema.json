@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/btc-dra-broad-dollar-weakness-entry-admission-manifest.v1.schema.json",
+  "title": "BTC DRA broad-dollar weakness entry-admission manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["authorization", "availability", "bindings", "dataset", "document_type", "economics", "experiment_id", "factor", "gate_set", "oos_access", "parent_strategy", "schema_version", "selection_cutoff", "source", "windows"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_DRA_BROAD_DOLLAR_WEAKNESS_ENTRY_ADMISSION_MANIFEST_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "experiment_id": {"const": "dra-broad-dollar-weakness-entry-admission-historical-v1"},
+    "parent_strategy": {"const": "BTC_DRA_V1"},
+    "gate_set": {"const": "BTC_DRA_CFTC_TFF_HISTORICAL_ENTRY_ADMISSION_GATES_V1"},
+    "oos_access": {"const": "DENY"},
+    "selection_cutoff": {"const": "2025-01-01T00:00:00"},
+    "dataset": {"const": {"canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd", "rows": 52608}},
+    "economics": {"const": {"fee_rate": "0.0010", "initial_equity_usdt": "250", "slippage_rate": "0.0005", "slot_capacity_usdt": "240"}},
+    "factor": {
+      "const": {
+        "admission_rule": "ADMIT_PARENT_SIGNAL_ONLY_WHEN_CURRENT_WEEKLY_DTWEXBGS_LT_EXACT_28D_PREDECESSOR",
+        "factor_identity": "FRED_DTWEXBGS_STRICT_NEGATIVE_28D_CHANGE_CONTINUATION_168H_V1",
+        "formula": "prior_28d_dtwexbgs_mean-current_dtwexbgs_mean",
+        "negative_action": "HOLD_CASH",
+        "positive_action": "ADMIT",
+        "series_id": "DTWEXBGS",
+        "zero_action": "HOLD_CASH"
+      }
+    },
+    "availability": {
+      "const": {
+        "eligible_time": "WEEK_ENDING_FRIDAY_PLUS_5_CALENDAR_DAYS_AT_00_00_UTC",
+        "factor_valid_hours": 168,
+        "change_lag_calendar_days": 28,
+        "non_friday_action": "REJECT_SOURCE",
+        "publication_lag_calendar_days": 5
+      }
+    },
+    "source": {
+      "const": {
+        "first_week": "2018-01-05",
+        "last_week": "2024-12-27",
+        "normalized_bytes": 7733,
+        "present_vintage": true,
+        "publisher": "Federal Reserve Bank of St. Louis FRED",
+        "rows": 365,
+        "series_id": "DTWEXBGS",
+        "weekly_aggregation": "MEAN_OF_3_TO_5_ACTUALLY_PUBLISHED_WEEKDAY_OBSERVATIONS"
+      }
+    },
+    "windows": {
+      "const": {
+        "annual_folds": ["2020", "2021", "2022", "2023", "2024"],
+        "design": {"end_exclusive": "2023-01-01T00:00:00", "start_inclusive": "2020-01-01T00:00:00"},
+        "outcome_horizon_hours": 168,
+        "validation": {"end_exclusive": "2025-01-01T00:00:00", "start_inclusive": "2023-01-01T00:00:00"}
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_runner", "capacity_runner", "hypothesis", "manifest_schema", "normalized_source", "preoutcome_source_format_erratum", "primary_prior", "raw_source_archive", "reused_economic_runner", "runner", "source_bundle", "source_probe"],
+      "properties": {
+        "base_runner": {"$ref": "#/$defs/binding"},
+        "capacity_runner": {"$ref": "#/$defs/binding"},
+        "hypothesis": {"$ref": "#/$defs/binding"},
+        "manifest_schema": {"$ref": "#/$defs/binding"},
+        "normalized_source": {"$ref": "#/$defs/binding"},
+        "preoutcome_source_format_erratum": {"$ref": "#/$defs/binding"},
+        "primary_prior": {"$ref": "#/$defs/binding"},
+        "raw_source_archive": {"$ref": "#/$defs/binding"},
+        "reused_economic_runner": {"$ref": "#/$defs/binding"},
+        "runner": {"$ref": "#/$defs/binding"},
+        "source_bundle": {"$ref": "#/$defs/binding"},
+        "source_probe": {"$ref": "#/$defs/binding"}
+      }
+    }
+  },
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

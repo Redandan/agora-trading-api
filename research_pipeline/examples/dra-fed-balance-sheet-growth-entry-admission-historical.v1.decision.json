@@ -1,0 +1,132 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_FED_BALANCE_SHEET_GROWTH_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-fed-balance-sheet-growth-entry-admission-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_FED_BALANCE_SHEET_GROWTH_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_PRESENT_VINTAGE_WALCL_STRICT_POSITIVE_28_DAY_GROWTH_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_HORIZON_THRESHOLD_OR_INVERSE_TUNING",
+  "material_conclusion": "The rule reduced matched-capital Validation drawdown from 7.121498% to 2.534675% and removed terminal inventory, but it destroyed economic participation: total PnL fell from 86.20298186 to 8.03967601 USDT and realized PnL fell from 89.41118307 to 8.03967601 USDT. Maximum underwater duration expanded from 2,397 to 10,441 hours, median holding rose from 182.5 to 324.0 hours and P90 holding rose from 1,418.3 to 3,399.8 hours. Only 2022 improved across five annual folds. The independent 168-hour direction diagnostic passed all Design gates but failed four Validation gates. This is a low-participation risk veto with severe opportunity cost, not risk-adjusted alpha.",
+  "performance_evidence": {
+    "design": {
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "37.99197935",
+      "parent_realized_pnl_usdt": "122.11969534",
+      "candidate_realized_pnl_usdt": "100.02866914",
+      "parent_maximum_drawdown_pct": "18.673983",
+      "candidate_maximum_drawdown_pct": "16.329043",
+      "parent_maximum_underwater_duration_hours": 9878,
+      "candidate_maximum_underwater_duration_hours": 9878,
+      "parent_median_hold_hours": 113.0,
+      "candidate_median_hold_hours": 108.0,
+      "vetoed_parent_signals": 47
+    },
+    "validation": {
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "8.03967601",
+      "total_pnl_delta_usdt": "-78.16330585",
+      "parent_realized_pnl_usdt": "89.41118307",
+      "candidate_realized_pnl_usdt": "8.03967601",
+      "realized_pnl_delta_usdt": "-81.37150706",
+      "parent_unrealized_pnl_usdt": "-3.20820121",
+      "candidate_unrealized_pnl_usdt": "0.00000000",
+      "parent_maximum_drawdown_pct": "7.121498",
+      "candidate_maximum_drawdown_pct": "2.534675",
+      "maximum_drawdown_delta_pp": "-4.586823",
+      "parent_maximum_underwater_duration_hours": 2397,
+      "candidate_maximum_underwater_duration_hours": 10441,
+      "underwater_duration_delta_hours": 8044,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 324.0,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 3399.8,
+      "parent_terminal_inventory_count": 1,
+      "candidate_terminal_inventory_count": 0,
+      "vetoed_parent_signals": 212
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-7.57133189",
+      "2021": "0.00000000",
+      "2022": "4.19642030",
+      "2023": "-36.16049790",
+      "2024": "-38.78866787"
+    },
+    "breadth_and_concentration": {
+      "annual_total_wins": "1_of_5",
+      "annual_drawdown_non_worse": "5_of_5",
+      "top_year_positive_delta_contribution_pct": "100.000000"
+    },
+    "predictive_design": {
+      "episode_count": 156,
+      "positive_factor_count": 113,
+      "negative_factor_count": 43,
+      "median_signed_response_168h": "0.0135894406073855575743380417528327",
+      "one_sided_sign_test_p_value": "0.08664530908286631264963780019137304",
+      "passed_gates": "11_of_11"
+    },
+    "predictive_validation": {
+      "episode_count": 103,
+      "positive_factor_count": 4,
+      "negative_factor_count": 99,
+      "median_signed_response_168h": "-0.0024473157363125902809706720343493",
+      "negative_factor_median_raw_return_168h": "0.002741160049627791563275434243176",
+      "one_sided_sign_test_p_value": "0.7226994666675628916256957236289206",
+      "passed_gates": "7_of_11"
+    }
+  },
+  "failed_economic_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_underwater_duration_non_worse"
+  ],
+  "failed_validation_predictive_gates": [
+    "median_signed_response_positive",
+    "minimum_8_positive_factors",
+    "negative_factor_median_raw_return_negative",
+    "one_sided_sign_test_at_most_0_10"
+  ],
+  "failure_attribution": [
+    "The filter lowered drawdown mainly by staying out of the market, but the 78.16330585 USDT Validation opportunity cost and 8,044-hour underwater-duration increase make the trade-off unacceptable.",
+    "Design directional evidence did not generalize. Validation contained only four positive-growth weekly episodes and the median sign-adjusted 168-hour response turned negative.",
+    "Annual improvement was confined to 2022; 2023 and 2024 lost 36.16049790 and 38.78866787 USDT respectively versus the unchanged DRA parent.",
+    "Removing one losing terminal lot improved unrealized PnL, but realized PnL collapsed by 81.37150706 USDT, so inventory cleanup cannot be called alpha."
+  ],
+  "sealed_evidence": {
+    "manifest": {
+      "path": "research_pipeline/examples/dra-fed-balance-sheet-growth-entry-admission-historical.v1.manifest.json",
+      "sha256": "8604bc7289b5b5a384018c6f48769bd25947770a412c6e86e966f5722a0f4e6f"
+    },
+    "runner": {
+      "path": "research/btc_dra_fed_balance_sheet_growth_entry_admission_historical_v1.py",
+      "sha256": "000e74fdf89a4993e0db47dc7808d749a078a6f455aa4288a2f04218a2298475"
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/dra-fed-balance-sheet-growth-entry-admission-historical-v1/inputs/fred-source-bundle.json",
+      "sha256": "8759e8719263bff164ba62e32d9003b02ebbd23dd07733c85181151e5a275b37"
+    },
+    "run1": {
+      "path": ".research-state/experiments/dra-fed-balance-sheet-growth-entry-admission-historical-v1/artifacts/run1.json",
+      "sha256": "e0cbeb026d41cc368c33211b5d98081c17369466f8024cb1bf712e274ccab2a5"
+    },
+    "run2": {
+      "path": ".research-state/experiments/dra-fed-balance-sheet-growth-entry-admission-historical-v1/artifacts/run2.json",
+      "sha256": "e0cbeb026d41cc368c33211b5d98081c17369466f8024cb1bf712e274ccab2a5"
+    },
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "The sealed FRED data is a present-vintage snapshot. Original H.4.1 release values and revision vintages remain MISSING_PROOF.",
+    "WALCL is a broad Federal Reserve asset total, not an identified policy shock or complete net-liquidity measure.",
+    "This decision closes only the exact positive 28-day WALCL growth admission rule. Independently preregistered net-liquidity, announcement-surprise or interaction mechanisms are not evaluated here."
+  ],
+  "next_action": "Add the exact family to the permanent tombstone catalog and advance a different independent mechanism without changing the WALCL horizon, sign, threshold, admission action or inverse rule.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, canonical state write, post-2024 data, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

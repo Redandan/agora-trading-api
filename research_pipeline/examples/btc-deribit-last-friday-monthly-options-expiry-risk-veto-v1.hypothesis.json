@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-deribit-last-friday-monthly-options-expiry-risk-veto-v1",
+  "title": "Deribit monthly-options last-Friday full-day BTC risk veto",
+  "thesis": "The complete UTC day containing Deribit's last-Friday 08:00 UTC monthly BTC options expiry may underperform other Fridays because settlement-price formation, expiring-delta decay and hedge unwinds create a recurring adverse liquidity path.",
+  "mechanism": "A calendar-known monthly concentration of options and futures settlement activity can force dealers and position holders to rebalance delta and unwind expiry hedges before and after 08:00 UTC, temporarily increasing downside incidence and intraday path drawdown relative to non-expiry Fridays.",
+  "economic_rationale": "A spot-only policy that exits BTC at 00:00 UTC on the last Friday and reenters at Saturday 00:00 UTC is useful only if the avoided event-day loss and drawdown exceed two fee-and-adverse-slippage transitions per month and foregone positive convexity under matched capital.",
+  "source": "research_pipeline/examples/btc-deribit-last-friday-monthly-options-expiry-risk-veto-primary-prior.v1.json#sha256=7e79d6de48e1040a52649af1bbb538a41f2b722caab56e29359bd61551808b0c",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_2019_2024_H1_CORPUS_COST_AND_VALUATION",
+  "required_capability": "DIRECT_DETERMINISTIC_COMPLETE_UTC_DAY_LAST_FRIDAY_EVENT_SCREEN_THEN_MATCHED_CAPITAL_LONG_CASH_ECONOMIC_RUNNER",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "event_and_control_friday_count",
+    "median_complete_day_return_delta",
+    "negative_return_rate_delta",
+    "one_sided_fisher_p_value",
+    "median_and_p75_intraday_path_drawdown",
+    "annual_direction_breadth",
+    "top_event_loss_concentration",
+    "fee_and_adverse_slippage_adjusted_total_pnl_delta",
+    "realized_pnl",
+    "unrealized_pnl",
+    "maximum_drawdown",
+    "capital_utilization",
+    "holding_age",
+    "terminal_inventory"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-deribit-monthly-expiry-1",
+  "created_at": "2026-08-20T14:24:35Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

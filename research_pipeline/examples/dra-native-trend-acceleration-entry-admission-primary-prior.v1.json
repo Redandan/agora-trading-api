@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_TREND_ACCELERATION_PRIMARY_PRIOR_V1",
+  "family_id": "dra-native-trend-acceleration-entry-admission",
+  "created_at": "2026-08-21T07:50:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_NATIVE_EMA20_ACCELERATION_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "The frozen DRA signal already requires a positive causal five-day EMA20 slope. Comparing that latest five-day slope with the immediately preceding five-day slope may separate still-accelerating continuation from a positive but decelerating trend before the unchanged next-open fill. The natural zero-curvature boundary and symmetric ATR-normalized neighbors may be screened once for causal availability and intervention breadth; this prior is not performance evidence.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "formula": "((EMA20_T_MINUS_EMA20_T_MINUS_5D)_MINUS(EMA20_T_MINUS_5D_MINUS_EMA20_T_MINUS_10D))_DIVIDED_BY_UPDATED_ATR14_T",
+    "primary_relation": "ADMIT_AT_OR_ABOVE_0_00_ATR_CURVATURE_AND_VETO_BELOW_0_00",
+    "rejection_only_neighbors": ["-0.10", "0.10"],
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN"
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": "docs/btc-dra-v7-trend-quality-promotion-liquidity-harvest-v8-result-2026-08-02.md",
+      "sha256": "15c051954c13c92b2e9d171445d1eda9e2b20b3243a71fe6cd26f90befa761ba",
+      "learning": "The closed V8 post-entry promotion filter used seven-day return acceleration plus close-above-EMA20 and one-day EMA20 slope. It selected the wrong Validation subset and failed realized-PnL protection. The new feature acts at entry and measures five-day EMA20 curvature, but cannot claim value from generic trend-strength intuition or invert its direction after outcome access."
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-macd12-26-9-histogram-long-cash-historical.v1.decision.json",
+      "sha256": "2a653b19cd4d7d3f4178f917e56be27d3b634e5dc389418298e253a045f7c838",
+      "learning": "The closed MACD family already tested strengthening exponential-average momentum as a full-capital long/cash rule and failed its frozen economic gates. EMA20 curvature is a narrower parent-signal admission action, not permission to reopen MACD or tune another generic trend rule."
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-overextension-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "3646d41706903be7a16eb9279f8beab6d4e013c36d3fe24bee7ad5ad0a72c37c",
+      "learning": "ATR-normalized signal distance from EMA20 was too sparse and concentrated to justify a hypothesis. Curvature must independently pass breadth and selectivity gates rather than reuse the overextension feature."
+    },
+    {
+      "path": "research_pipeline/examples/dra-native-signal-prior-24h-breakout-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "f0e149b8eea2b66c9ce7cfbf19d444c561eec62ba62dcc1edbd78722608af56d",
+      "learning": "Prior-24-hour breakout clearance lacked support. EMA20 curvature does not use an H1 extreme, but must still prove that its vetoes are broad, stable and not a renamed momentum threshold."
+    },
+    {
+      "path": "research_pipeline/examples/dra-signal-confirmation-latency-entry-admission-historical.v1.decision.json",
+      "sha256": "6b06f8713488fc70f6b0400d86ab0a3f5d78fd01daeb255ee4ac908f6e283437",
+      "learning": "Longer armed-to-signal confirmation latency was not adverse quality: every year and both neighbors lost PnL. Curvature is price-state rather than lifecycle time, but any later economic screen must preserve the same capacity-first and cooldown-route contract."
+    }
+  ],
+  "deduplication_conclusion": "The proposed feature is the second finite difference of the causally updated daily EMA20 across two adjacent five-complete-day spans, normalized by the causally updated ATR14, evaluated only at a capacity-admissible DRA signal. It is distinct from V8's post-entry seven-day return-acceleration promotion, MACD full-capital timing, signal-to-EMA displacement, prior-H1 breakout clearance and armed-window latency.",
+  "adversarial_risks": [
+    "Positive EMA20 curvature may be a lagging restatement of the parent signal and add no independent economic value.",
+    "Requiring nonnegative curvature may remove profitable steady trends whose EMA20 remains positive but no longer accelerates.",
+    "The smooth EMA20 second difference may be too close to zero, causing unstable decisions around the frozen minus 0.10, zero and plus 0.10 ATR lattice.",
+    "The intervention may suppress participation, reduce realized PnL or worsen holding and underwater paths even if drawdown falls.",
+    "Cooldown route substitution can invalidate the comparison unless each actionable veto reserves the original signal timestamp."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_CAUSAL_FEATURE_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No candidate PnL, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

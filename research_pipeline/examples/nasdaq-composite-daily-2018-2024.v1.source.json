@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "document_type": "NASDAQ_COMPOSITE_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Nasdaq, Inc., redistributed by Federal Reserve Bank of St. Louis FRED",
+  "series_id": "NASDAQCOM",
+  "landing_page": "https://fred.stlouisfed.org/series/NASDAQCOM",
+  "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQCOM&cosd=2018-01-01&coed=2024-12-31",
+  "nasdaq_index_page": "https://www.nasdaq.com/products/global-indexes/nasdaq-composite",
+  "captured_at": "2026-08-19T08:26:16.668Z",
+  "source_probe": {
+    "path": "research/nasdaq_composite_source_probe.cjs",
+    "sha256": "1b3d57cb7d0fe5612cffd1153577c5ed4b2cdd7f3c5d1091ce90de5a5e6488ad"
+  },
+  "raw_bundle": {
+    "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/inputs/nasdaq-source-bundle.json",
+    "sha256": "afb35c75d03713b876a1e13f75ef5d3ef86a41f095f04543b93c0e92c88fe9cd",
+    "bytes": 2889,
+    "request_count": 1,
+    "request_origin": "https://fred.stlouisfed.org",
+    "credentials": "DENY"
+  },
+  "raw_response": {
+    "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/inputs/fred-nasdaqcom-2018-2024-raw.csv",
+    "sha256": "9602f5e3e252f06977d360bc7badc542ff54564ef8ca4788d1bdc7cead7d5809",
+    "bytes": 37173,
+    "rows": 1826,
+    "explicit_missing_rows": 64
+  },
+  "sealed_subset": {
+    "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/inputs/nasdaq-composite-2018-2024.csv",
+    "sha256": "3102d5caf63211caba467cd930feccd7f9672f5d03be57d77c8022c0c977228f",
+    "bytes": 36406,
+    "rows": 1762,
+    "first_date": "2018-01-02",
+    "last_date": "2024-12-31",
+    "columns": ["date", "nasdaq_composite_close"],
+    "annual_rows": {
+      "2018": 251,
+      "2019": 253,
+      "2020": 253,
+      "2021": 252,
+      "2022": 251,
+      "2023": 250,
+      "2024": 252
+    }
+  },
+  "pre_outcome_feature_feasibility": {
+    "prior_150_business_days": {"first_evaluable_date": "2018-08-07", "positive_days": 1219, "negative_days": 393, "state_transitions": 36},
+    "prior_200_business_days": {"first_evaluable_date": "2018-10-17", "positive_days": 1185, "negative_days": 377, "state_transitions": 28},
+    "prior_250_business_days": {"first_evaluable_date": "2018-12-31", "positive_days": 1169, "negative_days": 343, "state_transitions": 29},
+    "btc_outcome_accessed": false
+  },
+  "publication_timing_boundary": "FRED identifies NASDAQCOM observations as daily Nasdaq market-close index values, normally fixed at 4 PM Eastern. Use an observation only at 00:00 UTC on the following calendar day or later and persist the last valid state across weekends, holidays and explicit missing rows.",
+  "revision_boundary": "FRED states that observations are subject to revision. This experiment binds the exact present-vintage raw response and normalized hashes, makes no original-vintage claim, and forbids replacing or repairing the source after BTC outcome access.",
+  "copyright_boundary": "FRED labels NASDAQCOM copyrighted. Raw and normalized bytes remain untracked under .research-state for internal research; only hashes, provenance and derived aggregate diagnostics enter Git-versioned artifacts.",
+  "scope_note": "Free historical source only. No BTC outcome, paid API, account, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed."
+}

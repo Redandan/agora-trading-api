@@ -1,0 +1,39 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_STALE_INVENTORY_AGE_PREOUTCOME_ACCEPTANCE_V1",
+  "accepted_at": "2026-08-21T07:12:48Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-stale-inventory-age-entry-admission",
+  "disposition": "PASS_PREOUTCOME_DEDUP_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+  "support_result": {
+    "path": ".research-state/experiments/dra-stale-inventory-age-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+    "sha256": "f78d44f5e6c9677741f07862e1e36e7ee0e24801e4d64fc14f8f0a21b99cc134",
+    "run2_path": ".research-state/experiments/dra-stale-inventory-age-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+    "run2_sha256": "f78d44f5e6c9677741f07862e1e36e7ee0e24801e4d64fc14f8f0a21b99cc134",
+    "byte_identical": true,
+    "support_pass": true,
+    "failed_gates": []
+  },
+  "spec_binding": {
+    "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-preoutcome.v1.spec.json",
+    "sha256": "90ca349711b4b8f573af0ed54d9c934a21d5cfacf367b694ec1a40657c23e460"
+  },
+  "hypothesis_binding": {
+    "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-v1.hypothesis.json",
+    "sha256": "3aefaa65df7b6c0fc3faffef7c78014cfac2053849c46e570e8d32599dc07efb",
+    "schema_valid": true
+  },
+  "support_summary": {
+    "design_parent_capacity_primary_veto_counts": "103_100_58",
+    "validation_parent_capacity_primary_veto_counts": "51_51_17",
+    "annual_primary_veto_counts_2020_2024": [14, 10, 10, 6, 11],
+    "top_year_primary_veto_share": "0.27450980",
+    "validation_top_month_primary_veto_share": "0.11764706",
+    "primary_design_validation_action_shares": "0.58000000_AND_0.33333333",
+    "exact_parent_path_parity": true,
+    "action_fingerprints_distinct": true,
+    "outcome_accessed": false
+  },
+  "decision_boundary": "This acceptance permits exactly one frozen matched-capital historical experiment with the 720-hour primary threshold and rejection-only 336-hour and 1440-hour neighbors. It is not performance evidence and does not permit threshold, clock, state, cooldown route, gate, OOS or Trading changes.",
+  "scope_note": "No strategy economics, candidate, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

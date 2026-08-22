@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-pcoppusdm-3m-uptrend-long-cash-v1",
+  "title": "Lagged global copper three-month uptrend for BTC long or cash",
+  "thesis": "A conservatively delayed rise in the monthly global copper benchmark may accompany stronger industrial demand and risk appetite, producing better subsequent Bitcoin risk-adjusted economics than non-uptrend months.",
+  "mechanism": "Using only the sealed present-vintage FRED PCOPPUSDM monthly series, compare each monthly period-average value with the value exactly three calendar months earlier and make the state usable only 75 calendar days after observation-month start. Hold full-capital unlevered BTC only when the current value is strictly higher, and zero-yield cash otherwise. No inventories, futures curves, other metals, China data, dollar, equity, oil, inflation, rate, CFTC, BTC interaction, magnitude threshold, smoothing, alternate horizon, inverse direction, combined factor, fractional sizing, shorting or leverage is allowed.",
+  "economic_rationale": "If copper direction captures broad industrial demand and risk appetite rather than supply, dollar or speculative noise, the policy may avoid weak-demand BTC drawdowns while retaining enough upside to improve matched-capital Calmar after explicit normal and doubled friction. Because copper is not a pure growth signal and the history is present-vintage, Design, Validation, annual breadth, episode concentration, holding and terminal inventory must all pass before any independent OOS is considered.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-pcoppusdm-3m-uptrend-long-cash:PRIMARY_PRIOR_SHA256_8b8836768230460c119a1b58d134c9428e8e832bb8236e2c35de3deea80d87b9:SOURCE_BUNDLE_SHA256_a9914e5ae7be1a76c2a7805b509977732d07070297742599fad941c35e8d7f8f:NORMALIZED_PCOPPUSDM_SHA256_b312cfa17bbfecb7a73c6adc29161609593f99f1c40fb14d44d2925d3265f9a1",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "monthly-official-fred-pcoppusdm-three-month-uptrend-matched-capital-long-cash-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "monthly_signal_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_validation_positive_episode_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-copper-uptrend-1",
+  "created_at": "2026-08-21T04:03:25Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

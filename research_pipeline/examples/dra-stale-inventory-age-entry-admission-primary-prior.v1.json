@@ -1,0 +1,61 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_STALE_INVENTORY_AGE_PRIMARY_PRIOR_V1",
+  "family_id": "dra-stale-inventory-age-entry-admission",
+  "created_at": "2026-08-21T07:08:27Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_OLDEST_OPEN_LOT_AGE_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "The DRA parent can accept a fresh signal while one or more older parent-owned lots remain unresolved. The age of the oldest open lot is known at decision time and may identify persistent adverse or low-resolution exposure without consulting mark-to-market PnL. A support-only audit can determine whether a thirty-day stale-inventory veto is selective, stable and broad enough for one matched-capital experiment. This prior is not performance evidence.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_PARENT_SIGNAL_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "formula": "DECISION_TIME_MINUS_OLDEST_OPEN_PARENT_LOT_FILL_TIME_IN_HOURS",
+    "primary_relation": "VETO_WHEN_OLDEST_OPEN_LOT_AGE_IS_AT_LEAST_720_HOURS",
+    "rejection_only_neighbors_hours": ["336", "1440"],
+    "no_open_inventory_behavior": "ADMIT",
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN",
+    "inventory_pnl_access": "DENY",
+    "existing_lot_mutation": "DENY"
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": "research_pipeline/examples/dra-underwater-inventory-congestion-entry-admission-preoutcome.v1.decision.json",
+      "sha256": "3ecd9132834265b2f6b8c9ced8e2e10b71d301d4bcad7dafec7d1904d599c02e",
+      "learning": "Aggregate underwater inventory plus 90, 120 and 150 USDT open-cost thresholds lacked Validation and annual support. Oldest-lot age is independent of inventory PnL and open-cost threshold, but must prove its own action breadth before economics."
+    },
+    {
+      "path": ".research-state/experiments/one-slot-profitable-incumbent-signal-rotation-v1/artifacts/diagnostic.json",
+      "sha256": "44245c9b393f3c3fd08c58c455f80f52a8024832a52639185b33b678e13ee609",
+      "learning": "Selling a profitable incumbent to admit a new signal increased aggregate Validation total mainly through terminal inventory effects while realized PnL and drawdown path worsened. The age family never sells or replaces an incumbent and cannot claim value from participation or terminal cleanup alone."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-equal-capital-two-slot-capacity.v1.json",
+      "sha256": "1b72faba677e5e39ac1062f5d5d6488c279b82b1c88dcfb662d296d0983b1c17",
+      "learning": "Changing the number of simultaneous lots is a closed capacity mechanism. The proposed family preserves the 240 USDT eight-lot parent cap and only evaluates a state-conditioned admission veto after the parent capacity check."
+    },
+    {
+      "path": "research_pipeline/examples/dra-partial-core-runner-profit-only-exit-v1.decision.json",
+      "sha256": "cc4c6a26adec34b7babc1c082b17c96c01a456590e7a2a40391861bcef9e78dc",
+      "learning": "Partial exit variants improved some aggregate Validation totals but worsened Design drawdown and holding breadth. The age family does not change exit timing or lot construction and must later expose realized, unrealized, total, drawdown, underwater and holding paths together."
+    },
+    {
+      "path": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
+      "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac",
+      "learning": "The flat-regime stale-inventory veto fixed a route-substitution mechanism but worsened aggregate Validation PnL and drawdown. Oldest-lot age has no flat-regime label, yet must preserve the same original-signal cooldown to avoid route substitution."
+    }
+  ],
+  "deduplication_conclusion": "The proposed feature is the oldest actual fill age among currently open parent-owned DRA lots at a capacity-admissible signal. It is not an underwater-PnL/open-cost condition, a sell-and-replace rotation, a capacity change, a partial exit, or a flat-regime state.",
+  "adversarial_risks": [
+    "Old lot age may simply proxy a loss even without reading PnL and may duplicate the failed underwater-congestion mechanism economically.",
+    "Thirty-day stale inventory may be too sparse in Validation or concentrated in one adverse year.",
+    "The fourteen-day neighbor may be overly broad while the sixty-day neighbor may be too sparse.",
+    "Vetoing during long holds may suppress later profitable averaging entries and reduce realized or total PnL.",
+    "Lower terminal inventory or drawdown without annual realized-PnL breadth may be participation suppression rather than alpha.",
+    "Cooldown route substitution can invalidate comparison unless every actionable veto reserves the original signal timestamp."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_CAUSAL_PARENT_STATE_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No inventory PnL, candidate economics, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

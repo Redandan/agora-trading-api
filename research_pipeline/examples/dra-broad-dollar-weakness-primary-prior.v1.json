@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BROAD_DOLLAR_WEAKNESS_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_BROAD_DOLLAR_WEAKNESS_DRA_ADMISSION_HISTORICAL_AUDIT",
+  "claim_boundary": "Primary sources support a time-varying relationship between Bitcoin, U.S. monetary conditions and the dollar, but do not establish that a four-week fall in the Federal Reserve broad dollar index predicts BTC or improves DRA economics. Exactly one preregistered matched-capital audit may test the rule; no causal or alpha claim is imported from the literature.",
+  "feature_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_agency": "Board of Governors of the Federal Reserve System (US)",
+    "release": "H.10 Foreign Exchange Rates",
+    "series_id": "DTWEXBGS",
+    "observation": "DAILY_NOMINAL_BROAD_US_DOLLAR_INDEX_JAN_2006_100_NOT_SEASONALLY_ADJUSTED",
+    "weekly_aggregation": "ARITHMETIC_MEAN_OF_ALL_PUBLISHED_MONDAY_THROUGH_FRIDAY_OBSERVATIONS_LABELLED_BY_CALENDAR_FRIDAY_REQUIRE_3_TO_5_OBSERVATIONS",
+    "decision_time": "WEEK_ENDING_FRIDAY_PLUS_FIVE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_WEEKLY_MEAN_STRICTLY_BELOW_EXACT_WEEKLY_MEAN_28_CALENDAR_DAYS_EARLIER",
+    "policy": "ADMIT_UNCHANGED_DRA_V1_PARENT_SIGNAL_ONLY_WHILE_BROAD_DOLLAR_FOUR_WEEK_CHANGE_IS_NEGATIVE_OTHERWISE_VETO",
+    "growth_lag_calendar_days": 28,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_ZERO_CHANGE_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Board of Governors of the Federal Reserve System, Nominal Broad U.S. Dollar Index via FRED",
+      "primary_source": "https://fred.stlouisfed.org/series/DTWEXBGS",
+      "finding": "The official DTWEXBGS series is a daily nominal broad U.S. dollar index, January 2006 equals 100, not seasonally adjusted, sourced from the Federal Reserve H.10 release and marked public domain with citation requested.",
+      "role": "FREE_OFFICIAL_MACHINE_READABLE_SOURCE_IDENTITY",
+      "transfer_boundary": "The present-vintage index is not DXY, not a Bitcoin predictor, and does not identify an exogenous dollar or monetary-policy shock."
+    },
+    {
+      "identity": "Karau, Monetary policy and Bitcoin, Journal of International Money and Finance 137 (2023)",
+      "primary_source": "https://doi.org/10.1016/j.jimonfin.2023.102880",
+      "finding": "Bitcoin's response to U.S. monetary-policy tightening changed over time and since late 2020 became more similar to other risky assets.",
+      "role": "TIME_VARYING_MONETARY_TRANSMISSION_PRIOR",
+      "transfer_boundary": "A policy surprise is not a broad-dollar trend state, and the study does not validate this four-week sign rule or DRA admission."
+    },
+    {
+      "identity": "Regaieg, Moussa and Mgadmi, Can We Reckon Bitcoin as a Hedge, a Safe Haven or a Diversifier for US Dollars?",
+      "primary_source": "https://doi.org/10.1177/0972150920968168",
+      "finding": "The study uses a regime-switching framework to examine Bitcoin and a U.S. Dollar Index and reports regime-dependent hedge or diversification properties.",
+      "role": "DOLLAR_BITCOIN_REGIME_DEPENDENCE_PRIOR",
+      "transfer_boundary": "Its dollar index, sample, regime model and portfolio question differ from DTWEXBGS weekly change, after-cost DRA entries and the 2020-2024 windows."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal exact annual FRED CSV responses for DTWEXBGS from 2018-01-01 through 2024-12-31; require unique weekday dates, positive finite decimal values and no missing marker.",
+    "Construct each calendar week ending Friday from all available Monday-Friday observations; require three to five observations and do not interpolate holidays.",
+    "Make week-ending Friday D usable only at D plus five calendar days 00:00 UTC and valid for at most 168 hours.",
+    "Compare each weekly mean only with the exact weekly mean 28 calendar days earlier; admit the unchanged DRA V1 signal only when the current mean is strictly lower.",
+    "Use the frozen 250 USDT DRA V1 parent, 240 USDT slot capacity, 0.10% fee and 0.05% adverse slippage without changing entries, exits, lot size, capacity or accounting.",
+    "Require Design, Validation, 2020-2024 annual matched-capital economics, realized/unrealized/total PnL, drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth, concentration and independent non-overlapping 168-hour predictive diagnostics.",
+    "Do not add 1-, 8-, 13-, 26- or 52-week horizons, moving averages, volatility scaling, DXY substitution, inverse rules, magnitude thresholds, rate interactions, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Dollar-Bitcoin direction and strength can change across monetary, crisis and crypto-native regimes.",
+    "DTWEXBGS is a broad trade-weighted nominal index and differs from the ICE DXY composition commonly used in market commentary.",
+    "The present-vintage FRED series can contain revisions; original H.10 release values and revision history remain MISSING_PROOF.",
+    "The four-week horizon is a preregistered monthly-scale convention, not a parameter established by the cited papers.",
+    "No complete DTWEXBGS history, BTC/DRA outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T09:48:18Z"
+}

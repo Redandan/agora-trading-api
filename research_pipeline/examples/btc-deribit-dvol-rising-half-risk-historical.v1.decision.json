@@ -1,0 +1,99 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DERIBIT_DVOL_RISING_HALF_RISK_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-deribit-dvol-rising-half-risk",
+  "experiment_id": "btc-deribit-dvol-rising-half-risk-historical-v1",
+  "decided_at": "2026-08-21T05:23:00Z",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DERIBIT_DVOL_RISING_HALF_RISK_FAMILY",
+  "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_DERIBIT_DVOL_RISING_HALF_RISK_FAMILY",
+  "material_conclusion": "The fixed fifty-percent BTC risk reduction during week-over-week rising DVOL materially lowered drawdown in both windows, but the return opportunity cost was too large. Design remained negative after normal and doubled friction. Validation normal drawdown improved by 5.84 percentage points, yet total return fell from 464.75 percent for passive BTC to 243.71 percent, upside capture was only 52.44 percent, and Calmar was only 64.02 percent of passive. Annual Calmar was non-worse in only one of four fair-reset windows. Eight frozen gates failed, so the exact family is closed without threshold, lag, weight or direction tuning.",
+  "determinism": {
+    "run1_sha256": "379237e81ad1afd214727ddf64f64c1fb058a120a9019f35a45181593940a450",
+    "run2_sha256": "379237e81ad1afd214727ddf64f64c1fb058a120a9019f35a45181593940a450",
+    "byte_identical": true
+  },
+  "source_support": {
+    "daily_observations": 1371,
+    "weekly_evaluations": 195,
+    "design": {"evaluations": 90, "rising_dvol_weeks": 42, "non_rising_dvol_weeks": 48, "transitions": 47, "support_pass": true},
+    "validation": {"evaluations": 105, "rising_dvol_weeks": 47, "non_rising_dvol_weeks": 58, "transitions": 52, "support_pass": true}
+  },
+  "economic_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "-60.38995956",
+      "buy_hold_total_return_pct": "-72.46684782",
+      "candidate_maximum_drawdown_pct": "69.24679972",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "drawdown_delta_pp": "-7.94275953",
+      "candidate_calmar": "-0.87209748",
+      "buy_hold_calmar": "-0.93881671",
+      "average_exposure_pct": "76.60187836",
+      "rebalance_trades": 66
+    },
+    "validation_normal": {
+      "candidate_realized_return_pct": "250.92457010",
+      "candidate_unrealized_return_pct": "-7.21151936",
+      "candidate_total_return_pct": "243.71305074",
+      "buy_hold_total_return_pct": "464.75475156",
+      "candidate_maximum_drawdown_pct": "26.44356022",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "drawdown_delta_pp": "-5.84060327",
+      "candidate_calmar": "9.21634790",
+      "buy_hold_calmar": "14.39575015",
+      "calmar_ratio_to_buy_hold": "0.64021310",
+      "upside_capture_ratio": "0.52439066",
+      "average_exposure_pct": "77.51642437",
+      "rebalance_trades": 74,
+      "top_positive_realized_lot_contribution_pct": "14.24522108"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "230.00325624",
+      "candidate_maximum_drawdown_pct": "26.93973999",
+      "terminal_liquidation_adjusted_return_pct": "229.01390647"
+    },
+    "annual_breadth": {
+      "normal_positive_years": 2,
+      "stress_positive_years": 2,
+      "normal_drawdown_non_worse_years": 3,
+      "normal_calmar_non_worse_years": 1,
+      "top_year_positive_total_return_contribution_pct": "55.89973341"
+    }
+  },
+  "failed_primary_gates": [
+    "design_normal_total_return_positive",
+    "design_stress_total_return_positive",
+    "design_upside_capture_at_least_80pct",
+    "validation_upside_capture_at_least_80pct",
+    "validation_calmar_at_least_buy_hold",
+    "normal_positive_annual_return_at_least_3_of_4",
+    "stress_positive_annual_return_at_least_3_of_4",
+    "annual_calmar_non_worse_at_least_3_of_4"
+  ],
+  "sealed_bindings": [
+    {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "0eb3c85742aa1cc89b80dbda7d851d2ce5e43a3bc2411dd63c71f8c8090bff52"},
+    {"path": "research/btc_deribit_dvol_rising_half_risk_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "62862cb1ca16c3dde1beaf9d882a6725247c84091e6db4da365a1754e4726376"},
+    {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "3de2a1e9ed9a91355b5c02c9f170d87e867e86ea570f7d0a1767a7d79695bf03"},
+    {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "26a274b2cfddf9bf145b1f103659cc8cfb95a6655495b4f6ef765b64611eb1d4"},
+    {"path": ".research-state/experiments/btc-deribit-dvol-rising-half-risk-historical-v1/inputs/dvol-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "e90919ba1ffb2304cf662cd6fcbf349f5ad52b15b2c2f68ab97ecedcb2b4a67b"},
+    {"path": ".research-state/experiments/btc-deribit-dvol-rising-half-risk-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE", "sha256": "379237e81ad1afd214727ddf64f64c1fb058a120a9019f35a45181593940a450"}
+  ],
+  "closed_fingerprint": {
+    "duplicate_family_key": "btc-deribit-dvol-rising-half-risk",
+    "decision_feature": "DERIBIT_BTC_DVOL_COMPLETE_SUNDAY_CLOSE_STRICTLY_ABOVE_PREVIOUS_COMPLETE_SUNDAY_CLOSE_PLUS_1D",
+    "prohibited_reopen": true,
+    "prohibited_rescue": [
+      "ALTERNATE_DVOL_ABSOLUTE_THRESHOLD_MEDIAN_IV_RANK_OR_PERCENTILE",
+      "ALTERNATE_WEEKLY_LAG_OR_DIRECTION_INVERSION",
+      "ALTERNATE_25_75_OR_ZERO_PERCENT_BTC_WEIGHT",
+      "ADD_REALIZED_VOLATILITY_SKEW_FUNDING_BASIS_OR_OPEN_INTEREST",
+      "POST_OUTCOME_YEAR_REGIME_OR_EPISODE_SELECTION"
+    ]
+  },
+  "learning": "A volatility signal can reduce drawdown without improving risk-adjusted performance. The relevant price of protection is missed convex upside: here a 5.84 percentage-point Validation drawdown reduction cost 221.04 percentage points of total return and reduced Calmar by 35.98 percent relative to passive BTC.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "next_action": "Advance the next independent free-data family. Do not tune or reinterpret the closed DVOL rising half-risk fingerprint.",
+  "scope_note": "No paid API, second timer, second writer, unsealed backfill, canonical write, OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

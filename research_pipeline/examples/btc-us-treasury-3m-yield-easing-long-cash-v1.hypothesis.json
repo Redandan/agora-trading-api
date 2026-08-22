@@ -1,0 +1,26 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-us-treasury-3m-yield-easing-long-cash-v1",
+  "title": "Lagged U.S. three-month Treasury yield easing for BTC long or cash",
+  "thesis": "A lower nominal three-month U.S. Treasury yield than sixty-three valid business observations earlier may identify easing short-end funding conditions in which next-week BTC exposure has better risk-adjusted economics than unconditional buy-and-hold.",
+  "mechanism": "On the final valid U.S. Treasury business date of each ISO week, subtract the three-month yield exactly sixty-three valid observations earlier from the latest three-month yield. Make the state available no earlier than the observation date plus one calendar day at 00:00 UTC and hold BTC from the first eligible H1 open only when the change is strictly negative; otherwise hold zero-yield cash until the next weekly factor update.",
+  "primary": {
+    "lookback_valid_business_observations": 63,
+    "threshold": "STRICTLY_LESS_THAN_ZERO",
+    "action": "FULL_CAPITAL_LONG_ELSE_CASH"
+  },
+  "rejection_only_neighbors": [
+    {"lookback_valid_business_observations": 42},
+    {"lookback_valid_business_observations": 84}
+  ],
+  "sources": [
+    "EXISTING_SEALED_52608_ROW_BTC_H1_CORPUS",
+    "EXISTING_SEALED_1750_ROW_US_TREASURY_PAR_YIELD_CURVE_CORPUS"
+  ],
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-us-treasury-three-month-yield-easing-long-cash-matched-capital-runner-v1",
+  "data_readiness": "READY",
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-us-treasury-3m-yield-easing-1",
+  "created_at": "2026-08-20T09:37:14Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

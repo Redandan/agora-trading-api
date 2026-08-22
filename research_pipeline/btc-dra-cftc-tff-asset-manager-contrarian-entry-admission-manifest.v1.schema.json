@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/btc-dra-cftc-tff-asset-manager-contrarian-entry-admission-manifest.v1.schema.json",
+  "title": "BTC DRA CFTC TFF asset-manager contrarian entry-admission manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["authorization", "availability", "bindings", "dataset", "document_type", "economics", "experiment_id", "factor", "gate_set", "oos_access", "parent_strategy", "schema_version", "selection_cutoff", "windows"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "BTC_DRA_CFTC_TFF_ASSET_MANAGER_CONTRARIAN_ENTRY_ADMISSION_MANIFEST_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "experiment_id": {"const": "cftc-tff-asset-manager-contrarian-dra-entry-admission-historical-v1"},
+    "parent_strategy": {"const": "BTC_DRA_V1"},
+    "gate_set": {"const": "BTC_DRA_CFTC_TFF_HISTORICAL_ENTRY_ADMISSION_GATES_V1"},
+    "oos_access": {"const": "DENY"},
+    "selection_cutoff": {"const": "2025-01-01T00:00:00"},
+    "dataset": {"const": {"canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd", "rows": 52608}},
+    "economics": {"const": {"fee_rate": "0.0010", "initial_equity_usdt": "250", "slippage_rate": "0.0005", "slot_capacity_usdt": "240"}},
+    "factor": {
+      "const": {
+        "admission_rule": "ADMIT_PARENT_SIGNAL_ONLY_WHEN_FACTOR_SCORE_GT_ZERO",
+        "factor_identity": "CFTC_TFF_ASSET_MANAGER_NET_PCT_OI_WEEKLY_CONTRACTION_CONTRARIAN_168H_V1",
+        "formula": "(prior_long_pct-prior_short_pct)-(current_long_pct-current_short_pct)",
+        "negative_action": "HOLD_CASH",
+        "participant_category": "ASSET_MANAGER_INSTITUTIONAL",
+        "positive_action": "ADMIT",
+        "zero_action": "HOLD_CASH"
+      }
+    },
+    "availability": {
+      "const": {
+        "eligible_time": "REPORT_DATE_PLUS_14_CALENDAR_DAYS_AT_00_00_UTC",
+        "exact_predecessor_days": 7,
+        "factor_valid_hours": 168,
+        "ion_exclusion": {"end_inclusive": "2023-03-14", "reason": "CFTC_2023_ION_DELAYED_PUBLICATION", "start_inclusive": "2023-01-31"},
+        "non_tuesday_action": "EXCLUDE",
+        "report_lag_calendar_days": 14
+      }
+    },
+    "windows": {
+      "const": {
+        "annual_folds": ["2020", "2021", "2022", "2023", "2024"],
+        "design": {"end_exclusive": "2023-01-01T00:00:00", "start_inclusive": "2020-01-01T00:00:00"},
+        "outcome_horizon_hours": 168,
+        "validation": {"end_exclusive": "2025-01-01T00:00:00", "start_inclusive": "2023-01-01T00:00:00"}
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_runner", "capacity_runner", "historical_source_manifest", "manifest_schema", "primary_prior", "reused_economic_runner", "runner", "source_field_definition"],
+      "properties": {
+        "base_runner": {"$ref": "#/$defs/binding"},
+        "capacity_runner": {"$ref": "#/$defs/binding"},
+        "historical_source_manifest": {"$ref": "#/$defs/binding"},
+        "manifest_schema": {"$ref": "#/$defs/binding"},
+        "primary_prior": {"$ref": "#/$defs/binding"},
+        "reused_economic_runner": {"$ref": "#/$defs/binding"},
+        "runner": {"$ref": "#/$defs/binding"},
+        "source_field_definition": {"$ref": "#/$defs/binding"}
+      }
+    }
+  },
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

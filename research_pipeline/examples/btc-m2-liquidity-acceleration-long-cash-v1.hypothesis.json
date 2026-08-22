@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-m2-liquidity-acceleration-long-cash-v1",
+  "title": "Lagged U.S. M2 liquidity-growth acceleration for BTC long or cash",
+  "thesis": "A strictly positive acceleration in seasonally adjusted U.S. M2 year-over-year growth may identify a broad-liquidity state in which full-capital BTC exposure has better fee-adjusted risk economics than unconditional buy-and-hold.",
+  "mechanism": "For each H.6 observation month t, compute the adjacent change in twelve-month M2 growth. Make that state usable only on the first calendar day of t plus two months at 00:00 UTC; hold BTC when the acceleration is strictly positive and zero-yield cash otherwise until the next monthly update.",
+  "economic_rationale": "The rule is intended to avoid BTC exposure while broad dollar liquidity growth is no longer accelerating, reducing drawdown and underwater opportunity cost without leverage, shorting, or a tuned magnitude threshold. It must preserve enough upside and annual breadth to improve Calmar rather than merely suppress volatility.",
+  "source": "PRE_CANDIDATE_POOL:btc-m2-liquidity-acceleration-long-cash",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "monthly-h6-m2-growth-acceleration-long-cash-matched-capital-runner-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_stress_fee_adjusted_realized_unrealized_total_return_pct",
+    "matched_buy_and_hold_total_return_and_upside_capture",
+    "maximum_drawdown_and_underwater_duration",
+    "calmar_ratio_and_calmar_ratio_to_buy_hold",
+    "exposure_position_changes_holding_age_and_terminal_inventory",
+    "annual_fair_reset_breadth_and_positive_episode_concentration"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-m2-liquidity-acceleration-1",
+  "created_at": "2026-08-20T10:31:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

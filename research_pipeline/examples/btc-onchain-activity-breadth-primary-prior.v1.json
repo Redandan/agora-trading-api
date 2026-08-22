@@ -1,0 +1,65 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ONCHAIN_ACTIVITY_BREADTH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "PRIOR_SUPPORTS_ONE_ONCHAIN_ACTIVITY_BREADTH_LONG_CASH_HISTORICAL_AUDIT",
+  "claim_boundary": "Primary research supports a bidirectional relation between Bitcoin returns and on-chain transaction activity and a longer-run relation between network participation and network value. It also warns that price shocks can explain more activity than activity explains returns. Exactly one preregistered matched-capital audit may therefore test a lagged network-growth state; no predictive claim is imported from the literature.",
+  "feature_contract": {
+    "publisher": "Coin Metrics Community API",
+    "asset": "btc",
+    "metrics": ["TxCnt", "AdrActCnt"],
+    "observation": "REVIEWED_DAILY_UTC_NETWORK_ACTIVITY",
+    "decision_time": "SECOND_CALENDAR_DAY_0000_UTC_AFTER_OBSERVATION_DAY",
+    "primary_feature": "BOTH_28D_MEAN_TXCNT_AND_ADRACTCNT_STRICTLY_ABOVE_CORRESPONDING_28D_MEAN_52_WEEKS_EARLIER",
+    "neighbor_features": [
+      "28D_MEAN_TXCNT_STRICTLY_ABOVE_CORRESPONDING_28D_MEAN_52_WEEKS_EARLIER",
+      "28D_MEAN_ADRACTCNT_STRICTLY_ABOVE_CORRESPONDING_28D_MEAN_52_WEEKS_EARLIER"
+    ],
+    "policy": "LONG_BTC_WHILE_NETWORK_ACTIVITY_BREADTH_IS_POSITIVE_OTHERWISE_ZERO_YIELD_CASH",
+    "current_window_days": 28,
+    "comparison_lag_days": 364,
+    "threshold": "STRICT_ZERO_GROWTH_NO_TUNED_MARGIN"
+  },
+  "prior_matrix": [
+    {
+      "identity": "Koutmos, Bitcoin returns and transaction activity, Economics Letters 167 (2018)",
+      "primary_source": "https://doi.org/10.1016/j.econlet.2018.03.021",
+      "finding": "The paper studies transaction count and unique addresses as activity proxies, finds bidirectional linkages, and reports that an activity shock is followed by a small short-horizon return gain that later reverses; return shocks contribute more to activity than the reverse direction.",
+      "role": "ADVERSARIAL_TRANSACTION_ACTIVITY_RETURN_PRIOR",
+      "transfer_boundary": "The result does not validate annual growth, a 28-day average, a long-cash policy, or risk-adjusted performance after costs. Reverse causality is an explicit failure risk."
+    },
+    {
+      "identity": "Wheatley, Sornette, Huber, Reppen and Gantner, Are Bitcoin bubbles predictable?, Royal Society Open Science 6 (2019)",
+      "primary_source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6599809/",
+      "finding": "The study models a longer-run relation between active users and Bitcoin market value using a generalized Metcalfe framework and explicitly smooths active users to reduce short-run feedback.",
+      "role": "NETWORK_VALUE_AND_SMOOTHING_MECHANISM_PRIOR",
+      "transfer_boundary": "A fitted long-run valuation relation is not a tradable direction rule and does not establish that activity growth leads returns."
+    },
+    {
+      "identity": "Coin Metrics TxCnt and AdrActCnt metric documentation",
+      "primary_source": "https://docs.coinmetrics.io/api/v4/",
+      "finding": "The official catalog defines TxCnt as daily non-coinbase transaction count and AdrActCnt as unique addresses active as sender or recipient. The Community HTTP API requires no key and exposes daily BTC coverage.",
+      "role": "FREE_MACHINE_READABLE_SOURCE_AND_METRIC_IDENTITY",
+      "transfer_boundary": "Addresses are not users, transactions can reflect batching or protocol-use changes, and a current reviewed historical response is not original-vintage evidence."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact no-key Community API JSON response for reviewed BTC TxCnt and AdrActCnt from 2018-01-01 through 2024-12-31; reject missing, duplicate, non-daily, non-positive or paginated residual data.",
+    "Make observation day D usable only at D plus two calendar days at 00:00 UTC, after the UTC day is complete and one additional confirmation day has elapsed.",
+    "For each axis compare the simple mean of exactly 28 complete daily observations ending at D with the corresponding 28-day mean ending exactly 364 days earlier.",
+    "Freeze the conjunction of both positive axes as primary; TxCnt-only and AdrActCnt-only are rejection-only neighbors and cannot replace a failed primary.",
+    "Use 100-percent unlevered BTC or zero-yield cash, next-H1-open fills, normal and doubled stress friction, and matched-capital buy-and-hold.",
+    "Require Design, Validation, annual breadth, contribution concentration, realized/unrealized/total PnL, drawdown, Calmar, upside capture, holding, terminal inventory and both-neighbor stability.",
+    "Do not add a growth threshold, z-score, price interaction, alternate metric, smoothing window, delay, fractional sizing, leverage, short leg or cash yield after BTC outcome access.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Return-to-activity feedback can dominate activity-to-return causality.",
+    "Address count is not user count and both metrics can shift because of batching, inscriptions, fee conditions or usage composition rather than adoption.",
+    "The Community API response is a sealed present-vintage reviewed snapshot; original daily vintage and exact historical review timestamps remain MISSING_PROOF.",
+    "The 28-day and 52-week definitions are preregistered calendar controls, not parameters validated by the cited papers.",
+    "No complete source history, BTC performance result, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T08:44:14Z"
+}

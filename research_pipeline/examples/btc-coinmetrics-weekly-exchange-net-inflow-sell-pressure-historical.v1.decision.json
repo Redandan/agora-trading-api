@@ -1,0 +1,80 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_WEEKLY_EXCHANGE_NET_INFLOW_SELL_PRESSURE_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_WEEKLY_EXCHANGE_NET_INFLOW_SELL_PRESSURE_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_WEEKLY_EXCHANGE_NET_INFLOW_SELL_PRESSURE_FAMILY_WITHOUT_ECONOMIC_ACCESS_OR_TUNING",
+  "candidate_created": false,
+  "economic_evidence_accessed": false,
+  "oos_opened": false,
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/artifacts/run2.json",
+    "run1_sha256": "8133e7d10181574627b8c5e17aaf0ee48a9c503d57ee4f80e1eefd1cb9db2b62",
+    "run2_sha256": "8133e7d10181574627b8c5e17aaf0ee48a9c503d57ee4f80e1eefd1cb9db2b62",
+    "byte_identical": true
+  },
+  "frozen_bindings": {
+    "manifest_path": "research_pipeline/examples/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical.v1.manifest.json",
+    "manifest_sha256": "a664c16af5b7bfba46e1e47b74345bf98c589ab44aae310a97f1ac0642de0955",
+    "hypothesis_path": "research_pipeline/examples/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-v1.hypothesis.json",
+    "hypothesis_sha256": "298e614a1d2aab86573cdbe4359d502ec521b2a8459f4da4df00a8d898face55",
+    "prior_path": "research_pipeline/examples/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-primary-prior.v1.json",
+    "prior_sha256": "1729b6339eedd68ee94c5330a9e754176fb0e8cc3e249a708ec7a40c50bef726",
+    "transport_erratum_sha256": "2620ba192905412024037b33b11bbb91945d9b691b20e561e2636340cfb82ab1",
+    "runner_path": "research/btc_coinmetrics_exchange_net_inflow_sell_pressure_historical.py",
+    "runner_sha256": "df6fd54e08714af6ebed964c38e7649312b8112bbec5a7c0487dbe91671ea14e",
+    "source_probe_path": "research/coinmetrics_btc_exchange_net_flow_source_probe.cjs",
+    "source_probe_sha256": "4343cf9f93596862557c175b989db61df9ea6943bbc784355ca79d2cc5716150",
+    "source_bundle_sha256": "0b0ab780d3efd64b56e4a5d8d55b15ae225d12371659eef0e09123368119e918",
+    "normalized_exchange_flow_sha256": "725bab20952e98c3c7cbb62a9d5bc3f96590a62ea2940fa3feb8bcd2f66e91c1",
+    "btc_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+  },
+  "material_evidence": {
+    "design": {
+      "episode_count": 208,
+      "high_sell_pressure_count": 106,
+      "other_state_count": 102,
+      "high_sell_pressure_median_terminal_return_168h": "-0.00543235",
+      "other_state_median_terminal_return_168h": "0.00439862",
+      "high_sell_pressure_negative_terminal_rate": "0.51886792",
+      "other_state_negative_terminal_rate": "0.49019608",
+      "one_sided_fisher_negative_rate_p_value": "0.39179301",
+      "high_sell_pressure_median_path_drawdown_168h": "0.09698870",
+      "other_state_median_path_drawdown_168h": "0.08631555",
+      "high_sell_pressure_p75_path_drawdown_168h": "0.15028744",
+      "other_state_p75_path_drawdown_168h": "0.11784854",
+      "annual_median_return_downside_direction_wins": 2,
+      "top_positive_annual_downside_delta_contribution_pct": "61.63274258"
+    },
+    "validation": {
+      "episode_count": 103,
+      "high_sell_pressure_count": 57,
+      "other_state_count": 46,
+      "high_sell_pressure_median_terminal_return_168h": "0.00378535",
+      "other_state_median_terminal_return_168h": "0.02946987",
+      "high_sell_pressure_negative_terminal_rate": "0.43859649",
+      "other_state_negative_terminal_rate": "0.26086957",
+      "one_sided_fisher_negative_rate_p_value": "0.04750959",
+      "high_sell_pressure_median_path_drawdown_168h": "0.07391029",
+      "other_state_median_path_drawdown_168h": "0.05842200",
+      "high_sell_pressure_p75_path_drawdown_168h": "0.09291912",
+      "other_state_p75_path_drawdown_168h": "0.08699412",
+      "annual_median_return_downside_direction_wins": 2,
+      "top_positive_annual_downside_delta_contribution_pct": "71.82903350"
+    }
+  },
+  "material_conclusion": "The exact weekly net-inflow proxy is directionally interesting but not stable enough for strategy economics. Validation shows materially lower median return, a 17.77pp higher negative-return rate and one-sided Fisher p 0.0475 during high net inflows; Design shows lower median return and worse path drawdown but only a 2.87pp negative-rate gap, p 0.3918, two of four annual direction wins and 61.63% top-year concentration. Validation is also 71.83% concentrated in its top positive year. The frozen all-gates contract therefore closes the family rather than selecting the favorable window.",
+  "prohibited_reopen": [
+    "Do not rerun, invert or tune the exact seven-day exchange net-inflow rule.",
+    "Do not add magnitude thresholds, alternate windows, USD normalization, individual exchanges, exchange supply or gross-flow variants.",
+    "Do not select Validation alone or reinterpret present-vintage flash labels as point-in-time evidence.",
+    "Do not open matched-capital economics or post-2024 OOS for this family."
+  ],
+  "missing_proof": [
+    "Original point-in-time exchange address labels, coverage and daily review vintages remain unavailable.",
+    "No strategy PnL, fee, slippage, drawdown, utilization, holding, terminal inventory, OOS or forward evidence was accessed because predictive gates failed."
+  ],
+  "scope_note": "Research-only sealed rejection. No strategy economics, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

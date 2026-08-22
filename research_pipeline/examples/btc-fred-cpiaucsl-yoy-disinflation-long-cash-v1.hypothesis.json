@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-fred-cpiaucsl-yoy-disinflation-long-cash-v1",
+  "title": "Lagged U.S. CPI year-over-year disinflation for BTC long or cash",
+  "thesis": "A conservatively lagged monthly decline in U.S. CPI year-over-year inflation may identify easing monetary-policy pressure with better subsequent Bitcoin risk-adjusted economics than months when year-over-year inflation is flat or accelerating.",
+  "mechanism": "Using only the sealed present-vintage CPIAUCSL monthly index, compute CPI_t divided by CPI_t-minus-12 minus one and compare it with the immediately prior month's analogous year-over-year rate. Make the state usable on the first day of the second following month at 00:00 UTC. Hold full-capital unlevered BTC only when the current year-over-year rate is strictly lower, and zero-yield cash otherwise. No core CPI, PCE, surprise, level, magnitude, smoothing, alternate lag, inverse direction or combined factor is allowed.",
+  "economic_rationale": "If disinflation reduces the expected tightening burden on risky assets, the policy may avoid inflation-pressure drawdowns while retaining enough BTC upside to improve matched-capital Calmar after explicit normal and doubled friction. Because Bitcoin's inflation relationship is regime-dependent, Design, Validation, annual breadth, episode concentration and terminal inventory must all pass.",
+  "source": "PRE_CANDIDATE_POOL:btc-fred-cpiaucsl-yoy-disinflation-long-cash:PRIMARY_PRIOR_SHA256_bf7ce3266109c68b5530b70bc5677c547bfa5404f5754f484a77e71a0a0d1504:SOURCE_BUNDLE_SHA256_7b144ff464c3f8cbb9c211d453deac008804a6b0795f2e9737518d355840c312:NORMALIZED_CPI_SHA256_ecbdf60fdfbb3de3e7d7b9e0e54913a6f64a17f3b452aa4c840374c8f4825e4b",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "monthly-official-fred-cpiaucsl-yoy-disinflation-matched-capital-long-cash-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "monthly_signal_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_validation_positive_episode_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-cpiaucsl-disinflation-1",
+  "created_at": "2026-08-21T06:02:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

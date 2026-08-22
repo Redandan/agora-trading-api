@@ -1,0 +1,99 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_PRIOR_DAY_MOMENTUM_PREOUTCOME_DECISION_V1",
+  "family_id": "dra-native-prior-day-momentum-continuation-entry-admission",
+  "decided_at": "2026-08-21T08:12:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_HYPOTHESIS_CLOSE_PRIOR_DAY_MOMENTUM_DUPLICATE_AT_SUPPORT_GATE",
+  "decision": "PERMANENTLY_CLOSE_EXACT_SIGNAL_DAY_CLOSE_MINUS_SIGNAL_DAY_00_H1_OPEN_DIVIDED_BY_UPDATED_ATR14_AT_MINUS_0_25_ZERO_PLUS_0_25_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_FORMULA_DIRECTION_OR_WINDOW_RESCUE",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-native-prior-day-momentum-continuation-entry-admission-primary-prior.v1.json",
+      "sha256": "3ad25d2f1feaec42a8e0a45a15221f781538ea68faa337f8ab57d25cd6bc3588"
+    },
+    "preoutcome_spec": {
+      "path": "research_pipeline/examples/dra-native-prior-day-momentum-continuation-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "f51133072e515a28b41b5ed0d3faf6e45b8811886395c9748b1aad5aa32a668a"
+    },
+    "support_runner": {
+      "path": "research/dra_native_prior_day_momentum_support_v1.py",
+      "sha256": "63f4ba38b7cb13bd1f80977303c1a091d3a639ae8c9e978267c14f8a1340e254"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/dra-native-prior-day-momentum-continuation-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "0f6b1a5f87d79a036871876d74ad55ab417e9f4befb808ea41e1bc0f8da24412"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/dra-native-prior-day-momentum-continuation-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+      "sha256": "0f6b1a5f87d79a036871876d74ad55ab417e9f4befb808ea41e1bc0f8da24412"
+    },
+    "determinism": "SUPPORT_RUNS_BYTE_IDENTICAL"
+  },
+  "deduplication": {
+    "status": "FAIL_PRIMARY_EFFECTIVELY_RESTATES_PARENT_POSITIVE_24H_MOMENTUM_GATE",
+    "parent_feature": "At the same complete UTC 23 signal bar the frozen DRA parent already requires close above the close exactly 24 H1 bars earlier.",
+    "candidate_feature": "The candidate requires the same signal close above the signal-day 00 H1 open, normalized by updated ATR14.",
+    "observed_difference": "Only 1 of 99 available capacity-admissible Design signals and 0 of 51 Validation signals had opposite parent-positive versus candidate-negative signs. The other Design primary veto was one unavailable feature."
+  },
+  "support_summary": {
+    "parent_path_parity": "EXACT_ALL_DESIGN_VALIDATION_AND_ANNUAL_WINDOWS",
+    "feature_availability": {
+      "design": "0.99000000",
+      "validation": "1.00000000"
+    },
+    "design": {
+      "parent_signals": 103,
+      "capacity_admissible_signals": 100,
+      "candidate_parent_sign_disagreements": 1,
+      "primary_zero_actionable_vetoes": 2,
+      "primary_action_share": "0.02000000",
+      "lower_minus_0_25_actionable_vetoes": 1,
+      "upper_plus_0_25_actionable_vetoes": 34,
+      "feature_minimum_median_maximum_atr": ["-0.00009823", "0.42124734", "2.24585465"]
+    },
+    "validation": {
+      "parent_signals": 51,
+      "capacity_admissible_signals": 51,
+      "candidate_parent_sign_disagreements": 0,
+      "primary_zero_actionable_vetoes": 0,
+      "primary_action_share": "0.00000000",
+      "lower_minus_0_25_actionable_vetoes": 0,
+      "upper_plus_0_25_actionable_vetoes": 10,
+      "feature_minimum_median_maximum_atr": ["0.00438953", "0.50978528", "2.62101808"]
+    },
+    "annual_primary_zero_actionable_vetoes": {
+      "2020": 1,
+      "2021": 0,
+      "2022": 0,
+      "2023": 0,
+      "2024": 0
+    },
+    "active_annual_folds": 1,
+    "top_year_primary_veto_share": "1.00000000"
+  },
+  "failed_gates": [
+    "design_minimum_primary_actionable_vetoes",
+    "maximum_top_year_primary_veto_share",
+    "maximum_validation_top_month_primary_veto_share",
+    "minimum_active_annual_folds",
+    "minimum_primary_vetoes_per_active_annual_fold",
+    "neighbor_action_hash_differences_validation",
+    "primary_action_share_design",
+    "primary_action_share_validation",
+    "validation_minimum_each_neighbor_actionable_vetoes",
+    "validation_minimum_primary_actionable_vetoes"
+  ],
+  "material_learning": "The natural zero boundary does not create a meaningful new DRA action. It vetoed only 2 of 100 capacity-admissible Design signals and none of 51 Validation signals, with activity in only one of five annual folds. The plus 0.25 ATR rejection-only neighbor would veto 34 Design and 10 Validation signals, but promoting it after observing that selectivity would replace the failed primary with an outcome-selected momentum-strength threshold. The family is therefore a duplicate/non-intervening restatement at its causal primary and is closed before PnL access.",
+  "prohibited_reopen": [
+    "Do not promote the plus 0.25 ATR rejection-only neighbor after seeing that it has material intervention counts.",
+    "Do not rerun minus 0.25, zero or plus 0.25 ATR signal-day close-minus-open thresholds in this direction.",
+    "Do not change the UTC day boundary, opening anchor, ATR14 normalization, signal clock, relation, capacity order, cooldown reservation, lot cost, cap, windows or support gates to rescue this family.",
+    "Do not invert the relation or reinterpret the result as evidence for a short, reversal or stronger-momentum family.",
+    "Do not create a hypothesis, economic manifest, candidate, OOS, deployment, SHADOW, PAPER or LIVE action from this support result."
+  ],
+  "hypothesis_created": false,
+  "candidate_economics_accessed": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Causal parent-state duplicate and action support only. No candidate PnL, OOS, paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

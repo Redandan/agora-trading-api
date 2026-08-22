@@ -1,0 +1,143 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_REALIZED_CAP_28D_GROWTH_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_REALIZED_CAP_28D_GROWTH_LONG_CASH_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_SINGLE_VARIANT_SUNDAY_REALIZED_CAP_28_DAY_GROWTH_PLUS_THREE_DAY_LAG_LONG_CASH_FAMILY_WITHOUT_TUNING",
+  "material_conclusion": "The policy failed as a matched-capital strategy in both windows. Design normal return was 194.41708787% versus 346.32062389% for buy-and-hold, with worse drawdown and only 56.14% upside capture. Validation normal return was 265.64249145% versus 464.75475156%, Calmar was 8.22826001 versus 14.39575015 and upside capture was 57.16%. Annual excess-return breadth was only 1 of 6 years and both windows exceeded the 60% episode-concentration gate. Positive realized-cap growth is primarily a lagging participation state under this exact policy, not independent risk-adjusted alpha.",
+  "performance_evidence": {
+    "design_normal": {
+      "candidate_realized_return_pct": "194.41708787",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "194.41708787",
+      "buy_hold_total_return_pct": "346.32062389",
+      "total_return_delta_pp": "-151.90353602",
+      "candidate_maximum_drawdown_pct": "79.13514855",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "maximum_drawdown_delta_pp": "1.94558930",
+      "candidate_calmar_ratio": "2.45677289",
+      "buy_hold_calmar_ratio": "4.48662523",
+      "upside_capture_ratio": "0.56137889",
+      "average_exposure_pct": "61.32785763",
+      "position_change_count": 12,
+      "median_hold_hours": "2772.00000000",
+      "p90_hold_hours": "6972.00000000",
+      "top_positive_episode_contribution_pct": "68.73171035"
+    },
+    "design_stress": {
+      "candidate_total_return_pct": "189.16498186",
+      "buy_hold_total_return_pct": "345.65247924",
+      "total_return_delta_pp": "-156.48749738",
+      "candidate_maximum_drawdown_pct": "79.25996306",
+      "buy_hold_maximum_drawdown_pct": "77.18955925"
+    },
+    "validation_normal": {
+      "candidate_realized_return_pct": "2.59797228",
+      "candidate_unrealized_return_pct": "263.04451917",
+      "candidate_total_return_pct": "265.64249145",
+      "candidate_terminal_liquidation_adjusted_return_pct": "265.09421054",
+      "buy_hold_total_return_pct": "464.75475156",
+      "total_return_delta_pp": "-199.11226011",
+      "candidate_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "candidate_calmar_ratio": "8.22826001",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.57157563",
+      "average_exposure_pct": "85.22571819",
+      "position_change_count": 9,
+      "median_hold_hours": "672.00000000",
+      "p90_hold_hours": "1831.20000000",
+      "terminal_holding_age_hours": "11088.00000000",
+      "top_positive_episode_contribution_pct": "65.84578595"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "260.74015542",
+      "candidate_terminal_liquidation_adjusted_return_pct": "259.65865644",
+      "buy_hold_total_return_pct": "463.90931032",
+      "total_return_delta_pp": "-203.16915490",
+      "candidate_maximum_drawdown_pct": "32.28416349",
+      "candidate_calmar_ratio": "8.07641045",
+      "terminal_liquidation_cost_pp": "1.08149899"
+    },
+    "source_feature_counts": {
+      "design": {"evaluations": 209, "positive": 128, "nonpositive": 81, "transitions": 12},
+      "validation": {"evaluations": 104, "positive": 89, "nonpositive": 15, "transitions": 9}
+    },
+    "breadth_and_concentration": {
+      "annual_normal_positive_delta_years": "1_of_6",
+      "annual_stress_positive_delta_years": "1_of_6",
+      "annual_drawdown_non_worse_years": "4_of_6",
+      "annual_calmar_non_worse_years": "2_of_6",
+      "top_positive_annual_delta_contribution_pct": "100.00000000",
+      "design_top_positive_episode_contribution_pct": "68.73171035",
+      "validation_top_positive_episode_contribution_pct": "65.84578595"
+    }
+  },
+  "failed_gates_as_emitted": [
+    "design_normal_total_return_delta_vs_buy_hold_gt_0",
+    "design_stress_total_return_delta_vs_buy_hold_gt_0",
+    "design_normal_drawdown_non_worse_than_buy_hold",
+    "design_normal_calmar_at_least_buy_hold",
+    "design_normal_upside_capture_at_least_60pct",
+    "validation_normal_total_return_delta_vs_buy_hold_gt_0",
+    "validation_stress_total_return_delta_vs_buy_hold_gt_0",
+    "validation_normal_drawdown_non_worse_than_buy_hold",
+    "validation_normal_calmar_at_least_buy_hold",
+    "validation_normal_upside_capture_at_least_60pct",
+    "design_has_positive_episode_and_top_contribution_at_most_60pct",
+    "validation_has_positive_episode_and_top_contribution_at_most_60pct",
+    "annual_normal_positive_delta_at_least_4_of_6",
+    "annual_stress_positive_delta_at_least_4_of_6",
+    "annual_drawdown_non_worse_at_least_5_of_6",
+    "annual_calmar_non_worse_at_least_4_of_6",
+    "top_positive_annual_delta_contribution_at_most_60pct",
+    "validation_terminal_liquidation_delta_vs_buy_hold_gt_0"
+  ],
+  "numerical_gate_review": {
+    "gate": "validation_normal_drawdown_non_worse_than_buy_hold",
+    "candidate_raw_drawdown_pct": 32.28416349378315,
+    "buy_hold_raw_drawdown_pct": 32.28416349378314,
+    "raw_delta_pp": 0.000000000000007105427357601002,
+    "classification": "NON_MATERIAL_BINARY_FLOATING_POINT_EQUALITY_ARTIFACT",
+    "decision_effect": "NONE",
+    "material_failed_gate_count_after_excluding_artifact": 17,
+    "boundary": "The sealed runner and byte-identical artifacts are not modified. The exact family remains closed because seventeen independent frozen gates fail, including both Design and Validation return, Calmar, upside-capture, breadth, concentration and terminal-opportunity-cost gates."
+  },
+  "failure_attribution": [
+    "Cash periods did not buy a safer aggregate path: Design drawdown was 1.94558930 percentage points worse while the policy surrendered 151.90353602 points of return.",
+    "Validation matched buy-and-hold drawdown only because the policy was exposed 85.23% of the time, yet it surrendered 199.11226011 points of return and retained only 57.16% of passive upside.",
+    "Only 2022 produced positive excess return; 2024 was identical to buy-and-hold because the state stayed long all year. The policy therefore lacked independent annual breadth.",
+    "Validation total return was almost entirely terminal inventory: realized return was 2.59797228% while unrealized return was 263.04451917%, so aggregate appreciation did not demonstrate repeated realized alpha.",
+    "Top positive episode contribution exceeded 60% in both windows, reinforcing the sparse, concentrated mechanism failure."
+  ],
+  "sealed_evidence": {
+    "manifest": {
+      "path": "research_pipeline/examples/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical.v1.manifest.json",
+      "sha256": "b2ca88deb80f8571878161ef1af7c7aaf78d894151a0f8c16658158b08bfa16b"
+    },
+    "runner": {
+      "path": "research/btc_coinmetrics_realized_cap_28d_growth_long_cash_historical.cjs",
+      "sha256": "8934c7fb34bb224e829a03df4bf089f48f61e3958872d8dda2eedc7bd303f141"
+    },
+    "run1": {
+      "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/artifacts/run1.json",
+      "sha256": "450cfce2c81323857a3edefef5ff9f340fb8d549659a89dd8d0a1b281fa362ef"
+    },
+    "run2": {
+      "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/artifacts/run2.json",
+      "sha256": "450cfce2c81323857a3edefef5ff9f340fb8d549659a89dd8d0a1b281fa362ef"
+    },
+    "determinism": "BYTE_IDENTICAL"
+  },
+  "uncertainty": [
+    "Coin Metrics Community history is a sealed present-vintage snapshot; original daily publication and revision vintages remain MISSING_PROOF.",
+    "The three-day availability lag is conservative but does not prove original historical availability timing.",
+    "This closes only the exact Sunday 28-day positive-growth full-capital long-or-cash policy, not every independently preregistered realized-cap level, acceleration or cross-sectional mechanism."
+  ],
+  "next_action": "Add the exact family to the permanent tombstone catalog and advance a different independent mechanism without changing its horizon, weekday, lag, threshold, sizing or action.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No paid API, second timer, second writer, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

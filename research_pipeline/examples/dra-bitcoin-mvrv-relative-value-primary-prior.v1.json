@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BITCOIN_MVRV_RELATIVE_VALUE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_BITCOIN_MVRV_RELATIVE_VALUE_DRA_ADMISSION_HISTORICAL_AUDIT",
+  "claim_boundary": "MVRV is market capitalization divided by realized capitalization and can proxy market value relative to aggregate on-chain cost basis. Exactly one preregistered audit may test whether a conservatively lagged, below-own-history MVRV state improves DRA V1 entry economics. Official interpretation and published historical associations are hypotheses, not imported predictive or causal proof.",
+  "feature_contract": {
+    "publisher": "Coin Metrics Community API",
+    "asset": "btc",
+    "metric": "CapMVRVCur",
+    "observation": "REVIEWED_DAILY_UTC_MARKET_CAP_DIVIDED_BY_REALIZED_CAP",
+    "sampling": "SUNDAY_OBSERVATION_ONLY",
+    "decision_time": "SUNDAY_OBSERVATION_PLUS_THREE_CALENDAR_DAYS_0000_UTC",
+    "primary_feature": "CURRENT_SUNDAY_MVRV_STRICTLY_BELOW_MEDIAN_OF_IMMEDIATELY_PRECEDING_365_DAILY_OBSERVATIONS",
+    "policy": "ADMIT_UNCHANGED_DRA_V1_PARENT_SIGNAL_ONLY_WHILE_LAGGED_MVRV_IS_BELOW_ITS_PRIOR_365_DAY_MEDIAN_OTHERWISE_VETO",
+    "lookback_days": 365,
+    "factor_valid_hours": 168,
+    "threshold": "STRICT_PRIOR_WINDOW_MEDIAN_NO_TUNED_MARGIN",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Coin Metrics MVRV metric documentation",
+      "primary_source": "https://docs.coinmetrics.io/asset-metrics/market/capact1yrusd",
+      "finding": "Coin Metrics defines CapMVRVCur as CapMrktCurUSD divided by CapRealUSD and interprets realized capitalization as an approximation of aggregate holder cost basis. High ratios have historically aligned with overvaluation and low ratios with undervaluation.",
+      "role": "FREE_MACHINE_READABLE_METRIC_IDENTITY_AND_MECHANISM_PRIOR",
+      "transfer_boundary": "The documentation does not validate a 365-day rolling median, DRA admission action, seven-day holding of state or after-cost strategy economics."
+    },
+    {
+      "identity": "Using Crypto-Asset Pricing Methods to Build Technical Oscillators for Short-Term Bitcoin Trading, Information 13(12), 560 (2022)",
+      "primary_source": "https://doi.org/10.3390/info13120560",
+      "finding": "The article describes MVRV as a valuation ratio but also reports prior evidence that fundamental market ratios have relatively little impact on short-term Bitcoin returns.",
+      "role": "ADVERSARIAL_SHORT_HORIZON_PRIOR",
+      "transfer_boundary": "Historical oscillator results and cited fixed thresholds do not establish point-in-time DRA entry value or current-cycle stability."
+    },
+    {
+      "identity": "Out-of-sample forecasting of cryptocurrency returns: A comprehensive comparison of predictors and algorithms, Physica A 598, 127379 (2022)",
+      "primary_source": "https://doi.org/10.1016/j.physa.2022.127379",
+      "finding": "A broad comparison finds that many well-known in-sample crypto predictors fail formal out-of-sample tests, reinforcing the need for frozen rules and untouched evidence.",
+      "role": "OVERFITTING_AND_OOS_FALSIFICATION_PRIOR",
+      "transfer_boundary": "The study is not direct evidence for or against this exact MVRV-relative-value rule."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact no-key Community API reviewed CapMVRVCur response for BTC from 2018-01-01 through 2024-12-31; reject pagination residue, missing dates, non-positive values or identity drift.",
+    "Use only Sunday observations. For Sunday D, compare CapMVRVCur at D with the median of exactly the immediately preceding 365 daily observations ending D minus one day; D becomes usable only at D plus three calendar days 00:00 UTC for at most 168 hours.",
+    "Admit an unchanged DRA V1 signal only when current MVRV is strictly below the prior-window median; equality or above holds cash. No fixed MVRV 1.0 or 3.7 threshold is tested.",
+    "Use the frozen 250 USDT DRA V1 parent, 240 USDT slot capacity, 0.10% fee and 0.05% adverse slippage without changing entries, exits, lot size, capacity or accounting.",
+    "Require Design, Validation and 2020-2024 annual matched-capital economics, including realized, unrealized and total PnL, drawdown, underwater duration, holding, utilization, terminal inventory, intervention breadth, concentration and independent 168-hour predictive diagnostics.",
+    "Do not add MVRV Z-score, free-float MVRV, NUPL, price, 30/90/180/730-day lookbacks, expanding windows, quantiles, magnitude thresholds, z-scores, inverse rules, fractional sizing, short legs or post-outcome exceptions.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "MVRV embeds current BTC price in its numerator and may reproduce price trend or reversal exposure rather than independent on-chain information.",
+    "Realized capitalization is a ledger-derived approximation of cost basis and does not identify lost keys, entity ownership, leverage or willingness to sell.",
+    "The 365-day median is a preregistered cycle-normalization convention, not a parameter established by the cited literature.",
+    "The Community API response would be a present-vintage reviewed snapshot; original daily review timestamps and vintages remain MISSING_PROOF.",
+    "No complete CapMVRVCur history, BTC/DRA outcome, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T10:35:48Z"
+}

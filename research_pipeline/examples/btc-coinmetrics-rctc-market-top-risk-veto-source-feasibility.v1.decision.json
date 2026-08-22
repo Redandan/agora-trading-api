@@ -1,0 +1,91 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_RCTC_MARKET_TOP_RISK_VETO_SOURCE_FEASIBILITY_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-rctc-market-top-risk-veto-long-cash",
+  "experiment_id": "btc-coinmetrics-rctc-market-top-risk-veto-historical-v1",
+  "decided_at": "2026-08-21T04:31:00Z",
+  "research_classification": "PRE_OUTCOME_FREE_SOURCE_DATA_REJECT",
+  "status": "DATA_REJECT_CLOSE_RCTC_FREE_SOURCE_FAMILY_BEFORE_FACTOR_VALUES_OR_BTC_OUTCOMES",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_COINMETRICS_RCTC_MARKET_TOP_RISK_VETO_LONG_CASH_FAMILY",
+  "material_conclusion": "The official Community catalog lists daily BTC RCTC coverage, but the one permitted no-credential timeseries request returned HTTP 403 before any response body was accepted or persisted. The fixed free-data contract denies retry, credentials, paid access, provider substitution and metric substitution. This closes only the executable free-source family; it is not evidence that RCTC lacks predictive or economic value.",
+  "source_evidence": {
+    "catalog_preflight": {
+      "url": "https://community-api.coinmetrics.io/v4/catalog-all-v2/asset-metrics?assets=btc&metrics=RCTC&page_size=100",
+      "result": "HTTP_200_METADATA_ONLY",
+      "asset": "btc",
+      "metric": "RCTC",
+      "frequency": "1d",
+      "advertised_min_time": "2010-07-18T00:00:00.000000000Z",
+      "advertised_max_time": "2026-08-19T00:00:00.000000000Z",
+      "historical_values_accessed": false
+    },
+    "timeseries_gate": {
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=RCTC&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000",
+      "attempt_count": 1,
+      "credentials": "DENY",
+      "redirect": "DENY",
+      "retry": "DENY",
+      "result": "HTTP_403_BEFORE_SOURCE_ACCEPTANCE",
+      "raw_response_sealed": false,
+      "normalized_subset_sealed": false,
+      "source_bundle_sealed": false,
+      "persisted_response_count": 0,
+      "factor_values_available_for_research": false
+    }
+  },
+  "performance_evidence": {
+    "design": "NOT_RUN_DATA_REJECT",
+    "validation": "NOT_RUN_DATA_REJECT",
+    "annual_folds": "NOT_RUN_DATA_REJECT",
+    "fees": "MISSING_PROOF",
+    "adverse_slippage": "MISSING_PROOF",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "underwater_duration": "MISSING_PROOF",
+    "holding": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF",
+    "breadth_and_path_risk": "MISSING_PROOF"
+  },
+  "evidence_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-rctc-market-top-risk-veto-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "sha256": "d8faf3e4b761149a7f7ede71eb36ffd4d3192de7b5f22162ce3933980f481b81"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-rctc-market-top-risk-veto-source-feasibility.v1.spec.json",
+      "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC",
+      "sha256": "227dc9ad50554d3102c100b5f9d197abf7f03995623567f2e0373a0ca12eaf99"
+    },
+    {
+      "path": "research/coinmetrics_btc_rctc_market_top_source_probe.py",
+      "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE",
+      "sha256": "5e347310e8663e202bed6ee90f7811a464967a7a023f02e1375bde6be90eaa00"
+    }
+  ],
+  "closed_fingerprint": {
+    "duplicate_family_key": "btc-coinmetrics-rctc-threshold-10-market-top-risk-veto-long-cash",
+    "decision_feature": "COINMETRICS_BTC_RCTC_COMPLETE_SUNDAY_AT_OR_ABOVE_10_MARKET_TOP_RISK_VETO_V1",
+    "prohibited_reopen": true,
+    "prohibited_rescue": [
+      "SECOND_COMMUNITY_API_REQUEST",
+      "PAID_API_OR_API_KEY",
+      "OTHER_PROVIDER_OR_MANUAL_EXPORT",
+      "MARKET_CAP_TO_THERMOCAP_SUBSTITUTION",
+      "MVRV_REALIZED_CAP_GROWTH_OR_MINER_REVENUE_SUBSTITUTION",
+      "THRESHOLD_DIRECTION_SAMPLING_OR_LAG_CHANGE"
+    ]
+  },
+  "uncertainty": [
+    "The catalog describes metric availability but does not guarantee no-key entitlement for timeseries values.",
+    "No RCTC factor values, original vintages, BTC response, candidate or OOS evidence exists for this closed fingerprint.",
+    "The exact factor could be evaluated only if a future objective explicitly authorizes a new lawful data entitlement; the current free-data family remains permanently closed."
+  ],
+  "next_action": "Advance a different independent family with a confirmed free executable source. Do not retry, pay for, substitute or tune this RCTC family.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "No source value was persisted, no BTC outcome was opened, and no hypothesis, manifest, strategy runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

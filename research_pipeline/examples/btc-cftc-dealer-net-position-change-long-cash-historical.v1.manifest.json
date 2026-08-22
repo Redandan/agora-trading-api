@@ -1,0 +1,191 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_DEALER_NET_POSITION_CHANGE_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-cftc-dealer-net-position-change-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "cftc": {
+      "historical_source_manifest_path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json",
+      "historical_source_manifest_sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a",
+      "archive_years": [2019, 2020, 2021, 2022, 2023, 2024],
+      "exact_contract_rows": 313
+    }
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_CFTC_DEALER_NET_POSITION_CHANGE_LONG_CASH_V1",
+    "factor_identity": "CFTC_TFF_DEALER_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_LONG_CASH_V1",
+    "current_fields": [
+      "Pct_of_OI_Dealer_Long_All",
+      "Pct_of_OI_Dealer_Short_All"
+    ],
+    "prior_fields": [
+      "Pct_of_OI_Dealer_Long_All",
+      "Pct_of_OI_Dealer_Short_All"
+    ],
+    "exact_predecessor_calendar_days": 7,
+    "factor_formula": "CURRENT_DEALER_NET_PCT_OI_MINUS_EXACT_PRIOR_WEEK_DEALER_NET_PCT_OI",
+    "long_condition": "FACTOR_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "FACTOR_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "availability": "REPORT_DATE_PLUS_7_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "ion_exclusion": {
+      "start_inclusive": "2023-01-31",
+      "end_inclusive": "2023-03-14"
+    },
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "predictive_horizon_hours": 168,
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "gate_sets": {
+    "pre_economic": {
+      "required": [
+        "btc_sha256_and_52608_rows_match",
+        "cftc_archives_manifest_and_exact_rows_match",
+        "weekly_tuesday_predecessor_ion_exclusion_and_day7_availability_pass",
+        "frozen_runner_sources_prior_hypothesis_and_contract_sha256_match",
+        "design_dealer_delta_abs_spearman_to_leveraged_money_delta_at_most_0_80",
+        "design_dealer_delta_abs_spearman_to_asset_manager_delta_at_most_0_80",
+        "validation_dealer_delta_abs_spearman_to_leveraged_money_delta_at_most_0_80",
+        "validation_dealer_delta_abs_spearman_to_asset_manager_delta_at_most_0_80",
+        "design_minimum_26_nonzero_evaluable_transitions",
+        "design_minimum_8_positive_factor_transitions",
+        "design_minimum_8_negative_factor_transitions",
+        "design_chronological_quartile_breadth_at_least_4_each",
+        "design_anchor_month_breadth_at_least_6",
+        "design_maximum_anchor_month_share_at_most_25pct",
+        "design_median_signed_response_strictly_positive",
+        "design_positive_factor_median_raw_return_strictly_positive",
+        "design_negative_factor_median_raw_return_strictly_negative",
+        "design_one_sided_sign_test_p_value_at_most_0_10",
+        "design_top_absolute_signed_response_contribution_at_most_20pct",
+        "validation_minimum_26_nonzero_evaluable_transitions",
+        "validation_minimum_8_positive_factor_transitions",
+        "validation_minimum_8_negative_factor_transitions",
+        "validation_chronological_quartile_breadth_at_least_4_each",
+        "validation_anchor_month_breadth_at_least_6",
+        "validation_maximum_anchor_month_share_at_most_25pct",
+        "validation_median_signed_response_strictly_positive",
+        "validation_positive_factor_median_raw_return_strictly_positive",
+        "validation_negative_factor_median_raw_return_strictly_negative",
+        "validation_one_sided_sign_test_p_value_at_most_0_10",
+        "validation_top_absolute_signed_response_contribution_at_most_20pct"
+      ],
+      "failure": "PERMANENTLY_CLOSE_WITHOUT_STRATEGY_ECONOMIC_ACCESS_OR_TUNING"
+    },
+    "economic_if_pre_economic_passes": {
+      "required": [
+        "primary_design_normal_total_return_pct_gt_0",
+        "primary_design_stress_total_return_pct_gt_0",
+        "primary_design_normal_drawdown_at_most_95pct_of_buy_hold",
+        "primary_design_normal_calmar_at_least_buy_hold",
+        "primary_validation_normal_total_return_pct_gt_0",
+        "primary_validation_stress_total_return_pct_gt_0",
+        "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+        "primary_validation_normal_upside_capture_at_least_60pct",
+        "primary_validation_normal_calmar_at_least_buy_hold",
+        "primary_validation_position_changes_between_2_and_100",
+        "primary_validation_stress_drawdown_no_more_than_normal_plus_3pp",
+        "primary_normal_positive_annual_total_return_at_least_4_of_5",
+        "primary_stress_positive_annual_total_return_at_least_4_of_5",
+        "primary_normal_annual_drawdown_non_worse_at_least_4_of_5",
+        "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+        "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+        "primary_top_year_positive_total_return_contribution_at_most_60pct",
+        "primary_validation_top_positive_episode_contribution_at_most_60pct",
+        "primary_validation_p90_hold_at_most_17520_hours",
+        "primary_validation_terminal_holding_age_at_most_17520_hours",
+        "primary_validation_terminal_liquidation_adjusted_return_pct_gt_0",
+        "primary_validation_terminal_liquidation_cost_at_most_1pp"
+      ],
+      "failure": "PERMANENTLY_CLOSE_WITHOUT_TUNING_OR_OOS"
+    },
+    "decision": "PRE_ECONOMIC_ALL_PASS_THEN_ECONOMIC_ALL_PASS_OR_CLOSE"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_RUNNER",
+      "path": "research/btc_cftc_dealer_net_position_change_long_cash_historical.py",
+      "sha256": "389efeb6583d7af32981704c649288f0a9395f4031f2c299931a56e582734a3e"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_LEDGER",
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_ACCOUNTING_AND_PASSIVE_REFERENCE",
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "role": "FROZEN_CFTC_ARCHIVE_LOADER",
+      "path": "research/btc_dra_cftc_tff_entry_admission_historical_v1.py",
+      "sha256": "fdde75be9efe7b9dfe065c46429de75594da88c4d2360b0c7891ee467649635b"
+    },
+    {
+      "role": "FROZEN_CFTC_ORDERED_FIELD_DEFINITION",
+      "path": "research_pipeline/cftc_cme_bitcoin_tff_source.py",
+      "sha256": "b56f9ceecb6f1ed1cf10d77756c109c1cd9ad25540ede6c70d555867aaed9eb0"
+    },
+    {
+      "role": "FROZEN_CFTC_EXACT_DECIMAL_PARSER",
+      "path": "research_pipeline/cftc_tff_lev_money_net_pct_oi_delta_evaluator_v1.py",
+      "sha256": "a0a9f3c9d1b190e1cac21dfd9255b7d19b7f0c88afa48c482744c0d5da78eb70"
+    },
+    {
+      "role": "FROZEN_CFTC_SOURCE_CONTRACT",
+      "path": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.json",
+      "sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5"
+    },
+    {
+      "role": "FROZEN_HISTORICAL_ARCHIVE_MANIFEST",
+      "path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json",
+      "sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a"
+    },
+    {
+      "role": "SEALED_PRIMARY_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-cftc-dealer-net-position-change-long-cash-primary-prior.v1.json",
+      "sha256": "f96b8c524d8b679566cb59a2a5d517467035010eb57e2d57f5979d31d645fef2"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-cftc-dealer-net-position-change-long-cash-v1.hypothesis.json",
+      "sha256": "14c912b5f74f51a5999cc32e79921c5d519c18bb30d306d66a5879efa105313e"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not invert Dealer continuation after seeing outcomes.",
+    "Do not tune the zero threshold, seven-day horizon, exact predecessor, availability lag, participant category, position sizing or execution time.",
+    "Do not substitute options-combined, CBOE, percent change, smoothing, BTC trend, volatility, leverage, shorting or fractional sizing as a rescue.",
+    "Do not access strategy economics after a pre-economic failure and do not relax predictive, stress, drawdown, Calmar, breadth, concentration, holding or terminal-inventory gates."
+  ],
+  "scope_note": "Frozen before factor or BTC outcome access. No candidate, OOS, paid API, second timer, second writer, external backfill, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_H1_FOUR_DAY_VARIANCE_RATIO_POSITIVE_PERSISTENCE_PREOUTCOME_OUTPUT_BOOLEAN_ERRATUM_V1",
+  "recorded_at": "2026-08-21T04:51:58Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
+  "failed_attempt": {
+    "probe_sha256": "4416a4a370587f5a7558803c930e29d60257d5d841f955207b626009223cb765",
+    "spec_sha256": "bc0f2d39d8239ec828b2406aa92648c4982f3a4434e90df84d17fc16c337f781",
+    "primary_prior_sha256": "d692e290fead48f5ff09ad8d39375cee4cececc85b01328fd34eb748fe2d6111",
+    "error": "NameError: name 'false' is not defined",
+    "error_stage": "RESULT_OBJECT_BOOLEAN_LITERAL_AFTER_FEATURE_SUPPORT_COMPUTATION_BEFORE_OUTPUT_CREATE"
+  },
+  "output_created": false,
+  "strategy_economics_accessed": false,
+  "forward_outcome_accessed": false,
+  "allowed_correction": "Replace exactly four lowercase JSON-style false tokens in the Python result object with Python False; do not change source, formula, precision, windows, support gates or output path.",
+  "retry_contract": "ONE_RETRY_OF_THE_IDENTICAL_FROZEN_SUPPORT_COMPUTATION_AFTER_THE_OUTPUT_ONLY_BOOLEAN_FIX",
+  "scope_note": "No support artifact, hypothesis, manifest, economic result, candidate, OOS, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was created."
+}

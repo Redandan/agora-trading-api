@@ -1,0 +1,55 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_GOLD_IMPLIED_VOLATILITY_CALM_STATE_ENTRY_ADMISSION_SOURCE_GATE_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DATA_REJECT_CLOSE_GVZ_SOURCE_SCHEMA_FAMILY",
+  "experiment_id": "dra-gold-implied-volatility-calm-state-entry-admission-historical-v1",
+  "decision_at": "2026-08-20T06:08:50Z",
+  "decision": "DATA_REJECT",
+  "material_conclusion": "The one permitted official Cboe GVZ source attempt returned a CSV whose exact header did not match the frozen DATE,OPEN,HIGH,LOW,CLOSE schema. The response failed before any bytes were sealed or any BTC/DRA outcome was opened. The exact family is closed without retry, parser relaxation, source substitution or threshold change.",
+  "source_gate": {
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/GVZ_History.csv",
+    "attempt_count": 1,
+    "automatic_retry": "DENY",
+    "redirect": "DENY",
+    "credentials": "DENY",
+    "expected_header": ["DATE", "OPEN", "HIGH", "LOW", "CLOSE"],
+    "observed_result": "SOURCE_REJECT:HEADER",
+    "raw_response_sealed": false,
+    "normalized_subset_sealed": false,
+    "source_bundle_sealed": false,
+    "btc_or_dra_outcome_accessed": false
+  },
+  "evidence_bindings": [
+    {
+      "path": "research/cboe_gvz_source_probe.py",
+      "role": "FROZEN_FAILED_CREATE_ONCE_SOURCE_PROBE",
+      "sha256": "4b820178755efcb57108df3b275f70a7df33fb32bd8d6b2437303be0944ae80b"
+    },
+    {
+      "path": "research_pipeline/examples/dra-gold-implied-volatility-calm-state-entry-admission-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_SOURCE_BOUNDARY_PRIOR",
+      "sha256": "d9ec9c66fd431308088f2a241cd829ea3cc2c86827938b016c5c5fa89d908f22"
+    }
+  ],
+  "performance_evidence": {
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "NOT_OPENED"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not retry the fixed GVZ URL or edit the accepted header after observing this failure.",
+    "Do not substitute VIX, VVIX, OVX, GLD realized volatility, gold price, another Cboe index, manual export or paid source.",
+    "Do not reinterpret the source rejection as evidence about GVZ predictive or economic value."
+  ],
+  "next_action": "Exclude this family permanently and select a deduplicated independent family with a pre-outcome executable free data path.",
+  "concept_to_teach": "Source feasibility is part of strategy research: a plausible factor that cannot satisfy its frozen machine-readable data contract is not a candidate and should be closed before consuming backtest attention.",
+  "scope_note": "No hypothesis, manifest, strategy runner, candidate, OOS, canonical state, scheduler, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

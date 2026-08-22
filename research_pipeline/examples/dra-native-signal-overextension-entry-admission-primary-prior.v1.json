@@ -1,0 +1,47 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_OVEREXTENSION_PRIMARY_PRIOR_V1",
+  "family_id": "dra-native-signal-overextension-entry-admission",
+  "created_at": "2026-08-21T06:31:01Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PRIOR_SUPPORTS_ONE_NATIVE_SIGNAL_MARGIN_ACTION_SUPPORT_AUDIT",
+  "prior_thesis": "The frozen DRA confirmation already proves positive trend direction, but a confirmation closing far above its causally updated EMA20 relative to ATR14 may arrive after a locally exhausted price displacement. A narrowly bounded support screen may determine whether this native signal margin is available and broad enough for one matched-capital admission experiment; this prior is not performance evidence.",
+  "causal_boundary": {
+    "decision_time": "AFTER_COMPLETE_UTC_23_SIGNAL_BAR_AND_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL",
+    "formula": "SIGNAL_BAR_CLOSE_MINUS_CAUSALLY_UPDATED_EMA20_DIVIDED_BY_CAUSALLY_UPDATED_ATR14",
+    "primary_relation": "ADMIT_AT_OR_BELOW_1_00_ATR_AND_VETO_ABOVE_1_00_ATR",
+    "rejection_only_neighbors": ["0.75", "1.25"],
+    "capacity_order": "EVALUATE_ONLY_WHEN_PARENT_CAN_ACCEPT_THE_UNCHANGED_30_USDT_LOT",
+    "cooldown": "ACTIONABLE_VETO_RESERVES_THE_ORIGINAL_SEVEN_DAY_SIGNAL_COOLDOWN"
+  },
+  "sealed_adversarial_evidence": [
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-long-trend-entry-admission.v1.json",
+      "sha256": "63cc4a07761702fe0945cad0ac23798dc560d54e30adea93d42f8b4c172eb920",
+      "learning": "The prior-200-complete-day long-trend filter avoided 2022 losses but reduced Design and Validation total PnL, slightly worsened Validation drawdown and holding, and won only one of five annual total-PnL comparisons. The new feature is a native signal-bar displacement, not a long-horizon regime rescue, and must preserve realized participation and annual breadth."
+    },
+    {
+      "path": "research_pipeline/examples/dra-late-day-price-activity-entry-admission.v1.decision.json",
+      "sha256": "16e526df0814c8bd27558da23e8ffc5bb99c458c8aa74931c250b475d8a01aa6",
+      "learning": "Final-six-hour activity concentration removed many signals but lost Validation PnL and materially worsened drawdown, underwater duration and P90 holding. A signal-margin result cannot claim success from lower participation or holding cleanup."
+    },
+    {
+      "path": "research_pipeline/examples/dra-intraday-close-path-drawdown-entry-admission.v1.decision.json",
+      "sha256": "be27bbf91828c907a830f9a5f6dc7f2805543a1577d411994321128f85a88886",
+      "learning": "Low intraday close-path drawdown failed total and realized PnL with zero annual wins. The new family must remain distinct from complete-day path shape and must pass matched-capital realized, total, drawdown, holding and terminal-inventory gates together."
+    }
+  ],
+  "deduplication_conclusion": "The proposed feature is the current DRA signal bar's distance from its own updated EMA20 normalized by its own updated ATR14. It is not the closed prior-200-day trend state, final-six-hour activity share, or complete-day close-path drawdown feature, even though all use the same binary admission action.",
+  "adversarial_risks": [
+    "High signal margin may represent genuine momentum strength rather than overextension, so vetoing it may systematically remove profitable entries.",
+    "The feature may be highly correlated with the existing DRA confirmation and add no independent economic value.",
+    "A threshold may be sparse, concentrated in one year or month, or unstable across 0.75, 1.00 and 1.25 ATR.",
+    "Cooldown route substitution can invalidate the comparison unless each actionable veto reserves the original signal timestamp.",
+    "Lower drawdown without realized and total PnL breadth may be participation suppression rather than alpha."
+  ],
+  "permission": "ALLOW_EXACTLY_ONE_PREOUTCOME_CAUSAL_FEATURE_AND_ACTION_SUPPORT_SCREEN_BEFORE_ANY_HYPOTHESIS_OR_CANDIDATE_ECONOMICS",
+  "hypothesis_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Sealed prior synthesis only. No candidate PnL, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

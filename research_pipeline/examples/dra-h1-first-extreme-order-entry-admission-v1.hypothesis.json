@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-h1-first-extreme-order-entry-admission-v1",
+  "title": "Complete-day H1 first-low-before-first-high DRA V1 entry admission",
+  "thesis": "A complete UTC day whose final low is established before its final high may represent dip absorption and recovery rather than late-session distribution. Admitting otherwise unchanged DRA V1 entries only after this low-before-high path may improve equal-capital realized returns and inventory risk.",
+  "mechanism": "For exactly twenty-four complete H1 bars in the latest UTC day, freeze the first bar containing the final daily low and the first bar containing the final daily high. At the next unchanged fill opportunity, admit a parent DRA V1 signal only when the first-low hour is strictly earlier than the first-high hour. If both final extremes first occur in the same H1 bar, veto because their order is unobservable.",
+  "economic_rationale": "The feature is useful only if the single frozen binary rule improves Design and Validation total and realized PnL while preserving unrealized PnL, drawdown, underwater duration, holding and terminal inventory, intervenes often enough, and has annual breadth. Reduced participation, one favorable year, terminal-inventory cleanup, or aggregate PnL alone is insufficient.",
+  "source": "DRA_H1_FIRST_EXTREME_ORDER_PRIMARY_PRIOR_V1_AND_EXISTING_SEALED_52608_H1_BTC_CORPUS",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITH_MATCHED_UNFILTERED_COMPARATOR",
+  "required_capability": "dra-declarative-entry-admission-v1-direct-binary-extreme-order-screen",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "parent_signal_admission_veto_and_unavailable_accounting",
+    "fee_adjusted_realized_unrealized_and_total_pnl",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "median_and_p90_holding",
+    "utilization_and_capacity_blocks",
+    "terminal_inventory",
+    "annual_breadth_and_positive_delta_concentration"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-25",
+  "created_at": "2026-08-19T11:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,79 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Coin Metrics defines NVTAdj as Bitcoin network value divided by adjusted transfer value and describes lower values as greater transactional usage relative to market capitalization. That identity does not establish a profitable DRA timing rule. Exactly one source-first audit may test a lagged Sunday NVTAdj-to-prior-365-day-median ratio at primary 1.00 with 0.80 and 1.20 neighbors. Any source, timing, economic, predictive, breadth, drawdown, holding, inventory or neighbor failure closes the exact family without changing metric, aggregation, lag, direction, thresholds, parent or accounting.",
+  "disposition": "PRIOR_SUPPORTS_ONE_DRA_BITCOIN_NVT_RELATIVE_UTILITY_ENTRY_ADMISSION_AUDIT",
+  "document_type": "DRA_BITCOIN_NVT_RELATIVE_UTILITY_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "source_series": "COIN_METRICS_BTC_NVTADJ",
+    "feature": "LAGGED_SUNDAY_NVTADJ_TO_PRIOR_365D_MEDIAN",
+    "formula": "For each complete Sunday D, divide NVTAdj(D) by the median of the immediately preceding 365 complete daily NVTAdj observations, excluding D.",
+    "relation": "AT_OR_BELOW",
+    "thresholds": ["0.80", "1.00", "1.20"],
+    "primary_threshold": "1.00",
+    "effective_time": "D_PLUS_3_CALENDAR_DAYS_0000_UTC",
+    "factor_valid_hours": 168,
+    "missing_day_action": "NO_INTERPOLATION_AND_NO_SUBSTITUTION"
+  },
+  "independence_contract": {
+    "duplicate_family_key": "dra-coinmetrics-btc-nvtadj-sunday-relative-utility-entry-admission",
+    "independence_key": "bitcoin-network-value-to-adjusted-transfer-utility",
+    "not_mvrv_rescue": "MVRV compares market value with realized holder cost basis; NVTAdj compares market value with adjusted on-chain transfer utility. The closed MVRV family cannot be retuned or reopened from this audit.",
+    "not_activity_breadth_rescue": "The closed activity-breadth family used transaction count and active-address count growth. NVTAdj uses adjusted value transferred in its denominator and a relative valuation state rather than count growth."
+  },
+  "prior_matrix": [
+    {
+      "finding": "Coin Metrics defines NVTAdj as current network value divided by adjusted transfer value, documents it as a dimensionless daily metric, and notes that lower values represent greater usage relative to market capitalization.",
+      "identity": "Coin Metrics Valuation Metrics: Network Value to Transactions",
+      "primary_source": "https://docs.coinmetrics.io/asset-metrics/economics/nvtadj",
+      "role": "OFFICIAL_FACTOR_IDENTITY_AND_METRIC_SEMANTICS",
+      "transfer_boundary": "A valuation-to-utility ratio is not proof of future BTC return, DRA admission value, after-cost performance or causal independence from BTC price."
+    },
+    {
+      "finding": "Coin Metrics documents adjusted transfer value as a heuristic-cleaned measure intended to remove change outputs and other transfer artifacts.",
+      "identity": "Coin Metrics Adjusted Transfer Value",
+      "primary_source": "https://docs.coinmetrics.io/asset-metrics/transactions/txtfrvaladjntv",
+      "role": "OFFICIAL_DENOMINATOR_IDENTITY",
+      "transfer_boundary": "Heuristic adjustment reduces known artifacts but creates methodology and revision risk; original historical vintages remain unproven."
+    },
+    {
+      "finding": "Coin Metrics documents the no-credential Community API asset-metrics transport and a machine-readable daily series path.",
+      "identity": "Coin Metrics Community API v4",
+      "primary_source": "https://docs.coinmetrics.io/api/v4/",
+      "role": "OFFICIAL_FREE_SOURCE_PATH",
+      "transfer_boundary": "Documentation does not prove that NVTAdj is available without credentials for the complete frozen 2018-2024 window; one schema-bound source probe must decide that before outcome access."
+    }
+  ],
+  "pre_outcome_source_feasibility": {
+    "method": "GET",
+    "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=NVTAdj&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000&status=reviewed",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "expected_envelope": ["data"],
+    "expected_row_fields": ["NVTAdj", "asset", "time"],
+    "required_window": ["2018-01-01", "2024-12-31"],
+    "source_values_or_btc_outcomes_accessed": false
+  },
+  "real_time_design_requirements": [
+    "Seal one exact create-once Community API response before opening BTC outcomes; fail closed on forbidden access, pagination, missing days, wrong metric identity or incomplete 2018-2024 coverage.",
+    "Use only Sunday D after exactly 365 prior complete daily values, make D usable at D plus three calendar days 00:00 UTC, and never interpolate a missing value.",
+    "Freeze primary ratio 1.00, 0.80 and 1.20 stability neighbors, and relation AT_OR_BELOW.",
+    "Keep DRA side, entries, exits, lot cost, capacity, fees, adverse slippage, cooldown and fill clock unchanged.",
+    "Require matched-capital Design and Validation economics, path risk, intervention support, annual breadth, concentration, independent predictive breadth and both-neighbor stability.",
+    "Any historical pass remains development evidence and requires untouched future evidence."
+  ],
+  "prohibited_substitutions": [
+    "Do not substitute NVTAdj90, RVT, SOPR, MVRV, raw transfer volume, transaction count, active addresses, another provider, manual export or paid source after access.",
+    "Do not change the Sunday aggregation, 365-day median denominator, direction, thresholds, lag or missing-day policy.",
+    "Do not add BTC trend, volatility, volume, GVZ, VIX, dollar, equity, EPU or regime interactions.",
+    "Do not reopen the closed MVRV or on-chain activity-breadth families."
+  ],
+  "uncertainty": [
+    "NVTAdj embeds BTC market value in its numerator and therefore is not statistically independent of BTC price.",
+    "Adjusted transfer-value heuristics and reviewed historical values may change after original publication; a present-vintage historical pass still needs untouched prospective evidence.",
+    "Low NVT may reflect one-off settlement activity rather than durable network utility, while high NVT can persist during monetization regimes.",
+    "No NVTAdj historical value, BTC strategy outcome, post-2024 evidence, OOS, candidate, canonical write or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T06:12:00Z",
+  "status": "COMPLETED"
+}

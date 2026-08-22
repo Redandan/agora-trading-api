@@ -1,0 +1,171 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_ONCHAIN_ACTIVITY_BREADTH_ENTRY_ADMISSION_HISTORICAL_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_ONCHAIN_ACTIVITY_BREADTH_DRA_ADMISSION_FAMILY",
+  "experiment_id": "dra-onchain-activity-breadth-entry-admission-historical-v1",
+  "decision": "PERMANENTLY_CLOSE_EXACT_LAGGED_BTC_TXCNT_AND_ADRACTCNT_28D_MEAN_VERSUS_364D_LAGGED_MEAN_DRA_ENTRY_ADMISSION_FAMILY_AND_SINGLE_AXIS_NEIGHBORS_WITHOUT_AXIS_WINDOW_THRESHOLD_OR_PARENT_TUNING",
+  "manifest": {
+    "path": "research_pipeline/examples/dra-onchain-activity-breadth-entry-admission-historical.v1.manifest.json",
+    "sha256": "1a43a8e7f4a8e64ced3af38f2e54bc48167cc744972b7d7dd24f680707081738"
+  },
+  "prior": {
+    "path": "research_pipeline/examples/dra-onchain-activity-breadth-entry-admission-primary-prior.v1.json",
+    "sha256": "2aa76f4ef84f87a101422f9f39503296f74e64f02b307d0945df4256a80cce18"
+  },
+  "runner": {
+    "path": "research/btc_dra_onchain_activity_breadth_entry_admission_historical_v1.py",
+    "sha256": "0b8aa4dc20ebb463faab7b36a79e4543a33dd301bde3f77e141f0590dbb4a1a5",
+    "identity": "BTC_DRA_ONCHAIN_ACTIVITY_BREADTH_ENTRY_ADMISSION_RUNNER_V1",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "factor_source": {
+    "path": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/inputs/coinmetrics-btc-onchain-activity-2018-2024.csv",
+    "sha256": "f47e2c082f21683befa4092f7bdc83de92c3717859fee5ec70f9b52117e4f669",
+    "rows": 2557,
+    "present_vintage": true,
+    "network_access": false
+  },
+  "artifact": {
+    "path": ".research-state/experiments/dra-onchain-activity-breadth-entry-admission-historical-v1/artifacts/run1.json",
+    "sha256": "1cfe32ff626f1736abba4264afede8b58109a786cf71b7191b16c9d201fd9e8a"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/dra-onchain-activity-breadth-entry-admission-historical-v1/artifacts/run2.json",
+    "sha256": "1cfe32ff626f1736abba4264afede8b58109a786cf71b7191b16c9d201fd9e8a",
+    "byte_identical": true
+  },
+  "policy": {
+    "primary": "BOTH_28D_MEAN_TXCNT_AND_ADRACTCNT_ABOVE_CORRESPONDING_364D_LAGGED_MEANS",
+    "neighbors": ["TXCNT_ONLY", "ADRACTCNT_ONLY"],
+    "decision_delay": "OBSERVATION_DAY_PLUS_2_CALENDAR_DAYS",
+    "factor_valid_hours": 24,
+    "parent_strategy": "BTC_DRA_V1",
+    "gate_set": "BTC_DRA_CFTC_TFF_HISTORICAL_ENTRY_ADMISSION_GATES_V1"
+  },
+  "primary_economic_summary": {
+    "design": {
+      "candidate_opportunities": 214,
+      "admitted_signals": 24,
+      "vetoed_signals": 190,
+      "parent_realized_usdt": "122.11969534",
+      "candidate_realized_usdt": "39.18610282",
+      "parent_unrealized_usdt": "-79.12049441",
+      "candidate_unrealized_usdt": "-17.08380462",
+      "parent_total_pnl_usdt": "42.99920093",
+      "candidate_total_pnl_usdt": "22.10229820",
+      "total_pnl_delta_usdt": "-20.89690273",
+      "parent_max_drawdown_pct": "18.673983",
+      "candidate_max_drawdown_pct": "14.136868",
+      "parent_max_underwater_hours": 9878,
+      "candidate_max_underwater_hours": 3966,
+      "parent_median_hold_hours": 113.0,
+      "candidate_median_hold_hours": 115.5,
+      "parent_p90_hold_hours": 1266.0,
+      "candidate_p90_hold_hours": 755.8,
+      "parent_open_lots": 5,
+      "candidate_open_lots": 2
+    },
+    "validation": {
+      "candidate_opportunities": 159,
+      "admitted_signals": 21,
+      "vetoed_signals": 138,
+      "parent_realized_usdt": "89.41118307",
+      "candidate_realized_usdt": "38.55468080",
+      "parent_unrealized_usdt": "-3.20820121",
+      "candidate_unrealized_usdt": "0.00000000",
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "38.55468080",
+      "total_pnl_delta_usdt": "-47.64830106",
+      "parent_max_drawdown_pct": "7.121498",
+      "candidate_max_drawdown_pct": "7.299885",
+      "drawdown_delta_pp": "0.178387",
+      "parent_max_underwater_hours": 2397,
+      "candidate_max_underwater_hours": 2397,
+      "parent_median_hold_hours": 182.5,
+      "candidate_median_hold_hours": 193.0,
+      "parent_p90_hold_hours": 1418.3,
+      "candidate_p90_hold_hours": 2591.0,
+      "parent_open_lots": 1,
+      "candidate_open_lots": 0
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2020": "-38.14249247",
+      "2021": "-18.80047626",
+      "2022": "5.01576750",
+      "2023": "-5.64549311",
+      "2024": "-38.78866787"
+    },
+    "annual_total_wins": "1_OF_5",
+    "annual_drawdown_non_worse": "5_OF_5",
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "neighbor_summary": {
+    "transaction_count_only": {
+      "validation_total_pnl_usdt": "86.22152142",
+      "parent_total_pnl_usdt": "86.20298186",
+      "validation_total_delta_usdt": "0.01853956",
+      "validation_realized_usdt": "86.22152142",
+      "parent_realized_usdt": "89.41118307",
+      "validation_max_drawdown_pct": "7.121498",
+      "validation_p90_hold_hours": 1678.9,
+      "annual_total_wins": "2_OF_5",
+      "disposition": "AGGREGATE_NEAR_TIE_IS_TERMINAL_INVENTORY_CLEANUP_AND_FAILS_REALIZED_HOLDING_AND_BREADTH_STABILITY"
+    },
+    "active_address_count_only": {
+      "validation_total_pnl_usdt": "38.55468080",
+      "parent_total_pnl_usdt": "86.20298186",
+      "validation_total_delta_usdt": "-47.64830106",
+      "validation_realized_usdt": "38.55468080",
+      "validation_max_drawdown_pct": "7.299885",
+      "validation_p90_hold_hours": 2591.0,
+      "annual_total_wins": "1_OF_5",
+      "disposition": "FAILS_TOTAL_REALIZED_HOLDING_AND_ANNUAL_BREADTH_STABILITY"
+    }
+  },
+  "predictive_summary": {
+    "sampling": "SUNDAY_OBSERVATION_ONLY_NON_OVERLAPPING_168H_EPISODES",
+    "design_episode_count": 155,
+    "validation_episode_count": 104,
+    "design_failed_gates": [
+      "negative_factor_median_raw_return_negative",
+      "one_sided_sign_test_at_most_0_10"
+    ],
+    "validation_failed_gates": [
+      "median_signed_response_positive",
+      "negative_factor_median_raw_return_negative",
+      "one_sided_sign_test_at_most_0_10"
+    ]
+  },
+  "material_learning": "Lagged transaction-count and active-address breadth does not identify independently valuable DRA entries. The primary admitted only 21 Validation opportunities and lost 47.64830106 USDT of total PnL while realized PnL fell by 50.85650227 USDT. Eliminating terminal inventory reduced apparent path exposure but median and P90 holding worsened and only 2022 improved. The transaction-count-only neighbor's 0.01853956 USDT aggregate edge came entirely from removing the parent's negative terminal mark while realized PnL remained 3.18966165 USDT lower, P90 holding worsened and annual wins reached only two of five. Predictive gates also failed in both Design and Validation, so neither the conjunction nor either single axis is stable alpha.",
+  "failed_primary_gates": [
+    "annual_total_wins_at_least_3_of_5",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_median_hold_non_worse",
+    "validation_p90_hold_non_worse",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves",
+    "design_predictive_negative_factor_median_raw_return_negative",
+    "design_predictive_one_sided_sign_test_at_most_0_10",
+    "validation_predictive_median_signed_response_positive",
+    "validation_predictive_negative_factor_median_raw_return_negative",
+    "validation_predictive_one_sided_sign_test_at_most_0_10"
+  ],
+  "prohibited_reopen": true,
+  "candidate_created": false,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024 using a present-vintage factor snapshot, not independent original-vintage OOS or prospective profitability.",
+    "The result closes the exact TxCnt and AdrActCnt 28-day versus 364-day-lagged-mean DRA admission family and frozen single-axis neighbors; it does not prove that every independently defined on-chain mechanism is useless.",
+    "No canonical state, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed or changed."
+  ],
+  "scope_note": "No paid API, source refresh, second timer, second writer, unsealed backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

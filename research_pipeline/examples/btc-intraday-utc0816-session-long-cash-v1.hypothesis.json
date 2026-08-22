@@ -1,0 +1,53 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-intraday-utc0816-session-long-cash-v1",
+  "title": "BTC fixed 08:00-16:00 UTC session long/cash timing",
+  "thesis": "BTC returns may be concentrated during the fixed European and North American overlap-adjacent UTC session strongly enough that holding spot only from 08:00 to 16:00 UTC preserves meaningful upside while reducing exposure and drawdown after daily two-sided fees and adverse slippage.",
+  "mechanism": "The clock-only policy buys full BTC at every 08:00 UTC H1 open and sells all at the same day's 16:00 UTC H1 open. It uses no price, volume, regime or outcome feature and executes the same schedule on every complete UTC day.",
+  "economic_rationale": "The mechanism is credible only if a persistent intraday return premium compensates for one round trip per day, produces superior Calmar and materially lower drawdown, survives 07:00-15:00 and 09:00-17:00 rejection-only windows, and is broad across years rather than concentrated in one regime.",
+  "source": "BTC_INTRADAY_UTC0816_SESSION_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_OUTSIDE_SESSION",
+  "required_capability": "btc-intraday-fixed-utc-session-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "variants": [
+    {
+      "role": "PRIMARY",
+      "entry_hour_utc": 8,
+      "exit_hour_utc": 16
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "entry_hour_utc": 7,
+      "exit_hour_utc": 15
+    },
+    {
+      "role": "REJECTION_ONLY_NEIGHBOR",
+      "entry_hour_utc": 9,
+      "exit_hour_utc": 17
+    }
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-7",
+  "created_at": "2026-08-19T04:57:11Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

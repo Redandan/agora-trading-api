@@ -1,0 +1,132 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_TOP4_NET_CONCENTRATION_LEVEL_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-cftc-top4-net-concentration-level-long-cash",
+  "created_at": "2026-08-20T11:19:03Z",
+  "frozen_before_concentration_factor_value_or_btc_outcome_access": true,
+  "decision": "PRIOR_PERMITS_ONE_FROZEN_CFTC_TOP4_NET_CONCENTRATION_LEVEL_CONTINUATION_LONG_CASH_EXPERIMENT_WITH_PRE_ECONOMIC_PREDICTIVE_GATES",
+  "claim_boundary": "The external study supplies the exact concentration formula and a positive long-versus-short direction over longer futures-return horizons across several non-Bitcoin U.S. futures markets. It excludes Bitcoin, ends in 2018, reports heterogeneous product results and does not establish this BTC spot long/cash policy, its conservative publication lag, costs, drawdown or independent alpha.",
+  "causal_hypothesis": "A positive CFTC top-four net-long-minus-net-short concentration balance may identify informed or concentrated risk-bearing demand whose direction persists into subsequent BTC returns, while a non-positive balance may identify a less supportive or net-short concentrated state.",
+  "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using the causally lagged concentration level may preserve sufficient BTC upside while improving fee- and adverse-slippage-adjusted drawdown and Calmar versus matched buy-and-hold.",
+  "frozen_feature": {
+    "factor_identity": "CFTC_TFF_TOP4_NET_CONCENTRATION_NORMALIZED_LEVEL_CONTINUATION_LONG_CASH_V1",
+    "market_identity": "BITCOIN - CHICAGO MERCANTILE EXCHANGE",
+    "cftc_contract_market_code": "133741",
+    "report_variant": "TRADERS_IN_FINANCIAL_FUTURES_FUTURES_ONLY",
+    "long_field": "Conc_Net_LE_4_TDR_Long_All",
+    "short_field": "Conc_Net_LE_4_TDR_Short_All",
+    "factor_formula": "(CURRENT_TOP4_NET_LONG_CONCENTRATION_MINUS_CURRENT_TOP4_NET_SHORT_CONCENTRATION)_DIVIDED_BY_(CURRENT_TOP4_NET_LONG_CONCENTRATION_PLUS_CURRENT_TOP4_NET_SHORT_CONCENTRATION)",
+    "zero_denominator_rule": "UNEVALUABLE_NO_IMPUTATION",
+    "primary_direction": "CONTINUATION",
+    "long_condition": "FACTOR_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "FACTOR_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "historical_availability": "REPORT_DATE_PLUS_7_CALENDAR_DAYS_AT_00_00_UTC",
+    "availability_rationale": "Day seven at 00:00 UTC is conservatively after the frozen three-to-six-calendar-day CFTC release window without reconstructing unsealed historical receipt times.",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "signal_validity": "UNTIL_NEXT_ELIGIBLE_WEEKLY_FACTOR_BECOMES_AVAILABLE",
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT",
+    "variant_count": 1
+  },
+  "availability_exclusion": {
+    "start_inclusive": "2023-01-31",
+    "end_inclusive": "2023-03-14",
+    "reason": "CFTC_2023_ION_DELAYED_PUBLICATION",
+    "action": "EXCLUDE_WITHOUT_BACKFILL_OR_ALTERNATE_SOURCE"
+  },
+  "primary_sources": [
+    {
+      "title": "CFTC Commitments of Traders Explanatory Notes",
+      "url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/ExplanatoryNotes/index.htm",
+      "use": "Official semantics: concentration ratios are percentages of open interest held by the largest four or eight reportable traders; net ratios offset each trader's equal long and short positions and do not identify commercial versus non-commercial status."
+    },
+    {
+      "title": "Traders' Concentration, Hedging Pressure, and Risk Premium in Futures Markets",
+      "authors": "Chia-Hung Liu; Yu-Lun Chen; Min-Hsi Chung; Ya-Kai Chang",
+      "publication": "Management Review 42(3), 2023, 115-138",
+      "doi": "10.6656/MR.202307_42(3).ENG002",
+      "url": "https://www.management-review.org/uploads/pdf/paper/mr_2023_42-3_jul_02eng.pdf",
+      "use": "Exact formula and direction prior: top-four net-short concentration is subtracted from net-long concentration and divided by their sum; positive concentration is hypothesized to predict positive futures risk premium, with stronger evidence over two-to-four weeks than one week."
+    },
+    {
+      "title": "Who Trades Bitcoin Futures and Why?",
+      "url": "https://www.cftc.gov/sites/default/files/2021-11/WhoTradesBTC_V2_ada.pdf",
+      "use": "Bitcoin-specific structural warning: CME Bitcoin trader participation and composition changed materially, so non-Bitcoin cross-market findings require separate Design, Validation and annual breadth rather than transfer by assumption."
+    }
+  ],
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_category_positions": "Closed CFTC families used category-level Dealer, Leveraged Money, Asset Manager, Other Reportables or Nonreportable net-position changes. This factor ignores category labels and measures the directional concentration balance of the largest four reportable traders.",
+    "distinct_from_closed_total_open_interest": "The closed total-open-interest family measured aggregate contract creation without direction; this family measures the direction of concentrated large positions normalized by the sum of long and short concentration.",
+    "shared_source_risk": "All CFTC families reuse the same weekly archive, release clock and BTC corpus; a distinct field is not independent source replication.",
+    "pre_economic_predictive_requirement": "The exact factor must independently predict sign-adjusted 672-hour BTC returns in both Design and Validation before strategy economics may be accessed."
+  },
+  "pre_economic_predictive_gate": {
+    "outcome_horizon_hours": 672,
+    "anchor": "FIRST_COMPLETE_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "overlap_rule": "KEEP_FIRST_ELIGIBLE_EPISODE_THEN_SKIP_ANCHORS_BEFORE_ITS_672_HOUR_TERMINAL",
+    "primary_response": "SIGN_OF_TOP4_CONCENTRATION_FACTOR_MULTIPLIED_BY_NEXT_672_HOUR_BTC_RETURN",
+    "minimum_nonzero_evaluable_transitions": {"design": 30, "validation": 20},
+    "minimum_positive_factor_transitions": {"design": 8, "validation": 6},
+    "minimum_nonpositive_factor_transitions": {"design": 8, "validation": 6},
+    "required_in_each_window": [
+      "MEDIAN_SIGNED_RESPONSE_STRICTLY_POSITIVE",
+      "POSITIVE_FACTOR_MEDIAN_RAW_RETURN_STRICTLY_POSITIVE",
+      "NONPOSITIVE_FACTOR_MEDIAN_RAW_RETURN_STRICTLY_NEGATIVE",
+      "ONE_SIDED_SIGN_TEST_P_VALUE_AT_MOST_0_10",
+      "TOP_ABSOLUTE_SIGNED_RESPONSE_CONTRIBUTION_AT_MOST_20_PERCENT"
+    ],
+    "failure_action": "NO_CANDIDATE_CLOSE_BEFORE_STRATEGY_ECONOMICS_WITHOUT_DIRECTION_INVERSION"
+  },
+  "matched_capital_contract": {
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "initial_equity": "1.0_EQUITY_UNIT",
+    "normal_cost": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "stress_cost": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"},
+    "design": {"start_inclusive": "2020-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00"},
+    "validation": {"start_inclusive": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00"},
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPORA_NO_NEW_DOWNLOAD",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "cftc_source_contract": {
+      "path": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.json",
+      "sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5",
+      "document_status": "OFFLINE_DISABLED_NOT_REGISTERED"
+    },
+    "historical_archive_manifest": {
+      "path": "research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json",
+      "sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a",
+      "archive_years": [2019, 2020, 2021, 2022, 2023, 2024],
+      "exact_contract_rows": 313
+    },
+    "source_cost": "OFFICIAL_FREE_ALREADY_SEALED"
+  },
+  "adversarial_prior": [
+    "The supporting paper excludes Bitcoin and studies 2010-2018 futures; its formula and direction are transferable priors, not Bitcoin evidence.",
+    "The paper reports weak or heterogeneous own-market results for some financial and currency futures, so positive average cross-market findings cannot replace BTC-specific gates.",
+    "CFTC concentration ratios mix commercial and non-commercial reportable traders and reveal no trader identity, motive or persistent membership in the top four.",
+    "The report is weekly and conservatively lagged; much of any information advantage may already be in BTC before the factor becomes tradable.",
+    "A positive level may be persistent and create long exposure that merely resembles passive BTC, while a negative state may be too sparse for breadth."
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before factor evaluation if any archive hash, exact contract row count, ordered field identity, Tuesday report date, ION exclusion, percentage grammar, positive denominator or BTC H1 corpus identity fails.",
+    "Stop NO_CANDIDATE before strategy economics if any frozen Design or Validation 672-hour predictive sample, sign, breadth or concentration gate fails.",
+    "If predictive gates pass, stop NO_CANDIDATE unless the single primary passes every frozen normal/stress Design, Validation, annual breadth, drawdown, Calmar, upside, concentration, holding and terminal-inventory economic gate.",
+    "Do not replace the normalized concentration level with a weekly change, raw difference, gross ratio, top-eight ratio, percentile, z-score, threshold, smoothing or alternate horizon after factor or outcome access.",
+    "Do not invert continuation, add BTC trend, another CFTC category, total open interest, basis, funding, volatility, leverage, shorting or fractional sizing as a rescue.",
+    "Do not open post-2024 BTC outcomes. Any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed OOS."
+  ],
+  "missing_proof": [
+    "No top-four concentration factor value or BTC outcome has been accessed.",
+    "No hash-bound concentration runner or frozen manifest exists.",
+    "No matched-capital Design, Validation, stress, annual breadth or path-risk result exists.",
+    "No independent OOS or forward evidence exists."
+  ],
+  "scope_note": "Pre-outcome source-reuse and primary-literature prior only. No concentration factor value, BTC outcome, runner, manifest, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

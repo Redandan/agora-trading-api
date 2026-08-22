@@ -1,0 +1,167 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ONCHAIN_ACTIVITY_BREADTH_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-onchain-activity-breadth-long-cash-historical-v1",
+  "created_at": "2026-08-19T08:50:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "Sustained growth in both transaction count and active-address participation may identify a broader Bitcoin network-use state than either proxy alone. Holding full BTC only while both lagged four-week activity means exceed their corresponding levels 52 weeks earlier may avoid weak-network paths and improve drawdown and Calmar after costs.",
+  "economic_rationale": "The policy is valuable only if an independently measured network-use state improves matched-capital BTC economics beyond passive holding. Positive aggregate PnL, one successful exit, present-vintage correlation or terminal inventory appreciation is insufficient: Design, Validation, annual breadth, concentration, drawdown, Calmar, upside capture, realized/unrealized PnL, holding and both single-axis neighbors must support the same mechanism.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-onchain-activity-breadth-28d-vs-52w-long-cash",
+    "independence_key": "bitcoin-onchain-transaction-and-active-address-growth",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_LAGGED_TXCNT_AND_ADRACTCNT_BREADTH_POLICY",
+    "distinct_from_closed_families": [
+      "Closed price-trend, oscillator, volatility, calendar and session families derive their features from BTC or external market prices rather than the Bitcoin ledger.",
+      "Closed CFTC, VIX, Treasury, Nasdaq and Cboe SKEW families use traditional-market positioning, rates, equity or option-risk information rather than on-chain activity.",
+      "Open crypto-carry, forward volume/range and three-percent shock families use derivatives or exchange-market states rather than transaction and active-address counts.",
+      "The prior mempool source diagnostic concerned fee congestion and never created a factor, strategy, candidate or matched-capital result."
+    ],
+    "excluded_reinterpretations": [
+      "No growth threshold, z-score, alternate smoothing or comparison horizon, additional on-chain metric, price interaction, delay, cash yield, fractional sizing, leverage or short leg may be added after outcome access.",
+      "TxCnt-only and AdrActCnt-only variants are rejection-only neighbors and cannot replace a failed conjunction primary.",
+      "A failure cannot be reinterpreted as support for mempool congestion, hash rate, NVT, miner, exchange-flow or closed market-price families.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-onchain-activity-breadth-primary-prior.v1.json",
+      "sha256": "6e199ca7cbaae2374b7f0a0aad2b5bcf08f8f788c6a5f57ff7895465da11d9de",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/coinmetrics-btc-onchain-activity-daily-2018-2024.v1.source.json",
+      "sha256": "c06b986f8a5878998e04be91f6066070fd20ec07d12eed2ef2bdbef2c45bb27d",
+      "role": "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_AND_LICENSE_IDENTITY"
+    },
+    {
+      "path": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/inputs/coinmetrics-source-bundle.json",
+      "sha256": "41ed62da5ca1fdc7e36361db9318939ede775993958175cc6e7181cfb90f0aca",
+      "role": "CREATE_ONCE_RAW_COIN_METRICS_SOURCE_BUNDLE"
+    },
+    {
+      "path": ".research-state/experiments/btc-onchain-activity-breadth-long-cash-historical-v1/inputs/coinmetrics-btc-onchain-activity-2018-2024.csv",
+      "sha256": "f47e2c082f21683befa4092f7bdc83de92c3717859fee5ec70f9b52117e4f669",
+      "role": "SEALED_2018_2024_DAILY_TXCNT_AND_ADRACTCNT_SUBSET"
+    },
+    {
+      "path": "research_pipeline/examples/btc-onchain-activity-breadth-long-cash-v1.hypothesis.json",
+      "sha256": "5f5e9ca72aa304a2c7b0a5041ae27d64baa433cb6f2508ae397645c1143d1033",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json",
+      "sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc",
+      "role": "FROZEN_MATCHED_BUY_HOLD_LEDGER_PARITY_REFERENCE"
+    },
+    {
+      "path": "research/btc_onchain_activity_breadth_long_cash_historical.cjs",
+      "sha256": "53bcd85a4c1c1ee2a0f5e2a441a74edc4d80edf6228d08afdbe7d191ed8df3c1",
+      "role": "FROZEN_DETERMINISTIC_ONCHAIN_ACTIVITY_POLICY_AND_ECONOMIC_RUNNER"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_ONCHAIN_ACTIVITY_BREADTH_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "SECOND_CALENDAR_DAY_0000_UTC_AFTER_OBSERVATION_DAY",
+    "source_series": ["TxCnt", "AdrActCnt"],
+    "mean_days": 28,
+    "comparison_lag_days": 364,
+    "relation": "STRICTLY_ABOVE",
+    "long_target": "BTC_100_PERCENT",
+    "risk_off_target": "CASH_100_PERCENT",
+    "cash_yield": "ZERO",
+    "missing_date_policy": "REJECT_NON_CONSECUTIVE_SOURCE_NO_FILL_NO_INTERPOLATION",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AT_OR_AFTER_FROZEN_EFFECTIVE_TIME",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": [
+      {"variant_id": "onchain-activity-both-v1", "role": "primary", "axes": ["TxCnt", "AdrActCnt"], "combination": "AND"},
+      {"variant_id": "onchain-activity-txcnt-only-v1", "role": "neighbor", "axes": ["TxCnt"], "combination": "SINGLE"},
+      {"variant_id": "onchain-activity-adractcnt-only-v1", "role": "neighbor", "axes": ["AdrActCnt"], "combination": "SINGLE"}
+    ]
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2020-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_ZERO_YIELD_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_LONG_EPISODES_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "gate_set": {
+    "id": "BTC_ONCHAIN_ACTIVITY_BREADTH_LONG_CASH_ECONOMIC_GATES_V1",
+    "primary": [
+      "design_normal_and_stress_total_return_positive",
+      "design_drawdown_at_most_85pct_of_buy_hold",
+      "design_upside_capture_at_least_60pct",
+      "design_calmar_at_least_buy_hold",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_at_most_85pct_of_buy_hold",
+      "validation_upside_capture_at_least_60pct",
+      "validation_calmar_at_least_buy_hold",
+      "validation_at_least_400_signals_and_2_to_60_position_changes",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_and_stress_positive_annual_return_at_least_4_of_5",
+      "annual_drawdown_non_worse_5_of_5",
+      "annual_calmar_non_worse_at_least_3_of_5",
+      "top_year_positive_contribution_at_most_60pct",
+      "validation_terminal_liquidation_adjusted_return_positive_and_cost_at_most_1pp",
+      "validation_p90_and_terminal_holding_age_at_most_two_years"
+    ],
+    "neighbors": [
+      "design_normal_total_return_positive",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_non_worse_than_buy_hold",
+      "validation_calmar_at_least_75pct_of_buy_hold",
+      "normal_positive_annual_return_at_least_3_of_5"
+    ],
+    "decision": "PRIMARY_AND_BOTH_NEIGHBORS_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "runtime": "NODE_22_OR_COMPATIBLE",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any BTC corpus, Coin Metrics source, raw bundle, metadata, prior, hypothesis, parser, runner, daily continuity, timing, revision, license or source binding fails.",
+    "Stop and permanently close the exact 28-day versus 52-week on-chain activity breadth family if any primary or single-axis neighbor gate fails.",
+    "Do not choose the best axis, add a threshold, z-score, smoothing or comparison horizon, alternate metric, BTC interaction, delay, cash yield, exposure, leverage or short rule after outcome access.",
+    "Do not use post-2024 BTC or on-chain data in this historical decision; a pass requires separately sealed independent OOS and remains REPORTED_NOT_ACTIVATED."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": ["PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL", "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO", "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"]
+}

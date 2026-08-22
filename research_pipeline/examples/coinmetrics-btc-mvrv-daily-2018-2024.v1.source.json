@@ -1,0 +1,55 @@
+{
+  "schema_version": "1",
+  "document_type": "COIN_METRICS_BTC_MVRV_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Coin Metrics Community API",
+  "asset": "btc",
+  "metric": "CapMVRVCur",
+  "metric_documentation": "https://docs.coinmetrics.io/asset-metrics/market/capact1yrusd",
+  "download_url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=CapMVRVCur&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000&status=reviewed",
+  "captured_at": "2026-08-19T10:37:53.054Z",
+  "source_probe": {
+    "path": "research/coinmetrics_btc_mvrv_source_probe.cjs",
+    "sha256": "229d23cf84fff6fbc0505a3afaa8e8285de95dad6052be20ea7cdc72a7b7139f"
+  },
+  "raw_bundle": {
+    "path": ".research-state/experiments/dra-bitcoin-mvrv-relative-value-entry-admission-historical-v1/inputs/coinmetrics-source-bundle.json",
+    "sha256": "d23af0c8ec73070af7127284e5234a72e7a50d31623074df3e1cfc665074c7d8",
+    "request_count": 1,
+    "request_origin": "https://community-api.coinmetrics.io",
+    "credentials": "DENY",
+    "requested_status": "reviewed"
+  },
+  "raw_response": {
+    "path": ".research-state/experiments/dra-bitcoin-mvrv-relative-value-entry-admission-historical-v1/inputs/coinmetrics-btc-mvrv-2018-2024-raw.json",
+    "sha256": "fdab1afcb091b6dbb50e18888675385f60787ba1227964698009e2e45b744975",
+    "bytes": 215166,
+    "rows": 2557,
+    "pagination_remaining": false
+  },
+  "sealed_subset": {
+    "path": ".research-state/experiments/dra-bitcoin-mvrv-relative-value-entry-admission-historical-v1/inputs/coinmetrics-btc-mvrv-2018-2024.csv",
+    "sha256": "76131318811eefdd713eb1912dec7e8c289548c5d187d39f32efb78b243f161e",
+    "bytes": 61746,
+    "rows": 2557,
+    "first_date": "2018-01-01",
+    "last_date": "2024-12-31",
+    "columns": ["date", "mvrv"]
+  },
+  "pre_outcome_feature_feasibility": {
+    "complete_week_count": 365,
+    "evaluations": 313,
+    "below_prior_365d_median_weeks": 125,
+    "at_or_above_prior_365d_median_weeks": 188,
+    "transitions": 27,
+    "excluded_incomplete_tail_days": 2,
+    "first_evaluable_week_end": "2019-01-06",
+    "first_effective_time": "2019-01-09T00:00:00Z",
+    "btc_outcome_accessed": false
+  },
+  "publication_timing_boundary": "Use only Sunday D after exactly 365 prior daily observations. D becomes usable at D plus three calendar days 00:00 UTC and remains valid for at most 168 hours.",
+  "revision_boundary": "The exact Community API response is a sealed present-vintage reviewed historical input. Original daily review timestamps and original vintages remain MISSING_PROOF; a historical pass therefore requires untouched sealed forward OOS.",
+  "license_boundary": "Coin Metrics documents Community API data as no-key and free for non-commercial use under a Creative Commons license. Raw and normalized bytes remain untracked internal research inputs; commercial reuse and redistribution remain unauthorized by this audit.",
+  "scope_note": "Free historical source only. No BTC/DRA outcome, paid API, account, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed."
+}

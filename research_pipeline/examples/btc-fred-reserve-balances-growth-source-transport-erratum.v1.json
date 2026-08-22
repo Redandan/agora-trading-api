@@ -1,0 +1,41 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_RESERVE_BALANCES_GROWTH_SOURCE_TRANSPORT_ERRATUM_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-reserve-balances-growth-liquidity-support-long-cash",
+  "created_at": "2026-08-20T13:12:00Z",
+  "status": "FROZEN_BEFORE_FEDERAL_RESERVE_DDP_FACTOR_ACCESS",
+  "reason": "The exact official FRED annual CSV transport returned zero bytes and timed out after 30 seconds and again after 90 seconds for the first 2018 request. No WRESBAL factor value or BTC outcome was received and no final source artifact was created.",
+  "replacement_transport": {
+    "publisher": "Board of Governors of the Federal Reserve System",
+    "program": "Data Download Program",
+    "release": "H.4.1 Factors Affecting Reserve Balances",
+    "package_identity": "bf254044496631c2a1c54617dd265a95",
+    "target_series_code": "H41/H41/RESH4R_XAW_N.WW",
+    "target_description": "Liabilities and Capital: Other Factors Draining Reserve Balances: Reserve balances with Federal Reserve Banks: week average",
+    "date_range": {
+      "from": "2018-01-01",
+      "to": "2024-12-31"
+    },
+    "filetype": "CSV_IN_OFFICIAL_ZIP",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "manual_export": "DENY"
+  },
+  "identity_equivalence_boundary": "FRED identifies WRESBAL as the Board of Governors H.4.1 weekly-average reserve-balances series. The direct Board DDP code RESH4R_XAW_N.WW has the same H.4.1 description, weekly-average unit and Wednesday-ending dates. The replacement changes only transport, not series meaning, factor values or timing.",
+  "unchanged_frozen_contract": {
+    "source_feasibility_spec": "research_pipeline/examples/btc-fred-reserve-balances-growth-source-feasibility.v1.spec.json",
+    "feature": "CURRENT_WEEKLY_VALUE_STRICTLY_ABOVE_VALUE_FOUR_WEEKLY_OBSERVATIONS_EARLIER",
+    "availability": "OBSERVATION_WEDNESDAY_PLUS_2_CALENDAR_DAYS_AT_00_00_UTC",
+    "design_minimum_evaluations": 180,
+    "design_minimum_per_state": 40,
+    "validation_minimum_evaluations": 90,
+    "validation_minimum_per_state": 20
+  },
+  "prohibited": [
+    "Do not blend FRED and DDP values, choose between them after comparison, or use a transformed DDP field.",
+    "Do not change the target series, feature direction, lookback, availability or support gates.",
+    "Do not use any non-official mirror, paid API, manual browser export or post-2024 observation."
+  ],
+  "scope_note": "Transport-only erratum. No DDP factor value, BTC outcome, hypothesis, manifest, runner result, economics, candidate, OOS, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed by this artifact."
+}

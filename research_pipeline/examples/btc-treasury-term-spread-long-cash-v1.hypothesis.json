@@ -1,0 +1,43 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-treasury-term-spread-long-cash-v1",
+  "title": "Treasury non-inversion full-capital BTC long/cash timing",
+  "thesis": "A non-inverted U.S. Treasury term spread may identify macroeconomic and risk-bearing conditions in which holding unlevered spot BTC is better compensated, while a negative spread may precede adverse risk paths. Holding BTC only when the latest published 10-year minus 3-month spread is non-negative may improve drawdown and Calmar without forfeiting too much after-cost upside.",
+  "mechanism": "Use the latest official Treasury trading-day 10-year and 3-month constant-maturity par yields only after 00:00 UTC on the next calendar day. Hold 100-percent BTC when 10Y minus 3M is at or above zero and zero-yield cash otherwise. Execute changed targets at the next H1 open. Test 10Y minus 1Y and 10Y minus 2Y only as frozen rejection neighbors.",
+  "economic_rationale": "The rule is useful only if avoiding inversion-associated macro risk reduces matched-capital drawdown and underwater paths enough to offset missed BTC rallies, cash opportunity cost and round-trip friction. Positive aggregate PnL is insufficient; Design, Validation, annual breadth, realized/unrealized accounting, holding, terminal inventory and both common-maturity neighbors must support the mechanism.",
+  "source": "BTC_TREASURY_TERM_SPREAD_PRIMARY_PRIOR_V1_AND_SEALED_US_TREASURY_PAR_YIELD_CURVE_2018_2024",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_WHEN_OUT",
+  "required_capability": "btc-treasury-term-spread-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY",
+  "independence_semantics": "INDEPENDENT_EXTERNAL_MACRO_TERM_STRUCTURE_FAMILY",
+  "variants": [
+    {"role": "PRIMARY", "long_maturity": "10 Yr", "short_maturity": "3 Mo", "threshold_pct": "0.00"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "long_maturity": "10 Yr", "short_maturity": "1 Yr", "threshold_pct": "0.00"},
+    {"role": "REJECTION_ONLY_NEIGHBOR", "long_maturity": "10 Yr", "short_maturity": "2 Yr", "threshold_pct": "0.00"}
+  ],
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "completed_episode_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 3,
+    "independence": 5
+  },
+  "research_cycle_id": "2026-08-19-candidate-factory-cycle-14",
+  "created_at": "2026-08-19T08:08:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

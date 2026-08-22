@@ -1,0 +1,115 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_PCOPPUSDM_3M_UPTREND_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-fred-pcoppusdm-3m-uptrend-long-cash-historical-v1",
+  "hypothesis_id": "btc-fred-pcoppusdm-3m-uptrend-long-cash-v1",
+  "created_at": "2026-08-21T04:08:36Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A conservatively delayed three-month global copper-price uptrend can be useful only if full-capital BTC participation improves matched-capital risk-adjusted economics broadly after explicit costs.",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {"key": "normalized_pcoppusdm", "path": ".research-state/experiments/btc-fred-pcoppusdm-3m-uptrend-long-cash-historical-v1/inputs/pcoppusdm-monthly-2018-2024.csv", "sha256": "b312cfa17bbfecb7a73c6adc29161609593f99f1c40fb14d44d2925d3265f9a1"},
+    {"key": "source_bundle", "path": ".research-state/experiments/btc-fred-pcoppusdm-3m-uptrend-long-cash-historical-v1/inputs/pcoppusdm-source-bundle.json", "sha256": "a9914e5ae7be1a76c2a7805b509977732d07070297742599fad941c35e8d7f8f"},
+    {"key": "economic_kernel", "path": "research/btc_m2_liquidity_acceleration_long_cash_historical.py", "sha256": "eb059aed19f839f9b6c1f443df45e6611e7170b431904c6a28e35d7c2dc2eb09"},
+    {"key": "long_cash_ledger", "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py", "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"},
+    {"key": "path_reference", "path": "research/btc_monthly_12m_time_series_momentum_historical.py", "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"},
+    {"key": "h1_parser", "path": "research/btc_dra_reversal_confirmed_exit_v2c.py", "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"},
+    {"key": "primary_prior", "path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-long-cash-primary-prior.v1.json", "sha256": "8b8836768230460c119a1b58d134c9428e8e832bb8236e2c35de3deea80d87b9"},
+    {"key": "source_spec", "path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-source-feasibility.v1.spec.json", "sha256": "04e6575e163accf1ca5ec908bcc272929ddb028370dd944c01f5463b5b5649ef"},
+    {"key": "source_probe", "path": "research/fred_pcoppusdm_source_probe.py", "sha256": "e5cf27546f07a89abe163960a7c5ee4772d3de4118a813470b746948cad7929c"},
+    {"key": "hypothesis", "path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-long-cash-v1.hypothesis.json", "sha256": "c43814541192073274a5c97b17b273d91fcf794215b102893dd593991ddc086f"}
+  ],
+  "runner_binding": {
+    "path": "research/btc_fred_pcoppusdm_3m_uptrend_long_cash_historical.py",
+    "sha256": "1bb802f78ca38a0497c367fa8086439c56a4b95f714629e0a23330e58b0361a7",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_FRED_PCOPPUSDM_3M_UPTREND_LONG_CASH_V1",
+    "availability": "OBSERVATION_MONTH_START_PLUS_75_CALENDAR_DAYS_AT_0000_UTC",
+    "formula": "PCOPPUSDM_MONTH_t-PCOPPUSDM_MONTH_t_minus_3",
+    "long_condition": "THREE_MONTH_CHANGE_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "OTHERWISE",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2019-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00"},
+    "annual_fair_reset_years": [2019, 2020, 2021, 2022, 2023, 2024]
+  },
+  "gate_set": {
+    "id": "BTC_FRED_PCOPPUSDM_3M_UPTREND_MATCHED_CAPITAL_GATES_V1",
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "pcoppusdm_sha256_bundle_and_84_months_match",
+      "hourly_lattice_monthly_continuity_and_75d_availability_pass",
+      "frozen_runner_kernel_ledger_reference_parser_prior_hypothesis_probe_and_spec_sha256_match",
+      "single_variant_strict_three_month_copper_uptrend_no_rescue_contract_pass",
+      "design_signals_exactly_48_with_29_uptrend_and_19_other",
+      "validation_signals_exactly_24_with_14_uptrend_and_10_other",
+      "design_position_changes_between_6_and_30",
+      "validation_position_changes_between_3_and_18",
+      "design_normal_total_return_positive",
+      "design_stress_total_return_positive",
+      "design_drawdown_at_most_90pct_of_buy_hold",
+      "design_upside_capture_at_least_60pct",
+      "design_calmar_at_least_buy_hold",
+      "validation_normal_total_return_positive",
+      "validation_stress_total_return_positive",
+      "validation_drawdown_at_most_90pct_of_buy_hold",
+      "validation_upside_capture_at_least_60pct",
+      "validation_calmar_at_least_80pct_of_buy_hold",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_positive_annual_return_at_least_4_of_6",
+      "stress_positive_annual_return_at_least_4_of_6",
+      "annual_drawdown_non_worse_at_least_5_of_6",
+      "annual_calmar_at_least_80pct_buy_hold_at_least_4_of_6",
+      "annual_upside_capture_at_least_50pct_at_least_4_of_6",
+      "top_year_positive_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_at_most_8760_hours",
+      "validation_terminal_holding_age_at_most_8760_hours",
+      "validation_terminal_liquidation_adjusted_return_positive",
+      "validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {"reruns": 2, "required": "BYTE_IDENTICAL_OUTPUTS"},
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics on any dataset, source, monthly support, runner or frozen hash failure.",
+    "Stop NO_CANDIDATE and permanently close on any Design, Validation, annual breadth, concentration, holding or inventory failure.",
+    "Do not add inventories, futures curves, other metals, China data, dollar, equities, oil, inflation, rates, CFTC, BTC interactions, thresholds, smoothing, alternate horizons, inverse direction, sizing or another factor after outcomes.",
+    "Do not open post-2024 data or OOS. A pass remains REPORTED_NOT_ACTIVATED."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NASDAQ_RELATIVE_STRENGTH_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-nasdaq-relative-strength-long-cash",
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_63_PAIRED_BUSINESS_DAY_BTC_MINUS_NASDAQ_RELATIVE_STRENGTH_LONG_CASH_EXPERIMENT_WITH_42D_AND_84D_REJECTION_ONLY_NEIGHBORS",
+  "causal_hypothesis": "Persistent Bitcoin outperformance versus the Nasdaq Composite over a medium cross-market horizon may identify crypto-specific demand leadership rather than unconditional growth-asset beta before the next weekly holding interval.",
+  "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy may retain sufficient BTC upside while avoiding weak relative-demand intervals to improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold across Design, Validation and annual folds.",
+  "frozen_feature": {
+    "paired_observations": "LATEST_VALID_NASDAQ_BUSINESS_DATE_CLOSE_PAIRED_WITH_BTC_COMPLETE_UTC_DAY_CLOSE_ON_THE_SAME_CALENDAR_DATE",
+    "evaluation_frequency": "FINAL_VALID_NASDAQ_BUSINESS_DATE_OF_EACH_ISO_WEEK",
+    "availability": "OBSERVATION_DATE_PLUS_ONE_CALENDAR_DAY_AT_00_00_UTC",
+    "primary_lookback_paired_business_days": 63,
+    "rejection_only_neighbors_paired_business_days": [42, 84],
+    "btc_return": "LATEST_BTC_CLOSE_DIVIDED_BY_OLDEST_BTC_CLOSE_MINUS_ONE_OVER_EXACT_PAIRED_LOOKBACK",
+    "nasdaq_return": "LATEST_NASDAQ_CLOSE_DIVIDED_BY_OLDEST_NASDAQ_CLOSE_MINUS_ONE_OVER_EXACT_PAIRED_LOOKBACK",
+    "relative_strength": "BTC_RETURN_MINUS_NASDAQ_RETURN",
+    "long_condition": "RELATIVE_STRENGTH_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "RELATIVE_STRENGTH_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "signal_validity": "UNTIL_NEXT_WEEKLY_FACTOR_BECOMES_AVAILABLE",
+    "missing_pair_rule": "SKIP_WITHOUT_INTERPOLATION_OR_SOURCE_REPAIR",
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT",
+    "variants": 3
+  },
+  "independence_boundary": {
+    "not_closed_nasdaq_trend": "The closed Nasdaq trend family measured the Nasdaq close against its own moving average. This family measures the return spread between BTC and Nasdaq and does not use a Nasdaq trend threshold.",
+    "not_closed_nasdaq_correlation": "The closed diversification-state family measured rolling paired-return correlation and admitted DRA entries. This family measures cross-market cumulative relative performance and is a standalone BTC long-or-cash policy.",
+    "not_closed_price_only_btc_trend": "The closed BTC SMA, MACD, DMI, Supertrend, PSAR, Donchian, Bollinger and RSI families used BTC-only price states. The frozen primary requires a contemporaneously available external equity comparator and cannot be reconstructed from BTC alone.",
+    "not_eth_relative_strength": "The source-rejected ETH-minus-BTC family tested intra-crypto breadth as DRA entry admission. This family tests BTC-minus-Nasdaq leadership with an already sealed external-market source and standalone matched capital."
+  },
+  "adversarial_prior": [
+    "BTC-minus-Nasdaq relative strength may merely be a noisier proxy for BTC's own momentum and fail independently after costs.",
+    "The zero threshold may keep the policy long through large absolute BTC drawdowns whenever equities fall even faster.",
+    "Weekly state changes and present-vintage Nasdaq observations may not represent the information or fills available in a prospective deployment.",
+    "The 42-day and 84-day variants are rejection-only stability checks and cannot replace a failed 63-day primary."
+  ],
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPORA",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608
+    },
+    "nasdaq": {
+      "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/inputs/nasdaq-composite-2018-2024.csv",
+      "sha256": "3102d5caf63211caba467cd930feccd7f9672f5d03be57d77c8022c0c977228f",
+      "rows": 1762
+    },
+    "source_cost": "FREE_ALREADY_SEALED_NO_NEW_DOWNLOAD"
+  },
+  "stop_conditions": [
+    "Stop before economics if either corpus identity, paired-date construction, observation availability, H1 continuity or source binding fails.",
+    "Stop NO_CANDIDATE if the 63-day primary or either frozen rejection-only neighbor fails any Design, Validation, annual breadth, cost, drawdown, Calmar, upside, concentration, holding or terminal-inventory gate.",
+    "Do not scan another lookback, threshold, spread normalization, evaluation day, lag, holding interval, smoothing rule, sizing rule, leverage or short leg after outcome access.",
+    "Do not combine this feature with a closed Nasdaq, BTC trend, DRA or macro factor as a rescue."
+  ],
+  "missing_proof": [
+    "No BTC-minus-Nasdaq relative-strength feature ledger or deterministic economic runner is sealed.",
+    "No matched-capital Design, Validation, stress, annual breadth or path-risk result exists.",
+    "No independent OOS or forward evidence exists."
+  ],
+  "scope_note": "Pre-outcome prior only. No relative-strength outcome, runner, manifest, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

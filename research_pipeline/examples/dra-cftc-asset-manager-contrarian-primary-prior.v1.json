@@ -1,0 +1,90 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CFTC_ASSET_MANAGER_CONTRARIAN_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-cftc-asset-manager-net-position-contraction-contrarian-entry-admission",
+  "factor_identity": "CFTC_TFF_ASSET_MANAGER_NET_PCT_OI_WEEKLY_CONTRACTION_CONTRARIAN_168H_V1",
+  "frozen_before_factor_value_or_outcome_access": true,
+  "prior_timestamp_utc": "2026-08-19T06:10:00Z",
+  "causal_and_economic_hypothesis": "Asset Manager/Institutional futures positioning is a buy-side institutional flow proxy. Published Bitcoin-futures evidence characterizes asset managers as contrarian rather than momentum traders. A weekly contraction in their net percentage of open interest therefore defines a positive contrarian score and may identify subsequent recovery conditions in which the existing long-only DRA trend-confirmed entry signal is less likely to be a false admission. The factor is only an admission veto; the parent signal, capital, exits and accounting remain unchanged.",
+  "primary_variant": {
+    "participant_category": "ASSET_MANAGER_INSTITUTIONAL",
+    "input_family": "PERCENT_OF_OPEN_INTEREST",
+    "normalization_unit": "PERCENTAGE_POINTS_OF_TOTAL_OPEN_INTEREST",
+    "formula": "(prior_long_pct-prior_short_pct)-(current_long_pct-current_short_pct)",
+    "positive_score_meaning": "ASSET_MANAGER_NET_POSITION_CONTRACTED_FROM_EXACT_PRIOR_WEEK",
+    "admission_rule": "ADMIT_PARENT_SIGNAL_ONLY_WHEN_FACTOR_SCORE_GT_ZERO",
+    "positive_action": "ADMIT",
+    "negative_action": "HOLD_CASH",
+    "zero_action": "HOLD_CASH",
+    "exact_predecessor_days": 7,
+    "factor_valid_hours": 168,
+    "eligible_time": "REPORT_DATE_PLUS_14_CALENDAR_DAYS_AT_00_00_UTC",
+    "outcome_horizon_hours": 168
+  },
+  "parent_and_economics": {
+    "parent_strategy": "BTC_DRA_V1",
+    "initial_equity_usdt": "250",
+    "slot_capacity_usdt": "240",
+    "lot_cost_usdt": "30",
+    "fee_rate": "0.0010",
+    "adverse_slippage_rate": "0.0005",
+    "selection_cutoff": "2025-01-01T00:00:00",
+    "design": {
+      "start_inclusive": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start_inclusive": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_folds": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ]
+  },
+  "frozen_gates": {
+    "predictive": "Reuse all Design and Validation breadth, sign, concentration and one-sided sign-test gates from BTC_DRA_CFTC_TFF_HISTORICAL_ENTRY_ADMISSION_GATES_V1 after orienting factor_score so positive means the preregistered contrarian direction.",
+    "economic": "Reuse all matched-capital Design, Validation, realized/unrealized/total PnL, drawdown, underwater duration, holding, terminal inventory, annual breadth and concentration gates from BTC_DRA_CFTC_TFF_HISTORICAL_ENTRY_ADMISSION_GATES_V1.",
+    "candidate_rule": "Every predictive and economic gate must pass before one independent sealed OOS may be considered. Otherwise permanently close this exact family without tuning."
+  },
+  "independence_and_deduplication": {
+    "distinct_from_closed_leveraged_money_family": "Different CFTC participant category and literature-preregistered contrarian direction. The closed family used Leveraged Money net-percent-of-open-interest weekly-delta continuation.",
+    "known_overlap_risk": "Both families share the same weekly TFF source, release policy, BTC parent and observation clock; this is not an independent data source and must not be marketed as one.",
+    "pre_outcome_redundancy_disposition": "Allowed as a separate participant-behavior mechanism; no leveraged-money threshold, inversion, rerun or reopening is performed."
+  },
+  "literature_prior": [
+    {
+      "title": "Trading behavior in bitcoin futures: Following the smart money",
+      "url": "https://doi.org/10.1002/fut.22332",
+      "use": "Primary direction prior: the paper characterizes asset managers as contrarian and reports an asset-manager market-timing strategy opposite the sign of weekly net-position changes."
+    },
+    {
+      "title": "Traders in Financial Futures explanatory notes",
+      "url": "https://www.cftc.gov/idc/groups/public/%40commitmentsoftraders/documents/file/tfmexplanatorynotes.pdf",
+      "use": "Primary semantic prior: Asset Manager/Institutional is a CFTC buy-side category distinct from Dealer/Intermediary and Leveraged Funds."
+    },
+    {
+      "title": "Market impact of the bitcoin ETF introduction on bitcoin futures",
+      "url": "https://doi.org/10.1016/j.jbankfin.2024.107344",
+      "use": "Structural-break warning: BITO materially changed asset-manager participation, so annual breadth and the post-2022 Validation window are mandatory."
+    }
+  ],
+  "forbidden_variants": [
+    "DO_NOT_INVERT_DIRECTION_AFTER_OUTCOME_ACCESS",
+    "DO_NOT_CHANGE_PARTICIPANT_CATEGORY",
+    "DO_NOT_USE_LEVEL_PERCENTILE_OR_THRESHOLD",
+    "DO_NOT_CHANGE_EXACT_7_DAY_PREDECESSOR",
+    "DO_NOT_CHANGE_14_DAY_AVAILABILITY_LAG",
+    "DO_NOT_CHANGE_168_HOUR_VALIDITY_OR_OUTCOME_HORIZON",
+    "DO_NOT_BLEND_LEVERAGED_MONEY_DEALER_OTHER_REPORTABLE_PRICE_VOLUME_VIX_OR_SKEW",
+    "DO_NOT_CHANGE_PARENT_CAPITAL_FEES_SLIPPAGE_ENTRY_EXIT_OR_ACCOUNTING",
+    "DO_NOT_OPEN_OOS_UNLESS_ALL_DESIGN_AND_VALIDATION_GATES_PASS"
+  ],
+  "variant_count": 1,
+  "oos_access": "DENY",
+  "activation_ceiling": "REPORTED_NOT_ACTIVATED"
+}

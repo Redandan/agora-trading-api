@@ -77,6 +77,13 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_AMIHUD_ILLIQUIDITY_PRIMARY_PRIOR_V1",
     },
+    "DAILY_CORWIN_SCHULTZ_SPREAD_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_BELOW",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PASS_PREOUTCOME_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_CORWIN_SCHULTZ_SPREAD_PREOUTCOME_SUPPORT_ACCEPTANCE_V2",
+    },
     "DAILY_REALIZED_TO_BIPOWER_VARIATION_RATIO_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_BELOW",
         "prior_disposition": "PRIOR_SUPPORTS_ONE_BIPOWER_JUMPINESS_ADMISSION_AUDIT",
@@ -107,6 +114,20 @@ FEATURES = {
         "prior_disposition": "PRIOR_SUPPORTS_ONE_US_TRADITIONAL_SESSION_ACTIVITY_ADMISSION_AUDIT",
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_US_TRADITIONAL_SESSION_ACTIVITY_PRIMARY_PRIOR_V1",
+    },
+    "DAILY_1800_2359_UTC_ABSOLUTE_LOG_RETURN_SHARE_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_DRA_LATE_DAY_PRICE_ACTIVITY_ENTRY_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_LATE_DAY_PRICE_ACTIVITY_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+    },
+    "DAILY_H1_CLOSE_PATH_MAX_DRAWDOWN_TO_PRIOR_20D_MEDIAN": {
+        "relation": "AT_OR_BELOW",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_DRA_INTRADAY_CLOSE_PATH_DRAWDOWN_ENTRY_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_INTRADAY_CLOSE_PATH_DRAWDOWN_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
     },
     "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN": {
         "relation": "AT_OR_ABOVE",
@@ -143,6 +164,28 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_INTRADAY_PRICE_PATH_EFFICIENCY_PRIMARY_PRIOR_V1",
     },
+    "DAILY_INTRADAY_REALIZED_SKEWNESS_PRIOR_20D_PERCENTILE": {
+        "relation": "AT_OR_BELOW",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_REALIZED_SKEWNESS_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_REALIZED_SKEWNESS_PRIMARY_PRIOR_V1",
+    },
+    "DAILY_H1_ABSOLUTE_LOG_RETURN_TO_LOG_CLOSE_WEIGHTED_VOLUME_CORRELATION_PRIOR_20D_PERCENTILE": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_DRA_H1_ABSOLUTE_RETURN_VOLUME_COUPLING_ENTRY_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_H1_ABSOLUTE_RETURN_VOLUME_COUPLING_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+    },
+    "DAILY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "lookback_complete_days": 0,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_H1_FIRST_EXTREME_ORDER_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_H1_FIRST_EXTREME_ORDER_PRIMARY_PRIOR_V1",
+    },
     "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO": {
         "relation": "AT_OR_BELOW",
         "gate_set": GATE_SET_V2,
@@ -151,13 +194,27 @@ FEATURES = {
         "prior_identity_field": "document_type",
         "prior_identity_value": "DRA_WEEKEND_CALENDAR_PRIMARY_PRIOR_V1",
     },
+    "PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION": {
+        "relation": "AT_OR_ABOVE",
+        "gate_set": GATE_SET_V2,
+        "lookback_complete_days": 90,
+        "prior_disposition": "PRIOR_SUPPORTS_ONE_DRA_90D_DRAWDOWN_RECOVERY_ADMISSION_AUDIT",
+        "prior_identity_field": "document_type",
+        "prior_identity_value": "DRA_90D_DRAWDOWN_RECOVERY_PRIMARY_PRIOR_V1",
+    },
 }
 PERCENTILE_FEATURES = {
     "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",
     "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE",
     "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE",
+    "DAILY_INTRADAY_REALIZED_SKEWNESS_PRIOR_20D_PERCENTILE",
+    "DAILY_H1_ABSOLUTE_LOG_RETURN_TO_LOG_CLOSE_WEIGHTED_VOLUME_CORRELATION_PRIOR_20D_PERCENTILE",
 }
-DIRECT_FEATURES = {"LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO"}
+DIRECT_FEATURES = {
+    "DAILY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY",
+    "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO",
+    "PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION",
+}
 ROLE_ORDER = {"lower_neighbor": 0, "primary": 1, "upper_neighbor": 2}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$")
@@ -346,8 +403,61 @@ def median(values: list[D]) -> D:
     )
 
 
+def corwin_schultz_spread(
+    previous_high: D,
+    previous_low: D,
+    current_high: D,
+    current_low: D,
+) -> D:
+    if min(previous_high, previous_low, current_high, current_low) <= 0:
+        raise ScreenReject(
+            "DATA_REJECT", "Corwin-Schultz spread requires positive daily highs and lows"
+        )
+    with localcontext() as context:
+        context.prec = 50
+        previous_range = (previous_high / previous_low).ln()
+        current_range = (current_high / current_low).ln()
+        beta = previous_range * previous_range + current_range * current_range
+        two_day_range = (
+            max(previous_high, current_high) / min(previous_low, current_low)
+        ).ln()
+        gamma = two_day_range * two_day_range
+        denominator = D("3") - D("2") * D("2").sqrt()
+        alpha = (
+            ((D("2") * beta).sqrt() - beta.sqrt()) / denominator
+            - (gamma / denominator).sqrt()
+        )
+        raw_spread = D("2") * (alpha.exp() - D("1")) / (
+            D("1") + alpha.exp()
+        )
+        return max(base.ZERO, raw_spread)
+
+
 def realized_performance(log_returns: list[D]) -> D:
     return _realized_performance(tuple(log_returns))
+
+
+def drawdown_recovery_fraction(
+    complete_days: list[tuple[D, D, D]],
+) -> D | None:
+    if len(complete_days) != 90:
+        return None
+    peak_high = max(item[0] for item in complete_days)
+    peak_index = next(
+        index for index, item in enumerate(complete_days) if item[0] == peak_high
+    )
+    post_peak = complete_days[peak_index:]
+    trough_low = min(item[1] for item in post_peak)
+    peak_to_trough = peak_high - trough_low
+    if peak_to_trough <= 0:
+        return None
+    latest_close = complete_days[-1][2]
+    if latest_close < trough_low or latest_close > peak_high:
+        raise ScreenReject(
+            "DATA_REJECT",
+            "drawdown recovery latest close falls outside the frozen peak-to-trough range",
+        )
+    return (latest_close - trough_low) / peak_to_trough
 
 
 @lru_cache(maxsize=None)
@@ -436,6 +546,46 @@ def lag1_return_autocorrelation(log_returns: list[D]) -> D:
         return covariance_sum / (leading_square_sum * lagged_square_sum).sqrt()
 
 
+def absolute_return_log_volume_correlation(
+    log_returns: list[D], close_weighted_volumes: list[D]
+) -> D:
+    if (
+        len(log_returns) != 24
+        or len(close_weighted_volumes) != 24
+        or any(not value.is_finite() for value in log_returns)
+        or any(not value.is_finite() or value <= 0 for value in close_weighted_volumes)
+    ):
+        raise ScreenReject(
+            "DATA_REJECT",
+            "H1 absolute-return log-volume correlation requires exactly 24 finite returns and positive close-weighted volumes",
+        )
+    absolute_returns = [abs(value) for value in log_returns]
+    with localcontext() as context:
+        context.prec = 50
+        log_volumes = [value.ln() for value in close_weighted_volumes]
+        count = D(len(absolute_returns))
+        return_mean = sum(absolute_returns, D("0")) / count
+        volume_mean = sum(log_volumes, D("0")) / count
+        covariance_sum = sum(
+            (left - return_mean) * (right - volume_mean)
+            for left, right in zip(absolute_returns, log_volumes, strict=True)
+        )
+        return_square_sum = sum(
+            (value - return_mean) * (value - return_mean)
+            for value in absolute_returns
+        )
+        volume_square_sum = sum(
+            (value - volume_mean) * (value - volume_mean)
+            for value in log_volumes
+        )
+        if return_square_sum <= 0 or volume_square_sum <= 0:
+            raise ScreenReject(
+                "DATA_REJECT",
+                "H1 absolute-return log-volume correlation requires non-zero variation on both axes",
+            )
+        return covariance_sum / (return_square_sum * volume_square_sum).sqrt()
+
+
 def intraday_price_path_efficiency(log_returns: list[D]) -> D:
     if len(log_returns) != 24 or any(not value.is_finite() for value in log_returns):
         raise ScreenReject(
@@ -449,6 +599,25 @@ def intraday_price_path_efficiency(log_returns: list[D]) -> D:
             "intraday price-path efficiency requires a positive gross price path",
         )
     return abs(sum(log_returns, D("0"))) / gross_path
+
+
+def realized_skewness(log_returns: list[D]) -> D:
+    if len(log_returns) != 24 or any(not value.is_finite() for value in log_returns):
+        raise ScreenReject(
+            "DATA_REJECT",
+            "realized skewness requires exactly 24 finite intraday log returns",
+        )
+    second_moment_sum = sum((value * value for value in log_returns), D("0"))
+    if second_moment_sum <= 0:
+        raise ScreenReject(
+            "DATA_REJECT", "realized skewness requires positive realized variance"
+        )
+    third_moment_sum = sum((value * value * value for value in log_returns), D("0"))
+    with localcontext() as context:
+        context.prec = 50
+        return D(len(log_returns)).sqrt() * third_moment_sum / (
+            second_moment_sum * second_moment_sum.sqrt()
+        )
 
 
 def realized_volatility_term_structure(
@@ -519,12 +688,19 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.relation = relation
         self.threshold = threshold
         self.daily_history: deque[D] = deque(maxlen=20)
+        self.drawdown_recovery_daily_history: deque[tuple[D, D, D]] = deque(
+            maxlen=89
+        )
         self.rv_term_daily_variance_history: deque[D] = deque(maxlen=19)
         self.rv_term_structure_observations: list[tuple[datetime, D, D]] = []
         self.feature_day: datetime | None = None
         self.feature_open: D | None = None
         self.feature_high: D | None = None
         self.feature_low: D | None = None
+        self.previous_feature_high: D | None = None
+        self.previous_feature_low: D | None = None
+        self.feature_high_first_hour: int | None = None
+        self.feature_low_first_hour: int | None = None
         self.feature_close: D | None = None
         self.feature_volume = base.ZERO
         self.daily_squared_return_sum = base.ZERO
@@ -542,6 +718,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
         self.daily_positive_return_quote_volume = base.ZERO
         self.daily_quote_volume_square_sum = base.ZERO
         self.daily_intraday_log_returns: list[D] = []
+        self.daily_intraday_close_weighted_volumes: list[D] = []
+        self.daily_intraday_closes: list[D] = []
         self.daily_bar_count = 0
         self.previous_hour_close: D | None = None
         self.current_feature_ratio: D | None = None
@@ -580,6 +758,27 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                     "Amihud-style illiquidity requires 24 positive-volume hourly bars",
                 )
             return self.daily_amihud_sum / D(self.daily_bar_count)
+        if (
+            self.feature_key
+            == "DAILY_CORWIN_SCHULTZ_SPREAD_TO_PRIOR_20D_MEDIAN"
+        ):
+            if (
+                self.daily_bar_count != 24
+                or self.feature_high is None
+                or self.feature_low is None
+            ):
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "Corwin-Schultz spread requires one complete 24-hour UTC day",
+                )
+            if self.previous_feature_high is None or self.previous_feature_low is None:
+                return None
+            return corwin_schultz_spread(
+                self.previous_feature_high,
+                self.previous_feature_low,
+                self.feature_high,
+                self.feature_low,
+            )
         if (
             self.feature_key
             == "DAILY_REALIZED_TO_BIPOWER_VARIATION_RATIO_TO_PRIOR_20D_MEDIAN"
@@ -641,6 +840,49 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                 self.daily_1500_2059_utc_quote_volume
                 / self.daily_total_quote_volume
             )
+        if (
+            self.feature_key
+            == "DAILY_1800_2359_UTC_ABSOLUTE_LOG_RETURN_SHARE_TO_PRIOR_20D_MEDIAN"
+        ):
+            if self.daily_bar_count != 24 or len(self.daily_intraday_log_returns) != 24:
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "late-day price activity requires exactly 24 hourly open-to-close log returns",
+                )
+            total_absolute_return = sum(
+                (abs(value) for value in self.daily_intraday_log_returns),
+                base.ZERO,
+            )
+            if total_absolute_return <= 0:
+                return None
+            late_absolute_return = sum(
+                (abs(value) for value in self.daily_intraday_log_returns[18:24]),
+                base.ZERO,
+            )
+            return late_absolute_return / total_absolute_return
+        if (
+            self.feature_key
+            == "DAILY_H1_CLOSE_PATH_MAX_DRAWDOWN_TO_PRIOR_20D_MEDIAN"
+        ):
+            if (
+                self.daily_bar_count != 24
+                or self.feature_open is None
+                or self.feature_open <= 0
+                or len(self.daily_intraday_closes) != 24
+            ):
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "intraday close-path drawdown requires the positive day open and exactly 24 hourly closes",
+                )
+            running_peak = self.feature_open
+            maximum_drawdown = base.ZERO
+            for close in self.daily_intraday_closes:
+                if close > running_peak:
+                    running_peak = close
+                    continue
+                drawdown = (running_peak - close) / running_peak
+                maximum_drawdown = max(maximum_drawdown, drawdown)
+            return maximum_drawdown
         if self.feature_key == "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN":
             if (
                 self.daily_bar_count != 24
@@ -687,6 +929,62 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             == "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE"
         ):
             return intraday_price_path_efficiency(self.daily_intraday_log_returns)
+        if (
+            self.feature_key
+            == "DAILY_INTRADAY_REALIZED_SKEWNESS_PRIOR_20D_PERCENTILE"
+        ):
+            return realized_skewness(self.daily_intraday_log_returns)
+        if (
+            self.feature_key
+            == "DAILY_H1_ABSOLUTE_LOG_RETURN_TO_LOG_CLOSE_WEIGHTED_VOLUME_CORRELATION_PRIOR_20D_PERCENTILE"
+        ):
+            if (
+                len(self.daily_intraday_log_returns) != 24
+                or len(self.daily_intraday_close_weighted_volumes) != 24
+            ):
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "movement-volume coupling requires one complete 24-hour UTC day",
+                )
+            absolute_returns = {
+                abs(value) for value in self.daily_intraday_log_returns
+            }
+            positive_volumes = {
+                value
+                for value in self.daily_intraday_close_weighted_volumes
+                if value > 0
+            }
+            if (
+                len(positive_volumes)
+                != len(self.daily_intraday_close_weighted_volumes)
+                or len(absolute_returns) < 2
+                or len(positive_volumes) < 2
+            ):
+                return None
+            return absolute_return_log_volume_correlation(
+                self.daily_intraday_log_returns,
+                self.daily_intraday_close_weighted_volumes,
+            )
+        if self.feature_key == "DAILY_H1_FIRST_LOW_BEFORE_FIRST_HIGH_BINARY":
+            if (
+                self.daily_bar_count != 24
+                or self.feature_high is None
+                or self.feature_low is None
+                or self.feature_high <= self.feature_low
+                or self.feature_high_first_hour is None
+                or self.feature_low_first_hour is None
+            ):
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "H1 first-extreme order requires 24 hourly bars and a positive complete-day range",
+                )
+            if self.feature_low_first_hour == self.feature_high_first_hour:
+                return None
+            return D(
+                "1"
+                if self.feature_low_first_hour < self.feature_high_first_hour
+                else "0"
+            )
         if self.feature_key == "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO":
             if self.feature_day is None or self.daily_bar_count != 24:
                 raise ScreenReject(
@@ -694,6 +992,23 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
                     "weekday index requires one complete 24-hour UTC day",
                 )
             return D(self.feature_day.weekday())
+        if self.feature_key == "PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION":
+            if (
+                self.daily_bar_count != 24
+                or self.feature_high is None
+                or self.feature_low is None
+                or self.feature_close is None
+            ):
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "90-day drawdown recovery requires one complete 24-hour UTC day",
+                )
+            return drawdown_recovery_fraction(
+                [
+                    *self.drawdown_recovery_daily_history,
+                    (self.feature_high, self.feature_low, self.feature_close),
+                ]
+            )
         raise ScreenReject("CONTRACT_REJECT", f"unsupported feature {self.feature_key}")
 
     def _update_feature(self, bar: base.Bar) -> None:
@@ -702,6 +1017,8 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.feature_open = bar.open
             self.feature_high = bar.high
             self.feature_low = bar.low
+            self.feature_high_first_hour = bar.open_time.hour
+            self.feature_low_first_hour = bar.open_time.hour
             self.feature_close = bar.close
             self.feature_volume = base.ZERO
             self.daily_squared_return_sum = base.ZERO
@@ -719,16 +1036,24 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.daily_positive_return_quote_volume = base.ZERO
             self.daily_quote_volume_square_sum = base.ZERO
             self.daily_intraday_log_returns = []
+            self.daily_intraday_close_weighted_volumes = []
+            self.daily_intraday_closes = []
             self.daily_bar_count = 0
         assert self.feature_high is not None and self.feature_low is not None
-        self.feature_high = max(self.feature_high, bar.high)
-        self.feature_low = min(self.feature_low, bar.low)
+        if bar.high > self.feature_high:
+            self.feature_high = bar.high
+            self.feature_high_first_hour = bar.open_time.hour
+        if bar.low < self.feature_low:
+            self.feature_low = bar.low
+            self.feature_low_first_hour = bar.open_time.hour
         self.feature_close = bar.close
         self.feature_volume += bar.volume
         with localcontext() as context:
             context.prec = 50
             self.daily_intraday_log_returns.append((bar.close / bar.open).ln())
+        self.daily_intraday_closes.append(bar.close)
         dollar_volume = bar.close * bar.volume
+        self.daily_intraday_close_weighted_volumes.append(dollar_volume)
         self.daily_total_quote_volume += dollar_volume
         if 15 <= bar.open_time.hour <= 20:
             self.daily_1500_2059_utc_quote_volume += dollar_volume
@@ -786,6 +1111,15 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.current_feature_ratio = None
         if current is not None and self.feature_key not in DIRECT_FEATURES:
             self.daily_history.append(current)
+        if self.feature_key == "PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION":
+            assert (
+                self.feature_high is not None
+                and self.feature_low is not None
+                and self.feature_close is not None
+            )
+            self.drawdown_recovery_daily_history.append(
+                (self.feature_high, self.feature_low, self.feature_close)
+            )
         if self.feature_key == "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN":
             if current is not None:
                 _, long_realized_volatility = realized_volatility_term_structure(
@@ -799,6 +1133,13 @@ class DeclarativeEntryAdmissionEngine(capacity.EqualCapitalCapacityEngine):
             self.rv_term_daily_variance_history.append(
                 self.daily_squared_return_sum
             )
+        if (
+            self.feature_key
+            == "DAILY_CORWIN_SCHULTZ_SPREAD_TO_PRIOR_20D_MEDIAN"
+        ):
+            assert self.feature_high is not None and self.feature_low is not None
+            self.previous_feature_high = self.feature_high
+            self.previous_feature_low = self.feature_low
         self.complete_feature_days += 1
 
     def _indicators(self, bar: base.Bar) -> None:
@@ -918,6 +1259,70 @@ def term_structure_redundancy_gate(bars: list[base.Bar]) -> dict[str, Any]:
     return {
         "absolute_spearman_limit": "0.80",
         "correlation_to_contemporaneous_20d_realized_volatility": correlations,
+        "passed": passed,
+        "sample_counts": sample_counts,
+    }
+
+
+def realized_skewness_redundancy_gate(bars: list[base.Bar]) -> dict[str, Any]:
+    observations: list[tuple[datetime, D, D, D]] = []
+    current_day: datetime | None = None
+    log_returns: list[D] = []
+    for bar in bars:
+        if current_day is None or current_day.date() != bar.open_time.date():
+            if log_returns:
+                raise ScreenReject(
+                    "DATA_REJECT",
+                    "realized-skewness redundancy gate found an incomplete UTC day",
+                )
+            current_day = bar.open_time
+        with localcontext() as context:
+            context.prec = 50
+            log_returns.append((bar.close / bar.open).ln())
+        if bar.open_time.hour != 23:
+            continue
+        if len(log_returns) != 24 or current_day is None:
+            raise ScreenReject(
+                "DATA_REJECT",
+                "realized-skewness redundancy gate requires 24 H1 bars per UTC day",
+            )
+        observations.append(
+            (
+                current_day,
+                realized_skewness(log_returns),
+                realized_performance(log_returns),
+                intraday_price_path_efficiency(log_returns),
+            )
+        )
+        current_day = None
+        log_returns = []
+    if log_returns:
+        raise ScreenReject(
+            "DATA_REJECT",
+            "realized-skewness redundancy gate ends on an incomplete UTC day",
+        )
+
+    correlations: dict[str, dict[str, str]] = {}
+    sample_counts: dict[str, int] = {}
+    passed = True
+    for label, (start, end) in {"design": DESIGN, "validation": VALIDATION}.items():
+        selected = [item for item in observations if start <= item[0] < end]
+        skewness = [item[1] for item in selected]
+        comparators = {
+            "realized_performance": [item[2] for item in selected],
+            "intraday_price_path_efficiency": [item[3] for item in selected],
+        }
+        correlations[label] = {}
+        sample_counts[label] = len(selected)
+        for comparator, values in comparators.items():
+            correlation = spearman_correlation(skewness, values)
+            correlations[label][comparator] = str(
+                correlation.quantize(D("0.00000001"), rounding=ROUND_HALF_UP)
+            )
+            passed = passed and abs(correlation) <= D("0.80")
+    return {
+        "absolute_spearman_limit": "0.80",
+        "correlations": correlations,
         "passed": passed,
         "sample_counts": sample_counts,
     }
@@ -1154,6 +1559,13 @@ def run_screen(manifest_path: Path, input_path: Path, output_path: Path) -> dict
     if feature_key := manifest["feature"]["key"]:
         if feature_key == "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN":
             pre_economic_gates = term_structure_redundancy_gate(bars)
+            if not pre_economic_gates["passed"]:
+                raise ScreenReject("DUPLICATE_REJECT", pre_economic_gates)
+        elif (
+            feature_key
+            == "DAILY_INTRADAY_REALIZED_SKEWNESS_PRIOR_20D_PERCENTILE"
+        ):
+            pre_economic_gates = realized_skewness_redundancy_gate(bars)
             if not pre_economic_gates["passed"]:
                 raise ScreenReject("DUPLICATE_REJECT", pre_economic_gates)
     baseline = parent_baseline(bars)

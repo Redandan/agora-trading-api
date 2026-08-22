@@ -1,0 +1,141 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_FIVE_YEAR_BREAKEVEN_INFLATION_REFLATION_SUPPORT_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-fred-five-year-breakeven-inflation-historical-v1",
+  "hypothesis_id": "btc-fred-five-year-breakeven-inflation-reflation-support-long-cash-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "t5yie": {
+      "path": ".research-state/experiments/btc-fred-five-year-breakeven-inflation-historical-v1/inputs/fred-t5yie-2017-2024.normalized.csv",
+      "sha256": "5080eee237a67dc286f51bfb968a29c92e49c2477c06bbd9f5f88cc77a1c8cfe",
+      "rows": 417,
+      "first_week": "2017-01-06",
+      "last_week": "2024-12-27",
+      "present_vintage": true
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-fred-five-year-breakeven-inflation-historical-v1/inputs/fred-t5yie-source-bundle.json",
+      "sha256": "e65b4f0f06077469f7e796e4470ec4a05e8bf95891dec1c8feb4239e4cd29ffc"
+    }
+  },
+  "predictive_policy": {
+    "factor_identity": "FRED_T5YIE_COMPLETE_WEEK_LAST_AVAILABLE_BUSINESS_DAY_STRICTLY_ABOVE_VALUE_28_CALENDAR_DAYS_EARLIER_V1",
+    "supportive_condition": "CURRENT_COMPLETE_WEEK_LAST_T5YIE_STRICTLY_ABOVE_EXACT_COMPLETE_WEEK_VALUE_28_CALENDAR_DAYS_EARLIER",
+    "other_condition": "OTHERWISE_INCLUDING_EQUAL",
+    "availability": "WEEK_ENDING_FRIDAY_PLUS_5_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "predictive_horizon_hours": 168,
+    "variants": 1,
+    "strategy_economics": "DENY_UNLESS_ALL_PRE_ECONOMIC_GATES_PASS"
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "predictive_horizon_hours": 168,
+    "predictive_overlap_rule": "WEEKLY_168H_EPISODES_NON_OVERLAPPING_BY_CONSTRUCTION"
+  },
+  "gate_set": {
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "t5yie_sha256_rows_weekly_lattice_and_friday_plus5d_availability_match",
+      "source_bundle_runner_prior_hypothesis_probe_and_spec_sha256_match",
+      "design_minimum_evaluable_episodes",
+      "design_minimum_supportive_episodes",
+      "design_minimum_other_episodes",
+      "design_both_states_chronological_quartile_breadth",
+      "design_both_states_anchor_year_breadth",
+      "design_maximum_state_anchor_month_share",
+      "design_supportive_median_terminal_return_at_least_25bp_higher",
+      "design_supportive_negative_terminal_rate_at_least_5pp_lower",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_supportive_median_path_drawdown_non_worse",
+      "design_supportive_p75_path_drawdown_non_worse",
+      "design_annual_median_return_direction_breadth",
+      "design_top_positive_annual_median_return_delta_contribution_at_most_60pct",
+      "validation_minimum_evaluable_episodes",
+      "validation_minimum_supportive_episodes",
+      "validation_minimum_other_episodes",
+      "validation_both_states_chronological_quartile_breadth",
+      "validation_both_states_anchor_year_breadth",
+      "validation_maximum_state_anchor_month_share",
+      "validation_supportive_median_terminal_return_at_least_25bp_higher",
+      "validation_supportive_negative_terminal_rate_at_least_5pp_lower",
+      "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "validation_supportive_median_path_drawdown_non_worse",
+      "validation_supportive_p75_path_drawdown_non_worse",
+      "validation_annual_median_return_direction_breadth",
+      "validation_top_positive_annual_median_return_delta_contribution_at_most_60pct"
+    ],
+    "pass": "PREDICTIVE_SCREEN_PASS_ECONOMIC_MANIFEST_REQUIRED_NO_CANDIDATE",
+    "failure": "PERMANENTLY_CLOSE_WITHOUT_STRATEGY_ECONOMIC_ACCESS_OR_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_PRE_ECONOMIC_RUNNER",
+      "path": "research/btc_fred_five_year_breakeven_inflation_reflation_support_historical.py",
+      "sha256": "4d81f04a7d9b322cca24cef31444379e776f98b864d026db86aea6553ffd2590"
+    },
+    {
+      "role": "FROZEN_PREDICTIVE_STATISTICS_KERNEL",
+      "path": "research/btc_fred_on_rrp_drawdown_liquidity_support_historical.py",
+      "sha256": "2f958e0b0d481acbd4610cdc234d9ddc069713984c46c0690720ebe1c0192fc9"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DETERMINISTIC_STATISTICS",
+      "path": "research/btc_cftc_dealer_net_position_change_long_cash_historical.py",
+      "sha256": "389efeb6583d7af32981704c649288f0a9395f4031f2c299931a56e582734a3e"
+    },
+    {
+      "role": "FROZEN_FAIL_CLOSED_T5YIE_SOURCE_PROBE",
+      "path": "research/fred_t5yie_source_probe.py",
+      "sha256": "86262c3411ef47ffc9891fd0bc0e6ae83f8fdb2ba7e4fc22f78d595c363a6442"
+    },
+    {
+      "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-fred-five-year-breakeven-inflation-reflation-support-long-cash-primary-prior.v1.json",
+      "sha256": "4da21176e950dfb8ae2f8b983e81c0e8240b46a8a38a45d4b3a83f7327e9785a"
+    },
+    {
+      "role": "FROZEN_PRE_FACTOR_SOURCE_FEASIBILITY_SPEC",
+      "path": "research_pipeline/examples/btc-fred-five-year-breakeven-inflation-source-feasibility.v1.spec.json",
+      "sha256": "992baad87e0a48c3810919361a1838ee584ae7e84452fab8674d0c2dc61359bc"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-fred-five-year-breakeven-inflation-reflation-support-long-cash-v1.hypothesis.json",
+      "sha256": "6a82afc1671ff9aed0484be20362c5b44d7699134a29205f8822e8a8044a1939"
+    },
+    {
+      "role": "SEALED_OFFICIAL_T5YIE_SOURCE_BUNDLE",
+      "path": ".research-state/experiments/btc-fred-five-year-breakeven-inflation-historical-v1/inputs/fred-t5yie-source-bundle.json",
+      "sha256": "e65b4f0f06077469f7e796e4470ec4a05e8bf95891dec1c8feb4239e4cd29ffc"
+    },
+    {
+      "role": "SEALED_NORMALIZED_T5YIE_CORPUS",
+      "path": ".research-state/experiments/btc-fred-five-year-breakeven-inflation-historical-v1/inputs/fred-t5yie-2017-2024.normalized.csv",
+      "sha256": "5080eee237a67dc286f51bfb968a29c92e49c2477c06bbd9f5f88cc77a1c8cfe"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not change the last-observation weekly aggregation, positive four-week direction, Wednesday availability, 168-hour horizon or one-variant contract after BTC outcome access.",
+    "Do not add T10YIE, T5YIFR, nominal yields, real yields, yield curves, Fed balance sheet, dollar, financial conditions, M2, Treasury liquidity, CFTC, on-chain, trend, volatility or technical indicators as rescue variants.",
+    "Do not invert the direction, add a level or magnitude threshold, smooth T5YIE, scan alternate lags or substitute another source or transport.",
+    "Do not open matched-capital economics unless every Design and Validation predictive gate passes; do not open post-2024 OOS in this experiment."
+  ],
+  "revision_boundary": "This is one August 2026 present-vintage FRED history. Original daily release vintages remain MISSING_PROOF, so even a predictive pass cannot establish point-in-time alpha or create a candidate.",
+  "measurement_boundary": "T5YIE combines market-implied expected inflation with inflation-risk and potentially liquidity premia; the proposed reflation mechanism is not uniquely identified.",
+  "scope_note": "Frozen pre-outcome predictive manifest only. No T5YIE-BTC outcome, strategy economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

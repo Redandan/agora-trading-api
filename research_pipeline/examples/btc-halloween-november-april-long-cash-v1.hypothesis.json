@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-halloween-november-april-long-cash-v1",
+  "title": "Fixed November-through-April Bitcoin long-or-cash calendar policy",
+  "thesis": "A fixed November-through-April UTC season may have better subsequent Bitcoin return-to-path-risk economics than May through October, but conflicting published Bitcoin findings require a direct matched-capital replication rather than an imported seasonal-alpha claim.",
+  "mechanism": "At the first BTC H1 open at or after 00:00 UTC on each calendar-month boundary, hold full-capital unlevered BTC during November, December, January, February, March and April, and hold zero-yield cash during May through October. Use one exact variant only. Do not shift boundaries, select months, add a January, quarter, weekday, trend, volatility, macro, on-chain or event interaction, invert the season, fractional-size or short.",
+  "economic_rationale": "The rule trades only at two state changes per year and can reduce exposure during a historically proposed weak half-year. It is useful only if explicit-cost Design and Validation total return remains positive, drawdown and Calmar improve enough to offset foregone upside, annual and seasonal-episode support is broad, and terminal inventory remains fully visible.",
+  "source": "PRE_CANDIDATE_POOL:btc-halloween-november-april-long-cash:PRIMARY_PRIOR_SHA256_f97c34876bf180a046df1e65e4608884a5e870604735536eece80942b46776e1:CALENDAR_FEATURE_NO_EXTERNAL_DATASET",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "fixed-utc-november-april-matched-capital-long-cash-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "normal_and_doubled_friction_total_realized_and_unrealized_return",
+    "matched_buy_hold_total_return_drawdown_calmar_and_upside_capture",
+    "monthly_signal_state_count_position_changes_holding_duration_and_utilization",
+    "annual_fair_reset_positive_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_validation_positive_seasonal_episode_contribution_concentration",
+    "terminal_inventory_and_hypothetical_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 2,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-halloween-calendar-1",
+  "created_at": "2026-08-21T05:44:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

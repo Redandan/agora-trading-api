@@ -1,0 +1,167 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_TREASURY_TERM_SPREAD_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-treasury-term-spread-long-cash-historical-v1",
+  "created_at": "2026-08-19T08:12:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "The latest published U.S. Treasury 10-year minus 3-month term spread may identify macroeconomic and risk-bearing conditions before a BTC position decision. Holding full BTC only while that spread is non-negative may avoid uncompensated inversion-associated paths and improve drawdown and Calmar after costs while retaining sufficient upside.",
+  "economic_rationale": "The policy is valuable only if the macro-risk state improves matched-capital BTC economics beyond passive holding after normal and doubled friction. Positive aggregate PnL is insufficient: Design, Validation, annual breadth, concentration, drawdown, Calmar, upside capture, realized and unrealized PnL, holding, terminal inventory and the two common alternative short maturities must support the same mechanism.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-us-treasury-term-spread-noninversion-long-cash",
+    "independence_key": "official-us-treasury-macro-term-structure",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_LAGGED_TREASURY_NONINVERSION_POLICY",
+    "distinct_from_closed_families": [
+      "The closed VIX, VIX3M and Cboe SKEW families used equity option-implied risk; this family uses only official nominal Treasury par-yield maturity differences.",
+      "The high-yield OAS family closed before outcome access because its free source lacked full historical coverage; this Treasury archive is official, complete for 2018-2024 and independently sealed.",
+      "The closed BTC trend, volatility, volume, microstructure and CFTC families derived features from BTC or trader positions; this policy contains no BTC-derived signal or CFTC field.",
+      "The open crypto-carry family concerns crypto derivative demand and financing cost; this policy contains no crypto derivative, funding or borrowing observation."
+    ],
+    "excluded_reinterpretations": [
+      "No fitted recession probability, monthly average, near-term forward spread, alternate maturity, threshold, sign, smoothing, confirmation delay, BTC interaction, cash yield, fractional sizing, leverage or short leg may be added after outcome access.",
+      "The 10Y-minus-1Y and 10Y-minus-2Y variants are rejection-only stability neighbors and cannot replace a failed 10Y-minus-3M primary.",
+      "A failure cannot be reinterpreted as support for the closed high-yield OAS, VIX, volatility, trend or crypto-carry families.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-treasury-term-spread-primary-prior.v1.json",
+      "sha256": "90c0bd75cb641f031ae155aea7b56ac0b0dc2e952939c9e859af87c42832bc65",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/us-treasury-par-yield-curve-2018-2024.v1.source.json",
+      "sha256": "0b66812eaf7f4da1b8c4a2b282887a256226b100048c98dce957f650f7bbc4b5",
+      "role": "SEALED_SOURCE_PROVENANCE_TIMING_SERIES_BREAK_AND_REVISION_IDENTITY"
+    },
+    {
+      "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/inputs/treasury-source-bundle.json",
+      "sha256": "5eeda69a5b3a5ad289e0ee9aff6020638266d062d667b902a4b353e593b80965",
+      "role": "CREATE_ONCE_RAW_OFFICIAL_TREASURY_SOURCE_BUNDLE"
+    },
+    {
+      "path": ".research-state/experiments/btc-treasury-term-spread-long-cash-historical-v1/inputs/treasury-yield-curve-2018-2024.csv",
+      "sha256": "045ce4646a4595697fc16d8e32c0fd08efd431680e998c9f85d2dcac1732c82a",
+      "role": "SEALED_2018_2024_TREASURY_PAR_YIELD_SUBSET"
+    },
+    {
+      "path": "research_pipeline/examples/btc-treasury-term-spread-long-cash-v1.hypothesis.json",
+      "sha256": "989ff5cba33c98ebff0e43dd78668a83ab446175a13c71debf4ba46c03f7afdb",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json",
+      "sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc",
+      "role": "FROZEN_MATCHED_BUY_HOLD_LEDGER_PARITY_REFERENCE"
+    },
+    {
+      "path": "research/btc_treasury_term_spread_long_cash_historical.cjs",
+      "sha256": "cd375a15ed0f6cf5801f9fd26563753c06af895a81da34e6c23643c6e00320e9",
+      "role": "FROZEN_DETERMINISTIC_TERM_SPREAD_POLICY_AND_ECONOMIC_RUNNER"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_US_TREASURY_TERM_SPREAD_NONINVERSION_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_clock": "NEXT_CALENDAR_DAY_0000_UTC_AFTER_TREASURY_TRADING_DATE",
+    "long_maturity": "10 Yr",
+    "relation": "AT_OR_ABOVE",
+    "threshold_pct": "0.00",
+    "long_target": "BTC_100_PERCENT",
+    "risk_off_target": "CASH_100_PERCENT",
+    "cash_yield": "ZERO",
+    "state_persistence": "LATEST_TREASURY_TARGET_PERSISTS_ACROSS_WEEKENDS_AND_HOLIDAYS",
+    "missing_date_policy": "NO_FILL_NO_INTERPOLATION_NO_SUBSTITUTION",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AT_OR_AFTER_FROZEN_EFFECTIVE_TIME",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": [
+      {"variant_id": "treasury-10y-3m-noninversion-v1", "role": "primary", "short_maturity": "3 Mo"},
+      {"variant_id": "treasury-10y-1y-noninversion-v1", "role": "neighbor", "short_maturity": "1 Yr"},
+      {"variant_id": "treasury-10y-2y-noninversion-v1", "role": "neighbor", "short_maturity": "2 Yr"}
+    ]
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {"start": "2020-01-01T00:00:00", "end_exclusive": "2023-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "validation": {"start": "2023-01-01T00:00:00", "end_exclusive": "2025-01-01T00:00:00", "state": "FAIR_RESET_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"},
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_TO_EQUITY_1_CASH_APPLY_LATEST_AVAILABLE_TARGET_AT_START"
+    }
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_ZERO_YIELD_CASH_WITH_ZERO_RETURN",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_LONG_EPISODES_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "gate_set": {
+    "id": "BTC_TREASURY_TERM_SPREAD_LONG_CASH_ECONOMIC_GATES_V1",
+    "primary": [
+      "design_normal_and_stress_total_return_positive",
+      "design_drawdown_at_most_85pct_of_buy_hold",
+      "design_upside_capture_at_least_60pct",
+      "design_calmar_at_least_buy_hold",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_at_most_85pct_of_buy_hold",
+      "validation_upside_capture_at_least_60pct",
+      "validation_calmar_at_least_buy_hold",
+      "validation_at_least_400_signals_and_2_to_50_position_changes",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_and_stress_positive_annual_return_at_least_4_of_5",
+      "annual_drawdown_non_worse_5_of_5",
+      "annual_calmar_non_worse_at_least_3_of_5",
+      "top_year_positive_contribution_at_most_60pct",
+      "validation_terminal_liquidation_adjusted_return_positive_and_cost_at_most_1pp",
+      "validation_p90_and_terminal_holding_age_at_most_two_years"
+    ],
+    "neighbors": [
+      "design_normal_total_return_positive",
+      "validation_normal_and_stress_total_return_positive",
+      "validation_drawdown_non_worse_than_buy_hold",
+      "validation_calmar_at_least_75pct_of_buy_hold",
+      "normal_positive_annual_return_at_least_3_of_5"
+    ],
+    "decision": "PRIMARY_AND_BOTH_NEIGHBORS_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "runtime": "NODE_22_OR_COMPATIBLE",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any BTC corpus, Treasury source, raw bundle, metadata, prior, hypothesis, parser, runner, ordering, maturity, publication-timing or series-break binding fails.",
+    "Stop and permanently close the exact Treasury non-inversion long-cash family if any primary or neighbor gate fails.",
+    "Do not choose the best maturity, invert the relation, scan another threshold, average period, smoothing, delay, BTC interaction, cash yield, exposure, leverage or short rule after outcome access.",
+    "Do not use post-2024 BTC or Treasury data in this historical decision; a pass requires separately sealed independent OOS and remains REPORTED_NOT_ACTIVATED."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": ["PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL", "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO", "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"]
+}

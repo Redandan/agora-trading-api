@@ -1,0 +1,147 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_SMA200_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-daily-sma200-long-cash-historical-v1",
+  "decided_at": "2026-08-19T04:09:20Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_DAILY_SMA200_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_DAILY_PRIOR_SMA150_200_250_LONG_CASH_FAMILY_WITHOUT_TUNING",
+  "manifest_sha256": "64fae30d8df0fefa7e846265515f27943d1d61c1feeb5ccd33cc139bc1fb863b",
+  "runner": {
+    "path": "research/btc_daily_sma200_long_cash_historical.cjs",
+    "sha256": "da51bc4d5233b6590401334f376b8a627c77cfc8003c55f1d65f12ddec3d9335",
+    "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+    "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-daily-sma200-long-cash-historical-v1/artifacts/run1.json",
+    "sha256": "47d6056734afa9b90bd75b74d02c391b1b6aea25b4ba81f8d58352128ee2b0e4"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-daily-sma200-long-cash-historical-v1/artifacts/run2.json",
+    "sha256": "47d6056734afa9b90bd75b74d02c391b1b6aea25b4ba81f8d58352128ee2b0e4",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "complete_utc_days": 2192,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "integrity_evidence": {
+    "source_and_manifest_hashes_match": true,
+    "hourly_lattice_and_utc_day_inventory_pass": true,
+    "buy_hold_python_ledger_parity_at_8dp": true,
+    "formula_tests_before_outcome_access": true,
+    "oos_opened": false
+  },
+  "economic_summary": {
+    "primary_sma200_design_normal": {
+      "candidate_realized_return_pct": "112.45742071",
+      "candidate_unrealized_return_pct": "0.00000000",
+      "candidate_total_return_pct": "112.45742071",
+      "candidate_maximum_drawdown_pct": "64.92977287",
+      "candidate_calmar_ratio": "1.73198543",
+      "buy_hold_total_return_pct": "129.60544229",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "1.67905405",
+      "total_return_delta_pp": "-17.14802157",
+      "maximum_drawdown_delta_pp": "-12.25978638",
+      "upside_capture_ratio": "0.86769057",
+      "average_exposure_pct": "49.36131387",
+      "position_changes": 26,
+      "completed_episodes": 13,
+      "winning_episodes": 1,
+      "top_positive_episode_contribution_pct": "100.00000000"
+    },
+    "primary_sma200_validation_normal": {
+      "candidate_realized_return_pct": "143.53062415",
+      "candidate_unrealized_return_pct": "100.79871208",
+      "candidate_total_return_pct": "244.32933623",
+      "candidate_maximum_drawdown_pct": "28.63156988",
+      "candidate_calmar_ratio": "8.53356408",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "total_return_delta_pp": "-220.42541533",
+      "maximum_drawdown_delta_pp": "-3.65259361",
+      "upside_capture_ratio": "0.52571670",
+      "calmar_ratio_to_buy_hold": "0.59278356",
+      "average_exposure_pct": "80.30095759",
+      "position_changes": 17,
+      "completed_episodes": 8,
+      "winning_episodes": 3,
+      "median_hold_hours": "84.00000000",
+      "p90_hold_hours": "5515.20000000",
+      "terminal_position": true,
+      "top_positive_episode_contribution_pct": "76.93774575"
+    },
+    "primary_sma200_validation_stress": {
+      "candidate_total_return_pct": "235.66055708",
+      "candidate_maximum_drawdown_pct": "29.90471120",
+      "buy_hold_total_return_pct": "463.90931032",
+      "terminal_liquidation_cost_pp": "1.00631035"
+    },
+    "rejection_only_neighbor_sma150_validation_normal": {
+      "candidate_total_return_pct": "270.00760040",
+      "candidate_maximum_drawdown_pct": "26.07373665",
+      "candidate_calmar_ratio": "10.35553914",
+      "upside_capture_ratio": "0.58096792",
+      "calmar_ratio_to_buy_hold": "0.71934696"
+    },
+    "rejection_only_neighbor_sma250_validation_normal": {
+      "candidate_total_return_pct": "173.58153233",
+      "candidate_maximum_drawdown_pct": "35.72925070",
+      "candidate_calmar_ratio": "4.85824720",
+      "upside_capture_ratio": "0.37349060",
+      "calmar_ratio_to_buy_hold": "0.33747788"
+    },
+    "annual_primary_normal": {
+      "2020": {"candidate_total_return_pct": "171.29596129", "buy_hold_total_return_pct": "301.32276307", "candidate_maximum_drawdown_pct": "30.29427308"},
+      "2021": {"candidate_total_return_pct": "-21.79527821", "buy_hold_total_return_pct": "59.60909620", "candidate_maximum_drawdown_pct": "64.92977287"},
+      "2022": {"candidate_total_return_pct": "0.00000000", "buy_hold_total_return_pct": "-64.25634095", "candidate_maximum_drawdown_pct": "0.00000000"},
+      "2023": {"candidate_total_return_pct": "93.70744802", "buy_hold_total_return_pct": "155.16375107", "candidate_maximum_drawdown_pct": "21.72199642"},
+      "2024": {"candidate_total_return_pct": "77.48688376", "buy_hold_total_return_pct": "120.99348678", "candidate_maximum_drawdown_pct": "28.63156988"}
+    },
+    "breadth": {
+      "normal_positive_years": "3_of_5",
+      "stress_positive_years": "3_of_5",
+      "normal_drawdown_non_worse_than_buy_hold_years": "4_of_5",
+      "normal_calmar_at_least_75pct_of_buy_hold_years": "2_of_5",
+      "normal_upside_capture_at_least_50pct_years": "3_of_5",
+      "top_year_positive_total_return_contribution_pct": "50.01483684",
+      "validation_top_positive_episode_contribution_pct": "76.93774575"
+    }
+  },
+  "failed_gates": [
+    "primary_validation_normal_upside_capture_at_least_60pct",
+    "primary_validation_normal_calmar_at_least_buy_hold",
+    "neighbor_sma150_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_sma250_validation_normal_drawdown_non_worse",
+    "neighbor_sma250_validation_normal_calmar_at_least_75pct_buy_hold",
+    "neighbor_sma250_validation_normal_upside_capture_at_least_50pct",
+    "primary_normal_positive_annual_total_return_at_least_4_of_5",
+    "primary_stress_positive_annual_total_return_at_least_4_of_5",
+    "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+    "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+    "primary_validation_top_positive_episode_contribution_at_most_60pct"
+  ],
+  "passed_evidence": [
+    "The exact dataset, source bindings, hourly lattice, complete UTC-day inventory, buy-and-hold parity and two byte-identical runs passed every integrity requirement.",
+    "SMA200 produced positive after-cost total returns in Design and Validation and reduced Validation maximum drawdown by 3.65259361 percentage points.",
+    "The rule avoided all 2022 BTC exposure under the fair-reset annual diagnostic and ended Validation with eight completed episodes plus one marked terminal position."
+  ],
+  "material_learning": "The standalone SMA200 allocation differs economically from the failed DRA admission veto, but it repeats the same concentration problem. It entirely avoided the 2022 loss, yet lost 21.79527821 percent in 2021 and captured only 52.571670 percent of passive 2023-2024 upside. Its Validation drawdown improvement was only 3.65259361 percentage points, leaving Calmar at 59.278356 percent of buy-and-hold. Only three Validation episodes were winners and the largest supplied 76.937746 percent of positive episode PnL. SMA150 improved the trade-off but still missed the frozen Calmar stability gate; it cannot replace the failed primary. SMA250 was worse on return, drawdown, Calmar and upside.",
+  "scientific_claim": "The exact daily current-close strictly above prior-SMA200 full-capital BTC-or-cash policy and its preregistered SMA150 and SMA250 rejection-only neighbors produced positive aggregate historical returns but failed frozen Validation upside, Calmar, annual breadth, episode concentration and neighbor-stability gates. None is a candidate, and the result permanently closes this exact standalone family without reopening the DRA admission or monthly momentum branches.",
+  "prohibited_reopen": true,
+  "oos_opened": false,
+  "uncertainty": [
+    "This is historical preregistered Design and Validation evidence through 2024, not independent post-selection OOS or forward profitability.",
+    "The factor is adjacent to a previously closed long-trend admission feature, so even a pass would not have counted as independent evidence.",
+    "The current sandbox could not launch the system Python runtime. The frozen Node runner matched the independent buy-and-hold Python ledger at eight decimals and was byte deterministic, but the SMA candidate path was not independently cross-implemented in Python today.",
+    "The failed gates have wide economic margins; binary-runtime rounding cannot plausibly rescue the family, but exact cross-runtime candidate parity remains MISSING_PROOF.",
+    "A genuinely different trend construction would need a new pre-outcome fingerprint and independent rationale; it cannot be introduced as a rescue variant."
+  ],
+  "scope_note": "No paid API, second timer, second writer, backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

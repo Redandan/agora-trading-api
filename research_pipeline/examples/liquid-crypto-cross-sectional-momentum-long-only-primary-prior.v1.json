@@ -1,0 +1,89 @@
+{
+  "schema_version": "1",
+  "document_type": "LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_LONG_ONLY_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "researched_at": "2026-08-20T07:33:42Z",
+  "family_id": "liquid-crypto-cross-sectional-momentum-long-only",
+  "decision": "PRIOR_SUPPORTS_ONE_BOUNDED_FREE_SOURCE_AND_POINT_IN_TIME_UNIVERSE_FEASIBILITY_PROBE_NOT_A_PERFORMANCE_EXPERIMENT",
+  "candidate_created": false,
+  "oos_opened": false,
+  "mechanism_prior": {
+    "decision_feature_class": "CROSS_SECTIONAL_LAGGED_RETURN_RANK_AMONG_POINT_IN_TIME_LIQUID_CRYPTO_ASSETS",
+    "causal_hypothesis": "Gradual diffusion of market-specific information and constrained arbitrage may cause recent relative winners among independently tradable liquid crypto assets to continue outperforming recent relative losers over a bounded holding horizon.",
+    "economic_hypothesis": "A long-only top-rank portfolio, compared with a matched-capital point-in-time liquid-crypto market portfolio and cash, may improve fee- and slippage-adjusted total PnL without concentrating the result in one asset, year or terminal inventory mark.",
+    "independence_from_closed_dra_families": "This is a multi-asset relative-return allocation mechanism, not another single-BTC DRA entry veto, macro state filter, on-chain admission rule or full-lot exit variant."
+  },
+  "primary_sources": [
+    {
+      "title": "Common Risk Factors in Cryptocurrency",
+      "publisher": "The Journal of Finance / Wiley",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1111/jofi.13119",
+      "doi": "10.1111/jofi.13119",
+      "claim_boundary": "The paper reports that cryptocurrency market, size and momentum factors capture cross-sectional expected returns. This supports testing a momentum mechanism but does not validate this repository's long-only implementation, venue, universe, costs or period."
+    },
+    {
+      "title": "Risks and Returns of Cryptocurrency",
+      "publisher": "The Review of Financial Studies / Oxford University Press",
+      "url": "https://academic.oup.com/rfs/article-abstract/34/6/2689/5912024",
+      "doi": "10.1093/rfs/hhaa113",
+      "claim_boundary": "The paper reports strong cryptocurrency time-series momentum and market-specific predictors. It is supporting context only and is not direct proof of a cross-sectional long-only portfolio."
+    },
+    {
+      "title": "Binance Public Data",
+      "publisher": "Binance official GitHub organization",
+      "url": "https://github.com/binance/binance-public-data/blob/master/README.md",
+      "claim_boundary": "The official archive documents free daily and monthly spot kline files, all-symbol download helpers and per-file checksums. It does not by itself prove a historically complete point-in-time universe, delisting coverage or acceptable private-research data terms."
+    }
+  ],
+  "adversarial_sources": [
+    {
+      "title": "Cryptocurrency Momentum: Is It an Illusion?",
+      "publisher": "International Journal of Finance and Economics / Wiley",
+      "url": "https://onlinelibrary.wiley.com/doi/full/10.1002/ijfe.70036",
+      "doi": "10.1002/ijfe.70036",
+      "claim_boundary": "The study reports power-law risk and questions whether cryptocurrency momentum risk premia are realizable with conventional mean-variance evaluation. Any experiment therefore needs path, tail, breadth and concentration gates rather than aggregate return alone."
+    }
+  ],
+  "proposed_free_source": {
+    "provider": "BINANCE_PUBLIC_DATA",
+    "market": "SPOT",
+    "quote_asset": "USDT",
+    "bar_interval": "1d",
+    "archive_root": "https://data.binance.vision/data/spot/monthly/klines/",
+    "official_documentation": "https://github.com/binance/binance-public-data/blob/master/README.md",
+    "authentication": "NONE",
+    "paid_api": false,
+    "checksum_expected": true,
+    "present_status": "SOURCE_PROPOSAL_NOT_YET_SEALED"
+  },
+  "required_source_feasibility_proof": [
+    "Enumerate a reproducible historical symbol universe from archived paths without using today's exchangeInfo as historical membership.",
+    "Demonstrate that delisted and inactive symbols are not silently omitted, or fail closed if historical membership cannot be reconstructed.",
+    "Verify archive checksums and normalize the documented post-2025 timestamp-unit change without opening post-selection outcomes.",
+    "Estimate download size and bounded local compute cost before authorizing a full corpus.",
+    "Resolve whether the archive's data-use terms permit this private research use; repository code licensing alone is not data licensing proof."
+  ],
+  "pre_outcome_design_constraints": [
+    "Eligibility at each rebalance may use only bars and quote volume available before that rebalance.",
+    "Do not define the universe from current winners, current listings or hand-selected surviving assets.",
+    "Exclude stablecoin bases, wrapped duplicates and leveraged tokens using a frozen symbol taxonomy before any return outcome is computed.",
+    "Freeze one formation horizon, one holding horizon, one liquidity screen and one long-only portfolio size before performance evidence.",
+    "Use no more than three preregistered variants and compare against both cash and a matched-capital point-in-time liquid-crypto market portfolio.",
+    "Include fees, adverse slippage, turnover, realized and unrealized PnL, maximum drawdown, underwater duration, annual and asset breadth, top-asset/top-period concentration and terminal inventory."
+  ],
+  "stop_conditions": [
+    "Stop with DATA_REJECT if a point-in-time universe cannot be reconstructed without survivorship or look-ahead leakage.",
+    "Stop with DATA_REJECT if checksummed free archives cannot cover a minimum preregistered Design and Validation span.",
+    "Stop before download if the bounded corpus exceeds local storage or compute limits without a smaller unbiased design.",
+    "Stop before performance if data-use permission remains materially ambiguous for the intended private research use.",
+    "After registration, stop the exact family on failed economic, drawdown, breadth, concentration or tail-risk gates; do not tune around the failure."
+  ],
+  "next_action": "RUN_ONE_READ_ONLY_ARCHIVE_INVENTORY_AND_POINT_IN_TIME_UNIVERSE_FEASIBILITY_PROBE_THEN_EITHER_FREEZE_ONE_EXPERIMENT_OR_CLOSE_DATA_REJECT",
+  "missing_proof": [
+    "No point-in-time universe is sealed.",
+    "No historical corpus, checksum ledger, parent, matched comparator or deterministic runner is bound.",
+    "No Design, Validation, independent OOS or forward economics exist.",
+    "Data-use terms for the proposed archive have not been independently resolved."
+  ],
+  "scope_note": "This prior performed literature and source-design analysis only. It did not download a market corpus, compute performance, register a candidate, open OOS, write canonical state, create a timer or touch Production, Trading, database, orders, funds, OCO, Grid, SHADOW, PAPER or LIVE."
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_TOTAL_OPEN_INTEREST_GROWTH_LONG_CASH_V1_SOURCE_FIELD_PARSER_ERRATUM",
+  "created_at": "2026-08-20T10:55:44Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "affected_experiment_id": "btc-cftc-total-open-interest-growth-long-cash-historical-v1",
+  "affected_runner": {
+    "path": "research/btc_cftc_total_open_interest_growth_long_cash_historical.py",
+    "sha256": "c6047414a27472e1cef2a27694ca5609837e116443342a37d32d3e6e086e58fe"
+  },
+  "affected_manifest": {
+    "path": "research_pipeline/examples/btc-cftc-total-open-interest-growth-long-cash-historical.v1.manifest.json",
+    "sha256": "8fc77b2da697115c76c6617c0020be41abcd1a11a1f5c00c818ada1bec264c13"
+  },
+  "failure": {
+    "stage": "SOURCE_FIELD_PARSE_BEFORE_FACTOR_POINT_OR_ARTIFACT_CONSTRUCTION",
+    "exception": "ValueError: factor value is outside [0,100]",
+    "cause": "V1 reused a percentage-field parser for Open_Interest_All and Change_in_Open_Interest_All, but those official CFTC fields are contract counts and may be greater than 100.",
+    "v1_run1_artifact_created": false,
+    "v1_run2_started": false,
+    "factor_value_serialized_or_reported": false,
+    "btc_outcome_serialized_or_reported": false
+  },
+  "permitted_v2_change": "Replace only the source-field parser with a strict signed base-10 integer grammar suitable for CFTC contract-count fields. Preserve the V1 factor formula, positive-growth direction, zero threshold, exact predecessor, availability lag, windows, costs, predictive gates, economic gates, variant count and prohibited substitutions byte-for-byte in meaning.",
+  "scientific_design_change": false,
+  "gate_change": false,
+  "direction_change": false,
+  "threshold_change": false,
+  "lag_or_window_change": false,
+  "cost_or_accounting_change": false,
+  "oos_access": "DENY",
+  "scope_note": "Capability erratum only. No candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

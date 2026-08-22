@@ -1,0 +1,50 @@
+{
+  "schema_version": "1",
+  "document_type": "CBOE_VIX3M_DAILY_2018_2024_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SEALED_HISTORICAL_SOURCE",
+  "publisher": "Cboe Global Markets",
+  "product_page": "https://www.cboe.com/tradable-products/vix/term-structure/",
+  "methodology": "https://cdn.cboe.com/api/global/us_indices/governance/Volatility_Index_Methodology_Selected_SPX_Target_Expected_Volatility_Term_Indices.pdf",
+  "download_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv",
+  "downloaded_at": "2026-08-19T07:37:02.535Z",
+  "raw_download": {
+    "path": ".research-state/experiments/btc-vix-term-structure-long-cash-historical-v1/inputs/cboe-vix3m-history-raw.csv",
+    "sha256": "a9705859b8d9c64e1d6b349c34e4bdb724528fab4ec0c833c6a32b8e6c5a84e6",
+    "bytes": 216979,
+    "rows": 4254,
+    "columns": ["DATE", "OPEN", "HIGH", "LOW", "CLOSE"]
+  },
+  "sealed_window": {
+    "rows": 1761,
+    "first_date": "2018-01-02",
+    "last_date": "2024-12-31",
+    "matched_cboe_vix_rows": 1761,
+    "vix_only_dates": [
+      "2022-05-30",
+      "2022-06-20",
+      "2022-07-04",
+      "2022-09-05",
+      "2022-11-24",
+      "2023-01-16",
+      "2023-02-20",
+      "2023-05-29",
+      "2023-06-19",
+      "2023-07-04",
+      "2023-09-04",
+      "2023-11-23",
+      "2024-01-15",
+      "2024-02-19",
+      "2024-05-27",
+      "2024-06-19",
+      "2024-07-04",
+      "2024-09-02",
+      "2024-11-28"
+    ],
+    "alignment_policy": "Use a ratio observation only when the sealed VIX and VIX3M sources both contain the same Cboe date. Do not fill, interpolate or substitute the nineteen VIX-only dates."
+  },
+  "publication_timing_boundary": "Use a matched Cboe VIX and VIX3M business-day close only at 00:00 UTC on the following calendar day or later. Persist the latest matched state across weekends, holidays and VIX-only dates. Never use same-UTC-day BTC bars before that boundary.",
+  "revision_boundary": "The create-only raw download and its frozen 2018-2024 window are the sole VIX3M input for this experiment. A later Cboe download cannot replace, repair or extend it after BTC outcome access.",
+  "claim_boundary": "Cboe identifies VIX3M as a three-month expected-volatility index. Source identity and timing do not prove that the VIX/VIX3M ratio predicts BTC returns or improves a BTC-or-cash policy.",
+  "scope_note": "Free public historical data only; no paid API, account, key, BTC outcome access during capture, forward import, canonical state write or Trading action was used."
+}

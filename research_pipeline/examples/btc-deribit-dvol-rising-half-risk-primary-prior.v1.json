@@ -1,0 +1,89 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DERIBIT_DVOL_RISING_HALF_RISK_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-deribit-dvol-rising-half-risk",
+  "created_at": "2026-08-21T04:51:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_dvol_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_SOURCE_FEASIBILITY_GATE_THEN_AT_MOST_ONE_HASH_BOUND_ECONOMIC_AUDIT",
+  "claim_boundary": "Deribit defines BTC DVOL as a smoothed thirty-day annualized forward-looking implied-volatility index derived from its options market and provides a public historical candle endpoint. Rising DVOL can therefore identify higher expected movement, but Deribit explicitly describes Bitcoin DVOL as an action or fear-and-greed gauge rather than a one-direction fear gauge. Exactly one risk-sizing audit may test whether halving BTC exposure during week-over-week DVOL increases improves risk-adjusted performance; no bearish return claim is imported.",
+  "primary_sources": [
+    {
+      "title": "DVOL - Deribit Implied Volatility Index",
+      "publisher": "Deribit",
+      "url": "https://insights.deribit.com/exchange-updates/dvol-deribit-implied-volatility-index/",
+      "use": "Primary definition, thirty-day annualized forward-volatility interpretation, options-based methodology, smoothing and explicit action-gauge direction boundary."
+    },
+    {
+      "title": "public/get_volatility_index_data",
+      "publisher": "Deribit API Documentation",
+      "url": "https://docs.deribit.com/api-reference/market-data/public-get_volatility_index_data",
+      "use": "Official unauthenticated historical candle schema, supported 1D resolution and deterministic continuation field."
+    },
+    {
+      "title": "IV Rank and IV Percentile",
+      "publisher": "Deribit",
+      "url": "https://insights.deribit.com/education/iv-rank-and-iv-percentile/",
+      "use": "Primary evidence that DVOL history can contextualize implied volatility, while not establishing a BTC spot timing rule."
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "DERIBIT_BTC_DVOL_COMPLETE_SUNDAY_CLOSE_STRICTLY_ABOVE_PREVIOUS_COMPLETE_SUNDAY_CLOSE_PLUS_1D",
+    "high_expected_movement_state": "CURRENT_COMPLETE_SUNDAY_DVOL_CLOSE_STRICTLY_ABOVE_PREVIOUS_COMPLETE_SUNDAY_DVOL_CLOSE",
+    "other_state": "OTHERWISE",
+    "policy": "HOLD_50_PERCENT_BTC_AND_50_PERCENT_ZERO_YIELD_CASH_IN_HIGH_EXPECTED_MOVEMENT_STATE_OTHERWISE_100_PERCENT_BTC_NO_LEVERAGE_NO_SHORT",
+    "availability_floor": "MONDAY_00_00_UTC_AFTER_COMPLETE_SUNDAY_CANDLE",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "maximum_validity_hours": 168,
+    "comparison_lag_days": 7,
+    "reduced_btc_weight": "0.50",
+    "variant_count": 1
+  },
+  "future_economic_contract_if_and_only_if_source_gate_passes": {
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "calmar",
+      "upside_participation",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "high_dvol_episode_concentration"
+    ]
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_spot_realized_volatility": "Closed realized-volatility and volatility-of-volatility families used trailing BTC spot returns. DVOL is forward-looking option-implied volatility from a separate market and is used only for half-risk sizing.",
+    "distinct_from_closed_vix_gvz_and_skew": "VIX and GVZ are traditional-asset option indices and the closed skew family targeted tail asymmetry. DVOL is Bitcoin-specific expected movement without directional skew.",
+    "distinct_from_closed_crypto_carry": "Funding and basis measure carry and leverage demand. DVOL measures option-implied expected movement and cannot add funding, basis, open interest or option skew.",
+    "prohibited_rescue": "Do not add absolute DVOL thresholds, prior medians, IV rank, IV percentile, realized volatility, skew, funding, basis, direction inversion, alternative weights or alternate comparison lags after source or outcome access."
+  },
+  "adversarial_prior": [
+    "Higher BTC implied volatility can accompany large positive as well as negative moves, so a half-risk rule can destroy upside without reliably avoiding losses.",
+    "A one-week DVOL increase can be noisy and the index methodology includes smoothing and fallback prices.",
+    "DVOL launched in 2021, leaving fewer market cycles and making 2022 concentration a major risk.",
+    "Deribit methodology parameters may change after notice; historical candles are present-vintage and exact revision history remains MISSING_PROOF.",
+    "Public endpoint availability does not by itself establish commercial redistribution rights; sealed bytes must remain internal personal-research evidence."
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before hypothesis or BTC outcome access if the exact public 1D DVOL history cannot be sealed, continuation cannot be resolved deterministically, daily identity or continuity fails, or either weekly state lacks frozen Design and Validation support and transitions.",
+    "If the source gate passes, freeze exactly one hypothesis and one direct economic manifest before joining BTC outcomes; no threshold, lag or weight variants are allowed.",
+    "Stop NO_CANDIDATE if either Design or Validation fails matched-capital total-PnL, drawdown, Calmar, upside-participation, annual-breadth or concentration gates.",
+    "Do not open post-2024 outcomes. Any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed OOS."
+  ],
+  "missing_proof": [
+    "The exact unauthenticated historical endpoint, continuation behavior, complete 1D lattice and 2021-2024 DVOL coverage have not been sealed.",
+    "Rising and non-rising weekly state support, transitions and year concentration have not been measured.",
+    "No hash-bound hypothesis, manifest, runner or deterministic economic result exists.",
+    "No candidate, OOS, forward evidence or activation claim exists."
+  ],
+  "scope_note": "Primary and adversarial prior only. No historical DVOL value or BTC outcome, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

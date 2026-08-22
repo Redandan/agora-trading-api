@@ -1,0 +1,150 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_DEALER_NET_POSITION_CHANGE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-cftc-dealer-net-position-change-long-cash",
+  "created_at": "2026-08-20T09:54:53Z",
+  "frozen_before_dealer_factor_value_or_btc_outcome_access": true,
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_CFTC_DEALER_NET_PERCENT_OF_OPEN_INTEREST_WEEKLY_DELTA_CONTINUATION_LONG_CASH_EXPERIMENT_WITH_PRE_ECONOMIC_NONREDUNDANCY_AND_PREDICTIVE_GATES",
+  "causal_hypothesis": "A weekly increase in Dealer/Intermediary net long-minus-short share of CME Bitcoin futures open interest may reflect sell-side inventory accumulation for rising client liquidity demand and may therefore precede positive BTC returns.",
+  "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using one causally lagged Dealer/Intermediary weekly net-position-change signal may preserve sufficient BTC upside while improving fee- and adverse-slippage-adjusted drawdown and Calmar versus matched buy-and-hold.",
+  "frozen_feature": {
+    "factor_identity": "CFTC_TFF_DEALER_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_LONG_CASH_V1",
+    "market_identity": "BITCOIN - CHICAGO MERCANTILE EXCHANGE",
+    "cftc_contract_market_code": "133741",
+    "report_variant": "TRADERS_IN_FINANCIAL_FUTURES_FUTURES_ONLY",
+    "current_fields": [
+      "Pct_of_OI_Dealer_Long_All",
+      "Pct_of_OI_Dealer_Short_All"
+    ],
+    "prior_fields": [
+      "Pct_of_OI_Dealer_Long_All",
+      "Pct_of_OI_Dealer_Short_All"
+    ],
+    "current_level_formula": "CURRENT_DEALER_LONG_PCT_OI_MINUS_CURRENT_DEALER_SHORT_PCT_OI",
+    "prior_level_formula": "PRIOR_DEALER_LONG_PCT_OI_MINUS_PRIOR_DEALER_SHORT_PCT_OI",
+    "factor_formula": "CURRENT_LEVEL_MINUS_EXACT_PRIOR_WEEK_LEVEL_IN_PERCENTAGE_POINTS_OF_OPEN_INTEREST",
+    "exact_predecessor_calendar_days": 7,
+    "primary_direction": "CONTINUATION",
+    "long_condition": "FACTOR_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "FACTOR_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "historical_availability": "REPORT_DATE_PLUS_7_CALENDAR_DAYS_AT_00_00_UTC",
+    "availability_rationale": "The frozen source contract permits a three-to-six-calendar-day release lag; day seven at 00:00 UTC is strictly after that maximum without reconstructing an unsealed historical receipt time.",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "signal_validity": "UNTIL_NEXT_ELIGIBLE_WEEKLY_FACTOR_BECOMES_AVAILABLE",
+    "missing_or_suppressed_value_rule": "UNEVALUABLE_NO_IMPUTATION_NO_SOURCE_REPAIR",
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT",
+    "variant_count": 1
+  },
+  "availability_exclusion": {
+    "start_inclusive": "2023-01-31",
+    "end_inclusive": "2023-03-14",
+    "reason": "CFTC_2023_ION_DELAYED_PUBLICATION",
+    "action": "EXCLUDE_WITHOUT_BACKFILL_OR_ALTERNATE_SOURCE"
+  },
+  "primary_sources": [
+    {
+      "title": "Traders in Financial Futures Explanatory Notes",
+      "url": "https://www.cftc.gov/idc/groups/public/%40commitmentsoftraders/documents/file/tfmexplanatorynotes.pdf",
+      "use": "Official category semantics: Dealer/Intermediary is the sell side, typically balances client risk with matched or offset books, and is distinct from the three buy-side categories."
+    },
+    {
+      "title": "Trading behavior in bitcoin futures: Following the smart money",
+      "url": "https://doi.org/10.1002/fut.22332",
+      "use": "Ex-ante direction prior: the paper reports a positive relation between lagged changes in Dealer net positions and subsequent Bitcoin returns, while warning that Dealer positions are small and close to neutral on average."
+    },
+    {
+      "title": "Who Trades Bitcoin Futures and Why?",
+      "url": "https://www.cftc.gov/sites/default/files/2021-11/WhoTradesBTC_V2_ada.pdf",
+      "use": "Structural warning: CME Bitcoin trader composition changed materially around 2020 and the paper's sample ended before Bitcoin-futures ETFs, so annual breadth and 2023-2024 Validation are mandatory."
+    }
+  ],
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_leveraged_money": "The closed family used Leveraged Money net-percent-of-open-interest weekly-delta continuation as a DRA entry veto. This family uses the separately classified Dealer/Intermediary category and a standalone matched-capital BTC long/cash policy.",
+    "distinct_from_closed_asset_manager": "The closed Asset Manager family used the opposite contrarian direction as a DRA admission veto. This family uses the Dealer category and literature-preregistered continuation direction.",
+    "shared_source_risk": "All CFTC families reuse the same CME TFF weekly source, report clock and BTC corpus; category difference is a mechanism hypothesis, not independent data-source replication.",
+    "pre_economic_nonredundancy_gate": "In both Design and Validation, absolute Spearman correlation of the Dealer weekly delta with each closed Leveraged Money and Asset Manager weekly delta must be at most 0.80; otherwise permanently close as DUPLICATE_REJECT before strategy economics."
+  },
+  "pre_economic_predictive_gate": {
+    "outcome_horizon_hours": 168,
+    "anchor": "FIRST_COMPLETE_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "primary_response": "SIGN_OF_DEALER_FACTOR_MULTIPLIED_BY_NEXT_168_HOUR_BTC_RETURN",
+    "minimum_nonzero_evaluable_transitions": 26,
+    "minimum_positive_factor_transitions": 8,
+    "minimum_negative_factor_transitions": 8,
+    "required_in_each_window": [
+      "MEDIAN_SIGNED_RESPONSE_STRICTLY_POSITIVE",
+      "POSITIVE_FACTOR_MEDIAN_RAW_RETURN_STRICTLY_POSITIVE",
+      "NEGATIVE_FACTOR_MEDIAN_RAW_RETURN_STRICTLY_NEGATIVE",
+      "ONE_SIDED_SIGN_TEST_P_VALUE_AT_MOST_0_10",
+      "TOP_ABSOLUTE_SIGNED_RESPONSE_CONTRIBUTION_AT_MOST_20_PERCENT"
+    ],
+    "failure_action": "NO_CANDIDATE_CLOSE_BEFORE_STRATEGY_ECONOMICS_WITHOUT_DIRECTION_INVERSION"
+  },
+  "matched_capital_contract": {
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "initial_equity": "1.0_EQUITY_UNIT",
+    "normal_cost": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "stress_cost": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    },
+    "design": {
+      "start_inclusive": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start_inclusive": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPORA_NO_NEW_DOWNLOAD",
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608
+    },
+    "cftc_source_contract": {
+      "path": "research_pipeline/cftc-cme-bitcoin-tff-source-contract.v2.json",
+      "sha256": "726d7ebff05d1c9fb5df9399996ff9817b28025d9d696f207191ec8c62e7dde5",
+      "document_status": "OFFLINE_DISABLED_NOT_REGISTERED"
+    },
+    "archives": [
+      {"year": 2019, "path": ".research-state/experiments/cftc-tff-dra-entry-admission-historical-v1/inputs/fut_fin_txt_2019.zip", "sha256": "631b31880d513072aa50d63117c896184dd35db3cc8fcdd6debd80197ee7a661", "exact_contract_rows": 52},
+      {"year": 2020, "path": ".research-state/experiments/cftc-tff-dra-entry-admission-historical-v1/inputs/fut_fin_txt_2020.zip", "sha256": "c90d98d94db708772d669f263fb8061c75f8a7f681ba231fb21247e5c9798e6b", "exact_contract_rows": 52},
+      {"year": 2021, "path": ".research-state/experiments/cftc-tff-dra-entry-admission-historical-v1/inputs/fut_fin_txt_2021.zip", "sha256": "5c929991038c70ae2501661b6d442b9e784d3c29d3166ceac2e21b45ac93d56a", "exact_contract_rows": 52},
+      {"year": 2022, "path": ".research-state/experiments/cftc-tff-dra-entry-admission-historical-v1/inputs/fut_fin_txt_2022.zip", "sha256": "94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601", "exact_contract_rows": 52},
+      {"year": 2023, "path": ".research-state/experiments/cftc-tff-dra-entry-admission-historical-v1/inputs/fut_fin_txt_2023.zip", "sha256": "43c3dbdd4d01fceefad5e457003751cdc0974c7cf46097b322e26e9e2fe44d7a", "exact_contract_rows": 52},
+      {"year": 2024, "path": ".research-state/experiments/cftc-tff-dra-entry-admission-historical-v1/inputs/fut_fin_txt_2024.zip", "sha256": "3f00585741a7cf76c207df640951d644dd91ff22a1106b38ca37a2469c765637", "exact_contract_rows": 53}
+    ],
+    "source_cost": "OFFICIAL_FREE_ALREADY_SEALED"
+  },
+  "adversarial_prior": [
+    "Dealer/Intermediary is a sell-side risk-balancing classification, not a directional investor class; net-position changes may be inventory accommodation rather than information.",
+    "The published study combined CME and the earlier CBOE contract and used economic controls, while this executable corpus is CME-only and the strategy uses an unconditioned transparent sign rule.",
+    "Dealer net positions are close to neutral on average, so rounded percentage fields may create sparse or unstable nonzero weekly changes.",
+    "CFTC classifications can change with predominant trader activity, and CME Bitcoin participation changed around 2020 and after futures ETFs.",
+    "A shared report clock can create strong correlation with already closed Leveraged Money or Asset Manager deltas; passing economic gates cannot rescue a failed nonredundancy gate."
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before factor evaluation if any archive hash, exact contract row count, ordered field identity, Tuesday report date, exact seven-day predecessor, ION exclusion, percentage grammar or BTC H1 corpus identity fails.",
+    "Stop DUPLICATE_REJECT before strategy economics if either Design or Validation Dealer-delta absolute Spearman correlation exceeds 0.80 against the closed Leveraged Money or Asset Manager delta.",
+    "Stop NO_CANDIDATE before strategy economics if any frozen Design or Validation predictive breadth, sign, concentration or path gate fails.",
+    "If predictive gates pass, stop NO_CANDIDATE unless the single primary passes every frozen normal/stress Design, Validation, annual breadth, drawdown, Calmar, upside, concentration, holding and terminal-inventory economic gate.",
+    "Do not invert the Dealer direction, promote another participant category, scan a level, threshold, lookback, percentile, smoothing, lag, horizon, evaluation time, position size, leverage or short leg after outcome access.",
+    "Do not combine this factor with closed Leveraged Money, Asset Manager, options, CFTC category, price, volatility, macro, DRA or any closed mechanism as a rescue."
+  ],
+  "missing_proof": [
+    "No Dealer factor value, correlation, predictive response or BTC strategy outcome has been accessed.",
+    "No hash-bound Dealer runner or frozen manifest exists.",
+    "No matched-capital Design, Validation, stress, annual breadth or path-risk result exists.",
+    "No independent OOS or forward evidence exists."
+  ],
+  "scope_note": "Pre-outcome source-reuse and literature prior only. No Dealer factor value, BTC outcome, runner, manifest, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,230 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_INTRADAY_UTC0816_SESSION_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-intraday-utc0816-session-long-cash-historical-v1",
+  "created_at": "2026-08-19T04:57:11Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "BTC returns may be concentrated during a fixed European and North American overlap-adjacent UTC session strongly enough that holding spot only from 08:00 to 16:00 UTC preserves meaningful upside while reducing exposure and drawdown after daily two-sided fees and adverse slippage.",
+  "economic_rationale": "The policy trades every complete day using only a pre-known clock. It is useful only if the return premium pays one round trip per day, improves Calmar, materially lowers drawdown, survives one-hour boundary shifts and has broad annual support. Lower exposure alone cannot pass.",
+  "opportunity_cost": "Close or retain the last currently identified clock-only mechanism on the existing free sealed H1 corpus before allocating more work to indicator recombinations or waiting-only forward families.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-intraday-fixed-utc-session-07-15-08-16-09-17-long-cash",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_EVERY_DAY_CLOCK_ONLY_POLICY",
+    "distinct_from_closed_families": [
+      "The closed DRA US-session policy uses lagged quote-volume share to admit DRA entries; this policy ignores DRA and volume and directly holds BTC only during a fixed daily interval.",
+      "The closed weekend and turn-of-month policies select dates; this policy trades every date and selects only hours.",
+      "The closed intraday sign-persistence policy uses lagged returns before DRA entries; this policy uses no market-derived signal.",
+      "Trend, oscillator, volatility and band policies depend on price state; this policy is determined before seeing any price."
+    ],
+    "excluded_reinterpretations": [
+      "08:00-16:00 UTC is primary. 07:00-15:00 and 09:00-17:00 are rejection-only stability windows and cannot replace a failed primary.",
+      "No other start hour, duration, weekday subset, daylight-saving adjustment, venue-local clock, price or volume condition, direction inversion, minimum move, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "A historical pass remains REPORTED_NOT_ACTIVATED and requires at most one independent sealed OOS."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_intraday_utc0816_session_long_cash_historical.py",
+      "sha256": "7862fef67ceb21be5756a4e06f54329954e04b4570644dfeb9eefb90c1abe1f0",
+      "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+      "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b",
+      "role": "FROZEN_PASSIVE_REFERENCE_AND_ECONOMIC_PRIMITIVES"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-intraday-utc0816-session-long-cash-primary-prior.v1.json",
+      "sha256": "bc9189119e8cc2f3a9ed95dff148793a554e3b8ec0dc259ca4b1e18bf9a2307f",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-intraday-utc0816-session-long-cash-v1.hypothesis.json",
+      "sha256": "bbc592749f1713f6dc8c7c57475dad2d90820b0ff0c33c74a5311492b51d3afd",
+      "role": "FROZEN_HYPOTHESIS"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_INTRADAY_FIXED_UTC_08_TO_16_SESSION_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "decision_feature": "UTC_HOUR_KNOWN_BEFORE_EACH_FILL",
+    "primary": {
+      "entry_hour_utc": 8,
+      "exit_hour_utc": 16
+    },
+    "rejection_only_neighbors": [
+      {
+        "entry_hour_utc": 7,
+        "exit_hour_utc": 15
+      },
+      {
+        "entry_hour_utc": 9,
+        "exit_hour_utc": 17
+      }
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "calendar": "EVERY_COMPLETE_UTC_DAY_WITHOUT_SUBSET_SELECTION",
+    "execution": "BUY_AT_SESSION_START_H1_OPEN_AND_SELL_AT_SESSION_END_H1_OPEN",
+    "session_length_hours": 8,
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_WITH_NO_PREWINDOW_STATE"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_WITH_NO_PREWINDOW_STATE"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_WITH_NO_PREWINDOW_STATE"
+    }
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_OUTSIDE_FIXED_SESSION",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITH_EACH_DAILY_SESSION_CLOSED",
+    "terminal_sensitivity": "NOT_APPLICABLE_BY_CONSTRUCTION_NO_TERMINAL_POSITION",
+    "realized_unrealized_split": "ALL_COMPLETED_SESSION_PNL_REALIZED_AND_UNREALIZED_MUST_EQUAL_ZERO",
+    "cash_return": "ZERO"
+  },
+  "metrics": [
+    "realized_return_pct",
+    "unrealized_return_pct",
+    "total_return_pct",
+    "total_return_delta_pp",
+    "maximum_drawdown_pct",
+    "maximum_drawdown_delta_pp",
+    "maximum_underwater_duration_hours",
+    "calmar_ratio",
+    "calmar_ratio_to_buy_hold",
+    "upside_capture_ratio",
+    "average_exposure_pct",
+    "fees_equity_units",
+    "turnover_equity_units",
+    "signal_evaluation_count",
+    "position_change_count",
+    "completed_episode_count",
+    "median_hold_hours",
+    "p90_hold_hours",
+    "terminal_position",
+    "top_positive_episode_contribution_pct",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "gate_set": {
+    "id": "BTC_INTRADAY_FIXED_UTC_SESSION_MATCHED_CAPITAL_GATES_V1",
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_75pct_of_buy_hold",
+      "normal_upside_capture_at_least_25pct",
+      "normal_calmar_at_least_buy_hold",
+      "exact_daily_session_and_two_position_changes_per_day"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_75pct_of_buy_hold",
+      "normal_upside_capture_at_least_25pct",
+      "normal_calmar_at_least_buy_hold",
+      "exact_daily_session_and_two_position_changes_per_day",
+      "all_pnl_realized_and_no_terminal_inventory",
+      "average_exposure_between_30_and_37pct",
+      "p90_hold_exactly_8h",
+      "stress_drawdown_no_more_than_normal_plus_3pp"
+    ],
+    "neighbor_stability": [
+      "both_neighbors_have_positive_normal_and_stress_validation_total_return",
+      "both_neighbors_have_validation_drawdown_non_worse_than_buy_hold",
+      "both_neighbors_have_validation_calmar_at_least_75pct_of_buy_hold",
+      "both_neighbors_have_validation_upside_capture_at_least_20pct",
+      "both_neighbors_have_exact_session_inventory_and_no_terminal_position",
+      "neighbors_are_rejection_only_and_cannot_replace_the_primary"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_at_least_4_of_5_years",
+      "normal_primary_calmar_at_least_75pct_of_buy_hold_at_least_3_of_5_years",
+      "normal_primary_upside_capture_at_least_20pct_at_least_3_of_5_years"
+    ],
+    "concentration": [
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_20pct"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_THE_EXACT_FIXED_UTC_07_15_08_16_09_17_SESSION_LONG_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset hash, hourly lattice, OHLCV, window or exact daily session inventory gate fails.",
+    "Stop and permanently close the exact 07:00-15:00, 08:00-16:00 and 09:00-17:00 UTC session family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Do not scan another clock, duration, weekday, timezone, daylight-saving rule, price or volume condition, direction, hold, confirmation, DRA combination or cost model after results.",
+    "Do not use post-2024 data in this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

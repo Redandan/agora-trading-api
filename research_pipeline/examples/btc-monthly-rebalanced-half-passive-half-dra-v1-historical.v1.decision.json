@@ -1,0 +1,111 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_MONTHLY_REBALANCED_HALF_PASSIVE_HALF_DRA_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-monthly-rebalanced-half-passive-half-dra-v1-historical-v1",
+  "decided_at": "2026-08-20T08:38:02Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_REBALANCED_HALF_PASSIVE_HALF_DRA_V1_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_MONTHLY_REBALANCED_50_50_FAMILY_WITHOUT_WEIGHT_CLOCK_OR_DRIFT_BAND_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "manifest": {
+    "path": "research_pipeline/examples/btc-monthly-rebalanced-half-passive-half-dra-v1-historical.v1.manifest.json",
+    "sha256": "e422ca3e2801701f85e42c598581e6f6d2f1c38d95e82d2bc5af7e2af1e6e190"
+  },
+  "runner": {
+    "path": "research/btc_monthly_rebalanced_half_passive_half_dra_v1_historical.py",
+    "sha256": "849d799628c49fe811fc700ed4672e1255e27b88bad8dff247f6cd7b2934a5fb",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "artifact": {
+    "path": ".research-state/experiments/btc-monthly-rebalanced-half-passive-half-dra-v1-historical-v1/artifacts/run1.json",
+    "sha256": "dd51e20260c02eaadce38b48d80e411e05a995aff0bf6386751724b1c1432891"
+  },
+  "deterministic_replication": {
+    "path": ".research-state/experiments/btc-monthly-rebalanced-half-passive-half-dra-v1-historical-v1/artifacts/run2.json",
+    "sha256": "dd51e20260c02eaadce38b48d80e411e05a995aff0bf6386751724b1c1432891",
+    "byte_identical": true
+  },
+  "dataset": {
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608,
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "economic_summary": {
+    "normal_design": {
+      "candidate_total_return_pct": "194.48261400",
+      "primary_monthly_passive_cash_total_return_pct": "173.58473718",
+      "candidate_minus_primary_total_return_pp": "20.89787682",
+      "candidate_maximum_drawdown_pct": "54.35794785",
+      "primary_maximum_drawdown_pct": "49.26563014",
+      "candidate_minus_primary_maximum_drawdown_pp": "5.09231771",
+      "candidate_calmar_ratio": "3.57781376",
+      "primary_calmar_ratio": "3.52344498",
+      "maximum_pre_rebalance_component_weight_pct": "61.00660047",
+      "rebalance_cost_pct_initial_equity": "1.58399280"
+    },
+    "normal_validation": {
+      "candidate_total_return_pct": "191.11116783",
+      "primary_monthly_passive_cash_total_return_pct": "155.71447684",
+      "candidate_minus_primary_total_return_pp": "35.39669099",
+      "candidate_maximum_drawdown_pct": "18.22919571",
+      "primary_maximum_drawdown_pct": "16.68486982",
+      "candidate_minus_primary_maximum_drawdown_pp": "1.54432589",
+      "candidate_calmar_ratio": "10.48379593",
+      "primary_calmar_ratio": "9.33267556",
+      "candidate_upside_capture_vs_passive": "0.41120864",
+      "maximum_pre_rebalance_component_weight_pct": "57.99767146",
+      "rebalance_cost_pct_initial_equity": "0.34829436",
+      "rebalance_cost_pct_of_positive_incremental_return": "0.98397436",
+      "terminal_dra_unrealized_share_of_dra_total_return_pct": "0.00000000"
+    },
+    "stress": {
+      "design_candidate_total_return_pct": "193.06761645",
+      "design_candidate_minus_primary_total_return_pp": "20.31335646",
+      "validation_candidate_total_return_pct": "190.59226229",
+      "validation_candidate_minus_primary_total_return_pp": "35.15251795",
+      "validation_candidate_maximum_drawdown_pct": "18.23405016"
+    },
+    "annual_fair_reset": {
+      "positive_candidate_years": "4_of_5",
+      "candidate_total_return_gt_primary_years": "4_of_5",
+      "candidate_drawdown_at_most_primary_plus_2pp_years": "1_of_5",
+      "candidate_drawdown_at_most_passive_years": "5_of_5",
+      "top_year_positive_incremental_return_contribution_pct": "39.35538437",
+      "candidate_minus_primary_drawdown_pp_by_year": {
+        "2020": "6.03819002",
+        "2021": "5.78141220",
+        "2022": "4.12252186",
+        "2023": "2.89875195",
+        "2024": "1.94926996"
+      }
+    }
+  },
+  "failed_gates": [
+    "normal_design_drawdown_at_most_primary_plus_2pp",
+    "normal_validation_upside_capture_at_least_45pct",
+    "candidate_annual_drawdown_at_most_primary_plus_2pp_at_least_4_of_5"
+  ],
+  "passed_evidence": [
+    "Monthly resetting constrained the candidate component-weight drift to 61.00660047 percent in Design and 57.99767146 percent in Validation, both below the frozen seventy-percent cap.",
+    "The candidate beat the matched monthly passive-plus-cash parent by 20.89787682 and 35.39669099 percentage points in normal Design and Validation and remained positive and superior under doubled rebalance friction.",
+    "Normal Validation drawdown was only 1.54432589 percentage points above the matched parent, Calmar was higher, rebalance cost consumed less than one percent of positive incremental return, and terminal DRA unrealized contribution was zero.",
+    "Relative to the sealed static candidate, monthly rebalancing reduced absolute candidate drawdown by 18.00496846 percentage points in Design and 7.53336236 percentage points in Validation."
+  ],
+  "material_failure": [
+    "The frozen Design risk-budget gate failed because candidate drawdown exceeded the properly monthly-rebalanced passive-plus-cash parent by 5.09231771 percentage points, above the allowed two points.",
+    "Annual drawdown breadth failed decisively: only 2024 stayed within parent plus two points; the other four annual deltas ranged from 2.89875195 to 6.03819002 percentage points.",
+    "Validation upside capture was 41.120864 percent, below the frozen forty-five-percent gate, even though aggregate incremental return was positive."
+  ],
+  "material_learning": "Monthly rebalancing repaired passive-sleeve drift and materially reduced absolute drawdown, but it did not make the DRA addition pass a matched risk-budget test. The remaining drawdown gap is attributable to the combined component path rather than uncontrolled passive weight drift, so changing the weight or rebalance frequency after seeing the result would be tuning rather than a new independent mechanism.",
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not test weekly, quarterly, threshold, drift-band or event-driven rebalancing as a rescue of this result.",
+    "Do not change the fifty-fifty weight, friction, passive entry, DRA variant, cash yield, leverage or short direction.",
+    "Do not relax the two-percentage-point drawdown, forty-five-percent upside or four-of-five annual breadth gates.",
+    "Do not open independent OOS for this failed family."
+  ],
+  "next_action": "SWITCH_TO_THE_HIGHEST_INFORMATION_GAIN_INDEPENDENT_FAMILY_WITH_A_FREE_EXECUTABLE_DATA_PATH_AND_EXISTING_MATCHED_CAPITAL_RUNNER",
+  "claim_boundary": "Historical matched-risk-budget component-index evidence only. This result is not independent OOS, runtime implementation proof or permission to activate any strategy.",
+  "scope_note": "No paid API, second timer, second writer, external backfill, canonical state write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,184 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_SMA200_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-sma200-long-cash-historical-v1",
+  "created_at": "2026-08-19T03:58:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A causal complete-day close above its prior-200-complete-day simple average may identify persistent BTC bull regimes slowly enough to avoid noise but early enough to preserve material upside, reduce bear-market drawdown and improve fee-adjusted Calmar over full-capital buy-and-hold.",
+  "economic_rationale": "The slow trend state is useful only if SMA200 retains material after-cost upside, improves drawdown and Calmar, survives annual breadth, and remains stable at the frozen SMA150 and SMA250 rejection-only neighbors. Reduced participation or one bear-year avoidance alone cannot pass.",
+  "opportunity_cost": "Resolve one simple, executable slow-trend allocation mechanism before spending research capacity on external data or more complex indicators. The reused long-trend feature has low independence and must close permanently if the standalone economic path also fails.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-daily-prior-sma-150-200-250-full-capital-long-cash",
+    "independence_semantics": "ADJACENT_FEATURE_DISTINCT_ECONOMIC_POLICY",
+    "prior_result_status": "NO_MATCHED_CAPITAL_RESULT_FOUND_FOR_EXACT_CAUSAL_FULL_CAPITAL_NEXT_H1_OPEN_POLICY",
+    "distinct_from_closed_families": [
+      "The closed DRA prior-200-day study only vetoed otherwise qualifying DRA lot entries and kept DRA arms, cooldown and profit-only exits. This policy directly controls zero or full BTC capital and has no DRA signal, lot or exit manager.",
+      "The closed monthly 12-month time-series-momentum family uses one endpoint-return sign and monthly execution. This policy uses a daily price-versus-level state and daily next-open execution.",
+      "The closed OBV family uses cumulative signed volume moving averages; this policy uses price only.",
+      "The closed MACD family uses two short exponential price averages and a signal average; this policy uses one slow simple price level."
+    ],
+    "non_independence_warning": "The price feature is adjacent to the closed DRA long-trend admission and slow-trend allocation families. A pass is not independent evidence and still requires untouched OOS.",
+    "excluded_reinterpretations": [
+      "SMA200 is the sole primary. SMA150 and SMA250 are rejection-only neighbors and cannot replace a failed primary.",
+      "No EMA, alternate horizon, price band, persistence, delay, stop, minimum hold, cash yield, leverage, short leg, DRA interaction or ensemble may be scanned after outcome access.",
+      "No result can reopen the closed DRA long-trend admission or monthly 12-month momentum families."
+    ]
+  },
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "expected_complete_utc_days": 2192,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_sma200_long_cash_historical.cjs",
+      "sha256": "da51bc4d5233b6590401334f376b8a627c77cfc8003c55f1d65f12ddec3d9335",
+      "repository_parent_commit": "ff095641987751cd80a0be0472f12d26b0155faa",
+      "freeze_mode": "SOURCE_SHA256_PREREGISTERED_BEFORE_OUTCOME_GIT_METADATA_READ_ONLY",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-sma200-long-cash-primary-prior.v1.json",
+      "sha256": "a42fd06aa63daf84bcdd01b2fcd8a220a47229566a75e143427c4b1c8b991f6b",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_FINGERPRINT_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-sma200-long-cash-v1.hypothesis.json",
+      "sha256": "a0dee14afecd3d122efd86a74adcc2c4b73b1bf665ae7182b33f9d5e419f9f3d",
+      "role": "FROZEN_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-rsi14-midline-long-cash-historical.v1.decision.json",
+      "sha256": "8410d722eb02702771c4fe9174b2cdcfaffbc6fbeb3df0fa63569906556259bc",
+      "role": "FROZEN_BUY_HOLD_LEDGER_PARITY_ORACLE"
+    }
+  ],
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_SMA200_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_aggregation": "COMPLETE_UTC_DAY_24_CONTIGUOUS_H1_BARS",
+    "sma_definition": "ARITHMETIC_MEAN_OF_EXACTLY_PRIOR_N_COMPLETE_DAY_CLOSES_EXCLUDING_CURRENT_COMPLETE_DAY_CLOSE",
+    "primary": {"prior_complete_day_closes": 200},
+    "rejection_only_neighbors": [
+      {"prior_complete_day_closes": 150},
+      {"prior_complete_day_closes": 250}
+    ],
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "long_condition": "CURRENT_COMPLETE_DAY_CLOSE_STRICTLY_GREATER_THAN_PRIOR_N_DAY_SMA",
+    "cash_condition": "OTHERWISE",
+    "delay_complete_days": 0,
+    "minimum_hold": "UNTIL_DIFFERENT_SIGNAL",
+    "execution": "NEXT_HOURLY_BAR_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "stop": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {"fee_rate_per_side": "0.0010", "adverse_slippage_rate_per_side": "0.0005"},
+    "STRESS": {"fee_rate_per_side": "0.0020", "adverse_slippage_rate_per_side": "0.0010"}
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00",
+      "state": "FAIR_RESET_EQUITY_1_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    },
+    "annual_breadth": {
+      "windows": {
+        "2020": ["2020-01-01T00:00:00", "2021-01-01T00:00:00"],
+        "2021": ["2021-01-01T00:00:00", "2022-01-01T00:00:00"],
+        "2022": ["2022-01-01T00:00:00", "2023-01-01T00:00:00"],
+        "2023": ["2023-01-01T00:00:00", "2024-01-01T00:00:00"],
+        "2024": ["2024-01-01T00:00:00", "2025-01-01T00:00:00"]
+      },
+      "state": "FAIR_RESET_EACH_WINDOW_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY"
+    }
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_WHEN_STRATEGY_IS_OUT",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY",
+    "ledger_parity": "REQUIRE_EXACT_8DP_BUY_HOLD_DESIGN_AND_VALIDATION_RETURN_DRAWDOWN_CALMAR_MATCH_TO_FROZEN_RESULT"
+  },
+  "valuation": {
+    "primary": "HOURLY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_ALL_IN_EPISODE_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "gate_set": {
+    "id": "BTC_DAILY_SMA200_LONG_CASH_MATCHED_CAPITAL_GATES_V1",
+    "integrity": [
+      "exact_dataset_hash_rows_hourly_lattice_utc_days_and_source_hashes",
+      "exact_buy_hold_reference_ledger_parity_before_candidate_classification"
+    ],
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_95pct_of_buy_hold",
+      "normal_calmar_at_least_buy_hold"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_90pct_of_buy_hold",
+      "normal_upside_capture_at_least_60pct",
+      "normal_calmar_at_least_buy_hold",
+      "position_changes_between_2_and_250",
+      "stress_drawdown_no_more_than_normal_plus_3pp",
+      "terminal_liquidation_adjusted_return_pct_gt_0",
+      "terminal_liquidation_cost_at_most_1pp"
+    ],
+    "neighbor_stability": [
+      "both_neighbors_have_positive_normal_and_stress_validation_total_return",
+      "both_neighbors_have_validation_normal_drawdown_non_worse_than_buy_hold",
+      "both_neighbors_have_validation_normal_calmar_at_least_75pct_of_buy_hold",
+      "both_neighbors_have_validation_normal_upside_capture_at_least_50pct",
+      "neighbors_are_rejection_only_and_cannot_replace_the_primary"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_at_least_4_of_5_years",
+      "normal_primary_calmar_at_least_75pct_of_buy_hold_at_least_3_of_5_years",
+      "normal_primary_upside_capture_at_least_50pct_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_total_return_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_THE_EXACT_DAILY_PRIOR_SMA150_200_250_LONG_CASH_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "runtime": "NODE_AVAILABLE_IN_CURRENT_LOCAL_RESEARCH_SANDBOX",
+    "launch": "DIRECT_NODE_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT before economics if any dataset hash, hourly lattice, OHLCV or complete UTC-day inventory gate fails.",
+    "Stop with ECONOMIC_REJECT if the same-capital buy-and-hold return, drawdown and Calmar do not match the frozen Python-ledger result at eight decimals.",
+    "Stop and permanently close the exact SMA150, SMA200 and SMA250 family if the primary or either rejection-only neighbor fails any frozen gate.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Do not scan another average type, length, price band, persistence, delay, holding period, stop, DRA combination or cost model after results.",
+    "Do not use post-2024 data in this historical decision; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "PAID_API", "SECOND_TIMER", "SECOND_WRITER", "UNSEALED_BACKFILL",
+    "PRODUCTION", "TRADING", "DATABASE", "ORDERS", "FUNDS", "OCO",
+    "GRID", "SHADOW", "PAPER", "LIVE", "OOS_OPEN"
+  ]
+}

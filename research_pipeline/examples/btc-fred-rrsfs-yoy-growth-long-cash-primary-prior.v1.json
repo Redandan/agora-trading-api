@@ -1,0 +1,67 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_RRSFS_YOY_GROWTH_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-rrsfs-yoy-growth-long-cash",
+  "created_at": "2026-08-21T05:25:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_rrsfs_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_TO_OPEN_POOL_FOR_ONE_SOURCE_FEASIBILITY_GATE_THEN_AT_MOST_ONE_HASH_BOUND_ECONOMIC_AUDIT",
+  "claim_boundary": "FRED constructs RRSFS as seasonally adjusted advance retail and food-services sales deflated by CPI, while Census describes advance retail sales as an early indicator of consumer demand. This supports one real-consumption state hypothesis, not a claim that U.S. consumer demand causes or predicts BTC returns.",
+  "primary_sources": [
+    {
+      "title": "Advance Real Retail and Food Services Sales (RRSFS)",
+      "publisher": "Federal Reserve Bank of St. Louis FRED",
+      "url": "https://fred.stlouisfed.org/series/RRSFS",
+      "use": "Official series identity, monthly seasonally adjusted frequency and construction from RSAFS deflated by CPIAUCSL."
+    },
+    {
+      "title": "Advance Monthly Retail Trade Survey Methodology",
+      "publisher": "U.S. Census Bureau",
+      "url": "https://www.census.gov/retail/marts/how_surveys_are_collected.html",
+      "use": "Primary mechanism and adversarial boundary: retail sales are an early consumer-demand indicator estimated from a sample, revised, benchmarked and seasonally adjusted."
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "FRED_RRSFS_CURRENT_MONTH_STRICTLY_ABOVE_SAME_MONTH_12_OBSERVATIONS_EARLIER_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC",
+    "risk_on_state": "CURRENT_MONTH_REAL_RETAIL_SALES_STRICTLY_ABOVE_VALUE_12_MONTHLY_OBSERVATIONS_EARLIER",
+    "risk_off_state": "OTHERWISE",
+    "policy": "FULL_CAPITAL_BTC_LONG_IN_RISK_ON_STATE_ZERO_YIELD_CASH_IN_RISK_OFF_STATE_NO_LEVERAGE_NO_SHORT",
+    "availability_floor": "FIRST_DAY_OF_SECOND_FOLLOWING_CALENDAR_MONTH_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "validity": "UNTIL_NEXT_MONTHLY_STATE_BECOMES_AVAILABLE",
+    "threshold": "STRICTLY_POSITIVE_YEAR_OVER_YEAR_GROWTH_NO_MAGNITUDE_SCAN",
+    "variant_count": 1
+  },
+  "future_economic_contract_if_and_only_if_source_gate_passes": {
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": ["fees", "adverse_slippage", "realized_pnl", "unrealized_pnl", "total_pnl", "maximum_drawdown", "calmar", "upside_participation", "capital_utilization", "holding_age", "terminal_inventory", "annual_breadth", "underwater_duration", "episode_concentration"]
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_indpro_and_permit": "INDPRO measured broad industrial real output and PERMIT measured forward housing authorizations. RRSFS measures inflation-adjusted household retail and food-services demand; neither closed family may be combined or rescued.",
+    "distinct_from_closed_umcsent": "UMCSENT was a household survey-expectations state. RRSFS is measured sales activity, though both can share a broad risk-appetite cycle.",
+    "distinct_from_price_and_liquidity": "RRSFS contains neither BTC price nor market liquidity. Its incremental predictive value remains MISSING_PROOF.",
+    "prohibited_rescue": "Do not add nominal RSAFS, CPI separately, month-over-month change, surprise, magnitude thresholds, categories, smoothing, inversion or another macro factor after source or outcome access."
+  },
+  "adversarial_prior": [
+    "Retail sales are U.S.-specific while BTC is global and may be dominated by crypto-native leverage, regulation and liquidity.",
+    "The series combines two revision-prone inputs and present-vintage history does not reproduce original publication vintages.",
+    "Advance retail estimates are sample-based, benchmarked, seasonally adjusted and later revised.",
+    "The 2020 collapse and stimulus reopening can dominate state changes and apparent performance.",
+    "A long-or-cash rule can reduce drawdown by missing too much upside, so total PnL, Calmar, upside and annual breadth must pass together."
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before hypothesis or BTC outcome access if the exact no-key FRED CSV cannot be sealed, the monthly lattice fails, or either YoY state lacks frozen Design and Validation support and transitions.",
+    "If the source gate passes, freeze exactly one hypothesis and one direct economic manifest before joining BTC outcomes; no factor-direction or threshold variants are allowed.",
+    "Stop NO_CANDIDATE if either Design or Validation fails matched-capital total-PnL, drawdown, Calmar, upside-participation, annual-breadth or concentration gates.",
+    "Do not open post-2024 outcomes. Any historical pass remains REPORTED_NOT_ACTIVATED and requires independently sealed OOS."
+  ],
+  "missing_proof": [
+    "The exact no-key FRED response, present-vintage revision boundary and normalized 2017-2024 subset have not been sealed.",
+    "Positive and non-positive YoY state support and transitions have not been measured.",
+    "No hash-bound hypothesis, manifest, runner or deterministic economic result exists.",
+    "No candidate, OOS, forward evidence or activation claim exists."
+  ],
+  "scope_note": "Primary and adversarial prior only. No historical RRSFS value or BTC outcome, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

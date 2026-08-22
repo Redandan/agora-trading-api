@@ -1,0 +1,156 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_NASDAQ_RELATIVE_STRENGTH_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-nasdaq-relative-strength-long-cash-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "expected_complete_utc_days": 2192,
+      "first_open_time": "2019-01-01T00:00:00",
+      "last_close_time": "2025-01-01T00:00:00",
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "nasdaq": {
+      "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/inputs/nasdaq-composite-2018-2024.csv",
+      "sha256": "3102d5caf63211caba467cd930feccd7f9672f5d03be57d77c8022c0c977228f",
+      "rows": 1762,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31",
+      "present_vintage": true
+    }
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_NASDAQ_RELATIVE_STRENGTH_LONG_CASH_V1",
+    "primary_lookback_paired_business_days": 63,
+    "rejection_only_neighbor_lookbacks_paired_business_days": [42, 84],
+    "pairing": "NASDAQ_BUSINESS_DATE_CLOSE_WITH_BTC_COMPLETE_UTC_DAY_CLOSE_ON_SAME_DATE",
+    "evaluation_frequency": "FINAL_VALID_NASDAQ_BUSINESS_DATE_OF_EACH_ISO_WEEK",
+    "availability": "OBSERVATION_DATE_PLUS_ONE_CALENDAR_DAY_AT_00_00_UTC",
+    "relative_strength": "BTC_CUMULATIVE_RETURN_MINUS_NASDAQ_CUMULATIVE_RETURN",
+    "long_condition": "RELATIVE_STRENGTH_STRICTLY_GREATER_THAN_ZERO",
+    "cash_condition": "RELATIVE_STRENGTH_LESS_THAN_OR_EQUAL_TO_ZERO",
+    "execution": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "missing_pair_rule": "SKIP_WITHOUT_INTERPOLATION_OR_SOURCE_REPAIR",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "gate_set": {
+    "id": "BTC_NASDAQ_RELATIVE_STRENGTH_MATCHED_CAPITAL_GATES_V1",
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "nasdaq_sha256_and_1762_rows_match",
+      "hourly_lattice_daily_pairing_weekly_availability_pass",
+      "frozen_runner_ledger_reference_parser_prior_hypothesis_and_source_sha256_match",
+      "primary_design_normal_total_return_pct_gt_0",
+      "primary_design_stress_total_return_pct_gt_0",
+      "primary_design_normal_drawdown_at_most_95pct_of_buy_hold",
+      "primary_design_normal_calmar_at_least_buy_hold",
+      "primary_validation_normal_total_return_pct_gt_0",
+      "primary_validation_stress_total_return_pct_gt_0",
+      "primary_validation_normal_drawdown_at_most_90pct_of_buy_hold",
+      "primary_validation_normal_upside_capture_at_least_60pct",
+      "primary_validation_normal_calmar_at_least_buy_hold",
+      "primary_validation_position_changes_between_2_and_100",
+      "primary_validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "neighbor_rs42_validation_normal_total_return_pct_gt_0",
+      "neighbor_rs42_validation_stress_total_return_pct_gt_0",
+      "neighbor_rs42_validation_normal_drawdown_non_worse",
+      "neighbor_rs42_validation_normal_calmar_at_least_75pct_buy_hold",
+      "neighbor_rs42_validation_normal_upside_capture_at_least_50pct",
+      "neighbor_rs84_validation_normal_total_return_pct_gt_0",
+      "neighbor_rs84_validation_stress_total_return_pct_gt_0",
+      "neighbor_rs84_validation_normal_drawdown_non_worse",
+      "neighbor_rs84_validation_normal_calmar_at_least_75pct_buy_hold",
+      "neighbor_rs84_validation_normal_upside_capture_at_least_50pct",
+      "primary_normal_positive_annual_total_return_at_least_4_of_5",
+      "primary_stress_positive_annual_total_return_at_least_4_of_5",
+      "primary_normal_annual_drawdown_non_worse_at_least_4_of_5",
+      "primary_normal_annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+      "primary_normal_annual_upside_capture_at_least_50pct_at_least_4_of_5",
+      "primary_top_year_positive_total_return_contribution_at_most_60pct",
+      "primary_validation_top_positive_episode_contribution_at_most_60pct",
+      "primary_validation_p90_hold_at_most_17520_hours",
+      "primary_validation_terminal_holding_age_at_most_17520_hours",
+      "primary_validation_terminal_liquidation_adjusted_return_pct_gt_0",
+      "primary_validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER",
+      "path": "research/btc_nasdaq_relative_strength_long_cash_historical.py",
+      "sha256": "c08a678bb9421b8fa0b0bb4f0bee9aacf04358d7b3c31d4cd78124b2b05dbe27"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_LEDGER_REFERENCE",
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"
+    },
+    {
+      "role": "FROZEN_LONG_CASH_ACCOUNTING_AND_PASSIVE_REFERENCE",
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DATA_INTEGRITY_REFERENCE_ONLY",
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
+      "path": "research_pipeline/examples/btc-nasdaq-relative-strength-long-cash-primary-prior.v1.json",
+      "sha256": "1521b851c01759a4077d93c99ad8710acd7adaad0a0514bc371952eec8266f9e"
+    },
+    {
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-nasdaq-relative-strength-long-cash-v1.hypothesis.json",
+      "sha256": "69665405b15732b32ee2445a75de44fc13c2e14ff4e20f3c3ef44247256a6984"
+    },
+    {
+      "role": "SEALED_NASDAQ_SOURCE_METADATA",
+      "path": "research_pipeline/examples/nasdaq-composite-daily-2018-2024.v1.source.json",
+      "sha256": "cff232ebe8f87a67cbb47a6a51894b82f0d11b1122e77ff3a5d4bb70a5d0f90a"
+    },
+    {
+      "role": "SEALED_NORMALIZED_NASDAQ_CORPUS",
+      "path": ".research-state/experiments/btc-nasdaq-composite-trend-long-cash-historical-v1/inputs/nasdaq-composite-2018-2024.csv",
+      "sha256": "3102d5caf63211caba467cd930feccd7f9672f5d03be57d77c8022c0c977228f"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not promote RS42 or RS84 after observing their outcomes.",
+    "Do not change the sixty-three-paired-business-day primary, zero spread threshold, weekly evaluation, next-day availability or long/cash action.",
+    "Do not add normalization, smoothing, absolute BTC trend, Nasdaq trend, correlation, volatility, macro, DRA, leverage, shorting or fractional sizing as a rescue.",
+    "Do not relax return, stress, drawdown, Calmar, upside, annual breadth, concentration, holding or terminal-inventory gates and do not open OOS unless every gate passes."
+  ],
+  "scope_note": "Frozen pre-outcome manifest only. No factor outcome, candidate, OOS, paid API, second timer, second writer, external backfill, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

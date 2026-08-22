@@ -1,0 +1,40 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_M2_LIQUIDITY_ACCELERATION_RUNNER_FIELD_BINDING_ERRATUM_V1",
+  "recorded_at": "2026-08-20T10:34:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "affected_experiment_id": "btc-m2-liquidity-acceleration-long-cash-historical-v1",
+  "affected_manifest": {
+    "path": "research_pipeline/examples/btc-m2-liquidity-acceleration-long-cash-historical.v1.manifest.json",
+    "sha256": "04927025bb4f9c944f3ef7e723cb6215094855691f11bd147ef1374aa919cb6f"
+  },
+  "affected_runner": {
+    "path": "research/btc_m2_liquidity_acceleration_long_cash_historical.py",
+    "sha256": "eb059aed19f839f9b6c1f443df45e6611e7170b431904c6a28e35d7c2dc2eb09"
+  },
+  "failure": {
+    "classification": "CAPABILITY_REJECT_PRE_ARTIFACT_FIELD_BINDING_DEFECT",
+    "exception": "KeyError: signal_evaluations",
+    "location": "evaluate_gates validation_normal_signal_evaluations_at_least_24",
+    "cause": "The shared long/cash ledger serializes the count as candidate.signal_evaluation_count but does not expose signal_evaluations in its raw metric mapping.",
+    "run1_artifact_created": false,
+    "run2_started": false,
+    "performance_values_printed_or_inspected": false,
+    "outcome_boundary": "Design, Validation and annual values were computed in process before the exception but were neither serialized nor printed. No gate result or economic value was inspected."
+  },
+  "allowed_correction": {
+    "new_experiment_id": "btc-m2-liquidity-acceleration-long-cash-historical-v2",
+    "change": "Read the exact same frozen evaluation count from validation_output.scenarios.NORMAL.candidate.signal_evaluation_count for the unchanged at-least-24 gate.",
+    "scientific_design_change": false,
+    "threshold_change": false,
+    "formula_direction_lag_window_cost_or_gate_change": false,
+    "shared_ledger_change": false
+  },
+  "prohibited_changes": [
+    "Do not modify or overwrite the V1 runner or manifest.",
+    "Do not change any scientific gate, threshold, feature, direction, lag, window, cost or economic assumption in V2.",
+    "Do not inspect or reconstruct the aborted in-process economic values.",
+    "Do not treat the capability failure as strategy evidence."
+  ],
+  "scope_note": "No artifact overwrite, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

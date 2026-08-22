@@ -1,0 +1,49 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_CPIAUCSL_YOY_DISINFLATION_SOURCE_FEASIBILITY_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-cpiaucsl-yoy-disinflation-long-cash",
+  "created_at": "2026-08-21T05:57:00Z",
+  "status": "FROZEN_BEFORE_2017_2024_CPIAUCSL_FACTOR_ACCESS",
+  "purpose": "Test only whether official no-key present-vintage CPIAUCSL has the frozen monthly lattice and enough disinflation and other states in Design and Validation before any BTC outcome is opened.",
+  "source_contract": {
+    "series": "CPIAUCSL",
+    "frequency": "MONTHLY",
+    "publisher": "U.S. Bureau of Labor Statistics via Federal Reserve Bank of St. Louis FRED",
+    "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL&cosd=2017-01-01&coed=2024-12-31",
+    "expected_rows": 96,
+    "expected_first_date": "2017-01-01",
+    "expected_last_date": "2024-12-01",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "maximum_response_bytes": 32768
+  },
+  "feature_contract": {
+    "factor_identity": "FRED_CPIAUCSL_CURRENT_YOY_RATE_STRICTLY_BELOW_PREVIOUS_MONTH_YOY_RATE_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC_V1",
+    "yoy_rate": "CPI_t_DIVIDED_BY_CPI_t_minus_12_MINUS_ONE",
+    "disinflation_condition": "CURRENT_MONTH_YOY_RATE_STRICTLY_BELOW_PREVIOUS_MONTH_YOY_RATE",
+    "other_condition": "OTHERWISE",
+    "lookback_observations": 13,
+    "availability": "FIRST_DAY_OF_SECOND_FOLLOWING_CALENDAR_MONTH_AT_00_00_UTC",
+    "direction_inversion": "DENY",
+    "threshold_or_smoothing_scan": "DENY"
+  },
+  "windows": {
+    "design": {"start": "2019-01-01T00:00:00Z", "end_exclusive": "2023-01-01T00:00:00Z", "minimum_evaluations": 48, "minimum_per_state": 10, "minimum_transitions": 6},
+    "validation": {"start": "2023-01-01T00:00:00Z", "end_exclusive": "2025-01-01T00:00:00Z", "minimum_evaluations": 24, "minimum_per_state": 6, "minimum_transitions": 4}
+  },
+  "decision": {
+    "pass": "SOURCE_FEASIBILITY_PASS_MAY_FREEZE_EXACTLY_ONE_HYPOTHESIS_BEFORE_BTC_OUTCOME_ACCESS",
+    "failure": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+    "no_partial_pass": true
+  },
+  "prohibited_after_factor_access": [
+    "Do not change the adjacent monthly YoY-rate comparison, strict disinflation direction, second-following-month availability or support gates.",
+    "Do not add core CPI, PCE, surprises, levels, magnitude thresholds, moving averages, z-scores, alternate lags or another factor.",
+    "Do not access BTC outcomes unless this exact source feasibility contract passes every Design and Validation gate.",
+    "Do not treat present-vintage revised seasonally adjusted history as original release vintages or independent OOS."
+  ],
+  "scope_note": "No historical CPI factor value, BTC outcome, hypothesis, manifest, runner result, economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred by this specification."
+}

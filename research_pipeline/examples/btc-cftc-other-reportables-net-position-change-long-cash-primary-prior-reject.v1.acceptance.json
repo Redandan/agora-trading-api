@@ -1,0 +1,25 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_CFTC_OTHER_REPORTABLES_PRIMARY_PRIOR_REJECT_ACCEPTANCE_V1",
+  "family_id": "btc-cftc-other-reportables-net-position-change-long-cash",
+  "accepted_at": "2026-08-20T10:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "accepted_artifact": {
+    "path": "research_pipeline/examples/btc-cftc-other-reportables-net-position-change-long-cash-primary-prior-reject.v1.json",
+    "sha256": "92528ab43ffd7de66ab1c32c88560961c3dc44c6afabcb2d2fabc7ffcaac9b02",
+    "decision": "PRIOR_REJECT_CLOSE_EXACT_OTHER_REPORTABLES_WEEKLY_NET_POSITION_CHANGE_DIRECTION_FAMILY_BEFORE_FACTOR_OR_OUTCOME_ACCESS"
+  },
+  "acceptance_checks": {
+    "primary_source_count_at_least_two": true,
+    "unique_pre_outcome_direction_identified": false,
+    "factor_values_accessed": false,
+    "btc_outcomes_accessed": false,
+    "economic_evidence_accessed": false,
+    "hypothesis_or_manifest_created": false,
+    "closed_before_direction_scan": true,
+    "prohibited_reopen_recorded": true
+  },
+  "disposition": "ACCEPT_PRIOR_REJECT_AND_PERMANENTLY_CLOSE_BTC_CFTC_OTHER_REPORTABLES_DIRECTION_FAMILY",
+  "claim_boundary": "Acceptance and hash binding only; no factor, BTC outcome, PnL, drawdown or OOS evidence was opened.",
+  "scope_note": "No paid API, external backfill, second timer, second writer, canonical state write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

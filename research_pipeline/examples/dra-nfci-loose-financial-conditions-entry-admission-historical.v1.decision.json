@@ -1,0 +1,84 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_NFCI_LOOSE_FINANCIAL_CONDITIONS_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "experiment_id": "dra-nfci-loose-financial-conditions-entry-admission-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DATA_REJECT_NO_BTC_DRA_OUTCOME",
+  "status": "DATA_REJECT_CLOSE_NFCI_SOURCE_TRANSPORT_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_PRESENT_VINTAGE_FRED_NFCI_STRICT_NEGATIVE_ZERO_THRESHOLD_FRIDAY_PLUS_7D_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_TRANSPORT_RETRY_OR_SOURCE_SUBSTITUTION",
+  "material_conclusion": "The exact preregistered NFCI source could not be sealed under its frozen fail-closed transport contract. The first direct HTTPS attempt timed out before the first annual response completed, and the one explicitly frozen recovery failed at Windows Schannel credential-provider initialization. Both attempts left zero staged responses and zero sealed source files. Because the recovery amendment denied another retry, changing transport again would be post-registration source rescue. No BTC or DRA outcome was opened, so no performance conclusion is claimed.",
+  "source_evidence": {
+    "series_id": "NFCI",
+    "requested_sample": "2018-01-01_THROUGH_2024-12-31",
+    "official_identity": "Federal Reserve Bank of Chicago NFCI via Federal Reserve Bank of St. Louis FRED",
+    "attempts": [
+      {
+        "transport": "PYTHON_STDLIB_DIRECT_HTTPS",
+        "timeout_seconds": 30,
+        "result": "FIRST_ANNUAL_RESPONSE_READ_TIMEOUT",
+        "persisted_response_count": 0
+      },
+      {
+        "transport": "CURL_EXE",
+        "timeout_seconds": 60,
+        "result": "SCHANNEL_SEC_E_NO_CREDENTIALS_BEFORE_RESPONSE",
+        "persisted_response_count": 0
+      }
+    ],
+    "staged_response_count": 0,
+    "sealed_source_file_count": 0,
+    "source_values_available_for_research": false
+  },
+  "performance_evidence": {
+    "design": "NOT_RUN_DATA_REJECT",
+    "validation": "NOT_RUN_DATA_REJECT",
+    "annual_folds": "NOT_RUN_DATA_REJECT",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "underwater_duration": "MISSING_PROOF",
+    "holding": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF",
+    "breadth_and_path_risk": "MISSING_PROOF"
+  },
+  "closed_fingerprint": {
+    "duplicate_family_key": "dra-fred-nfci-negative-zero-threshold-entry-admission",
+    "decision_feature": "FRED_NFCI_STRICT_NEGATIVE_ZERO_THRESHOLD_FRIDAY_PLUS_7D_168H_DRA_V1_ENTRY_ADMISSION",
+    "prohibited_reopen": true,
+    "prohibited_rescue": [
+      "THIRD_TRANSPORT_ATTEMPT",
+      "FRED_SOURCE_SUBSTITUTION",
+      "ANFCI_OR_SUBINDEX_SUBSTITUTION",
+      "THRESHOLD_OR_LAG_CHANGE",
+      "POST_OUTCOME_PARAMETER_SCAN"
+    ]
+  },
+  "sealed_evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-nfci-loose-financial-conditions-primary-prior.v1.json",
+      "sha256": "9614cd78e01f7aed66e5a3f7296493cfcfccb814c691c28749fc5cb3a7249b2e"
+    },
+    "hypothesis": {
+      "path": "research_pipeline/examples/dra-nfci-loose-financial-conditions-entry-admission-v1.hypothesis.json",
+      "sha256": "e661a0170738d9d20b6213f072913a3c03d175a01c61fa2e69308024c0410a11"
+    },
+    "source_fetch_amendment": {
+      "path": "research_pipeline/examples/dra-nfci-loose-financial-conditions-source-fetch-amendment.v1.json",
+      "sha256": "6af532329960f2c4df200a9da2c8f3b68eb0f64664ef3e1690aaf43160bf66fe"
+    },
+    "source_probe": {
+      "path": "research/fred_nfci_source_probe.py",
+      "sha256": "35a473a9cefcf3a894f6a777942d202f77ad15816505a5791c1299de55c98519"
+    }
+  },
+  "uncertainty": [
+    "The official NFCI series exists and its semantic zero threshold is documented, but exact 2018-2024 machine-readable bytes were not sealed under the frozen contract.",
+    "This is a source-path rejection, not evidence that NFCI lacks predictive or economic value.",
+    "No original-release vintage, present-vintage history, BTC response, candidate or OOS evidence exists for this closed family."
+  ],
+  "next_action": "Advance a different independent family with an already accessible or independently frozen source. Do not retry, substitute or tune this exact NFCI family.",
+  "oos_opened": false,
+  "candidate_created": false,
+  "scope_note": "No source value was persisted, no BTC/DRA outcome was opened, and no paid API, credential, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

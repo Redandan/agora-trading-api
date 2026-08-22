@@ -1,0 +1,140 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DRA_BTC_NASDAQ_DIVERSIFICATION_STATE_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "experiment_id": "dra-btc-nasdaq-diversification-state-entry-admission-historical-v1",
+  "status": "NO_CANDIDATE_CLOSE_BTC_NASDAQ_DIVERSIFICATION_STATE_FAMILY",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_WEEKLY_LAGGED_63_PAIR_BTC_NASDAQ_RETURN_CORRELATION_AT_OR_BELOW_NEG010_000_POS010_DRA_V1_ENTRY_ADMISSION_FAMILY_WITHOUT_TUNING",
+  "material_conclusion": "The frozen low BTC-Nasdaq correlation state is too sparse and economically destructive as a DRA V1 admission rule. At the primary zero threshold it admitted only five Design and three Validation signals and reduced Validation total PnL from 86.20298186 to 5.82472139 USDT. The -0.10 neighbor never traded and the +0.10 neighbor still reduced Validation total PnL to 22.93595178. All apparent annual benefit came from 2022; the other four folds lost opportunity. The independent 168-hour predictive direction had negative signed medians in both Design and Validation. Lower drawdown is therefore nonparticipation, not independent alpha. Close the exact family and do not tune the threshold, window, index or direction.",
+  "determinism": {
+    "run1_path": ".research-state/experiments/dra-btc-nasdaq-diversification-state-entry-admission-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/dra-btc-nasdaq-diversification-state-entry-admission-historical-v1/artifacts/run2.json",
+    "run1_sha256": "70a23501446795b9b1679579d2733bde1c6fed7cc218f5683b81e54edab5651b",
+    "run2_sha256": "70a23501446795b9b1679579d2733bde1c6fed7cc218f5683b81e54edab5651b",
+    "byte_identical": true,
+    "manifest_sha256": "af1445baa07e80a44d74727d9f26a0c3f8bcc21d1140e8c9f0551f6f5b4b008b",
+    "runner_sha256": "6d03240c24fcaa852b09a2bcc45aa4a6f4ebe9befcb24b041ff52100a2c4c36d",
+    "dataset_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "dataset_rows": 52608
+  },
+  "source_and_factor_evidence": {
+    "nasdaq_source_sha256": "3102d5caf63211caba467cd930feccd7f9672f5d03be57d77c8022c0c977228f",
+    "nasdaq_rows": 1762,
+    "btc_daily_rows": 2192,
+    "weekly_factor_points": 300,
+    "missing_initial_paired_returns": 62,
+    "nasdaq_dates_without_same_date_btc_pair": 250,
+    "nonfinal_iso_week_pair_evaluations": 1148,
+    "cutoff_exclusions": 1,
+    "revision_boundary": "PRESENT_VINTAGE_NASDAQCOM_ONLY_ORIGINAL_RELEASE_VINTAGES_AND_REVISIONS_MISSING_PROOF"
+  },
+  "performance_evidence": {
+    "parent_design": {
+      "realized_usdt": "122.11969534",
+      "unrealized_usdt": "-79.12049441",
+      "total_pnl_usdt": "42.99920093",
+      "max_drawdown_pct": "18.673983"
+    },
+    "primary_000_design": {
+      "realized_usdt": "9.38547138",
+      "unrealized_usdt": "0.00000000",
+      "total_pnl_usdt": "9.38547138",
+      "total_pnl_delta_usdt": "-33.61372955",
+      "max_drawdown_pct": "7.121457",
+      "median_hold_hours": "168",
+      "p90_hold_hours": "2416.6",
+      "admitted_vetoed_parent_signals": "5/264/269"
+    },
+    "parent_validation": {
+      "realized_usdt": "89.41118307",
+      "unrealized_usdt": "-3.20820121",
+      "total_pnl_usdt": "86.20298186",
+      "max_drawdown_pct": "7.121498",
+      "maximum_underwater_duration_hours": 2397,
+      "median_hold_hours": "182.5",
+      "p90_hold_hours": "1418.3",
+      "terminal_inventory_count": 1
+    },
+    "primary_000_validation": {
+      "realized_usdt": "5.82472139",
+      "unrealized_usdt": "0.00000000",
+      "total_pnl_usdt": "5.82472139",
+      "total_pnl_delta_usdt": "-80.37826047",
+      "max_drawdown_pct": "2.463628",
+      "maximum_underwater_duration_hours": 753,
+      "median_hold_hours": "331",
+      "p90_hold_hours": "693.4",
+      "terminal_inventory_count": 0,
+      "admitted_vetoed_parent_signals": "3/222/225"
+    },
+    "neighbor_neg010": {
+      "design_total_pnl_usdt": "0.00000000",
+      "validation_total_pnl_usdt": "0.00000000",
+      "validation_admitted_signals": 0
+    },
+    "neighbor_pos010": {
+      "design_total_pnl_usdt": "12.22019541",
+      "validation_total_pnl_usdt": "22.93595178",
+      "validation_total_pnl_delta_usdt": "-63.26703008",
+      "validation_max_drawdown_pct": "5.133537",
+      "validation_admitted_signals": 12
+    },
+    "primary_annual_total_pnl_delta_usdt": {
+      "2020": "-46.81357086",
+      "2021": "-31.45159316",
+      "2022": "15.77563722",
+      "2023": "-45.17304086",
+      "2024": "-34.98297761"
+    },
+    "annual_total_wins": "1/5",
+    "annual_drawdown_non_worse": "5/5",
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "predictive_evidence": {
+    "design": {
+      "episodes": 156,
+      "positive_factor_count": 7,
+      "negative_factor_count": 149,
+      "median_signed_response_168h": "-0.0095842236338242979879388336018115",
+      "sign_test_successes_failures": "73/83",
+      "one_sided_sign_test_p_value": "0.8107314914759476369347234528846986"
+    },
+    "validation": {
+      "episodes": 103,
+      "positive_factor_count": 3,
+      "negative_factor_count": 100,
+      "median_signed_response_168h": "-0.007338352535034365379562061392407",
+      "sign_test_successes_failures": "48/55",
+      "one_sided_sign_test_p_value": "0.7846554668459343727305666533540194"
+    }
+  },
+  "failed_primary_economic_gates": [
+    "design_total_pnl_improves",
+    "validation_total_pnl_improves",
+    "validation_realized_pnl_improves",
+    "validation_realized_contribution_at_least_50pct",
+    "validation_median_hold_non_worse",
+    "annual_total_wins_at_least_3_of_5",
+    "top_year_positive_delta_contribution_at_most_60pct"
+  ],
+  "failed_predictive_shape": [
+    "Both Design and Validation median signed 168-hour responses were negative.",
+    "The primary low-correlation state supplied fewer than eight positive-factor episodes in both windows.",
+    "High-correlation episodes had positive rather than negative median BTC returns in both windows.",
+    "Neither window passed the frozen one-sided sign test."
+  ],
+  "prohibited_followups": [
+    "TUNE_CORRELATION_THRESHOLD_OR_63_PAIR_WINDOW",
+    "CHANGE_NASDAQCOM_TO_SP500_QQQ_OR_FUTURES_AFTER_OUTCOME",
+    "INVERT_LOW_CORRELATION_TO_HIGH_CORRELATION_AFTER_OUTCOME",
+    "CHANGE_WEEKLY_EVALUATION_OR_NEXT_DAY_AVAILABILITY",
+    "ADD_TREND_VOLATILITY_EPU_VIX_DOLLAR_GOLD_OR_REGIME_INTERACTIONS",
+    "OPEN_POST_2024_OOS_FOR_A_FAILED_DEVELOPMENT_FAMILY",
+    "REINTERPRET_NONPARTICIPATION_DRAWDOWN_REDUCTION_AS_ALPHA"
+  ],
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_reopen": true,
+  "next_action": "Advance a different independent free-data family; retain this result as a permanent sparse-state and 2022-concentration tombstone.",
+  "scope_note": "No new source download, paid API, second timer, second writer, canonical write, post-2024 OOS, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

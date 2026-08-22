@@ -1,0 +1,132 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_ON_RRP_DRAWDOWN_LIQUIDITY_SUPPORT_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-fred-on-rrp-drawdown-liquidity-support-historical-v1",
+  "hypothesis_id": "btc-fred-on-rrp-drawdown-liquidity-support-long-cash-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "oos_access": "DENY",
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "rrpontsyd": {
+      "path": ".research-state/experiments/btc-fred-on-rrp-drawdown-liquidity-support-historical-v1/inputs/fred-rrpontsyd-2018-2024.normalized.csv",
+      "sha256": "ef424a4861a04a9731b269224662c0ebda3e5d3050019e02b8a29ebad8f5f0a5",
+      "rows": 1826,
+      "first_date": "2018-01-02",
+      "last_date": "2024-12-31",
+      "missing_value_rows": 81,
+      "present_vintage": true
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-fred-on-rrp-drawdown-liquidity-support-historical-v1/inputs/fred-rrpontsyd-source-bundle.json",
+      "sha256": "21b4ad77c0a37413aa0524aac7b3e18188740e51bc3d70682795330c39dae9d5"
+    }
+  },
+  "predictive_policy": {
+    "factor_identity": "FRED_RRPONTSYD_COMPLETE_WEEK_LAST_AVAILABLE_BUSINESS_DAY_STRICTLY_BELOW_VALUE_FOUR_COMPLETE_WEEKS_EARLIER_V1",
+    "supportive_condition": "CURRENT_COMPLETE_WEEK_LAST_AVAILABLE_RRPONTSYD_STRICTLY_BELOW_VALUE_FOUR_COMPLETE_WEEKS_EARLIER",
+    "other_condition": "OTHERWISE",
+    "availability": "COMPLETE_WEEK_SUNDAY_PLUS_3_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_FACTOR_AVAILABILITY",
+    "predictive_horizon_hours": 168,
+    "variants": 1,
+    "strategy_economics": "DENY_UNLESS_ALL_PRE_ECONOMIC_GATES_PASS"
+  },
+  "windows": {
+    "design": {
+      "start": "2019-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "predictive_horizon_hours": 168,
+    "predictive_overlap_rule": "WEEKLY_168H_EPISODES_NON_OVERLAPPING_BY_CONSTRUCTION"
+  },
+  "gate_set": {
+    "required": [
+      "btc_sha256_and_52608_rows_match",
+      "rrpontsyd_sha256_rows_weekly_lattice_and_day3_availability_match",
+      "source_bundle_runner_prior_hypothesis_and_probe_sha256_match",
+      "design_minimum_evaluable_episodes",
+      "design_minimum_supportive_episodes",
+      "design_minimum_other_episodes",
+      "design_both_states_chronological_quartile_breadth",
+      "design_both_states_anchor_year_breadth",
+      "design_maximum_state_anchor_month_share",
+      "design_supportive_median_terminal_return_at_least_25bp_higher",
+      "design_supportive_negative_terminal_rate_at_least_5pp_lower",
+      "design_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "design_supportive_median_path_drawdown_non_worse",
+      "design_supportive_p75_path_drawdown_non_worse",
+      "design_annual_median_return_direction_breadth",
+      "design_top_positive_annual_median_return_delta_contribution_at_most_60pct",
+      "validation_minimum_evaluable_episodes",
+      "validation_minimum_supportive_episodes",
+      "validation_minimum_other_episodes",
+      "validation_both_states_chronological_quartile_breadth",
+      "validation_both_states_anchor_year_breadth",
+      "validation_maximum_state_anchor_month_share",
+      "validation_supportive_median_terminal_return_at_least_25bp_higher",
+      "validation_supportive_negative_terminal_rate_at_least_5pp_lower",
+      "validation_one_sided_fisher_negative_rate_p_value_at_most_0_10",
+      "validation_supportive_median_path_drawdown_non_worse",
+      "validation_supportive_p75_path_drawdown_non_worse",
+      "validation_annual_median_return_direction_breadth",
+      "validation_top_positive_annual_median_return_delta_contribution_at_most_60pct"
+    ],
+    "pass": "PREDICTIVE_SCREEN_PASS_ECONOMIC_MANIFEST_REQUIRED_NO_CANDIDATE",
+    "failure": "PERMANENTLY_CLOSE_WITHOUT_STRATEGY_ECONOMIC_ACCESS_OR_TUNING"
+  },
+  "source_bindings": [
+    {
+      "role": "FROZEN_DIRECT_PRE_ECONOMIC_RUNNER",
+      "path": "research/btc_fred_on_rrp_drawdown_liquidity_support_historical.py",
+      "sha256": "2f958e0b0d481acbd4610cdc234d9ddc069713984c46c0690720ebe1c0192fc9"
+    },
+    {
+      "role": "FROZEN_H1_PARSER_AND_DETERMINISTIC_STATISTICS",
+      "path": "research/btc_cftc_dealer_net_position_change_long_cash_historical.py",
+      "sha256": "389efeb6583d7af32981704c649288f0a9395f4031f2c299931a56e582734a3e"
+    },
+    {
+      "role": "FROZEN_FAIL_CLOSED_RRPONTSYD_SOURCE_PROBE",
+      "path": "research/fred_rrpontsyd_source_probe.py",
+      "sha256": "87211dd95e2ce671a7b42e12749118eb6865bc1a5d41b0ff0ed18c1a92f63cdb"
+    },
+    {
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+      "path": "research_pipeline/examples/btc-fred-on-rrp-drawdown-liquidity-support-long-cash-primary-prior.v1.json",
+      "sha256": "e1df8f64645caa79809065f0053f7e486cb91e8f78f10ea3d400a01d158ced93"
+    },
+    {
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "path": "research_pipeline/examples/btc-fred-on-rrp-drawdown-liquidity-support-long-cash-v1.hypothesis.json",
+      "sha256": "434e0d870ebbbe088367c197b6126165ed1b8608eac339407dd84e4bbb4cca3d"
+    },
+    {
+      "role": "SEALED_OFFICIAL_RRPONTSYD_SOURCE_BUNDLE",
+      "path": ".research-state/experiments/btc-fred-on-rrp-drawdown-liquidity-support-historical-v1/inputs/fred-rrpontsyd-source-bundle.json",
+      "sha256": "21b4ad77c0a37413aa0524aac7b3e18188740e51bc3d70682795330c39dae9d5"
+    },
+    {
+      "role": "SEALED_NORMALIZED_RRPONTSYD_CORPUS",
+      "path": ".research-state/experiments/btc-fred-on-rrp-drawdown-liquidity-support-historical-v1/inputs/fred-rrpontsyd-2018-2024.normalized.csv",
+      "sha256": "ef424a4861a04a9731b269224662c0ebda3e5d3050019e02b8a29ebad8f5f0a5"
+    }
+  ],
+  "prohibited_substitutions": [
+    "Do not change the four-complete-week comparison, strict direction, Wednesday availability, 168-hour horizon or one-variant contract after outcome access.",
+    "Do not add TGA, WALCL, M2, rates, Treasury issuance, dollar, credit, CFTC, on-chain, trend, volatility or technical indicators as rescue variants.",
+    "Do not invert the direction, add a magnitude threshold, smooth RRPONTSYD, scan alternate lags or use the daily Treasury statement as a replacement.",
+    "Do not open matched-capital economics unless every Design and Validation predictive gate passes; do not open post-2024 OOS in this experiment."
+  ],
+  "revision_boundary": "This is one August 2026 present-vintage RRPONTSYD history. Original Temporary Open Market Operations release vintages remain MISSING_PROOF, so even a predictive pass cannot establish point-in-time alpha or create a candidate.",
+  "scope_note": "Frozen pre-outcome predictive manifest only. No RRP-BTC outcome, strategy economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}
+

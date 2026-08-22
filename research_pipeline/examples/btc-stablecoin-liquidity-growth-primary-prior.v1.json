@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_STABLECOIN_LIQUIDITY_GROWTH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_LOW_COST_STABLECOIN_LIQUIDITY_LONG_CASH_HISTORICAL_AUDIT",
+  "claim_boundary": "Primary research does not establish that aggregate stablecoin issuance independently predicts Bitcoin returns. Several studies instead find no subsequent return effect or issuance following crypto-price changes. Exactly one preregistered matched-capital audit may therefore test whether lagged broad stablecoin-capitalization expansion is a useful risk state after costs; no causal or predictive claim is imported from the literature.",
+  "feature_contract": {
+    "publisher": "Coin Metrics Community API",
+    "assets": ["usdt", "usdc"],
+    "metric": "CapMrktCurUSD",
+    "observation": "REVIEWED_DAILY_UTC_CURRENT_MARKET_CAPITALIZATION_USD",
+    "decision_time": "SECOND_CALENDAR_DAY_0000_UTC_AFTER_OBSERVATION_DAY",
+    "primary_feature": "COMBINED_USDT_PLUS_USDC_CAPMRKTCURUSD_STRICTLY_ABOVE_ITS_LEVEL_28_CALENDAR_DAYS_EARLIER",
+    "neighbor_features": [
+      "USDT_CAPMRKTCURUSD_STRICTLY_ABOVE_ITS_LEVEL_28_CALENDAR_DAYS_EARLIER",
+      "USDC_CAPMRKTCURUSD_STRICTLY_ABOVE_ITS_LEVEL_28_CALENDAR_DAYS_EARLIER"
+    ],
+    "policy": "LONG_BTC_WHILE_LAGGED_STABLECOIN_LIQUIDITY_GROWTH_IS_POSITIVE_OTHERWISE_ZERO_YIELD_CASH",
+    "growth_lag_days": 28,
+    "threshold": "STRICT_ZERO_GROWTH_NO_TUNED_MARGIN"
+  },
+  "prior_matrix": [
+    {
+      "identity": "Wei, The impact of Tether grants on Bitcoin, Economics Letters 171 (2018)",
+      "primary_source": "https://doi.org/10.1016/j.econlet.2018.07.001",
+      "finding": "The reported VAR evidence finds that Tether grants affect traded volume but not subsequent Bitcoin returns, while Tether trading increases after Bitcoin returns fall.",
+      "role": "ADVERSARIAL_NO_SUBSEQUENT_RETURN_AND_REVERSE_DIRECTION_PRIOR",
+      "transfer_boundary": "The paper studies Tether grants and does not validate combined USDT-USDC capitalization growth, a 28-day horizon, a long-cash policy or after-cost risk-adjusted performance."
+    },
+    {
+      "identity": "Kristoufek, On the role of stablecoins in cryptoasset pricing dynamics, Financial Innovation 8 (2022)",
+      "primary_source": "https://doi.org/10.1186/s40854-022-00343-8",
+      "finding": "The generalized VAR and directed-spillover study reports no evidence that stablecoin issuance boosts other cryptoasset prices; issuance more often follows changes in cryptoasset prices.",
+      "role": "ADVERSARIAL_REVERSE_CAUSALITY_PRIOR",
+      "transfer_boundary": "A lack of price boosting does not preclude a risk-state association, but it prohibits treating supply growth as established independent alpha."
+    },
+    {
+      "identity": "Ante, Fiedler and Strehle, The influence of stablecoin issuances on cryptocurrency markets, Finance Research Letters 41 (2021)",
+      "primary_source": "https://doi.org/10.1016/j.frl.2020.101867",
+      "finding": "The event study reports negative crypto returns before issuance and positive abnormal returns around issuance, with heterogeneous and often insignificant stablecoin subsamples and no significant scaling by issuance size.",
+      "role": "MIXED_EVENT_TIMING_AND_HETEROGENEITY_PRIOR",
+      "transfer_boundary": "Event-time stabilization does not validate daily capitalization growth as a persistent directional predictor and is compatible with issuance responding to prior market weakness."
+    },
+    {
+      "identity": "Coin Metrics CapMrktCurUSD metric and Community API documentation",
+      "primary_source": "https://docs.coinmetrics.io/asset-metrics/market/capact1yrusd",
+      "finding": "The official documentation defines current USD market capitalization as current supply multiplied by the current USD reference rate; the no-key Community API exposes reviewed daily USDT and USDC observations.",
+      "role": "FREE_MACHINE_READABLE_SOURCE_AND_METRIC_IDENTITY",
+      "transfer_boundary": "Current market capitalization combines supply and reference-price effects, may reflect depegs or revisions, and the present reviewed response is not original-vintage evidence."
+    }
+  ],
+  "real_time_design_requirements": [
+    "Seal one exact no-key Community API response for reviewed daily USDT and USDC CapMrktCurUSD from 2018-09-28 through 2024-12-31; require both assets on every retained day and reject missing, duplicate, non-positive, non-daily or paginated residual data.",
+    "Make observation day D usable only at D plus two calendar days at 00:00 UTC, after the UTC day is complete and one additional confirmation day has elapsed.",
+    "Freeze combined USDT plus USDC capitalization strictly above its level 28 calendar days earlier as primary; USDT-only and USDC-only are rejection-only neighbors and cannot replace a failed primary.",
+    "Use 100-percent unlevered BTC or zero-yield cash, next-H1-open fills, normal and doubled stress friction, and matched-capital buy-and-hold.",
+    "Require Design, Validation, annual breadth, contribution concentration, realized/unrealized/total PnL, drawdown, underwater duration, Calmar, upside capture, holding, terminal inventory and both-neighbor stability.",
+    "Do not add a growth margin, smoothing, z-score, dominance ratio, price interaction, alternate stablecoin, horizon, delay, fractional sizing, leverage, short leg or cash yield after BTC outcome access.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "Stablecoin capitalization can follow rather than lead crypto demand and prices.",
+    "CapMrktCurUSD combines issuance/redemption with stablecoin price deviations, so a signal is not a pure supply measure.",
+    "USDT and USDC are heterogeneous across issuers, chains, reserve structures and stress episodes; aggregate growth can hide substitution between them.",
+    "The Community API response is a present-vintage reviewed snapshot; original daily review timestamps, reference-rate vintages and original values remain MISSING_PROOF.",
+    "The 28-day horizon and strict zero threshold are preregistered calendar controls, not parameters validated by the cited papers.",
+    "No complete source history, BTC performance result, post-2024 observation, candidate, OOS or Trading path was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-19T09:02:31Z"
+}

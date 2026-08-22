@@ -1,0 +1,68 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FOMC_SCHEDULED_ANNOUNCEMENT_DAY_RISK_VETO_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED",
+  "family_id": "btc-fomc-scheduled-announcement-day-risk-veto",
+  "disposition": "ADVERSARIAL_PRIOR_PERMITS_ONE_PRE_ECONOMIC_FOMC_SCHEDULED_ANNOUNCEMENT_DAY_AUDIT_IN_A_FUTURE_RESEARCH_CYCLE",
+  "claim_boundary": "A scheduled FOMC policy statement can change discount-rate expectations and generate event-window uncertainty, but published primary evidence also reports muted or unstable Bitcoin responses. Exactly one future preregistered audit may test whether holding cash for the complete UTC day containing a regularly scheduled FOMC policy decision improves matched-capital BTC risk-adjusted economics. No causal, predictive or alpha claim is imported from the event calendar or literature.",
+  "feature_contract": {
+    "publisher": "Board of Governors of the Federal Reserve System",
+    "source": "OFFICIAL_FOMC_MEETING_CALENDARS_STATEMENTS_AND_HISTORICAL_MATERIALS",
+    "event_universe": "REGULARLY_SCHEDULED_TWO_DAY_FOMC_MEETINGS_ONLY",
+    "event_date": "FINAL_CALENDAR_DATE_OF_EACH_REGULARLY_SCHEDULED_MEETING_WHEN_THE_POLICY_STATEMENT_IS_RELEASED",
+    "decision_time": "EVENT_DATE_0000_UTC_USING_A_CALENDAR_PUBLISHED_BEFORE_THE_EVENT",
+    "primary_feature": "COMPLETE_UTC_DAY_CONTAINS_A_REGULARLY_SCHEDULED_FOMC_POLICY_DECISION",
+    "policy": "HOLD_ZERO_YIELD_CASH_FOR_THE_COMPLETE_EVENT_UTC_DAY_AND_FULL_CAPITAL_BTC_OTHERWISE",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "control": "NON_EVENT_COMPLETE_UTC_DAYS_MATCHED_BY_EVENT_WEEKDAY_WITHIN_THE_SAME_WINDOW",
+    "variants": 1
+  },
+  "prior_matrix": [
+    {
+      "identity": "Federal Reserve FOMC meeting calendars and information",
+      "primary_source": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "finding": "The official calendar states that the FOMC normally holds eight scheduled meetings per year and links each meeting to its policy statement and minutes. The 2021-2024 calendars identify the final decision date of each scheduled meeting before the event.",
+      "role": "FREE_OFFICIAL_PRE_EVENT_CALENDAR_AND_EVENT_IDENTITY",
+      "transfer_boundary": "A scheduled meeting date does not encode the direction or surprise content of monetary policy and does not establish that avoiding the entire UTC day is profitable."
+    },
+    {
+      "identity": "Federal Reserve 2020 FOMC historical materials",
+      "primary_source": "https://www.federalreserve.gov/monetarypolicy/fomchistorical2020.htm",
+      "finding": "The official history distinguishes the regular January, April, June, July, September, November and December meetings from unscheduled March meetings, notation votes and the cancelled March 17-18 meeting.",
+      "role": "FREE_OFFICIAL_REGULAR_VERSUS_UNSCHEDULED_EVENT_CLASSIFICATION",
+      "transfer_boundary": "Unscheduled and notation-vote events are excluded because they were not uniformly known at event-day 00:00 UTC; excluding them cannot later be reversed as a rescue."
+    },
+    {
+      "identity": "Benigno and Rosa, The Bitcoin-Macro Disconnect, Federal Reserve Bank of New York Staff Report 1052",
+      "primary_source": "https://www.newyorkfed.org/medialibrary/media/research/staff_reports/sr1052.pdf",
+      "finding": "The paper studies high-frequency Bitcoin responses to macro and FOMC news and documents examples and broader evidence in which conventional assets respond while Bitcoin reactions are muted or unstable.",
+      "role": "ADVERSARIAL_BITCOIN_MACRO_DISCONNECT_PRIOR",
+      "transfer_boundary": "High-frequency surprise regressions do not directly test full-day event risk, drawdown, transaction costs or a long-or-cash policy."
+    },
+    {
+      "identity": "Kyriazis, Ofeidis, Palaiokrassas and Tassiulas, Monetary Policy, Digital Assets, and DeFi Activity",
+      "primary_source": "https://doi.org/10.2139/ssrn.4362546",
+      "finding": "The event-study evidence reports negative crypto returns and greater volatility after unexpected U.S. monetary-policy tightening.",
+      "role": "POLICY_SURPRISE_AND_VOLATILITY_CHANNEL_PRIOR",
+      "transfer_boundary": "The sign depends on the surprise, while the frozen calendar-only veto ignores statement direction and therefore must pass direct Design and Validation evidence."
+    }
+  ],
+  "future_design_requirements": [
+    "Use only the final dates of regularly scheduled FOMC meetings in 2020-2024; exclude unscheduled meetings, notation votes, cancelled meetings, minutes releases, speeches, press conferences as separate events and post-event classifications.",
+    "Freeze and seal the exact official event-date list before accessing event-matched BTC outcomes; require 23 Design events in 2020-2022 and 16 Validation events in 2023-2024.",
+    "Measure complete-day return and intraday path drawdown from 00:00 UTC to the next 00:00 UTC; compare with non-event complete UTC days matched by event weekday in the same window.",
+    "Require event count, median return disadvantage, negative-rate difference, one-sided Fisher significance, path-drawdown disadvantage, annual breadth and top-event loss concentration in both Design and Validation before opening economics.",
+    "Only after every predictive gate passes, compare full-capital BTC with a zero-yield-cash event-day veto under matched capital, valuation, normal friction and doubled adverse friction. Require total return, maximum drawdown, Calmar, annual breadth, holding and terminal-inventory gates.",
+    "Do not add policy direction, surprise magnitude, SEP status, press-conference text, rate level, inflation, yield, equity, dollar, BTC trend, volatility, month, weekday, intraday-window, partial sizing, leverage or shorting variants.",
+    "Do not open post-2024 data; a historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "uncertainty": [
+    "The complete UTC day begins well before the usual FOMC statement and includes unrelated market moves; a full-day veto can lose positive pre-announcement drift.",
+    "A calendar-only feature mixes easing, tightening and no-change decisions and therefore may have volatility effects without a stable return direction.",
+    "The 2020 regular-meeting count is seven because the scheduled March meeting was cancelled; emergency March actions are deliberately excluded by the point-in-time rule.",
+    "Official historical pages prove event identity but not that every date was unchanged from its earliest tentative calendar publication; original calendar vintages remain MISSING_PROOF.",
+    "No FOMC-event-matched BTC return, path, strategy economics, post-2024 observation, candidate or OOS was accessed while freezing this prior."
+  ],
+  "reviewed_at": "2026-08-20T14:34:12Z"
+}

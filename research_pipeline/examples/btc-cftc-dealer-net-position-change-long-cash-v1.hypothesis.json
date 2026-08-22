@@ -1,0 +1,36 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-cftc-dealer-net-position-change-long-cash-v1",
+  "title": "Lagged CFTC Dealer net-position change for BTC long or cash",
+  "thesis": "A positive weekly change in Dealer/Intermediary net long-minus-short percentage of CME Bitcoin futures open interest may predict positive next-week BTC returns and improve risk-adjusted long-or-cash economics versus matched buy-and-hold.",
+  "mechanism": "Use only consecutive CFTC CME Bitcoin TFF Futures Only Dealer long and short percentages of open interest. Compute current net share minus exact prior-week net share, make the factor available at report date plus seven calendar days at 00:00 UTC, go full-capital long BTC when the change is strictly positive, and otherwise hold zero-yield cash until the next eligible weekly update.",
+  "economic_rationale": "Dealer inventory may reflect sell-side accommodation of client risk demand. If its preregistered continuation direction is independent from already closed participant deltas, it may avoid adverse BTC weeks while retaining enough upside to improve fee- and slippage-adjusted Calmar and drawdown without leverage or shorting.",
+  "source": "EXISTING_SEALED_CFTC_2019_2024_FUTURES_ONLY_ARCHIVES_PLUS_SEALED_52608_ROW_BTC_H1_CORPUS",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "weekly-cftc-dealer-net-position-change-long-cash-matched-capital-runner-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "dealer_delta_spearman_to_closed_participant_deltas",
+    "signed_168h_predictive_response",
+    "fee_and_slippage_adjusted_realized_pnl",
+    "fee_and_slippage_adjusted_unrealized_pnl",
+    "fee_and_slippage_adjusted_total_pnl",
+    "maximum_drawdown",
+    "calmar_ratio",
+    "upside_capture",
+    "capital_utilization",
+    "position_changes",
+    "holding_age",
+    "terminal_inventory",
+    "annual_breadth_and_concentration"
+  ],
+  "ranking": {
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-cftc-dealer-1",
+  "created_at": "2026-08-20T09:54:53Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

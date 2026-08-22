@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-corwin-schultz-spread-entry-admission-v1",
+  "title": "Corwin-Schultz high-low spread proxy for DRA entry admission",
+  "thesis": "An otherwise valid BTC DRA entry taken after an unusually high two-day high-low spread proxy may face impaired liquidity or microstructure noise; admitting only entries whose latest normalized spread proxy is at or below its frozen prior-twenty-day median may improve equal-capital fee-adjusted risk economics.",
+  "mechanism": "Aggregate the sealed H1 BTC corpus into complete UTC days, calculate the zero-floored Corwin-Schultz two-day high-low spread estimate without an overnight adjustment, divide the latest value by the ordinary median of exactly the prior twenty complete-day estimates, and admit the unchanged next-H1 DRA fill only when the ratio is at or below 1.00. Thresholds 0.80 and 1.20 are rejection-only stability neighbors.",
+  "economic_rationale": "The pre-economic V2 support screen passed deterministic availability, state breadth, transition, annual concentration and nonredundancy gates versus range, realized volatility, Amihud and bipower jumpiness. That permits one matched-capital experiment but does not imply alpha; the family succeeds only if the primary improves Design and Validation total and realized PnL while preserving drawdown, underwater duration, holding and terminal inventory, and both neighbors remain economically non-worse.",
+  "source": "PRE_CANDIDATE_POOL:dra-corwin-schultz-spread-entry-admission;SUPPORT_SHA256:8f607fc2e8e179410bc191a3d96526d706a0518f5b2e7e56597aced87ffe87c6",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_SPREAD_ADMISSION_FILTER",
+  "required_capability": "dra-declarative-entry-admission-v1-with-corwin-schultz-spread-feature-and-v2-economic-gates",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "design_and_validation_parent_signal_admitted_vetoed_and_unavailable_counts",
+    "normal_fee_and_adverse_slippage_realized_unrealized_and_total_pnl_usdt",
+    "matched_equal_capital_maximum_drawdown_and_maximum_underwater_duration",
+    "median_and_p90_holding_hours_terminal_inventory_and_utilization",
+    "annual_total_pnl_and_drawdown_breadth_with_top_year_positive_delta_concentration",
+    "primary_1_00_and_rejection_only_0_80_1_20_neighbor_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-21-candidate-factory-cycle-corwin-schultz-spread-1",
+  "created_at": "2026-08-21T05:32:27Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

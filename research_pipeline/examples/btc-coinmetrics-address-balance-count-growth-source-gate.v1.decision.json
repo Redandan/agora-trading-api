@@ -1,0 +1,55 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_ADDRESS_BALANCE_COUNT_GROWTH_SOURCE_GATE_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-address-balance-count-28d-growth-long-cash",
+  "decided_at": "2026-08-20T12:34:21.466Z",
+  "status": "DATA_REJECT_CLOSE_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+  "decision": "CLOSE_FAMILY_AND_PROHIBIT_RESCUE_OR_REOPEN",
+  "frozen_feature": "COINMETRICS_BTC_ADRBALCNT_CURRENT_COMPLETE_SUNDAY_STRICTLY_ABOVE_VALUE_28_DAYS_EARLIER_V1",
+  "source_evidence": {
+    "bundle_path": ".research-state/experiments/btc-coinmetrics-address-balance-count-growth-historical-v1/inputs/coinmetrics-btc-address-balance-count-daily-2018-2024.v1.source.json",
+    "bundle_sha256": "e97ed68b02d2ab08c7e32dfaad1e71f679849f324bb7e1c76ebb36b95ac189c1",
+    "raw_sha256": "a87c614cd74073b41a1cf88070a1d7338441bce7902a2da2b107f7bf219d3863",
+    "normalized_sha256": "fc9351455d9fae7567ea6a56bc4a2b3586f487362f3ae7861837559ee41af984",
+    "rows": 2557,
+    "first_date": "2018-01-01",
+    "last_date": "2024-12-31"
+  },
+  "pre_outcome_support_result": {
+    "overall": {
+      "evaluations": 361,
+      "expansion_weeks": 293,
+      "nonexpansion_weeks": 68,
+      "transitions": 38
+    },
+    "design": {
+      "evaluations": 209,
+      "expansion_weeks": 185,
+      "nonexpansion_weeks": 24,
+      "minimum_evaluations": 180,
+      "minimum_per_state": 40,
+      "support_pass": false
+    },
+    "validation": {
+      "evaluations": 104,
+      "expansion_weeks": 77,
+      "nonexpansion_weeks": 27,
+      "minimum_evaluations": 90,
+      "minimum_per_state": 20,
+      "support_pass": true
+    }
+  },
+  "material_conclusion": "The present-vintage funded-address series is too one-sided in Design for the frozen binary state comparison: only 24 Design nonexpansion weeks exist versus the preregistered minimum of 40. Validation support cannot repair the missing Design counterfactual.",
+  "prohibited_rescue": [
+    "Do not lower the Design minimum-per-state gate after observing support counts.",
+    "Do not add address-balance thresholds, USD thresholds, wallet clustering, active addresses, transaction counts, price normalization, smoothing or alternate lags.",
+    "Do not join this factor to BTC outcomes, create a hypothesis, run economics or reopen the family."
+  ],
+  "pnl_drawdown_evidence": "NOT_ACCESSED_BY_DESIGN",
+  "missing_proof": [
+    "No BTC return, path drawdown, annual breadth, concentration or matched-capital economic result was accessed.",
+    "No hypothesis, runner, manifest, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Source identity and both-state support only. No BTC price or DRA outcome, hypothesis, experiment, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

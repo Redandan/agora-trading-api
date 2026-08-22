@@ -1,0 +1,121 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_STALE_INVENTORY_AGE_ENTRY_ADMISSION_HISTORICAL_DECISION_V1",
+  "family_id": "dra-stale-inventory-age-entry-admission",
+  "decided_at": "2026-08-21T07:22:10Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_STALE_INVENTORY_AGE_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_CAPACITY_FIRST_OLDEST_OPEN_PARENT_LOT_ACTUAL_FILL_AGE_336_720_1440_HOUR_DRA_ENTRY_ADMISSION_FAMILY_WITHOUT_THRESHOLD_CLOCK_STATE_COOLDOWN_ROUTE_OR_GATE_RESCUE",
+  "evidence": {
+    "hypothesis": {
+      "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-v1.hypothesis.json",
+      "sha256": "3aefaa65df7b6c0fc3faffef7c78014cfac2053849c46e570e8d32599dc07efb"
+    },
+    "preoutcome_acceptance": {
+      "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-preoutcome.v1.acceptance.json",
+      "sha256": "ebe99a66f8eb08b46aa2eca9a626f45e593bf4b29c5c1835bc9c6133a662dedb"
+    },
+    "manifest": {
+      "path": "research_pipeline/examples/dra-stale-inventory-age-entry-admission-historical.v1.manifest.json",
+      "sha256": "f518a73350c37bb0934b05d18d7f724b797fc0cf94bdf1ae40779bf93590c3bf"
+    },
+    "manifest_schema": {
+      "path": "research_pipeline/dra-stale-inventory-age-entry-admission-manifest.v1.schema.json",
+      "sha256": "7831c6d330d91bb34a7c807f988a36d09fc31e90788ea1c0139e7a35a4ad453d"
+    },
+    "economic_runner": {
+      "path": "research/btc_dra_stale_inventory_age_entry_admission_v1.py",
+      "sha256": "45d32cc379af6a9a5dd47575eb0362cc399c464e8c88ba0c22de9a79bb6eee29"
+    },
+    "support_runner": {
+      "path": "research/dra_stale_inventory_age_support_v1.py",
+      "sha256": "949cc38130e4ea0412680e4b256deef1d3a3caa40ced7554241aa94041ceb9e9"
+    },
+    "economic_run1": {
+      "path": ".research-state/experiments/dra-stale-inventory-age-entry-admission-historical-v1/artifacts/economic-screen.v1.run1.json",
+      "sha256": "0b1f7b676908283a3b56f8acfb36dcd70f2a7ddfd645136fcebcc6b511997f65"
+    },
+    "economic_run2": {
+      "path": ".research-state/experiments/dra-stale-inventory-age-entry-admission-historical-v1/artifacts/economic-screen.v1.run2.json",
+      "sha256": "0b1f7b676908283a3b56f8acfb36dcd70f2a7ddfd645136fcebcc6b511997f65"
+    },
+    "determinism": "ECONOMIC_RUNS_BYTE_IDENTICAL"
+  },
+  "mechanism": {
+    "capacity_first": true,
+    "age_clock": "DECISION_TIME_MINUS_OLDEST_OPEN_PARENT_LOT_ACTUAL_FILL_TIME_IN_HOURS",
+    "primary_threshold_hours": "720",
+    "rejection_only_neighbors_hours": ["336", "1440"],
+    "no_open_inventory": "ADMIT",
+    "veto_reserves_parent_cooldown": "SEVEN_DAYS_FROM_ORIGINAL_SIGNAL",
+    "capacity_block_route": "UNCHANGED_WITHOUT_COOLDOWN_RESERVATION",
+    "inventory_pnl_read_for_decision": false,
+    "sell_or_resize_existing_lots": false
+  },
+  "primary_summary": {
+    "design": {
+      "parent_realized_unrealized_total_usdt": "169.89846767_-79.12049441_90.77797326",
+      "candidate_realized_unrealized_total_usdt": "73.87947986_-22.44489016_51.43458970",
+      "total_pnl_delta_usdt": "-39.34338356",
+      "realized_pnl_delta_usdt": "-96.01898781",
+      "parent_candidate_drawdown_pct": "29.530448_14.577550",
+      "parent_candidate_max_underwater_hours": "9878_9878",
+      "parent_candidate_median_p90_hold_hours": "126_1818.6__113_2045",
+      "vetoed_signals": 59
+    },
+    "validation": {
+      "parent_realized_unrealized_total_usdt": "89.41118307_-3.20820121_86.20298186",
+      "candidate_realized_unrealized_total_usdt": "59.37792574_-3.20820121_56.16972453",
+      "total_pnl_delta_usdt": "-30.03325733",
+      "realized_pnl_delta_usdt": "-30.03325733",
+      "parent_candidate_drawdown_pct": "7.121498_4.568702",
+      "parent_candidate_max_underwater_hours": "2397_4899",
+      "parent_candidate_median_p90_hold_hours": "182.5_1418.3__191_754.6",
+      "parent_candidate_terminal_inventory_count": "1_1",
+      "vetoed_signals": 17
+    },
+    "annual_total_pnl_delta_usdt_2020_2024": {
+      "2020": "-23.45349154",
+      "2021": "-13.12059321",
+      "2022": "4.19642030",
+      "2023": "-12.17163280",
+      "2024": "-17.86162453"
+    },
+    "annual_total_wins": "1_OF_5",
+    "annual_drawdown_non_worse": "5_OF_5",
+    "annual_risk_adjusted_wins": "2_OF_5",
+    "top_year_positive_delta_contribution_pct": "100.000000"
+  },
+  "neighbor_summary": {
+    "336h_validation_total_pnl_usdt_parent_candidate_delta": "86.20298186_47.58735652_-38.61562534",
+    "1440h_validation_total_pnl_usdt_parent_candidate_delta": "86.20298186_58.04899242_-28.15398944",
+    "both_neighbors_validation_realized_non_worse": false,
+    "both_neighbors_validation_total_pnl_non_worse": false,
+    "both_neighbors_validation_max_underwater_non_worse": false
+  },
+  "failed_primary_gates": [
+    "annual_risk_adjusted_wins_at_least_3_of_5",
+    "annual_total_wins_at_least_3_of_5",
+    "design_realized_pnl_improves",
+    "design_total_pnl_improves",
+    "top_year_positive_delta_contribution_at_most_60pct",
+    "validation_max_underwater_duration_non_worse",
+    "validation_median_hold_non_worse",
+    "validation_realized_pnl_improves",
+    "validation_total_pnl_improves"
+  ],
+  "material_learning": "Oldest-open-lot age is broad, causal, decision-time available and capable of lowering measured drawdown, but the frozen veto removes profitable DRA participation rather than isolating low-value entries. The 720-hour rule reduced Validation drawdown by 2.552796 percentage points yet also reduced Validation realized and total PnL by 30.03325733 USDT, doubled maximum underwater duration from 2397 to 4899 hours, won total PnL in only one of five annual folds and concentrated all positive annual delta in 2022. Both rejection-only neighbors also reduced Validation total and realized PnL. Lower drawdown caused by suppressing return is not risk-adjusted alpha.",
+  "prohibited_reopen": [
+    "Do not rerun or promote the 336-hour, 720-hour or 1440-hour thresholds.",
+    "Do not search another oldest, newest, median or average open-lot age threshold to rescue this family.",
+    "Do not add inventory PnL, open-cost, regime, trend or volatility conditions to the observed result; each would be a new post-outcome compound family requiring independent prior justification.",
+    "Do not change capacity-first ordering, no-inventory admission, seven-day veto cooldown reservation, next-open fill, 30 USDT lot, 240 USDT capacity, exit, fees, slippage, windows or gates.",
+    "Do not open OOS, create a candidate, deploy or activate SHADOW, PAPER or LIVE from this result."
+  ],
+  "hypothesis_created": true,
+  "candidate_economics_accessed": true,
+  "candidate_created": false,
+  "oos_opened": false,
+  "activation": "REPORTED_NOT_ACTIVATED",
+  "scope_note": "Historical matched-capital research and permanent branch closure only. No paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

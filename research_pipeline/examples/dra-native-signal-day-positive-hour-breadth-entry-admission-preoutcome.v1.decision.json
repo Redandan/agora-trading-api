@@ -1,0 +1,94 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_NATIVE_SIGNAL_DAY_POSITIVE_HOUR_BREADTH_PREOUTCOME_DECISION_V1",
+  "family_id": "dra-native-signal-day-positive-hour-breadth-entry-admission",
+  "decided_at": "2026-08-21T09:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_POSITIVE_HOUR_BREADTH_AT_SUPPORT_GATE",
+  "decision": "PERMANENTLY_CLOSE_EXACT_24_SIGNAL_DAY_POSITIVE_H1_RETURN_BREADTH_AT_11_13_15_COUNTS_WITHOUT_THRESHOLD_REFERENCE_ZERO_TREATMENT_FORMULA_DIRECTION_OR_WINDOW_RESCUE",
+  "evidence": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/dra-native-signal-day-positive-hour-breadth-entry-admission-primary-prior.v1.json",
+      "sha256": "1a97dbc82acc5b24f2683b3cca7753925963bd1d5778da23b4f37aca0062f1a1"
+    },
+    "preoutcome_spec": {
+      "path": "research_pipeline/examples/dra-native-signal-day-positive-hour-breadth-entry-admission-preoutcome.v1.spec.json",
+      "sha256": "2d9cb740760221edde92a7d31138f6aae549d4f8b7cca3329d3ea117f794e8af"
+    },
+    "support_runner": {
+      "path": "research/dra_native_signal_day_positive_hour_breadth_support_v1.py",
+      "sha256": "07ac224d5a3931947d54a0f9a96f47d6da65d23e150fa4b910f0b7bf0d190484"
+    },
+    "support_run1": {
+      "path": ".research-state/experiments/dra-native-signal-day-positive-hour-breadth-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
+      "sha256": "9cd5107e4edfabd18d1a34b543fee117ae2dc301b55ae7696b9552dd8b88a454"
+    },
+    "support_run2": {
+      "path": ".research-state/experiments/dra-native-signal-day-positive-hour-breadth-entry-admission-historical-v1/inputs/preoutcome-support.v1.run2.json",
+      "sha256": "9cd5107e4edfabd18d1a34b543fee117ae2dc301b55ae7696b9552dd8b88a454"
+    },
+    "determinism": "SUPPORT_RUNS_BYTE_IDENTICAL"
+  },
+  "deduplication": {
+    "status": "PASS_DISTINCT_FORMULA_AND_ACTION_FINGERPRINT",
+    "new_action": "Capacity-admissible DRA entry veto based on the unweighted count of positive close-to-previous-H1-close returns across exactly 24 signal-day H1 bars.",
+    "distinct_from": [
+      "net signal-day momentum magnitude",
+      "adjacent return-sign persistence",
+      "positive-return directional-volume participation",
+      "intraday price-path efficiency",
+      "signal-day occupancy above prior EMA20"
+    ]
+  },
+  "support_summary": {
+    "parent_path_parity": "EXACT_ALL_DESIGN_VALIDATION_AND_ANNUAL_WINDOWS",
+    "feature_availability": {
+      "design": "1.00000000",
+      "validation": "1.00000000"
+    },
+    "design": {
+      "parent_signals": 103,
+      "capacity_admissible_signals": 100,
+      "primary_13_of_24_actionable_vetoes": 26,
+      "primary_action_share": "0.26000000",
+      "lower_11_of_24_actionable_vetoes": 6,
+      "upper_15_of_24_actionable_vetoes": 68,
+      "positive_hour_count_minimum_median_maximum": [9, "14", 17]
+    },
+    "validation": {
+      "parent_signals": 51,
+      "capacity_admissible_signals": 51,
+      "primary_13_of_24_actionable_vetoes": 13,
+      "primary_action_share": "0.25490196",
+      "lower_11_of_24_actionable_vetoes": 2,
+      "upper_15_of_24_actionable_vetoes": 37,
+      "positive_hour_count_minimum_median_maximum": [10, "13", 17]
+    },
+    "annual_primary_13_of_24_actionable_vetoes": {
+      "2020": 8,
+      "2021": 10,
+      "2022": 3,
+      "2023": 9,
+      "2024": 4
+    },
+    "active_annual_folds": 5,
+    "top_year_primary_veto_share": "0.29411765",
+    "validation_top_month_primary_veto_share": "0.23076923"
+  },
+  "failed_gates": [
+    "validation_minimum_each_neighbor_actionable_vetoes"
+  ],
+  "material_learning": "Signal-day positive-hour breadth is causal, fully available, action-distinct, reasonably selective at the primary and broad across years and months. However, the preregistered lower 11-of-24 neighbor produces only 2 actionable Validation vetoes, below the frozen minimum of 4. The local threshold region therefore lacks adequate two-sided support. The exact family closes before candidate economics; the primary cannot be advanced while ignoring the unstable lower neighbor, and the 15-of-24 neighbor cannot replace it.",
+  "prohibited_reopen": [
+    "Do not promote the 11-of-24 or 15-of-24 rejection-only neighbor after seeing support counts.",
+    "Do not rerun the 11, 13 or 15 count thresholds in this direction.",
+    "Do not change the first-hour reference, zero-return treatment, strict positive comparison, 24-return denominator, signal clock, relation, capacity order, cooldown reservation, lot cost, cap, windows or support gates to rescue this family.",
+    "Do not add return magnitude, volume weighting, sign adjacency or session selection as a rescue.",
+    "Do not create a hypothesis, economic manifest, candidate, OOS, deployment, SHADOW, PAPER or LIVE action from this support result."
+  ],
+  "hypothesis_created": false,
+  "candidate_economics_accessed": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Causal parent-state support and deduplication only. No candidate PnL, OOS, paid API, external download, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

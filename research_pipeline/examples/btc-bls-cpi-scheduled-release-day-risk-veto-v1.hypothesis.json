@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-bls-cpi-scheduled-release-day-risk-veto-v1",
+  "title": "Scheduled BLS CPI release-day full-UTC-day BTC risk veto",
+  "thesis": "The complete UTC day containing a preregistered BLS CPI release may have worse BTC return and path risk than same-window non-event days with the same weekdays because an inflation update can reprice expected policy, discount rates and cross-asset liquidity.",
+  "mechanism": "A calendar-known CPI release concentrates uncertainty around an 08:30 Eastern information shock, which may increase downside incidence or intraday drawdown in BTC even though the surprise direction is unknown and an adversarial Bitcoin-macro prior predicts unstable responses.",
+  "economic_rationale": "A spot-only policy that exits BTC at 00:00 UTC on each frozen CPI release date and reenters at the next 00:00 UTC is useful only if avoided event-day losses and drawdown exceed two fee-and-adverse-slippage transitions per event and the opportunity cost of foregone positive event-day returns under matched capital.",
+  "source": "research_pipeline/examples/btc-bls-cpi-scheduled-release-day-risk-veto-primary-prior.v1.json#sha256=174bc80b2340e59b97286688f0aef046b827ad25574f9bf4204d6859f0e1bd1c;research_pipeline/examples/btc-bls-cpi-release-dates-2020-2024.v1.json#sha256=78c42ced056df9608deed80444ec89203efffd75a958486b681ec24a27f99eba",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_2020_2024_H1_CORPUS_COST_AND_VALUATION",
+  "required_capability": "DIRECT_DETERMINISTIC_FROZEN_EVENT_DATE_PRE_ECONOMIC_SCREEN_THEN_MATCHED_CAPITAL_LONG_CASH_ECONOMIC_RUNNER",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "event_and_same_weekday_control_count",
+    "median_complete_day_return_delta",
+    "negative_return_rate_delta",
+    "one_sided_fisher_p_value",
+    "median_and_p75_intraday_path_drawdown",
+    "annual_direction_breadth",
+    "top_event_loss_concentration",
+    "fee_and_adverse_slippage_adjusted_total_return_delta",
+    "realized_pnl",
+    "unrealized_pnl",
+    "maximum_drawdown",
+    "capital_utilization",
+    "holding_age",
+    "terminal_inventory"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-20-candidate-factory-cycle-cpi-1",
+  "created_at": "2026-08-20T15:18:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

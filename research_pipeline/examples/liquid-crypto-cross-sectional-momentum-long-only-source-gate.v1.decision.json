@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "document_type": "LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_LONG_ONLY_SOURCE_GATE_V1_DECISION",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "DATA_REJECT_CLOSE_LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_FREE_ARCHIVE_FAMILY",
+  "experiment_id": "liquid-crypto-cross-sectional-momentum-long-only-v1",
+  "decision": "PERMANENTLY_CLOSE_EXACT_BINANCE_PUBLIC_ARCHIVE_2019_12_COHORT_CROSS_SECTIONAL_MOMENTUM_FAMILY_WITHOUT_ASSET_COHORT_SOURCE_START_MONTH_OR_VOLUME_VALIDITY_SUBSTITUTION",
+  "candidate_created": false,
+  "oos_opened": false,
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-primary-prior.v1.json",
+      "sha256": "77245807cd200c1815f352c5da941c4085472520666e223d9a0e5d20aba3b721",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_FREE_SOURCE_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-source-feasibility.v1.acceptance.json",
+      "sha256": "658603dbab86e7deedb6de721f9e343ac56fd8831b0c5fbfc10f3a6ab06805db",
+      "role": "SEALED_ARCHIVE_METADATA_FEASIBILITY_ACCEPTANCE"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-v1.hypothesis.json",
+      "sha256": "a6417aedc84786c1b421b41ead3ec6dd32214b26a5e6811be4504f49bbefbde4",
+      "role": "FROZEN_PRE_OUTCOME_HYPOTHESIS"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-corpus.v1.source-manifest.json",
+      "sha256": "bee2dfaebc8a4261a3c59108394919b77e36f8046fa3cf66ee2d36390014c1cc",
+      "role": "FINAL_FROZEN_SOURCE_ACQUISITION_MANIFEST"
+    },
+    {
+      "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+      "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c",
+      "role": "FINAL_FAIL_CLOSED_CORPUS_BUILDER"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-corpus-preoutcome-partial-session-erratum.v1.json",
+      "sha256": "cd375c87d37f57d86a301deed9199e35f12428df9905184e6ef0dbb804bc9ffa",
+      "role": "SEALED_PRE_OUTCOME_COMPLETE_DAY_PARSER_ERRATUM"
+    },
+    {
+      "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-corpus-preoutcome-decimal-diagnostic-erratum.v1.json",
+      "sha256": "c280eb5aa82a81c19f8ae16c21cef34084fef504df4e4185e10da9a443f2a699",
+      "role": "SEALED_PRE_OUTCOME_DIAGNOSTIC_ONLY_ERRATUM"
+    },
+    {
+      "path": ".research-state/experiments/liquid-crypto-cross-sectional-momentum-long-only-source-feasibility-v1/artifacts/run1.json",
+      "sha256": "9f8ee95df9b04595c83fcd341c97c77286884a39b4f96adc463de0aa02f84e6f",
+      "role": "SEALED_ALL_HISTORY_ARCHIVE_INVENTORY"
+    }
+  ],
+  "terminal_failure": {
+    "classification": "NEGATIVE_BASE_VOLUME_IN_PUBLISHER_CHECKSUM_VALID_ARCHIVE",
+    "symbol": "BTTUSDT",
+    "month": "2019-01",
+    "row_index": 0,
+    "field": "base_volume",
+    "raw_value": "-61596941261.09551616",
+    "error": "DATA_REJECT:DECIMAL:base_volume:0:'-61596941261.09551616':BTTUSDT:2019-01",
+    "frozen_requirement": "POSITIVE_VALID_OHLC_AND_NONNEGATIVE_BASE_AND_QUOTE_VOLUME",
+    "sealed_corpus_bundle_created": false,
+    "sealed_normalized_corpus_created": false,
+    "strategy_runner_executed": false
+  },
+  "prior_nonterminal_parser_event": {
+    "identity": "BEAMUSDT_2023_01_FINAL_ROW",
+    "disposition": "EXCLUDED_AS_A_NINE_HOUR_TERMINAL_EXCHANGE_SESSION_UNDER_THE_ALREADY_FROZEN_COMPLETE_DAY_RULE",
+    "outcome_accessed": false
+  },
+  "material_learning": "Public archive metadata and checksum availability do not prove economic-corpus integrity. The frozen pre-Design cohort contains a publisher-checksum-valid BTTUSDT archive with a negative base-volume value, so the exact point-in-time cross-sectional universe cannot satisfy the nonnegative activity gate. Removing BTT after discovery, moving the cohort date, accepting negative volume, dropping the affected month or selecting only cleaner survivors would introduce post-source selection and survivorship bias.",
+  "scientific_claim": "No claim about cross-sectional momentum profitability was tested. The exact Binance-public-archive, December-2019-cohort implementation is rejected at the source gate before any return, rank, strategy path, matched-capital PnL, drawdown or OOS computation.",
+  "performance_evidence": {
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "NOT_OPENED"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not remove BTTUSDT or the 2019-01 row after observing the source defect.",
+    "Do not move the cohort month, start month, exchange, quote asset, volume field or validity gate to rescue this family.",
+    "Do not accept, absolute-value, zero-fill, interpolate or winsorize negative publisher volume.",
+    "Do not use current exchangeInfo or current survivors as historical membership."
+  ],
+  "next_action": "SWITCH_TO_ONE_PREREGISTERED_FAMILY_USING_THE_EXISTING_SEALED_BTC_H1_CORPUS_AND_NO_EXTERNAL_SOURCE_ACQUISITION",
+  "scope_note": "No sealed price corpus, strategy outcome, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

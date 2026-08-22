@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_LAGGED_REALIZED_VARIANCE_SCALED_LOT_SIZING_PREOUTCOME_ACCEPTANCE_V1",
+  "accepted_at": "2026-08-21T05:56:45Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-lagged-realized-variance-scaled-lot-sizing",
+  "disposition": "PASS_PREOUTCOME_DEDUP_SUPPORT_ALLOW_ONE_FROZEN_HYPOTHESIS",
+  "support_result": {
+    "path": ".research-state/experiments/dra-lagged-realized-variance-scaled-lot-sizing-historical-v1/inputs/preoutcome-support.v1.run1.json",
+    "sha256": "5346677054ebfa8cab589d303195bd89ce0c0fd4dfe89e7924956700b59f37b3",
+    "run2_path": ".research-state/experiments/dra-lagged-realized-variance-scaled-lot-sizing-historical-v1/inputs/preoutcome-support.v1.run2.json",
+    "run2_sha256": "5346677054ebfa8cab589d303195bd89ce0c0fd4dfe89e7924956700b59f37b3",
+    "byte_identical": true,
+    "support_pass": true,
+    "failed_gates": []
+  },
+  "spec_binding": {
+    "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-preoutcome.v1.spec.json",
+    "sha256": "09f69b7327813d34c8a2781a5910ec3fae6b2a7b028420fbed953608c00bc6c9"
+  },
+  "hypothesis_binding": {
+    "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-v1.hypothesis.json",
+    "sha256": "10fe350fc0f9286825c0ee0752ced3d5d5bcfdde4f118707d9f4d5b95b75500f",
+    "schema_valid": true
+  },
+  "support_summary": {
+    "normalized_design_validation_rows": "1440_AND_731",
+    "primary_design_validation_scaled_signal_counts": "39_AND_30",
+    "annual_primary_scaled_signal_counts_2020_2024": [17, 6, 4, 14, 16],
+    "top_year_primary_scaled_signal_share": "0.29824561",
+    "signals_preserved": true,
+    "action_fingerprints_distinct": true,
+    "outcome_accessed": false
+  },
+  "decision_boundary": "This acceptance permits exactly one frozen matched-capital historical experiment with the 15 USDT primary floor and rejection-only 10 and 20 USDT floor neighbors. It is not performance evidence and does not permit formula, floor, cap, gate, OOS or Trading changes.",
+  "scope_note": "No strategy economics, candidate, OOS, external download, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

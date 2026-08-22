@@ -1,0 +1,66 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary research reports that economic policy uncertainty can predict Bitcoin returns and that increases in newspaper-based uncertainty have sometimes predicted higher Bitcoin returns. This does not establish that a lagged weekly US EPU state improves DRA V1 economics. Exactly one frozen matched-capital historical screen may test the primary prior-52-week median relation with fixed 0.80 and 1.20 ratio neighbors. Any source-timing, economic, breadth, drawdown, holding, inventory or neighbor failure closes the family without changing direction, aggregation, lag, thresholds, parent or accounting.",
+  "disposition": "PRIOR_SUPPORTS_ONE_DRA_US_EPU_HEDGE_ENTRY_ADMISSION_AUDIT",
+  "document_type": "DRA_US_EPU_HEDGE_ENTRY_ADMISSION_PRIMARY_PRIOR_V1",
+  "feature_contract": {
+    "decision_time": "WEEK_ENDING_SUNDAY_PLUS_7_CALENDAR_DAYS_AT_00_00_UTC",
+    "feature": "LAGGED_WEEKLY_US_EPU_7D_MEAN_TO_PRIOR_52W_MEDIAN",
+    "formula": "For each complete Monday-through-Sunday UTC week, average the seven positive USEPUINDXD observations. After a conservative seven-calendar-day publication lag, divide that weekly mean by the median of the immediately preceding fifty-two non-overlapping complete weekly means.",
+    "relation": "AT_OR_ABOVE",
+    "thresholds": ["0.80", "1.00", "1.20"],
+    "primary_threshold": "1.00",
+    "factor_valid_hours": 168
+  },
+  "prior_matrix": [
+    {
+      "finding": "The peer-reviewed study reports that time-series momentum, economic policy uncertainty and financial uncertainty outperform other Bitcoin-return predictors in in-sample, out-of-sample and asset-allocation tests.",
+      "identity": "Cheah, Luo, Zhang and Sung, Predictability of bitcoin returns, European Journal of Finance 28(1), 66-85 (2022)",
+      "primary_source": "https://doi.org/10.1080/1351847X.2020.1835685",
+      "role": "BITCOIN_EPU_PREDICTABILITY_PRIOR",
+      "transfer_boundary": "Forecast-model performance does not validate this weekly aggregation, median ratio, DRA entry timing, threshold direction or trading economics."
+    },
+    {
+      "finding": "The study reports that increases in a newspaper-based economic uncertainty measure tend to predict higher Bitcoin returns and finds Bitcoin to be a hedge against newspaper- and search-based uncertainty measures in monthly data.",
+      "identity": "Bouri and Gupta, Predicting Bitcoin returns: Comparing the roles of newspaper- and internet search-based measures of uncertainty, Finance Research Letters 38, 101398 (2021)",
+      "primary_source": "https://doi.org/10.1016/j.frl.2019.101398",
+      "role": "POSITIVE_HIGH_UNCERTAINTY_DIRECTION_PRIOR",
+      "transfer_boundary": "Monthly predictive regressions do not prove a weekly US-only DRA admission rule or stability after costs."
+    },
+    {
+      "finding": "FRED defines USEPUINDXD as a daily seven-day news-based US Economic Policy Uncertainty index sourced from Baker, Bloom and Davis.",
+      "identity": "Federal Reserve Bank of St. Louis FRED, USEPUINDXD",
+      "primary_source": "https://fred.stlouisfed.org/series/USEPUINDXD",
+      "role": "OFFICIAL_DATA_IDENTITY",
+      "transfer_boundary": "The current FRED history is a present-vintage series and does not prove original release timestamps or unrevised historical values."
+    }
+  ],
+  "pre_outcome_source_feasibility": {
+    "method": "GET",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD&cosd=2018-01-01&coed=2024-12-31",
+    "credentials": "DENY",
+    "rows": 2557,
+    "valid_positive_rows": 2557,
+    "first_date": "2018-01-01",
+    "last_date": "2024-12-31",
+    "columns": ["observation_date", "USEPUINDXD"],
+    "historical_coverage": "PASS",
+    "btc_outcome_accessed": false
+  },
+  "real_time_design_requirements": [
+    "Seal one exact create-once official no-key FRED CSV response before opening BTC outcomes.",
+    "Use only complete seven-observation Monday-through-Sunday weeks and apply the conservative seven-calendar-day availability lag.",
+    "Freeze primary 1.00 with 0.80 and 1.20 ratio neighbors and relation AT_OR_ABOVE.",
+    "Keep DRA side, entries, exits, lot cost, capacity, fees, adverse slippage, cooldown and fill clock unchanged.",
+    "Require matched-capital Design and Validation PnL, realized and unrealized decomposition, drawdown, underwater duration, holding distribution, terminal inventory, intervention support, annual breadth, concentration and both-neighbor stability.",
+    "Treat present-vintage source timing as historical development evidence only; do not open post-2024 OOS or claim a hedge from aggregate PnL."
+  ],
+  "reviewed_at": "2026-08-20T05:26:00Z",
+  "status": "COMPLETED",
+  "uncertainty": [
+    "The literature is not unanimous across countries, uncertainty definitions or samples; a US weekly positive relation may fail.",
+    "The news-composition index can change meaning across elections, wars, pandemics and policy regimes.",
+    "The current FRED series is present-vintage; original daily release timestamps and revisions remain MISSING_PROOF.",
+    "No BTC strategy outcome, post-2024 evidence, OOS, candidate, canonical write or Trading action was accessed while freezing this prior."
+  ]
+}

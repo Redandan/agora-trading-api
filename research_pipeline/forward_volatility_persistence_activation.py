@@ -27,6 +27,9 @@ from .storage import ResearchStore
 
 
 ACTIVATION_STATE_KEY = "btc_utc_day_3pct_forward_volatility_persistence_activation"
+ACTIVATION_RECEIPT_RETIRED = (
+    "ACTIVATION_RECEIPT_RETIRED_BY_LAWFUL_ROLLOVER"
+)
 ACCEPTED_IMPLEMENTATION_COMMIT = "5f4040de9e6a90864f4dc92477e5e377787d6a62"
 ACCEPTED_RESULT_SHA256 = (
     "d77880b64c3b21a3786e1bc398ffafde2258471f3e9fa85a589aec1d92db11e2"
@@ -119,21 +122,24 @@ def prepare_forward_volatility_persistence_activation(
                 "volatility activation receipt exists without forward lineage"
             )
         validated = _validated_existing_receipt(existing_receipt, current=current)
-        if (
-            validated["leaf_trigger_id"] != lineage.leaf_trigger["trigger_id"]
-            or validated["leaf_trigger_fingerprint"]
-            != lineage.leaf_trigger["fingerprint"]
+        matches_current_leaf = (
+            validated["leaf_trigger_id"] == lineage.leaf_trigger["trigger_id"]
+            and validated["leaf_trigger_fingerprint"]
+            == lineage.leaf_trigger["fingerprint"]
+        )
+        if not matches_current_leaf and not _receipt_binds_verified_ancestor(
+            lineage, validated
         ):
             raise ActivationIntegrityError(
-                "volatility activation receipt conflicts with current leaf"
+                "volatility activation receipt conflicts with current lineage"
             )
-        closed_at = _eligible_successor_closed_at(lineage)
+        bound_created_at = _receipt_bound_created_at(lineage, validated)
         activated_at = parse_timestamp(
             validated["activated_at"], "activation activated_at"
         ).astimezone(timezone.utc)
-        if activated_at <= closed_at:
+        if activated_at <= bound_created_at:
             raise ActivationIntegrityError(
-                "volatility activation receipt predates successor observation"
+                "volatility activation receipt predates bound successor observation"
             )
         try:
             _require_release_identity(
@@ -149,6 +155,13 @@ def prepare_forward_volatility_persistence_activation(
             raise ActivationIntegrityError(
                 "receipt-bound release metadata is absent"
             ) from error
+        if not matches_current_leaf:
+            # Preserve the immutable receipt for its original verified leaf, but
+            # never let it authorize evidence on a later lawful rollover leaf.
+            # Reactivation requires a separately versioned receipt.
+            return ActivationDecision(
+                validated, False, ACTIVATION_RECEIPT_RETIRED
+            )
         # The receipt preserves the immutable release that first activated the
         # evaluator.  A later clean Worker release is allowed to carry that
         # receipt forward only after the current immutable release independently
@@ -201,6 +214,44 @@ def prepare_forward_volatility_persistence_activation(
             "new volatility activation receipt failed evaluator validation"
         ) from error
     return ActivationDecision(validated, True, "ACTIVATION_RECEIPT_READY_TO_PERSIST")
+
+
+def _receipt_binds_verified_ancestor(
+    lineage: ActiveForwardTriggerLineage, receipt: dict[str, Any]
+) -> bool:
+    receipt_id = receipt["leaf_trigger_id"]
+    receipt_fingerprint = receipt["leaf_trigger_fingerprint"]
+    return any(
+        trigger_id == receipt_id and fingerprint == receipt_fingerprint
+        for trigger_id, fingerprint, _ in lineage.trigger_identities[:-1]
+    )
+
+
+def _receipt_bound_created_at(
+    lineage: ActiveForwardTriggerLineage, receipt: dict[str, Any]
+) -> datetime:
+    if not lineage.trigger_identities:
+        if (
+            receipt["leaf_trigger_id"] != lineage.leaf_trigger["trigger_id"]
+            or receipt["leaf_trigger_fingerprint"]
+            != lineage.leaf_trigger["fingerprint"]
+        ):
+            raise ActivationIntegrityError(
+                "volatility activation receipt conflicts with current lineage"
+            )
+        return _eligible_successor_closed_at(lineage)
+    receipt_id = receipt["leaf_trigger_id"]
+    receipt_fingerprint = receipt["leaf_trigger_fingerprint"]
+    matches = [
+        created_at
+        for trigger_id, fingerprint, created_at in lineage.trigger_identities
+        if trigger_id == receipt_id and fingerprint == receipt_fingerprint
+    ]
+    if len(matches) != 1 or receipt_id == ROOT_TRIGGER_ID:
+        raise ActivationIntegrityError(
+            "volatility activation receipt bound leaf is not a unique successor"
+        )
+    return _parse_canonical_timestamp(matches[0], "receipt-bound leaf created_at")
 
 
 def _eligible_successor_closed_at(lineage: ActiveForwardTriggerLineage) -> datetime:

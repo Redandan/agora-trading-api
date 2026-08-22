@@ -5,6 +5,7 @@ import json
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -21,6 +22,7 @@ from research_pipeline.forward_volatility_persistence import (
     _canonical_bytes as _volatility_canonical_bytes,
 )
 from research_pipeline.forward_volatility_persistence_activation import (
+    ACTIVATION_RECEIPT_RETIRED,
     ACTIVATION_STATE_KEY,
     ActivationDecision,
 )
@@ -617,6 +619,47 @@ class CandidateFunnelTest(unittest.TestCase):
             ["btc-3pct-post-shock-volatility-persistence"],
             snapshot["summary"]["integrity_blocked_families"],
         )
+
+    def test_lawful_rollover_retires_volatility_without_global_integrity_alert(
+        self,
+    ) -> None:
+        receipt = _volatility_receipt()
+        current_leaf = {
+            "trigger_id": "prospective-mechanism-neutral-evidence-refresh-rollover-r3",
+            "fingerprint": "c" * 64,
+        }
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "research_pipeline.candidate_funnel."
+            "prepare_forward_volatility_persistence_activation",
+            return_value=ActivationDecision(
+                receipt, False, ACTIVATION_RECEIPT_RETIRED
+            ),
+        ), patch(
+            "research_pipeline.candidate_funnel."
+            "resolve_active_forward_trigger_lineage",
+            return_value=SimpleNamespace(leaf_trigger=current_leaf),
+        ), patch(
+            "research_pipeline.candidate_funnel._load_volatility_snapshots"
+        ) as load_snapshots:
+            snapshot = build_candidate_funnel(
+                _registry(),
+                microstructure=_microstructure("WAITING_FOR_DAY"),
+                heartbeat_state={ACTIVATION_STATE_KEY: receipt},
+                state_root=Path(directory),
+                as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                repo_root=REPO_ROOT,
+            )
+
+        volatility = _family(snapshot, "btc-3pct-post-shock-volatility-persistence")
+        self.assertEqual("DEFERRED", volatility["stage"])
+        self.assertFalse(volatility["progress"]["evidence_collection_active"])
+        self.assertEqual(
+            current_leaf["trigger_id"],
+            volatility["progress"]["current_leaf_trigger_id"],
+        )
+        self.assertEqual("READY", snapshot["status"])
+        self.assertEqual([], snapshot["summary"]["integrity_blocked_families"])
+        load_snapshots.assert_not_called()
 
     def test_status_wrapper_fails_closed_when_catalog_is_outside_repo_root(self) -> None:
         result = candidate_funnel_status(

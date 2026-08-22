@@ -19,6 +19,7 @@ from research_pipeline.forward_volatility_persistence_activation import (
     ACCEPTED_RESULT_RELATIVE,
     ACCEPTED_RESULT_SHA256,
     ACTIVATION_MODULE_RELATIVE,
+    ACTIVATION_RECEIPT_RETIRED,
     ACTIVATION_STATE_KEY,
     ActivationDecision,
     ActivationIntegrityError,
@@ -132,6 +133,32 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
         self.assertEqual(
             lineage.leaf_trigger["fingerprint"],
             created.receipt["leaf_trigger_fingerprint"],
+        )
+
+    def test_existing_receipt_is_retired_after_later_lawful_rollover(self) -> None:
+        store = self._store()
+        release = _ReleaseFixture(Path(self.directory.name))
+        first_leaf = _lineage(rollover_depth=1)
+        later_leaf = _lineage(rollover_depth=2)
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=first_leaf,
+        ):
+            created = self._prepare(store, release, existing=None)
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=later_leaf,
+        ):
+            retired = self._prepare(store, release, existing=created.receipt)
+
+        self.assertFalse(retired.created)
+        self.assertEqual(ACTIVATION_RECEIPT_RETIRED, retired.status)
+        self.assertEqual(created.receipt, retired.receipt)
+        self.assertNotEqual(
+            retired.receipt["leaf_trigger_id"],
+            later_leaf.leaf_trigger["trigger_id"],
         )
 
     def test_existing_conflicting_leaf_fails_but_verified_release_upgrade_survives(
@@ -480,34 +507,53 @@ def _lineage(
             leaf_trigger=root,
             leaf_state=root_state,
             trigger_ids=(ROOT_TRIGGER_ID,),
+            trigger_identities=(
+                (
+                    ROOT_TRIGGER_ID,
+                    ROOT_TRIGGER_FINGERPRINT,
+                    root["created_at"],
+                ),
+            ),
         )
     if rollover_depth < 1:
         raise ValueError("rollover_depth must be positive")
-    leaf_created = ROLLOVER_AT + timedelta(days=rollover_depth - 1)
-    leaf = {
-        "trigger_id": (
-            "prospective-mechanism-neutral-evidence-refresh-rollover-r2"
-            if rollover_depth == 1
-            else f"prospective-mechanism-neutral-evidence-refresh-rollover-r{rollover_depth + 1}"
-        ),
-        "fingerprint": format(10 + rollover_depth, "x") * 64,
-        "created_at": leaf_created.isoformat(timespec="seconds").replace("+00:00", "Z"),
-    }
+    descendants = []
+    for index in range(1, rollover_depth + 1):
+        created_at = ROLLOVER_AT + timedelta(days=index - 1)
+        descendants.append(
+            {
+                "trigger_id": (
+                    "prospective-mechanism-neutral-evidence-refresh-rollover-r2"
+                    if index == 1
+                    else "prospective-mechanism-neutral-evidence-refresh-"
+                    f"rollover-r{index + 1}"
+                ),
+                "fingerprint": format(10 + index, "x") * 64,
+                "created_at": created_at.isoformat(timespec="seconds").replace(
+                    "+00:00", "Z"
+                ),
+            }
+        )
+    leaf = descendants[-1]
     root_state["rollover_closed_at"] = ROLLOVER_AT.isoformat(
         timespec="seconds"
     ).replace("+00:00", "Z")
     leaf_state = {"trigger_id": leaf["trigger_id"], "status": "WAITING"}
-    trigger_ids = [ROOT_TRIGGER_ID]
-    trigger_ids.extend(
-        f"synthetic-rollover-{index}" for index in range(1, rollover_depth)
-    )
-    trigger_ids.append(leaf["trigger_id"])
+    trigger_ids = [ROOT_TRIGGER_ID, *(item["trigger_id"] for item in descendants)]
+    trigger_identities = [
+        (ROOT_TRIGGER_ID, ROOT_TRIGGER_FINGERPRINT, root["created_at"]),
+        *(
+            (item["trigger_id"], item["fingerprint"], item["created_at"])
+            for item in descendants
+        ),
+    ]
     return ActiveForwardTriggerLineage(
         root_trigger=root,
         root_state=root_state,
         leaf_trigger=leaf,
         leaf_state=leaf_state,
         trigger_ids=tuple(trigger_ids),
+        trigger_identities=tuple(trigger_identities),
     )
 
 

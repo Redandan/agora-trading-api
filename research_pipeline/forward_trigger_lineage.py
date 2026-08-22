@@ -22,6 +22,7 @@ class ActiveForwardTriggerLineage:
     leaf_trigger: dict[str, Any]
     leaf_state: dict[str, Any]
     trigger_ids: tuple[str, ...]
+    trigger_identities: tuple[tuple[str, str, str], ...] = ()
 
     @property
     def rolled_over(self) -> bool:
@@ -59,6 +60,7 @@ def resolve_active_forward_trigger_lineage(
         children.setdefault(predecessor_id, []).append(trigger_id)
 
     lineage: list[str] = []
+    identities: list[tuple[str, str, str]] = []
     seen: set[str] = set()
     current_trigger, current_state = root, root_state
     while True:
@@ -69,6 +71,11 @@ def resolve_active_forward_trigger_lineage(
         lineage.append(current_id)
         _verify_registered_trigger(store, current_trigger, current_state)
         _verify_discovery_contract(current_trigger, root)
+        fingerprint = current_trigger.get("fingerprint")
+        created_at = current_trigger.get("created_at")
+        if not isinstance(fingerprint, str) or not isinstance(created_at, str):
+            raise ValueError("forward trigger lineage identity is incomplete")
+        identities.append((current_id, fingerprint, created_at))
 
         linked_children = children.get(current_id, [])
         if len(linked_children) > 1:
@@ -119,6 +126,7 @@ def resolve_active_forward_trigger_lineage(
         leaf_trigger=current_trigger,
         leaf_state=current_state,
         trigger_ids=tuple(lineage),
+        trigger_identities=tuple(identities),
     )
 
 

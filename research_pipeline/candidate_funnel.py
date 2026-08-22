@@ -17,6 +17,7 @@ from .forward_volatility_persistence import (
     _load_snapshots as _load_volatility_snapshots,
 )
 from .forward_volatility_persistence_activation import (
+    ACTIVATION_RECEIPT_RETIRED,
     ACTIVATION_STATE_KEY,
     prepare_forward_volatility_persistence_activation,
 )
@@ -553,6 +554,34 @@ def _volatility_persistence_state(
         lineage = resolve_active_forward_trigger_lineage(store)
         if lineage is None:
             raise ValueError("volatility activation lineage is unavailable")
+        if activation.status == ACTIVATION_RECEIPT_RETIRED:
+            return {
+                "stage": "DEFERRED",
+                "integrity_status": "LAWFUL_ROLLOVER_RETIRED_LEAF_BOUND_ACTIVATION",
+                "progress": {
+                    "activation_status": activation.status,
+                    "evidence_collection_active": False,
+                    "activated_at": activation.receipt["activated_at"],
+                    "receipt_leaf_trigger_id": activation.receipt[
+                        "leaf_trigger_id"
+                    ],
+                    "receipt_leaf_trigger_fingerprint": activation.receipt[
+                        "leaf_trigger_fingerprint"
+                    ],
+                    "current_leaf_trigger_id": lineage.leaf_trigger[
+                        "trigger_id"
+                    ],
+                    "current_leaf_trigger_fingerprint": lineage.leaf_trigger[
+                        "fingerprint"
+                    ],
+                },
+                "next_gate": "FREEZE_VERSIONED_ACTIVATION_RECOVERY_OR_CLOSE_FAMILY",
+                "estimated_days": None,
+                "missing_proof": [
+                    *family["missing_proof"],
+                    "Versioned post-rollover activation recovery is not implemented.",
+                ],
+            }
         snapshots = _load_volatility_snapshots(store, lineage=lineage)
         receipt_hash = hashlib.sha256(
             _volatility_canonical_bytes(activation.receipt)

@@ -1,0 +1,98 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_USDM_BASIS_INSTABILITY_PASSIVE_CORE_PRIMARY_PRIOR_REJECT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-binance-usdm-basis-instability-passive-core-risk-overlay",
+  "created_at": "2026-08-22T12:18:55Z",
+  "status": "NO_HYPOTHESIS_CLOSE_BTC_BINANCE_USDM_BASIS_INSTABILITY_PASSIVE_CORE_AT_PRIOR_GATE",
+  "decision": "PERMANENTLY_CLOSE_DIRECTIONAL_BTC_PASSIVE_CORE_OVERLAYS_DRIVEN_BY_LAGGED_ROLLING_ABSOLUTE_SPOT_PERPETUAL_BASIS_DISPERSION_WITHOUT_FORMULA_THRESHOLD_EXPOSURE_OR_OUTCOME_SCAN",
+  "frozen_before_formula_or_strategy_outcome_access": true,
+  "proposed_transfer": {
+    "feature": "LAGGED_ROLLING_ABSOLUTE_BINANCE_BTCUSDT_SPOT_PERPETUAL_BASIS_DISPERSION_RELATIVE_TO_ITS_PRIOR_DISTRIBUTION",
+    "action": "REDUCE_FULL_CAPITAL_DIRECTIONAL_BTC_TO_A_PASSIVE_CORE",
+    "required_causal_link": "BASIS_PATH_INSTABILITY_PRECEDES_DIRECTIONAL_BTC_DOWNSIDE_WITH_ENOUGH_INCREMENTAL_INFORMATION_TO_IMPROVE_MATCHED_CAPITAL_AFTER_COST_DRAWDOWN_AND_CALMAR",
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_FOR_DE_RISKED_CORE"
+  },
+  "reviewed_primary_sources": [
+    {
+      "identity": "Maik Schmeling, Andreas Schrimpf and Karamfil Todorov, Crypto carry, BIS Working Papers No 1087, revised October 2025",
+      "url": "https://www.bis.org/publ/work1087.htm",
+      "evidence_role": "POSITIVE_BUT_NONTRANSFERABLE_LEVEL_PRIOR",
+      "finding": "High crypto carry, defined as a futures-minus-spot level, predicts future crypto price crashes and is associated with trend-chasing demand and limited arbitrage capital.",
+      "transfer_boundary": "The study supports a carry-level crash-risk relation. It does not establish that rolling absolute basis dispersion, basis volatility or a Binance perpetual-only path statistic predicts later BTC downside. Replacing dispersion with level carry would reopen the permanently closed directional crypto-carry veto family."
+    },
+    {
+      "identity": "Songrun He, Asaf Manela, Omri Ross and Victor von Wachter, Fundamentals of Perpetual Futures, arXiv:2212.06888, revised August 2024",
+      "url": "https://arxiv.org/abs/2212.06888",
+      "evidence_role": "ADVERSARIAL_CONVERGENCE_AND_ARBITRAGE_PRIOR",
+      "finding": "Perpetual prices are not guaranteed to converge to spot, funding is designed to reduce the gap, empirical deviations comove across coins and diminish over time, and the paper studies an implied arbitrage strategy.",
+      "transfer_boundary": "Mean reversion of a cross-market price deviation supports a possible market-neutral convergence mechanism, not a directional BTC passive-core timing rule."
+    },
+    {
+      "identity": "Carol Alexander and Daniel F. Heck, Price Discovery, High-Frequency Trading and Jumps in Bitcoin Markets, Journal of Financial Stability 50 (2020) 100776",
+      "url": "https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID3709016_code3513751.pdf?abstractid=3383147&mirid=1",
+      "evidence_role": "ADVERSARIAL_REVERSE_CAUSALITY_PRIOR",
+      "finding": "Bitcoin basis risk increases after spot or futures jumps and is rapidly arbitraged away by high-frequency institutional traders.",
+      "transfer_boundary": "A basis-risk statistic that rises after jumps can be reactive and short lived. This does not establish decision-before-outcome directional warning at the hourly clock available to the proposed strategy."
+    },
+    {
+      "identity": "Boon Chuan Lim, The Information Content of Perpetual Basis, SSRN 6697060, May 2026",
+      "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6697060",
+      "evidence_role": "RECENT_ABSTRACT_LEVEL_ADVERSARIAL_PRIOR_NOT_SOLE_DECISION_BASIS",
+      "finding": "The working-paper abstract reports that absolute basis predicts forward volatility in a pooled five-coin specification, but the BTC coefficient is essentially zero and the out-of-sample gain does not beat HAR-RV.",
+      "transfer_boundary": "This is recent independent working-paper evidence, the full paper was not used for this audit, and its target is volatility rather than directional return. It reinforces but does not independently determine the closure."
+    }
+  ],
+  "deduplication_and_nonreopen_boundary": {
+    "closed_duplicate_family_key": "btc-binance-usdm-basis-instability-passive-core-risk-overlay",
+    "also_not_a_reopen_of": [
+      "dra-crypto-carry-risk-veto",
+      "btc-binance-usdm-delta-neutral-funding-carry"
+    ],
+    "prohibited_substitutions": [
+      "Do not replace basis dispersion with carry or funding level to obtain a positive directional prior.",
+      "Do not borrow pooled ETH, SOL, DOGE or AVAX volatility evidence as a BTC directional-return coefficient.",
+      "Do not select a dispersion lookback, lag, percentile, z-score, threshold, passive-core fraction, holding period or rejection-only neighbor after this prior rejection.",
+      "Do not inspect this family's historical BTC strategy outcomes or use another venue, contract or bar interval to reopen the same directional action."
+    ],
+    "distinct_unopened_route": "A state-dependent, delta-neutral spot-perpetual basis-convergence trade may be studied as a separate family only if it earns and attributes convergence cash flow against zero-yield cash, freezes execution timing and no-arbitrage costs before outcomes, and does not time directional BTC or rescue the closed constant funding-carry policy."
+  },
+  "bound_internal_evidence": [
+    {
+      "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+      "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4",
+      "role": "OFFICIAL_FREE_BINANCE_DERIVATIVES_SOURCE_CAPABILITY"
+    },
+    {
+      "path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
+      "sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74",
+      "role": "SEALED_PRE2025_SPOT_PERPETUAL_MARK_INDEX_AND_FUNDING_CORPUS_BUNDLE"
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
+      "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38",
+      "role": "SEALED_CONSTANT_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY"
+    }
+  ],
+  "material_learning": "The available primary evidence distinguishes three different claims: high carry level can contain crash-risk information; perpetual basis deviations can support convergence arbitrage; and basis risk can rise reactively after jumps. None establishes that rolling absolute basis dispersion predicts later directional BTC downside. The proposed passive-core overlay therefore has no defensible decision-before-outcome causal transfer and closes before formula or performance access.",
+  "performance_evidence": {
+    "feature_values": "NOT_ACCESSED",
+    "btc_outcomes": "NOT_ACCESSED",
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "breadth_and_path_risk": "NOT_OPENED"
+  },
+  "next_action": "REPLACE_WITH_ONE_DISTINCT_MARKET_NEUTRAL_BASIS_CONVERGENCE_FAMILY_AND_REQUIRE_A_CAUSAL_EXECUTION_RESOLUTION_GATE_BEFORE_ANY_OUTCOME_ACCESS",
+  "hypothesis_created": false,
+  "manifest_created": false,
+  "runner_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "scope_note": "Primary and adversarial prior plus deduplication closure only. No formula, threshold, strategy outcome, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -212,10 +212,10 @@
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
       },
-      "causal_hypothesis": "Unusually unstable divergence between BTC spot and perpetual prices may reveal stressed leverage, fragmented liquidity and forced hedge demand before those conditions fully transfer into the directional spot path. A strictly lagged basis-dispersion state could therefore identify periods when retaining only a passive BTC core has better downside opportunity cost than full exposure.",
+      "causal_hypothesis": "Perpetual funding is designed to pull the contract toward its spot reference, while limits to arbitrage can permit temporary deviations. A delta-neutral long-cheap-leg and short-expensive-leg position opened only from a causally prior basis state may monetize subsequent convergence without requiring a directional BTC forecast.",
       "compute_cost_class": "LOW",
-      "decision_feature": "LAGGED_ROLLING_ABSOLUTE_BINANCE_BTCUSDT_SPOT_PERPETUAL_BASIS_DISPERSION_RELATIVE_TO_ITS_PRIOR_DISTRIBUTION",
-      "duplicate_family_key": "btc-binance-usdm-basis-instability-passive-core-risk-overlay",
+      "decision_feature": "CAUSALLY_LAGGED_BINANCE_BTCUSDT_PERPETUAL_MARK_MINUS_SPOT_BASIS_OUTSIDE_ONE_PREDECLARED_COST_AND_NO_ARBITRAGE_BAND",
+      "duplicate_family_key": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
       "economic_evidence_status": {
         "adverse_slippage": "REQUIRED_NOT_MEASURED",
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY",
@@ -227,7 +227,7 @@
         "total_pnl": "REQUIRED_NOT_MEASURED",
         "unrealized_pnl": "REQUIRED_NOT_MEASURED"
       },
-      "economic_hypothesis": "A full-capital versus passive-core BTC exposure policy driven only by a causally lagged spot-perpetual basis-instability state may reduce matched-capital drawdown and improve Calmar after costs while preserving enough upside and broad annual support.",
+      "economic_hypothesis": "A fully specified market-neutral spot-perpetual convergence policy may earn positive realized basis PnL after both-leg fees, adverse slippage, funding and collateral opportunity cost, with bounded drawdown, broad annual support and zero terminal inventory.",
       "estimated_days_to_next_gate": 1,
       "evidence_bindings": [
         {
@@ -242,25 +242,56 @@
         },
         {
           "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
-          "role": "SEALED_CARRY_CASHFLOW_FAMILY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
+          "role": "SEALED_CONSTANT_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
           "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-usdm-basis-instability-passive-core-primary-prior-reject.v1.json",
+          "role": "SEALED_DIRECTIONAL_BASIS_TRANSFER_REJECT_AND_DISTINCT_CONVERGENCE_ROUTE_BOUNDARY",
+          "sha256": "5dec30b358286aa5981e27dabd8f0b76a567b5d857d8c2251338176d390fcbe6"
         }
       ],
-      "family_id": "btc-binance-usdm-basis-instability-passive-core-risk-overlay",
-      "independence_key": "btc-directional-passive-core-risk-transfer-from-lagged-cross-market-basis-path-instability",
-      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "family_id": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
+      "independence_key": "btc-market-neutral-spot-perpetual-price-convergence-cashflow-not-directional-timing-or-constant-funding-carry",
+      "matched_comparator_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "missing_proof": [
-        "No frozen primary and adversarial research prior yet proves that basis-path instability transfers to later directional BTC downside rather than contemporaneous noise.",
-        "The rolling basis-dispersion formula, lag, reference distribution, state boundary, passive-core exposure and rejection-only neighbors are not preregistered.",
-        "No bound fractional execution runner, hypothesis, manifest, Design or Validation economics, breadth, candidate, independent OOS or forward evidence exists."
+        "No frozen primary and adversarial prior yet transfers perpetual-basis convergence into one exact Binance BTCUSDT executable policy without reopening closed carry families.",
+        "The one-hour corpus may be too coarse to prove a decision-before-fill basis state, two-leg execution sequence, intrabar convergence path or achievable no-arbitrage band.",
+        "No entry band, exit rule, maximum holding time, collateral allocation, funding treatment, two-leg cost ledger, hypothesis, manifest, deterministic runner, Design or Validation economics, breadth, candidate, independent OOS or forward evidence exists."
       ],
-      "next_gate": "FREEZE_ONE_PRIMARY_AND_ADVERSARIAL_PRIOR_PLUS_EXACT_CAUSAL_NONREOPEN_BOUNDARY_BEFORE_FORMULA_OR_OUTCOME_ACCESS",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_FOR_DE_RISKED_CORE",
-      "runner_id": "DIRECT_FRACTIONAL_BASIS_INSTABILITY_PASSIVE_CORE_RUNNER_REQUIRED",
-      "title": "BTC spot-perpetual basis-instability passive-core risk overlay"
+      "next_gate": "FREEZE_PRIMARY_AND_ADVERSARIAL_BASIS_CONVERGENCE_PRIOR_PLUS_HOURLY_DECISION_EXECUTION_RESOLUTION_AND_NONREOPEN_GATE_BEFORE_FORMULA_OR_OUTCOME_ACCESS",
+      "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
+      "runner_id": "DIRECT_STATE_DEPENDENT_SPOT_PERPETUAL_BASIS_CONVERGENCE_LEDGER_REQUIRED",
+      "title": "BTC spot-perpetual basis-convergence market-neutral arbitrage"
     }
   ],
   "closed_families": [
+    {
+      "family_id": "closed-btc-binance-usdm-basis-instability-passive-core-risk-overlay",
+      "title": "BTC spot-perpetual basis-instability passive-core risk overlay",
+      "decision_feature": "LAGGED_ROLLING_ABSOLUTE_BINANCE_BTCUSDT_SPOT_PERPETUAL_BASIS_DISPERSION_RELATIVE_TO_ITS_PRIOR_DISTRIBUTION",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_FOR_DE_RISKED_CORE",
+      "disposition": "NO_HYPOTHESIS_CLOSE_DIRECTIONAL_BASIS_DISPERSION_TRANSFER_AT_PRIMARY_PRIOR_GATE",
+      "duplicate_family_key": "btc-binance-usdm-basis-instability-passive-core-risk-overlay",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-binance-usdm-basis-instability-passive-core-primary-prior-reject.v1.json",
+          "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR_TRANSFER_REJECT",
+          "sha256": "5dec30b358286aa5981e27dabd8f0b76a567b5d857d8c2251338176d390fcbe6"
+        },
+        {
+          "path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
+          "role": "SEALED_SOURCE_READY_CORPUS_THAT_WAS_NOT_OPENED_FOR_THIS_FAMILY",
+          "sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
+          "role": "SEALED_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
+          "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
+        }
+      ],
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-dra-binance-usdm-deleveraging-flush-entry-admission-v1",
       "title": "DRA entry admission after Binance USD-M leverage flush V1",

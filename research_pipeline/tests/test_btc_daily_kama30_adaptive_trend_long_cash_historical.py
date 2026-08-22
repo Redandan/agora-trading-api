@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 import importlib.util
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -11,6 +12,7 @@ import unittest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RUNNER = REPO_ROOT / "research" / "btc_daily_kama30_adaptive_trend_long_cash_historical.py"
+MANIFEST = REPO_ROOT / "research_pipeline" / "examples" / "btc-daily-kama30-adaptive-trend-long-cash-historical.v1.manifest.json"
 
 
 def load_runner():
@@ -36,6 +38,16 @@ class KamaRunnerTest(unittest.TestCase):
     def points(self, closes: list[str]) -> list[Point]:
         start = datetime(2020, 1, 2)
         return [Point(start + timedelta(days=i), Decimal(value)) for i, value in enumerate(closes)]
+
+    def test_manifest_accepts_exact_three_variant_contract(self) -> None:
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        self.runner.validate_manifest(manifest)
+
+    def test_manifest_rejects_neighbor_change(self) -> None:
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        manifest["strategy_policy"]["rejection_only_neighbors"][1]["efficiency_period"] = 50
+        with self.assertRaisesRegex(self.runner.ResearchReject, "NEIGHBORS"):
+            self.runner.validate_manifest(manifest)
 
     def test_monotonic_path_uses_fast_talib_smoothing_constant(self) -> None:
         closes = [str(i) for i in range(1, 22)]

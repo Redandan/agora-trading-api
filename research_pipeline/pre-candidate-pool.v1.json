@@ -207,7 +207,7 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "base_stage": "HISTORICAL_PRIOR",
+      "base_stage": "PREREGISTRATION_READY",
       "canonical_binding": {
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
@@ -228,7 +228,7 @@
         "unrealized_pnl": "REQUIRED_NOT_MEASURED"
       },
       "economic_hypothesis": "A fully specified market-neutral spot-perpetual convergence policy may earn positive realized basis PnL after both-leg fees, adverse slippage, funding and collateral opportunity cost, with bounded drawdown, broad annual support and zero terminal inventory.",
-      "estimated_days_to_next_gate": 1,
+      "estimated_days_to_next_gate": 0,
       "evidence_bindings": [
         {
           "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
@@ -249,17 +249,27 @@
           "path": "research_pipeline/examples/btc-binance-usdm-basis-instability-passive-core-primary-prior-reject.v1.json",
           "role": "SEALED_DIRECTIONAL_BASIS_TRANSFER_REJECT_AND_DISTINCT_CONVERGENCE_ROUTE_BOUNDARY",
           "sha256": "5dec30b358286aa5981e27dabd8f0b76a567b5d857d8c2251338176d390fcbe6"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_ADVERSARIAL_CONVERGENCE_AND_EXECUTION_RESOLUTION_PRIOR",
+          "sha256": "2c5e76072ea76dfcac56b012ea62ec7c568f7a32d1e6c43bb18917bf526b6872"
+        },
+        {
+          "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-preoutcome-support.v1.spec.json",
+          "role": "FROZEN_PREOUTCOME_COST_FLOOR_EXECUTION_SURVIVAL_SPEC",
+          "sha256": "e2c73c3a338508269c268d58eaa42a238235ec7e6ec3f065b0aa94cd4c40844d"
         }
       ],
       "family_id": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
       "independence_key": "btc-market-neutral-spot-perpetual-price-convergence-cashflow-not-directional-timing-or-constant-funding-carry",
       "matched_comparator_id": "ZERO_YIELD_CASH_SAME_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "missing_proof": [
-        "No frozen primary and adversarial prior yet transfers perpetual-basis convergence into one exact Binance BTCUSDT executable policy without reopening closed carry families.",
-        "The one-hour corpus may be too coarse to prove a decision-before-fill basis state, two-leg execution sequence, intrabar convergence path or achievable no-arbitrage band.",
+        "The frozen 60 and 120 basis-point cost-floor support probe has not produced two byte-identical results.",
+        "The one-hour corpus may be too coarse to retain enough positive-basis episodes from completed-hour decision to next-open execution with annual breadth.",
         "No entry band, exit rule, maximum holding time, collateral allocation, funding treatment, two-leg cost ledger, hypothesis, manifest, deterministic runner, Design or Validation economics, breadth, candidate, independent OOS or forward evidence exists."
       ],
-      "next_gate": "FREEZE_PRIMARY_AND_ADVERSARIAL_BASIS_CONVERGENCE_PRIOR_PLUS_HOURLY_DECISION_EXECUTION_RESOLUTION_AND_NONREOPEN_GATE_BEFORE_FORMULA_OR_OUTCOME_ACCESS",
+      "next_gate": "EXECUTE_FROZEN_TWO_COST_FLOOR_HOURLY_DECISION_TO_NEXT_OPEN_SURVIVAL_PROBE_TWICE_WITHOUT_STRATEGY_OUTCOME_ACCESS",
       "parent_strategy_id": "ZERO_YIELD_CASH_WITH_IDENTICAL_INITIAL_EQUITY_WINDOW_AND_COLLATERAL_OPPORTUNITY_COST",
       "runner_id": "DIRECT_STATE_DEPENDENT_SPOT_PERPETUAL_BASIS_CONVERGENCE_LEDGER_REQUIRED",
       "title": "BTC spot-perpetual basis-convergence market-neutral arbitrage"

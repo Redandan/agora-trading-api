@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_USDM_PERPETUAL_BASIS_CONVERGENCE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
+  "created_at": "2026-08-22T12:34:42Z",
+  "status": "COMPLETED_PREOUTCOME_EXECUTION_SURVIVAL_GATE_READY",
+  "decision": "PRIOR_SUPPORTS_ONE_COST_DERIVED_HOURLY_DECISION_TO_NEXT_OPEN_BASIS_SURVIVAL_PROBE_BEFORE_ANY_STRATEGY_ECONOMICS",
+  "causal_hypothesis": "The perpetual funding mechanism creates incentives for traders to narrow a spot-perpetual price gap, while trading costs and limited arbitrage capital permit temporary deviations. A positive Binance BTCUSDT perpetual premium that remains outside a conservative two-leg round-trip cost floor from one completed hourly decision to the next open may support a separately tested long-spot short-perpetual convergence trade.",
+  "economic_hypothesis": "If a causally executable positive basis deviation later converges, a matched long-spot short-perpetual book may realize basis PnL after both-leg fees, adverse slippage, funding and collateral opportunity cost without directional BTC exposure, but this remains completely untested.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Songrun He, Asaf Manela, Omri Ross and Victor von Wachter, Fundamentals of Perpetual Futures, arXiv:2212.06888, version 6 dated 21 August 2024",
+      "url": "https://arxiv.org/abs/2212.06888",
+      "role": "PRIMARY_PRICING_CONVERGENCE_AND_EXECUTABLE_HOURLY_PRIOR",
+      "finding": "The paper derives perpetual no-arbitrage prices and cost-dependent bounds, explains that funding incentivizes gap-narrowing trades, measures futures-spot deviation hourly, and reports a Binance strategy that opens outside a bound and closes after the deviation returns toward its theoretical value.",
+      "transfer_boundary": "The paper does not guarantee convergence, uses assumptions and fee tiers different from this corpus, and also reports data-driven thresholds selected with historical validation. Agora may transfer only the theory-motivated convergence mechanism and hourly observability, not the paper's tuned thresholds or Sharpe ratios."
+    },
+    {
+      "identity": "Min Dai, Linfeng Li and Chen Yang, Arbitrage in Perpetual Contracts, September 2025",
+      "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5262988",
+      "role": "RECENT_PRIMARY_NO_ARBITRAGE_BOUND_AND_PERSISTENCE_PRIOR",
+      "finding": "The paper derives model-free no-arbitrage bounds that account for the funding mechanism's clamping function and reports that two years of Binance data contain persistent price discrepancies not explained by transaction fees alone.",
+      "transfer_boundary": "The abstract-level finding supports a bounds-first feasibility question, not this exact BTC policy, timestamp convention, costs, realized return or current persistence. It is not used to select a threshold."
+    },
+    {
+      "identity": "Carol Alexander and Daniel F. Heck, Price Discovery, High-Frequency Trading and Jumps in Bitcoin Markets, Journal of Financial Stability 50 (2020) 100776",
+      "url": "https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID3709016_code3513751.pdf?abstractid=3383147&mirid=1",
+      "role": "ADVERSARIAL_RESOLUTION_AND_DECAY_PRIOR",
+      "finding": "Bitcoin basis risk increases after jumps but is rapidly arbitraged away by high-frequency institutional traders.",
+      "transfer_boundary": "Hourly bars can miss or average away fast convergence. Agora therefore requires the completed-hour decision state to survive at the next hourly open before creating an economic hypothesis."
+    }
+  ],
+  "source_path": {
+    "corpus_bundle_path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
+    "corpus_bundle_sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74",
+    "normalized_gzip_path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/btcusdt-spot-perp-mark-funding-2020-2024.v3.csv.gz",
+    "normalized_gzip_sha256": "0bc3fae0fd1de2ce546592971ae9867c3c7cc4328d2b9733b43c357131a0e24b",
+    "hourly_rows": 43848,
+    "funding_events": 5481,
+    "source_cost": "FREE_ALREADY_SEALED",
+    "selection_cutoff": "2025-01-01T00:00:00Z"
+  },
+  "preoutcome_probe_boundary": {
+    "decision_clock": "AFTER_HOUR_T_SPOT_AND_PERPETUAL_CLOSES_ARE_COMPLETE",
+    "execution_clock": "HOUR_T_PLUS_1_SPOT_AND_PERPETUAL_OPEN",
+    "basis_formula_bps": "10000_MULTIPLIED_BY_PERPETUAL_PRICE_DIVIDED_BY_SPOT_PRICE_MINUS_ONE",
+    "direction": "POSITIVE_BASIS_ONLY_LONG_SPOT_SHORT_PERPETUAL",
+    "primary_cost_floor_bps": "120",
+    "primary_cost_derivation": "STRESS_ROUND_TRIP_FOUR_TRANSACTIONS_AT_20_BPS_FEE_PLUS_10_BPS_ADVERSE_SLIPPAGE_EACH",
+    "lower_diagnostic_cost_floor_bps": "60",
+    "lower_cost_derivation": "NORMAL_ROUND_TRIP_FOUR_TRANSACTIONS_AT_10_BPS_FEE_PLUS_5_BPS_ADVERSE_SLIPPAGE_EACH",
+    "native_spot_only": true,
+    "maximum_variants": 2,
+    "outcome_tuning": "DENY"
+  },
+  "independence_and_nonreopen": {
+    "duplicate_family_key": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
+    "not_directional_basis_overlay": "The action is market-neutral long spot and short perpetual against zero-yield cash. It never changes directional BTC exposure based on basis dispersion or volatility.",
+    "not_closed_carry_veto": "The factor is an executable spot-perpetual price deviation and cannot admit, veto or score a directional DRA or BTC position.",
+    "not_constant_funding_carry": "The proposed book is flat unless a completed-hour deviation survives to the next open. Its economic attribution, if later authorized, must separate realized basis convergence from funding. It cannot rerun, tune or reinterpret the closed continuously held quarterly-reset 25/75 funding-carry policy.",
+    "no_short_spot_branch": "Negative basis would require spot borrow and short-sale evidence that is not present. It is excluded rather than used as a variant.",
+    "closed_family_bindings": [
+      {
+        "path": "research_pipeline/examples/btc-binance-usdm-basis-instability-passive-core-primary-prior-reject.v1.json",
+        "sha256": "5dec30b358286aa5981e27dabd8f0b76a567b5d857d8c2251338176d390fcbe6"
+      },
+      {
+        "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
+        "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
+      }
+    ]
+  },
+  "admission_and_stop_conditions": [
+    "Freeze the exact completed-hour close decision, next-hour open execution, native-spot-only rule, positive-basis direction, 60 and 120 basis-point cost floors, episode definition and all support gates before reading any basis value.",
+    "The support probe may count only threshold-crossing episodes and next-open survival. It must not compute holding returns, exit choices, PnL, drawdown, Sharpe, Calmar, funding attribution or terminal inventory.",
+    "Require byte-identical support results, sufficient Design and Validation episode counts, next-open survival, annual breadth and bounded top-year concentration at the 120 basis-point primary floor. Any failed gate permanently closes the exact family before economic hypothesis creation.",
+    "Do not select a threshold from observed basis values, promote the 60 basis-point diagnostic to primary, add a negative-basis spot-short branch, inspect post-2024 data or borrow the cited papers' historical strategy returns.",
+    "A support pass authorizes at most one schema-valid hypothesis and one frozen matched-capital historical economic screen. It does not create a candidate, open OOS or authorize Trading."
+  ],
+  "missing_proof": [
+    "No byte-identical next-open execution-survival support result exists.",
+    "No source evidence yet proves that enough positive basis episodes survive one hourly decision boundary in both Design and Validation.",
+    "No collateral allocation, exit rule, maximum holding time, exact funding ledger, liquidation treatment, hypothesis, manifest, economic runner, PnL, drawdown, breadth, candidate, OOS or forward evidence exists."
+  ],
+  "next_gate": "RUN_ONE_FROZEN_TWO_COST_FLOOR_HOURLY_EXECUTION_SURVIVAL_PROBE_TWICE_WITHOUT_STRATEGY_OUTCOME_ACCESS",
+  "scope_note": "Primary and adversarial prior, source reuse and preoutcome gate design only. No basis value, threshold outcome, strategy return, PnL, hypothesis, manifest, economic runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

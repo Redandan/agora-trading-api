@@ -107,7 +107,7 @@ class CandidateFunnelTest(unittest.TestCase):
             if family["family_id"]
             == "btc-binance-usdm-perpetual-basis-convergence-market-neutral"
         )
-        self.assertEqual(basis_convergence["base_stage"], "HISTORICAL_PRIOR")
+        self.assertEqual(basis_convergence["base_stage"], "PREREGISTRATION_READY")
         self.assertEqual(
             [binding["role"] for binding in basis_convergence["evidence_bindings"]],
             [
@@ -115,6 +115,8 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_CHECKSUM_VERIFIED_SPOT_PERPETUAL_MARK_AND_INDEX_CORPUS_BUNDLE",
                 "SEALED_CONSTANT_FUNDING_CARRY_CLOSURE_AND_NON_REOPEN_BOUNDARY",
                 "SEALED_DIRECTIONAL_BASIS_TRANSFER_REJECT_AND_DISTINCT_CONVERGENCE_ROUTE_BOUNDARY",
+                "SEALED_PRIMARY_ADVERSARIAL_CONVERGENCE_AND_EXECUTION_RESOLUTION_PRIOR",
+                "FROZEN_PREOUTCOME_COST_FLOOR_EXECUTION_SURVIVAL_SPEC",
             ],
         )
         closed_basis_instability = next(

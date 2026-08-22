@@ -1,0 +1,79 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_USDM_PERPETUAL_BASIS_CONVERGENCE_PREOUTCOME_SUPPORT_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-binance-usdm-perpetual-basis-convergence-market-neutral",
+  "created_at": "2026-08-22T12:34:42Z",
+  "research_classification": "FROZEN_PREOUTCOME_EXECUTION_SURVIVAL_NO_STRATEGY_ECONOMICS_NO_OOS",
+  "prior_binding": {
+    "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-primary-prior.v1.json",
+    "sha256": "2c5e76072ea76dfcac56b012ea62ec7c568f7a32d1e6c43bb18917bf526b6872"
+  },
+  "runner_binding": {
+    "path": "research/btc_binance_usdm_perpetual_basis_convergence_support_v1.py",
+    "sha256": "5f2c4c4d7d67c96dd58da9710b5d6e9800e48e3104d674f35024506e0d51a861"
+  },
+  "dataset": {
+    "bundle_path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
+    "bundle_sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74",
+    "normalized_gzip_path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/btcusdt-spot-perp-mark-funding-2020-2024.v3.csv.gz",
+    "normalized_gzip_sha256": "0bc3fae0fd1de2ce546592971ae9867c3c7cc4328d2b9733b43c357131a0e24b",
+    "hourly_rows": 43848,
+    "selection_cutoff": "2025-01-01T00:00:00Z"
+  },
+  "windows": {
+    "design": ["2020-01-01T00:00:00Z", "2023-01-01T00:00:00Z"],
+    "validation": ["2023-01-01T00:00:00Z", "2025-01-01T00:00:00Z"],
+    "annual": [2020, 2021, 2022, 2023, 2024]
+  },
+  "feature_policy": {
+    "decision_time": "AFTER_HOUR_T_NATIVE_BINANCE_SPOT_AND_PERPETUAL_CLOSES_ARE_COMPLETE",
+    "execution_time": "HOUR_T_PLUS_1_NATIVE_BINANCE_SPOT_AND_PERPETUAL_OPEN",
+    "basis_formula_bps": "10000_MULTIPLIED_BY_PERPETUAL_PRICE_DIVIDED_BY_SPOT_PRICE_MINUS_ONE",
+    "direction": "POSITIVE_BASIS_ONLY_LONG_SPOT_SHORT_PERPETUAL",
+    "episode_origin": "FIRST_NATIVE_COMPLETED_HOUR_AT_OR_ABOVE_THE_COST_FLOOR_AFTER_AT_LEAST_ONE_PRECEDING_HOUR_BELOW_OR_UNAVAILABLE",
+    "next_open_survival": "NATIVE_NEXT_HOUR_SPOT_AND_PERPETUAL_OPEN_BASIS_REMAINS_AT_OR_ABOVE_THE_SAME_COST_FLOOR",
+    "primary_stress_cost_floor_bps": "120",
+    "primary_cost_derivation": "FOUR_ROUND_TRIP_TRANSACTIONS_MULTIPLIED_BY_20_BPS_FEE_PLUS_10_BPS_ADVERSE_SLIPPAGE",
+    "lower_normal_cost_floor_bps": "60",
+    "lower_cost_derivation": "FOUR_ROUND_TRIP_TRANSACTIONS_MULTIPLIED_BY_10_BPS_FEE_PLUS_5_BPS_ADVERSE_SLIPPAGE",
+    "native_spot_only": true,
+    "proxy_handling": "FEATURE_AND_EXECUTION_UNAVAILABLE_NO_INTERPOLATION_NO_EPISODE",
+    "variants": 2,
+    "lower_diagnostic_promotion": "DENY"
+  },
+  "gates": {
+    "minimum_native_spot_share": "0.99900000",
+    "normal_design_minimum_decision_episodes": 20,
+    "normal_validation_minimum_decision_episodes": 8,
+    "primary_design_minimum_decision_episodes": 10,
+    "primary_validation_minimum_decision_episodes": 4,
+    "primary_design_minimum_survived_episodes": 5,
+    "primary_validation_minimum_survived_episodes": 2,
+    "primary_minimum_survival_share": "0.40000000",
+    "primary_minimum_active_years": 3,
+    "primary_maximum_top_year_survived_share": "0.60000000"
+  },
+  "decision_rule": {
+    "pass": "ALLOW_EXACTLY_ONE_SCHEMA_VALID_MARKET_NEUTRAL_BASIS_CONVERGENCE_HYPOTHESIS_AND_ONE_FROZEN_MATCHED_CAPITAL_HISTORICAL_ECONOMIC_SCREEN",
+    "fail": "PERMANENTLY_CLOSE_EXACT_POSITIVE_BASIS_HOURLY_MARKET_NEUTRAL_CONVERGENCE_FAMILY_WITHOUT_THRESHOLD_CLOCK_DIRECTION_SOURCE_INTERVAL_OR_COST_RESCUE"
+  },
+  "forbidden_after_support_output": [
+    "PROMOTE_60_BPS_LOWER_NORMAL_COST_DIAGNOSTIC_TO_PRIMARY",
+    "CHANGE_60_OR_120_BPS_COST_FLOORS_OR_THEIR_FEE_AND_SLIPPAGE_DERIVATION",
+    "SELECT_A_THRESHOLD_FROM_OBSERVED_BASIS_VALUES_COUNTS_OR_SURVIVAL",
+    "USE_SAME_HOUR_CLOSE_AS_AN_EXECUTION_PRICE",
+    "ENTER_OR_EXIT_ON_A_SPOT_PROXY_ROW",
+    "ADD_NEGATIVE_BASIS_SPOT_SHORT_BORROW_OR_DIRECTIONAL_BTC_BRANCH",
+    "CHANGE_HOURLY_CLOCK_EPISODE_OR_NEXT_OPEN_SURVIVAL_DEFINITION",
+    "READ_HOLDING_RETURN_EXIT_POLICY_PNL_DRAWDOWN_OR_OOS_TO_RESCUE_SUPPORT",
+    "RERUN_OR_TUNE_THE_CLOSED_CONSTANT_FUNDING_CARRY_OR_DIRECTIONAL_BASIS_OVERLAY_FAMILIES"
+  ],
+  "determinism": {
+    "required_runs": 2,
+    "required_result": "BYTE_IDENTICAL_CANONICAL_JSON",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "output": "CREATE_ONCE_SEALED_INPUT_SUPPORT_ARTIFACTS"
+  },
+  "outcome_access": "DENY_STRATEGY_ECONOMICS_OOS_AND_POST_2024"
+}

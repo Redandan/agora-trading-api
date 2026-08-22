@@ -131,5 +131,7 @@ research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1
 research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.prevalue-spec.json text eol=lf
 research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.decision.json text eol=lf
 research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.manifest.json text eol=lf
+research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.decision.json text eol=lf
+research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-primary-prior.v1.json text eol=lf
 research_pipeline/tests/test_btc_paxg_monthly_relative_momentum_rotation_v1.py text eol=lf
 docs/pre-candidate-pool-v1.md text eol=lf

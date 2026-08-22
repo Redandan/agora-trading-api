@@ -1,0 +1,119 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-paxg-monthly-relative-momentum-rotation-historical-v1",
+  "family_id": "btc-paxg-monthly-relative-momentum-rotation",
+  "decided_at": "2026-08-22T16:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_FAMILY",
+  "disposition": "NO_CANDIDATE_CLOSE_BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_FAMILY",
+  "candidate_created": false,
+  "oos_opened": false,
+  "source_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.manifest.json",
+      "sha256": "56c671313da7c6f5880a459c2c9790701a8cde8de97dcf227a77df497e97fae3",
+      "role": "FROZEN_HASH_BOUND_POLICY_COST_WINDOW_AND_GATE_MANIFEST"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.decision.json",
+      "sha256": "4e9fe1039ab3ae4ed3d9afb3c5a5c7268c979e59c04deaeaeba25e813dc41bf0",
+      "role": "SEALED_BYTE_IDENTICAL_CHECKSUM_VERIFIED_SOURCE_GATE_PASS"
+    },
+    {
+      "path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-historical-v1/artifacts/run1.json",
+      "sha256": "2e1c7417c98f67afb25e57322b23b284eddf937d64e36be17328c456d8f961a6",
+      "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE"
+    }
+  ],
+  "determinism": {
+    "run_count": 2,
+    "byte_identical": true,
+    "result_sha256": "2e1c7417c98f67afb25e57322b23b284eddf937d64e36be17328c456d8f961a6"
+  },
+  "gate_summary": {
+    "passed_gate_count": 18,
+    "failed_gate_count": 30,
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_BTC_PAXG_MONTHLY_SIX_MONTH_RELATIVE_MOMENTUM_ROTATION_FAMILY_WITHOUT_TUNING"
+  },
+  "matched_capital_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "-38.62435182",
+      "static_50_50_total_return_pct": "-29.56188877",
+      "btc_only_total_return_pct": "-63.40325462",
+      "candidate_maximum_drawdown_pct": "61.22388878",
+      "static_50_50_maximum_drawdown_pct": "47.87179465",
+      "btc_only_maximum_drawdown_pct": "76.62925432",
+      "candidate_calmar": "-0.38113824",
+      "static_50_50_calmar": "-0.36277110",
+      "btc_only_calmar": "-0.54994272"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "156.61083798",
+      "static_50_50_total_return_pct": "254.57133198",
+      "btc_only_total_return_pct": "464.84765284",
+      "candidate_maximum_drawdown_pct": "26.07495770",
+      "static_50_50_maximum_drawdown_pct": "18.85146124",
+      "btc_only_maximum_drawdown_pct": "26.15137505",
+      "candidate_calmar": "2.30639503",
+      "static_50_50_calmar": "4.67969834",
+      "btc_only_calmar": "5.25878852"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "153.93099193",
+      "static_50_50_total_return_pct": "254.04053658",
+      "candidate_maximum_drawdown_pct": "26.07495770",
+      "static_50_50_maximum_drawdown_pct": "18.85146124",
+      "candidate_calmar": "2.27426429",
+      "static_50_50_calmar": "4.67222736"
+    }
+  },
+  "mechanism_breadth": {
+    "design": {
+      "monthly_signals": 22,
+      "switches": 3,
+      "btc_selected_months": 10,
+      "paxg_selected_months": 12
+    },
+    "validation": {
+      "monthly_signals": 24,
+      "switches": 3,
+      "btc_selected_months": 19,
+      "paxg_selected_months": 5
+    },
+    "normal_annual_2022_2024": {
+      "candidate_positive_years": 2,
+      "candidate_beats_static_years": 1,
+      "drawdown_non_worse_than_static_years": 1,
+      "calmar_non_worse_than_static_years": 1,
+      "calmar_non_worse_than_btc_years": 1,
+      "top_positive_incremental_year_contribution_pct": "100.00000000"
+    }
+  },
+  "annual_normal_evidence": {
+    "2022": {
+      "candidate_total_return_pct": "-16.45465426",
+      "static_50_50_total_return_pct": "-32.55894660",
+      "btc_only_total_return_pct": "-64.26068257"
+    },
+    "2023": {
+      "candidate_total_return_pct": "80.49905398",
+      "static_50_50_total_return_pct": "83.18676811",
+      "btc_only_total_return_pct": "155.23404416"
+    },
+    "2024": {
+      "candidate_total_return_pct": "41.95441176",
+      "static_50_50_total_return_pct": "75.33798694",
+      "btc_only_total_return_pct": "120.97419278"
+    }
+  },
+  "material_learning": "The six-month rank did switch between BTC and PAXG in both windows and reduced drawdown versus BTC in the bear-market Design period, but it destroyed more capital than static 50/50 and had worse drawdown than static. In Validation it remained profitable yet gave up roughly 98 percentage points versus static 50/50 and roughly 308 points versus BTC while also producing worse drawdown and Calmar than static. Its only positive annual incremental result was 2022, so the apparent defensive value is a one-regime substitution effect rather than broad risk-adjusted alpha.",
+  "prohibited_reopen": [
+    "Do not replace six months with 1, 3, 9 or 12 months, add an absolute-trend or cash rule, change the month-open clock, or tune a threshold after observing this result.",
+    "Do not add volatility, correlation, drawdown, macro, stablecoin, funding, third-asset, leverage, shorting or fractional-weight overlays to rescue this exact family.",
+    "Do not reinterpret 2022 drawdown protection or positive Validation return as a candidate when the matched static and BTC opportunity-cost gates failed.",
+    "Do not open independent OOS for this exact family."
+  ],
+  "next_action": "PERMANENTLY_TOMBSTONE_THIS_FAMILY_AND_ROTATE_THE_OPEN_POOL_SLOT_TO_A_NON_GOLD_NON_CARRY_NON_TWO_ASSET_MOMENTUM_FREE_DATA_MECHANISM",
+  "scope_note": "Offline historical Design and Validation only. No independent OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 149)
+        self.assertEqual(len(catalog["closed_families"]), 150)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,30 +101,35 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        paxg_rotation = next(
+        peg_dislocation = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-paxg-monthly-relative-momentum-rotation"
+            == "btc-usdcusdt-peg-dislocation-risk-veto"
         )
         self.assertEqual(
-            paxg_rotation["base_stage"], "HISTORICAL_PRIOR"
+            peg_dislocation["base_stage"], "HISTORICAL_PRIOR"
         )
         self.assertEqual(
             [
                 binding["role"]
-                for binding in paxg_rotation["evidence_bindings"]
+                for binding in peg_dislocation["evidence_bindings"]
             ],
             [
                 "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
-                "FROZEN_METADATA_ONLY_SOURCE_INVENTORY_SPEC",
-                "SEALED_BYTE_IDENTICAL_METADATA_SOURCE_GATE_PASS_PRICE_ACCESS_STILL_DENIED",
-                "FROZEN_CHECKSUM_BOUND_TWO_SYMBOL_SOURCE_MANIFEST",
-                "FROZEN_PRE_VALUE_POLICY_COST_WINDOW_COMPARATOR_AND_ALL_PASS_GATE_SPEC",
-                "SEALED_BYTE_IDENTICAL_CHECKSUM_VERIFIED_SOURCE_GATE_PASS",
-                "FROZEN_HASH_BOUND_FINAL_HISTORICAL_MANIFEST",
             ],
         )
+        closed_paxg_rotation = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-paxg-monthly-relative-momentum-rotation"
+        )
+        self.assertEqual(
+            closed_paxg_rotation["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_FAMILY",
+        )
+        self.assertTrue(closed_paxg_rotation["prohibited_reopen"])
         closed_fixed_maturity_carry = next(
             family
             for family in catalog["closed_families"]
@@ -2122,7 +2127,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 150)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 151)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

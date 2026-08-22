@@ -1,0 +1,81 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_USDCUSDT_PEG_DISLOCATION_RISK_VETO_PRIMARY_PRIOR_V1",
+  "family_id": "btc-usdcusdt-peg-dislocation-risk-veto",
+  "reviewed_at": "2026-08-22T16:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PRIMARY_AND_ADVERSARIAL_PRIOR_SOURCE_NOT_YET_OPENED",
+  "decision": "PRIOR_SUPPORTS_ONE_METADATA_FIRST_FREE_SOURCE_GATE_FOR_A_LAGGED_USDCUSDT_RELATIVE_PEG_DISLOCATION_RISK_VETO",
+  "claim_boundary": "Research links stablecoin instability with abrupt crypto-market jumps, while separate evidence warns that stablecoin depegs can be downstream symptoms of crypto stress rather than reliable leading signals. Circle also states that third-party USDC prices can move above or below one dollar. These sources permit one fail-closed source and predictive audit; they do not establish that Binance USDCUSDT identifies which stablecoin is stressed, leads BTC, improves PnL, or has complete pre-2025 history.",
+  "primary_prior_matrix": [
+    {
+      "identity": "From depegs to jumps: The role of stablecoin instabilities in crypto market dynamics, Journal of International Money and Finance 155, 2025, DOI 10.1016/j.jimonfin.2025.103339",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0261560625000749",
+      "role": "PRIMARY_STABLECOIN_INSTABILITY_AND_CRYPTO_JUMP_RISK_PRIOR",
+      "finding": "The study reports materially higher BTC jump and market co-jump probabilities following Tether depeg events in high-frequency data.",
+      "transfer_boundary": "It studies USDT depegs and near-event jumps, not daily Binance USDCUSDT, a seven-day lag, a 50-basis-point threshold or a BTC long-cash policy."
+    },
+    {
+      "identity": "The Relationship Between Stablecoin and Cryptocurrency Returns During Periods of Market Stress, 2026",
+      "url": "https://www.mdpi.com/2674-1032/5/3/68",
+      "role": "PRIMARY_ADVERSARIAL_DIRECTIONALITY_PRIOR",
+      "finding": "The study reports weak forward evidence that stablecoin depegs predict crypto returns and stronger evidence that crypto stress can precede USDC depegging.",
+      "transfer_boundary": "This is a direct reason to require independent predictive gates before economics and to close rather than reinterpret contemporaneous association as a leading signal."
+    },
+    {
+      "identity": "Circle USDC documentation and risk factors",
+      "url": "https://www.circle.com/legal/usdc-risk-factors",
+      "role": "PRIMARY_ISSUER_PEG_AND_SECONDARY_MARKET_BOUNDARY",
+      "finding": "Circle describes one-for-one issuer redemption subject to terms but explicitly does not guarantee that USDC equals one dollar on third-party trading platforms.",
+      "transfer_boundary": "USDCUSDT is a relative secondary-market price and cannot attribute a deviation solely to USDC or solely to USDT."
+    },
+    {
+      "identity": "Binance Public Data repository",
+      "url": "https://github.com/binance/binance-public-data/blob/master/README.md",
+      "role": "PRIMARY_FREE_ARCHIVE_FORMAT_AND_CHECKSUM_PRIOR",
+      "finding": "Binance documents free monthly spot kline archives and per-file checksum sidecars.",
+      "transfer_boundary": "Generic archive capability does not prove continuous USDCUSDT coverage, complete days, sufficient dislocation events or predictive value."
+    }
+  ],
+  "single_family_boundary": {
+    "decision_feature": "LAGGED_SEVEN_COMPLETE_UTC_DAY_MAXIMUM_ABSOLUTE_USDCUSDT_CLOSE_DEVIATION_FROM_ONE_AT_OR_ABOVE_50_BASIS_POINTS",
+    "mapping": "HOLD_ZERO_YIELD_CASH_DURING_THE_NEXT_COMPLETE_UTC_DAY_AFTER_A_STRESS_SIGNAL_OTHERWISE_HOLD_FULL_CAPITAL_UNLEVERED_BTC",
+    "source_pair": "USDCUSDT",
+    "btc_execution_pair": "BTCUSDT",
+    "direction": "ABSOLUTE_RELATIVE_PEG_DISLOCATION_NO_USDC_OR_USDT_CAUSAL_ATTRIBUTION",
+    "variants": 1
+  },
+  "economic_hypothesis": "If a large lagged USDC-versus-USDT dislocation is an upstream crypto-liquidity warning rather than a downstream symptom, vetoing only the next complete BTC day may reduce matched-capital drawdown and jump loss enough to improve after-cost Calmar versus BTC buy-and-hold with broad event and annual support.",
+  "source_path": {
+    "origin": "https://data.binance.vision/data/spot/monthly/klines",
+    "required_symbols": [
+      "BTCUSDT",
+      "USDCUSDT"
+    ],
+    "interval": "1d",
+    "latest_permitted_observation": "2024-12-31T23:59:59.999Z",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "status": "DOCUMENTED_GENERIC_CAPABILITY_ONLY_EXACT_USDCUSDT_COVERAGE_UNPROVEN"
+  },
+  "independence_assessment": {
+    "distinct_from_closed_stablecoin_liquidity_growth": "The closed families used circulating market-cap growth as a liquidity-supply direction. This factor uses only secondary-market relative peg dislocation as an acute settlement-risk state.",
+    "distinct_from_price_volatility_and_shock_families": "The decision feature contains no BTC price, return, range or volatility; BTC outcomes enter only after a frozen lagged stablecoin signal.",
+    "distinct_from_carry_and_basis": "The strategy earns no funding or basis cash flow and uses no derivatives position.",
+    "residual_risk": "USDCUSDT cannot identify the stressed leg, and the pair may have discontinuous listing history or too few independent events. Either issue closes the exact family."
+  },
+  "stop_conditions": [
+    "Before opening any kline body, freeze and run one metadata-only BTCUSDT and USDCUSDT archive plus checksum coverage gate for a common pre-2025 history.",
+    "Stop DATA_REJECT on any missing common month or day; do not substitute USDTUSD, USDCUSD, DAI, BUSD, another venue, an aggregator, current exchangeInfo or imputation.",
+    "Before economics, require independent Design and Validation predictive event count, lead-lag, jump-risk, sign and concentration gates because contemporaneous depeg association is not enough.",
+    "Do not change seven days, 50 basis points, next-day veto, direction, source pair or add BTC conditioning after any source value is opened.",
+    "Close before OOS if source, prediction, matched-capital return, drawdown, Calmar, annual breadth, event concentration or opportunity-cost gates fail."
+  ],
+  "missing_proof": [
+    "Exact USDCUSDT monthly archive and checksum continuity is unopened.",
+    "No relative peg value, independent stress event, BTC response, lead-lag relation or causal direction has been measured.",
+    "No hypothesis, source corpus, runner, Design, Validation, PnL, drawdown, candidate or OOS exists."
+  ],
+  "next_gate": "FREEZE_AND_RUN_ONE_METADATA_ONLY_BTCUSDT_USDCUSDT_PRE2025_COMMON_ARCHIVE_COVERAGE_PROBE_WITHOUT_OPENING_ZIP_OR_CHECKSUM_BODIES",
+  "scope_note": "Primary and adversarial prior only. No archive object, stablecoin price, BTC price, return, outcome, hypothesis, manifest, runner, experiment, candidate or OOS was accessed or created; no paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

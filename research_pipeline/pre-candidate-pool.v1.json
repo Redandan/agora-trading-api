@@ -207,58 +207,28 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-paxg-monthly-relative-momentum-rotation",
-      "title": "BTC-PAXG monthly six-month relative-momentum rotation",
-      "decision_feature": "FIRST_NATIVE_BINANCE_SPOT_DAILY_OPEN_OF_EACH_UTC_MONTH_SELECT_BTCUSDT_OR_PAXGUSDT_BY_HIGHER_LAGGED_SIX_COMPLETE_CALENDAR_MONTH_TOTAL_RETURN",
-      "causal_hypothesis": "Medium-horizon return persistence may transfer across the distinct Bitcoin and tokenized-gold return streams, allowing a fixed monthly rank to shift capital toward the asset with more persistent demand without using future prices.",
-      "economic_hypothesis": "A one-asset monthly BTC-PAXG relative-momentum allocation may improve after-cost matched-capital Calmar and maximum drawdown versus static 50/50 BTC-PAXG while retaining broad annual support and fully marked terminal inventory.",
-      "parent_strategy_id": "STATIC_FIFTY_FIFTY_BTC_PAXG_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_AND_WINDOW",
-      "matched_comparator_id": "STATIC_FIFTY_FIFTY_BTC_PAXG_BUY_AND_HOLD_WITH_IDENTICAL_COST_AND_MARKING_ACCOUNTING",
-      "runner_id": "btc-paxg-monthly-relative-momentum-rotation-v1",
+      "family_id": "btc-usdcusdt-peg-dislocation-risk-veto",
+      "title": "Lagged USDCUSDT relative-peg dislocation BTC risk veto",
+      "decision_feature": "LAGGED_SEVEN_COMPLETE_UTC_DAY_MAXIMUM_ABSOLUTE_USDCUSDT_CLOSE_DEVIATION_FROM_ONE_AT_OR_ABOVE_50_BASIS_POINTS",
+      "causal_hypothesis": "A large USDC-versus-USDT secondary-market dislocation may reveal acute settlement or crypto-liquidity stress before the next complete BTC day, while an adversarial design must reject the family if the dislocation is merely a downstream symptom.",
+      "economic_hypothesis": "Vetoing only the next complete BTC day after a lagged relative-peg stress signal may reduce jump loss and matched-capital drawdown enough to improve after-cost Calmar versus BTC buy-and-hold with broad independent event support.",
+      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
+      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_PEG_VETO_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
+      "runner_id": "NOT_BUILT_METADATA_SOURCE_GATE_FIRST",
       "base_stage": "HISTORICAL_PRIOR",
       "estimated_days_to_next_gate": 1,
       "compute_cost_class": "LOW",
-      "independence_key": "btc-tokenized-gold-cross-asset-relative-momentum-not-fixed-weight-rebalancing-volatility-selection-or-external-market-timing",
-      "next_gate": "EXECUTE_THE_FROZEN_MATCHED_CAPITAL_HISTORICAL_RUNNER_TWICE_AND_CLOSE_ON_ANY_SOURCE_DESIGN_VALIDATION_PATH_RISK_OR_BREADTH_FAILURE",
+      "independence_key": "stablecoin-relative-peg-settlement-stress-not-supply-growth-btc-price-volatility-carry-basis-or-gold",
+      "next_gate": "FREEZE_AND_RUN_ONE_METADATA_ONLY_BTCUSDT_USDCUSDT_PRE2025_COMMON_ARCHIVE_COVERAGE_PROBE_WITHOUT_OPENING_ZIP_OR_CHECKSUM_BODIES",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-primary-prior.v1.json",
+          "path": "research_pipeline/examples/btc-usdcusdt-peg-dislocation-risk-veto-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
-          "sha256": "49bfcf8a65abb1d973556796dd408d02ff08e79c0d8204466000b2fa5737f3bb"
-        },
-        {
-          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source-inventory.v1.spec.json",
-          "role": "FROZEN_METADATA_ONLY_SOURCE_INVENTORY_SPEC",
-          "sha256": "a13830f3bc44d8fbbcb4a9c655f32060ab2bc4597f845bbd649261cfb091a7f0"
-        },
-        {
-          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source-inventory.v1.decision.json",
-          "role": "SEALED_BYTE_IDENTICAL_METADATA_SOURCE_GATE_PASS_PRICE_ACCESS_STILL_DENIED",
-          "sha256": "a3e368a006206c0d25383f1d1f59a946727502d9b2abe16a3d7289f40c1c1d8c"
-        },
-        {
-          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.manifest.json",
-          "role": "FROZEN_CHECKSUM_BOUND_TWO_SYMBOL_SOURCE_MANIFEST",
-          "sha256": "b09a7c4630cfef987e2f6a8875a323cbf8ed1513d8274f44683b810b903222e8"
-        },
-        {
-          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.prevalue-spec.json",
-          "role": "FROZEN_PRE_VALUE_POLICY_COST_WINDOW_COMPARATOR_AND_ALL_PASS_GATE_SPEC",
-          "sha256": "0a4d1155c95dc2a6e96c56e8c3fafa1d22c74a79e76ac5bc9e601ffb70bf277d"
-        },
-        {
-          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.decision.json",
-          "role": "SEALED_BYTE_IDENTICAL_CHECKSUM_VERIFIED_SOURCE_GATE_PASS",
-          "sha256": "4e9fe1039ab3ae4ed3d9afb3c5a5c7268c979e59c04deaeaeba25e813dc41bf0"
-        },
-        {
-          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.manifest.json",
-          "role": "FROZEN_HASH_BOUND_FINAL_HISTORICAL_MANIFEST",
-          "sha256": "56c671313da7c6f5880a459c2c9790701a8cde8de97dcf227a77df497e97fae3"
+          "sha256": "9ea58e1e7261aa9285bfe8133070eda8d9b3db867e44b31326a94b98a63f30d8"
         }
       ],
       "economic_evidence_status": {
@@ -273,15 +243,40 @@
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
       },
       "missing_proof": [
-        "Metadata proves every required 2020-09 through 2024-12 ZIP and checksum object exists, but no body or daily row has been opened.",
-        "All 104 archives passed publisher checksums and the 3,166-row daily corpus is byte-identical across two runs; historical economics remain unopened.",
-        "PAXG liquidity, spread and physical-gold tracking remain diagnostics rather than proved execution capacity.",
-        "All Design, Validation, annual breadth, concentration, drawdown, candidate and OOS evidence remains missing."
+        "Exact USDCUSDT monthly archive and checksum continuity is unopened.",
+        "No independent relative-peg stress event, leading BTC jump-risk relation or causal direction has been measured.",
+        "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."
       ],
-      "duplicate_family_key": "btc-paxg-monthly-six-month-relative-momentum-rotation"
+      "duplicate_family_key": "btc-usdcusdt-seven-day-50bps-relative-peg-dislocation-risk-veto"
     }
   ],
   "closed_families": [
+    {
+      "family_id": "closed-btc-paxg-monthly-relative-momentum-rotation",
+      "title": "BTC-PAXG monthly six-month relative-momentum rotation",
+      "decision_feature": "FIRST_NATIVE_BINANCE_SPOT_DAILY_OPEN_OF_EACH_UTC_MONTH_SELECT_BTCUSDT_OR_PAXGUSDT_BY_HIGHER_LAGGED_SIX_COMPLETE_CALENDAR_MONTH_TOTAL_RETURN",
+      "parent_strategy_id": "STATIC_FIFTY_FIFTY_BTC_PAXG_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_AND_WINDOW",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_FAMILY",
+      "duplicate_family_key": "btc-paxg-monthly-six-month-relative-momentum-rotation",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.decision.json",
+          "role": "SEALED_HISTORICAL_ECONOMIC_DECISION",
+          "sha256": "e300c8bd2828a0cbc1e54933df78e885ee9f52ccf92631aa6fde5277745a9f41"
+        },
+        {
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.manifest.json",
+          "role": "FROZEN_HASH_BOUND_POLICY_COST_WINDOW_AND_GATE_MANIFEST",
+          "sha256": "56c671313da7c6f5880a459c2c9790701a8cde8de97dcf227a77df497e97fae3"
+        },
+        {
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_CHECKSUM_VERIFIED_SOURCE_GATE_PASS",
+          "sha256": "4e9fe1039ab3ae4ed3d9afb3c5a5c7268c979e59c04deaeaeba25e813dc41bf0"
+        }
+      ],
+      "prohibited_reopen": true
+    },
     {
       "family_id": "closed-btc-binance-fixed-maturity-delivery-cash-and-carry",
       "title": "BTC Binance fixed-maturity delivery cash-and-carry",

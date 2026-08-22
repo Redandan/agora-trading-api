@@ -1,9 +1,261 @@
 {
-  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "schema_version": "1",
+  "document_type": "PRE_CANDIDATE_POOL_CATALOG_V1",
   "catalog_id": "agora-pre-candidate-pool-v1",
+  "pool_constraints": {
+    "maximum_active_experiments": 1,
+    "maximum_candidate_oos": 1,
+    "maximum_open_families": 10,
+    "minimum_open_families": 5
+  },
+  "ranking_contract": {
+    "closed_family_rank": "EXCLUDED",
+    "integrity_blocker_preempts": true,
+    "ordered_dimensions": [
+      "active_evidence_integrity",
+      "evidence_readiness",
+      "matched_capital_economic_visibility",
+      "path_risk_visibility",
+      "estimated_days_to_next_gate",
+      "mechanism_independence",
+      "compute_cost",
+      "family_id"
+    ],
+    "score_semantics": "READINESS_NOT_ALPHA"
+  },
+  "families": [
+    {
+      "family_id": "dra-entry-volume-confirmation-20d",
+      "title": "DRA entry admission by complete-day volume confirmation",
+      "decision_feature": "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN_AT_OR_ABOVE_1_50",
+      "causal_hypothesis": "Unusually high complete-day volume may distinguish broad participation from weak DRA momentum signals before the unchanged next-open fill.",
+      "economic_hypothesis": "Vetoing low-participation DRA entries may improve equal-capital fee-adjusted total PnL without worsening drawdown, holding age or terminal inventory.",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+      "runner_id": "dra-forward-entry-admission-v1",
+      "base_stage": "FORWARD_EVIDENCE",
+      "estimated_days_to_next_gate": 90,
+      "compute_cost_class": "LOW",
+      "independence_key": "complete-day-total-volume-participation",
+      "next_gate": "COMPLETE_FROZEN_90_DAY_DISCOVERY",
+      "canonical_binding": {
+        "kind": "FORWARD_MECHANISM",
+        "id": "DRA_ENTRY_VOLUME_CONFIRMATION_20D"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/forward-diagnostic-contract.v1.json",
+          "role": "FROZEN_FORWARD_DIAGNOSTIC_CONTRACT",
+          "sha256": "16e22e96b32816b3de0332a6c71b1ebad6ec9e6ba623a2a7deb6cfd5b8b5ebdd"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MATCHED_CAPITAL_READY",
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "Independent 90-day predictive discovery gates have not completed.",
+        "Matched-capital Design and Validation economics have not been opened for a selected mechanism.",
+        "Independent candidate OOS has not begun."
+      ],
+      "duplicate_family_key": "dra-entry-volume-confirmation-20d"
+    },
+    {
+      "family_id": "dra-entry-range-confirmation-20d",
+      "title": "DRA entry admission by complete-day range confirmation",
+      "decision_feature": "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN_AT_OR_ABOVE_1_50",
+      "causal_hypothesis": "An unusually wide complete-day price range may identify decisive participation behind a DRA momentum signal before the unchanged next-open fill.",
+      "economic_hypothesis": "Vetoing low-range DRA entries may improve equal-capital fee-adjusted total PnL while preserving drawdown, holding and inventory paths.",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
+      "runner_id": "dra-forward-entry-admission-v1",
+      "base_stage": "FORWARD_EVIDENCE",
+      "estimated_days_to_next_gate": 90,
+      "compute_cost_class": "LOW",
+      "independence_key": "complete-day-range-expansion",
+      "next_gate": "COMPLETE_FROZEN_90_DAY_DISCOVERY",
+      "canonical_binding": {
+        "kind": "FORWARD_MECHANISM",
+        "id": "DRA_ENTRY_RANGE_CONFIRMATION_20D"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/forward-diagnostic-contract.v1.json",
+          "role": "FROZEN_FORWARD_DIAGNOSTIC_CONTRACT",
+          "sha256": "16e22e96b32816b3de0332a6c71b1ebad6ec9e6ba623a2a7deb6cfd5b8b5ebdd"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MATCHED_CAPITAL_READY",
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
+      },
+      "missing_proof": [
+        "Independent 90-day predictive discovery gates have not completed.",
+        "Matched-capital Design and Validation economics have not been opened for a selected mechanism.",
+        "Independent candidate OOS has not begun."
+      ],
+      "duplicate_family_key": "dra-entry-range-confirmation-20d"
+    },
+    {
+      "family_id": "btc-3pct-post-shock-reversal",
+      "title": "BTC three-percent shock next-day bidirectional reversal",
+      "decision_feature": "TERMINAL_MANAGER_REVIEWED_THREE_PERCENT_COMPLETE_UTC_DAY_SHOCK_WITH_NEXT_FEASIBLE_FILL",
+      "causal_hypothesis": "Large complete-day BTC shocks may contain transient forced flow that reverses on the following complete day across both UP and DOWN shock directions.",
+      "economic_hypothesis": "A causally timed spot-only reversal admission or hold-cash overlay may improve matched-capital total PnL without increasing drawdown after fees and slippage.",
+      "parent_strategy_id": "MISSING_PROOF",
+      "matched_comparator_id": "MISSING_PROOF",
+      "runner_id": "POST_SHOCK_ACTIONABILITY_CAPABILITY_ONLY",
+      "base_stage": "HISTORICAL_PRIOR",
+      "estimated_days_to_next_gate": null,
+      "compute_cost_class": "MEDIUM",
+      "independence_key": "large-shock-forced-flow-reversal",
+      "next_gate": "SEAL_UNTOUCHED_FORWARD_TERMINAL_REVERSAL_EVIDENCE_AND_SELECT_ONE_PARENT",
+      "canonical_binding": {
+        "kind": "NONE",
+        "id": "NO_CANONICAL_CANDIDATE_BINDING"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-historical-reversal-terminal-prior-audit.v1.json",
+          "role": "SEALED_HISTORICAL_REVERSAL_PRIOR",
+          "sha256": "0878a7abc60ba8336a561a187ae8209108e612a43a0f62602e06c58a651e447b"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
+          "role": "OFFLINE_ACTIONABILITY_CAPABILITY",
+          "sha256": "2363f93fd68f23f01a6b1e6de27409a7f791a253a9bb139307f1d90df5fc050d"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MISSING_PROOF",
+        "adverse_slippage": "MISSING_PROOF",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
+      },
+      "missing_proof": [
+        "No approved parent, matched comparator or strategy adapter is bound.",
+        "Untouched forward reversal evidence has not reached a terminal Manager review.",
+        "All matched-capital economics and OOS remain missing."
+      ],
+      "duplicate_family_key": "btc-3pct-post-shock-reversal"
+    },
+    {
+      "family_id": "btc-3pct-post-shock-volatility-persistence",
+      "title": "BTC three-percent shock next-day volatility persistence risk control",
+      "decision_feature": "TERMINAL_MANAGER_REVIEWED_THREE_PERCENT_SHOCK_WITH_FORWARD_VOLATILITY_PERSISTENCE_LABEL",
+      "causal_hypothesis": "Large complete-day BTC shocks may leave liquidity and uncertainty elevated, causing next-day realized variance to remain above its prior twenty-day baseline.",
+      "economic_hypothesis": "A separately frozen exposure-reduction rule may lower matched-capital drawdown without sacrificing enough positive convexity to reduce total PnL.",
+      "parent_strategy_id": "MISSING_PROOF",
+      "matched_comparator_id": "MISSING_PROOF",
+      "runner_id": "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_ONLY",
+      "base_stage": "HISTORICAL_PRIOR",
+      "estimated_days_to_next_gate": null,
+      "compute_cost_class": "MEDIUM",
+      "independence_key": "large-shock-volatility-persistence",
+      "next_gate": "SEAL_UNTOUCHED_FORWARD_VOLATILITY_RESULT_BEFORE_STRATEGY_SPECIFICATION",
+      "canonical_binding": {
+        "kind": "FORWARD_VOLATILITY_PERSISTENCE",
+        "id": "BTC_UTC_DAY_3PCT_FORWARD_VOLATILITY_PERSISTENCE_V1"
+      },
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-volatility-persistence.v1.lifecycle-erratum.json",
+          "role": "SEALED_HISTORICAL_VOLATILITY_PRIOR",
+          "sha256": "7e2b6e80f3bc6a142f0a1f1d9a1b75107ac40a941ef9618bec1ffc4288bc4333"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-forward-volatility-persistence-spec.v1.json",
+          "role": "FROZEN_FORWARD_DIAGNOSTIC_SPEC",
+          "sha256": "9e272159fcb321b02777ad93735f0ce19f55f76a46236cc3af1b6c809989aa99"
+        }
+      ],
+      "economic_evidence_status": {
+        "fees": "MISSING_PROOF",
+        "adverse_slippage": "MISSING_PROOF",
+        "realized_pnl": "MISSING_PROOF",
+        "unrealized_pnl": "MISSING_PROOF",
+        "total_pnl": "MISSING_PROOF",
+        "maximum_drawdown": "MISSING_PROOF",
+        "holding_age": "MISSING_PROOF",
+        "terminal_inventory": "MISSING_PROOF",
+        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
+      },
+      "missing_proof": [
+        "No terminal untouched forward volatility result exists.",
+        "No matched-capital parent, sizing rule or strategy adapter is selected.",
+        "PnL opportunity cost, drawdown effect and OOS remain missing."
+      ],
+      "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
+    },
+    {
+      "base_stage": "PREREGISTRATION_READY",
+      "canonical_binding": {
+        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
+        "kind": "NONE"
+      },
+      "causal_hypothesis": "A large completed-day typical-price displacement relative to its recent mean absolute deviation may identify unusually strong directional demand, while symmetric negative displacement may identify a sufficiently broad reversal to exit; hysteresis may preserve trends and reduce threshold churn before the next hourly fill.",
+      "compute_cost_class": "LOW",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_DEFAULT_CCI14_SYMMETRIC_HYSTERESIS_POSITIVE_NEGATIVE_75_100_125_WITH_100_PRIMARY_AND_75_125_REJECTION_ONLY",
+      "duplicate_family_key": "btc-daily-cci14-hysteresis-long-cash",
+      "economic_evidence_status": {
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED",
+        "fees": "MATCHED_CAPITAL_READY",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
+      },
+      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy entering after completed-day CCI14 exceeds positive 100 and exiting only below negative 100 may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
+      "estimated_days_to_next_gate": 1,
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-daily-cci14-hysteresis-long-cash-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_FORMULA_CRYPTO_AND_ADVERSARIAL_PRIOR",
+          "sha256": "631f531a9110bdd13a7d5ddd435b04d0ec776136aab0b3a6b236344e0ebddbdb"
+        }
+      ],
+      "family_id": "btc-daily-cci14-hysteresis-long-cash",
+      "independence_key": "btc-complete-day-typical-price-mean-absolute-deviation-symmetric-hysteresis-long-cash",
+      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "missing_proof": [
+        "The exact schema-valid hypothesis, manifest and deterministic TA-Lib-formula-compatible runner are not frozen yet.",
+        "No CCI feature support or matched-capital Design and Validation economics have been opened.",
+        "No candidate, independent OOS or forward evidence exists."
+      ],
+      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_TALIB_DEFAULT_CCI14_HYSTERESIS_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "runner_id": "BTC_DAILY_CCI14_HYSTERESIS_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
+      "title": "BTC daily TA-Lib-default CCI14 symmetric-hysteresis long-or-cash"
+    }
+  ],
   "closed_families": [
     {
+      "family_id": "closed-dra-binance-usdm-deleveraging-flush-entry-admission-v1",
+      "title": "DRA entry admission after Binance USD-M leverage flush V1",
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_JOINT_NEGATIVE_BINANCE_USDM_PRICE_RETURN_AND_OPEN_INTEREST_VALUE_CONTRACTION",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "DATA_REJECT_STRICT_COMPLETE_DAY_SOURCE_CONTRACT",
       "duplicate_family_key": "dra-binance-usdm-deleveraging-flush-entry-admission",
       "evidence_bindings": [
@@ -18,13 +270,13 @@
           "sha256": "eab4e85eaf7262ed24b5dfc108e7b4e4766b7826340482e121afed22ef9e5c93"
         }
       ],
-      "family_id": "closed-dra-binance-usdm-deleveraging-flush-entry-admission-v1",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA entry admission after Binance USD-M leverage flush V1"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-binance-usdm-positioning-divergence-entry-admission-v1",
+      "title": "DRA entry admission by Binance USD-M positioning divergence V1",
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_TOP_TRADER_POSITION_RATIO_MINUS_GLOBAL_ACCOUNT_LONG_SHORT_RATIO",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "DATA_REJECT_REQUIRED_RATIO_COVERAGE",
       "duplicate_family_key": "dra-binance-usdm-positioning-divergence-entry-admission",
       "evidence_bindings": [
@@ -39,13 +291,13 @@
           "sha256": "eab4e85eaf7262ed24b5dfc108e7b4e4766b7826340482e121afed22ef9e5c93"
         }
       ],
-      "family_id": "closed-dra-binance-usdm-positioning-divergence-entry-admission-v1",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA entry admission by Binance USD-M positioning divergence V1"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
+      "title": "DRA entry admission by Binance USD-M taker flow and open-interest confirmation V1",
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_JOINT_SUPPORTIVE_TAKER_LONG_SHORT_VOLUME_RATIO_AND_NON_CONTRACTING_OPEN_INTEREST",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "DATA_REJECT_REQUIRED_RATIO_COVERAGE",
       "duplicate_family_key": "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission",
       "evidence_bindings": [
@@ -60,13 +312,13 @@
           "sha256": "eab4e85eaf7262ed24b5dfc108e7b4e4766b7826340482e121afed22ef9e5c93"
         }
       ],
-      "family_id": "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA entry admission by Binance USD-M taker flow and open-interest confirmation V1"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-native-signal-day-positive-hour-breadth-entry-admission",
+      "title": "DRA native signal-day positive-hour breadth entry admission",
       "decision_feature": "AT_CAPACITY_ADMISSIBLE_DRA_SIGNAL_COUNT_OF_24_SIGNAL_DAY_POSITIVE_H1_CLOSE_TO_PREVIOUS_CLOSE_RETURNS_AT_11_13_15_COUNTS_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_POSITIVE_HOUR_BREADTH_AT_SUPPORT_GATE",
       "duplicate_family_key": "dra-native-signal-day-positive-hour-breadth-entry-admission",
       "evidence_bindings": [
@@ -96,13 +348,13 @@
           "sha256": "9cd5107e4edfabd18d1a34b543fee117ae2dc301b55ae7696b9552dd8b88a454"
         }
       ],
-      "family_id": "closed-dra-native-signal-day-positive-hour-breadth-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA native signal-day positive-hour breadth entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-native-signal-day-vwap-occupancy-entry-admission",
+      "title": "DRA native signal-day VWAP occupancy entry admission",
       "decision_feature": "AT_CAPACITY_ADMISSIBLE_DRA_SIGNAL_COUNT_OF_24_COMPLETE_SIGNAL_DAY_H1_CLOSES_ABOVE_COMPLETE_DAY_TYPICAL_PRICE_BASE_VOLUME_VWAP_AT_8_12_16_COUNTS_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_VWAP_OCCUPANCY_AT_SUPPORT_GATE",
       "duplicate_family_key": "dra-native-signal-day-vwap-occupancy-entry-admission",
       "evidence_bindings": [
@@ -132,13 +384,13 @@
           "sha256": "806e179d424c6bed59452f8c586da25a780692d8fa897c41d6a169bc1df37197"
         }
       ],
-      "family_id": "closed-dra-native-signal-day-vwap-occupancy-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA native signal-day VWAP occupancy entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-native-signal-day-ema20-occupancy-entry-admission",
+      "title": "DRA native signal-day EMA20 occupancy entry admission",
       "decision_feature": "AT_CAPACITY_ADMISSIBLE_DRA_SIGNAL_SHARE_OF_24_COMPLETE_SIGNAL_DAY_H1_CLOSES_ABOVE_PRIOR_COMPLETE_DAY_EMA20_AT_0_50_0_75_1_00_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_HYPOTHESIS_CLOSE_SIGNAL_DAY_EMA20_OCCUPANCY_AT_SUPPORT_GATE",
       "duplicate_family_key": "dra-native-signal-day-ema20-occupancy-entry-admission",
       "evidence_bindings": [
@@ -168,13 +420,13 @@
           "sha256": "c2c2e01a38bc247eada421309fda06490cfab87522c8754fb7e4420ca8ba3d88"
         }
       ],
-      "family_id": "closed-dra-native-signal-day-ema20-occupancy-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA native signal-day EMA20 occupancy entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-native-prior-day-momentum-continuation-entry-admission",
+      "title": "DRA native prior-complete-day momentum-continuation entry admission",
       "decision_feature": "AT_CAPACITY_ADMISSIBLE_DRA_SIGNAL_SIGNAL_DAY_CLOSE_MINUS_SIGNAL_DAY_00_H1_OPEN_DIV_UPDATED_ATR14_AT_MINUS_0_25_ZERO_PLUS_0_25_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_HYPOTHESIS_CLOSE_PRIOR_DAY_MOMENTUM_DUPLICATE_AT_SUPPORT_GATE",
       "duplicate_family_key": "dra-native-prior-day-momentum-continuation-entry-admission",
       "evidence_bindings": [
@@ -204,13 +456,13 @@
           "sha256": "0f6b1a5f87d79a036871876d74ad55ab417e9f4befb808ea41e1bc0f8da24412"
         }
       ],
-      "family_id": "closed-dra-native-prior-day-momentum-continuation-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA native prior-complete-day momentum-continuation entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-native-trend-acceleration-entry-admission",
+      "title": "DRA native EMA20 trend-acceleration entry admission",
       "decision_feature": "AT_CAPACITY_ADMISSIBLE_DRA_SIGNAL_UPDATED_EMA20_LATEST_5D_SLOPE_MINUS_PREVIOUS_5D_SLOPE_DIV_UPDATED_ATR14_AT_MINUS_0_10_0_00_PLUS_0_10_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_NATIVE_TREND_ACCELERATION_FAMILY",
       "duplicate_family_key": "dra-native-trend-acceleration-entry-admission",
       "evidence_bindings": [
@@ -245,13 +497,13 @@
           "sha256": "da490c7fa04d3025cac0ebc3c2bba3d7c1bdd3ed368dad969370447e1816dd67"
         }
       ],
-      "family_id": "closed-dra-native-trend-acceleration-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA native EMA20 trend-acceleration entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-signal-confirmation-latency-entry-admission",
+      "title": "DRA armed-window signal-confirmation latency entry admission",
       "decision_feature": "AT_CAPACITY_ADMISSIBLE_DRA_SIGNAL_CURRENT_PARENT_ARMED_TO_SIGNAL_LATENCY_AT_72_168_336_HOURS_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_SIGNAL_CONFIRMATION_LATENCY_FAMILY",
       "duplicate_family_key": "dra-signal-confirmation-latency-entry-admission",
       "evidence_bindings": [
@@ -286,13 +538,13 @@
           "sha256": "bfb47872201d5223635729d7c0312d90abca7d623260479ce07a2a110dcd8e22"
         }
       ],
-      "family_id": "closed-dra-signal-confirmation-latency-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA armed-window signal-confirmation latency entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-stale-inventory-age-entry-admission",
+      "title": "DRA stale-inventory age entry admission",
       "decision_feature": "AT_CAPACITY_ADMISSIBLE_DRA_SIGNAL_OLDEST_OPEN_PARENT_LOT_ACTUAL_FILL_AGE_AT_336_720_1440_HOURS_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_STALE_INVENTORY_AGE_FAMILY",
       "duplicate_family_key": "dra-stale-inventory-age-entry-admission",
       "evidence_bindings": [
@@ -327,13 +579,13 @@
           "sha256": "0b1f7b676908283a3b56f8acfb36dcd70f2a7ddfd645136fcebcc6b511997f65"
         }
       ],
-      "family_id": "closed-dra-stale-inventory-age-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA stale-inventory age entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-native-signal-prior-24h-breakout-entry-admission",
+      "title": "DRA native signal prior-24-hour breakout entry admission",
       "decision_feature": "AT_UNCHANGED_DRA_SIGNAL_SIGNAL_CLOSE_MINUS_MAX_PRIOR_24_COMPLETE_H1_HIGHS_DIVIDED_BY_UPDATED_ATR14_AT_MINUS_0_25_0_00_PLUS_0_25_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_HYPOTHESIS_CLOSE_PRIOR_24H_BREAKOUT_AT_SUPPORT_GATE",
       "duplicate_family_key": "dra-native-signal-prior-24h-breakout-entry-admission",
       "evidence_bindings": [
@@ -363,13 +615,13 @@
           "sha256": "06171cb389f6d92577d0e88153e5f2f9a93970875b0cb7a43a2dd791f2d3d89f"
         }
       ],
-      "family_id": "closed-dra-native-signal-prior-24h-breakout-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA native signal prior-24-hour breakout entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-native-signal-overextension-entry-admission",
+      "title": "DRA native signal overextension entry admission",
       "decision_feature": "AT_UNCHANGED_DRA_SIGNAL_SIGNAL_BAR_CLOSE_MINUS_UPDATED_EMA20_DIVIDED_BY_UPDATED_ATR14_AT_0_75_1_00_1_25_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_HYPOTHESIS_CLOSE_NATIVE_SIGNAL_OVEREXTENSION_AT_SUPPORT_GATE",
       "duplicate_family_key": "dra-native-signal-overextension-entry-admission",
       "evidence_bindings": [
@@ -399,13 +651,13 @@
           "sha256": "9ea62a14feec5c096518693c704e8403ab7d74cb5bbc0819a6bfe9909d425378"
         }
       ],
-      "family_id": "closed-dra-native-signal-overextension-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA native signal overextension entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-underwater-inventory-congestion-entry-admission",
+      "title": "DRA entry admission under underwater inventory congestion",
       "decision_feature": "CAPACITY_ADMISSIBLE_AGGREGATE_UNDERWATER_OPEN_COST_THRESHOLDS_90_120_150_USDT_WITH_COOLDOWN_RESERVATION_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_HYPOTHESIS_CLOSE_INVENTORY_CONGESTION_FAMILY_AT_SUPPORT_GATE",
       "duplicate_family_key": "dra-underwater-inventory-congestion-entry-admission",
       "evidence_bindings": [
@@ -430,13 +682,13 @@
           "sha256": "d96302e456ac967ef12801396a46bf188d42dbd6f1d2bb34412a3372b8091fc0"
         }
       ],
-      "family_id": "closed-dra-underwater-inventory-congestion-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA entry admission under underwater inventory congestion"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-one-slot-profitable-incumbent-signal-rotation",
+      "title": "One-slot profitable-incumbent fresh-signal rotation",
       "decision_feature": "SELL_PROFITABLE_ONE_SLOT_INCUMBENT_BEFORE_FRESH_SIGNAL_REPLACEMENT_AT_NEXT_H1_OPEN_V1",
+      "parent_strategy_id": "BTC_DAILY_REVERSAL_ACCUMULATION_V1_ONE_SLOT_30_USDT",
       "disposition": "NO_CANDIDATE_KEEP_ONE_SLOT_DRA_V1",
       "duplicate_family_key": "one-slot-profitable-incumbent-signal-rotation",
       "evidence_bindings": [
@@ -456,13 +708,13 @@
           "sha256": "f37e71bbe1cd7ac01557f897af0ef4bc4f220fb5a0c322625d698efbf620ffa9"
         }
       ],
-      "family_id": "closed-one-slot-profitable-incumbent-signal-rotation",
-      "parent_strategy_id": "BTC_DAILY_REVERSAL_ACCUMULATION_V1_ONE_SLOT_30_USDT",
-      "prohibited_reopen": true,
-      "title": "One-slot profitable-incumbent fresh-signal rotation"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-flat-veto-cooldown-route-substitution",
+      "title": "Cooldown-preserving flat veto route substitution",
       "decision_feature": "FLAT_REGIME_STALE_INVENTORY_VETO_WITH_ORIGINAL_SIGNAL_COOLDOWN_RESERVATION_V2B",
+      "parent_strategy_id": "BTC_DRA_FLAT_REGIME_STALE_INVENTORY_ADMISSION_VETO_V2_RESEARCH",
       "disposition": "NO_CANDIDATE_KEEP_DRA_V1",
       "duplicate_family_key": "flat-veto-cooldown-route-substitution",
       "evidence_bindings": [
@@ -482,13 +734,13 @@
           "sha256": "56d619fced951b9a100f51e3f11f1d56a6f07a2713aadf48275ac49b4fb1fa84"
         }
       ],
-      "family_id": "closed-flat-veto-cooldown-route-substitution",
-      "parent_strategy_id": "BTC_DRA_FLAT_REGIME_STALE_INVENTORY_ADMISSION_VETO_V2_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "Cooldown-preserving flat veto route substitution"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-lagged-realized-variance-scaled-lot-sizing",
+      "title": "DRA downside-only new-lot sizing from lagged realized variance",
       "decision_feature": "LATEST_COMPLETE_DAY_REALIZED_VARIANCE_TO_PRIOR_20D_MEDIAN_INVERSE_SCALED_NEW_LOT_COST_FLOORS_10_15_20_USDT_CAPPED_AT_30_USDT_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITH_FIXED_30_USDT_LOTS",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_VARIABLE_LOT_SIZING_FAMILY",
       "duplicate_family_key": "dra-lagged-realized-variance-scaled-lot-sizing",
       "evidence_bindings": [
@@ -518,13 +770,13 @@
           "sha256": "86341095d01838e428535e4463b75942d52315c0cab43a0665431e14a3dff368"
         }
       ],
-      "family_id": "closed-dra-lagged-realized-variance-scaled-lot-sizing",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITH_FIXED_30_USDT_LOTS",
-      "prohibited_reopen": true,
-      "title": "DRA downside-only new-lot sizing from lagged realized variance"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-corwin-schultz-spread-entry-admission",
+      "title": "DRA entry admission by Corwin-Schultz high-low spread proxy",
       "decision_feature": "LATEST_CORWIN_SCHULTZ_TWO_DAY_HIGH_LOW_SPREAD_ESTIMATE_TO_PRIOR_20D_MEDIAN_AT_OR_BELOW_1_00_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_DRA_CORWIN_SCHULTZ_SPREAD_ENTRY_ADMISSION_FAMILY",
       "duplicate_family_key": "dra-corwin-schultz-spread-entry-admission",
       "evidence_bindings": [
@@ -579,13 +831,13 @@
           "sha256": "be581b54d83cbabb475bd6357af05c9a5c96b92f4add185432c6072aa3d03a79"
         }
       ],
-      "family_id": "closed-dra-corwin-schultz-spread-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "DRA entry admission by Corwin-Schultz high-low spread proxy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-binance-spot-seven-day-taker-buy-imbalance-long-cash",
+      "title": "Binance spot seven-day taker-buy imbalance BTC long-or-cash policy",
       "decision_feature": "PRIOR_7_COMPLETE_UTC_DAY_TAKER_BUY_QUOTE_VOLUME_SHARE_STRICTLY_ABOVE_ONE_HALF_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BINANCE_SPOT_TAKER_BUY_IMBALANCE_FAMILY_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
       "duplicate_family_key": "btc-binance-spot-seven-day-taker-buy-imbalance-long-cash",
       "evidence_bindings": [
@@ -605,13 +857,13 @@
           "sha256": "af94de6fd54a0752966aad4faeccfab55826fce9cb35bb17b5ac8375fcfa1dbb"
         }
       ],
-      "family_id": "closed-btc-binance-spot-seven-day-taker-buy-imbalance-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Binance spot seven-day taker-buy imbalance BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
+      "title": "BTC four-day variance-ratio positive-persistence long-or-cash policy",
       "decision_feature": "PRIOR_28_COMPLETE_UTC_DAY_POSITIVE_RETURN_AND_OVERLAPPING_FOUR_DAY_VARIANCE_RATIO_ABOVE_ONE_V1",
+      "parent_strategy_id": "BTC_28_COMPLETE_DAY_POSITIVE_TREND_LONG_CASH_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_H1_FOUR_DAY_VARIANCE_RATIO_POSITIVE_PERSISTENCE_FAMILY",
       "duplicate_family_key": "btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
       "evidence_bindings": [
@@ -666,13 +918,13 @@
           "sha256": "277854240e9fc63d661920e9eab7b3b89e9146949ef6692ea741c8564a6fd27b"
         }
       ],
-      "family_id": "closed-btc-h1-four-day-variance-ratio-positive-persistence-long-cash",
-      "parent_strategy_id": "BTC_28_COMPLETE_DAY_POSITIVE_TREND_LONG_CASH_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "BTC four-day variance-ratio positive-persistence long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-cfnai-above-trend-long-cash",
+      "title": "Lagged Chicago Fed National Activity Index above-trend BTC long-or-cash policy",
       "decision_feature": "FRED_CFNAI_MONTHLY_VALUE_STRICTLY_GREATER_THAN_ZERO_PLUS_60D_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_CFNAI_ABOVE_TREND_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-cfnai-above-trend-long-cash",
       "evidence_bindings": [
@@ -722,13 +974,13 @@
           "sha256": "d2aa61074709789bcc1d323a8766eeb382af3df3a11932a669eec6378d76eb91"
         }
       ],
-      "family_id": "closed-btc-fred-cfnai-above-trend-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged Chicago Fed National Activity Index above-trend BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-nyfed-gscpi-3m-easing-long-cash",
+      "title": "Lagged New York Fed global supply-chain pressure three-month easing BTC long-or-cash policy",
       "decision_feature": "NYFED_GSCPI_MONTHLY_VALUE_STRICTLY_BELOW_VALUE_3_MONTHS_EARLIER_PLUS_45D_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_NYFED_GSCPI_3M_EASING_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-nyfed-gscpi-3m-easing-long-cash",
       "evidence_bindings": [
@@ -753,13 +1005,13 @@
           "sha256": "31c6a4e09c5888183986d03fce8319c97aff3e2a14e73f827ca1026bfaeb124e"
         }
       ],
-      "family_id": "closed-btc-nyfed-gscpi-3m-easing-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged New York Fed global supply-chain pressure three-month easing BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-pcoppusdm-3m-uptrend-long-cash",
+      "title": "Lagged global copper-price three-month uptrend BTC long-or-cash policy",
       "decision_feature": "FRED_PCOPPUSDM_MONTHLY_VALUE_STRICTLY_ABOVE_VALUE_3_MONTHS_EARLIER_PLUS_75D_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_PCOPPUSDM_3M_UPTREND_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-pcoppusdm-3m-uptrend-long-cash",
       "evidence_bindings": [
@@ -809,13 +1061,13 @@
           "sha256": "4251b0ac711629ed691d6c91037fe801318ec0171fa0789e68734355d1fdeabc"
         }
       ],
-      "family_id": "closed-btc-fred-pcoppusdm-3m-uptrend-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged global copper-price three-month uptrend BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-dexchus-4w-yuan-appreciation-long-cash",
+      "title": "Lagged USDCNY four-week yuan-appreciation BTC long-or-cash policy",
       "decision_feature": "FRED_DEXCHUS_COMPLETE_WEEK_MEAN_STRICTLY_BELOW_MEAN_4_COMPLETE_WEEKS_EARLIER_FOLLOWING_THURSDAY_0000_UTC_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_DEXCHUS_4W_YUAN_APPRECIATION_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-dexchus-4w-yuan-appreciation-long-cash",
       "evidence_bindings": [
@@ -865,13 +1117,13 @@
           "sha256": "8806fe4b4b670a04a4ff907b26cd660b29e66ac7212b0f3a4cf46d537fcb04cf"
         }
       ],
-      "family_id": "closed-btc-fred-dexchus-4w-yuan-appreciation-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged USDCNY four-week yuan-appreciation BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-dexjpus-4w-yen-depreciation-long-cash",
+      "title": "Lagged USDJPY four-week yen-depreciation BTC long-or-cash policy",
       "decision_feature": "FRED_DEXJPUS_COMPLETE_WEEK_MEAN_STRICTLY_ABOVE_MEAN_4_COMPLETE_WEEKS_EARLIER_FOLLOWING_THURSDAY_0000_UTC_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_DEXJPUS_4W_YEN_DEPRECIATION_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-dexjpus-4w-yen-depreciation-long-cash",
       "evidence_bindings": [
@@ -901,13 +1153,13 @@
           "sha256": "c8dd94daf56a5b42d2b6f9ab390969ca42d47c7dcc7cb820c2415b721719d6c1"
         }
       ],
-      "family_id": "closed-btc-fred-dexjpus-4w-yen-depreciation-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged USDJPY four-week yen-depreciation BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-wcoilwtico-4w-uptrend-long-cash",
+      "title": "Lagged WTI four-week uptrend BTC long-or-cash policy",
       "decision_feature": "FRED_WCOILWTICO_CURRENT_COMPLETE_WEEK_STRICTLY_ABOVE_VALUE_4_COMPLETE_WEEKS_EARLIER_FOLLOWING_THURSDAY_0000_UTC_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_WCOILWTICO_4W_UPTREND_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-wcoilwtico-4w-uptrend-long-cash",
       "evidence_bindings": [
@@ -952,13 +1204,13 @@
           "sha256": "5131e4ca396ed8e5e07399d3ac9dbb82ac3a977e9158633074173d6f7eb03e26"
         }
       ],
-      "family_id": "closed-btc-fred-wcoilwtico-4w-uptrend-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged WTI four-week uptrend BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-busloans-yoy-growth-acceleration-long-cash",
+      "title": "Lagged U.S. commercial-bank business-loan year-over-year growth acceleration BTC long-or-cash policy",
       "decision_feature": "FRED_BUSLOANS_CURRENT_YOY_GROWTH_STRICTLY_GREATER_THAN_PREVIOUS_MONTH_YOY_GROWTH_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_BUSLOANS_YOY_GROWTH_ACCELERATION_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-busloans-yoy-growth-acceleration-long-cash",
       "evidence_bindings": [
@@ -1003,13 +1255,13 @@
           "sha256": "78277780f51b08dd5e59754a3b51e193f0b8734b1fd3b47310bbfa94ee3e7b67"
         }
       ],
-      "family_id": "closed-btc-fred-busloans-yoy-growth-acceleration-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. commercial-bank business-loan year-over-year growth acceleration BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-dspic96-yoy-growth-acceleration-long-cash",
+      "title": "Lagged U.S. real disposable-income year-over-year growth acceleration BTC long-or-cash policy",
       "decision_feature": "FRED_DSPIC96_CURRENT_YOY_GROWTH_STRICTLY_GREATER_THAN_PREVIOUS_MONTH_YOY_GROWTH_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_DSPIC96_YOY_GROWTH_ACCELERATION_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-dspic96-yoy-growth-acceleration-long-cash",
       "evidence_bindings": [
@@ -1054,13 +1306,13 @@
           "sha256": "9d41f59c1507fb5dd57a94935446e57cd72b42b2c487f5618f01158223a1e79b"
         }
       ],
-      "family_id": "closed-btc-fred-dspic96-yoy-growth-acceleration-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. real disposable-income year-over-year growth acceleration BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-unrate-yoy-nondeterioration-long-cash",
+      "title": "Lagged U.S. unemployment-rate year-over-year nondeterioration BTC long-or-cash policy",
       "decision_feature": "FRED_UNRATE_CURRENT_MONTH_LESS_THAN_OR_EQUAL_TO_SAME_MONTH_12_OBSERVATIONS_EARLIER_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_UNRATE_YOY_NONDETERIORATION_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-unrate-yoy-nondeterioration-long-cash",
       "evidence_bindings": [
@@ -1090,13 +1342,13 @@
           "sha256": "fb3ffd325c0106353471bb7d1168b43d33c9d8392d8047a06914c6cfb61156c5"
         }
       ],
-      "family_id": "closed-btc-fred-unrate-yoy-nondeterioration-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. unemployment-rate year-over-year nondeterioration BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-cpiaucsl-yoy-disinflation-long-cash",
+      "title": "Lagged U.S. CPI year-over-year disinflation BTC long-or-cash policy",
       "decision_feature": "FRED_CPIAUCSL_CURRENT_YOY_RATE_STRICTLY_BELOW_PREVIOUS_MONTH_YOY_RATE_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_FRED_CPIAUCSL_YOY_DISINFLATION_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-cpiaucsl-yoy-disinflation-long-cash",
       "evidence_bindings": [
@@ -1141,13 +1393,13 @@
           "sha256": "145b7d0f71f20ae008b43de849a40b329dc493be75bf16546dd5410fd916ec37"
         }
       ],
-      "family_id": "closed-btc-fred-cpiaucsl-yoy-disinflation-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. CPI year-over-year disinflation BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-halloween-november-april-long-cash",
+      "title": "Fixed November-through-April BTC long-or-cash calendar policy",
       "decision_feature": "UTC_CALENDAR_MONTH_IS_NOVEMBER_DECEMBER_JANUARY_FEBRUARY_MARCH_OR_APRIL_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_HALLOWEEN_NOVEMBER_APRIL_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-halloween-november-april-long-cash",
       "evidence_bindings": [
@@ -1182,13 +1434,13 @@
           "sha256": "2788054a058a2507607e62006c5de51478ac261a9b18648403638a366b70c44a"
         }
       ],
-      "family_id": "closed-btc-halloween-november-april-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Fixed November-through-April BTC long-or-cash calendar policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-rrsfs-yoy-growth-long-cash",
+      "title": "Lagged positive U.S. real retail-sales year-over-year growth BTC long-or-cash policy",
       "decision_feature": "FRED_RRSFS_CURRENT_MONTH_STRICTLY_ABOVE_SAME_MONTH_12_OBSERVATIONS_EARLIER_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_RRSFS_YOY_GROWTH_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-rrsfs-yoy-growth-long-cash",
       "evidence_bindings": [
@@ -1218,13 +1470,13 @@
           "sha256": "9129d2c8e8e754c740a2adde3a691f373d839fa8366745fd2a6018035758fc10"
         }
       ],
-      "family_id": "closed-btc-fred-rrsfs-yoy-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged positive U.S. real retail-sales year-over-year growth BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-deribit-dvol-rising-half-risk",
+      "title": "Rising Bitcoin option-implied volatility half-risk policy",
       "decision_feature": "DERIBIT_BTC_DVOL_COMPLETE_SUNDAY_CLOSE_STRICTLY_ABOVE_PREVIOUS_COMPLETE_SUNDAY_CLOSE_PLUS_1D",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_PERMANENTLY_CLOSE_BTC_DERIBIT_DVOL_RISING_HALF_RISK_FAMILY",
       "duplicate_family_key": "btc-deribit-dvol-rising-half-risk",
       "evidence_bindings": [
@@ -1259,13 +1511,13 @@
           "sha256": "379237e81ad1afd214727ddf64f64c1fb058a120a9019f35a45181593940a450"
         }
       ],
-      "family_id": "closed-btc-deribit-dvol-rising-half-risk",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Rising Bitcoin option-implied volatility half-risk policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-indpro-yoy-growth-long-cash",
+      "title": "Lagged positive U.S. industrial-production year-over-year growth BTC long-or-cash policy",
       "decision_feature": "FRED_INDPRO_CURRENT_MONTH_STRICTLY_ABOVE_SAME_MONTH_12_OBSERVATIONS_EARLIER_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_INDPRO_YOY_GROWTH_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-indpro-yoy-growth-long-cash",
       "evidence_bindings": [
@@ -1295,13 +1547,13 @@
           "sha256": "a9ab074bdbdccbe6a9e65df254c5842755f45cde57997b97a4d7c09af59a1f22"
         }
       ],
-      "family_id": "closed-btc-fred-indpro-yoy-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged positive U.S. industrial-production year-over-year growth BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-coinmetrics-rctc-market-top-risk-veto-long-cash",
+      "title": "Bitcoin RCTC threshold-ten market-top risk-veto policy",
       "decision_feature": "COINMETRICS_BTC_RCTC_COMPLETE_SUNDAY_AT_OR_ABOVE_10_MARKET_TOP_RISK_VETO_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_COINMETRICS_RCTC_MARKET_TOP_RISK_VETO_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-coinmetrics-rctc-threshold-10-market-top-risk-veto-long-cash",
       "evidence_bindings": [
@@ -1326,13 +1578,13 @@
           "sha256": "5e347310e8663e202bed6ee90f7811a464967a7a023f02e1375bde6be90eaa00"
         }
       ],
-      "family_id": "closed-btc-coinmetrics-rctc-market-top-risk-veto-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Bitcoin RCTC threshold-ten market-top risk-veto policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-housing-permits-yoy-growth-long-cash",
+      "title": "Lagged positive U.S. housing-permit year-over-year growth BTC long-or-cash policy",
       "decision_feature": "FRED_PERMIT_CURRENT_MONTH_STRICTLY_ABOVE_SAME_MONTH_12_OBSERVATIONS_EARLIER_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_HOUSING_PERMITS_YOY_GROWTH_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-housing-permits-yoy-growth-long-cash",
       "evidence_bindings": [
@@ -1362,13 +1614,13 @@
           "sha256": "ed44b93c0468bad2fb7f8870ebb2f7dda896ef414deafee7cbffe479eb7cda26"
         }
       ],
-      "family_id": "closed-btc-fred-housing-permits-yoy-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged positive U.S. housing-permit year-over-year growth BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-umcsent-rising-consumer-sentiment-long-cash",
+      "title": "Lagged rising University of Michigan consumer-sentiment BTC long-or-cash policy",
       "decision_feature": "FRED_UMCSENT_CURRENT_MONTH_STRICTLY_ABOVE_PREVIOUS_MONTH_AVAILABLE_SECOND_FOLLOWING_MONTH_DAY1_0000_UTC",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_FRED_UMCSENT_RISING_CONSUMER_SENTIMENT_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-umcsent-rising-consumer-sentiment-long-cash",
       "evidence_bindings": [
@@ -1418,13 +1670,13 @@
           "sha256": "fe98bcfb2437bda8a4404a3d04df1e81ae3149919485b99f3b64c9777c7582a1"
         }
       ],
-      "family_id": "closed-btc-fred-umcsent-rising-consumer-sentiment-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged rising University of Michigan consumer-sentiment BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-stlfsi4-below-normal-stress-long-cash",
+      "title": "Lagged St. Louis Fed below-normal financial-stress BTC long-or-cash policy",
       "decision_feature": "FRED_STLFSI4_WEEKLY_VALUE_STRICTLY_BELOW_ZERO_FOLLOWING_THURSDAY_0000_UTC",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_STLFSI4_BELOW_NORMAL_STRESS_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-fred-stlfsi4-below-normal-stress-long-cash",
       "evidence_bindings": [
@@ -1454,13 +1706,13 @@
           "sha256": "bca8a839dc9dcd9fef3841921b650c951d9090804a0030b7bc1f9ebdadc26e28"
         }
       ],
-      "family_id": "closed-btc-fred-stlfsi4-below-normal-stress-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged St. Louis Fed below-normal financial-stress BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-m2-liquidity-acceleration-long-cash",
+      "title": "Lagged U.S. M2 liquidity-growth acceleration BTC long-or-cash policy",
       "decision_feature": "FEDERAL_RESERVE_H6_M2_M_MONTHLY_ADJACENT_YEAR_OVER_YEAR_GROWTH_ACCELERATION_STRICTLY_POSITIVE",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_M2_LIQUIDITY_ACCELERATION_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-federal-reserve-h6-m2-yoy-growth-acceleration-long-cash",
       "evidence_bindings": [
@@ -1495,13 +1747,13 @@
           "sha256": "e570684156387e96c63243d9ce913c7a1a83ebf0edfe181f4546c4640950bb55"
         }
       ],
-      "family_id": "closed-btc-m2-liquidity-acceleration-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. M2 liquidity-growth acceleration BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-cftc-total-open-interest-growth-long-cash",
+      "title": "Lagged CME Bitcoin futures total-open-interest participation long-or-cash policy",
       "decision_feature": "CFTC_TFF_TOTAL_OPEN_INTEREST_WEEKLY_GROWTH_CONTINUATION_LONG_CASH_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_CFTC_TOTAL_OPEN_INTEREST_GROWTH_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-cftc-total-open-interest-growth-long-cash",
       "evidence_bindings": [
@@ -1531,13 +1783,13 @@
           "sha256": "32bbc622225a65caddb86aa3cd8fc91460ecdfbdcb60db618de1cb8447922841"
         }
       ],
-      "family_id": "closed-btc-cftc-total-open-interest-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged CME Bitcoin futures total-open-interest participation long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-cftc-other-reportables-net-position-change-long-cash",
+      "title": "Lagged CFTC Other Reportables net-position change long-or-cash policy",
       "decision_feature": "CFTC_TFF_OTHER_REPORTABLES_NET_PERCENT_OF_OPEN_INTEREST_WEEKLY_CHANGE",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "PRIOR_REJECT_CLOSE_BTC_CFTC_OTHER_REPORTABLES_NET_POSITION_CHANGE_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-cftc-other-reportables-net-position-change-long-cash",
       "evidence_bindings": [
@@ -1552,13 +1804,13 @@
           "sha256": "4127af91f751f4efffa61a9db021280bd9ca0bcff8ab7b64018331f0e1c9dc94"
         }
       ],
-      "family_id": "closed-btc-cftc-other-reportables-net-position-change-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged CFTC Other Reportables net-position change long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-cftc-dealer-net-position-change-long-cash",
+      "title": "Lagged CFTC Dealer/Intermediary net-position change long-or-cash policy",
       "decision_feature": "CFTC_TFF_DEALER_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_LONG_CASH_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_CFTC_DEALER_NET_POSITION_CHANGE_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-cftc-dealer-intermediary-net-position-change-long-cash",
       "evidence_bindings": [
@@ -1583,13 +1835,13 @@
           "sha256": "14c912b5f74f51a5999cc32e79921c5d519c18bb30d306d66a5879efa105313e"
         }
       ],
-      "family_id": "closed-btc-cftc-dealer-net-position-change-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged CFTC Dealer/Intermediary net-position change long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-us-treasury-3m-yield-easing-long-cash",
+      "title": "Lagged U.S. three-month Treasury yield easing long-or-cash policy",
       "decision_feature": "LATEST_THREE_MONTH_TREASURY_YIELD_STRICTLY_BELOW_YIELD_63_VALID_BUSINESS_OBSERVATIONS_EARLIER",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_US_TREASURY_3M_YIELD_EASING_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-us-treasury-3m-yield-easing-42-63-84-observation-long-cash",
       "evidence_bindings": [
@@ -1614,13 +1866,13 @@
           "sha256": "d78b2b66eafb74ba9866fab35833928403b96452334f658107fedb98405fa7fd"
         }
       ],
-      "family_id": "closed-btc-us-treasury-3m-yield-easing-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. three-month Treasury yield easing long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-miner-revenue-per-hash-momentum-long-cash",
+      "title": "Lagged theoretical miner revenue-per-hash momentum long-or-cash policy",
       "decision_feature": "FOUR_WEEK_MEAN_THEORETICAL_PRICE_VALUED_SUBSIDY_PLUS_FEES_PER_HASH_STRICTLY_ABOVE_PREVIOUS_ADJACENT_FOUR_WEEK_MEAN",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DUPLICATE_REJECT_CLOSE_BTC_MINER_REVENUE_PER_HASH_MOMENTUM_FAMILY",
       "duplicate_family_key": "btc-miner-revenue-per-hash-momentum-2-4-8-week-long-cash",
       "evidence_bindings": [
@@ -1645,13 +1897,13 @@
           "sha256": "572cac1d2d97c224fb3e9e3caa16340bf2e693f0ac5f8ebc7f28b1d1d884bff4"
         }
       ],
-      "family_id": "closed-btc-miner-revenue-per-hash-momentum-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged theoretical miner revenue-per-hash momentum long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-nasdaq-relative-strength-long-cash",
+      "title": "Lagged BTC-versus-Nasdaq relative-strength long-or-cash policy",
       "decision_feature": "LAGGED_63_PAIRED_BUSINESS_DAY_BTC_RETURN_MINUS_NASDAQ_RETURN_STRICTLY_ABOVE_ZERO",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_NASDAQ_RELATIVE_STRENGTH_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-nasdaq-relative-strength-42-63-84-paired-business-day-long-cash",
       "evidence_bindings": [
@@ -1676,13 +1928,13 @@
           "sha256": "90248209d06e63407f7454f1aa9bdb9aa244d5fd79cdf2c98563fd8a9563a1da"
         }
       ],
-      "family_id": "closed-btc-nasdaq-relative-strength-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged BTC-versus-Nasdaq relative-strength long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-chaikin-money-flow-long-cash",
+      "title": "BTC complete-day Chaikin money-flow long-or-cash policy",
       "decision_feature": "ROLLING_COMPLETE_DAY_CLOSE_LOCATION_WEIGHTED_BASE_VOLUME_BALANCE_STRICTLY_ABOVE_ZERO",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_CHAIKIN_MONEY_FLOW_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-chaikin-money-flow-14-20-28-long-cash",
       "evidence_bindings": [
@@ -1707,13 +1959,13 @@
           "sha256": "cd08a034b6eac13586bed473412677bb98de64465a346eb6832c2a380a7264ac"
         }
       ],
-      "family_id": "closed-btc-daily-chaikin-money-flow-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "BTC complete-day Chaikin money-flow long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-monthly-rebalanced-half-passive-half-dra-v1",
+      "title": "Monthly equal-risk-budget passive BTC and frozen DRA V1 portfolio",
       "decision_feature": "FIRST_H1_OPEN_OF_EACH_UTC_CALENDAR_MONTH_RESET_PASSIVE_BTC_AND_FROZEN_DRA_V1_COMPONENT_INDICES_TO_EQUAL_VALUE",
+      "parent_strategy_id": "MONTHLY_REBALANCED_50PCT_PASSIVE_BTC_50PCT_ZERO_YIELD_CASH",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_REBALANCED_HALF_PASSIVE_HALF_DRA_V1_FAMILY",
       "duplicate_family_key": "btc-monthly-rebalanced-half-passive-half-dra-v1",
       "evidence_bindings": [
@@ -1738,13 +1990,13 @@
           "sha256": "dd51e20260c02eaadce38b48d80e411e05a995aff0bf6386751724b1c1432891"
         }
       ],
-      "family_id": "closed-btc-monthly-rebalanced-half-passive-half-dra-v1",
-      "parent_strategy_id": "MONTHLY_REBALANCED_50PCT_PASSIVE_BTC_50PCT_ZERO_YIELD_CASH",
-      "prohibited_reopen": true,
-      "title": "Monthly equal-risk-budget passive BTC and frozen DRA V1 portfolio"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-liquid-crypto-cross-sectional-momentum-long-only-source-reject",
+      "title": "Point-in-time liquid-crypto cross-sectional momentum long-only portfolio",
       "decision_feature": "RANK_LAGGED_RETURNS_AMONG_FROZEN_DECEMBER_2019_BINANCE_SPOT_USDT_COHORT",
+      "parent_strategy_id": "POINT_IN_TIME_LIQUID_CRYPTO_MARKET_PORTFOLIO_REQUIRED",
       "disposition": "DATA_REJECT_CLOSE_LIQUID_CRYPTO_CROSS_SECTIONAL_MOMENTUM_FREE_ARCHIVE_FAMILY",
       "duplicate_family_key": "liquid-crypto-point-in-time-cross-sectional-lagged-return-rank-long-only",
       "evidence_bindings": [
@@ -1774,13 +2026,13 @@
           "sha256": "a6417aedc84786c1b421b41ead3ec6dd32214b26a5e6811be4504f49bbefbde4"
         }
       ],
-      "family_id": "closed-liquid-crypto-cross-sectional-momentum-long-only-source-reject",
-      "parent_strategy_id": "POINT_IN_TIME_LIQUID_CRYPTO_MARKET_PORTFOLIO_REQUIRED",
-      "prohibited_reopen": true,
-      "title": "Point-in-time liquid-crypto cross-sectional momentum long-only portfolio"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-partial-core-runner-profit-only-exit",
+      "title": "DRA partial core and residual runner profit-only exit",
       "decision_feature": "SPLIT_EACH_30_USDT_PARENT_LOT_INTO_PREREGISTERED_40_60_50_50_OR_60_40_FAST_CORE_AND_RESIDUAL_RUNNER_PROFIT_ONLY_SUBLOTS",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_PARTIAL_CORE_RUNNER_EXIT_FAMILY",
       "duplicate_family_key": "dra-profit-only-partial-core-residual-runner-exit",
       "evidence_bindings": [
@@ -1805,13 +2057,13 @@
           "sha256": "c0f06a6113cdd6a361cbb6bfdcd23e8da8f3c10e6695ee7559461949a8da9af0"
         }
       ],
-      "family_id": "closed-dra-partial-core-runner-profit-only-exit",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA partial core and residual runner profit-only exit"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-h1-absolute-return-volume-coupling-entry-admission",
+      "title": "H1 movement-volume coupling DRA entry admission",
       "decision_feature": "DAILY_H1_ABSOLUTE_LOG_RETURN_TO_LOG_CLOSE_WEIGHTED_VOLUME_CORRELATION_PRIOR_20D_PERCENTILE_AT_OR_ABOVE_0_50",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_MECHANISM_CLOSE_FEATURE_FAMILY",
       "duplicate_family_key": "dra-h1-absolute-return-log-close-weighted-volume-correlation-entry-admission",
       "evidence_bindings": [
@@ -1836,13 +2088,13 @@
           "sha256": "16ab465b0d205b99d5efafc63277dc13bf5e7a8460f77ea974e197ffb187d945"
         }
       ],
-      "family_id": "closed-dra-h1-absolute-return-volume-coupling-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "H1 movement-volume coupling DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-onchain-activity-breadth-entry-admission",
+      "title": "Lagged Bitcoin network-activity breadth DRA entry admission",
       "decision_feature": "LAGGED_BOTH_28D_MEAN_TXCNT_AND_ADRACTCNT_ABOVE_CORRESPONDING_364D_LAGGED_MEANS",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_ONCHAIN_ACTIVITY_BREADTH_DRA_ADMISSION_FAMILY",
       "duplicate_family_key": "dra-onchain-activity-breadth-28d-vs-52w-entry-admission",
       "evidence_bindings": [
@@ -1867,13 +2119,13 @@
           "sha256": "c06b986f8a5878998e04be91f6066070fd20ec07d12eed2ef2bdbef2c45bb27d"
         }
       ],
-      "family_id": "closed-dra-onchain-activity-breadth-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Lagged Bitcoin network-activity breadth DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-stablecoin-liquidity-growth-entry-admission",
+      "title": "Lagged stablecoin-liquidity growth DRA entry admission",
       "decision_feature": "LAGGED_COMBINED_USDT_USDC_CAPMRKTCURUSD_POSITIVE_28D_GROWTH",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_STABLECOIN_LIQUIDITY_DRA_ADMISSION_FAMILY",
       "duplicate_family_key": "dra-stablecoin-usdt-usdc-capitalization-28d-growth-entry-admission",
       "evidence_bindings": [
@@ -1898,13 +2150,13 @@
           "sha256": "6e0db2ea42b2694d275e3664d2ecac5b6d71fd06d27f31c39e1d05a2377b56f6"
         }
       ],
-      "family_id": "closed-dra-stablecoin-liquidity-growth-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Lagged stablecoin-liquidity growth DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-intraday-close-path-drawdown-entry-admission",
+      "title": "DRA complete-day H1 close-path drawdown entry admission",
       "decision_feature": "DAILY_H1_CLOSE_PATH_MAX_DRAWDOWN_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_INTRADAY_CLOSE_PATH_DRAWDOWN_FAMILY",
       "duplicate_family_key": "dra-intraday-h1-close-path-max-drawdown-entry-admission",
       "evidence_bindings": [
@@ -1924,13 +2176,13 @@
           "sha256": "c8947a783c6319e10c1c5b44c6548dead5e1d60812cbeacb114c2e2d39676ef0"
         }
       ],
-      "family_id": "closed-dra-intraday-close-path-drawdown-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA complete-day H1 close-path drawdown entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-late-day-price-activity-entry-admission",
+      "title": "DRA final-six-hour price-activity recency entry admission",
       "decision_feature": "DAILY_1800_2359_UTC_ABSOLUTE_LOG_RETURN_SHARE_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_LATE_DAY_PRICE_ACTIVITY_FAMILY",
       "duplicate_family_key": "dra-late-six-hour-absolute-price-activity-entry-admission",
       "evidence_bindings": [
@@ -1950,13 +2202,13 @@
           "sha256": "7f20b5ba0c58b6763fb82045ab6ebd90f849c012e49d4f38f63eb5f9f11fe34e"
         }
       ],
-      "family_id": "closed-dra-late-day-price-activity-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA final-six-hour price-activity recency entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-eth-relative-strength-breadth-entry-admission",
+      "title": "Lagged ETH relative-strength breadth DRA entry admission",
       "decision_feature": "LAGGED_SUNDAY_ETH_28D_RETURN_MINUS_BTC_28D_RETURN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DATA_REJECT_CLOSE_BTC_ETH_REFERENCE_RATE_FREE_SOURCE_FAMILY",
       "duplicate_family_key": "dra-coinmetrics-eth-minus-btc-28d-relative-strength-entry-admission",
       "evidence_bindings": [
@@ -1976,13 +2228,13 @@
           "sha256": "920c8234b5dd92eb818e59d97231ea7bbf496d3ff6fb34c80c1ffb44cfaca788"
         }
       ],
-      "family_id": "closed-dra-eth-relative-strength-breadth-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Lagged ETH relative-strength breadth DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-bitcoin-nvt-relative-utility-entry-admission",
+      "title": "Lagged Bitcoin NVT relative-utility DRA entry admission",
       "decision_feature": "LAGGED_SUNDAY_NVTADJ_TO_PRIOR_365D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DATA_REJECT_CLOSE_NVTADJ_FREE_SOURCE_FAMILY",
       "duplicate_family_key": "dra-coinmetrics-btc-nvtadj-sunday-relative-utility-entry-admission",
       "evidence_bindings": [
@@ -2002,13 +2254,13 @@
           "sha256": "62a276b3d7e1cdcaea2c685c23232c0ab25f30ec0fcb235865cb839f5562cf13"
         }
       ],
-      "family_id": "closed-dra-bitcoin-nvt-relative-utility-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Lagged Bitcoin NVT relative-utility DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-gold-implied-volatility-calm-state-entry-admission",
+      "title": "Lagged Cboe gold implied-volatility calm-state DRA entry admission",
       "decision_feature": "LAGGED_WEEKLY_GVZ_LAST_CLOSE_TO_PRIOR_52W_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DATA_REJECT_CLOSE_GVZ_SOURCE_SCHEMA_FAMILY",
       "duplicate_family_key": "dra-gold-implied-volatility-calm-state-entry-admission",
       "evidence_bindings": [
@@ -2028,13 +2280,13 @@
           "sha256": "4b820178755efcb57108df3b275f70a7df33fb32bd8d6b2437303be0944ae80b"
         }
       ],
-      "family_id": "closed-dra-gold-implied-volatility-calm-state-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Lagged Cboe gold implied-volatility calm-state DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-btc-nasdaq-diversification-state-entry-admission",
+      "title": "Lagged BTC-Nasdaq low-correlation diversification-state DRA entry admission",
       "decision_feature": "LAGGED_63_PAIRED_BUSINESS_DAY_PEARSON_CORRELATION_BTC_AND_NASDAQ_RETURNS",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_NASDAQ_DIVERSIFICATION_STATE_FAMILY",
       "duplicate_family_key": "dra-btc-nasdaq-diversification-state-entry-admission",
       "evidence_bindings": [
@@ -2064,13 +2316,13 @@
           "sha256": "cff232ebe8f87a67cbb47a6a51894b82f0d11b1122e77ff3a5d4bb70a5d0f90a"
         }
       ],
-      "family_id": "closed-dra-btc-nasdaq-diversification-state-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Lagged BTC-Nasdaq low-correlation diversification-state DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-us-epu-hedge-entry-admission",
+      "title": "Lagged weekly US economic-policy-uncertainty DRA entry admission",
       "decision_feature": "LAGGED_WEEKLY_US_EPU_7D_MEAN_TO_PRIOR_52W_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_US_EPU_HEDGE_ENTRY_ADMISSION_FAMILY",
       "duplicate_family_key": "dra-us-epu-hedge-entry-admission",
       "evidence_bindings": [
@@ -2100,13 +2352,13 @@
           "sha256": "6232eb7acafb2e0ec82902b13dc1c0790316b342aec4cf1737468ae200c9e813"
         }
       ],
-      "family_id": "closed-dra-us-epu-hedge-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Lagged weekly US economic-policy-uncertainty DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-90d-drawdown-recovery-entry-admission",
+      "title": "Trailing-90-day drawdown recovery DRA entry admission",
       "decision_feature": "PRIOR_90D_DRAWDOWN_RECOVERY_FRACTION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_90D_DRAWDOWN_RECOVERY_FAMILY",
       "duplicate_family_key": "dra-90d-drawdown-recovery-entry-admission",
       "evidence_bindings": [
@@ -2131,13 +2383,13 @@
           "sha256": "53c8515cfd98a775640f7722489ce14464cdf84770188f12ad90432afa5ea8c2"
         }
       ],
-      "family_id": "closed-dra-90d-drawdown-recovery-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Trailing-90-day drawdown recovery DRA entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-crypto-carry-risk-veto",
+      "title": "Crypto-carry-conditioned DRA entry risk veto",
       "decision_feature": "POINT_IN_TIME_CRYPTO_CARRY_STATE_WITH_BOTH_FIXED_MATURITY_AND_PERPETUAL_SEMANTICS",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_SOURCE_CLOSE_DRA_CRYPTO_CARRY_RISK_VETO_FAMILY",
       "duplicate_family_key": "dra-crypto-carry-risk-veto",
       "evidence_bindings": [
@@ -2157,13 +2409,13 @@
           "sha256": "12f3af28a961996edf9ac5467806ca3a42d32183a8b89d5850ead353288df74a"
         }
       ],
-      "family_id": "closed-dra-crypto-carry-risk-veto",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Crypto-carry-conditioned DRA entry risk veto"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-monthly-volatility-of-volatility-half-risk",
+      "title": "BTC monthly volatility-of-volatility percentile 100-or-50-percent allocation",
       "decision_feature": "LATEST_VOV20_PRIOR_252_COMPLETE_DAY_MIDRANK_PERCENTILE",
+      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_VOLATILITY_OF_VOLATILITY_HALF_RISK_FAMILY",
       "duplicate_family_key": "btc-monthly-volatility-of-volatility-half-risk",
       "evidence_bindings": [
@@ -2183,13 +2435,13 @@
           "sha256": "7ad992e99eda7a143f633ec8ec1372da0deb0683f9ac75a34a7909b32983486c"
         }
       ],
-      "family_id": "closed-btc-monthly-volatility-of-volatility-half-risk",
-      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "BTC monthly volatility-of-volatility percentile 100-or-50-percent allocation"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-skew-tail-risk-long-cash",
+      "title": "BTC lagged Cboe SKEW 252-business-day percentile long-or-cash",
       "decision_feature": "LATEST_SKEW_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",
+      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_SKEW_TAIL_RISK_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-skew-tail-risk-long-cash",
       "evidence_bindings": [
@@ -2214,13 +2466,13 @@
           "sha256": "1149bbc04b6f4ade3248628e92d0ebc6bfe9544af1a1b8cca306e0bb32de1670"
         }
       ],
-      "family_id": "closed-btc-skew-tail-risk-long-cash",
-      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "BTC lagged Cboe SKEW 252-business-day percentile long-or-cash"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-vix-risk-state-long-cash",
+      "title": "BTC lagged Cboe VIX 252-business-day percentile long-or-cash",
       "decision_feature": "LATEST_VIX_CLOSE_PRIOR_252_BUSINESS_DAY_MIDRANK_PERCENTILE",
+      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_VIX_RISK_STATE_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-vix-risk-state-long-cash",
       "evidence_bindings": [
@@ -2245,13 +2497,13 @@
           "sha256": "cc4cc1edc7d387594a9c82ecfea19e98cd8fbf0219837ba939ec0cb2bdf66fc8"
         }
       ],
-      "family_id": "closed-btc-vix-risk-state-long-cash",
-      "parent_strategy_id": "BTC_100PCT_BUY_AND_HOLD_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "BTC lagged Cboe VIX 252-business-day percentile long-or-cash"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-intraday-price-path-efficiency-entry-admission",
+      "title": "DRA latest-complete-day intraday price-path efficiency percentile entry admission",
       "decision_feature": "DAILY_INTRADAY_PRICE_PATH_EFFICIENCY_PRIOR_20D_PERCENTILE",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_INTRADAY_PRICE_PATH_EFFICIENCY_FAMILY",
       "duplicate_family_key": "dra-intraday-price-path-efficiency-entry-admission",
       "evidence_bindings": [
@@ -2271,13 +2523,13 @@
           "sha256": "7f2bb70e1b738c34e3d183844808a70319cf1e1378072ae492013ff6dc3310fe"
         }
       ],
-      "family_id": "closed-dra-intraday-price-path-efficiency-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA latest-complete-day intraday price-path efficiency percentile entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-us-traditional-session-activity-entry-admission",
+      "title": "DRA fixed 15:00-20:59 UTC traditional-session activity entry admission",
       "decision_feature": "DAILY_1500_2059_UTC_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_US_TRADITIONAL_SESSION_ACTIVITY_FAMILY",
       "duplicate_family_key": "dra-us-traditional-session-activity-entry-admission",
       "evidence_bindings": [
@@ -2297,13 +2549,13 @@
           "sha256": "2acb5137a660becb68e4d0b89b6b34c99e84dec174b2420bf10218b44234187b"
         }
       ],
-      "family_id": "closed-dra-us-traditional-session-activity-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA fixed 15:00-20:59 UTC traditional-session activity entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-weekend-calendar-entry-admission",
+      "title": "DRA latest-complete-UTC-day weekend calendar entry admission",
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_WEEKDAY_INDEX_MONDAY_ZERO",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_WEEKEND_CALENDAR_FAMILY",
       "duplicate_family_key": "dra-weekend-calendar-entry-admission",
       "evidence_bindings": [
@@ -2323,13 +2575,13 @@
           "sha256": "ea06599dc81d0723e1e1e0e7bbd299ed977f41a4f8910aa5caf966c11dbc2a7f"
         }
       ],
-      "family_id": "closed-dra-weekend-calendar-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA latest-complete-UTC-day weekend calendar entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-h1-lag1-return-autocorrelation-entry-admission",
+      "title": "DRA complete-day H1 lag-1 return-autocorrelation percentile entry admission",
       "decision_feature": "DAILY_H1_LAG1_RETURN_AUTOCORRELATION_PRIOR_20D_PERCENTILE",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_H1_LAG1_RETURN_AUTOCORRELATION_FAMILY",
       "duplicate_family_key": "dra-h1-lag1-return-autocorrelation-entry-admission",
       "evidence_bindings": [
@@ -2349,13 +2601,13 @@
           "sha256": "5b3b2d85292fd98174f5405580726cfcc299ff4ddaa64e7ce8f8c887793d4f55"
         }
       ],
-      "family_id": "closed-dra-h1-lag1-return-autocorrelation-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA complete-day H1 lag-1 return-autocorrelation percentile entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-realized-performance-entry-admission",
+      "title": "DRA complete-day realized-performance percentile entry admission",
       "decision_feature": "DAILY_REALIZED_PERFORMANCE_PRIOR_20D_PERCENTILE",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_REALIZED_PERFORMANCE_FACTOR_FAMILY",
       "duplicate_family_key": "dra-realized-performance-entry-admission",
       "evidence_bindings": [
@@ -2375,13 +2627,13 @@
           "sha256": "fba4515d2fed27e2763d6c85e2586754d9ab9885c9aeff8faedce7b1a7ed7127"
         }
       ],
-      "family_id": "closed-dra-realized-performance-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA complete-day realized-performance percentile entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-turn-of-month-last-day-plus-three-long-cash",
+      "title": "BTC canonical turn-of-month four-day long-or-cash",
       "decision_feature": "UTC_CALENDAR_POSITION_LAST_DAY_OR_FIRST_THREE_DAYS_OF_MONTH",
+      "parent_strategy_id": "BTC_TURN_OF_MONTH_LAST_DAY_PLUS_THREE_LONG_CASH_V1",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_TURN_OF_MONTH_LAST_DAY_PLUS_THREE_FAMILY",
       "duplicate_family_key": "btc-turn-of-month-last-day-plus-three-long-cash",
       "evidence_bindings": [
@@ -2406,13 +2658,13 @@
           "sha256": "a23699034fe081a959010543b0a0c43a8fd12b04c0a495dd9a89bc1642e3ae0b"
         }
       ],
-      "family_id": "closed-btc-turn-of-month-last-day-plus-three-long-cash",
-      "parent_strategy_id": "BTC_TURN_OF_MONTH_LAST_DAY_PLUS_THREE_LONG_CASH_V1",
-      "prohibited_reopen": true,
-      "title": "BTC canonical turn-of-month four-day long-or-cash"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-monthly-30d-volatility-target-40pct",
+      "title": "BTC monthly 30-day realized-volatility 40% target",
       "decision_feature": "ANNUALIZED_REALIZED_VOLATILITY_FROM_EXACTLY_30_COMPLETE_UTC_DAY_LOG_RETURNS",
+      "parent_strategy_id": "BTC_BUY_AND_HOLD_EQUAL_CAPITAL_V1",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_30D_VOLATILITY_TARGET_40PCT_FAMILY",
       "duplicate_family_key": "btc-monthly-30d-volatility-target-40pct",
       "evidence_bindings": [
@@ -2427,13 +2679,13 @@
           "sha256": "5468752a0c98071d5641cfe1c06590510869479cad6058d93c33df97b7b15115"
         }
       ],
-      "family_id": "closed-btc-monthly-30d-volatility-target-40pct",
-      "parent_strategy_id": "BTC_BUY_AND_HOLD_EQUAL_CAPITAL_V1",
-      "prohibited_reopen": true,
-      "title": "BTC monthly 30-day realized-volatility 40% target"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-monthly-12m-time-series-momentum-long-cash",
+      "title": "BTC monthly twelve-month time-series momentum long-or-cash",
       "decision_feature": "LATEST_COMPLETE_MONTH_CLOSE_VS_CLOSE_EXACTLY_TWELVE_COMPLETE_MONTH_ENDS_EARLIER",
+      "parent_strategy_id": "BTC_MONTHLY_12M_TIME_SERIES_MOMENTUM_LONG_CASH_V1",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_12M_TIME_SERIES_MOMENTUM_FAMILY",
       "duplicate_family_key": "btc-monthly-12m-time-series-momentum-long-cash",
       "evidence_bindings": [
@@ -2448,13 +2700,13 @@
           "sha256": "4f21d8e11482a040532197359b3e74a071bd9d3fb62c5ec59971485320abf97f"
         }
       ],
-      "family_id": "closed-btc-monthly-12m-time-series-momentum-long-cash",
-      "parent_strategy_id": "BTC_MONTHLY_12M_TIME_SERIES_MOMENTUM_LONG_CASH_V1",
-      "prohibited_reopen": true,
-      "title": "BTC monthly twelve-month time-series momentum long-or-cash"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-static-half-passive-half-dra-v1",
+      "title": "Static equal-capital passive BTC and frozen DRA V1 portfolio",
       "decision_feature": "FIXED_FIFTY_PERCENT_PASSIVE_BTC_AND_FIFTY_PERCENT_NORMALIZED_DRA_V1_WITHOUT_REBALANCING",
+      "parent_strategy_id": "BTC_STATIC_50_PASSIVE_50_DRA_V1",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_STATIC_HALF_PASSIVE_HALF_DRA_V1_FAMILY",
       "duplicate_family_key": "btc-static-half-passive-half-dra-v1",
       "evidence_bindings": [
@@ -2469,13 +2721,13 @@
           "sha256": "720725a7bf15c54ccabe818650f3d852d08fa171af9aa5f964735c0a73f84669"
         }
       ],
-      "family_id": "closed-btc-static-half-passive-half-dra-v1",
-      "parent_strategy_id": "BTC_STATIC_50_PASSIVE_50_DRA_V1",
-      "prohibited_reopen": true,
-      "title": "Static equal-capital passive BTC and frozen DRA V1 portfolio"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-donchian-20d-10d-standalone",
+      "title": "BTC standalone Donchian 20-day breakout and 10-day breakdown",
       "decision_feature": "COMPLETE_UTC_DAY_CLOSE_VS_PRIOR_20_DAY_HIGH_AND_PRIOR_10_DAY_LOW",
+      "parent_strategy_id": "BTC_DONCHIAN_20D_10D_V1",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DONCHIAN_20D_10D_STANDALONE_FAMILY",
       "duplicate_family_key": "btc-donchian-20d-10d-standalone",
       "evidence_bindings": [
@@ -2490,13 +2742,13 @@
           "sha256": "0e76ef3bdcf4e30ae352cadd04eafdf4677cede3ac2b976790528ddc3c906ee8"
         }
       ],
-      "family_id": "closed-btc-donchian-20d-10d-standalone",
-      "parent_strategy_id": "BTC_DONCHIAN_20D_10D_V1",
-      "prohibited_reopen": true,
-      "title": "BTC standalone Donchian 20-day breakout and 10-day breakdown"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-microstructure-dra-entry-admission-v3r1",
+      "title": "OKX V3R1 microstructure DRA entry-admission source lifecycle",
       "decision_feature": "PREDECISION_OKX_TRADE_AND_BOOKS5_MICROSTRUCTURE_V3R1",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_EVIDENCE_CLOSE_MICROSTRUCTURE_SOURCE_INTEGRITY_FAMILY",
       "duplicate_family_key": "microstructure-dra-entry-admission",
       "evidence_bindings": [
@@ -2516,13 +2768,13 @@
           "sha256": "e67211b5bcd716f15ff7f0344fe0fdc587596a40fbc58732204cdc31bf13654c"
         }
       ],
-      "family_id": "closed-microstructure-dra-entry-admission-v3r1",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "OKX V3R1 microstructure DRA entry-admission source lifecycle"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-cftc-leveraged-money-positioning-delta",
+      "title": "CFTC leveraged-money net percent-of-open-interest weekly delta",
       "decision_feature": "CFTC_TFF_LEV_MONEY_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_168H",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_CFTC_TFF_FACTOR_FAMILY",
       "duplicate_family_key": "cftc-leveraged-money-positioning-delta",
       "evidence_bindings": [
@@ -2537,13 +2789,13 @@
           "sha256": "f56ff773e14b2ed54388d2747905e8fbc7d585b54b36126958ecbc7cd238111a"
         }
       ],
-      "family_id": "closed-cftc-leveraged-money-positioning-delta",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "CFTC leveraged-money net percent-of-open-interest weekly delta"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-close-location-entry-admission",
+      "title": "DRA complete-day close-location entry admission",
       "decision_feature": "DAILY_CLOSE_LOCATION_VALUE_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_CLOSE_LOCATION_FACTOR_FAMILY",
       "duplicate_family_key": "dra-close-location-entry-admission",
       "evidence_bindings": [
@@ -2563,13 +2815,13 @@
           "sha256": "8615a4e0caad55963e5810f84fbe55c4084f5577bf9f7adea396d5b764b68428"
         }
       ],
-      "family_id": "closed-dra-close-location-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA complete-day close-location entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-h1-volume-weighted-close-location-entry-admission",
+      "title": "DRA H1 volume-weighted close-location entry admission",
       "decision_feature": "DAILY_CLOSE_TO_H1_VOLUME_WEIGHTED_CLOSE_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_H1_VOLUME_WEIGHTED_CLOSE_LOCATION_FACTOR_FAMILY",
       "duplicate_family_key": "dra-h1-volume-weighted-close-location-entry-admission",
       "evidence_bindings": [
@@ -2589,13 +2841,13 @@
           "sha256": "7b45d2cc632413b7ffc25fee3910647d94d4e7065bd524f12161183e908cc0b4"
         }
       ],
-      "family_id": "closed-dra-h1-volume-weighted-close-location-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA H1 volume-weighted close-location entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-equal-capital-two-slot-capacity",
+      "title": "DRA equal-capital two-slot capacity",
       "decision_feature": "TWO_SIMULTANEOUS_30_USDT_DRA_LOTS",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DRA_EQUAL_CAPITAL_TWO_SLOT_CAPACITY_BRANCH_CLOSE",
       "duplicate_family_key": "dra-equal-capital-two-slot-capacity",
       "evidence_bindings": [
@@ -2610,13 +2862,13 @@
           "sha256": "bbd0b216c2ff3ee8aa9eb39600c30305f1cdb6a88a704c79f65a41f90e2d508c"
         }
       ],
-      "family_id": "closed-dra-equal-capital-two-slot-capacity",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA equal-capital two-slot capacity"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-long-trend-entry-admission",
+      "title": "DRA long-trend entry admission",
       "decision_feature": "LONG_TREND_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DRA_LONG_TREND_ENTRY_ADMISSION_BRANCH_CLOSE",
       "duplicate_family_key": "dra-long-trend-entry-admission",
       "evidence_bindings": [
@@ -2631,13 +2883,13 @@
           "sha256": "abcf14cdea18bea3e101e0df07edfaf5e3ff0ccae57849c4c339361817e69492"
         }
       ],
-      "family_id": "closed-dra-long-trend-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA long-trend entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-amihud-illiquidity-entry-admission",
+      "title": "DRA Amihud-style illiquidity entry admission",
       "decision_feature": "DAILY_AMIHUD_ILLIQUIDITY_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DRA_AMIHUD_ILLIQUIDITY_EVIDENCE_INSUFFICIENT",
       "duplicate_family_key": "dra-amihud-illiquidity-entry-admission",
       "evidence_bindings": [
@@ -2652,13 +2904,13 @@
           "sha256": "6548bf0933140c8d1c2d1ca871bf5780b20d8ea844ceb326354d6dcdb5fb7808"
         }
       ],
-      "family_id": "closed-dra-amihud-illiquidity-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA Amihud-style illiquidity entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-lagged-realized-volatility-entry-admission",
+      "title": "DRA lagged realized-volatility entry admission",
       "decision_feature": "LAGGED_DAILY_REALIZED_VOLATILITY_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "CLOSE_FEATURE_FAMILY_WITHOUT_TUNING",
       "duplicate_family_key": "dra-lagged-realized-volatility-entry-admission",
       "evidence_bindings": [
@@ -2678,13 +2930,13 @@
           "sha256": "1d94c0af9e6bdabbda34862cd6740eef9d77932a77183a027ac75246435427d3"
         }
       ],
-      "family_id": "closed-dra-lagged-realized-volatility-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged realized-volatility entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-downside-semivariance-entry-admission",
+      "title": "DRA downside-semivariance entry admission",
       "decision_feature": "DOWNSIDE_SEMIVARIANCE_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DRA_DOWNSIDE_SEMIVARIANCE_BRANCH_CLOSE",
       "duplicate_family_key": "dra-downside-semivariance-entry-admission",
       "evidence_bindings": [
@@ -2699,13 +2951,13 @@
           "sha256": "1300352d350e765395d3f28df4b565face5806bc847701e47fb2b8c26e62ff0f"
         }
       ],
-      "family_id": "closed-dra-downside-semivariance-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA downside-semivariance entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-bipower-jumpiness-entry-admission",
+      "title": "DRA bipower-jumpiness entry admission",
       "decision_feature": "BIPOWER_JUMPINESS_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DRA_BIPOWER_JUMPINESS_BRANCH_CLOSE",
       "duplicate_family_key": "dra-bipower-jumpiness-entry-admission",
       "evidence_bindings": [
@@ -2720,13 +2972,13 @@
           "sha256": "99b841b83722eabe33f7d51bae26708251b9d8afaeb8fa8a4b4001177a8525df"
         }
       ],
-      "family_id": "closed-dra-bipower-jumpiness-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA bipower-jumpiness entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-intraday-sign-persistence-entry-admission",
+      "title": "DRA intraday sign-persistence entry admission",
       "decision_feature": "INTRADAY_SIGN_PERSISTENCE_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DRA_INTRADAY_SIGN_PERSISTENCE_BRANCH_CLOSE",
       "duplicate_family_key": "dra-intraday-sign-persistence-entry-admission",
       "evidence_bindings": [
@@ -2741,13 +2993,13 @@
           "sha256": "9b2546d09947166f60d1e878dbafdb592322dfef7257a7033bf7e08c631b6513"
         }
       ],
-      "family_id": "closed-dra-intraday-sign-persistence-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA intraday sign-persistence entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-directional-volume-participation-entry-admission",
+      "title": "DRA directional-volume participation entry admission",
       "decision_feature": "DAILY_POSITIVE_RETURN_QUOTE_VOLUME_SHARE_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DRA_DIRECTIONAL_VOLUME_PARTICIPATION_BRANCH_CLOSE",
       "duplicate_family_key": "dra-directional-volume-participation-entry-admission",
       "evidence_bindings": [
@@ -2762,13 +3014,13 @@
           "sha256": "3c1ec5d8997b7bd8e16a6892ea3f95c6af2acbab0ab49824890af58a6e5f1946"
         }
       ],
-      "family_id": "closed-dra-directional-volume-participation-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA directional-volume participation entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-intraday-volume-concentration-entry-admission",
+      "title": "DRA intraday-volume concentration entry admission",
       "decision_feature": "TOP_SIX_HOURLY_QUOTE_VOLUME_SHARE",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DRA_INTRADAY_VOLUME_CONCENTRATION_BRANCH_CLOSE",
       "duplicate_family_key": "dra-intraday-volume-concentration-entry-admission",
       "evidence_bindings": [
@@ -2783,13 +3035,13 @@
           "sha256": "da4b65fa798f8cb985023aa593053422a09a5db71d04b09a479eb0e9ab4047c5"
         }
       ],
-      "family_id": "closed-dra-intraday-volume-concentration-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA intraday-volume concentration entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-3pct-joint-reversal-elevated-volatility",
+      "title": "BTC three-percent joint reversal under elevated volatility",
       "decision_feature": "POST_OUTCOME_JOINT_REVERSAL_AND_ELEVATED_VOLATILITY_LABEL",
+      "parent_strategy_id": "NO_ACTIONABLE_PARENT",
       "disposition": "HISTORICAL_JOINT_REVERSAL_ELEVATED_VOLATILITY_RISK_PRIOR_CLOSE",
       "duplicate_family_key": "btc-3pct-joint-reversal-elevated-volatility",
       "evidence_bindings": [
@@ -2804,13 +3056,13 @@
           "sha256": "930876f0687b36058a3c8106c9286acdae5836b99a79072016cb854b5f6f7b81"
         }
       ],
-      "family_id": "closed-btc-3pct-joint-reversal-elevated-volatility",
-      "parent_strategy_id": "NO_ACTIONABLE_PARENT",
-      "prohibited_reopen": true,
-      "title": "BTC three-percent joint reversal under elevated volatility"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-search-attention-volume-innovation-v1",
+      "title": "Lagged finalized search attention with predecision volume innovation V1",
       "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_EXPANDING_VOLUME_INNOVATION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "CLOSE_SEARCH_ATTENTION_VOLUME_V1_SOURCE_UNAVAILABLE",
       "duplicate_family_key": "btc-search-attention-volume-innovation",
       "evidence_bindings": [
@@ -2830,13 +3082,13 @@
           "sha256": "d543f3136e76318bad1491342707ef3cc26e9656a213dc6c27e80960f9b57c46"
         }
       ],
-      "family_id": "closed-btc-search-attention-volume-innovation-v1",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "Lagged finalized search attention with predecision volume innovation V1"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-realized-volatility-term-structure-entry-admission",
+      "title": "DRA five-day to twenty-day realized-volatility term-structure entry admission",
       "decision_feature": "DAILY_RV5_TO_RV20_RATIO_TO_PRIOR_20D_MEDIAN",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_REALIZED_VOLATILITY_TERM_STRUCTURE_FAMILY",
       "duplicate_family_key": "dra-realized-volatility-term-structure-entry-admission",
       "evidence_bindings": [
@@ -2856,13 +3108,13 @@
           "sha256": "28d66df1be6997fb8ee5b31f13bfad698be6275f87b52e2c7ad3e4627ee0483d"
         }
       ],
-      "family_id": "closed-dra-realized-volatility-term-structure-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA five-day to twenty-day realized-volatility term-structure entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-monthly-constant-mix",
+      "title": "BTC and zero-yield cash monthly constant mix",
       "decision_feature": "UTC_MONTH_BOUNDARY_FIXED_40_50_60_BTC_WEIGHT",
+      "parent_strategy_id": "MATCHED_INITIAL_WEIGHT_BTC_PLUS_ZERO_YIELD_CASH_NO_REBALANCE",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_MONTHLY_CONSTANT_MIX_FAMILY",
       "duplicate_family_key": "btc-cash-monthly-constant-mix-40-50-60",
       "evidence_bindings": [
@@ -2882,13 +3134,13 @@
           "sha256": "f211b62623a20fbf706d2b719967feb7e9f436b7afe0e342b3adf47327daed3c"
         }
       ],
-      "family_id": "closed-btc-monthly-constant-mix",
-      "parent_strategy_id": "MATCHED_INITIAL_WEIGHT_BTC_PLUS_ZERO_YIELD_CASH_NO_REBALANCE",
-      "prohibited_reopen": true,
-      "title": "BTC and zero-yield cash monthly constant mix"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-obv-ma-long-cash",
+      "title": "BTC daily on-balance-volume moving-average long/cash timing",
       "decision_feature": "COMPLETE_UTC_DAY_BASE_VOLUME_SIGNED_OBV_SMA_2_VS_18_24_30",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_OBV_MA_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-obv-ma-long-cash-2-18-24-30",
       "evidence_bindings": [
@@ -2908,13 +3160,13 @@
           "sha256": "d4d21ead87a94e8d65d8e7a4efa06f2e0f425256cede0aeb1aad0e05523121aa"
         }
       ],
-      "family_id": "closed-btc-daily-obv-ma-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC daily on-balance-volume moving-average long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-rsi14-midline-long-cash",
+      "title": "BTC daily RSI14 midline momentum-state long/cash timing",
       "decision_feature": "COMPLETE_UTC_DAY_SIMPLE_RSI14_GT_45_50_55",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_RSI14_MIDLINE_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-rsi14-midline-long-cash-45-50-55",
       "evidence_bindings": [
@@ -2934,13 +3186,13 @@
           "sha256": "a9b8265e9f29d76cc205404eb7b431b349878129018260faf8904ad84de7733a"
         }
       ],
-      "family_id": "closed-btc-daily-rsi14-midline-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC daily RSI14 midline momentum-state long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-supertrend10x3-long-cash",
+      "title": "BTC daily Supertrend ATR10 multiplier-3 long/cash timing",
       "decision_feature": "COMPLETE_UTC_DAY_WILDER_RMA_ATR10_RATCHETED_SUPERTREND_MULTIPLIER_2_5_3_0_3_5",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_SUPERTREND10X3_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-supertrend-atr10-multiplier-2_5-3_0-3_5-long-cash",
       "evidence_bindings": [
@@ -2960,13 +3212,13 @@
           "sha256": "12ce9bb7c779346e0c66d280bb76397890bb8787ca2648a6cd7adf33fd7029d7"
         }
       ],
-      "family_id": "closed-btc-daily-supertrend10x3-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC daily Supertrend ATR10 multiplier-3 long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-macd12-26-9-histogram-long-cash",
+      "title": "BTC daily MACD 12/26/9 positive-histogram long/cash timing",
       "decision_feature": "COMPLETE_UTC_DAY_TRADINGVIEW_STYLE_EMA_FAST_10_12_14_SLOW_26_SIGNAL_9_HISTOGRAM_GT_ZERO",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_MACD12_26_9_HISTOGRAM_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-macd-fast-10-12-14-slow-26-signal-9-histogram-long-cash",
       "evidence_bindings": [
@@ -2986,13 +3238,13 @@
           "sha256": "8440d7fdac59f5055e7dc8c42d3e7b992debf24549f050ff78c186e982e37a72"
         }
       ],
-      "family_id": "closed-btc-daily-macd12-26-9-histogram-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC daily MACD 12/26/9 positive-histogram long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-dmi14-adx25-long-cash",
+      "title": "BTC daily DMI14 bullish direction with ADX14 strong-trend long/cash timing",
       "decision_feature": "COMPLETE_UTC_DAY_DMI14_POSITIVE_DI_GT_NEGATIVE_DI_AND_ADX14_THRESHOLDS_20_25_30",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_DMI14_ADX25_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-dmi14-adx14-thresholds-20-25-30-long-cash",
       "evidence_bindings": [
@@ -3012,13 +3264,13 @@
           "sha256": "746534a4aa28ac4df1d9f124e8f3e0b546d5698abbea95620faea8b80931f11f"
         }
       ],
-      "family_id": "closed-btc-daily-dmi14-adx25-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC daily DMI14 bullish direction with ADX14 strong-trend long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-sma200-long-cash",
+      "title": "BTC daily price above prior SMA200 full-capital long/cash timing",
       "decision_feature": "COMPLETE_UTC_DAY_CURRENT_CLOSE_STRICTLY_GT_PRIOR_SMA_150_200_250",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_SMA200_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-prior-sma-150-200-250-full-capital-long-cash",
       "evidence_bindings": [
@@ -3038,13 +3290,13 @@
           "sha256": "a42fd06aa63daf84bcdd01b2fcd8a220a47229566a75e143427c4b1c8b991f6b"
         }
       ],
-      "family_id": "closed-btc-daily-sma200-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC daily price above prior SMA200 full-capital long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-bollinger20-2-long-cash",
+      "title": "BTC daily Bollinger20/2 lower-cross long and upper-cross cash mean reversion",
       "decision_feature": "COMPLETE_UTC_DAY_BOLLINGER20_2_POPULATION_STDDEV_LOWER_CROSS_LONG_UPPER_CROSS_CASH",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_BOLLINGER20_2_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-bollinger20-2-lower-cross-long-upper-cross-cash",
       "evidence_bindings": [
@@ -3064,13 +3316,13 @@
           "sha256": "19b3be4627da6d4552dca2075a86bf5a6e2a0a7e55475f1b821dbde930c045f2"
         }
       ],
-      "family_id": "closed-btc-daily-bollinger20-2-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC daily Bollinger20/2 lower-cross long and upper-cross cash mean reversion"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-psar-long-cash",
+      "title": "BTC daily Parabolic SAR time-acceleration long/cash trend reversal",
       "decision_feature": "COMPLETE_UTC_DAY_PSAR_START_INCREMENT_001_002_003_MAX02_BULLISH_LONG_BEARISH_CASH",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_DAILY_PSAR_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-daily-psar-start-increment-001-002-003-max02-long-cash",
       "evidence_bindings": [
@@ -3090,13 +3342,13 @@
           "sha256": "34c5591291eb69739661959337a7dd87ae6406997fa4fdfc95bedd88740d2e35"
         }
       ],
-      "family_id": "closed-btc-daily-psar-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC daily Parabolic SAR time-acceleration long/cash trend reversal"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-intraday-fixed-utc-session-long-cash",
+      "title": "BTC every-day fixed 08:00-16:00 UTC session long/cash timing",
       "decision_feature": "EVERY_COMPLETE_UTC_DAY_FIXED_07_15_08_16_09_17_SESSION_LONG_CASH",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_INTRADAY_FIXED_UTC_SESSION_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-intraday-fixed-utc-session-07-15-08-16-09-17-long-cash",
       "evidence_bindings": [
@@ -3116,13 +3368,13 @@
           "sha256": "bc9189119e8cc2f3a9ed95dff148793a554e3b8ec0dc259ca4b1e18bf9a2307f"
         }
       ],
-      "family_id": "closed-btc-intraday-fixed-utc-session-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "BTC every-day fixed 08:00-16:00 UTC session long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-intraday-realized-skewness-entry-admission",
+      "title": "DRA complete-day H1 realized-skewness percentile entry admission",
       "decision_feature": "DAILY_INTRADAY_REALIZED_SKEWNESS_PRIOR_20D_PERCENTILE_AT_OR_BELOW_0_3_0_5_0_7",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_REALIZED_SKEWNESS_FAMILY",
       "duplicate_family_key": "dra-intraday-realized-skewness-entry-admission",
       "evidence_bindings": [
@@ -3142,13 +3394,13 @@
           "sha256": "7706f3af36d92918fee174da60156a6dd08ba2374662d54889351022c20933ed"
         }
       ],
-      "family_id": "closed-dra-intraday-realized-skewness-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA complete-day H1 realized-skewness percentile entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-cftc-asset-manager-contrarian-entry-admission",
+      "title": "DRA CFTC Asset Manager weekly net-position contraction contrarian entry admission",
       "decision_feature": "CFTC_TFF_ASSET_MANAGER_NET_PCT_OI_WEEKLY_CONTRACTION_CONTRARIAN_168H_V1",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_CFTC_ASSET_MANAGER_CONTRARIAN_FAMILY",
       "duplicate_family_key": "dra-cftc-asset-manager-net-position-contraction-contrarian-entry-admission",
       "evidence_bindings": [
@@ -3173,13 +3425,13 @@
           "sha256": "be0d29e820a843927fb90c4d2fe66806a6f9777fd88cb17e92de0a0875c110de"
         }
       ],
-      "family_id": "closed-dra-cftc-asset-manager-contrarian-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA CFTC Asset Manager weekly net-position contraction contrarian entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-cftc-option-asset-manager-raw-change-entry-admission",
+      "title": "DRA CFTC Asset Manager option-position weekly contraction entry admission",
       "decision_feature": "CFTC_TFF_OPTION_ASSET_MANAGER_NET_PCT_OI_WEEKLY_CONTRACTION_168H_V1",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_CFTC_OPTION_ASSET_MANAGER_RAW_CHANGE_FAMILY",
       "duplicate_family_key": "dra-cftc-option-asset-manager-net-position-contraction-entry-admission",
       "evidence_bindings": [
@@ -3204,13 +3456,13 @@
           "sha256": "2030e8c875d70f3e76e8d86b0456133121c044df1ba8f6b26e0d0ddc6ce7656f"
         }
       ],
-      "family_id": "closed-dra-cftc-option-asset-manager-raw-change-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA CFTC Asset Manager option-position weekly contraction entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-vix-vix3m-term-structure-long-cash",
+      "title": "Lagged Cboe VIX divided by VIX3M term-structure BTC long/cash timing",
       "decision_feature": "LATEST_MATCHED_VIX_CLOSE_DIVIDED_BY_VIX3M_CLOSE_AT_OR_BELOW_0_95_1_00_1_05",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_VIX_TERM_STRUCTURE_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-vix-divided-by-vix3m-term-structure-long-cash",
       "evidence_bindings": [
@@ -3235,13 +3487,13 @@
           "sha256": "eb57c841d3607799a198a831ac12a91498f0795dcaa359d8205c3b83330b5d3c"
         }
       ],
-      "family_id": "closed-btc-vix-vix3m-term-structure-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "Lagged Cboe VIX divided by VIX3M term-structure BTC long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-high-yield-oas-risk-state-source-unavailable",
+      "title": "Lagged ICE BofA US high-yield OAS BTC risk-state timing",
       "decision_feature": "LAGGED_ICE_BOFA_US_HIGH_YIELD_INDEX_OPTION_ADJUSTED_SPREAD_RISK_STATE",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "DATA_PATH_REJECT_INSUFFICIENT_FREE_HISTORICAL_COVERAGE",
       "duplicate_family_key": "btc-ice-bofa-us-high-yield-oas-risk-state-long-cash",
       "evidence_bindings": [
@@ -3256,13 +3508,13 @@
           "sha256": "e86ffaa6ea83e6c9e045d19af82d60c7f55021331fe062756a89b07f5e372621"
         }
       ],
-      "family_id": "closed-btc-high-yield-oas-risk-state-source-unavailable",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "Lagged ICE BofA US high-yield OAS BTC risk-state timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-us-treasury-term-spread-noninversion-long-cash",
+      "title": "Lagged U.S. Treasury term-spread non-inversion BTC long/cash timing",
       "decision_feature": "LATEST_PUBLISHED_10Y_MINUS_3M_AT_OR_ABOVE_ZERO_WITH_10Y_MINUS_1Y_AND_10Y_MINUS_2Y_REJECTION_NEIGHBORS",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_TREASURY_TERM_SPREAD_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-us-treasury-term-spread-noninversion-long-cash",
       "evidence_bindings": [
@@ -3287,13 +3539,13 @@
           "sha256": "0b66812eaf7f4da1b8c4a2b282887a256226b100048c98dce957f650f7bbc4b5"
         }
       ],
-      "family_id": "closed-btc-us-treasury-term-spread-noninversion-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. Treasury term-spread non-inversion BTC long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-nasdaq-composite-external-trend-long-cash",
+      "title": "Lagged Nasdaq Composite external equity trend BTC long/cash timing",
       "decision_feature": "LATEST_NASDAQ_CLOSE_STRICTLY_ABOVE_PRIOR_200_BUSINESS_DAY_SIMPLE_MEAN_WITH_150D_AND_250D_REJECTION_NEIGHBORS",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_NASDAQ_COMPOSITE_TREND_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-nasdaq-composite-external-trend-long-cash",
       "evidence_bindings": [
@@ -3318,13 +3570,13 @@
           "sha256": "cff232ebe8f87a67cbb47a6a51894b82f0d11b1122e77ff3a5d4bb70a5d0f90a"
         }
       ],
-      "family_id": "closed-btc-nasdaq-composite-external-trend-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "Lagged Nasdaq Composite external equity trend BTC long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-onchain-activity-breadth-long-cash",
+      "title": "Lagged Bitcoin transaction and active-address activity breadth BTC long/cash timing",
       "decision_feature": "BOTH_28D_MEAN_TXCNT_AND_ADRACTCNT_STRICTLY_ABOVE_CORRESPONDING_28D_MEAN_52_WEEKS_EARLIER_WITH_SINGLE_AXIS_REJECTION_NEIGHBORS",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_ONCHAIN_ACTIVITY_BREADTH_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-onchain-activity-breadth-28d-vs-52w-long-cash",
       "evidence_bindings": [
@@ -3349,13 +3601,13 @@
           "sha256": "c06b986f8a5878998e04be91f6066070fd20ec07d12eed2ef2bdbef2c45bb27d"
         }
       ],
-      "family_id": "closed-btc-onchain-activity-breadth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "Lagged Bitcoin transaction and active-address activity breadth BTC long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-stablecoin-liquidity-growth-long-cash",
+      "title": "Lagged combined USDT and USDC capitalization growth BTC long/cash timing",
       "decision_feature": "COMBINED_USDT_PLUS_USDC_CAPMRKTCURUSD_STRICTLY_ABOVE_ITS_LEVEL_28_CALENDAR_DAYS_EARLIER_WITH_SINGLE_ASSET_REJECTION_NEIGHBORS",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_STABLECOIN_LIQUIDITY_GROWTH_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-stablecoin-usdt-usdc-capitalization-28d-growth-long-cash",
       "evidence_bindings": [
@@ -3380,13 +3632,13 @@
           "sha256": "6e0db2ea42b2694d275e3664d2ecac5b6d71fd06d27f31c39e1d05a2377b56f6"
         }
       ],
-      "family_id": "closed-btc-stablecoin-liquidity-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
-      "prohibited_reopen": true,
-      "title": "Lagged combined USDT and USDC capitalization growth BTC long/cash timing"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-fed-balance-sheet-growth-entry-admission",
+      "title": "DRA lagged Federal Reserve total-asset growth entry admission",
       "decision_feature": "FRED_WALCL_STRICT_POSITIVE_28_DAY_GROWTH_OBSERVATION_PLUS_3D_168H_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_FED_BALANCE_SHEET_GROWTH_FAMILY",
       "duplicate_family_key": "dra-fed-walcl-positive-28d-growth-entry-admission",
       "evidence_bindings": [
@@ -3411,13 +3663,13 @@
           "sha256": "a2d1bbbdae31d0ea6c46b2adc3b9a391f11149b9836729ed1b299794a77024d4"
         }
       ],
-      "family_id": "closed-dra-fed-balance-sheet-growth-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged Federal Reserve total-asset growth entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-broad-dollar-weakness-entry-admission",
+      "title": "DRA lagged broad U.S. dollar weakness entry admission",
       "decision_feature": "FRED_DTWEXBGS_WEEKLY_MEAN_STRICT_NEGATIVE_28_DAY_CHANGE_FRIDAY_PLUS_5D_168H_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_BROAD_DOLLAR_WEAKNESS_FAMILY",
       "duplicate_family_key": "dra-fred-dtwexbgs-weekly-negative-28d-change-entry-admission",
       "evidence_bindings": [
@@ -3442,13 +3694,13 @@
           "sha256": "5a9f2b76222c229094f3429c045b1216c050eb42df4a4263f90820f3644ce7a5"
         }
       ],
-      "family_id": "closed-dra-broad-dollar-weakness-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged broad U.S. dollar weakness entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-nfci-loose-financial-conditions-entry-admission",
+      "title": "DRA lagged loose U.S. financial-conditions entry admission",
       "decision_feature": "FRED_NFCI_STRICT_NEGATIVE_ZERO_THRESHOLD_FRIDAY_PLUS_7D_168H_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DATA_REJECT_CLOSE_NFCI_SOURCE_TRANSPORT_FAMILY",
       "duplicate_family_key": "dra-fred-nfci-negative-zero-threshold-entry-admission",
       "evidence_bindings": [
@@ -3478,13 +3730,13 @@
           "sha256": "35a473a9cefcf3a894f6a777942d202f77ad15816505a5791c1299de55c98519"
         }
       ],
-      "family_id": "closed-dra-nfci-loose-financial-conditions-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged loose U.S. financial-conditions entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-bitcoin-hashrate-growth-entry-admission",
+      "title": "DRA lagged Bitcoin hash-rate growth entry admission",
       "decision_feature": "COIN_METRICS_BTC_HASHRATE_STRICT_POSITIVE_ADJACENT_28D_GROWTH_SUNDAY_PLUS_3D_168H_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_BITCOIN_HASHRATE_GROWTH_FAMILY",
       "duplicate_family_key": "dra-coinmetrics-btc-hashrate-adjacent-28d-growth-entry-admission",
       "evidence_bindings": [
@@ -3509,13 +3761,13 @@
           "sha256": "266e41fa72f8a612a9fc3327a5f31614d340d79a0ed4420925dc96151857ca08"
         }
       ],
-      "family_id": "closed-dra-bitcoin-hashrate-growth-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged Bitcoin hash-rate growth entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-bitcoin-mvrv-relative-value-entry-admission",
+      "title": "DRA lagged Bitcoin MVRV relative-value entry admission",
       "decision_feature": "COIN_METRICS_BTC_MVRV_SUNDAY_STRICT_BELOW_PRIOR_365D_MEDIAN_PLUS_3D_168H_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_BITCOIN_MVRV_RELATIVE_VALUE_FAMILY",
       "duplicate_family_key": "dra-coinmetrics-btc-mvrv-sunday-below-prior-365d-median-entry-admission",
       "evidence_bindings": [
@@ -3540,13 +3792,13 @@
           "sha256": "582a782e5c626d7f9ed21f9d79bf262cf97f56872647c6bd595aca6de45064a9"
         }
       ],
-      "family_id": "closed-dra-bitcoin-mvrv-relative-value-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged Bitcoin MVRV relative-value entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-bitcoin-fee-pressure-entry-admission",
+      "title": "DRA lagged Bitcoin native transaction-fee pressure entry admission",
       "decision_feature": "COIN_METRICS_BTC_FEETOTNTV_STRICT_POSITIVE_ADJACENT_28D_GROWTH_SUNDAY_PLUS_3D_168H_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_BITCOIN_FEE_PRESSURE_FAMILY",
       "duplicate_family_key": "dra-coinmetrics-btc-native-transaction-fee-pressure-adjacent-28d-growth-entry-admission",
       "evidence_bindings": [
@@ -3571,13 +3823,13 @@
           "sha256": "03cf5e5c5f18c19597bcd5fd61024158ef25369da806f32820c632457281d17d"
         }
       ],
-      "family_id": "closed-dra-bitcoin-fee-pressure-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged Bitcoin native transaction-fee pressure entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-real-yield-easing-entry-admission",
+      "title": "DRA lagged 10-year U.S. real-yield easing entry admission",
       "decision_feature": "FRED_DFII10_WEEKLY_MEAN_STRICT_NEGATIVE_28_DAY_CHANGE_FRIDAY_PLUS_5D_168H_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DATA_REJECT_CLOSE_REAL_YIELD_SOURCE_TRANSPORT_FAMILY",
       "duplicate_family_key": "dra-fred-dfii10-weekly-negative-28d-change-entry-admission",
       "evidence_bindings": [
@@ -3602,13 +3854,13 @@
           "sha256": "d605ee0e5a524c9239ac95c1cf6e58d58023335f003c5bd4a5665ce4d926fe14"
         }
       ],
-      "family_id": "closed-dra-real-yield-easing-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged 10-year U.S. real-yield easing entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-bitcoin-active-supply-contraction-entry-admission",
+      "title": "DRA lagged Bitcoin one-year active-supply contraction entry admission",
       "decision_feature": "COIN_METRICS_BTC_SPLYACTPCT1YR_CURRENT_28D_MEAN_STRICTLY_BELOW_PREVIOUS_ADJACENT_28D_MEAN_SUNDAY_PLUS_3D_168H_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "DATA_REJECT_CLOSE_BITCOIN_ACTIVE_SUPPLY_CONTRACTION_FREE_SOURCE_FAMILY",
       "duplicate_family_key": "dra-coinmetrics-btc-splyactpct1yr-adjacent-28d-contraction-entry-admission",
       "evidence_bindings": [
@@ -3633,13 +3885,13 @@
           "sha256": "be17ab7c9a1c8a22931fe589ea7c67179ce3b48554b1167d283bce8b74625f2b"
         }
       ],
-      "family_id": "closed-dra-bitcoin-active-supply-contraction-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA lagged Bitcoin one-year active-supply contraction entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-dra-h1-first-extreme-order-entry-admission",
+      "title": "DRA complete-day H1 first-low-before-first-high entry admission",
       "decision_feature": "COMPLETE_UTC_DAY_FIRST_H1_FINAL_LOW_STRICTLY_BEFORE_FIRST_H1_FINAL_HIGH_BINARY_DRA_V1_ENTRY_ADMISSION",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "disposition": "NO_CANDIDATE_CLOSE_DRA_H1_FIRST_EXTREME_ORDER_FAMILY",
       "duplicate_family_key": "dra-complete-utc-day-h1-first-low-before-first-high-binary-entry-admission",
       "evidence_bindings": [
@@ -3664,13 +3916,13 @@
           "sha256": "30f892613d5a84312c60b46417209042fc528df5901783d742794f8805d93a4a"
         }
       ],
-      "family_id": "closed-dra-h1-first-extreme-order-entry-admission",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "prohibited_reopen": true,
-      "title": "DRA complete-day H1 first-low-before-first-high entry admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-cftc-nonreportable-net-position-change-long-cash",
+      "title": "Lagged CFTC nonreportable-trader net-position change BTC long-or-cash policy",
       "decision_feature": "CFTC_TFF_NONREPORTABLE_NET_PCT_OI_WEEKLY_DELTA_CONTINUATION_LONG_CASH_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_CFTC_NONREPORTABLE_NET_POSITION_CHANGE_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-cftc-nonreportable-net-position-change-long-cash",
       "evidence_bindings": [
@@ -3695,13 +3947,13 @@
           "sha256": "ffc20e150d2efb8ce48baa34502ac4a3b45a20bc86b8c3fbc830a80e5a3522c7"
         }
       ],
-      "family_id": "closed-btc-cftc-nonreportable-net-position-change-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged CFTC nonreportable-trader net-position change BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-cftc-top4-net-concentration-level-long-cash",
+      "title": "Lagged CFTC top-four normalized net concentration level BTC long-or-cash policy",
       "decision_feature": "CFTC_TFF_TOP4_NET_CONCENTRATION_NORMALIZED_LEVEL_CONTINUATION_LONG_CASH_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_CFTC_TOP4_NET_CONCENTRATION_LEVEL_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-cftc-top4-net-concentration-level-long-cash",
       "evidence_bindings": [
@@ -3726,13 +3978,13 @@
           "sha256": "800f63704dc713a4058b9dd278aa8eeaa52b410791d9d46c996762ca92bb8508"
         }
       ],
-      "family_id": "closed-btc-cftc-top4-net-concentration-level-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged CFTC top-four normalized net concentration level BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-cftc-reportable-trader-breadth-growth-long-cash",
+      "title": "Lagged CFTC reportable-trader breadth growth BTC long-or-cash policy",
       "decision_feature": "CFTC_TFF_TOTAL_REPORTABLE_TRADER_COUNT_WEEKLY_GROWTH_DIRECTION_UNSELECTED",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "PRIOR_REJECT_CLOSE_BTC_CFTC_REPORTABLE_TRADER_BREADTH_GROWTH_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-cftc-reportable-trader-breadth-growth-long-cash",
       "evidence_bindings": [
@@ -3747,13 +3999,13 @@
           "sha256": "3f8e9da7381c71992e5a600b633a12ebf1e76a95c47547d8360edb36652ed965"
         }
       ],
-      "family_id": "closed-btc-cftc-reportable-trader-breadth-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged CFTC reportable-trader breadth growth BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-cftc-leveraged-fund-net-short-level-carry-crash-risk-veto",
+      "title": "Lagged CFTC leveraged-fund net-short carry-crash risk veto",
       "decision_feature": "CFTC_TFF_LEVERAGED_FUND_NET_SHORT_PCT_OI_LEVEL_TOP_QUARTILE_CARRY_CRASH_PROXY_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_CFTC_LEVERAGED_FUND_NET_SHORT_CARRY_CRASH_PROXY_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-cftc-leveraged-fund-net-short-level-carry-crash-risk-veto",
       "evidence_bindings": [
@@ -3788,13 +4040,13 @@
           "sha256": "40c8ca813c8f5b4d7e559ccfdf820deb43d44fb448695e8f3443a897dede09ea"
         }
       ],
-      "family_id": "closed-btc-cftc-leveraged-fund-net-short-level-carry-crash-risk-veto",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged CFTC leveraged-fund net-short carry-crash risk veto"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-tga-drawdown-liquidity-support-long-cash",
+      "title": "Lagged Treasury General Account drawdown liquidity-support BTC long-or-cash policy",
       "decision_feature": "FRED_WTREGEN_CURRENT_VALUE_STRICTLY_BELOW_VALUE_FOUR_ELIGIBLE_WEEKLY_OBSERVATIONS_EARLIER",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_FRED_TGA_DRAWDOWN_LIQUIDITY_SUPPORT_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-fred-tga-drawdown-liquidity-support-long-cash",
       "evidence_bindings": [
@@ -3839,13 +4091,13 @@
           "sha256": "d15a87d4f9e1e7cb75a48e8c3bb1292a37e165e769583f8cbb58dfa50075b655"
         }
       ],
-      "family_id": "closed-btc-fred-tga-drawdown-liquidity-support-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged Treasury General Account drawdown liquidity-support BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-risk-veto",
+      "title": "Lagged Coin Metrics weekly exchange net-inflow sell-pressure risk veto",
       "decision_feature": "COINMETRICS_BTC_COMPLETE_UTC_WEEK_FLOWINEXNTV_MINUS_FLOWOUTEXNTV_STRICTLY_POSITIVE_SELL_PRESSURE_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_WEEKLY_EXCHANGE_NET_INFLOW_SELL_PRESSURE_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-risk-veto",
       "evidence_bindings": [
@@ -3895,13 +4147,13 @@
           "sha256": "8133e7d10181574627b8c5e17aaf0ee48a9c503d57ee4f80e1eefd1cb9db2b62"
         }
       ],
-      "family_id": "closed-btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-risk-veto",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged Coin Metrics weekly exchange net-inflow sell-pressure risk veto"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-coinmetrics-address-balance-count-28d-growth-long-cash",
+      "title": "Lagged Coin Metrics funded-address count 28-day growth BTC long-or-cash policy",
       "decision_feature": "COINMETRICS_BTC_ADRBALCNT_CURRENT_COMPLETE_SUNDAY_STRICTLY_ABOVE_VALUE_28_DAYS_EARLIER_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_CLOSE_BTC_COINMETRICS_ADDRESS_BALANCE_COUNT_GROWTH_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME",
       "duplicate_family_key": "btc-coinmetrics-address-balance-count-28d-growth-long-cash",
       "evidence_bindings": [
@@ -3926,13 +4178,13 @@
           "sha256": "e97ed68b02d2ab08c7e32dfaad1e71f679849f324bb7e1c76ebb36b95ac189c1"
         }
       ],
-      "family_id": "closed-btc-coinmetrics-address-balance-count-28d-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged Coin Metrics funded-address count 28-day growth BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-on-rrp-drawdown-liquidity-support-long-cash",
+      "title": "Lagged Fed overnight reverse-repo drawdown liquidity-support BTC long-or-cash policy",
       "decision_feature": "FRED_RRPONTSYD_COMPLETE_WEEK_LAST_AVAILABLE_BUSINESS_DAY_STRICTLY_BELOW_VALUE_FOUR_COMPLETE_WEEKS_EARLIER_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_FRED_ON_RRP_DRAWDOWN_LIQUIDITY_SUPPORT_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-fred-on-rrp-drawdown-liquidity-support-long-cash",
       "evidence_bindings": [
@@ -3977,13 +4229,13 @@
           "sha256": "52346fc2b443e1d75299251cd2fb18b4d4533d99cc0a52bb089066a048dc8c65"
         }
       ],
-      "family_id": "closed-btc-fred-on-rrp-drawdown-liquidity-support-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged Fed overnight reverse-repo drawdown liquidity-support BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-reserve-balances-growth-liquidity-support-long-cash",
+      "title": "Lagged Fed reserve-balances growth liquidity-support BTC long-or-cash policy",
       "decision_feature": "FRED_WRESBAL_CURRENT_WEEKLY_VALUE_STRICTLY_ABOVE_VALUE_FOUR_WEEKLY_OBSERVATIONS_EARLIER_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_FRED_RESERVE_BALANCES_GROWTH_LIQUIDITY_SUPPORT_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-fred-reserve-balances-growth-liquidity-support-long-cash",
       "evidence_bindings": [
@@ -4028,13 +4280,13 @@
           "sha256": "8125d8513354907c42d5a9e209cb697517ebb5a8d0fde2ca0daf02e54f789f8d"
         }
       ],
-      "family_id": "closed-btc-fred-reserve-balances-growth-liquidity-support-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged Fed reserve-balances growth liquidity-support BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash",
+      "title": "Lagged Bitcoin native-issuance contraction supply-pressure long-or-cash policy",
       "decision_feature": "COINMETRICS_BTC_ISS_TOT_NTV_COMPLETE_SUNDAY_TRAILING_28D_SUM_STRICTLY_BELOW_TRAILING_28D_SUM_ENDING_364D_EARLIER_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_NATIVE_ISSUANCE_CONTRACTION_SUPPLY_PRESSURE_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash",
       "evidence_bindings": [
@@ -4084,13 +4336,13 @@
           "sha256": "ea200ff6e46c5f11c0efc28657fb55528dd6b2037af176a3b32e86bee4d5f918"
         }
       ],
-      "family_id": "closed-btc-coinmetrics-native-issuance-contraction-supply-pressure-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged Bitcoin native-issuance contraction supply-pressure long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-five-year-breakeven-inflation-reflation-support-long-cash",
+      "title": "Lagged five-year inflation-compensation reflation-support BTC long-or-cash policy",
       "decision_feature": "FRED_T5YIE_COMPLETE_WEEK_LAST_AVAILABLE_BUSINESS_DAY_STRICTLY_ABOVE_VALUE_28_CALENDAR_DAYS_EARLIER_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_FRED_FIVE_YEAR_BREAKEVEN_INFLATION_REFLATION_SUPPORT_FAMILY_PRE_ECONOMIC",
       "duplicate_family_key": "btc-fred-five-year-breakeven-inflation-reflation-support-long-cash",
       "evidence_bindings": [
@@ -4140,13 +4392,13 @@
           "sha256": "d87db25e09edd787c4ae2f869ba75ed3eec4bcf3008675b8dcde524381d0c452"
         }
       ],
-      "family_id": "closed-btc-fred-five-year-breakeven-inflation-reflation-support-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged five-year inflation-compensation reflation-support BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-initial-claims-easing-labor-resilience-long-cash",
+      "title": "Lagged U.S. initial-claims easing labor-resilience BTC long-or-cash policy",
       "decision_feature": "FRED_ICSA_EXACT_4_WEEK_MEAN_STRICTLY_BELOW_EXACT_4_WEEK_MEAN_ENDING_28_CALENDAR_DAYS_EARLIER_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_CLOSE_ICSA_LABOR_RESILIENCE_FAMILY_BEFORE_BTC_OUTCOME_ACCESS",
       "duplicate_family_key": "btc-fred-initial-claims-easing-labor-resilience-long-cash",
       "evidence_bindings": [
@@ -4176,13 +4428,13 @@
           "sha256": "e30dc059a7f0f438c744c063212102e5d8c0dc5cd523230b89f8c42b23b37767"
         }
       ],
-      "family_id": "closed-btc-fred-initial-claims-easing-labor-resilience-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. initial-claims easing labor-resilience BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fred-business-applications-yoy-growth-long-cash",
+      "title": "Lagged U.S. business-applications year-over-year growth BTC long-or-cash policy",
       "decision_feature": "FRED_BUSAPPWNSAUSYY_STRICTLY_ABOVE_ZERO_AVAILABLE_AFTER_45_CALENDAR_DAYS_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DATA_REJECT_CLOSE_BUSINESS_APPLICATIONS_YOY_GROWTH_FAMILY_BEFORE_BTC_OUTCOME_ACCESS",
       "duplicate_family_key": "btc-fred-business-applications-yoy-growth-long-cash",
       "evidence_bindings": [
@@ -4207,13 +4459,13 @@
           "sha256": "2279427094ea7e6aa4ab4a438ceb727df1ebdb4b40dbfe503fbce469733d204e"
         }
       ],
-      "family_id": "closed-btc-fred-business-applications-yoy-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged U.S. business-applications year-over-year growth BTC long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-fomc-scheduled-announcement-day-risk-veto",
+      "title": "Scheduled FOMC decision-day full-UTC-day BTC risk veto",
       "decision_feature": "COMPLETE_UTC_DAY_IS_FROZEN_REGULAR_FOMC_MEETING_FINAL_DATE_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_FOMC_SCHEDULED_ANNOUNCEMENT_DAY_RISK_VETO_FAMILY",
       "duplicate_family_key": "btc-fomc-scheduled-announcement-day-risk-veto",
       "evidence_bindings": [
@@ -4253,13 +4505,13 @@
           "sha256": "dfa830268c55378a4b47b42ec8e4fde0e34f98c130c82561f2cfdf08933ac48e"
         }
       ],
-      "family_id": "closed-btc-fomc-scheduled-announcement-day-risk-veto",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Scheduled FOMC decision-day full-UTC-day BTC risk veto"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-deribit-last-friday-monthly-options-expiry-risk-veto",
+      "title": "Deribit monthly-options last-Friday full-day BTC risk veto",
       "decision_feature": "COMPLETE_UTC_DAY_IS_LAST_FRIDAY_OF_CALENDAR_MONTH_WITH_08_00_UTC_DERIBIT_MONTHLY_EXPIRY_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_DERIBIT_MONTHLY_OPTIONS_EXPIRY_RISK_VETO_FAMILY",
       "duplicate_family_key": "btc-deribit-last-friday-monthly-options-expiry-risk-veto",
       "evidence_bindings": [
@@ -4294,13 +4546,13 @@
           "sha256": "16a4b60879b7f67689e6feb7ee6f77e6fe172198b3e414fb5e0d834eba350176"
         }
       ],
-      "family_id": "closed-btc-deribit-last-friday-monthly-options-expiry-risk-veto",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Deribit monthly-options last-Friday full-day BTC risk veto"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-bls-cpi-scheduled-release-day-risk-veto",
+      "title": "Scheduled BLS CPI release-day full-UTC-day BTC risk veto",
       "decision_feature": "COMPLETE_UTC_DAY_CONTAINS_AN_OFFICIAL_BLS_MONTHLY_CPI_RELEASE_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BLS_CPI_SCHEDULED_RELEASE_DAY_RISK_VETO_FAMILY",
       "duplicate_family_key": "btc-bls-cpi-scheduled-release-day-risk-veto",
       "evidence_bindings": [
@@ -4350,13 +4602,13 @@
           "sha256": "e03f851fc93307374a9373d1949708d678126a09473775dc3023b1d11e947cb0"
         }
       ],
-      "family_id": "closed-btc-bls-cpi-scheduled-release-day-risk-veto",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Scheduled BLS CPI release-day full-UTC-day BTC risk veto"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-bls-employment-situation-scheduled-release-day-risk-veto",
+      "title": "Scheduled BLS Employment Situation release-day full-UTC-day BTC risk veto",
       "decision_feature": "COMPLETE_UTC_DAY_CONTAINS_AN_OFFICIAL_BLS_MONTHLY_EMPLOYMENT_SITUATION_RELEASE_V1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BLS_EMPLOYMENT_SITUATION_SCHEDULED_RELEASE_DAY_RISK_VETO_FAMILY",
       "duplicate_family_key": "btc-bls-employment-situation-scheduled-release-day-risk-veto",
       "evidence_bindings": [
@@ -4396,13 +4648,13 @@
           "sha256": "bac2db31e0daaad7d3a92d096ef613447f3de42ec6b5d1f3d82f2316c6faee7d"
         }
       ],
-      "family_id": "closed-btc-bls-employment-situation-scheduled-release-day-risk-veto",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Scheduled BLS Employment Situation release-day full-UTC-day BTC risk veto"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-coinmetrics-realized-cap-28d-growth-long-cash",
+      "title": "Lagged Bitcoin realized-cap 28-day growth long-or-cash policy",
       "decision_feature": "COIN_METRICS_DERIVED_BTC_REALIZED_CAP_SUNDAY_28D_GROWTH_STRICTLY_POSITIVE_PLUS_3D_168H",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_REALIZED_CAP_28D_GROWTH_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-coinmetrics-realized-cap-28d-growth-long-cash",
       "evidence_bindings": [
@@ -4447,13 +4699,13 @@
           "sha256": "450cfce2c81323857a3edefef5ff9f340fb8d549659a89dd8d0a1b281fa362ef"
         }
       ],
-      "family_id": "closed-btc-coinmetrics-realized-cap-28d-growth-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Lagged Bitcoin realized-cap 28-day growth long-or-cash policy"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-eth-fixed-universe-monthly-low-volatility-rotation",
+      "title": "Fixed BTC-ETH monthly low-volatility rotation",
       "decision_feature": "LOWER_TRAILING_90_CALENDAR_DAY_DAILY_LOG_RETURN_VOLATILITY_AT_MONTH_END_PLUS_3D",
+      "parent_strategy_id": "MONTHLY_REBALANCED_EQUAL_CAPITAL_BTC_ETH_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "DUPLICATE_SOURCE_BOUNDARY_REJECT_CLOSE_BEFORE_SOURCE_OR_OUTCOME",
       "duplicate_family_key": "btc-eth-fixed-universe-monthly-low-volatility-rotation",
       "evidence_bindings": [
@@ -4473,13 +4725,13 @@
           "sha256": "0071f07247454a6d544b51af5e6e5814a9db98680598bcaffc8969dd188b5ea4"
         }
       ],
-      "family_id": "closed-btc-eth-fixed-universe-monthly-low-volatility-rotation",
-      "parent_strategy_id": "MONTHLY_REBALANCED_EQUAL_CAPITAL_BTC_ETH_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "Fixed BTC-ETH monthly low-volatility rotation"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-first-six-hour-direction-24h-state-long-cash",
+      "title": "BTC first-six-hour direction rolling 24-hour long-or-cash state",
       "decision_feature": "FIRST_SIX_COMPLETE_UTC_HOURS_NET_DIRECTION_STRICTLY_POSITIVE_AT_0600_UTC",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "NO_CANDIDATE_CLOSE_BTC_FIRST_SIX_HOUR_DIRECTION_24H_STATE_LONG_CASH_FAMILY",
       "duplicate_family_key": "btc-first-six-hour-direction-24h-state-long-cash",
       "evidence_bindings": [
@@ -4524,13 +4776,13 @@
           "sha256": "5dee9dd1d8b25afafbabdc1338ea508fa6dc7c6d76d9934119721322c61e7e5f"
         }
       ],
-      "family_id": "closed-btc-first-six-hour-direction-24h-state-long-cash",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "BTC first-six-hour direction rolling 24-hour long-or-cash state"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-money-flow-index-14-midline-long-cash-v1",
+      "title": "BTC daily Money Flow Index 14 midline long-or-cash",
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_MFI14_FROM_TYPICAL_PRICE_AND_BASE_VOLUME_STRICTLY_ABOVE_45_50_55_WITH_50_PRIMARY_AND_45_55_REJECTION_ONLY",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "BTC_DAILY_MFI14_FAMILY_CLOSE",
       "duplicate_family_key": "btc-daily-money-flow-index-14-midline-long-cash",
       "evidence_bindings": [
@@ -4545,13 +4797,13 @@
           "sha256": "74e55a04f0f0ef8bfc9926db2fcd583fca0db4633646bc8918f469dc01c13654"
         }
       ],
-      "family_id": "closed-btc-daily-money-flow-index-14-midline-long-cash-v1",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "BTC daily Money Flow Index 14 midline long-or-cash"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-search-attention-volume-interaction-v1",
+      "title": "BTC lagged search-attention and predecision volume-innovation DRA admission",
       "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_VOLUME_INNOVATION_DRA_ADMISSION_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "disposition": "DATA_REJECT_POINT_IN_TIME_SEARCH_VINTAGE_SOURCE_NOT_EXECUTABLE",
       "duplicate_family_key": "btc-search-attention-volume-interaction",
       "evidence_bindings": [
@@ -4571,13 +4823,13 @@
           "sha256": "75c8192f8d5bb5a5662b128c94e8b0887dc6a00ea969c1afbcdf862d7c8dd16f"
         }
       ],
-      "family_id": "closed-btc-search-attention-volume-interaction-v1",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "prohibited_reopen": true,
-      "title": "BTC lagged search-attention and predecision volume-innovation DRA admission"
+      "prohibited_reopen": true
     },
     {
+      "family_id": "closed-btc-daily-aroon14-oscillator-long-cash-v1",
+      "title": "BTC daily Aroon14 oscillator long-or-cash",
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_AROON14_OSCILLATOR_STRICTLY_ABOVE_NEGATIVE25_ZERO_POSITIVE25_WITH_ZERO_PRIMARY_AND_NEIGHBORS_REJECTION_ONLY",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "disposition": "BTC_DAILY_AROON14_FAMILY_CLOSE",
       "duplicate_family_key": "btc-daily-aroon14-oscillator-long-cash",
       "evidence_bindings": [
@@ -4592,10 +4844,7 @@
           "sha256": "3c13b2e6f8a7736cd3f1450d911d2bff9c26772589d3482ceaf501e38191ae1c"
         }
       ],
-      "family_id": "closed-btc-daily-aroon14-oscillator-long-cash-v1",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "prohibited_reopen": true,
-      "title": "BTC daily Aroon14 oscillator long-or-cash"
+      "prohibited_reopen": true
     },
     {
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_DEFAULT_STOCHASTIC_5_3_3_SLOWK_MINUS_SLOWD_STRICTLY_ABOVE_NEGATIVE10_ZERO_POSITIVE10_WITH_ZERO_PRIMARY_AND_NEIGHBORS_REJECTION_ONLY",
@@ -4650,256 +4899,7 @@
       "title": "BTC daily TA-Lib-formula KAMA30 adaptive-trend long-or-cash"
     }
   ],
-  "document_type": "PRE_CANDIDATE_POOL_CATALOG_V1",
-  "families": [
-    {
-      "base_stage": "FORWARD_EVIDENCE",
-      "canonical_binding": {
-        "id": "DRA_ENTRY_VOLUME_CONFIRMATION_20D",
-        "kind": "FORWARD_MECHANISM"
-      },
-      "causal_hypothesis": "Unusually high complete-day volume may distinguish broad participation from weak DRA momentum signals before the unchanged next-open fill.",
-      "compute_cost_class": "LOW",
-      "decision_feature": "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN_AT_OR_ABOVE_1_50",
-      "duplicate_family_key": "dra-entry-volume-confirmation-20d",
-      "economic_evidence_status": {
-        "adverse_slippage": "MATCHED_CAPITAL_READY",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED",
-        "fees": "MATCHED_CAPITAL_READY",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
-      },
-      "economic_hypothesis": "Vetoing low-participation DRA entries may improve equal-capital fee-adjusted total PnL without worsening drawdown, holding age or terminal inventory.",
-      "estimated_days_to_next_gate": 90,
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/forward-diagnostic-contract.v1.json",
-          "role": "FROZEN_FORWARD_DIAGNOSTIC_CONTRACT",
-          "sha256": "16e22e96b32816b3de0332a6c71b1ebad6ec9e6ba623a2a7deb6cfd5b8b5ebdd"
-        }
-      ],
-      "family_id": "dra-entry-volume-confirmation-20d",
-      "independence_key": "complete-day-total-volume-participation",
-      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
-      "missing_proof": [
-        "Independent 90-day predictive discovery gates have not completed.",
-        "Matched-capital Design and Validation economics have not been opened for a selected mechanism.",
-        "Independent candidate OOS has not begun."
-      ],
-      "next_gate": "COMPLETE_FROZEN_90_DAY_DISCOVERY",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "runner_id": "dra-forward-entry-admission-v1",
-      "title": "DRA entry admission by complete-day volume confirmation"
-    },
-    {
-      "base_stage": "FORWARD_EVIDENCE",
-      "canonical_binding": {
-        "id": "DRA_ENTRY_RANGE_CONFIRMATION_20D",
-        "kind": "FORWARD_MECHANISM"
-      },
-      "causal_hypothesis": "An unusually wide complete-day price range may identify decisive participation behind a DRA momentum signal before the unchanged next-open fill.",
-      "compute_cost_class": "LOW",
-      "decision_feature": "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN_AT_OR_ABOVE_1_50",
-      "duplicate_family_key": "dra-entry-range-confirmation-20d",
-      "economic_evidence_status": {
-        "adverse_slippage": "MATCHED_CAPITAL_READY",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED",
-        "fees": "MATCHED_CAPITAL_READY",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
-      },
-      "economic_hypothesis": "Vetoing low-range DRA entries may improve equal-capital fee-adjusted total PnL while preserving drawdown, holding and inventory paths.",
-      "estimated_days_to_next_gate": 90,
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/forward-diagnostic-contract.v1.json",
-          "role": "FROZEN_FORWARD_DIAGNOSTIC_CONTRACT",
-          "sha256": "16e22e96b32816b3de0332a6c71b1ebad6ec9e6ba623a2a7deb6cfd5b8b5ebdd"
-        }
-      ],
-      "family_id": "dra-entry-range-confirmation-20d",
-      "independence_key": "complete-day-range-expansion",
-      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
-      "missing_proof": [
-        "Independent 90-day predictive discovery gates have not completed.",
-        "Matched-capital Design and Validation economics have not been opened for a selected mechanism.",
-        "Independent candidate OOS has not begun."
-      ],
-      "next_gate": "COMPLETE_FROZEN_90_DAY_DISCOVERY",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "runner_id": "dra-forward-entry-admission-v1",
-      "title": "DRA entry admission by complete-day range confirmation"
-    },
-    {
-      "base_stage": "HISTORICAL_PRIOR",
-      "canonical_binding": {
-        "id": "NO_CANONICAL_CANDIDATE_BINDING",
-        "kind": "NONE"
-      },
-      "causal_hypothesis": "Large complete-day BTC shocks may contain transient forced flow that reverses on the following complete day across both UP and DOWN shock directions.",
-      "compute_cost_class": "MEDIUM",
-      "decision_feature": "TERMINAL_MANAGER_REVIEWED_THREE_PERCENT_COMPLETE_UTC_DAY_SHOCK_WITH_NEXT_FEASIBLE_FILL",
-      "duplicate_family_key": "btc-3pct-post-shock-reversal",
-      "economic_evidence_status": {
-        "adverse_slippage": "MISSING_PROOF",
-        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY",
-        "fees": "MISSING_PROOF",
-        "holding_age": "MISSING_PROOF",
-        "maximum_drawdown": "MISSING_PROOF",
-        "realized_pnl": "MISSING_PROOF",
-        "terminal_inventory": "MISSING_PROOF",
-        "total_pnl": "MISSING_PROOF",
-        "unrealized_pnl": "MISSING_PROOF"
-      },
-      "economic_hypothesis": "A causally timed spot-only reversal admission or hold-cash overlay may improve matched-capital total PnL without increasing drawdown after fees and slippage.",
-      "estimated_days_to_next_gate": null,
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-historical-reversal-terminal-prior-audit.v1.json",
-          "role": "SEALED_HISTORICAL_REVERSAL_PRIOR",
-          "sha256": "0878a7abc60ba8336a561a187ae8209108e612a43a0f62602e06c58a651e447b"
-        },
-        {
-          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-actionability-capability.v1.json",
-          "role": "OFFLINE_ACTIONABILITY_CAPABILITY",
-          "sha256": "2363f93fd68f23f01a6b1e6de27409a7f791a253a9bb139307f1d90df5fc050d"
-        }
-      ],
-      "family_id": "btc-3pct-post-shock-reversal",
-      "independence_key": "large-shock-forced-flow-reversal",
-      "matched_comparator_id": "MISSING_PROOF",
-      "missing_proof": [
-        "No approved parent, matched comparator or strategy adapter is bound.",
-        "Untouched forward reversal evidence has not reached a terminal Manager review.",
-        "All matched-capital economics and OOS remain missing."
-      ],
-      "next_gate": "SEAL_UNTOUCHED_FORWARD_TERMINAL_REVERSAL_EVIDENCE_AND_SELECT_ONE_PARENT",
-      "parent_strategy_id": "MISSING_PROOF",
-      "runner_id": "POST_SHOCK_ACTIONABILITY_CAPABILITY_ONLY",
-      "title": "BTC three-percent shock next-day bidirectional reversal"
-    },
-    {
-      "base_stage": "HISTORICAL_PRIOR",
-      "canonical_binding": {
-        "id": "BTC_UTC_DAY_3PCT_FORWARD_VOLATILITY_PERSISTENCE_V1",
-        "kind": "FORWARD_VOLATILITY_PERSISTENCE"
-      },
-      "causal_hypothesis": "Large complete-day BTC shocks may leave liquidity and uncertainty elevated, causing next-day realized variance to remain above its prior twenty-day baseline.",
-      "compute_cost_class": "MEDIUM",
-      "decision_feature": "TERMINAL_MANAGER_REVIEWED_THREE_PERCENT_SHOCK_WITH_FORWARD_VOLATILITY_PERSISTENCE_LABEL",
-      "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence",
-      "economic_evidence_status": {
-        "adverse_slippage": "MISSING_PROOF",
-        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY",
-        "fees": "MISSING_PROOF",
-        "holding_age": "MISSING_PROOF",
-        "maximum_drawdown": "MISSING_PROOF",
-        "realized_pnl": "MISSING_PROOF",
-        "terminal_inventory": "MISSING_PROOF",
-        "total_pnl": "MISSING_PROOF",
-        "unrealized_pnl": "MISSING_PROOF"
-      },
-      "economic_hypothesis": "A separately frozen exposure-reduction rule may lower matched-capital drawdown without sacrificing enough positive convexity to reduce total PnL.",
-      "estimated_days_to_next_gate": null,
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-post-shock-volatility-persistence.v1.lifecycle-erratum.json",
-          "role": "SEALED_HISTORICAL_VOLATILITY_PRIOR",
-          "sha256": "7e2b6e80f3bc6a142f0a1f1d9a1b75107ac40a941ef9618bec1ffc4288bc4333"
-        },
-        {
-          "path": "research_pipeline/examples/local-research-result.btc-utc-day-3pct-forward-volatility-persistence-spec.v1.json",
-          "role": "FROZEN_FORWARD_DIAGNOSTIC_SPEC",
-          "sha256": "9e272159fcb321b02777ad93735f0ce19f55f76a46236cc3af1b6c809989aa99"
-        }
-      ],
-      "family_id": "btc-3pct-post-shock-volatility-persistence",
-      "independence_key": "large-shock-volatility-persistence",
-      "matched_comparator_id": "MISSING_PROOF",
-      "missing_proof": [
-        "No terminal untouched forward volatility result exists.",
-        "No matched-capital parent, sizing rule or strategy adapter is selected.",
-        "PnL opportunity cost, drawdown effect and OOS remain missing."
-      ],
-      "next_gate": "SEAL_UNTOUCHED_FORWARD_VOLATILITY_RESULT_BEFORE_STRATEGY_SPECIFICATION",
-      "parent_strategy_id": "MISSING_PROOF",
-      "runner_id": "FORWARD_VOLATILITY_PERSISTENCE_DIAGNOSTIC_ONLY",
-      "title": "BTC three-percent shock next-day volatility persistence risk control"
-    },
-    {
-      "base_stage": "PREREGISTRATION_READY",
-      "canonical_binding": {
-        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
-        "kind": "NONE"
-      },
-      "causal_hypothesis": "A large completed-day typical-price displacement relative to its recent mean absolute deviation may identify unusually strong directional demand, while symmetric negative displacement may identify a sufficiently broad reversal to exit; hysteresis may preserve trends and reduce threshold churn before the next hourly fill.",
-      "compute_cost_class": "LOW",
-      "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_DEFAULT_CCI14_SYMMETRIC_HYSTERESIS_POSITIVE_NEGATIVE_75_100_125_WITH_100_PRIMARY_AND_75_125_REJECTION_ONLY",
-      "duplicate_family_key": "btc-daily-cci14-hysteresis-long-cash",
-      "economic_evidence_status": {
-        "adverse_slippage": "MATCHED_CAPITAL_READY",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED",
-        "fees": "MATCHED_CAPITAL_READY",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
-      },
-      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy entering after completed-day CCI14 exceeds positive 100 and exiting only below negative 100 may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
-      "estimated_days_to_next_gate": 1,
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/examples/btc-daily-cci14-hysteresis-long-cash-primary-prior.v1.json",
-          "role": "SEALED_PRIMARY_FORMULA_CRYPTO_AND_ADVERSARIAL_PRIOR",
-          "sha256": "631f531a9110bdd13a7d5ddd435b04d0ec776136aab0b3a6b236344e0ebddbdb"
-        }
-      ],
-      "family_id": "btc-daily-cci14-hysteresis-long-cash",
-      "independence_key": "btc-complete-day-typical-price-mean-absolute-deviation-symmetric-hysteresis-long-cash",
-      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "missing_proof": [
-        "The exact schema-valid hypothesis, manifest and deterministic TA-Lib-formula-compatible runner are not frozen yet.",
-        "No CCI feature support or matched-capital Design and Validation economics have been opened.",
-        "No candidate, independent OOS or forward evidence exists."
-      ],
-      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_TALIB_DEFAULT_CCI14_HYSTERESIS_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "runner_id": "BTC_DAILY_CCI14_HYSTERESIS_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
-      "title": "BTC daily TA-Lib-default CCI14 symmetric-hysteresis long-or-cash"
-    }
-  ],
-  "pool_constraints": {
-    "maximum_active_experiments": 1,
-    "maximum_candidate_oos": 1,
-    "maximum_open_families": 10,
-    "minimum_open_families": 5
-  },
-  "ranking_contract": {
-    "closed_family_rank": "EXCLUDED",
-    "integrity_blocker_preempts": true,
-    "ordered_dimensions": [
-      "active_evidence_integrity",
-      "evidence_readiness",
-      "matched_capital_economic_visibility",
-      "path_risk_visibility",
-      "estimated_days_to_next_gate",
-      "mechanism_independence",
-      "compute_cost",
-      "family_id"
-    ],
-    "score_semantics": "READINESS_NOT_ALPHA"
-  },
-  "schema_version": "1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
   "state_authority": "SERVER_CANONICAL",
   "timer_authority": "CODEX_CLOUD_OPS_ONLY"
 }

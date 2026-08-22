@@ -1,0 +1,91 @@
+{
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/btc-daily-kama30-adaptive-trend-long-cash-historical-v1/artifacts/run1.json",
+      "sha256": "b59d7907f39ffa4b06bde326ff619f32aabccf32ba804843ffcf3edebc674662"
+    },
+    {
+      "path": ".research-state/experiments/btc-daily-kama30-adaptive-trend-long-cash-historical-v1/artifacts/run2.json",
+      "sha256": "b59d7907f39ffa4b06bde326ff619f32aabccf32ba804843ffcf3edebc674662"
+    }
+  ],
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "checks": [
+    {
+      "evidence": "Task and dispatch validation, manager preflight, strategy-path preflight and allocation preflight all returned VALID before outcome access. The clean branch HEAD equaled origin at 7775d71016dc4a5cff8ee74a0ffadfe00988f398. Frozen task af7dbbb2c61af3a90a14abd3397e93d150e3e0265a8ccb881ec1ed970892b4c8, dispatch e2d6707415f5b155a25b743c9f41f56a93a40c9b9aa6ba88f3c601d0be571e38, intent 82c1329682916888d6017d975a9fa2d538aa399d00868f6f326b727d861a6376 and strategy path a550b58ccd81dd29514754e8ce417e1f1797c6690a85e3d65e8047d2825132ff were bound before both runs.",
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS"
+    },
+    {
+      "evidence": "The exact 52,608-row pre-2025 H1 corpus matched SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd and yielded 2,192 complete UTC days. Runner e823506a39469396a881f55dba11f78f9b49882452dde691ca41119222aef659 and manifest 3e6af7247733260347b3bba66d57e15f57e0f3ac1a9350157607c87733cee682 matched the task. The frozen computation used efficiency periods 20, 30 and 40, fast period 2, slow period 30, zero unstable period, completed-day values and next-H1-open execution.",
+      "name": "SEALED_DATA_SOURCE_AND_FORMULA_IDENTITY",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Run1 and run2 were independently written to previously absent create-only paths and both had SHA-256 b59d7907f39ffa4b06bde326ff619f32aabccf32ba804843ffcf3edebc674662.",
+      "name": "BYTE_IDENTICAL_DETERMINISM",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Primary Design normal return was 191.61233010 percent versus 129.60544229 percent buy-and-hold, drawdown was 57.82050414 percent versus 77.18955925 percent and Calmar was 3.31391663 versus 1.67905405. Stress return remained 157.08970303 percent with drawdown 59.68690239 percent. Every frozen Design gate passed.",
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Primary Validation normal return was positive at 124.15517422 percent but only 26.714127 percent of buy-and-hold's 464.75475156 percent. Drawdown was 32.75053474 percent versus 32.28416349 percent, and Calmar was 3.79093579 versus 14.39575015. Stress return remained positive at 98.80776326 percent but drawdown rose to 35.32278351 percent. The frozen relative drawdown, upside-capture and Calmar gates failed.",
+      "name": "VALIDATION_RISK_ADJUSTED_TRANSFER",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Validation realized and unrealized returns were 124.15517422 and 0E-8 percent, with 80 position changes, 40 completed episodes, median and P90 holding of 120 and 782.4 hours, no terminal position and top positive episode contribution of 30.07338506 percent. The path was fully realized and within holding and episode-concentration bounds, so terminal inventory did not create the apparent gain; however these diagnostics cannot rescue failed relative risk-adjusted performance.",
+      "name": "REALIZED_HOLDING_AND_TERMINAL_PATH",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Primary normal and stress positive-return breadth each reached 4/5 and drawdown non-worse breadth reached 4/5. However Calmar at least 75 percent of buy-and-hold occurred only 2/5 years versus required 3/5, upside capture above 50 percent occurred only 2/5 versus required 4/5, and top-year positive-return contribution was 61.38446550 percent versus the 60-percent ceiling.",
+      "name": "ANNUAL_BREADTH_AND_CONCENTRATION",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "KAMA20 Validation normal drawdown improved to 29.89668491 percent but Calmar was only 44.113767 percent and upside capture 40.851466 percent of buy-and-hold. KAMA40 Validation normal drawdown worsened to 38.55338831 percent while Calmar was only 25.010364 percent and upside capture 29.867098 percent. Neither preregistered neighbor supplied the required stability.",
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Eleven frozen gates failed: primary Validation drawdown, upside capture and Calmar; KAMA20 Validation Calmar and upside capture; KAMA40 Validation drawdown, Calmar and upside capture; annual Calmar and upside breadth; and top-year concentration. The only valid disposition is BTC_DAILY_KAMA30_FAMILY_CLOSE without period, constant, formula, relation, accounting or gate changes.",
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS"
+    },
+    {
+      "evidence": "No canonical-state or server Research MCP write, schedule change, paid API, external backfill, deployment, database mutation, and no Trading, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred. OOS remained sealed.",
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS"
+    }
+  ],
+  "completed_at": "2026-08-22T10:17:20Z",
+  "files_changed": [],
+  "recommended_next_action": "Permanently tombstone the exact KAMA20, KAMA30 and KAMA40 close-above-adaptive-line long-cash family, restore the open pool to five with one mathematically deduplicated direct mechanism using the existing sealed free corpus, and continue direct economic screens while the governance ratio remains above target.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "server_research_mcp_write_attempted": false,
+    "trading_action_attempted": false
+  },
+  "schema_version": "1",
+  "source_git_commit": "7775d71016dc4a5cff8ee74a0ffadfe00988f398",
+  "source_git_dirty_after": false,
+  "source_git_dirty_before": false,
+  "started_at": "2026-08-22T10:16:25Z",
+  "status": "COMPLETED",
+  "summary": "BTC_DAILY_KAMA30_FAMILY_CLOSE. All preflights passed at clean commit 7775d710, and two create-only executions produced byte-identical SHA-256 b59d7907f39ffa4b06bde326ff619f32aabccf32ba804843ffcf3edebc674662. Primary KAMA30 passed every frozen Design gate with normal return 191.61233010 percent versus 129.60544229 percent buy-and-hold, drawdown 57.82050414 percent versus 77.18955925 percent and Calmar 3.31391663 versus 1.67905405. It failed historical Validation risk-adjusted transfer: return was 124.15517422 percent versus 464.75475156 percent buy-and-hold, drawdown 32.75053474 percent versus 32.28416349 percent, upside capture only 26.714127 percent and Calmar 3.79093579 versus 14.39575015. Both frozen KAMA20 and KAMA40 neighbors failed required Calmar and upside stability, KAMA40 also worsened drawdown, annual Calmar and upside breadth were only 2/5, and top-year positive contribution was 61.38446550 percent. Eleven frozen gates failed, so the exact KAMA20, KAMA30 and KAMA40 family is permanently closed without tuning, candidate creation or OOS access.",
+  "task_id": "local-node-btc-daily-kama30-adaptive-trend-long-cash-v1",
+  "task_sha256": "af7dbbb2c61af3a90a14abd3397e93d150e3e0265a8ccb881ec1ed970892b4c8",
+  "uncertainty": [
+    "Historical Validation is development evidence rather than clean independent OOS; the closure is for the exact frozen KAMA20, KAMA30 and KAMA40 family and does not prove every adaptive moving-average mechanism lacks value.",
+    "The implementation is formula-compatible with the frozen TA-Lib initialization and update semantics but uses deterministic Decimal arithmetic rather than claiming binary equality with TA-Lib double-precision output.",
+    "Single-venue H1 OHLCV cannot identify hidden liquidity, aggressor-side order flow or cross-venue flow.",
+    "No post-2024, forward, SHADOW, PAPER or LIVE evidence was opened or created."
+  ]
+}

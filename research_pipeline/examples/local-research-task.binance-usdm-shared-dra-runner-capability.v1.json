@@ -29,7 +29,7 @@
     {
       "kind": "REPOSITORY_PATH",
       "locator": "research/btc_dra_equal_capital_capacity_v1.py",
-      "sha256": "291fe6529f204313954c7900a49180fcd53da9ab23b299c8b83003f307a32a29"
+      "sha256": "0736afdfe22f514adf5596a883ad94dd3713ec0ef542b167dc92db03e1fd619f"
     },
     {
       "kind": "REPOSITORY_PATH",
@@ -39,12 +39,12 @@
     {
       "kind": "REPOSITORY_PATH",
       "locator": "research_pipeline/local-candidate-enabling-capability.v1.schema.json",
-      "sha256": "e5de7bf1139683ba7d44864bf3f3c569bab62e446426aa363b0db5bc24391742"
+      "sha256": "20e4ecb251aaf991522283557c23d90cfcd0fe5e5a89bf97ecf46cf4c3cdb799"
     },
     {
       "kind": "REPOSITORY_PATH",
       "locator": "research_pipeline/policy.v3.json",
-      "sha256": "a836692d7da46435a9f3c94ec792719c7bf8a1dcdb4ce7ded3aace664c1862a8"
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
     },
     {
       "kind": "TASK_MESSAGE",

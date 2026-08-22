@@ -212,30 +212,6 @@
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
       },
-      "causal_hypothesis": "Efficiency-ratio-controlled smoothing may accelerate during directional low-noise BTC paths and decelerate during choppy paths, allowing close above KAMA30 to retain efficient trends while reducing fixed-average whipsaw before the next hourly fill.",
-      "compute_cost_class": "LOW",
-      "decision_feature": "LATEST_COMPLETE_UTC_DAY_CLOSE_STRICTLY_ABOVE_TALIB_DEFAULT_KAMA20_30_40_WITH_KAMA30_PRIMARY_AND_KAMA20_40_REJECTION_ONLY",
-      "duplicate_family_key": "btc-daily-kama30-adaptive-trend-long-cash",
-      "economic_evidence_status": {
-        "adverse_slippage": "MATCHED_CAPITAL_READY",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED",
-        "fees": "MATCHED_CAPITAL_READY",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
-      },
-      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using completed-day close strictly above TA-Lib-default KAMA30 may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
-      "estimated_days_to_next_gate": 1,
-      "evidence_bindings": [
-        {
-      "base_stage": "PREREGISTRATION_READY",
-      "canonical_binding": {
-        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
-        "kind": "NONE"
-      },
       "causal_hypothesis": "A large completed-day typical-price displacement relative to its recent mean absolute deviation may identify unusually strong directional demand, while symmetric negative displacement may identify a sufficiently broad reversal to exit; hysteresis may preserve trends and reduce threshold churn before the next hourly fill.",
       "compute_cost_class": "LOW",
       "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_DEFAULT_CCI14_SYMMETRIC_HYSTERESIS_POSITIVE_NEGATIVE_75_100_125_WITH_100_PRIMARY_AND_75_125_REJECTION_ONLY",
@@ -272,20 +248,6 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "runner_id": "BTC_DAILY_CCI14_HYSTERESIS_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
       "title": "BTC daily TA-Lib-default CCI14 symmetric-hysteresis long-or-cash"
-    }
-      ],
-      "family_id": "btc-daily-kama30-adaptive-trend-long-cash",
-      "independence_key": "btc-complete-day-efficiency-adaptive-recursive-trend-state-long-cash",
-      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "missing_proof": [
-        "The exact schema-valid hypothesis, manifest and deterministic TA-Lib-formula-compatible runner are not frozen yet.",
-        "No KAMA feature support or matched-capital Design and Validation economics have been opened.",
-        "No candidate, independent OOS or forward evidence exists."
-      ],
-      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_TALIB_DEFAULT_KAMA30_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "runner_id": "BTC_DAILY_KAMA30_ADAPTIVE_TREND_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
-      "title": "BTC daily TA-Lib-default KAMA30 adaptive-trend long-or-cash"
     }
   ],
   "closed_families": [

@@ -207,52 +207,47 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-search-attention-volume-interaction",
-      "title": "BTC lagged search-attention and predecision volume-innovation DRA admission",
-      "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_VOLUME_INNOVATION_DRA_ADMISSION_V1",
-      "causal_hypothesis": "A positive change in finalized weekly BTC search attention that precedes a separately positive complete-day volume innovation may identify broadening demand before an otherwise eligible DRA entry.",
-      "economic_hypothesis": "Admitting the frozen DRA V1 parent only when both lagged search attention and predecision volume innovation are positive may improve fee-adjusted total PnL without worsening maximum drawdown or inventory path.",
-      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
-      "matched_comparator_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH_WITHOUT_ADMISSION_FILTER",
-      "runner_id": "MISSING_PROOF_NOT_IMPLEMENTED",
+      "family_id": "btc-daily-aroon14-oscillator-long-cash",
+      "title": "BTC daily Aroon14 oscillator long-or-cash",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_AROON14_OSCILLATOR_STRICTLY_ABOVE_NEGATIVE25_ZERO_POSITIVE25_WITH_ZERO_PRIMARY_AND_NEIGHBORS_REJECTION_ONLY",
+      "causal_hypothesis": "The relative recency of a complete-day fourteen-period high and low may identify whether bullish price discovery is more recent than bearish price discovery before the next hourly fill.",
+      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using the completed-day Aroon14 oscillator may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "runner_id": "BTC_DAILY_AROON14_OSCILLATOR_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
       "base_stage": "PREREGISTRATION_READY",
       "estimated_days_to_next_gate": 1,
-      "compute_cost_class": "MEDIUM",
-      "independence_key": "btc-search-attention-volume-interaction",
-      "next_gate": "FREEZE_POINT_IN_TIME_SEARCH_VINTAGE_AND_VOLUME_RESIDUAL_SOURCE_CONTRACT_OR_DATA_REJECT",
+      "compute_cost_class": "LOW",
+      "independence_key": "btc-complete-day-aroon14-extreme-recency-oscillator-long-cash",
+      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_AROON14_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/local-research-result.btc-search-attention-volume-preregistration-discovery.v2.json",
-          "role": "SEALED_PREREGISTRATION_DISCOVERY_RESULT",
-          "sha256": "40427b69a0ff2cc6776bf14d7b548c82064cfc9ed48855b46e1425a27884dd27"
-        },
-        {
-          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-search-attention-volume-preregistration-discovery.v2.json",
-          "role": "MANAGER_ACCEPTED_PREREGISTRATION_DISCOVERY",
-          "sha256": "75c8192f8d5bb5a5662b128c94e8b0887dc6a00ea969c1afbcdf862d7c8dd16f"
+          "path": "research_pipeline/examples/btc-daily-aroon14-oscillator-long-cash-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_FORMULA_ACADEMIC_AND_ADVERSARIAL_PRIOR",
+          "sha256": "06ede606b1d8a635127fae47609aaef6578135b21cb383b032af0e9ad9ba37f8"
         }
       ],
       "economic_evidence_status": {
-        "fees": "MISSING_PROOF",
-        "adverse_slippage": "MISSING_PROOF",
-        "realized_pnl": "MISSING_PROOF",
-        "unrealized_pnl": "MISSING_PROOF",
-        "total_pnl": "MISSING_PROOF",
-        "maximum_drawdown": "MISSING_PROOF",
-        "holding_age": "MISSING_PROOF",
-        "terminal_inventory": "MISSING_PROOF",
-        "breadth_and_path_risk": "MISSING_PROOF"
+        "fees": "MATCHED_CAPITAL_READY",
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
       },
       "missing_proof": [
-        "Point-in-time historical search vintages, availability timestamps and revision identities are not proven.",
-        "The exact source contract, expanding volume-residual model and numeric support and concentration gates are not frozen.",
-        "No matched-capital Design or Validation economics, candidate, OOS or forward evidence exists."
+        "The exact schema-valid hypothesis, manifest and deterministic runner are not frozen yet.",
+        "No Aroon feature support or matched-capital Design and Validation economics have been opened.",
+        "No candidate, independent OOS or forward evidence exists."
       ],
-      "duplicate_family_key": "btc-search-attention-volume-interaction"
+      "duplicate_family_key": "btc-daily-aroon14-oscillator-long-cash"
     }
   ],
   "closed_families": [
@@ -3748,6 +3743,32 @@
           "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-money-flow-index-14-midline-long-cash-v1.json",
           "role": "MANAGER_ACCEPTED_FAMILY_CLOSURE",
           "sha256": "74e55a04f0f0ef8bfc9926db2fcd583fca0db4633646bc8918f469dc01c13654"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-btc-search-attention-volume-interaction-v1",
+      "title": "BTC lagged search-attention and predecision volume-innovation DRA admission",
+      "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_VOLUME_INNOVATION_DRA_ADMISSION_V1",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "disposition": "DATA_REJECT_POINT_IN_TIME_SEARCH_VINTAGE_SOURCE_NOT_EXECUTABLE",
+      "duplicate_family_key": "btc-search-attention-volume-interaction",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-search-attention-volume-interaction-source-gate.v1.decision.json",
+          "role": "SEALED_OFFICIAL_SOURCE_EXECUTABILITY_DECISION",
+          "sha256": "eada3e1593b77c31175c25ce5e1ff964a916f42dcff7a7b6c7bec89ab457d8af"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-search-attention-volume-preregistration-discovery.v2.json",
+          "role": "SEALED_PREREGISTRATION_DISCOVERY_RESULT",
+          "sha256": "40427b69a0ff2cc6776bf14d7b548c82064cfc9ed48855b46e1425a27884dd27"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-search-attention-volume-preregistration-discovery.v2.json",
+          "role": "MANAGER_ACCEPTED_PREREGISTRATION_DISCOVERY",
+          "sha256": "75c8192f8d5bb5a5662b128c94e8b0887dc6a00ea969c1afbcdf862d7c8dd16f"
         }
       ],
       "prohibited_reopen": true

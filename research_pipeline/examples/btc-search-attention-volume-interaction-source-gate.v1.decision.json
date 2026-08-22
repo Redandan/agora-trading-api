@@ -1,0 +1,55 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_SEARCH_ATTENTION_VOLUME_INTERACTION_SOURCE_GATE_DECISION_V1",
+  "decision_id": "btc-search-attention-volume-interaction-source-gate-v1",
+  "decided_at": "2026-08-22T09:10:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-search-attention-volume-interaction",
+  "decision_feature": "LAGGED_FINALIZED_WEEKLY_SEARCH_ATTENTION_X_PREDECISION_VOLUME_INNOVATION_DRA_ADMISSION_V1",
+  "source_requirements": [
+    "A public no-credential machine-readable series for one fixed Bitcoin search term or topic.",
+    "Observation period, publication or availability time, revision identity and raw-vintage hash known before each DRA decision.",
+    "Historical coverage sufficient for a matched pre-2025 Design and Validation comparison plus prospective availability without backfill.",
+    "Stable cross-request scale so a positive log change never depends on a later query window."
+  ],
+  "official_source_audit": [
+    {
+      "source": "https://developers.google.com/search/apis/trends",
+      "observed_contract": "The official programmatic API remains alpha access granted only after application to a limited tester population and exposes a rolling five-year window.",
+      "gate_result": "FAIL_PUBLIC_NO_CREDENTIAL_EXECUTABLE_PATH"
+    },
+    {
+      "source": "https://developers.google.com/search/blog/2025/07/trends-api",
+      "observed_contract": "The official API announcement limits access to a very small alpha group, provides 1800 rolling days and states that website requests rescale results from zero to one hundred for each requested period.",
+      "gate_result": "FAIL_STABLE_HISTORICAL_VINTAGE_AND_FULL_PRE2025_COVERAGE"
+    },
+    {
+      "source": "https://support.google.com/trends/answer/12764470?hl=en",
+      "observed_contract": "The credential-free BigQuery sandbox route exposes Top 25 overall and Top 25 Rising queries, not a guaranteed continuous fixed Bitcoin-term interest series; its history is also a rolling five-year window.",
+      "gate_result": "FAIL_FIXED_FEATURE_COVERAGE"
+    }
+  ],
+  "decision": "DATA_REJECT_POINT_IN_TIME_SEARCH_VINTAGE_SOURCE_NOT_EXECUTABLE",
+  "reason": "No currently proven free route satisfies all four frozen source requirements. The website can reconstruct a newly rescaled present query but cannot prove the exact value available before each historical decision; the API route is limited alpha access; and the public BigQuery tables do not guarantee a continuous Bitcoin term. Building an unofficial scraper or treating reconstructed present-vintage values as historical vintages would violate the no-credential, revision-identity and leakage gates.",
+  "prohibited_reinterpretations": [
+    "Do not use an unofficial Google Trends scraper as a public stable source contract.",
+    "Do not relabel a present-day reconstruction as the vintage available at a historical entry decision.",
+    "Do not fill weeks when Bitcoin is absent from a Top 25 table with zero attention.",
+    "Do not request alpha access, credentials, paid data or a manual export for this autonomous family.",
+    "Do not remove the search term and reopen the already rejected raw-volume confirmation family."
+  ],
+  "future_boundary": "A later generally available, no-credential API with fixed-term coverage, stable scaling, explicit publication timestamps and versioned revision semantics may support a new prospective-only family identity. It cannot reopen or overwrite this exact historical V1 decision.",
+  "performance_effect": {
+    "fees": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "adverse_slippage": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "realized_pnl": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "unrealized_pnl": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "total_pnl": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "maximum_drawdown": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "holding_age": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "terminal_inventory": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "breadth_and_path_risk": "MISSING_PROOF_NO_OUTCOME_OPENED"
+  },
+  "next_action": "Replace this non-executable family with one deduplicated direct mechanism that uses the existing sealed pre-2025 H1 corpus and existing matched-capital ledger.",
+  "scope_note": "No feature values, market outcomes, runner, backtest, hypothesis, candidate, OOS, paid API, credential, manual export, canonical write, second timer, second writer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

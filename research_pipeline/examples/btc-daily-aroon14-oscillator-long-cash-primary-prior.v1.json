@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_AROON14_OSCILLATOR_LONG_CASH_PRIMARY_PRIOR_V1",
+  "status": "COMPLETED_PREREGISTRATION_READY_NO_OUTCOME_ACCESS",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-daily-aroon14-oscillator-long-cash",
+  "reviewed_at": "2026-08-22T09:12:00Z",
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_AROON14_OSCILLATOR_MIDLINE_EXPERIMENT",
+  "causal_hypothesis": "The relative recency of a complete-day fourteen-period high and low may identify whether bullish price discovery is more recent than bearish price discovery before the next hourly fill.",
+  "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using the completed-day Aroon14 oscillator may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold only if it retains frozen upside, annual breadth and symmetric-neighbor stability.",
+  "primary_prior_matrix": [
+    {
+      "identity": "TA-Lib Core C AROON implementation",
+      "source": "https://github.com/TA-Lib/ta-lib/blob/main/src/ta_func/ta_AROON.c",
+      "role": "OFFICIAL_EXECUTABLE_FORMULA_AND_DEFAULT_LOOKBACK_PRIOR",
+      "finding": "The official implementation defaults to period fourteen, uses high and low inputs, scans the current observation plus the prior fourteen observations, resolves equal extrema to the most recent occurrence, and computes each line as one hundred divided by fourteen times fourteen minus the age of its selected extreme.",
+      "parameter_boundary": "This fixes exact calculation behavior and a fourteen-period primary lookback. It does not prove a BTC trading rule or any economic value."
+    },
+    {
+      "identity": "Chande, The Time Price Oscillator, Technical Analysis of Stocks and Commodities 13(9), 1995, 369-374",
+      "source": "https://store.traders.com/articles-volume-13-chapter-9.html",
+      "role": "CREATOR_AND_CAUSAL_FEATURE_IDENTITY",
+      "finding": "The publisher record identifies Tushar Chande's original time-price oscillator article. Aroon is based on time elapsed since recent highs and lows rather than return magnitude.",
+      "transfer_boundary": "The original indicator identity supplies no matched-capital Bitcoin evidence and no permission to scan lookbacks or thresholds."
+    },
+    {
+      "identity": "Hudson and Urquhart, Technical trading and cryptocurrencies, Annals of Operations Research 297, 2021, DOI 10.1007/s10479-019-03357-1",
+      "source": "https://doi.org/10.1007/s10479-019-03357-1",
+      "role": "CRYPTO_TECHNICAL_RULE_SUPPORT_AND_ADVERSARIAL_OOS_PRIOR",
+      "finding": "The study reports broad cryptocurrency technical-rule predictability after multiple-testing controls but no Bitcoin predictability in its out-of-sample period.",
+      "transfer_boundary": "This permits one tightly frozen Bitcoin screen while treating absent Bitcoin OOS persistence as strong counterevidence. It provides no support for selecting an Aroon winner after observing outcomes."
+    },
+    {
+      "identity": "Gerritsen et al., The profitability of technical trading rules in the Bitcoin market, Finance Research Letters 34, 2020, DOI 10.1016/j.frl.2019.08.011",
+      "source": "https://doi.org/10.1016/j.frl.2019.08.011",
+      "role": "BITCOIN_RULE_CLASS_AND_BUY_HOLD_COMPARATOR_PRIOR",
+      "finding": "The study reports that specific range-breakout rules can improve Bitcoin risk-adjusted performance while other technical rules do not outperform buy-and-hold.",
+      "transfer_boundary": "Aroon is not a range-breakout execution rule. This result supports strict buy-and-hold comparison and branch closure rather than inferring value from general technical-rule evidence."
+    }
+  ],
+  "independence_assessment": {
+    "mathematically_distinct": true,
+    "not_dmi_adx": "Aroon uses only the elapsed positions of recent highs and lows. The closed DMI14-ADX25 family uses directional-movement magnitudes, true range and Wilder smoothing.",
+    "not_donchian": "Aroon can change when an old extreme ages out without price crossing a fixed channel. The closed Donchian family enters and exits only on explicit price breakouts of separate high and low windows.",
+    "not_sma_or_macd": "Aroon does not average price levels or compare moving averages; it compares the ages of high and low extrema.",
+    "not_supertrend_or_psar": "Aroon has no ATR band, trailing state, acceleration factor or stop path.",
+    "residual_risk": "It remains a short-horizon price-trend state filter, so mathematical distinction does not establish economically independent alpha."
+  },
+  "frozen_pre_outcome_contract": {
+    "daily_aggregation": "EXACTLY_24_CONTIGUOUS_H1_BARS_PER_COMPLETE_UTC_DAY",
+    "period": 14,
+    "required_complete_days_for_first_value": 15,
+    "window": "TARGET_COMPLETE_DAY_D_PLUS_PRIOR_14_COMPLETE_DAYS",
+    "tie_rule": "MOST_RECENT_EQUAL_HIGH_AND_MOST_RECENT_EQUAL_LOW",
+    "aroon_up": "100_DIVIDED_BY_14_TIMES_14_MINUS_DAYS_SINCE_MOST_RECENT_WINDOW_HIGH",
+    "aroon_down": "100_DIVIDED_BY_14_TIMES_14_MINUS_DAYS_SINCE_MOST_RECENT_WINDOW_LOW",
+    "oscillator": "AROON_UP_MINUS_AROON_DOWN",
+    "primary_long_condition": "AROON14_OSCILLATOR_STRICTLY_GREATER_THAN_0",
+    "primary_cash_condition": "AROON14_OSCILLATOR_LESS_THAN_OR_EQUAL_TO_0",
+    "rejection_only_neighbors": [
+      "AROON14_OSCILLATOR_STRICTLY_GREATER_THAN_NEGATIVE_25",
+      "AROON14_OSCILLATOR_STRICTLY_GREATER_THAN_POSITIVE_25"
+    ],
+    "execution": "NEXT_H1_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "position_sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT_ZERO_CASH_YIELD",
+    "maximum_variants": 3,
+    "outcome_tuning": "DENY",
+    "neighbor_substitution": "DENY"
+  },
+  "data_path": {
+    "status": "READY_EXISTING_SEALED_CORPUS_NO_AROON_OUTCOME_OPENED",
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "source_cost": "FREE_ALREADY_SEALED"
+  },
+  "admission_and_stop_conditions": [
+    "Freeze an exact hypothesis, manifest, runner, costs, windows and all-pass gate set before opening any Aroon outcome.",
+    "Run only the zero primary threshold and symmetric negative-25 and positive-25 rejection-only neighbors at period fourteen.",
+    "Do not test period twenty-five, creator thresholds, another lookback, confirmation, smoothing, hysteresis, breakout substitution, stop, short, leverage, DRA interaction or ensemble after outcome access.",
+    "Require positive normal and stress returns, materially better Validation drawdown and Calmar, frozen upside capture, annual breadth, bounded turnover and holding, low episode and year concentration and no terminal-inventory uplift; otherwise permanently close the family.",
+    "A positive historical result may create at most one REPORTED_NOT_ACTIVATED candidate and one independent sealed OOS gate; it authorizes no Trading action."
+  ],
+  "missing_proof": [
+    "No primary source establishes standalone BTC Aroon14 oscillator above zero long/cash economic value.",
+    "No schema-valid hypothesis, manifest or deterministic runner is frozen yet.",
+    "No Aroon feature support, matched-capital Design or Validation economics, fees, slippage, realized or unrealized PnL, drawdown, Calmar, holding, inventory, breadth, concentration, candidate, OOS or forward evidence has been observed."
+  ],
+  "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_AROON14_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
+  "claim_boundary": "This prior makes one exact Aroon14 oscillator threshold family preregistration-ready only. It establishes formula identity and an executable data path, not alpha, a candidate, OOS value, deployability or Trading authority.",
+  "scope_note": "No Aroon outcome, backtest, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

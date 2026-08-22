@@ -207,28 +207,28 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-coinbase-binance-close-premium-long-cash",
-      "title": "Lagged positive Coinbase BTCUSD versus Binance BTCUSDT close premium long-or-cash",
-      "decision_feature": "LATEST_COMPLETE_UTC_DAY_COINBASE_BTCUSD_CLOSE_DIVIDED_BY_BINANCE_BTCUSDT_CLOSE_MINUS_ONE_STRICTLY_GREATER_THAN_ZERO",
-      "causal_hypothesis": "A positive U.S. fiat-market close premium may reflect incremental U.S. demand not yet fully incorporated offshore, but it may instead be contemporaneous noise, market segmentation or USDT quote risk and must pass a frozen lead-lag audit.",
-      "economic_hypothesis": "Holding BTC only on the next UTC day after a positive completed-day premium may improve return and downside risk versus the negative-or-zero state before matched-capital economics are opened.",
+      "family_id": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+      "title": "Archived Alternative.me exact Extreme Fear label contrarian BTC long-or-cash",
+      "decision_feature": "LATEST_COMPLETE_ALTERNATIVE_ME_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
+      "causal_hypothesis": "If the exact completed Extreme Fear label captures emotional overselling beyond the price inputs embedded in the index, it may precede a next-day rebound; otherwise reverse causality and price-derived inputs should fail the frozen predictive gates.",
+      "economic_hypothesis": "Holding BTC on the next UTC day only after the exact Extreme Fear label may improve next-day return and downside risk versus all other labels before matched-capital economics are opened.",
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
-      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_CROSS_VENUE_PREMIUM_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
-      "runner_id": "NOT_BUILT_PRICE_ONLY_SOURCE_GATE_FIRST",
+      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_EXTREME_FEAR_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
+      "runner_id": "NOT_BUILT_EXACT_ARCHIVED_FGI_SOURCE_GATE_FIRST",
       "base_stage": "HISTORICAL_PRIOR",
       "estimated_days_to_next_gate": 1,
       "compute_cost_class": "LOW",
-      "independence_key": "signed-cross-venue-spot-close-price-difference-not-relative-volume-derivative-basis-stablecoin-veto-price-indicator-or-calendar",
-      "next_gate": "FREEZE_ONE_REUSED_INFRASTRUCTURE_PRICE_ONLY_SOURCE_AND_DOWNSTREAM_ZERO_THRESHOLD_PREDICTIVE_MANIFEST_BEFORE_REOPENING_COINBASE_OR_BINANCE_VALUES",
+      "independence_key": "publisher-composite-crypto-sentiment-label-not-consumer-sentiment-search-volume-price-premium-single-price-indicator-or-calendar",
+      "next_gate": "FREEZE_AND_RUN_ONE_EXACT_WAYBACK_REPLAY_TRANSPORT_SCHEMA_CONTINUITY_AND_SELECTED_PRE2025_COVERAGE_GATE_BEFORE_FGI_VALUE_OR_BTC_OUTCOME_ACCESS",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-primary-prior.v1.json",
-          "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
-          "sha256": "020ec17e71a7f303baeabaf42d4581fd78aecf5608b0ce625ca2b5fc9ec82216"
+          "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "3034f11ef0abab8fe42ed8e3fd8170027a2e2b549548ad8b2844cb3ed5334b5b"
         }
       ],
       "economic_evidence_status": {
@@ -243,11 +243,11 @@
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
       },
       "missing_proof": [
-        "No price-only common-day Coinbase BTCUSD and checksum-bound Binance BTCUSDT source bundle is sealed.",
-        "No positive-premium state, independent next-day relation or stable Design and Validation direction has been measured.",
+        "No exact archived official API response, schema, label continuity or selected pre-2025 FGI corpus is sealed.",
+        "No Extreme Fear state support, independent next-day relation or stable Design and Validation direction has been measured.",
         "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."
       ],
-      "duplicate_family_key": "btc-daily-coinbase-btcusd-minus-binance-btcusdt-close-premium-above-zero-next-day-long-cash"
+      "duplicate_family_key": "btc-alternative-me-exact-extreme-fear-label-next-day-contrarian-long-cash"
     }
   ],
   "closed_families": [
@@ -4141,6 +4141,37 @@
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
       "prohibited_reopen": true,
       "title": "Lagged high geopolitical-risk Bitcoin safe-haven long-or-cash"
+    },
+    {
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_COINBASE_BTCUSD_CLOSE_DIVIDED_BY_BINANCE_BTCUSDT_CLOSE_MINUS_ONE_STRICTLY_GREATER_THAN_ZERO",
+      "disposition": "NO_CANDIDATE_CLOSE_COINBASE_BINANCE_CLOSE_PREMIUM_PRE_ECONOMIC",
+      "duplicate_family_key": "btc-daily-coinbase-btcusd-minus-binance-btcusdt-close-premium-above-zero-next-day-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-predictive.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_PREDICTIVE_NEAR_MISS_FAMILY_CLOSURE",
+          "sha256": "3d50040f731082638e13a2120369540c4cc729b2d058db4954be9caa3ea2d27a"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-predictive.v1.manifest.json",
+          "role": "FROZEN_SINGLE_VARIANT_ZERO_THRESHOLD_PREDICTIVE_MANIFEST",
+          "sha256": "75611d96b558806ac5c885dbecb4ef704abf14f8fb0ab2c7f9fcad9adb7cc2a7"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-source.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_PRICE_SOURCE_GATE_PASS",
+          "sha256": "e9c0e73e151d063831bc92eef61cc76a745eadcfa17259c2136b1e760d3aeaf8"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "020ec17e71a7f303baeabaf42d4581fd78aecf5608b0ce625ca2b5fc9ec82216"
+        }
+      ],
+      "family_id": "closed-btc-coinbase-binance-close-premium-long-cash",
+      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
+      "prohibited_reopen": true,
+      "title": "Lagged positive Coinbase BTCUSD versus Binance BTCUSDT close premium long-or-cash"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

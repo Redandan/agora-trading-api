@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_CLOSE_SOURCE_DECISION_V1",
+  "family_id": "btc-coinbase-binance-close-premium-long-cash",
+  "decided_at": "2026-08-22T21:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "SOURCE_GATE_PASS_PREDICTIVE_PREREGISTRATION_FROZEN",
+  "decision": "ADVANCE_TO_ONE_ZERO_THRESHOLD_PREDICTIVE_ONLY_EVALUATION_WITHOUT_GATE_OR_FEATURE_CHANGE",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-source.v1.manifest.json",
+      "sha256": "028929449e60c95379166f741d371f3eaca90c78c2f4d5fb9557eec79e757921",
+      "role": "FROZEN_FREE_PRICE_SOURCE_AND_DOWNSTREAM_PREDICTIVE_PREREGISTRATION"
+    },
+    {
+      "path": "research/coinbase_binance_btc_close_source_v1.py",
+      "sha256": "b398b6711308cbdb9d1a5b61f8b3f2af8a02dda4eb861672b0ff45345aa6e0e9",
+      "role": "FROZEN_CREATE_ONLY_FREE_PRICE_SOURCE_ADAPTER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-primary-prior.v1.json",
+      "sha256": "020ec17e71a7f303baeabaf42d4581fd78aecf5608b0ce625ca2b5fc9ec82216",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR"
+    }
+  ],
+  "determinism": {
+    "run1_bundle_path": ".research-state/experiments/btc-coinbase-binance-close-premium-source-v1/inputs/source.v1.run1.bundle.json",
+    "run2_bundle_path": ".research-state/experiments/btc-coinbase-binance-close-premium-source-v1/inputs/source.v1.run2.bundle.json",
+    "bundle_sha256": "662a0dfc273c37bcb11313d509a0801ceb5460eebbdaebe3b4f5279ae89fd89b",
+    "run1_normalized_gzip_path": ".research-state/experiments/btc-coinbase-binance-close-premium-source-v1/inputs/btc-close-2020-2024.v1.run1.csv.gz",
+    "run2_normalized_gzip_path": ".research-state/experiments/btc-coinbase-binance-close-premium-source-v1/inputs/btc-close-2020-2024.v1.run2.csv.gz",
+    "normalized_gzip_sha256": "972e6a550a4f69dbf8216067c53e1811dea8b4b7a355c15e2ff90ca2a7526267",
+    "normalized_csv_sha256": "b5f1f6a3846763db2f4acfd1dfdb949faa76a963ae648c745458c3166776b20d",
+    "byte_identical": true
+  },
+  "source_evidence": {
+    "first_day": "2020-01-01",
+    "last_day": "2024-12-31",
+    "common_complete_utc_days": 1827,
+    "rows": 3654,
+    "coinbase_request_partitions": 10,
+    "binance_publisher_checksum_verified_archives": 60,
+    "annual_rows_per_venue": {
+      "2020": 366,
+      "2021": 365,
+      "2022": 365,
+      "2023": 365,
+      "2024": 366
+    },
+    "duplicate_venue_days": 0,
+    "nonpositive_close_rows": 0,
+    "repaired_or_imputed_days": 0
+  },
+  "material_conclusion": "A complete deterministic credential-free and checksum-bound common-day price corpus exists for Coinbase BTC-USD and Binance BTCUSDT closes. Source feasibility no longer blocks the exact signed zero-threshold premium mechanism. This is data-quality evidence only; it does not establish that the premium is pure U.S. demand or predicts BTC.",
+  "missing_proof": [
+    "The exact signed daily premium and positive-versus-negative-or-zero state have not been calculated.",
+    "No Design or Validation next-day relation, state support, downside semideviation, annual breadth or contribution concentration has been measured.",
+    "USD-versus-USDT quote contamination remains an interpretation risk even if the predictive gate passes.",
+    "No matched-capital fees, slippage, PnL, drawdown, Calmar, holding path, candidate or OOS evidence exists."
+  ],
+  "next_action": "BIND_THE_SEALED_PRICE_ONLY_CORPUS_AND_EXISTING_BTC_H1_OUTCOME_CORPUS_TO_ONE_ZERO_THRESHOLD_PREDICTIVE_ONLY_RUNNER_WITHOUT_CHANGING_THE_FROZEN_CONTRACT",
+  "scope_note": "Free historical price-source acquisition only. No premium factor, return, strategy path, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

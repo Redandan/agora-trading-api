@@ -1,0 +1,104 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_CLOSE_PREMIUM_PREDICTIVE_DECISION_V1",
+  "family_id": "btc-coinbase-binance-close-premium-long-cash",
+  "decided_at": "2026-08-22T21:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREDICTIVE_ONLY_NO_ECONOMICS_NO_CANDIDATE_NO_OOS",
+  "status": "NO_CANDIDATE_CLOSE_COINBASE_BINANCE_CLOSE_PREMIUM_PRE_ECONOMIC",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_ZERO_THRESHOLD_CROSS_VENUE_CLOSE_PREMIUM_FAMILY_WITHOUT_TUNING_OR_REVERSE_MAPPING",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-predictive.v1.manifest.json",
+      "sha256": "75611d96b558806ac5c885dbecb4ef704abf14f8fb0ab2c7f9fcad9adb7cc2a7",
+      "role": "FROZEN_SINGLE_VARIANT_PREDICTIVE_MANIFEST"
+    },
+    {
+      "path": "research/btc_coinbase_binance_close_premium_predictive_v1.py",
+      "sha256": "8aa7f3b7e46597c9b2ecb41348107fee72bddd2bf4bb4ab3dcd95ae4b2bea1de",
+      "role": "FROZEN_SINGLE_VARIANT_PREDICTIVE_RUNNER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-source.v1.decision.json",
+      "sha256": "e9c0e73e151d063831bc92eef61cc76a745eadcfa17259c2136b1e760d3aeaf8",
+      "role": "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_PRICE_SOURCE_GATE_PASS"
+    }
+  ],
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-coinbase-binance-close-premium-predictive-v1/artifacts/predictive.run1.json",
+    "run2_path": ".research-state/experiments/btc-coinbase-binance-close-premium-predictive-v1/artifacts/predictive.run2.json",
+    "sha256": "f8ebcb9aaf892f0054deb659b64fba08b1cb0ed0d32d79e0e8a7ace105632ace",
+    "byte_identical": true
+  },
+  "feature_evidence": {
+    "first_signal_day": "2020-01-01",
+    "last_signal_day": "2024-12-31",
+    "state_days": 1827,
+    "positive_premium_days": 1272,
+    "negative_or_zero_premium_days": 555,
+    "premium_minimum": "-0.00452172",
+    "premium_median": "0.00021573",
+    "premium_maximum": "0.01189583"
+  },
+  "predictive_evidence": {
+    "design": {
+      "outcomes": 1095,
+      "positive_state_count": 809,
+      "negative_or_zero_state_count": 286,
+      "positive_state_mean_return": "0.00177134",
+      "negative_or_zero_state_mean_return": "0.00086960",
+      "delta": "0.00090173",
+      "positive_state_downside_semideviation": "0.02786301",
+      "negative_or_zero_state_downside_semideviation": "0.02562935"
+    },
+    "validation": {
+      "outcomes": 731,
+      "positive_state_count": 463,
+      "negative_or_zero_state_count": 268,
+      "positive_state_mean_return": "0.00328459",
+      "negative_or_zero_state_mean_return": "0.00167618",
+      "delta": "0.00160841",
+      "positive_state_downside_semideviation": "0.01547511",
+      "negative_or_zero_state_downside_semideviation": "0.01509036"
+    },
+    "annual_delta": {
+      "2020": "-0.00410433",
+      "2021": "0.00068896",
+      "2022": "0.00324283",
+      "2023": "-0.00151195",
+      "2024": "0.00401114"
+    },
+    "positive_annual_years": 3,
+    "top_positive_annual_delta_concentration": "0.50499465"
+  },
+  "gate_matrix": {
+    "design_state_support": "PASS",
+    "validation_state_support": "PASS",
+    "design_positive_mean_return_exceeds_negative_or_zero": "PASS",
+    "validation_positive_mean_return_exceeds_negative_or_zero": "PASS",
+    "validation_positive_downside_semideviation_nonworse": "FAIL_0.01547511_GT_0.01509036",
+    "positive_annual_delta_at_least_3_of_5": "PASS_3_OF_5",
+    "top_positive_annual_delta_concentration_at_most_60_percent": "PASS_0.50499465"
+  },
+  "material_conclusion": "This is the closest recent historical signal: the positive-premium state has higher next-day mean return in both frozen windows, passes state support, annual breadth and concentration, but its Validation downside semideviation is worse by 0.00038475. Because risk-adjusted improvement requires every frozen gate, the family closes before economics rather than relaxing the downside gate after observing the near miss.",
+  "interpretation_boundary": "The premium combines venue demand, market segmentation, last-trade timing and USD-versus-USDT quote effects. Even the passing return direction does not identify a pure U.S.-demand causal channel.",
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_OPENED",
+    "adverse_slippage": "MISSING_PROOF_NOT_OPENED",
+    "realized_pnl": "MISSING_PROOF_NOT_OPENED",
+    "unrealized_pnl": "MISSING_PROOF_NOT_OPENED",
+    "total_pnl": "MISSING_PROOF_NOT_OPENED",
+    "maximum_drawdown": "MISSING_PROOF_NOT_OPENED",
+    "holding_age": "MISSING_PROOF_NOT_OPENED",
+    "terminal_inventory": "MISSING_PROOF_NOT_OPENED",
+    "oos": "SEALED_UNOPENED"
+  },
+  "prohibited_reopen": true,
+  "prohibited_substitutions": [
+    "Do not relax or remove the Validation downside-semideviation gate after observing the near miss.",
+    "Do not reverse the state, move the zero threshold, smooth the premium, add volume, quote conversion, stablecoin, regime or post-2024 conditions, or scan another venue or pair.",
+    "Do not calculate retrospective strategy economics or open OOS for this closed exact family."
+  ],
+  "next_action": "Rotate to one causally distinct free-data family with a pre-2025 point-in-time source; preserve this result only as a near-miss learning, not a candidate.",
+  "scope_note": "Historical predictive-only evaluation. No matched-capital economics, fees, slippage, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

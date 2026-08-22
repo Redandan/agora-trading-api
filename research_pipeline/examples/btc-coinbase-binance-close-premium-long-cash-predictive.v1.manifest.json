@@ -1,0 +1,97 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_CLOSE_PREMIUM_PREDICTIVE_MANIFEST_V1",
+  "family_id": "btc-coinbase-binance-close-premium-long-cash",
+  "created_at": "2026-08-22T21:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREDICTIVE_ONLY_NO_ECONOMICS_NO_OOS",
+  "bindings": [
+    {
+      "path": "research/btc_coinbase_binance_close_premium_predictive_v1.py",
+      "sha256": "8aa7f3b7e46597c9b2ecb41348107fee72bddd2bf4bb4ab3dcd95ae4b2bea1de",
+      "role": "FROZEN_SINGLE_VARIANT_ZERO_THRESHOLD_PREDICTIVE_RUNNER"
+    },
+    {
+      "path": "research/btc_coinbase_binance_relative_volume_predictive_v1.py",
+      "sha256": "9f368afd77c13da06896556fca838e7b57784a7836c6db6765caae1aa13677bd",
+      "role": "FROZEN_REUSED_SUMMARY_AND_DAILY_OPEN_CAPABILITY"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "role": "FROZEN_H1_PARSER_AND_CANONICAL_HASH_CAPABILITY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-source.v1.manifest.json",
+      "sha256": "028929449e60c95379166f741d371f3eaca90c78c2f4d5fb9557eec79e757921",
+      "role": "FROZEN_FREE_PRICE_SOURCE_AND_DOWNSTREAM_PREDICTIVE_PREREGISTRATION"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-source.v1.decision.json",
+      "sha256": "e9c0e73e151d063831bc92eef61cc76a745eadcfa17259c2136b1e760d3aeaf8",
+      "role": "SEALED_BYTE_IDENTICAL_COMPLETE_COMMON_DAY_PRICE_SOURCE_GATE_PASS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-primary-prior.v1.json",
+      "sha256": "020ec17e71a7f303baeabaf42d4581fd78aecf5608b0ce625ca2b5fc9ec82216",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUP_BOUNDARY_PRIOR"
+    }
+  ],
+  "data_bindings": {
+    "source_bundle": {
+      "path": ".research-state/experiments/btc-coinbase-binance-close-premium-source-v1/inputs/source.v1.run1.bundle.json",
+      "sha256": "662a0dfc273c37bcb11313d509a0801ceb5460eebbdaebe3b4f5279ae89fd89b"
+    },
+    "close_corpus": {
+      "path": ".research-state/experiments/btc-coinbase-binance-close-premium-source-v1/inputs/btc-close-2020-2024.v1.run1.csv.gz",
+      "sha256": "972e6a550a4f69dbf8216067c53e1811dea8b4b7a355c15e2ff90ca2a7526267",
+      "rows": 3654,
+      "common_complete_utc_days": 1827
+    },
+    "btc_h1_outcomes": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    }
+  },
+  "predictive_contract": {
+    "daily_premium": "COINBASE_BTCUSD_CLOSE_DIVIDED_BY_BINANCE_BTCUSDT_CLOSE_MINUS_ONE_SAME_COMPLETE_UTC_DAY",
+    "state": "DAILY_PREMIUM_STRICTLY_GREATER_THAN_ZERO",
+    "signal_lag": "ONE_COMPLETE_UTC_DAY",
+    "outcome": "NEXT_COMPLETE_UTC_DAY_BTCUSDT_OPEN_TO_NEXT_OPEN_RETURN",
+    "downside_semideviation": "SQUARE_ROOT_OF_MEAN_SQUARED_MINIMUM_RETURN_AND_ZERO_OVER_ALL_STATE_OBSERVATIONS",
+    "design_outcome_first_day": "2020-01-02",
+    "design_outcome_last_day": "2022-12-31",
+    "validation_outcome_first_day": "2023-01-01",
+    "validation_outcome_last_day": "2024-12-31",
+    "annual_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "minimum_state_count_per_window": 120,
+    "minimum_positive_annual_delta_years": 3,
+    "maximum_top_positive_annual_delta_concentration": "0.60",
+    "variants": 1,
+    "economics": "DENY_UNTIL_ALL_PREDICTIVE_GATES_PASS",
+    "oos": "DENY"
+  },
+  "all_pass_gates": [
+    "Design and Validation each contain at least 120 positive-premium and 120 negative-or-zero-premium next-day outcomes.",
+    "Positive-premium mean next-day BTC open-to-open return strictly exceeds negative-or-zero-premium mean in both Design and Validation.",
+    "Validation positive-premium downside semideviation is no worse than negative-or-zero-premium downside semideviation.",
+    "Annual positive-minus-negative-or-zero mean next-day return is positive in at least three of 2020, 2021, 2022, 2023 and 2024.",
+    "The largest positive annual mean-return delta is at most 60 percent of total positive annual deltas."
+  ],
+  "decision": "ALL_PREDICTIVE_GATES_PASS_TO_AUTHORIZE_ONE_SEPARATELY_FROZEN_MATCHED_CAPITAL_ECONOMIC_SCREEN_OTHERWISE_PERMANENTLY_CLOSE_EXACT_FAMILY_PRE_ECONOMIC",
+  "stop_conditions": [
+    "Require all tracked and data hashes, exactly 3,654 close rows, 1,827 common days and 52,608 canonical H1 rows before premium or outcome computation.",
+    "Do not change source, price field, strict zero threshold, direction, one-day lag, split, outcome, gate or concentration formula.",
+    "Run exactly one variant twice to create-only result paths and require byte-identical output.",
+    "On any predictive gate failure, close without economics, reverse mapping, nearby threshold, smoothing, interaction, quote conversion, resampling, OOS or Trading action."
+  ],
+  "scope_note": "Frozen predictive-only manifest. No predictive result, matched-capital economics, fees, slippage, PnL, drawdown, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

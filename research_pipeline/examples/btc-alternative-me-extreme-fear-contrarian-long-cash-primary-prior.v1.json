@@ -1,0 +1,81 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ALTERNATIVE_ME_EXTREME_FEAR_CONTRARIAN_LONG_CASH_PRIMARY_PRIOR_V1",
+  "family_id": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+  "reviewed_at": "2026-08-22T21:45:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_PRIOR_NO_FACTOR_OR_OUTCOME_ACCESS",
+  "decision": "PRIOR_SUPPORTS_ONE_EXACT_PRE2025_ARCHIVED_OFFICIAL_FGI_SOURCE_AND_EXTREME_FEAR_PREDICTIVE_AUDIT",
+  "claim_boundary": "Alternative.me defines and publishes a daily Bitcoin Fear and Greed Index and explicitly frames extreme fear as a possible buying opportunity. Published evidence conflicts: one study reports daily-to-weekly predictive and economic value, while newer evidence finds returns lead sentiment and the index adds little next-day or out-of-sample forecast value. This authorizes one fail-closed test of the exact archived official label, not a profitability claim.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Alternative.me Crypto Fear and Greed Index methodology and API",
+      "url": "https://alternative.me/crypto/fear-and-greed-index/",
+      "role": "PRIMARY_INDEX_DEFINITION_METHOD_SOURCE_AND_ATTRIBUTION_CONTRACT",
+      "finding": "The publisher updates one 0-to-100 Bitcoin sentiment index daily, labels 0 as extreme fear and 100 as extreme greed, describes extreme fear as a possible buying opportunity, and provides a credential-free historical API with source-attribution requirements.",
+      "transfer_boundary": "The index is partly built from Bitcoin volatility, momentum and volume plus social, dominance and trend inputs, so a lagged state can remain a transformed price signal rather than independent sentiment alpha."
+    },
+    {
+      "identity": "Predicting cryptocurrency returns for real-world investments: A daily updated and accessible predictor, Finance Research Letters 58, 2023, 104406",
+      "url": "https://www.sciencedirect.com/science/article/pii/S154461232300778X",
+      "role": "PRIMARY_POSITIVE_PREDICTIVE_AND_ECONOMIC_PRIOR",
+      "finding": "The study reports that the Crypto Fear and Greed Index has in-sample and out-of-sample predictive power from one day to one week and can create economic benefits under its forecasting and allocation design.",
+      "transfer_boundary": "Its predictive regressions and active-allocation design do not establish that Alternative.me's exact Extreme Fear label alone has positive next-day BTC open-to-open return or beats buy-and-hold after costs."
+    },
+    {
+      "identity": "Do bitcoin returns move sentiment? Evidence from the crypto fear and greed index, Finance Research Open 2(1), 2026, 100094",
+      "url": "https://www.sciencedirect.com/science/article/pii/S305070062600006X",
+      "role": "PRIMARY_ADVERSARIAL_REVERSE_CAUSALITY_AND_NO_OOS_GAIN_PRIOR",
+      "finding": "Using 2018-2025 daily data, the study reports that changes in the index do not Granger-cause Bitcoin returns or improve out-of-sample forecasts, while Bitcoin returns lead sentiment and sentiment shocks have negligible return effects.",
+      "transfer_boundary": "This directly raises the possibility that the index is reactive and price-derived. A failed predictive gate must close the family without changing threshold, direction or horizon."
+    }
+  ],
+  "archived_source_boundary": {
+    "cdx_metadata_only_checked": true,
+    "cdx_url": "https://web.archive.org/cdx/search/cdx?url=api.alternative.me/fng/*&output=json&filter=statuscode:200&from=2024&to=2025&fl=timestamp,original,statuscode,digest&collapse=digest",
+    "selected_capture_timestamp": "20241126094019",
+    "selected_original_url": "https://api.alternative.me/fng/?limit=10000",
+    "selected_cdx_digest": "V4YE4TMPOQINOT55Y2WPDODDVBM7WTTO",
+    "exact_replay_url": "https://web.archive.org/web/20241126094019id_/https://api.alternative.me/fng/?limit=10000",
+    "target_selected_first_day": "2018-02-01",
+    "target_selected_last_day": "2024-11-25",
+    "source_values_opened_during_prior": false,
+    "why_archived": "The live API has no end-date parameter and would expose post-2024 values. The exact archived response creates a pre-2025 point-in-time boundary before any factor or BTC outcome access."
+  },
+  "single_family_boundary": {
+    "decision_feature": "LATEST_COMPLETE_ALTERNATIVE_ME_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
+    "mapping": "AFTER_INDEX_DAY_D_COMPLETES_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_D_PLUS_1_UTC_OPEN_TO_D_PLUS_2_UTC_OPEN_WHEN_LABEL_IS_EXTREME_FEAR_OTHERWISE_ZERO_YIELD_CASH",
+    "threshold": "PUBLISHER_EXACT_EXTREME_FEAR_LABEL_NO_NUMERIC_THRESHOLD_OR_NEIGHBOR_SCAN",
+    "source_selection": "EXACT_ARCHIVED_OFFICIAL_API_CAPTURE_WITH_ROWS_SELECTED_2018_02_01_THROUGH_2024_11_25",
+    "variants": 1
+  },
+  "causal_hypothesis": "If extreme fear reflects emotional overselling beyond information already embedded in price, the completed label may precede a next-day rebound; if the index mainly transforms contemporaneous volatility, momentum and volume, it should fail independent lead-lag, downside or annual-breadth gates.",
+  "economic_hypothesis": "A full-capital next-day BTC policy only after the exact Extreme Fear label may have higher next-day return and no-worse downside than all other labels before matched-capital costs and opportunity cost are opened.",
+  "independence_assessment": {
+    "distinct_from_closed_google_search_attention": "The index is a publisher-defined composite label with volatility, momentum, social, dominance and trend inputs, not a Google search-volume innovation or search-volume interaction. The overlap is disclosed and cannot be conditioned away after outcomes.",
+    "distinct_from_closed_price_volatility_and_momentum": "The exact publisher label is not recomputed from the local BTC corpus. However, because price-derived inputs are 50 percent of the published methodology, independent alpha remains unproven and must fail closed if the label merely repackages price state.",
+    "distinct_from_closed_university_consumer_sentiment": "Alternative.me measures daily crypto-market sentiment, not a monthly household survey of broad economic conditions.",
+    "duplicate_family_key": "btc-alternative-me-exact-extreme-fear-label-next-day-contrarian-long-cash",
+    "dedup_result": "NO_MATCHING_EXECUTED_OR_CLOSED_EXACT_FINGERPRINT_FOUND"
+  },
+  "pre_outcome_contract": {
+    "design_outcome_window": "2020-01-01_THROUGH_2022-12-31",
+    "validation_outcome_window": "2023-01-01_THROUGH_2024-11-26",
+    "minimum_extreme_fear_outcomes_per_window": 50,
+    "minimum_other_label_outcomes_per_window": 50,
+    "direction": "EXTREME_FEAR_MEAN_NEXT_DAY_RETURN_STRICTLY_EXCEEDS_OTHER_LABELS_IN_BOTH_WINDOWS",
+    "validation_downside": "EXTREME_FEAR_DOWNSIDE_SEMIDEVIATION_NO_WORSE_THAN_OTHER_LABELS",
+    "annual_breadth": "POSITIVE_EXTREME_FEAR_MINUS_OTHER_LABEL_MEAN_RETURN_IN_AT_LEAST_3_OF_2020_2021_2022_2023_2024_PARTIAL",
+    "positive_annual_concentration": "TOP_POSITIVE_ANNUAL_DELTA_AT_MOST_60_PERCENT",
+    "economics": "DENY_UNTIL_ALL_PREDICTIVE_GATES_PASS",
+    "oos": "DENY"
+  },
+  "stop_conditions": [
+    "Before opening the archived response, freeze an exact no-redirect no-retry source manifest bound to the capture timestamp, original URL, CDX digest, selected date range, schema, daily continuity, exact labels and attribution requirement.",
+    "Stop DATA_REJECT on replay unavailability, redirect, Memento wrapper, archive timestamp, digest, JSON, metadata error, duplicate, missing day, value, label, selected coverage or determinism failure; do not use the live API, another capture or another provider.",
+    "After source value access, do not replace the exact Extreme Fear label with a numeric threshold, change direction or horizon, add smoothing, price, volume, volatility, attention or regime interactions, or shorten the frozen windows.",
+    "Close before economics and keep OOS sealed on any source or predictive failure."
+  ],
+  "next_action": "FREEZE_AND_RUN_ONE_EXACT_WAYBACK_REPLAY_TRANSPORT_SCHEMA_CONTINUITY_AND_SELECTED_PRE2025_COVERAGE_GATE_BEFORE_FGI_VALUE_OR_BTC_OUTCOME_ACCESS",
+  "scope_note": "Primary/adversarial and archived-source metadata prior only. No archived response body, FGI value or label, BTC price, return, factor, strategy, ledger, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

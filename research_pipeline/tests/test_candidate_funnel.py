@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 153)
+        self.assertEqual(len(catalog["closed_families"]), 154)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,22 +101,22 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        cross_venue_premium = next(
+        extreme_fear = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-coinbase-binance-close-premium-long-cash"
+            == "btc-alternative-me-extreme-fear-contrarian-long-cash"
         )
         self.assertEqual(
-            cross_venue_premium["base_stage"], "HISTORICAL_PRIOR"
+            extreme_fear["base_stage"], "HISTORICAL_PRIOR"
         )
         self.assertEqual(
             [
                 binding["role"]
-                for binding in cross_venue_premium["evidence_bindings"]
+                for binding in extreme_fear["evidence_bindings"]
             ],
             [
-                "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+                "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
             ],
         )
         closed_geopolitical_risk = next(
@@ -2160,7 +2160,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 154)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 155)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

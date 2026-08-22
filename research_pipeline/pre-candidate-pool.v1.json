@@ -207,28 +207,28 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-gpr-high-risk-safe-haven-long-cash",
-      "title": "Lagged high geopolitical-risk Bitcoin safe-haven long-or-cash",
-      "decision_feature": "LATEST_COMPLETE_DAILY_GPR_STRICTLY_ABOVE_PRIOR_252_AVAILABLE_DAILY_GPR_90TH_PERCENTILE",
-      "causal_hypothesis": "Unusually high geopolitical-news risk may increase short-horizon demand for globally transferable Bitcoin, while the audit must reject the family if the relation is contemporaneous, conditional on omitted equity crashes or unstable across regimes.",
-      "economic_hypothesis": "Holding BTC only after a completed high-GPR day may produce positive next-day return with no-worse downside risk and broad annual support before matched-capital economics are opened.",
+      "family_id": "btc-coinbase-binance-close-premium-long-cash",
+      "title": "Lagged positive Coinbase BTCUSD versus Binance BTCUSDT close premium long-or-cash",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_COINBASE_BTCUSD_CLOSE_DIVIDED_BY_BINANCE_BTCUSDT_CLOSE_MINUS_ONE_STRICTLY_GREATER_THAN_ZERO",
+      "causal_hypothesis": "A positive U.S. fiat-market close premium may reflect incremental U.S. demand not yet fully incorporated offshore, but it may instead be contemporaneous noise, market segmentation or USDT quote risk and must pass a frozen lead-lag audit.",
+      "economic_hypothesis": "Holding BTC only on the next UTC day after a positive completed-day premium may improve return and downside risk versus the negative-or-zero state before matched-capital economics are opened.",
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
-      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_GPR_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
-      "runner_id": "NOT_BUILT_EXACT_DATED_SOURCE_GATE_FIRST",
+      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_CROSS_VENUE_PREMIUM_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
+      "runner_id": "NOT_BUILT_PRICE_ONLY_SOURCE_GATE_FIRST",
       "base_stage": "HISTORICAL_PRIOR",
       "estimated_days_to_next_gate": 1,
       "compute_cost_class": "LOW",
-      "independence_key": "newspaper-geopolitical-threat-and-act-risk-not-epu-price-volume-volatility-exchange-stablecoin-derivative-or-calendar",
-      "next_gate": "FREEZE_AND_RUN_ONE_EXACT_DATED_GPR_VINTAGE_TRANSPORT_SCHEMA_AND_PRE2025_DAILY_COVERAGE_GATE_BEFORE_GPR_CELL_OR_BTC_OUTCOME_ACCESS",
+      "independence_key": "signed-cross-venue-spot-close-price-difference-not-relative-volume-derivative-basis-stablecoin-veto-price-indicator-or-calendar",
+      "next_gate": "FREEZE_ONE_REUSED_INFRASTRUCTURE_PRICE_ONLY_SOURCE_AND_DOWNSTREAM_ZERO_THRESHOLD_PREDICTIVE_MANIFEST_BEFORE_REOPENING_COINBASE_OR_BINANCE_VALUES",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-primary-prior.v1.json",
-          "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_VINTAGE_AND_DEDUP_BOUNDARY_PRIOR",
-          "sha256": "4a6d7c8a08a66e371e0f613b31c191effa8df9c7fb35f384c1171a1d852dfed8"
+          "path": "research_pipeline/examples/btc-coinbase-binance-close-premium-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "020ec17e71a7f303baeabaf42d4581fd78aecf5608b0ce625ca2b5fc9ec82216"
         }
       ],
       "economic_evidence_status": {
@@ -243,11 +243,11 @@
         "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
       },
       "missing_proof": [
-        "The exact dated 2025-01-13 daily GPR workbook transport, schema, hash and 2018-2024 coverage are unopened.",
-        "No high-GPR state, independent next-day BTC relation or causal safe-haven direction has been measured.",
+        "No price-only common-day Coinbase BTCUSD and checksum-bound Binance BTCUSDT source bundle is sealed.",
+        "No positive-premium state, independent next-day relation or stable Design and Validation direction has been measured.",
         "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."
       ],
-      "duplicate_family_key": "btc-daily-gpr-above-prior-252d-90th-percentile-next-day-safe-haven-long-cash"
+      "duplicate_family_key": "btc-daily-coinbase-btcusd-minus-binance-btcusdt-close-premium-above-zero-next-day-long-cash"
     }
   ],
   "closed_families": [
@@ -4110,6 +4110,37 @@
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
       "prohibited_reopen": true,
       "title": "Lagged Coinbase share of BTC cross-venue base volume long-or-cash"
+    },
+    {
+      "decision_feature": "LATEST_COMPLETE_DAILY_GPR_STRICTLY_ABOVE_PRIOR_252_AVAILABLE_DAILY_GPR_90TH_PERCENTILE_WITH_SEVEN_CALENDAR_DAY_PUBLICATION_LAG",
+      "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_EXACT_20250113_GPR_HIGH_RISK_SAFE_HAVEN_FAMILY",
+      "duplicate_family_key": "btc-daily-gpr-above-prior-252d-90th-percentile-next-day-safe-haven-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-source.v1.decision.json",
+          "role": "SEALED_TERMINAL_EXACT_DATED_SOURCE_DATA_REJECT_DECISION",
+          "sha256": "28a016117a53cf9612e2ed0a71d3ba2d6f9b8f01d3472e90ad692e149c2337ba"
+        },
+        {
+          "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-source.v1.spec.json",
+          "role": "FROZEN_PREVALUE_EXACT_DATED_SOURCE_AND_PREDICTIVE_CONTRACT",
+          "sha256": "5a70fb547eb41a8cfd4b773c450425af89846af2efb59ba56331b6c21c92c291"
+        },
+        {
+          "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_VINTAGE_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "f5932ebd9d424307d9b4e2f28a898e0412a99cd56a0818fef3de9b6ca4cbf353"
+        },
+        {
+          "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-prevalue-availability-erratum.v1.json",
+          "role": "FROZEN_PREVALUE_SEVEN_DAY_PUBLICATION_AVAILABILITY_CORRECTION",
+          "sha256": "da7721d2d9c729a383447fb82e1ff81145187bb338cf3dccde84b607cedec3e4"
+        }
+      ],
+      "family_id": "closed-btc-gpr-high-risk-safe-haven-long-cash",
+      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
+      "prohibited_reopen": true,
+      "title": "Lagged high geopolitical-risk Bitcoin safe-haven long-or-cash"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

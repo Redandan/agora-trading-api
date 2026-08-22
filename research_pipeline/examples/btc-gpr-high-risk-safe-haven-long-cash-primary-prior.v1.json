@@ -5,15 +5,15 @@
   "reviewed_at": "2026-08-22T19:15:00Z",
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
   "status": "COMPLETED_PRIMARY_AND_ADVERSARIAL_PRIOR_SOURCE_VINTAGE_NOT_YET_OPENED",
-  "decision": "PRIOR_SUPPORTS_ONE_FAIL_CLOSED_POINT_IN_TIME_FREE_GPR_SOURCE_AND_PREDICTIVE_AUDIT",
+  "decision": "PRIOR_SUPPORTS_ONE_FAIL_CLOSED_POINT_IN_TIME_FREE_GPR_SOURCE_AND_SEVEN_DAY_AVAILABILITY_LAG_PREDICTIVE_AUDIT",
   "claim_boundary": "Primary research establishes a measurable geopolitical-risk index and reports that Bitcoin can co-jump with geopolitical-risk shocks or behave as a conditional safe haven in some regimes. Other evidence stresses time variation and conditionality. These findings do not establish that a lagged high daily GPR state predicts positive next-day BTC return or beats buy-and-hold; they authorize one point-in-time source and predictive audit only.",
   "primary_prior_matrix": [
     {
       "identity": "Measuring Geopolitical Risk, American Economic Review 112(4), 2022",
       "url": "https://www.matteoiacoviello.com/gpr.htm",
       "role": "PRIMARY_GPR_DEFINITION_FREE_DATA_AND_VINTAGE_BOUNDARY",
-      "finding": "Caldara and Iacoviello construct the GPR index from the share of newspaper articles about geopolitical threats and acts and publish daily data, older vintages and revision notes under an open license.",
-      "transfer_boundary": "The index is revised as newspaper coverage is completed; only one explicitly dated pre-2025-complete vintage may be used, with no latest-vintage substitution after access."
+      "finding": "Caldara and Iacoviello construct the GPR index from the share of newspaper articles about geopolitical threats and acts and publish daily observations in a workbook updated each Monday, with older vintages and revision notes under an open license.",
+      "transfer_boundary": "An observation day is not its publication day. The index is revised as newspaper coverage is completed; only one explicitly dated pre-2025-complete vintage may be used, and every GPR day must receive a conservative seven-calendar-day availability lag before the next-open action."
     },
     {
       "identity": "Jumps in Geopolitical Risk and the Cryptocurrency Market: The Singularity of Bitcoin, Defence and Peace Economics 33(2), 2022, DOI 10.1080/10242694.2020.1848285",
@@ -39,10 +39,16 @@
   ],
   "single_family_boundary": {
     "decision_feature": "LATEST_COMPLETE_DAILY_GPR_STRICTLY_ABOVE_THE_PRIOR_252_AVAILABLE_DAILY_GPR_90TH_PERCENTILE",
-    "mapping": "AFTER_THE_GPR_DAY_IS_COMPLETE_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_NEXT_UTC_DAY_OPEN_TO_FOLLOWING_UTC_DAY_OPEN_WHEN_HIGH_GPR_OTHERWISE_ZERO_YIELD_CASH",
+    "mapping": "GPR_OBSERVATION_DAY_D_BECOMES_ELIGIBLE_ONLY_AFTER_D_PLUS_7_CALENDAR_DAYS_COMPLETE_THEN_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_D_PLUS_8_UTC_OPEN_TO_D_PLUS_9_UTC_OPEN_WHEN_HIGH_GPR_OTHERWISE_ZERO_YIELD_CASH",
     "source_series": "CALDARA_IACOVIELLO_RECENT_DAILY_GPR",
     "source_vintage_target": "DATA_GPR_DAILY_RECENT_20250113_XLS",
     "variants": 1
+  },
+  "temporal_availability_boundary": {
+    "official_update_cadence": "WEEKLY_EACH_MONDAY",
+    "conservative_observation_availability": "GPR_DAY_D_AVAILABLE_ONLY_AFTER_D_PLUS_7_CALENDAR_DAYS_COMPLETE",
+    "strategy_action": "D_PLUS_8_UTC_OPEN",
+    "reason": "The exact weekday on which a historical row first appeared is not encoded in the final workbook; seven calendar days is the frozen worst-case release lag and the following UTC open prevents same-instant execution."
   },
   "economic_hypothesis": "If Bitcoin provides a repeatable short-horizon refuge during unusually high geopolitical-news risk, the fixed lagged high-GPR long-cash state should show positive next-day return and no-worse downside risk across Design, Validation and multiple years before matched-capital economics are opened.",
   "independence_assessment": {
@@ -63,7 +69,7 @@
   "stop_conditions": [
     "Before opening any GPR cell, freeze and run one exact-URL transport, workbook-schema, date-coverage and vintage-identity gate for the 2025-01-13 file.",
     "Stop DATA_REJECT on HTTP, redirect, workbook, field, date, duplicate, missing-day, nonfinite-value or vintage failure; do not use the latest file, another vintage, monthly data, AI-GPR, another provider or imputation.",
-    "Before BTC outcomes, freeze exact 252-day empirical 90th-percentile semantics, one-day lag, Design and Validation splits, minimum high-state counts, next-day return, downside, annual breadth and concentration gates.",
+    "Before BTC outcomes, freeze exact 252-day empirical 90th-percentile semantics, seven-calendar-day availability lag plus next-open action, Design and Validation splits, minimum high-state counts, next-day return, downside, annual breadth and concentration gates.",
     "Do not change percentile, lookback, direction, lag, mapping, source or add equity-crash, oil, gold, EPU, VIX or conflict-name interactions after any source value is opened.",
     "Close before economics and OOS on any source or predictive failure."
   ],

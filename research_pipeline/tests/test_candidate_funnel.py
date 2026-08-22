@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 152)
+        self.assertEqual(len(catalog["closed_families"]), 153)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,24 +101,35 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        geopolitical_risk = next(
+        cross_venue_premium = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-gpr-high-risk-safe-haven-long-cash"
+            == "btc-coinbase-binance-close-premium-long-cash"
         )
         self.assertEqual(
-            geopolitical_risk["base_stage"], "HISTORICAL_PRIOR"
+            cross_venue_premium["base_stage"], "HISTORICAL_PRIOR"
         )
         self.assertEqual(
             [
                 binding["role"]
-                for binding in geopolitical_risk["evidence_bindings"]
+                for binding in cross_venue_premium["evidence_bindings"]
             ],
             [
-                "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_VINTAGE_AND_DEDUP_BOUNDARY_PRIOR",
+                "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
             ],
         )
+        closed_geopolitical_risk = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-gpr-high-risk-safe-haven-long-cash"
+        )
+        self.assertEqual(
+            closed_geopolitical_risk["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_EXACT_20250113_GPR_HIGH_RISK_SAFE_HAVEN_FAMILY",
+        )
+        self.assertTrue(closed_geopolitical_risk["prohibited_reopen"])
         closed_cross_venue_volume_share = next(
             family
             for family in catalog["closed_families"]
@@ -2149,7 +2160,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 153)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 154)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

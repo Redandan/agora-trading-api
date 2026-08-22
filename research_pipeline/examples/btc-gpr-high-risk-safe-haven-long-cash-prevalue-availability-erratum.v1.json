@@ -1,0 +1,18 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_GPR_HIGH_RISK_SAFE_HAVEN_PREVALUE_AVAILABILITY_ERRATUM_V1",
+  "family_id": "btc-gpr-high-risk-safe-haven-long-cash",
+  "recorded_at": "2026-08-22T19:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "PREVALUE_TEMPORAL_CONTRACT_CORRECTED_BEFORE_GPR_SOURCE_ACCESS",
+  "superseded_prior_sha256": "4a6d7c8a08a66e371e0f613b31c191effa8df9c7fb35f384c1171a1d852dfed8",
+  "failure": "The first prior draft mapped GPR observation day D to the next UTC day even though the official source states that the daily workbook is updated weekly each Monday. Observation date is not point-in-time availability date, so a one-day lag could use data before publication.",
+  "correction": "Freeze every GPR observation day D as unavailable until D plus seven complete calendar days, then allow action only at the D plus eight UTC open. This conservative rule is fixed before any source request, workbook byte, cell, GPR value or BTC outcome was opened.",
+  "gate_effect": "No performance or source gate was relaxed. The longer lag increases causal validity and may only reduce apparent actionability.",
+  "prohibited_reopen": [
+    "Do not restore one-day or same-weekday lag after source or outcome access.",
+    "Do not infer exact historical Monday publication timestamps from the final workbook.",
+    "Do not use a paid point-in-time provider to rescue the family."
+  ],
+  "scope_note": "Temporal source-contract correction only. No GPR workbook, cell, value, BTC outcome, factor, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

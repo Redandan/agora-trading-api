@@ -1,0 +1,107 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_GPR_DAILY_VINTAGE_SOURCE_SPEC_V1",
+  "family_id": "btc-gpr-high-risk-safe-haven-long-cash",
+  "created_at": "2026-08-22T20:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_BTC_OUTCOME_EXACT_GPR_VINTAGE_SOURCE_AND_PREDICTIVE_PREREGISTRATION",
+  "bindings": [
+    {
+      "path": "research/gpr_daily_vintage_source_v1.py",
+      "sha256": "2ed111608ad22dcbebf0fada5cdef1739a0f06123f74ef8a2187d0d956b7596a",
+      "role": "FROZEN_CREATE_ONLY_EXACT_DATED_GPR_SOURCE_ADAPTER"
+    },
+    {
+      "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+      "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c",
+      "role": "FROZEN_REUSED_CREATE_ONLY_AND_DETERMINISTIC_GZIP_CAPABILITY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-primary-prior.v1.json",
+      "sha256": "f5932ebd9d424307d9b4e2f28a898e0412a99cd56a0818fef3de9b6ca4cbf353",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_VINTAGE_AND_DEDUP_BOUNDARY_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-prevalue-availability-erratum.v1.json",
+      "sha256": "da7721d2d9c729a383447fb82e1ff81145187bb338cf3dccde84b607cedec3e4",
+      "role": "FROZEN_PREVALUE_SEVEN_DAY_PUBLICATION_AVAILABILITY_CORRECTION"
+    }
+  ],
+  "acquisition_policy": {
+    "source_url": "https://www.matteoiacoviello.com/gpr_files/data_gpr_daily_recent_20250113.xls",
+    "source_format": "LEGACY_XLS_FIRST_SHEET",
+    "parser_dependency": "xlrd==2.0.1",
+    "required_columns": [
+      "GPRD",
+      "GPRD_ACT",
+      "GPRD_MA30",
+      "GPRD_MA7",
+      "GPRD_THREAT",
+      "N10D",
+      "date",
+      "event"
+    ],
+    "selected_field": "GPRD",
+    "first_day": "2018-01-01",
+    "last_day": "2024-12-31",
+    "complete_calendar_days": "REQUIRE_EVERY_DAY",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "latest_vintage_substitution": "DENY",
+    "gpr_value_access": "ALLOW_EXACT_SELECTED_FIELD_ONLY_AFTER_SPEC_FREEZE",
+    "btc_outcome_access": "DENY"
+  },
+  "source_all_pass_gate": [
+    "The exact 2025-01-13 dated public workbook returns HTTP 200 without redirect, credential or retry and is no larger than 8 MiB.",
+    "The first legacy-XLS sheet contains exactly the frozen eight-field schema and parseable unique ascending daily dates with finite nonnegative GPRD values.",
+    "Every calendar day from 2018-01-01 through 2024-12-31 is present exactly once without repair, imputation or alternate vintage substitution.",
+    "Two create-only source executions produce byte-identical bundle and normalized-gzip hashes."
+  ],
+  "frozen_downstream_predictive_contract": {
+    "feature_observation": "DAILY_GPRD_ON_OBSERVATION_DAY_D",
+    "reference_sample": "EXACTLY_252_GPRD_OBSERVATIONS_IMMEDIATELY_PRECEDING_D_AND_STRICTLY_EXCLUDING_D",
+    "percentile": "NEAREST_RANK_90TH_PERCENTILE_ONE_BASED_RANK_CEILING_0_90_TIMES_252_EQUALS_227",
+    "high_state": "GPRD_ON_D_STRICTLY_GREATER_THAN_THE_FROZEN_REFERENCE_PERCENTILE",
+    "publication_availability": "OBSERVATION_D_IS_TREATED_AS_AVAILABLE_ONLY_AFTER_D_PLUS_7_COMPLETE_CALENDAR_DAYS",
+    "mapping": "USE_STATE_FROM_D_ONLY_TO_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_D_PLUS_8_UTC_OPEN_TO_D_PLUS_9_UTC_OPEN_WHEN_HIGH_OTHERWISE_ZERO_YIELD_CASH",
+    "variants": 1,
+    "design_outcome_window": "2020-01-01_THROUGH_2022-12-31",
+    "validation_outcome_window": "2023-01-01_THROUGH_2024-12-31",
+    "btc_outcome_source": "EXISTING_CHECKSUM_BOUND_PRE2025_BTCUSDT_COMPLETE_H1_CORPUS_SEPARATELY_HASH_BOUND_BEFORE_EVALUATION",
+    "all_pass_predictive_gates": [
+      "Design and Validation each contain at least 50 high-state next-day outcomes and at least 50 low-state next-day outcomes.",
+      "High-state mean next-day BTC open-to-open return exceeds low-state mean in both Design and Validation.",
+      "Validation high-state downside semideviation is no worse than low-state downside semideviation.",
+      "High-minus-low annual mean next-day return is positive in at least three of 2020, 2021, 2022, 2023 and 2024.",
+      "No single positive annual high-minus-low contribution supplies more than 60 percent of total positive annual contribution."
+    ]
+  },
+  "economic_contract_if_predictive_passes": {
+    "candidate": "FULL_CAPITAL_BTC_FROM_D_PLUS_8_OPEN_TO_D_PLUS_9_OPEN_IN_HIGH_STATE_OTHERWISE_ZERO_YIELD_CASH",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_WINDOW_COST_AND_MARKING",
+    "normal_cost_per_side": "10_BPS_FEE_PLUS_5_BPS_ADVERSE_SLIPPAGE",
+    "stress_cost_per_side": "20_BPS_FEE_PLUS_10_BPS_ADVERSE_SLIPPAGE",
+    "required_visibility": [
+      "realized_return",
+      "unrealized_return",
+      "total_return",
+      "maximum_drawdown",
+      "Calmar",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "state_concentration",
+      "buy_and_hold_opportunity_cost"
+    ],
+    "oos_access": "DENY_UNTIL_ALL_DESIGN_VALIDATION_ECONOMIC_AND_PATH_RISK_GATES_PASS"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before factor computation on any transport, redirect, workbook, field, date, duplicate, missing-day, nonfinite-value, coverage, vintage or determinism failure.",
+    "Do not use the latest workbook, another vintage, monthly data, AI-GPR, a paid or alternate provider, imputation, repair or a shorter window.",
+    "After source value access, do not change the percentile, lookback, strict direction, seven-day availability lag, next-open mapping, window, gate, cost or comparator and do not add equity, VIX, oil, gold, EPU or named-conflict interactions.",
+    "If any frozen predictive gate fails, close the exact family before matched-capital economics and keep OOS sealed."
+  ],
+  "next_action_on_source_pass": "BIND_THE_SEALED_GPR_ONLY_CORPUS_AND_EXISTING_BTC_H1_OUTCOME_CORPUS_TO_ONE_PREDICTIVE_ONLY_RUNNER_WITHOUT_CHANGING_THE_FROZEN_CONTRACT",
+  "scope_note": "Frozen exact dated free GPR source and downstream predictive preregistration before any GPR cell or BTC outcome access. No workbook response, GPR value, BTC price, return, factor, strategy, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

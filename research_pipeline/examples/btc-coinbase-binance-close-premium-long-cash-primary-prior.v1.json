@@ -1,0 +1,70 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINBASE_BINANCE_CLOSE_PREMIUM_LONG_CASH_PRIMARY_PRIOR_V1",
+  "family_id": "btc-coinbase-binance-close-premium-long-cash",
+  "reviewed_at": "2026-08-22T20:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PRIMARY_ADVERSARIAL_SOURCE_AND_DEDUP_PRIOR_NO_OUTCOME_ACCESS",
+  "decision": "PRIOR_SUPPORTS_ONE_FREE_SOURCE_FIRST_ZERO_THRESHOLD_CROSS_VENUE_PREMIUM_PREDICTIVE_AUDIT",
+  "claim_boundary": "Primary evidence establishes heterogeneous and time-varying cross-exchange Bitcoin price discovery, while official exchange documentation establishes a credential-free daily Coinbase BTC-USD candle source. It does not establish that a positive Coinbase BTC-USD close premium over Binance BTCUSDT predicts the next BTC day, survives the USD-versus-USDT quote mismatch, or has positive risk-adjusted economics.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Makarov and Schoar, Price Discovery in Cryptocurrency Markets, AEA Papers and Proceedings 109, 2019, DOI 10.1257/pandp.20191020",
+      "url": "https://www.aeaweb.org/articles?id=10.1257%2Fpandp.20191020",
+      "role": "PRIMARY_CROSS_EXCHANGE_PRICE_DISCOVERY_AND_ADVERSARIAL_SEGMENTATION_PRIOR",
+      "finding": "Bitcoin price formation differs materially across exchanges and time. When markets are integrated, shocks across exchanges contribute; when segmented, exchanges with large arbitrage spreads relative to the U.S. price become less important for price discovery.",
+      "transfer_boundary": "Cross-venue price dispersion can measure demand or segmentation, but the cited finding is not a directional next-day return rule and explicitly warns that a large premium can represent weaker rather than stronger price discovery."
+    },
+    {
+      "identity": "Coinbase Exchange API Get product candles official documentation",
+      "url": "https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/products/get-product-candles",
+      "role": "PRIMARY_FREE_COINBASE_DAILY_CANDLE_SOURCE_CONTRACT",
+      "finding": "The public product-candles endpoint returns timestamped OHLCV buckets, supports 86,400-second daily granularity and at most 300 candles per request, and warns that intervals without ticks may be absent.",
+      "transfer_boundary": "The source must be partitioned, checked for every required day and compared only on complete common UTC days; transport availability does not establish price accuracy, stablecoin parity or predictive value."
+    }
+  ],
+  "single_family_boundary": {
+    "decision_feature": "LATEST_COMPLETE_UTC_DAY_COINBASE_BTCUSD_CLOSE_DIVIDED_BY_BINANCE_BTCUSDT_CLOSE_MINUS_ONE_STRICTLY_GREATER_THAN_ZERO",
+    "mapping": "AFTER_UTC_DAY_D_COMPLETES_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_D_PLUS_1_UTC_OPEN_TO_D_PLUS_2_UTC_OPEN_WHEN_COINBASE_PREMIUM_IS_POSITIVE_OTHERWISE_ZERO_YIELD_CASH",
+    "source_window": "2020-01-01_THROUGH_2024-12-31_COMPLETE_COMMON_UTC_DAYS",
+    "threshold": "NATURAL_ZERO_NO_QUANTILE_OR_LOOKBACK_SCAN",
+    "variants": 1
+  },
+  "causal_hypothesis": "A positive U.S. fiat-market close premium may reflect incremental U.S. demand not yet fully incorporated by the larger offshore USDT market, but it may instead be contemporaneous noise, market segmentation or USDT quote risk; only stable Design and Validation lead-lag evidence can distinguish those explanations.",
+  "economic_hypothesis": "If the completed-day premium contains independent demand information, positive-premium days should have higher next-day BTCUSDT open-to-open return and no-worse downside risk in both frozen windows before a full-capital long-cash ledger is opened.",
+  "independence_assessment": {
+    "distinct_from_closed_relative_volume_share": "The closed family measured Coinbase share of native-BTC base volume over a 28-day mean versus a 365-day median. This family measures a one-day signed cross-venue price difference around the natural zero boundary and must not reuse, condition on or tune the closed volume feature.",
+    "distinct_from_closed_spot_perpetual_basis": "Both legs are spot reference markets on different venues and quote assets; no perpetual contract, funding cash flow, derivative basis trade or delta-neutral execution is involved.",
+    "distinct_from_closed_usdc_peg_route": "The closed route required unavailable USDCUSDT archives and attempted a stablecoin dislocation veto. This family makes no USDC claim, but must report USD-versus-USDT quote contamination as an unresolved interpretation risk rather than call the premium pure Coinbase demand.",
+    "duplicate_family_key": "btc-daily-coinbase-btcusd-minus-binance-btcusdt-close-premium-above-zero-next-day-long-cash",
+    "dedup_result": "NO_MATCHING_EXECUTED_OR_CLOSED_FINGERPRINT_FOUND"
+  },
+  "source_contract": {
+    "coinbase": "PUBLIC_BTC_USD_86400_SECOND_PRODUCT_CANDLES_IN_FIXED_SUB_300_DAY_PARTITIONS",
+    "binance": "PUBLIC_CHECKSUM_VERIFIED_BTCUSDT_MONTHLY_SPOT_1D_ARCHIVES",
+    "common_days": "REQUIRE_EVERY_UTC_DAY_2020_THROUGH_2024_ON_BOTH_VENUES",
+    "selected_fields": [
+      "venue",
+      "symbol",
+      "date",
+      "close"
+    ],
+    "credentials": "DENY",
+    "automatic_retry": "DENY",
+    "paid_api": "DENY"
+  },
+  "adversarial_boundaries": [
+    "BTC-USD and BTCUSDT are not identical quote markets; the signed difference can contain USDT value, venue friction, timing and last-trade noise in addition to U.S. demand.",
+    "A contemporaneous premium can be arbitraged away or mark market segmentation and therefore need not predict the next day in the positive direction.",
+    "Do not add a smoothing lookback, quantile threshold, reversal mapping, volume interaction, stablecoin repair or regime filter after any close value is opened.",
+    "A source or predictive failure closes this exact family before economics and keeps OOS sealed."
+  ],
+  "stop_conditions": [
+    "Before value access, freeze one price-only source manifest and one predictive contract with the exact zero threshold, next-day mapping, Design and Validation windows, minimum state counts, direction, downside, annual breadth and concentration gates.",
+    "Stop DATA_REJECT on any source partition, row, common-day, duplicate, nonpositive close, checksum or determinism failure without repair or alternate venue substitution.",
+    "Stop NO_CANDIDATE before economics if either window lacks support, the premium direction reverses, Validation downside is worse, annual breadth fails or positive contribution is concentrated.",
+    "No reverse mapping, nearby threshold, smoothing, volume conditioning, quote conversion or post-2024 OOS access is permitted after value access."
+  ],
+  "next_action": "FREEZE_ONE_REUSED_INFRASTRUCTURE_PRICE_ONLY_SOURCE_AND_DOWNSTREAM_PREDICTIVE_MANIFEST_BEFORE_REOPENING_COINBASE_OR_BINANCE_VALUES",
+  "scope_note": "Primary/adversarial and source-capability prior only. No Coinbase or Binance response, price, premium, BTC outcome, factor, strategy, ledger, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

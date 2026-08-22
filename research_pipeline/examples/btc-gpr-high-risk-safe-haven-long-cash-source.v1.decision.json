@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_GPR_DAILY_VINTAGE_SOURCE_DECISION_V1",
+  "family_id": "btc-gpr-high-risk-safe-haven-long-cash",
+  "decided_at": "2026-08-22T20:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_BTC_OUTCOME_SOURCE_DATA_REJECT_NO_CANDIDATE_NO_OOS",
+  "status": "DATA_REJECT",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_EXACT_20250113_GPR_HIGH_RISK_SAFE_HAVEN_FAMILY",
+  "source_contract": {
+    "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-source.v1.spec.json",
+    "sha256": "5a70fb547eb41a8cfd4b773c450425af89846af2efb59ba56331b6c21c92c291"
+  },
+  "source_probe": {
+    "path": "research/gpr_daily_vintage_source_v1.py",
+    "sha256": "2ed111608ad22dcbebf0fada5cdef1739a0f06123f74ef8a2187d0d956b7596a"
+  },
+  "prevalue_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-primary-prior.v1.json",
+      "sha256": "f5932ebd9d424307d9b4e2f28a898e0412a99cd56a0818fef3de9b6ca4cbf353",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_SOURCE_VINTAGE_AND_DEDUP_BOUNDARY_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-gpr-high-risk-safe-haven-long-cash-prevalue-availability-erratum.v1.json",
+      "sha256": "da7721d2d9c729a383447fb82e1ff81145187bb338cf3dccde84b607cedec3e4",
+      "role": "FROZEN_PREVALUE_SEVEN_DAY_PUBLICATION_AVAILABILITY_CORRECTION"
+    }
+  ],
+  "observed_source_result": {
+    "attempt_count": 1,
+    "requested_url": "https://www.matteoiacoviello.com/gpr_files/data_gpr_daily_recent_20250113.xls",
+    "http_status": 404,
+    "terminal_error": "SOURCE_REJECT:TRANSPORT:HTTPError",
+    "redirect_followed": false,
+    "automatic_retry_performed": false,
+    "response_body_or_workbook_opened": false,
+    "gpr_cell_opened": false,
+    "btc_outcome_opened": false,
+    "source_artifact_created": false
+  },
+  "gate_matrix": {
+    "exact_dated_url_http_200": "FAIL_HTTP_404",
+    "no_redirect_credential_or_retry": "PASS",
+    "legacy_xls_schema": "NOT_REACHED",
+    "complete_2018_2024_calendar_days": "NOT_REACHED",
+    "two_run_byte_identity": "NOT_REACHED_TERMINAL_FIRST_RUN_FAILURE"
+  },
+  "material_conclusion": "The one frozen point-in-time free GPR source returned HTTP 404 before any workbook body, GPR value or BTC outcome was opened. The exact family therefore fails its source contract and is closed without substituting the latest workbook, another vintage, monthly data, an alternate provider, imputation or a shorter period.",
+  "performance_evidence": {
+    "predictive_relation": "MISSING_PROOF_NOT_RUN",
+    "fees": "MISSING_PROOF_NOT_RUN",
+    "slippage": "MISSING_PROOF_NOT_RUN",
+    "realized_pnl": "MISSING_PROOF_NOT_RUN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_RUN",
+    "total_pnl": "MISSING_PROOF_NOT_RUN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_RUN",
+    "annual_breadth": "MISSING_PROOF_NOT_RUN",
+    "oos": "SEALED_UNOPENED"
+  },
+  "prohibited_reopen": true,
+  "next_action": "Replace the pool slot with a causally distinct free-data family; do not retry or tune this exact GPR route.",
+  "scope_note": "One exact free source transport attempt only. No workbook body, GPR value, BTC price, return, factor, strategy, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,163 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_ROTATION_PREVALUE_SPEC_V1",
+  "experiment_id": "btc-paxg-monthly-relative-momentum-rotation-historical-v1",
+  "family_id": "btc-paxg-monthly-relative-momentum-rotation",
+  "frozen_at": "2026-08-22T16:05:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_SOURCE_LEDGER_COST_AND_ALL_PASS_GATE_FREEZE",
+  "thesis": "At each UTC month boundary, holding only the better-performing of BTC and tokenized gold over the preceding six complete calendar months may improve after-cost risk-adjusted performance versus static 50/50 BTC-PAXG if cross-asset persistence is broad rather than one-cycle concentration.",
+  "economic_rationale": "The strategy is useful only if its full-capital switches beat a static diversified allocation after both-leg friction while producing non-worse drawdown and Calmar versus both static 50/50 and BTC-only opportunity cost. Selecting PAXG occasionally or lowering volatility cannot rescue failed return, breadth or path-risk gates.",
+  "opportunity_cost": "One fixed low-cost audit either creates a historically eligible candidate for independent sealed OOS or permanently closes the exact BTC-PAXG six-month monthly rotation before horizon, cash-sleeve, trend-filter or third-asset tuning consumes more research capacity.",
+  "source_bindings": [
+    {
+      "path": "research/binance_btc_paxg_daily_source_v1.py",
+      "sha256": "7639965f61bf851dd0f8e03cb94e51a3c60c3c90369662dcc321a1783c384509",
+      "role": "FROZEN_FIXED_TWO_SYMBOL_SOURCE_ADAPTER"
+    },
+    {
+      "path": "research/btc_paxg_monthly_relative_momentum_rotation_v1.py",
+      "sha256": "e65f49cfc4cfd60b62ad2a0b1d5891ecb62b4e456e2c2cd5461b157c32507197",
+      "role": "FROZEN_DIRECT_MATCHED_CAPITAL_ROTATION_RUNNER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.manifest.json",
+      "sha256": "b09a7c4630cfef987e2f6a8875a323cbf8ed1513d8274f44683b810b903222e8",
+      "role": "FROZEN_CHECKSUM_BOUND_SOURCE_MANIFEST"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-primary-prior.v1.json",
+      "sha256": "49bfcf8a65abb1d973556796dd408d02ff08e79c0d8204466000b2fa5737f3bb",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR"
+    }
+  ],
+  "source_contract": {
+    "symbols": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "archive_months": "2020-09_THROUGH_2024-12",
+    "archive_count": 104,
+    "expected_intersection_days_per_symbol": 1583,
+    "expected_rows": 3166,
+    "checksum": "REQUIRE_EVERY_PUBLISHER_SHA256",
+    "daily_lattice": "EXACTLY_ONE_COMPLETE_NATIVE_UTC_1D_ROW_PER_SYMBOL_DAY",
+    "latest_permitted_observation": "2024-12-31T23:59:59.999Z",
+    "paxg_partial_august_2020": "DENY",
+    "post_2024": "DENY",
+    "oos": "DENY"
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_PAXG_MONTHLY_SIX_COMPLETE_MONTH_RELATIVE_MOMENTUM_ROTATION_V1",
+    "symbols": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "bar_interval": "1d",
+    "initial_equity_usdt": "10000",
+    "formation": "EACH_SYMBOL_LAST_COMPLETE_DAY_CLOSE_DIVIDED_BY_FIRST_NATIVE_DAILY_OPEN_SIX_COMPLETE_CALENDAR_MONTHS_EARLIER_MINUS_ONE",
+    "decision_clock": "FIRST_NATIVE_DAILY_OPEN_OF_EACH_UTC_MONTH",
+    "selection": "HOLD_ONE_HUNDRED_PERCENT_OF_THE_SYMBOL_WITH_THE_HIGHER_LAGGED_FORMATION_RETURN",
+    "exact_tie": "BTCUSDT",
+    "switch_execution": "SELL_CURRENT_ASSET_THEN_BUY_SELECTED_ASSET_AT_THE_SAME_NATIVE_DAILY_OPEN_WITH_ADVERSE_COSTS",
+    "cash_return": "0",
+    "leverage": "DENY",
+    "short": "DENY",
+    "external_cash_flow": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2021-03-01",
+      "2023-01-01"
+    ],
+    "validation": [
+      "2023-01-01",
+      "2025-01-01"
+    ],
+    "annual_fair_reset_years": [
+      2022,
+      2023,
+      2024
+    ],
+    "formation_bootstrap_start": "2020-09-01",
+    "state": "FAIR_RESET_IDENTICAL_INITIAL_EQUITY_EACH_WINDOW"
+  },
+  "comparators": {
+    "primary": "STATIC_50_50_BTC_PAXG_BOUGHT_AT_WINDOW_FIRST_NATIVE_OPEN_AND_NEVER_REBALANCED",
+    "opportunity_cost": "BTC_ONLY_BOUGHT_AT_WINDOW_FIRST_NATIVE_OPEN_AND_NEVER_TRADED",
+    "capital_matching": "SAME_INITIAL_EQUITY_SOURCE_WINDOW_INITIAL_EXECUTION_COSTS_DAILY_CLOSE_VALUATION_AND_TERMINAL_LIQUIDATION_SENSITIVITY"
+  },
+  "valuation": {
+    "primary": "DAILY_CLOSE_MARK_TO_MARKET_WITHOUT_FORCED_TERMINAL_LIQUIDATION",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_LIQUIDATION_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "NET_SWITCH_SALE_REALIZED_PLUS_MARK_TO_MARKET_RESIDUAL",
+    "terminal_inventory": "REPORT_SYMBOL_QUANTITY_MARKET_VALUE_COST_BASIS_AND_AGE"
+  },
+  "gate_set": {
+    "id": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_MATCHED_CAPITAL_GATES_V1",
+    "design_and_validation_each_cost_scenario": [
+      "candidate_total_return_positive",
+      "candidate_total_return_strictly_above_static_50_50",
+      "candidate_terminal_liquidation_return_strictly_above_static_50_50",
+      "candidate_maximum_drawdown_non_worse_than_static_50_50",
+      "candidate_calmar_non_worse_than_static_50_50",
+      "candidate_maximum_drawdown_non_worse_than_btc_only",
+      "candidate_calmar_non_worse_than_btc_only"
+    ],
+    "mechanism_breadth_each_window": [
+      "monthly_signal_count_exactly_22_design_and_24_validation",
+      "switch_count_at_least_2",
+      "btc_selected_at_least_3_months",
+      "paxg_selected_at_least_3_months"
+    ],
+    "annual_breadth_each_cost_scenario_2022_2024": [
+      "candidate_positive_return_at_least_2_of_3_years",
+      "candidate_beats_static_50_50_at_least_2_of_3_years",
+      "candidate_drawdown_non_worse_than_static_at_least_2_of_3_years",
+      "candidate_calmar_non_worse_than_static_at_least_2_of_3_years",
+      "candidate_calmar_non_worse_than_btc_at_least_2_of_3_years",
+      "top_positive_incremental_year_contribution_at_most_65_percent"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_BTC_PAXG_MONTHLY_SIX_MONTH_RELATIVE_MOMENTUM_ROTATION_FAMILY_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "source_runs": 2,
+    "economic_runs": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS_WITH_IDENTICAL_SHA256",
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics if any source binding, archive checksum, ZIP member, row schema, OHLCV, daily lattice, symbol, date, source-run determinism or bound hash differs.",
+    "Do not change six-month formation, month-open execution, exact-tie rule, symbols, one-asset sizing, source, windows, costs, comparator, gates or annual breadth after any ZIP body or price value is opened.",
+    "Do not add cash, trend, volatility, correlation, threshold, third asset, leverage, shorting, another gold token, venue or horizon as a rescue.",
+    "Stop and permanently close the family if any Design, Validation, mechanism-breadth, annual-breadth, concentration, return, drawdown, Calmar or determinism gate fails.",
+    "Do not access post-2024 or independent OOS unless every historical gate passes; a pass ends at REPORTED_NOT_ACTIVATED."
+  ],
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

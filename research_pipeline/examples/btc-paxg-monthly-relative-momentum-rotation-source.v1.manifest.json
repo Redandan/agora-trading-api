@@ -1,0 +1,91 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_MONTHLY_RELATIVE_MOMENTUM_SOURCE_MANIFEST_V1",
+  "experiment_id": "btc-paxg-monthly-relative-momentum-rotation-source-v1",
+  "family_id": "btc-paxg-monthly-relative-momentum-rotation",
+  "created_at": "2026-08-22T16:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_SOURCE_ACQUISITION_ONLY",
+  "thesis": "Acquire exactly one checksum-bound, complete and deterministic BTCUSDT plus PAXGUSDT daily intersection from the official Binance public monthly archives without computing returns, rankings, trades or strategy outcomes.",
+  "acquisition_policy": {
+    "source": "BINANCE_PUBLIC_DATA_SPOT_MONTHLY_1D_ARCHIVES",
+    "symbols": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "first_month": "2020-09",
+    "last_month": "2024-12",
+    "archive_checksum": "REQUIRE_EXACT_PUBLISHER_SHA256_FOR_EVERY_ZIP",
+    "daily_intersection": "REQUIRE_EVERY_COMPLETE_UTC_DAY_FOR_BOTH_SYMBOLS",
+    "partial_terminal_session": "DENY",
+    "current_exchange_info": "DENY",
+    "price_return_or_strategy_outcome": "DENY"
+  },
+  "source_bindings": [
+    {
+      "path": "research/binance_btc_paxg_daily_source_v1.py",
+      "sha256": "7639965f61bf851dd0f8e03cb94e51a3c60c3c90369662dcc321a1783c384509",
+      "role": "FROZEN_FIXED_TWO_SYMBOL_SOURCE_ADAPTER"
+    },
+    {
+      "path": "research/binance_spot_usdt_daily_corpus_v1.py",
+      "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c",
+      "role": "FROZEN_REUSED_CHECKSUM_ZIP_DAILY_CLOCK_AND_NORMALIZATION_LIBRARY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-primary-prior.v1.json",
+      "sha256": "49bfcf8a65abb1d973556796dd408d02ff08e79c0d8204466000b2fa5737f3bb",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR"
+    },
+    {
+      "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source-inventory.v1.decision.json",
+      "sha256": "a3e368a006206c0d25383f1d1f59a946727502d9b2abe16a3d7289f40c1c1d8c",
+      "role": "SEALED_BYTE_IDENTICAL_METADATA_GATE_PASS"
+    }
+  ],
+  "output_contract": {
+    "run1_bundle": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/source.v1.run1.bundle.json",
+    "run1_normalized_gzip": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/btc-paxg-daily-2020-09-2024.v1.run1.csv.gz",
+    "run2_bundle": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/source.v1.run2.bundle.json",
+    "run2_normalized_gzip": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-source-v1/inputs/btc-paxg-daily-2020-09-2024.v1.run2.csv.gz",
+    "write_mode": "CREATE_ONCE_NO_OVERWRITE",
+    "determinism_gate": "RUN1_AND_RUN2_BUNDLE_AND_NORMALIZED_GZIP_BYTES_MUST_BE_IDENTICAL"
+  },
+  "integrity_gates": [
+    "all_source_binding_hashes_match_before_network_access",
+    "exactly_BTCUSDT_and_PAXGUSDT_without_current_exchange_info",
+    "all_104_expected_monthly_archives_exist",
+    "every_archive_matches_its_publisher_checksum",
+    "one_expected_csv_member_per_zip",
+    "strict_pre_2025_millisecond_daily_clock",
+    "no_partial_terminal_session_rows",
+    "positive_valid_ohlc_and_nonnegative_activity",
+    "exact_1583_day_intersection_per_symbol_from_2020_09_01_through_2024_12_31",
+    "no_duplicate_symbol_day_rows",
+    "byte_identical_run1_and_run2_outputs"
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT without source substitution if any binding, transport, month, checksum, ZIP, timestamp, schema, OHLCV, intersection or determinism gate fails.",
+    "Do not change source, symbols, quote asset, date range, interval or parser after observing any source price value.",
+    "Do not compute returns, relative returns, rankings, turnover, portfolio weights, strategy paths, PnL, drawdown, Sharpe or Calmar in this stage.",
+    "Do not use PAXG's partial August 2020 archive, another gold token, another venue, current exchangeInfo, post-2024 archives or paid data to rescue this source route."
+  ],
+  "next_gate_on_pass": "BIND_BYTE_IDENTICAL_SOURCE_HASHES_IN_THE_ALREADY_FROZEN_SINGLE_VARIANT_ECONOMIC_MANIFEST_THEN_RUN_TWICE",
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "CURRENT_EXCHANGE_INFO",
+    "POST_2024_OUTCOME",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE"
+  ]
+}

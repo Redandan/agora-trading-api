@@ -214,12 +214,12 @@
       "economic_hypothesis": "A one-asset monthly BTC-PAXG relative-momentum allocation may improve after-cost matched-capital Calmar and maximum drawdown versus static 50/50 BTC-PAXG while retaining broad annual support and fully marked terminal inventory.",
       "parent_strategy_id": "STATIC_FIFTY_FIFTY_BTC_PAXG_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_AND_WINDOW",
       "matched_comparator_id": "STATIC_FIFTY_FIFTY_BTC_PAXG_BUY_AND_HOLD_WITH_IDENTICAL_COST_AND_MARKING_ACCOUNTING",
-      "runner_id": "NOT_BUILT_CHECKSUM_BOUND_CORPUS_AND_ECONOMIC_SPEC_NEXT",
+      "runner_id": "btc-paxg-monthly-relative-momentum-rotation-v1",
       "base_stage": "HISTORICAL_PRIOR",
       "estimated_days_to_next_gate": 1,
       "compute_cost_class": "LOW",
       "independence_key": "btc-tokenized-gold-cross-asset-relative-momentum-not-fixed-weight-rebalancing-volatility-selection-or-external-market-timing",
-      "next_gate": "FREEZE_ONE_CHECKSUM_BOUND_PRE2025_CORPUS_ROW_INTEGRITY_SIX_MONTH_FORMATION_STATIC_50_50_COMPARATOR_COST_AND_ALL_PASS_ECONOMIC_GATE_SPEC_BEFORE_DOWNLOADING_ANY_ZIP_BODY",
+      "next_gate": "EXECUTE_THE_FROZEN_CHECKSUM_BOUND_BTC_PAXG_SOURCE_TWICE_THEN_BIND_BYTE_IDENTICAL_HASHES_WITHOUT_CHANGING_POLICY_COSTS_WINDOWS_OR_GATES",
       "canonical_binding": {
         "kind": "NONE",
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
@@ -239,6 +239,16 @@
           "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source-inventory.v1.decision.json",
           "role": "SEALED_BYTE_IDENTICAL_METADATA_SOURCE_GATE_PASS_PRICE_ACCESS_STILL_DENIED",
           "sha256": "a3e368a006206c0d25383f1d1f59a946727502d9b2abe16a3d7289f40c1c1d8c"
+        },
+        {
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-source.v1.manifest.json",
+          "role": "FROZEN_CHECKSUM_BOUND_TWO_SYMBOL_SOURCE_MANIFEST",
+          "sha256": "b09a7c4630cfef987e2f6a8875a323cbf8ed1513d8274f44683b810b903222e8"
+        },
+        {
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.prevalue-spec.json",
+          "role": "FROZEN_PRE_VALUE_POLICY_COST_WINDOW_COMPARATOR_AND_ALL_PASS_GATE_SPEC",
+          "sha256": "0a4d1155c95dc2a6e96c56e8c3fafa1d22c74a79e76ac5bc9e601ffb70bf277d"
         }
       ],
       "economic_evidence_status": {
@@ -254,7 +264,8 @@
       },
       "missing_proof": [
         "Metadata proves every required 2020-09 through 2024-12 ZIP and checksum object exists, but no body or daily row has been opened.",
-        "No common daily lattice, liquidity, spread, tracking error, cost ledger or matched-capital runner is frozen.",
+        "The source adapter and complete strategy ledger are frozen, but archive checksums, common daily lattice and deterministic source hashes remain unopened.",
+        "PAXG liquidity, spread and physical-gold tracking remain diagnostics rather than proved execution capacity.",
         "All Design, Validation, annual breadth, concentration, drawdown, candidate and OOS evidence remains missing."
       ],
       "duplicate_family_key": "btc-paxg-monthly-six-month-relative-momentum-rotation"

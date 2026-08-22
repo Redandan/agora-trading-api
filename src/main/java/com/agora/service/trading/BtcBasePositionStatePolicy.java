@@ -136,6 +136,16 @@ public final class BtcBasePositionStatePolicy {
         return "UNKNOWN";
     }
 
+    public static String economicOwner(BtLiveSignal position) {
+        if (isTv509Position(position)) return "TV509";
+        if (isDraV1Position(position)) return "DRA_V1";
+        if (isAdoptionPending(position) || isAdoptedFromOco(position)) {
+            return "LEGACY_BTC_BASE";
+        }
+        if (isBtcBase(position)) return "BTC_BASE_OTHER";
+        return "UNATTRIBUTED";
+    }
+
     private static boolean startsWith(String value, String prefix) {
         return value != null && value.startsWith(prefix);
     }

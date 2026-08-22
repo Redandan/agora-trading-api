@@ -9,6 +9,7 @@ import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.OkxTradingService;
+import com.agora.service.trading.SpotEconomicLedgerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class ExecutionSafetyMcpTools {
     private final BtLiveSignalRepository liveSignalRepository;
     private final OcoOrderStateInspector ocoOrderStateInspector;
     private final OkxTradingService okxTradingService;
+    private final SpotEconomicLedgerService spotEconomicLedgerService;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
@@ -97,7 +99,7 @@ public class ExecutionSafetyMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
-    @Tool(description = "Read-only open BTC spot position inventory with ownership, current gross mark-to-market PnL, and execution-safety state. Fee-exact net PnL is intentionally not claimed. Does not place, cancel, or modify orders.")
+    @Tool(description = "Read-only open BTC spot inventory with ownership and gross mark-to-market PnL plus a fail-closed daily/cumulative realized ledger. Exact-net coverage is reported only for reconciled provider receipts. Does not place, cancel, or modify orders.")
     public String getOpenSpotPositions() {
         List<BtLiveSignal> positions =
                 liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull().stream()
@@ -105,7 +107,9 @@ public class ExecutionSafetyMcpTools {
                         .toList();
         StringBuilder result = new StringBuilder("OPEN_SPOT_POSITIONS\n");
         if (positions.isEmpty()) {
-            return result.append("count=0").toString();
+            return result.append("count=0\n\n")
+                    .append(spotEconomicLedgerService.report())
+                    .toString();
         }
 
         Map<String, BigDecimal> markPrices = new HashMap<>();
@@ -157,7 +161,9 @@ public class ExecutionSafetyMcpTools {
                 .append(" pricedGrossUnrealizedReturn=")
                 .append(decimal(divide(totalGrossUnrealizedPnl, totalEntryCost)))
                 .append("\nprofitBasis=GROSS_MARK_TO_MARKET_EXCLUDES_ENTRY_AND_EXIT_FEES")
-                .append("\nasOf=").append(Instant.now());
+                .append("\nasOf=").append(Instant.now())
+                .append("\n\n")
+                .append(spotEconomicLedgerService.report());
         return result.toString();
     }
 

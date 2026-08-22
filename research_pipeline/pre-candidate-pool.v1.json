@@ -207,47 +207,47 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-daily-stochastic-5-3-3-kd-cross-long-cash",
-      "title": "BTC daily default stochastic 5-3-3 K-D cross long-or-cash",
-      "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_DEFAULT_STOCHASTIC_5_3_3_SLOWK_MINUS_SLOWD_STRICTLY_ABOVE_NEGATIVE10_ZERO_POSITIVE10_WITH_ZERO_PRIMARY_AND_NEIGHBORS_REJECTION_ONLY",
-      "causal_hypothesis": "A completed-day close that is rising within its recent five-day high-low range faster than its own three-day signal line may identify short-horizon range-position acceleration before the next hourly fill.",
-      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using completed-day default stochastic SlowK minus SlowD may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
-      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "runner_id": "BTC_DAILY_STOCHASTIC_5_3_3_KD_CROSS_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
       "base_stage": "PREREGISTRATION_READY",
-      "estimated_days_to_next_gate": 1,
-      "compute_cost_class": "LOW",
-      "independence_key": "btc-complete-day-default-stochastic-range-position-acceleration-long-cash",
-      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_TALIB_DEFAULT_STOCHASTIC_5_3_3_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
       "canonical_binding": {
-        "kind": "NONE",
-        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
+        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
+        "kind": "NONE"
       },
+      "causal_hypothesis": "Efficiency-ratio-controlled smoothing may accelerate during directional low-noise BTC paths and decelerate during choppy paths, allowing close above KAMA30 to retain efficient trends while reducing fixed-average whipsaw before the next hourly fill.",
+      "compute_cost_class": "LOW",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_CLOSE_STRICTLY_ABOVE_TALIB_DEFAULT_KAMA20_30_40_WITH_KAMA30_PRIMARY_AND_KAMA20_40_REJECTION_ONLY",
+      "duplicate_family_key": "btc-daily-kama30-adaptive-trend-long-cash",
+      "economic_evidence_status": {
+        "adverse_slippage": "MATCHED_CAPITAL_READY",
+        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED",
+        "fees": "MATCHED_CAPITAL_READY",
+        "holding_age": "REQUIRED_NOT_MEASURED",
+        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
+        "realized_pnl": "REQUIRED_NOT_MEASURED",
+        "terminal_inventory": "REQUIRED_NOT_MEASURED",
+        "total_pnl": "REQUIRED_NOT_MEASURED",
+        "unrealized_pnl": "REQUIRED_NOT_MEASURED"
+      },
+      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy using completed-day close strictly above TA-Lib-default KAMA30 may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
+      "estimated_days_to_next_gate": 1,
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-daily-stochastic-5-3-3-kd-cross-long-cash-primary-prior.v1.json",
+          "path": "research_pipeline/examples/btc-daily-kama30-adaptive-trend-long-cash-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_FORMULA_ACADEMIC_AND_ADVERSARIAL_PRIOR",
-          "sha256": "368c8fd16b1cd5e0239ed4e5af832762da145474393fb9d1f6fab2da6a098fb3"
+          "sha256": "97ed25a7bb96f8f6495c6e36e4815c7667c6a052d257abbc428120a9a94a5603"
         }
       ],
-      "economic_evidence_status": {
-        "fees": "MATCHED_CAPITAL_READY",
-        "adverse_slippage": "MATCHED_CAPITAL_READY",
-        "realized_pnl": "REQUIRED_NOT_MEASURED",
-        "unrealized_pnl": "REQUIRED_NOT_MEASURED",
-        "total_pnl": "REQUIRED_NOT_MEASURED",
-        "maximum_drawdown": "REQUIRED_NOT_MEASURED",
-        "holding_age": "REQUIRED_NOT_MEASURED",
-        "terminal_inventory": "REQUIRED_NOT_MEASURED",
-        "breadth_and_path_risk": "REQUIRED_NOT_MEASURED"
-      },
+      "family_id": "btc-daily-kama30-adaptive-trend-long-cash",
+      "independence_key": "btc-complete-day-efficiency-adaptive-recursive-trend-state-long-cash",
+      "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "missing_proof": [
-        "The exact schema-valid hypothesis, manifest and deterministic runner are not frozen yet.",
-        "No stochastic feature support or matched-capital Design and Validation economics have been opened.",
+        "The exact schema-valid hypothesis, manifest and deterministic TA-Lib-parity runner are not frozen yet.",
+        "No KAMA feature support or matched-capital Design and Validation economics have been opened.",
         "No candidate, independent OOS or forward evidence exists."
       ],
-      "duplicate_family_key": "btc-daily-stochastic-5-3-3-kd-cross-long-cash"
+      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_TALIB_DEFAULT_KAMA30_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "runner_id": "BTC_DAILY_KAMA30_ADAPTIVE_TREND_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
+      "title": "BTC daily TA-Lib-default KAMA30 adaptive-trend long-or-cash"
     }
   ],
   "closed_families": [
@@ -3793,6 +3793,37 @@
         }
       ],
       "prohibited_reopen": true
+    },
+    {
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_DEFAULT_STOCHASTIC_5_3_3_SLOWK_MINUS_SLOWD_STRICTLY_ABOVE_NEGATIVE10_ZERO_POSITIVE10_WITH_ZERO_PRIMARY_AND_NEIGHBORS_REJECTION_ONLY",
+      "disposition": "BTC_DAILY_STOCHASTIC_5_3_3_EVIDENCE_INSUFFICIENT_TEMPORAL_PREREGISTRATION_ORDER_FAILED_NO_RERUN",
+      "duplicate_family_key": "btc-daily-stochastic-5-3-3-kd-cross-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-task.btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.json",
+          "role": "FROZEN_TASK_WITH_FUTURE_ISSUED_AT_DEFECT",
+          "sha256": "cc564f9a5e9379498e4e0d87911c6fb07271f42781baf53178ff7c0fae722b66"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.intent.btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.json",
+          "role": "FROZEN_INTENT_WITH_TEMPORAL_ORDER_FAILURE",
+          "sha256": "1557b81879ac0f21772b6b067559b530b49c8d661ca84aa19d4018eb35f907f9"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.json",
+          "role": "SEALED_NON_COUNTING_EVIDENCE_INSUFFICIENT_RESULT",
+          "sha256": "23bc147175000f4706f2ed892f8e30668c5545fabf4814d0cdd43f778405a709"
+        },
+        {
+          "path": ".research-state/experiments/btc-daily-stochastic-5-3-3-kd-cross-long-cash-historical-v1/artifacts/run1.json",
+          "role": "CONTAMINATED_DIAGNOSTIC_BYTE_IDENTICAL_RUN1_AND_RUN2_NOT_ACCEPTED_AS_PERFORMANCE_CONCLUSION",
+          "sha256": "668eb6c49ff6904c8dbb63caa26db17d623caae137eb8fa34c86a37c69653817"
+        }
+      ],
+      "family_id": "closed-btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "prohibited_reopen": true,
+      "title": "BTC daily default stochastic 5-3-3 K-D cross long-or-cash"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

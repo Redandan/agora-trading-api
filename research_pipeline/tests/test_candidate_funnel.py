@@ -87,18 +87,18 @@ class CandidateFunnelTest(unittest.TestCase):
         Draft202012Validator(schema).validate(catalog_document)
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
-        self.assertEqual(len(catalog["families"]), 8)
-        self.assertEqual(len(catalog["closed_families"]), 134)
+        self.assertEqual(len(catalog["families"]), 5)
+        self.assertEqual(len(catalog["closed_families"]), 137)
         self.assertEqual(
             {
                 family["family_id"]
-                for family in catalog["families"]
-                if family["family_id"].startswith("dra-binance-usdm-")
+                for family in catalog["closed_families"]
+                if family["duplicate_family_key"].startswith("dra-binance-usdm-")
             },
             {
-                "dra-binance-usdm-deleveraging-flush-entry-admission",
-                "dra-binance-usdm-positioning-divergence-entry-admission",
-                "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission",
+                "closed-dra-binance-usdm-deleveraging-flush-entry-admission-v1",
+                "closed-dra-binance-usdm-positioning-divergence-entry-admission-v1",
+                "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
         mfi14 = next(
@@ -1981,8 +1981,8 @@ class CandidateFunnelTest(unittest.TestCase):
         )
 
         self.assertEqual(snapshot["status"], "READY")
-        self.assertEqual(snapshot["summary"]["open_family_count"], 8)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 135)
+        self.assertEqual(snapshot["summary"]["open_family_count"], 5)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 138)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)
@@ -2201,7 +2201,7 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual("CLOSED", closed["stage"])
         self.assertEqual(VOLATILITY_CLOSE, closed["disposition"])
         self.assertTrue(closed["prohibited_reopen"])
-        self.assertEqual(7, snapshot["summary"]["open_family_count"])
+        self.assertEqual(4, snapshot["summary"]["open_family_count"])
 
     def test_volatility_receipt_conflict_blocks_only_that_family(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch(

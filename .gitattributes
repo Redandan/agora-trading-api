@@ -12,6 +12,8 @@ research_pipeline/examples/dra-close-location-entry-admission.v1.manifest.json t
 research_pipeline/examples/dra-close-location-entry-admission.v1.decision.json text eol=lf
 research_pipeline/pre-candidate-pool.v1.json text eol=lf
 research_pipeline/tests/test_candidate_funnel.py text eol=lf
+research_pipeline/examples/binance-usdm-derivatives-archive-corpus-audit.v1.json text eol=lf
+research_pipeline/examples/binance-usdm-derivatives-source-disposition.v1.json text eol=lf
 research_pipeline/examples/dra-h1-volume-weighted-close-location-primary-prior.v1.json text eol=lf
 research_pipeline/examples/dra-h1-volume-weighted-close-location-entry-admission.v1.manifest.json text eol=lf
 research_pipeline/examples/dra-h1-volume-weighted-close-location-entry-admission.v1.decision.json text eol=lf

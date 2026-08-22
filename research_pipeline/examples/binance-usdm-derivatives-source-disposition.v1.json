@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "document_type": "BINANCE_USDM_DERIVATIVES_SOURCE_DISPOSITION_V1",
+  "decision_id": "binance-usdm-derivatives-source-disposition-v1",
+  "decided_at": "2026-08-22T08:31:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "inputs": [
+    {
+      "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+      "role": "FROZEN_PRE_DOWNLOAD_SOURCE_CAPABILITY_AND_FAMILY_IDENTITIES",
+      "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
+    },
+    {
+      "path": "research_pipeline/examples/binance-usdm-derivatives-archive-corpus-audit.v1.json",
+      "role": "FULL_PRE2025_CHECKSUM_BOUND_SOURCE_INTEGRITY_AUDIT",
+      "sha256": "a201875df6448e8c6a05401df107d43eecfdb1d4056494593010f89918f01dd6"
+    },
+    {
+      "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.binance-usdm-shared-dra-runner-capability.v1.json",
+      "role": "ACCEPTED_SHARED_RUNNER_CAPABILITY_BOUNDARY",
+      "sha256": "ee81d9393b64bd2c8e7d3412cf3cf98b3bf8b8e42cd46157e15d2e71a91086ff"
+    }
+  ],
+  "decision": "CLOSE_THREE_EXACT_BINANCE_USDM_V1_FAMILIES_AT_SOURCE_DATA_GATE",
+  "family_dispositions": [
+    {
+      "family_key": "dra-binance-usdm-deleveraging-flush-entry-admission",
+      "disposition": "DATA_REJECT_STRICT_COMPLETE_DAY_SOURCE_CONTRACT",
+      "reason": "The exact V1 feature requires complete daily five-minute source paths, but 96 checksum-valid official archive days violate the frozen 288-row grid. Missing rows cannot be imputed or ignored after corpus inspection.",
+      "prohibited_reopen": true
+    },
+    {
+      "family_key": "dra-binance-usdm-positioning-divergence-entry-admission",
+      "disposition": "DATA_REJECT_REQUIRED_RATIO_COVERAGE",
+      "reason": "Required positioning ratios are incomplete across 333 archive days and become continuously complete only on 2024-08-13, so the exact multi-year comparison is not executable.",
+      "prohibited_reopen": true
+    },
+    {
+      "family_key": "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission",
+      "disposition": "DATA_REJECT_REQUIRED_RATIO_COVERAGE",
+      "reason": "Required taker-flow ratios are incomplete across 141 archive days and become continuously complete only on 2022-09-15, so the exact multi-year comparison is not executable.",
+      "prohibited_reopen": true
+    }
+  ],
+  "runner_disposition": "RETAIN_REUSABLE_CHECKSUM_BOUND_CAPABILITY_NO_STRATEGY_CLAIM",
+  "future_boundary": "A future endpoint-only or shorter-window contract must use a new family identity, be frozen before opening any outcome and fail closed on unavailable decision days. It cannot relabel, impute, drop rows from or reopen these exact V1 families.",
+  "performance_effect": {
+    "realized_pnl": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "unrealized_pnl": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "total_pnl": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "maximum_drawdown": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "holding_age": "MISSING_PROOF_NO_OUTCOME_OPENED",
+    "terminal_inventory": "MISSING_PROOF_NO_OUTCOME_OPENED"
+  },
+  "next_action": "Advance the highest-ranked remaining preregistration-ready direct economic family instead of spending another allocation on source representation tooling.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "candidate_created": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false
+  }
+}

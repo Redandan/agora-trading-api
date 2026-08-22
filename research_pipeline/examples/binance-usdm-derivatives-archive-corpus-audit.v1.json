@@ -1,0 +1,136 @@
+{
+  "schema_version": "1",
+  "document_type": "BINANCE_USDM_DERIVATIVES_ARCHIVE_CORPUS_AUDIT_V1",
+  "audit_id": "binance-usdm-derivatives-archive-corpus-audit-v1",
+  "observed_at": "2026-08-22T08:29:12Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "source_authority": {
+    "archive_repository": "https://github.com/binance/binance-public-data",
+    "archive_bucket": "https://data.binance.vision",
+    "download_host_allowlist": [
+      "data.binance.vision"
+    ],
+    "api_key_required": false,
+    "paid_api_required": false
+  },
+  "selection_boundary": {
+    "instrument": "BTCUSDT",
+    "market": "BINANCE_USDM_PERPETUAL",
+    "first_archive_day": "2020-09-01",
+    "last_archive_day": "2024-12-31",
+    "latest_permitted_observation": "2024-12-31T23:59:59Z",
+    "post_2024_archive_contents_accessed": false,
+    "archive_zip_count": 1583,
+    "checksum_sidecar_count": 1583,
+    "download_failure_count": 0,
+    "checksum_failure_count": 0
+  },
+  "matched_parent_price_corpus": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "row_count": 52608,
+    "role": "EXISTING_SEALED_H1_PARENT_SELECTION_LOCAL_REPLICA"
+  },
+  "five_minute_grid_audit": {
+    "expected_day_count": 1583,
+    "expected_timestamp_count": 455904,
+    "raw_row_count": 530528,
+    "unique_timestamp_count": 455271,
+    "missing_expected_timestamp_count": 776,
+    "out_of_grid_or_out_of_day_timestamp_count": 143,
+    "conflicting_duplicate_timestamp_count": 2,
+    "structurally_invalid_archive_day_count": 96,
+    "structurally_invalid_day_count_by_year": {
+      "2020": 4,
+      "2021": 63,
+      "2022": 0,
+      "2023": 1,
+      "2024": 28
+    },
+    "representative_invalid_days": [
+      "2023-09-12",
+      "2024-02-16",
+      "2024-04-04",
+      "2024-04-21",
+      "2024-04-30",
+      "2024-10-28"
+    ],
+    "strict_complete_day_contract_satisfied": false
+  },
+  "endpoint_completeness_audit": {
+    "required_endpoints": [
+      "00:00:00Z",
+      "23:55:00Z"
+    ],
+    "open_interest_endpoint_incomplete_day_count": 35,
+    "representative_incomplete_days": [
+      "2021-02-19",
+      "2021-02-20",
+      "2022-03-07",
+      "2022-03-08",
+      "2024-02-16",
+      "2024-04-21",
+      "2024-07-10",
+      "2024-07-12"
+    ]
+  },
+  "required_ratio_availability": {
+    "sum_taker_long_short_vol_ratio": {
+      "blank_row_count": 37290,
+      "affected_archive_day_count": 141,
+      "last_affected_day": "2022-09-14",
+      "first_contiguous_complete_day": "2022-09-15"
+    },
+    "count_toptrader_long_short_ratio": {
+      "blank_row_count": 92173,
+      "affected_archive_day_count": 332,
+      "last_affected_day": "2024-08-12"
+    },
+    "sum_toptrader_long_short_ratio": {
+      "blank_row_count": 92175,
+      "affected_archive_day_count": 333,
+      "last_affected_day": "2024-08-12",
+      "first_contiguous_complete_day": "2024-08-13"
+    },
+    "count_long_short_ratio": {
+      "blank_row_count": 5778,
+      "affected_archive_day_count": 29,
+      "last_affected_day": "2024-08-12"
+    }
+  },
+  "family_source_findings": [
+    {
+      "family_key": "dra-binance-usdm-deleveraging-flush-entry-admission",
+      "required_fields_blank_day_count": 0,
+      "blocking_finding": "The frozen V1 adapter requires every source day to contain the exact 288 five-minute grid. Ninety-six official archives violate that contract, so no full checksum-bound normalized pre-2025 corpus can be formed without changing the source representation.",
+      "disposition": "DATA_REJECT_STRICT_COMPLETE_DAY_SOURCE_CONTRACT"
+    },
+    {
+      "family_key": "dra-binance-usdm-positioning-divergence-entry-admission",
+      "required_ratio_affected_day_count": 333,
+      "blocking_finding": "The top-trader and global positioning inputs required by the declared feature do not have complete historical coverage until 2024-08-13, which cannot support the frozen multi-year parent comparison.",
+      "disposition": "DATA_REJECT_REQUIRED_RATIO_COVERAGE"
+    },
+    {
+      "family_key": "dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission",
+      "required_ratio_affected_day_count": 141,
+      "blocking_finding": "The taker-flow input required by the declared feature is incomplete through 2022-09-14, which cannot support the frozen multi-year parent comparison.",
+      "disposition": "DATA_REJECT_REQUIRED_RATIO_COVERAGE"
+    }
+  ],
+  "audit_decision": "FULL_PRE2025_NORMALIZED_CORPUS_DATA_REJECT_NO_STRATEGY_OUTCOME_OPENED",
+  "claim_boundary": "This is a source-integrity decision, not an alpha, predictive, PnL, drawdown or candidate result. A future endpoint-only or shorter-window feature would be a separately preregistered source representation and family identity; it cannot reopen these exact rejected contracts.",
+  "missing_proof": [
+    "No Binance USD-M family strategy outcome, threshold, matched-capital PnL, drawdown, holding, inventory, breadth, candidate or OOS evidence was opened.",
+    "No outcome-neutral endpoint-only V2 contract has been preregistered or validated.",
+    "The official archive does not provide a monthly metrics alternative for this dataset; no external imputation or paid source was used."
+  ],
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "candidate_created": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "trading_action_attempted": false
+  }
+}

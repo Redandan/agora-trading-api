@@ -1,0 +1,132 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-binance-usdm-shared-dra-runner-capability-v1",
+  "issued_at": "2026-08-22T07:40:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "ADAPTER_IMPLEMENTATION",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement exactly one shared, offline, checksum-bound Binance USD-M historical archive adapter and declarative BTC_DRA_V1 external-feature entry-admission runner capability. The capability must unlock exactly three already listed source-ready joint-state families without creating a hypothesis, manifest instance, strategy result, candidate or OOS: leverage-flush admission, top-versus-global positioning-divergence admission, and joint taker-flow/open-interest confirmation. Reuse the existing equal-capital parent ledger and economic outputs; add no timer, writer or runtime integration.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE_NO_ACTIVE_CANDIDATE_NO_ACTIVE_EXPERIMENT_QUEUE_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+      "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/pre-candidate-pool.v1.json",
+      "sha256": "7ae0e9a6c46d4788a3c40dbbb92f934886b4463d290fcbbfd1adfdfc1b6468a6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research/btc_dra_declarative_entry_admission_v1.py",
+      "sha256": "648c0a9f96eccdf18852c87ff5acdaadf0cef929ca89244edcaf11707b5c41e1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research/btc_dra_equal_capital_capacity_v1.py",
+      "sha256": "291fe6529f204313954c7900a49180fcd53da9ab23b299c8b83003f307a32a29"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/dra-declarative-entry-admission-manifest.v1.schema.json",
+      "sha256": "a43f2046a52893aace077571e767605a16b1372107d3f4b8096ff0fe95a5937f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-candidate-enabling-capability.v1.schema.json",
+      "sha256": "e5de7bf1139683ba7d44864bf3f3c569bab62e446426aa363b0db5bc24391742"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a836692d7da46435a9f3c94ec792719c7bf8a1dcdb4ce7ded3aace664c1862a8"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Public source allowlist: https://data.binance.vision and https://s3-ap-northeast-1.amazonaws.com/data.binance.vision only. No API key, paid endpoint, alternate mirror or post-2024 content access is allowed.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Exactly six absent output paths are allowed: research_pipeline/binance_usdm_archive.py; research_pipeline/binance-usdm-external-dra-manifest.v1.schema.json; research/btc_dra_binance_usdm_external_entry_admission_v1.py; research_pipeline/tests/test_binance_usdm_archive.py; research_pipeline/tests/test_btc_dra_binance_usdm_external_entry_admission_v1.py; docs/binance-usdm-dra-external-runner-v1.md.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_EXACT_FROZEN_INPUTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "PROBE_ALLOWLISTED_BINANCE_ARCHIVE_METADATA",
+    "ADD_CHECKSUM_BOUND_ARCHIVE_ADAPTER",
+    "ADD_CLOSED_EXTERNAL_FEATURE_MANIFEST_SCHEMA",
+    "ADD_DECLARATIVE_DRA_EXTERNAL_FEATURE_RUNNER",
+    "ADD_SYNTHETIC_FAIL_CLOSED_TESTS",
+    "ADD_BOUNDED_CAPABILITY_DOCUMENTATION",
+    "REUSE_FROZEN_EQUAL_CAPITAL_PARENT_ECONOMICS",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_PYTHON_COMPILE_CHECK",
+    "RUN_JSON_SCHEMA_CHECKS",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "POST_2024_ARCHIVE_CONTENT_ACCESS",
+    "FULL_HISTORICAL_CORPUS_DOWNLOAD",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HYPOTHESIS_MANIFEST_INSTANCE_OR_CANDIDATE_CREATION",
+    "FUNDING_PREMIUM_OR_CARRY_FAMILY_REOPEN",
+    "UNIVARIATE_OPEN_INTEREST_FAMILY_REOPEN",
+    "UNIVARIATE_TAKER_IMBALANCE_FAMILY_REOPEN",
+    "THRESHOLD_VARIANT_OR_GATE_SELECTION",
+    "EXISTING_SOURCE_SCHEMA_RUNNER_TEST_OR_POLICY_EDIT",
+    "RESEARCH_STATE_CANONICAL_OR_LOCAL_NODE_ROOT_WRITE",
+    "JAVA_MAVEN_SPRING_OR_EXTERNAL_RUNTIME_START",
+    "GIT_STAGE_COMMIT_PUSH_RESET_CLEAN_OR_BRANCH_CHANGE",
+    "UNLISTED_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_SIX_FILE_CAPABILITY_CHANGESET",
+    "CHECKSUM_BOUND_BINANCE_ARCHIVE_ADAPTER",
+    "CONFLICTING_DUPLICATE_ROW_REJECTION",
+    "PRE_2025_COMPLETE_UTC_DAY_BOUNDARY",
+    "THREE_FAMILY_CLOSED_MANIFEST_SCHEMA",
+    "DECLARATIVE_DRA_EXTERNAL_FEATURE_RUNNER",
+    "UNCHANGED_EQUAL_CAPITAL_ECONOMIC_OUTPUTS",
+    "SYNTHETIC_FAIL_CLOSED_TEST_EVIDENCE",
+    "NO_ALPHA_OR_STRATEGY_RESULT_ATTESTATION",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task, the clean branch, HEAD equal local origin and every non-null input SHA-256 before editing; any mismatch stops with zero capability file changes.",
+    "Create exactly the six absent paths listed in the task message and modify no existing byte, including the source audit, candidate pool, parent runners, schemas, tests, policy, task, dispatch, intent or capability contract.",
+    "Network access is limited to read-only metadata or one pre-2025 sample from the two allowlisted official Binance archive hosts; do not download a full historical corpus, use an API key, paid service, mirror or post-2024 archive content.",
+    "The adapter must verify each ZIP against its official CHECKSUM sidecar before parsing, bind BTCUSDT USD-M only, enforce an inclusive 2024-12-31 cutoff, use bounded byte and row limits, and make no canonical, Local node root or research-state write.",
+    "Normalize only complete UTC observations with exact Decimal text semantics; deduplicate byte-identical timestamp rows deterministically, reject conflicting duplicates, reject gaps or invalid ratios, and preserve raw archive and normalized payload hashes.",
+    "The closed manifest schema and runner may expose exactly three distinct joint feature families: joint price and OI-value deleveraging flush, top-trader versus global positioning divergence, and joint taker-flow plus non-contracting OI confirmation.",
+    "Funding, premium, basis or carry rules, univariate OI growth, and univariate taker imbalance are prohibited closed-family reopens; do not expose them as supported feature families, rescue diagnostics or threshold neighbors.",
+    "Every decision feature must use only the latest complete UTC source day and become available after that day closes and before the unchanged next eligible DRA fill; same-day or later observations are a lookahead rejection.",
+    "The runner must reuse the frozen BTC_DRA_V1 equal-capital parent, 250 USDT equity, 240 USDT slot capacity, 10-bps fee and 5-bps adverse slippage and must emit realized, unrealized, total PnL, drawdown, holding, inventory, intervention, annual breadth and concentration outputs for later experiments.",
+    "This task is capability-only: do not freeze a hypothesis or manifest instance, choose thresholds or gates, download the historical selection corpus, run strategy economics, create a strategy result or candidate, register an experiment, open OOS or claim performance value.",
+    "Focused synthetic tests must cover official checksum acceptance and mismatch, ZIP traversal and bomb limits, exact duplicate and conflicting duplicate handling, cutoff and incomplete-day rejection, all three family identities, lookahead rejection, unchanged parent economics, closed-family exclusion and maximum-three-variant enforcement.",
+    "Run authoritative task and schema validation, Python compilation, both new focused test modules, affected declarative DRA and candidate-funnel tests and git diff --check; do not weaken any existing gate or test to obtain a pass.",
+    "Return exactly one terminal disposition: BINANCE_USDM_SHARED_DRA_RUNNER_CAPABILITY_READY, BINANCE_USDM_SHARED_DRA_RUNNER_CAPABILITY_REJECT or BINANCE_USDM_SHARED_DRA_RUNNER_CAPABILITY_INTEGRITY_BLOCKED. Immediate PnL and drawdown effect remain zero and all strategy evidence remains MISSING_PROOF."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 6,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

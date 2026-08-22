@@ -1,0 +1,44 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_STATIC_LOG_SPREAD_ONE_DAY_CONVERGENCE_SOURCE_REUSE_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-eth-static-log-spread-one-day-convergence",
+  "decided_at": "2026-08-22T14:31:00Z",
+  "status": "SOURCE_REUSE_PASS_NO_NETWORK_REQUEST_REQUIRED",
+  "decision": "REUSE_BYTE_IDENTICAL_CHECKSUM_VERIFIED_BTCUSDT_ETHUSDT_2020_2024_DAILY_CORPUS_WITHOUT_RECOMPUTING_SOURCE_PERFORMANCE",
+  "evidence": {
+    "original_source_decision": {
+      "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.decision.json",
+      "sha256": "8dc227dabcebea43c7a22d286fe70d7353d454563649038109a6247c69755e14"
+    },
+    "byte_identical_source_bundle": {
+      "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/source.v1.run1.bundle.json",
+      "sha256": "944f07771b5f743463f6614efd6b08164691aadd091b0808c309e4cbbbbf3769"
+    },
+    "byte_identical_normalized_gzip": {
+      "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/btc-eth-daily-2020-2024.v1.run1.csv.gz",
+      "sha256": "1896e9af2c01ce61555905cfc6a830e5e84c0a68c69c963be15a0b5ef26fd591"
+    }
+  },
+  "source_summary": {
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "first_day": "2020-01-01",
+    "last_day": "2024-12-31",
+    "intersection_day_count_per_symbol": 1827,
+    "total_rows": 3654,
+    "publisher_checksum_failures": 0,
+    "missing_or_duplicate_days": 0,
+    "partial_terminal_session_rows": 0,
+    "post_2024_accessed": false
+  },
+  "reuse_boundary": [
+    "The source corpus is evidence, not a transfer of the closed equal-weight strategy result.",
+    "Only symbol, date and complete-day close may be read by the frozen predictive runner.",
+    "No network request, archive redownload, source repair, post-2024 row or prior strategy outcome is permitted."
+  ],
+  "next_action": "FREEZE_ONE_HYPOTHESIS_MANIFEST_AND_DETERMINISTIC_PREDICTIVE_RUNNER_THEN_EXECUTE_TWICE",
+  "scope_note": "Evidence reuse decision only. No source request, return, factor, spread, prediction, strategy path, PnL, drawdown, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

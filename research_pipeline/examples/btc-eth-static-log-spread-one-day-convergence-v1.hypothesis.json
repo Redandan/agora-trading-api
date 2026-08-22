@@ -1,0 +1,15 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_STATIC_LOG_SPREAD_ONE_DAY_CONVERGENCE_HYPOTHESIS_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "hypothesis_id": "btc-eth-static-log-spread-one-day-convergence-v1",
+  "family_id": "btc-eth-static-log-spread-one-day-convergence",
+  "created_at": "2026-08-22T14:32:00Z",
+  "performance_thesis": "After a fixed 2020 BTC-ETH log-price relation is estimated, later deviations of at least one formation residual standard deviation may partially converge over the next complete UTC day in both deviation directions and in both frozen windows.",
+  "drawdown_thesis": "No drawdown improvement is claimed at this stage. A later economic ledger is allowed only if event convergence has better mean-to-downside support than non-event observations in Design and Validation and the frozen relation does not materially drift.",
+  "opportunity_cost": "One low-compute predictive screen can eliminate an unsupported fixed-pair strategy before two-leg execution, funding and margin engineering. A pass still requires one economic ledger and independent OOS.",
+  "falsification": "Close permanently if any source hash, support, direction, incremental convergence, risk-adjusted convergence, annual breadth, concentration, relation drift or deterministic-output gate fails.",
+  "candidate_variants": 1,
+  "oos_access": "DENY",
+  "activation": "DENY"
+}

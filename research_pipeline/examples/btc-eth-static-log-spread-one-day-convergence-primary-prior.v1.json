@@ -1,0 +1,69 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_STATIC_LOG_SPREAD_ONE_DAY_CONVERGENCE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-eth-static-log-spread-one-day-convergence",
+  "created_at": "2026-08-22T14:30:00Z",
+  "status": "ONE_BOUNDED_FIXED_PAIR_PREDICTIVE_SUPPORT_GATE_JUSTIFIED_NO_STRATEGY",
+  "decision": "RETAIN_EXACTLY_ONE_FORMATION_2020_FIXED_BTC_ETH_LOG_SPREAD_ONE_DAY_CONVERGENCE_SUPPORT_TEST_WITHOUT_ECONOMICS_OR_OOS",
+  "causal_hypothesis": "BTC and ETH share broad crypto-market demand and liquidity shocks while retaining asset-specific flows. If their 2020 log-price relation remains sufficiently stable, a large later deviation from that frozen relation may contain a transient relative-value component that partially converges on the next complete UTC day.",
+  "economic_hypothesis": "Only after independent predictive support may one later matched-capital long-short ledger test whether one-day convergence survives two-leg fees, adverse slippage, short financing, funding, margin and tail-path risk. This prior makes no profitability claim.",
+  "primary_and_adversarial_prior": [
+    {
+      "identity": "Masood Tadi and Irina Kortchemski, Evaluation of Dynamic Cointegration-Based Pairs Trading Strategy in the Cryptocurrency Market, arXiv:2109.10662, 2021",
+      "url": "https://arxiv.org/abs/2109.10662",
+      "role": "PRIMARY_CRYPTO_PAIRS_TRADING_MECHANISM_PRIOR",
+      "finding": "The study evaluates Engle-Granger, nonlinear and Johansen cointegration approaches, uses mean-reversion half-life and reports that realistic execution and broader multi-coin spread construction materially affect risk-adjusted results.",
+      "transfer_boundary": "The study supports a bounded relation-stability and convergence test, not the fixed BTC-ETH pair, a one-day horizon, a one-standard-deviation threshold or profitability. Its dynamic selection and minute execution cannot be claimed here."
+    },
+    {
+      "identity": "Chiara Lesa and Ronald Hochreiter, Cryptocurrency Pair Trading, SSRN 4433530, 2023",
+      "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4433530",
+      "role": "PRIMARY_METHOD_AND_COST_PRIOR",
+      "finding": "The paper applies distance and cointegration methods to daily and hourly cryptocurrency data and reports that cointegration selection can outperform distance selection while more frequent trading increases cost sensitivity.",
+      "transfer_boundary": "The paper studies a selected cryptocurrency set rather than an outcome-independent fixed BTC-ETH pair. Agora must test both deviation directions, window stability, annual breadth and concentration before any ledger."
+    },
+    {
+      "identity": "Jying-Nan Wang, Samuel A. Vigne, Hung-Chun Liu and Yuan-Teng Hsu, Hacks and the price synchronicity of bitcoin and ether, Quarterly Review of Economics and Finance 95, 2024",
+      "url": "https://doi.org/10.1016/j.qref.2024.04.008",
+      "role": "ADVERSARIAL_RELATION_INSTABILITY_PRIOR",
+      "finding": "The study finds BTC-ETH synchronicity varies and is affected by hacking events, with realized correlation spanning a wide range in its sample.",
+      "transfer_boundary": "Co-movement is not cointegration or tradable convergence. A relation can shift by regime, so a fixed formation-period mapping must fail closed if Validation location, scale, direction or annual breadth deteriorates."
+    }
+  ],
+  "frozen_boundary": {
+    "pair": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "pair_selection": "FIXED_FROM_LIQUIDITY_AND_MECHANISM_PRIOR_NOT_FROM_THIS_FACTOR_OUTCOME",
+    "formation": "2020-01-01_THROUGH_2020-12-31_COMPLETE_UTC_DAY_CLOSES",
+    "design": "2021-01-01_THROUGH_2022-12-31_SIGNAL_DAYS",
+    "validation": "2023-01-01_THROUGH_2024-12-30_SIGNAL_DAYS",
+    "relation": "OLS_LOG_ETH_CLOSE_EQUALS_ALPHA_PLUS_BETA_TIMES_LOG_BTC_CLOSE_FIT_ON_FORMATION_ONLY",
+    "state": "ABSOLUTE_FROZEN_RELATION_RESIDUAL_Z_SCORE_AT_LEAST_ONE",
+    "outcome": "NEXT_COMPLETE_UTC_DAY_SIGN_NORMALIZED_FROZEN_SPREAD_CONVERGENCE",
+    "variants": 1,
+    "economics": "DENY_UNTIL_EVERY_PREDICTIVE_SUPPORT_GATE_PASSES",
+    "oos": "DENY"
+  },
+  "independence_and_nonreopen": {
+    "not_equal_weight_rebalancing": "No long-only target weights, rebalancing premium or drifting buy-and-hold comparator is tested.",
+    "not_low_volatility_or_momentum_rotation": "No asset is ranked or selected by volatility or trailing return and no cash fallback exists.",
+    "not_dra_eth_relative_strength": "The test does not admit or veto a BTC DRA entry and does not use ETH-minus-BTC return breadth.",
+    "not_cross_sectional_momentum": "The fixed pair is never expanded, ranked or rescued with a survivor cohort.",
+    "not_post_shock_reversal": "The state is a relative log-price relation residual, not a univariate BTC return shock."
+  },
+  "stop_conditions": [
+    "Freeze source reuse, one formation fit, one z-score threshold, one horizon and every gate before reading this factor result.",
+    "Reject if the sealed checksum-bound BTC-ETH corpus or any bound evidence hash differs; do not reacquire or repair data.",
+    "Require support in both rich-ETH and cheap-ETH directions in Design and Validation, incremental convergence versus non-event days, risk-adjusted convergence, annual breadth, limited top-year concentration and bounded Validation relation drift.",
+    "Any valid gate failure permanently closes the exact fixed-2020-relation one-day convergence family without changing pair, formation, threshold, horizon, mapping, direction or gate.",
+    "A support pass authorizes only one later separately preregistered economic ledger; it is not a strategy candidate and cannot open OOS or Trading."
+  ],
+  "missing_proof": [
+    "The exact frozen BTC-ETH relation, support counts, direction, drift and convergence result have not been calculated.",
+    "No fees, slippage, funding, borrow, margin, PnL, drawdown, terminal inventory, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior plus exact predictive boundary only. No new source request, factor result, strategy ledger, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

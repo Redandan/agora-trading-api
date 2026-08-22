@@ -1,0 +1,52 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_STATIC_LOG_SPREAD_ONE_DAY_CONVERGENCE_PREDICTIVE_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-eth-static-log-spread-one-day-convergence",
+  "experiment_id": "btc-eth-static-log-spread-one-day-convergence-predictive-v1",
+  "decided_at": "2026-08-22T14:37:00Z",
+  "status": "EVIDENCE_INSUFFICIENT_CLOSE_FIXED_BTC_ETH_STATIC_LOG_SPREAD_ONE_DAY_CONVERGENCE_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_FIXED_2020_RELATION_ONE_STANDARD_DEVIATION_ONE_DAY_CONVERGENCE_FAMILY_WITHOUT_RERUN_OR_RESCUE",
+  "evidence": {
+    "manifest": {
+      "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-predictive.v1.manifest.json",
+      "sha256": "5c749ea3ec5417a827aa63e03ab4fd11072497b432fd41b7f9df998a007cd820"
+    },
+    "runner": {
+      "path": "research/btc_eth_static_log_spread_convergence_v1.py",
+      "sha256": "e9095d361dcbcead40de4f34d1290b2153ac251e41b752917f2ea316f5eb52ec"
+    },
+    "corpus": {
+      "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/btc-eth-daily-2020-2024.v1.run1.csv.gz",
+      "sha256": "1896e9af2c01ce61555905cfc6a830e5e84c0a68c69c963be15a0b5ef26fd591"
+    }
+  },
+  "execution": {
+    "attempted_runs": 1,
+    "required_runs": 2,
+    "run1_exit_code": 2,
+    "run1_terminal_message": "METRIC_REJECT:STATE_SUPPORT",
+    "run1_artifact_created": false,
+    "run2_executed": false,
+    "byte_identical_result_proof": "MISSING_PROOF",
+    "interpretation": "At least one frozen summarized window or annual slice lacked simultaneous event and non-event support. The runner intentionally rejects rather than inventing undefined comparison metrics. The exact failing slice and all factor values remain unreported because no result artifact was created."
+  },
+  "observed_metrics": {
+    "formation_relation": "MISSING_PROOF",
+    "event_counts": "MISSING_PROOF",
+    "directional_convergence": "MISSING_PROOF",
+    "incremental_convergence": "MISSING_PROOF",
+    "risk_adjusted_convergence": "MISSING_PROOF",
+    "annual_breadth": "MISSING_PROOF",
+    "relation_drift": "MISSING_PROOF",
+    "economics": "NOT_OPENED",
+    "oos": "NOT_OPENED"
+  },
+  "closure_boundary": [
+    "The frozen manifest requires simultaneous state support before a result can pass; METRIC_REJECT:STATE_SUPPORT is terminal for the exact family.",
+    "Do not patch and rerun after factor access, change the 2020 formation, use a rolling relation, change the one-standard-deviation threshold or horizon, reverse a direction, drop an annual slice or substitute another pair.",
+    "The reporting defect is retained as learning: future runners should serialize zero-support closure diagnostics instead of terminating without an artifact, but this sealed lineage must not be rerun."
+  ],
+  "next_action": "SELECT_ONE_DIFFERENT_PREOUTCOME_FREE_DATA_FAMILY_AND_REQUIRE_FAIL_CLOSED_RUNNERS_TO_SERIALIZE_TERMINAL_SUPPORT_FAILURES",
+  "scope_note": "One historical predictive execution attempt only. No strategy ledger, fee, slippage, funding, borrow, margin, PnL, drawdown, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

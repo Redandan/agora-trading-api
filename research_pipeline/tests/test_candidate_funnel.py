@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 154)
+        self.assertEqual(len(catalog["closed_families"]), 155)
         self.assertEqual(
             {
                 family["family_id"]
@@ -119,6 +119,17 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_ONE_ATTEMPT_SOURCE_TRANSPORT_INDETERMINATE_NO_ARTIFACT_NO_RETRY",
             ],
         )
+        closed_btc_eth_spread = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-eth-static-log-spread-one-day-convergence"
+        )
+        self.assertEqual(
+            closed_btc_eth_spread["disposition"],
+            "EVIDENCE_INSUFFICIENT_CLOSE_FIXED_BTC_ETH_STATIC_LOG_SPREAD_ONE_DAY_CONVERGENCE_PRE_ECONOMIC",
+        )
+        self.assertTrue(closed_btc_eth_spread["prohibited_reopen"])
         closed_geopolitical_risk = next(
             family
             for family in catalog["closed_families"]
@@ -2160,7 +2171,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 155)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 156)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

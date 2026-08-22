@@ -1,0 +1,139 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_STATIC_LOG_SPREAD_ONE_DAY_CONVERGENCE_MANIFEST_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREDICTIVE_SUPPORT_ONLY_NO_ECONOMICS_NO_OOS",
+  "experiment_id": "btc-eth-static-log-spread-one-day-convergence-predictive-v1",
+  "family_id": "btc-eth-static-log-spread-one-day-convergence",
+  "created_at": "2026-08-22T14:35:00Z",
+  "thesis": "A large deviation from a fixed 2020 BTC-ETH log-price relation may contain one-day relative-value convergence that is directional, incremental, risk-adjusted and stable across 2021-2022 Design and 2023-2024 Validation.",
+  "predictive_contract": {
+    "pair": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "formation": [
+      "2020-01-01",
+      "2020-12-31"
+    ],
+    "design_signal_days": [
+      "2021-01-01",
+      "2022-12-31"
+    ],
+    "validation_signal_days": [
+      "2023-01-01",
+      "2024-12-30"
+    ],
+    "relation": "OLS_LOG_ETH_CLOSE_ON_LOG_BTC_CLOSE_WITH_INTERCEPT_FORMATION_ONLY",
+    "residual_scale": "FORMATION_POPULATION_STANDARD_DEVIATION",
+    "event": "ABSOLUTE_FROZEN_RELATION_RESIDUAL_Z_SCORE_AT_LEAST_ONE",
+    "outcome": "NEXT_COMPLETE_UTC_DAY_SIGN_NORMALIZED_FROZEN_SPREAD_CONVERGENCE_DIVIDED_BY_FORMATION_SCALE",
+    "event_directions": [
+      "ETH_RICH",
+      "ETH_CHEAP"
+    ],
+    "minimum_design_events_per_direction": 30,
+    "minimum_validation_events_per_direction": 20,
+    "minimum_positive_annual_mean_years": 3,
+    "maximum_top_positive_annual_contribution": 0.6,
+    "maximum_validation_absolute_mean_shift_in_formation_sigma": 1.0,
+    "maximum_validation_scale_ratio": 2.0,
+    "variants": 1,
+    "economics": "DENY_UNTIL_ALL_PREDICTIVE_GATES_PASS",
+    "oos": "DENY"
+  },
+  "data_binding": {
+    "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-source-v1/inputs/btc-eth-daily-2020-2024.v1.run1.csv.gz",
+    "sha256": "1896e9af2c01ce61555905cfc6a830e5e84c0a68c69c963be15a0b5ef26fd591",
+    "rows": 3654,
+    "common_days": 1827,
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ]
+  },
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-primary-prior.v1.json",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR",
+      "sha256": "e8af3e3a1c8d2b677a4fe7107fbf4d799cc5dee7f8d52c55972613de6d350825"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-source-reuse.v1.decision.json",
+      "role": "FROZEN_SOURCE_REUSE_DECISION",
+      "sha256": "ab4fa4f84dc263d61a7b5343388708b6b068386abaf08eb344548a66348f6ccc"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-v1.hypothesis.json",
+      "role": "FROZEN_SCHEMA_BOUND_HYPOTHESIS",
+      "sha256": "90ee80aab830a1b49e9002a499745f52fc8d16f585b8f04eb6657bf8b7b8080e"
+    },
+    {
+      "path": "research/btc_eth_static_log_spread_convergence_v1.py",
+      "role": "FROZEN_DETERMINISTIC_PREDICTIVE_RUNNER",
+      "sha256": "e9095d361dcbcead40de4f34d1290b2153ac251e41b752917f2ea316f5eb52ec"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.decision.json",
+      "role": "CLOSED_EQUAL_WEIGHT_REBALANCING_NONREOPEN_BOUNDARY",
+      "sha256": "c606609f9dfe5022927e773f133243998c89922fb4e8444c657cc3435a9d7a4c"
+    },
+    {
+      "path": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-source-boundary.v1.decision.json",
+      "role": "CLOSED_LOW_VOLATILITY_ROTATION_NONREOPEN_BOUNDARY",
+      "sha256": "3f3e7e79f051a448baba96863cf1ae473e103efdc5fd15ac806925947cdff256"
+    }
+  ],
+  "gate_set": {
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_FIXED_2020_RELATION_ONE_DAY_CONVERGENCE_FAMILY_WITHOUT_PAIR_FORMATION_THRESHOLD_HORIZON_DIRECTION_OR_GATE_CHANGE",
+    "support": [
+      "formation_beta_positive",
+      "design_each_direction_at_least_30",
+      "validation_each_direction_at_least_20"
+    ],
+    "direction": [
+      "event_mean_convergence_positive_both_windows",
+      "both_deviation_direction_means_positive_both_windows"
+    ],
+    "incremental_and_risk": [
+      "event_mean_exceeds_non_event_both_windows",
+      "event_mean_to_downside_exceeds_non_event_both_windows"
+    ],
+    "breadth_and_stability": [
+      "annual_positive_mean_at_least_3_of_4",
+      "top_positive_annual_contribution_at_most_60_percent",
+      "validation_absolute_mean_shift_at_most_one_formation_sigma",
+      "validation_residual_scale_at_most_two_times_formation"
+    ]
+  },
+  "determinism": {
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "required_runs": 2,
+    "required_result": "BYTE_IDENTICAL_CANONICAL_JSON"
+  },
+  "stop_conditions": [
+    "Stop with DATA_REJECT if any bound file, source hash, row identity, daily lattice, close or output differs; do not repair or reacquire.",
+    "Run exactly one fixed pair, formation, z-score threshold, direction mapping and one-day horizon twice.",
+    "Any valid predictive gate failure closes this exact family pre-economic without reverse mapping, threshold scan, alternate formation, rolling relation, different horizon or pair substitution.",
+    "A pass permits only one later separately preregistered two-leg economic ledger and does not create a candidate or open OOS."
+  ],
+  "prohibited_actions": [
+    "NETWORK_REQUEST",
+    "PAID_API",
+    "SOURCE_REDOWNLOAD",
+    "ECONOMIC_LEDGER",
+    "OOS_OPEN",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE"
+  ]
+}

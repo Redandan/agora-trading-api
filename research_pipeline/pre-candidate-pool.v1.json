@@ -4178,6 +4178,37 @@
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
       "prohibited_reopen": true,
       "title": "Lagged positive Coinbase BTCUSD versus Binance BTCUSDT close premium long-or-cash"
+    },
+    {
+      "decision_feature": "ABSOLUTE_FROZEN_2020_BTC_ETH_LOG_PRICE_RELATION_RESIDUAL_Z_SCORE_AT_LEAST_ONE_WITH_NEXT_COMPLETE_UTC_DAY_SIGN_NORMALIZED_CONVERGENCE",
+      "disposition": "EVIDENCE_INSUFFICIENT_CLOSE_FIXED_BTC_ETH_STATIC_LOG_SPREAD_ONE_DAY_CONVERGENCE_PRE_ECONOMIC",
+      "duplicate_family_key": "btc-eth-static-2020-log-spread-one-standard-deviation-one-day-convergence",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-predictive.v1.decision.json",
+          "role": "SEALED_TERMINAL_STATE_SUPPORT_REJECT_NO_ARTIFACT_NO_RERUN_DECISION",
+          "sha256": "758ebfc60a676cfe0ec63d8fed5c1685c6d9534e42f34099174f233a16e34e57"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-predictive.v1.manifest.json",
+          "role": "FROZEN_SINGLE_VARIANT_FIXED_RELATION_PREDICTIVE_MANIFEST",
+          "sha256": "5c749ea3ec5417a827aa63e03ab4fd11072497b432fd41b7f9df998a007cd820"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-source-reuse.v1.decision.json",
+          "role": "SEALED_CHECKSUM_BOUND_BTC_ETH_SOURCE_REUSE_DECISION",
+          "sha256": "ab4fa4f84dc263d61a7b5343388708b6b068386abaf08eb344548a66348f6ccc"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "e8af3e3a1c8d2b677a4fe7107fbf4d799cc5dee7f8d52c55972613de6d350825"
+        }
+      ],
+      "family_id": "closed-btc-eth-static-log-spread-one-day-convergence",
+      "parent_strategy_id": "NONE_PRE_ECONOMIC_PREDICTIVE_SUPPORT_ONLY",
+      "prohibited_reopen": true,
+      "title": "Fixed-2020 BTC-ETH log-spread one-day convergence"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

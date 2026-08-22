@@ -10,6 +10,7 @@ from research.binance_btcusdt_funding_carry_corpus_v3 import (
     KLINE_HEADER,
     SPOT_PROXY_TIMES,
     normalized_csv,
+    parse_funding_decimal,
     parse_funding,
     parse_klines,
     verify_closure,
@@ -62,6 +63,12 @@ class FundingCarryCorpusV3Test(unittest.TestCase):
         self.assertEqual(47, event.offset_ms)
         self.assertEqual(actual - 47, event.slot_time_ms)
         self.assertEqual(Decimal("0.0001"), event.rate)
+
+    def test_funding_rate_accepts_exact_scientific_notation(self) -> None:
+        self.assertEqual(
+            Decimal("8.4E-7"),
+            parse_funding_decimal("8.4E-7", context="funding:rate:test"),
+        )
 
     def test_normalized_rows_preserve_funding_time_and_offset(self) -> None:
         timestamp = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)

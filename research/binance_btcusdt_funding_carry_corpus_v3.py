@@ -8,9 +8,11 @@ import concurrent.futures
 import csv
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 import io
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 try:
@@ -109,6 +111,9 @@ INDEX_DAILY_DAYS = [
     "2023-04-08",
 ]
 MONTHLY_DATASETS = v2.DATASETS
+FUNDING_DECIMAL_PATTERN = re.compile(
+    r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?"
+)
 
 
 @dataclass(frozen=True)
@@ -124,7 +129,20 @@ class NormalizedFunding:
     actual_calc_time_ms: int
     offset_ms: int
     interval_hours: int
-    rate: Any
+    rate: Decimal
+
+
+def parse_funding_decimal(raw: str, *, context: str) -> Decimal:
+    """Parse the publisher's exact finite decimal syntax, including exponents."""
+    if FUNDING_DECIMAL_PATTERN.fullmatch(raw) is None:
+        raise base.CorpusReject(f"DATA_REJECT:DECIMAL:{context}:{raw!r}")
+    try:
+        value = Decimal(raw)
+    except InvalidOperation as error:
+        raise base.CorpusReject(f"DATA_REJECT:DECIMAL:{context}:{raw!r}") from error
+    if not value.is_finite():
+        raise base.CorpusReject(f"DATA_REJECT:DECIMAL:{context}:{raw!r}")
+    return value
 
 
 def verify_closure(path: Path) -> dict[str, Any]:
@@ -252,7 +270,7 @@ def parse_funding(payload: bytes, *, month: str) -> list[NormalizedFunding]:
                 actual,
                 offset,
                 interval,
-                base._decimal(row[2], signed=True, context=f"funding:rate:{index}"),
+                parse_funding_decimal(row[2], context=f"funding:rate:{index}"),
             )
         )
     if not events or events != sorted(events, key=lambda value: value.slot_time_ms):

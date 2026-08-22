@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 142)
+        self.assertEqual(len(catalog["closed_families"]), 143)
         self.assertEqual(
             {
                 family["family_id"]
@@ -101,19 +101,30 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        cci14 = next(
+        ulcer28 = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-daily-cci14-hysteresis-long-cash"
+            == "btc-daily-ulcer28-passive-core-risk-overlay"
         )
-        self.assertEqual(cci14["base_stage"], "PREREGISTRATION_READY")
+        self.assertEqual(ulcer28["base_stage"], "PREREGISTRATION_READY")
         self.assertEqual(
-            [binding["role"] for binding in cci14["evidence_bindings"]],
+            [binding["role"] for binding in ulcer28["evidence_bindings"]],
             [
-                "SEALED_PRIMARY_FORMULA_CRYPTO_AND_ADVERSARIAL_PRIOR",
+                "SEALED_PRIMARY_DRAWDOWN_DEPTH_DURATION_AND_ADVERSARIAL_PRIOR",
             ],
         )
+        closed_cci14 = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-daily-cci14-hysteresis-long-cash-v1"
+        )
+        self.assertEqual(
+            closed_cci14["disposition"],
+            "BTC_DAILY_CCI14_FAMILY_CLOSE",
+        )
+        self.assertTrue(closed_cci14["prohibited_reopen"])
         closed_kama30 = next(
             family
             for family in catalog["closed_families"]
@@ -2034,7 +2045,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 143)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 144)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

@@ -212,10 +212,10 @@
         "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY",
         "kind": "NONE"
       },
-      "causal_hypothesis": "A large completed-day typical-price displacement relative to its recent mean absolute deviation may identify unusually strong directional demand, while symmetric negative displacement may identify a sufficiently broad reversal to exit; hysteresis may preserve trends and reduce threshold churn before the next hourly fill.",
+      "causal_hypothesis": "The Ulcer Index accumulates both depth and persistence of recent underwater prices. Reducing only half the exposure when that downside burden is high relative to its lagged annual distribution may limit persistent bear-path losses while preserving a passive BTC core during recoveries.",
       "compute_cost_class": "LOW",
-      "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_DEFAULT_CCI14_SYMMETRIC_HYSTERESIS_POSITIVE_NEGATIVE_75_100_125_WITH_100_PRIMARY_AND_75_125_REJECTION_ONLY",
-      "duplicate_family_key": "btc-daily-cci14-hysteresis-long-cash",
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_ULCER21_28_35_ABOVE_PRIOR_252_AVAILABLE_VALUE_MEDIAN_HALF_RISK_WITH_ULCER28_PRIMARY_AND_21_35_REJECTION_ONLY",
+      "duplicate_family_key": "btc-daily-ulcer28-passive-core-risk-overlay",
       "economic_evidence_status": {
         "adverse_slippage": "MATCHED_CAPITAL_READY",
         "breadth_and_path_risk": "REQUIRED_NOT_MEASURED",
@@ -227,27 +227,27 @@
         "total_pnl": "REQUIRED_NOT_MEASURED",
         "unrealized_pnl": "REQUIRED_NOT_MEASURED"
       },
-      "economic_hypothesis": "A full-capital BTC long-or-zero-yield-cash policy entering after completed-day CCI14 exceeds positive 100 and exiting only below negative 100 may improve fee- and slippage-adjusted drawdown and Calmar versus matched buy-and-hold while retaining upside and annual breadth.",
+      "economic_hypothesis": "A daily 100-or-50-percent BTC exposure policy using lagged relative Ulcer stress may preserve at least 70 percent of buy-and-hold upside while reducing drawdown enough to improve fee- and slippage-adjusted Calmar with annual and 21/35-day neighbor breadth.",
       "estimated_days_to_next_gate": 1,
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-daily-cci14-hysteresis-long-cash-primary-prior.v1.json",
-          "role": "SEALED_PRIMARY_FORMULA_CRYPTO_AND_ADVERSARIAL_PRIOR",
-          "sha256": "631f531a9110bdd13a7d5ddd435b04d0ec776136aab0b3a6b236344e0ebddbdb"
+          "path": "research_pipeline/examples/btc-daily-ulcer28-passive-core-risk-overlay-primary-prior.v1.json",
+          "role": "SEALED_PRIMARY_DRAWDOWN_DEPTH_DURATION_AND_ADVERSARIAL_PRIOR",
+          "sha256": "3fa18b1a16d63cc000cb9344bd2dd706f544eff0282a635aa3092fe3ea892b23"
         }
       ],
-      "family_id": "btc-daily-cci14-hysteresis-long-cash",
-      "independence_key": "btc-complete-day-typical-price-mean-absolute-deviation-symmetric-hysteresis-long-cash",
+      "family_id": "btc-daily-ulcer28-passive-core-risk-overlay",
+      "independence_key": "btc-complete-day-drawdown-depth-duration-lagged-regime-passive-core-fractional-exposure",
       "matched_comparator_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "missing_proof": [
-        "The exact schema-valid hypothesis, manifest and deterministic TA-Lib-formula-compatible runner are not frozen yet.",
-        "No CCI feature support or matched-capital Design and Validation economics have been opened.",
+        "The exact schema-valid hypothesis, manifest and deterministic fractional-exposure runner are not frozen yet.",
+        "No Ulcer-overlay feature support or matched-capital Design and Validation economics have been opened.",
         "No candidate, independent OOS or forward evidence exists."
       ],
-      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_TALIB_DEFAULT_CCI14_HYSTERESIS_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
+      "next_gate": "FREEZE_ONE_SCHEMA_VALID_THREE_VARIANT_DAILY_ULCER_PASSIVE_CORE_OVERLAY_EXPERIMENT_WITHOUT_OUTCOME_ACCESS",
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
-      "runner_id": "BTC_DAILY_CCI14_HYSTERESIS_LONG_CASH_RUNNER_NOT_YET_IMPLEMENTED",
-      "title": "BTC daily TA-Lib-default CCI14 symmetric-hysteresis long-or-cash"
+      "runner_id": "BTC_DAILY_ULCER28_PASSIVE_CORE_RISK_OVERLAY_RUNNER_NOT_YET_IMPLEMENTED",
+      "title": "BTC daily Ulcer28 passive-core half-risk overlay"
     }
   ],
   "closed_families": [
@@ -3845,6 +3845,27 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "prohibited_reopen": true,
       "title": "BTC daily TA-Lib-formula KAMA30 adaptive-trend long-or-cash"
+    },
+    {
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_TALIB_FORMULA_CCI14_SYMMETRIC_HYSTERESIS_POSITIVE_NEGATIVE_75_100_125_WITH_100_PRIMARY_AND_75_125_REJECTION_ONLY",
+      "disposition": "BTC_DAILY_CCI14_FAMILY_CLOSE",
+      "duplicate_family_key": "btc-daily-cci14-hysteresis-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-daily-cci14-hysteresis-long-cash-v1.json",
+          "role": "SEALED_LOCAL_HISTORICAL_ECONOMIC_RESULT",
+          "sha256": "b42416acac89b8785fbbc05c022ac6b46164ae3763d42b9ca67cd12f878248dc"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-cci14-hysteresis-long-cash-v1.json",
+          "role": "MANAGER_ACCEPTED_FAMILY_CLOSURE",
+          "sha256": "78630069d827f1cb12097292d81dd25c8045caebd811200b48d4023d7baf4687"
+        }
+      ],
+      "family_id": "closed-btc-daily-cci14-hysteresis-long-cash-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "prohibited_reopen": true,
+      "title": "BTC daily TA-Lib-formula CCI14 symmetric-hysteresis long-or-cash"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

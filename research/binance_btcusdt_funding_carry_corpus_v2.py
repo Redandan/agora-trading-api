@@ -13,7 +13,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-from research import binance_btcusdt_funding_carry_corpus_v1 as base
+try:
+    from research import binance_btcusdt_funding_carry_corpus_v1 as base
+except ModuleNotFoundError:  # Direct script launch adds research/ instead of repo root.
+    import binance_btcusdt_funding_carry_corpus_v1 as base
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

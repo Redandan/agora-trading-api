@@ -150,7 +150,18 @@ def evaluate_gates(support: ModuleType, gate_support: ModuleType, design,
         support, _map_variants(design), _map_variants(validation_output),
         _map_variants(validation), _map_annual(annual),
     )
-    rename = lambda value: value.replace("rsi14", "stochastic_5_3_3").replace("RSI14", "STOCHASTIC_5_3_3")
+    def rename(value: str) -> str:
+        return (
+            value
+            .replace("neighbor_rsi14_gt45", "neighbor_stochastic_5_3_3_kd_gt_negative10")
+            .replace("neighbor_rsi14_gt55", "neighbor_stochastic_5_3_3_kd_gt_positive10")
+            .replace("NEIGHBOR_RSI14_GT45", "NEIGHBOR_STOCHASTIC_5_3_3_KD_GT_NEGATIVE10")
+            .replace("NEIGHBOR_RSI14_GT55", "NEIGHBOR_STOCHASTIC_5_3_3_KD_GT_POSITIVE10")
+            .replace("primary_rsi14", "primary_stochastic_5_3_3_kd")
+            .replace("PRIMARY_RSI14", "PRIMARY_STOCHASTIC_5_3_3_KD")
+            .replace("rsi14", "stochastic_5_3_3_kd")
+            .replace("RSI14", "STOCHASTIC_5_3_3_KD")
+        )
     return (
         {rename(name): passed for name, passed in gates.items()},
         [rename(name) for name in failed],

@@ -32,7 +32,7 @@
     "selection_cutoff": "2025-01-01T00:00:00"
   },
   "source_bindings": [
-    {"path": "research/btc_daily_stochastic_5_3_3_kd_cross_long_cash_historical.py", "sha256": "3ade61b5061c9144876802fa45f3d9b39ab7b90e1999f6fbb9a95286b0e9b3d6", "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"},
+    {"path": "research/btc_daily_stochastic_5_3_3_kd_cross_long_cash_historical.py", "sha256": "e34f02980135d7c031eea716da2d14b7db8f886593a980e7591b016b9835f446", "role": "FROZEN_DIRECT_ECONOMIC_RUNNER"},
     {"path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py", "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd", "role": "FROZEN_DAILY_AGGREGATION_AND_LONG_CASH_LEDGER_SUPPORT"},
     {"path": "research/btc_daily_rsi14_midline_long_cash_historical.py", "sha256": "1753cfd3a28bf7fdad8bb6a63e7de486d179491b2eab5d433830a71eca523281", "role": "FROZEN_MATCHED_CAPITAL_GATE_LOGIC_SUPPORT"},
     {"path": "research/btc_monthly_12m_time_series_momentum_historical.py", "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b", "role": "FROZEN_PASSIVE_REFERENCE_AND_ECONOMIC_PRIMITIVES"},

@@ -71,6 +71,40 @@ class StochasticRunnerTest(unittest.TestCase):
         with self.assertRaisesRegex(self.runner.ResearchReject, "STOCHASTIC_POLICY"):
             self.runner.stochastic_targets(self.points(["5"] * 18), 14, 3, 3, 0)
 
+    def test_gate_labels_preserve_frozen_stochastic_thresholds(self) -> None:
+        class GateSupport:
+            @staticmethod
+            def evaluate_gates(*_args):
+                return (
+                    {
+                        "primary_rsi14_gate": True,
+                        "neighbor_rsi14_gt45_gate": False,
+                        "neighbor_rsi14_gt55_gate": False,
+                    },
+                    ["neighbor_rsi14_gt45_gate", "neighbor_rsi14_gt55_gate"],
+                    {"PRIMARY_RSI14_BREADTH": 1},
+                )
+
+        gates, failed, breadth = self.runner.evaluate_gates(
+            object(), GateSupport(), {}, {}, {}, {},
+        )
+        self.assertEqual(
+            set(gates),
+            {
+                "primary_stochastic_5_3_3_kd_gate",
+                "neighbor_stochastic_5_3_3_kd_gt_negative10_gate",
+                "neighbor_stochastic_5_3_3_kd_gt_positive10_gate",
+            },
+        )
+        self.assertEqual(
+            failed,
+            [
+                "neighbor_stochastic_5_3_3_kd_gt_negative10_gate",
+                "neighbor_stochastic_5_3_3_kd_gt_positive10_gate",
+            ],
+        )
+        self.assertEqual(breadth, {"PRIMARY_STOCHASTIC_5_3_3_KD_BREADTH": 1})
+
 
 if __name__ == "__main__":
     unittest.main()

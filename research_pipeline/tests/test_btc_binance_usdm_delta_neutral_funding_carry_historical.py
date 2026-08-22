@@ -25,7 +25,10 @@ class FundingCarryRunnerTest(unittest.TestCase):
     def test_open_book_uses_equal_btc_quantity_and_25_75_capital_split(self) -> None:
         row = Row(
             int(datetime(2020, 1, 1, 1, tzinfo=timezone.utc).timestamp() * 1000),
-            *(Decimal("100") for _ in range(6)),
+            Decimal("100"),
+            Decimal("100"),
+            "BINANCE_SPOT_ARCHIVE",
+            *(Decimal("100") for _ in range(4)),
             None,
         )
         position, fees, slippage = open_position(INITIAL_EQUITY, row, COSTS["NORMAL"])
@@ -51,7 +54,10 @@ class FundingCarryRunnerTest(unittest.TestCase):
                 result.append(
                     Row(
                         int(moment.timestamp() * 1000),
-                        *(Decimal("100") for _ in range(6)),
+                        Decimal("100"),
+                        Decimal("100"),
+                        "BINANCE_SPOT_ARCHIVE",
+                        *(Decimal("100") for _ in range(4)),
                         rate if hour == 2 else None,
                     )
                 )

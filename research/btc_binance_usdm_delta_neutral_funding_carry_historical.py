@@ -21,13 +21,24 @@ D = Decimal
 ZERO = D("0")
 ONE = D("1")
 REPO_ROOT = Path(__file__).resolve().parents[1]
-EXPERIMENT_ID = "btc-binance-usdm-delta-neutral-funding-carry-historical-v1"
+EXPERIMENT_ID = "btc-binance-usdm-delta-neutral-funding-carry-historical-v2"
 EXPECTED_MANIFEST_TYPE = (
-    "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_HISTORICAL_MANIFEST_V1"
+    "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_HISTORICAL_MANIFEST_V2"
 )
 EXPECTED_SPEC_SHA256 = (
     "41745a4c173714534f4bdeb63ca594a0250c056143b356cc22b2344212dfad79"
 )
+EXPECTED_ERRATUM_SHA256 = (
+    "63b1de3d0e89338bbccc781f1f707c9f1dc1d7b7e16f70d9299e106a6d68a722"
+)
+EXPECTED_PROXY_TIMES = {
+    1_582_110_000_000,
+    1_582_113_600_000,
+    1_582_117_200_000,
+    1_582_120_800_000,
+    1_582_124_400_000,
+    1_582_128_000_000,
+}
 EXPECTED_ROWS = 43_848
 HOUR_MS = 3_600_000
 INITIAL_EQUITY = D("10000")
@@ -82,6 +93,7 @@ class Row:
     open_time_ms: int
     spot_open: D
     spot_close: D
+    spot_price_source: str
     perp_open: D
     perp_close: D
     mark_open: D
@@ -134,6 +146,7 @@ def parse_normalized_gzip(raw: bytes) -> tuple[list[Row], bytes]:
         "open_time_ms",
         "spot_open",
         "spot_close",
+        "spot_price_source",
         "perp_open",
         "perp_close",
         "mark_open",
@@ -144,17 +157,35 @@ def parse_normalized_gzip(raw: bytes) -> tuple[list[Row], bytes]:
         raise ResearchReject("DATA_REJECT:HEADER")
     parsed: list[Row] = []
     for index, values in enumerate(rows[1:], start=1):
-        if len(values) != 8:
+        if len(values) != 9:
             raise ResearchReject(f"DATA_REJECT:WIDTH:{index}")
         try:
             timestamp = int(values[0])
         except ValueError as error:
             raise ResearchReject(f"DATA_REJECT:TIMESTAMP:{index}") from error
-        prices = [_decimal(value, context=f"price:{index}") for value in values[1:7]]
+        prices = [_decimal(value, context=f"price:{index}") for value in values[1:3] + values[4:8]]
         if min(prices) <= ZERO:
             raise ResearchReject(f"DATA_REJECT:PRICE:{index}")
-        funding = None if values[7] == "" else _decimal(values[7], context=f"funding:{index}")
-        parsed.append(Row(timestamp, *prices, funding))
+        source = values[3]
+        if source not in {
+            "BINANCE_SPOT_ARCHIVE",
+            "BINANCE_USDM_INDEX_PROXY_FOR_PUBLISHER_GAP",
+        }:
+            raise ResearchReject(f"DATA_REJECT:SPOT_SOURCE:{index}:{source}")
+        funding = None if values[8] == "" else _decimal(values[8], context=f"funding:{index}")
+        parsed.append(
+            Row(
+                timestamp,
+                prices[0],
+                prices[1],
+                source,
+                prices[2],
+                prices[3],
+                prices[4],
+                prices[5],
+                funding,
+            )
+        )
     if len(parsed) != EXPECTED_ROWS:
         raise ResearchReject(f"DATA_REJECT:ROWS:{len(parsed)}")
     start_ms = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
@@ -163,6 +194,13 @@ def parse_normalized_gzip(raw: bytes) -> tuple[list[Row], bytes]:
     funding_times = [row.open_time_ms for row in parsed if row.funding_rate is not None]
     if len(funding_times) != 5_481 or funding_times != [row.open_time_ms for row in parsed[::8]]:
         raise ResearchReject("DATA_REJECT:FUNDING_LATTICE")
+    proxy_times = {
+        row.open_time_ms
+        for row in parsed
+        if row.spot_price_source == "BINANCE_USDM_INDEX_PROXY_FOR_PUBLISHER_GAP"
+    }
+    if proxy_times != EXPECTED_PROXY_TIMES:
+        raise ResearchReject(f"DATA_REJECT:SPOT_PROXY_IDENTITY:{sorted(proxy_times)}")
     return parsed, csv_raw
 
 
@@ -220,6 +258,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     spec = by_role.get("FROZEN_PRE_OUTCOME_SOURCE_AND_LEDGER_SPEC", {})
     if spec.get("sha256") != EXPECTED_SPEC_SHA256:
         raise ResearchReject("MANIFEST_REJECT:SPEC_BINDING")
+    erratum = by_role.get("FROZEN_PRE_OUTCOME_SOURCE_INTEGRITY_ERRATUM", {})
+    if erratum.get("sha256") != EXPECTED_ERRATUM_SHA256:
+        raise ResearchReject("MANIFEST_REJECT:ERRATUM_BINDING")
 
 
 def is_quarter_reset(moment: datetime) -> bool:
@@ -232,6 +273,8 @@ def is_quarter_reset(moment: datetime) -> bool:
 
 
 def open_position(equity: D, row: Row, costs: dict[str, D]) -> tuple[Position, D, D]:
+    if row.spot_price_source != "BINANCE_SPOT_ARCHIVE":
+        raise ResearchReject(f"EXECUTION_REJECT:SPOT_PROXY_ENTRY:{row.open_time_ms}")
     spot_budget = equity * SPOT_FRACTION
     spot_exec = row.spot_open * (ONE + costs["spot_slippage"])
     quantity = spot_budget / (spot_exec * (ONE + costs["spot_fee"]))
@@ -305,6 +348,8 @@ def simulate(
     for row in selected:
         moment = row.opened_at
         if is_quarter_reset(moment):
+            if row.spot_price_source != "BINANCE_SPOT_ARCHIVE":
+                raise ResearchReject(f"EXECUTION_REJECT:SPOT_PROXY_RESET:{row.open_time_ms}")
             if position is not None:
                 hold_hours = D(str((moment - position.opened_at).total_seconds())) / D("3600")
                 maximum_hold_hours = max(maximum_hold_hours, hold_hours)
@@ -347,6 +392,8 @@ def simulate(
     if position is None:
         raise ResearchReject(f"WINDOW_REJECT:NO_POSITION:{start}:{end}")
     terminal = selected[-1]
+    if terminal.spot_price_source != "BINANCE_SPOT_ARCHIVE":
+        raise ResearchReject(f"EXECUTION_REJECT:SPOT_PROXY_TERMINAL:{terminal.open_time_ms}")
     hold_hours = D(str(((terminal.opened_at.replace(tzinfo=timezone.utc) - position.opened_at).total_seconds() + 3600))) / D("3600")
     maximum_hold_hours = max(maximum_hold_hours, hold_hours)
     equity, closing_fees, closing_slippage = close_position(
@@ -438,13 +485,15 @@ def build_output(input_path: Path, manifest_path: Path) -> dict[str, Any]:
     bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
     if (
         bundle.get("status")
-        != "SEALED_CHECKSUM_VERIFIED_PRE_2025_CORPUS_NO_STRATEGY_OUTCOME"
+        != "SEALED_CHECKSUM_VERIFIED_PRE_2025_CORPUS_WITH_EXACT_BOUNDED_SPOT_INDEX_PROXY_NO_STRATEGY_OUTCOME"
         or bundle.get("corpus", {}).get("normalized_gzip_sha256")
         != dataset["normalized_gzip_sha256"]
         or bundle.get("corpus", {}).get("normalized_csv_sha256")
         != dataset["normalized_csv_sha256"]
-        or bundle.get("source_and_ledger_spec", {}).get("sha256")
+        or bundle.get("predecessor_source_and_ledger_spec", {}).get("sha256")
         != EXPECTED_SPEC_SHA256
+        or bundle.get("source_integrity_erratum", {}).get("sha256")
+        != EXPECTED_ERRATUM_SHA256
     ):
         raise ResearchReject("DATA_REJECT:BUNDLE_BINDING")
     rows, csv_raw = parse_normalized_gzip(input_path.read_bytes())
@@ -563,6 +612,17 @@ def build_output(input_path: Path, manifest_path: Path) -> dict[str, Any]:
             "normalized_csv_sha256": sha256(csv_raw),
             "hourly_rows": len(rows),
             "funding_events": sum(row.funding_rate is not None for row in rows),
+            "spot_proxy_hours": sum(
+                row.spot_price_source
+                == "BINANCE_USDM_INDEX_PROXY_FOR_PUBLISHER_GAP"
+                for row in rows
+            ),
+            "spot_proxy_open_times_ms": [
+                str(row.open_time_ms)
+                for row in rows
+                if row.spot_price_source
+                == "BINANCE_USDM_INDEX_PROXY_FOR_PUBLISHER_GAP"
+            ],
             "selection_cutoff": "2025-01-01T00:00:00Z",
         },
         "comparator": {

@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BINANCE_USDM_DELTA_NEUTRAL_FUNDING_CARRY_SOURCE_INTEGRITY_ERRATUM_V2",
+  "spec_id": "btc-binance-usdm-delta-neutral-funding-carry-historical-v2",
+  "frozen_at": "2026-08-22T11:36:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_OUTCOME_SOURCE_INTEGRITY_ERRATUM_NO_STRATEGY_OUTCOME",
+  "supersedes_source_integrity_only": {
+    "path": "research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-historical.v1.source-ledger-spec.json",
+    "sha256": "41745a4c173714534f4bdeb63ca594a0250c056143b356cc22b2344212dfad79",
+    "preserved_without_change": [
+      "economic_thesis",
+      "25_75_capital_allocation",
+      "equal_btc_spot_perpetual_quantity",
+      "quarter_start_01_00_utc_reset",
+      "funding_sign_and_cashflow",
+      "cost_scenarios",
+      "margin_and_liquidation_rules",
+      "design_validation_annual_and_quarter_windows",
+      "all_performance_gates",
+      "no_tuning_and_oos_denial"
+    ]
+  },
+  "observed_v1_integrity_failure": {
+    "status": "V1_CORPUS_BUILD_FAILED_CREATE_ONCE_NO_OUTPUT",
+    "dataset": "spot_klines_1h",
+    "month": "2020-02",
+    "first_incomplete_open_time_ms": "1582110000000",
+    "incomplete_close_time_ms": "1582112132286",
+    "next_complete_open_time_ms": "1582131600000",
+    "strategy_outcome_accessed": false,
+    "return_or_pnl_computed": false,
+    "reason": "The official checksum-valid monthly Spot archive contains one incomplete 11:00 UTC row followed by five absent hourly rows. V1 correctly rejected it before any normalized corpus or strategy output was written."
+  },
+  "additional_official_dataset": {
+    "dataset_id": "usdm_index_price_klines_1h",
+    "zip_template": "data/futures/um/monthly/indexPriceKlines/BTCUSDT/1h/BTCUSDT-1h-{YYYY-MM}.zip",
+    "expected_csv_member": "BTCUSDT-1h-{YYYY-MM}.csv",
+    "expected_columns": 12,
+    "purpose": "VALUATION_ONLY_FOR_A_BOUNDED_MISSING_OR_INCOMPLETE_BINANCE_SPOT_HOUR",
+    "trading_price_use": "DENY",
+    "funding_or_perpetual_mark_use": "DENY"
+  },
+  "revised_source_closure": {
+    "archive_count": 300,
+    "months": 60,
+    "publisher_checksum_required_for_every_archive": true,
+    "expected_normalized_hourly_rows": 43848,
+    "maximum_total_spot_proxy_hours": 12,
+    "maximum_contiguous_spot_proxy_hours": 12,
+    "expected_v1_failure_proxy_open_times_ms": [
+      "1582110000000",
+      "1582113600000",
+      "1582117200000",
+      "1582120800000",
+      "1582124400000",
+      "1582128000000"
+    ],
+    "proxy_rule": "When and only when the checksum-valid Binance Spot monthly archive lacks a complete H1 bar, use the same-hour checksum-valid Binance USD-M BTCUSDT index-price open and close for portfolio valuation. Label every such row. Never interpolate, forward-fill, use a later spot value or alter perpetual execution, mark or funding data.",
+    "execution_guard": "Every quarter-reset entry or exit reference and the final window liquidation hour must have a complete native Binance Spot bar. A proxy at any execution boundary rejects the corpus before economics.",
+    "path_risk_guard": "Perpetual margin and liquidation continue to use every complete official mark-price hour, including proxy hours. The result must report proxy-hour count and identities; it cannot call the index proxy an observed Spot trade price.",
+    "failure_rule": "Reject on more than 12 total or contiguous proxy hours, a missing index hour, a proxy at any strategy execution boundary, a second source anomaly class, or any non-identical hourly lattice outside the bounded Spot exception."
+  },
+  "normalized_columns": [
+    "open_time_ms",
+    "spot_open",
+    "spot_close",
+    "spot_price_source",
+    "perp_open",
+    "perp_close",
+    "mark_open",
+    "mark_close",
+    "funding_rate"
+  ],
+  "stop_conditions": [
+    "Do not change any economic or performance rule from V1.",
+    "Stop before economics if the exact bounded Spot-gap exception does not produce one complete labelled 2020-2024 lattice.",
+    "Do not add another proxy, broaden the hour limit, interpolate, forward-fill or inspect strategy outcomes to repair a later failure.",
+    "After a valid V2 corpus is sealed, bind its exact raw ledger and normalized hashes in one preregistered manifest before running the economic ledger."
+  ],
+  "claim_boundary": "V2 repairs only a pre-outcome publisher clock-integrity defect with a bounded official valuation proxy. It is not a strategy result, source-exhaustiveness claim, candidate, OOS value, deployability or Trading authority.",
+  "scope_note": "No normalized corpus, return, PnL, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

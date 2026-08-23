@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "dra-binance-usdm-endpoint-oi-confirmation-v2",
+  "title": "DRA entry confirmation by final-day Binance USD-M BTC open interest",
+  "thesis": "An otherwise valid positive-momentum DRA entry may transfer better when the final Binance BTCUSDT perpetual contract open interest is non-decreasing versus the prior calendar day, because the rally is less consistent with position-closing-only participation.",
+  "mechanism": "At each complete UTC-day DRA signal, compare the checksum-bound Binance USD-M BTCUSDT sum_open_interest value at 23:55 with the prior calendar day's 23:55 value. Admit the unchanged next-H1-open parent entry when open interest is non-decreasing and veto it when open interest strictly contracts. A missing endpoint passes the parent through unchanged and is counted as unavailable.",
+  "economic_rationale": "The filter is valuable only if it raises equal-capital fee- and slippage-adjusted total and realized PnL while preserving or improving drawdown, holding age, terminal inventory, and annual breadth; merely reducing participation or terminal losing inventory cannot pass.",
+  "source": "DRA_BINANCE_USDM_ENDPOINT_OI_CONFIRMATION_V2_PRIMARY_PRIOR_AND_EXISTING_1583_CHECKSUM_BOUND_ARCHIVE_PAIRS",
+  "parent": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+  "required_capability": "btc-dra-binance-usdm-endpoint-oi-confirmation-v2-direct-economic-runner",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "usable_endpoint_pair_coverage",
+    "parent_signal_feature_availability",
+    "admitted_and_vetoed_parent_signals",
+    "fee_and_adverse_slippage_cost",
+    "realized_unrealized_and_total_pnl_delta",
+    "maximum_drawdown_delta",
+    "median_and_p90_holding_delta",
+    "terminal_open_cost_lot_age_and_inventory_delta",
+    "annual_pnl_drawdown_and_holding_breadth",
+    "top_positive_annual_contribution"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 4,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-23-candidate-factory-endpoint-oi-v2",
+  "created_at": "2026-08-22T16:25:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

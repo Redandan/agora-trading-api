@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BINANCE_USDM_ENDPOINT_OI_CONFIRMATION_V2_PRIMARY_PRIOR",
+  "family_id": "dra-binance-usdm-endpoint-oi-confirmation-v2",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "reviewed_at": "2026-08-22T16:25:00Z",
+  "status": "PREREGISTERED_SOURCE_FIRST_NO_FACTOR_OR_OUTCOME_ACCESS",
+  "causal_hypothesis": "For an otherwise valid positive-momentum DRA entry, a non-increasing Binance BTCUSDT USD-M perpetual contract count at the final 23:55 UTC observation may indicate that the rally lacks fresh leveraged position formation and is more exposed to short-cover exhaustion than an entry accompanied by expanding open interest.",
+  "economic_hypothesis": "Passing through the unchanged DRA entry only when final-day BTC-contract open interest is at least the prior calendar day's final value may improve equal-capital fee- and adverse-slippage-adjusted total PnL without worsening realized PnL, drawdown, holding age, terminal inventory, or annual breadth.",
+  "claim_boundary": "Open-interest contraction does not identify which side closed and is not itself proof of short covering or alpha. Futures price-discovery studies disagree on whether spot or futures leads, and exchange open-interest measurement can be imperfect. This prior authorizes one sign-only endpoint representation and one frozen historical economic screen; it does not reopen the rejected complete-five-minute-grid V1 family.",
+  "source_representation": {
+    "archive_root": ".research-state/binance-usdm-daily-metrics-pre2025-v1/raw",
+    "archive_pair_count": 1583,
+    "first_day": "2020-09-01",
+    "last_day": "2024-12-31",
+    "official_archive": "https://data.binance.vision/data/futures/um/daily/metrics/BTCUSDT/",
+    "instrument": "BTCUSDT",
+    "field": "sum_open_interest",
+    "field_unit": "BTC_CONTRACT_QUANTITY_AS_PUBLISHED",
+    "decision_endpoint": "23:55:00Z",
+    "comparison": "CURRENT_CALENDAR_DAY_23_55_DIVIDED_BY_PRIOR_CALENDAR_DAY_23_55_MINUS_ONE",
+    "missing_endpoint_policy": "PARENT_PASS_THROUGH_COUNT_AS_UNAVAILABLE_NEVER_IMPUTE",
+    "source_cost": "FREE_ALREADY_DOWNLOADED_OFFICIAL_ARCHIVE_WITH_CHECKSUM_SIDECARS",
+    "point_in_time_availability": "AVAILABLE_AT_COMPLETE_UTC_DAY_CLOSE_BEFORE_UNCHANGED_NEXT_H1_OPEN_FILL"
+  },
+  "independence_assessment": {
+    "distinct_from_rejected_v1": "The rejected V1 required all 288 five-minute observations and used negative spot return plus intraday open-interest-value contraction. V2 uses only checksum-bound final 23:55 BTC-contract open interest, compares consecutive calendar-day endpoints, and is evaluated only as confirmation of an already positive DRA parent signal.",
+    "not_funding_or_basis": "The feature does not receive funding cash flows, measure futures basis, or revive the closed delta-neutral funding-carry or basis-convergence families.",
+    "not_univariate_price_timing": "The parent DRA price rule is unchanged. The feature can only admit or veto an existing parent signal and is known before its next-open fill.",
+    "residual_risk": "Open interest can fall because longs, shorts, or both close; a non-decreasing endpoint can also reflect crowded leverage rather than healthy participation. Only frozen matched-capital economics and path-risk breadth can decide the family."
+  },
+  "primary_prior_matrix": [
+    {
+      "identity": "Binance public USD-M daily metrics archive and repository documentation",
+      "source": "https://github.com/binance/binance-public-data",
+      "finding": "Binance publishes free BTCUSDT USD-M daily metrics archives and matching checksum sidecars; the local pre-2025 inventory contains 1,583 archive pairs with no download or checksum failure.",
+      "transfer_boundary": "Publication and checksum identity do not prove timestamp completeness, measurement accuracy, direction, or economic value."
+    },
+    {
+      "identity": "Agora Binance USD-M derivatives archive corpus audit V1",
+      "source": "research_pipeline/examples/binance-usdm-derivatives-archive-corpus-audit.v1.json",
+      "sha256": "a201875df6448e8c6a05401df107d43eecfdb1d4056494593010f89918f01dd6",
+      "finding": "The full-grid V1 source contract failed, but the audit explicitly leaves a separately preregistered endpoint-only V2 representation as an untested path and reports 35 days with incomplete required endpoints.",
+      "transfer_boundary": "V2 must preserve the V1 tombstone, reject conflicting rows, expose missing endpoints, and never impute or backfill."
+    },
+    {
+      "identity": "Kapar and Olmo, An analysis of price discovery between Bitcoin futures and spot markets",
+      "source": "https://www.eprints.soton.ac.uk/426715/1/Bitcoin_FuturesPaper_final_revised.pdf",
+      "finding": "The study finds futures can contribute materially to Bitcoin price discovery and that spot-futures equilibrium deviations can have predictive content for spot returns.",
+      "transfer_boundary": "CME futures evidence does not establish Binance perpetual open-interest direction, the sign threshold, or DRA entry value."
+    },
+    {
+      "identity": "Baur and Dimpfl, Price discovery in bitcoin spot or futures?",
+      "source": "https://doi.org/10.1002/fut.22004",
+      "finding": "The study reaches the adversarial conclusion that globally distributed spot markets led the regulated futures market in its sample.",
+      "transfer_boundary": "Conflicting price-discovery evidence lowers prior confidence and prohibits treating the derivative feature as inherently leading."
+    },
+    {
+      "identity": "Alexander et al., Liquidation, Leverage and Optimal Margin in Bitcoin Futures Markets",
+      "source": "https://arxiv.org/abs/2102.04591",
+      "finding": "The paper documents economically material forced liquidations and aggressive leveraged trading in a perpetual Bitcoin futures market.",
+      "transfer_boundary": "Forced-liquidation relevance does not let endpoint open interest identify short covering or predict the next DRA path."
+    },
+    {
+      "identity": "Barbon and Ranaldo, Reconciling Open Interest with Traded Volume in Perpetual Swaps",
+      "source": "https://arxiv.org/abs/2310.14973",
+      "finding": "The paper reports that open-interest figures can be systematically inconsistent across some crypto derivative exchanges.",
+      "transfer_boundary": "Single-venue endpoint data must be treated as a fallible feature, with source identity and missingness visible rather than as ground-truth leverage."
+    }
+  ],
+  "frozen_feature": {
+    "parent_signal": "UNCHANGED_BTC_DRA_V1_POSITIVE_MOMENTUM_ENTRY_SIGNAL",
+    "admit_when": "CURRENT_23_55_SUM_OPEN_INTEREST_GREATER_THAN_OR_EQUAL_TO_PRIOR_CALENDAR_DAY_23_55_SUM_OPEN_INTEREST",
+    "veto_when": "CURRENT_23_55_SUM_OPEN_INTEREST_STRICTLY_LESS_THAN_PRIOR_CALENDAR_DAY_23_55_SUM_OPEN_INTEREST",
+    "threshold": "0",
+    "variant_count": 1,
+    "neighbor_scan": "DENY"
+  },
+  "admission_and_stop_conditions": [
+    "Before opening endpoint values, freeze the exact endpoint parser, source inventory identity, hypothesis, Design and Validation windows, costs, gate set, missing-endpoint pass-through, and terminal disposition.",
+    "Verify every ZIP against its official CHECKSUM before parsing. Require the frozen header, in-day five-minute timestamps, positive sum_open_interest, byte-identical duplicates only, and exactly one 23:55 endpoint when a day is usable.",
+    "Do not require or reconstruct a complete 288-row day. Missing 23:55 endpoints create an unavailable feature day; they never veto, admit, impute, carry forward, backfill, or alter the parent by themselves.",
+    "Require at least 95 percent usable consecutive-day endpoint coverage, at least 95 percent feature availability on parent signals in both Design and Validation, at least five actual vetoes in each window, and intervention breadth in at least three of four full years; otherwise close before economic interpretation.",
+    "Require strictly positive Design and Validation total-PnL delta, nonnegative realized-PnL delta, non-worse drawdown and holding path in both windows, at least three of four annual total-PnL wins, at least three of four annual drawdown and median-holding non-worse results, and top-one positive annual contribution no greater than 60 percent.",
+    "Require candidate terminal open cost, unrealized PnL, open-lot count, and oldest-open-lot age to be no worse than the matched parent in Validation. Aggregate total improvement cannot override a realized, drawdown, holding, annual breadth, or inventory failure.",
+    "Any source, temporal, support, accounting, or economic gate failure permanently closes this exact endpoint, sign, parent, window, and cost family without changing the endpoint, threshold, inequality, missingness policy, horizon, parent, or gates.",
+    "A full pass may create at most one CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED result with independent OOS still sealed; it authorizes no Trading action."
+  ],
+  "missing_proof": [
+    "No endpoint-only normalized corpus or exact usable-pair count is sealed.",
+    "No parent-signal support, veto count, matched-capital PnL, drawdown, holding, inventory, breadth, candidate, OOS, or forward result exists.",
+    "The short-cover interpretation is an explicitly uncertain mechanism, not a measured fact."
+  ],
+  "next_gate": "IMPLEMENT_AND_FREEZE_ONE_ENDPOINT_ONLY_CREATE_ONCE_SOURCE_AND_DIRECT_ECONOMIC_RUNNER_THEN_CLOSE_OR_FREEZE_WITHOUT_TUNING",
+  "scope_note": "Prior and frozen pre-outcome contract only. No endpoint factor value, strategy outcome, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER, or LIVE action occurred."
+}

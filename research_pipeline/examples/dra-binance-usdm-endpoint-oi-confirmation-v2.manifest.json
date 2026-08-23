@@ -1,0 +1,84 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BINANCE_USDM_ENDPOINT_OI_CONFIRMATION_V2_MANIFEST",
+  "experiment_id": "dra-binance-usdm-endpoint-oi-confirmation-v2-historical-v1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "selection_cutoff": "2025-01-01T00:00:00Z",
+  "parent_strategy": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+  "oos_access": "DENY",
+  "dataset": {
+    "canonical_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "rows": 52608
+  },
+  "external_corpus": {
+    "path": ".research-state/experiments/dra-binance-usdm-endpoint-oi-confirmation-v2/inputs/endpoint-corpus.v2.json",
+    "sha256": "905e95ebf20aa5efe0f84e2c3cbcacf43c3c4cace7704dd7357cc71ae14edb85",
+    "archive_inventory_sha256": "9ca3f9fa4477b13381257aac3af48d1cd49ae27a628f68cea5d53a350908f1c7",
+    "archive_pair_count": 1583,
+    "endpoint_available_count": 1577,
+    "endpoint_missing_count": 6,
+    "endpoint_pair_count": 1570,
+    "endpoint_pair_coverage": "0.99241466",
+    "first_day": "2020-09-01",
+    "last_day": "2024-12-31",
+    "normalized_pairs_sha256": "17e4178b97f7372b78cd36d7ffd28a66757d1b481e04a794719cbf4336e01a2f"
+  },
+  "feature": {
+    "family_id": "dra-binance-usdm-endpoint-oi-confirmation-v2",
+    "field": "sum_open_interest",
+    "decision_endpoint": "COMPLETE_UTC_DAY_23_55_AVAILABLE_AT_00_00",
+    "admit_when": "OI_CONTRACT_RETURN_GREATER_THAN_OR_EQUAL_TO_ZERO",
+    "veto_when": "OI_CONTRACT_RETURN_STRICTLY_LESS_THAN_ZERO",
+    "threshold": "0",
+    "missing_endpoint_policy": "PARENT_PASS_THROUGH_COUNT_UNAVAILABLE",
+    "variant_count": 1
+  },
+  "economics": {
+    "initial_equity_usdt": "250",
+    "slot_capacity_usdt": "240",
+    "fee_rate": "0.0010",
+    "slippage_rate": "0.0005"
+  },
+  "windows": {
+    "design": [
+      "2020-09-02T00:00:00Z",
+      "2023-01-01T00:00:00Z"
+    ],
+    "validation": [
+      "2023-01-01T00:00:00Z",
+      "2025-01-01T00:00:00Z"
+    ],
+    "annual_folds": [
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ]
+  },
+  "gate_set": {
+    "all_gates_required": true,
+    "endpoint_pair_coverage_at_least": "0.95",
+    "signal_feature_availability_at_least": "0.95",
+    "vetoes_per_design_and_validation_at_least": 5,
+    "intervention_years_at_least": 3,
+    "annual_breadth_at_least": 3,
+    "top1_positive_annual_contribution_at_most": "0.60"
+  },
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/dra-binance-usdm-endpoint-oi-confirmation-v2.hypothesis.json",
+      "role": "FROZEN_HYPOTHESIS",
+      "sha256": "84c7dbdfb3fb3c586c4facc089d2ec652e2143f2708cd1a6092e00c975445635"
+    },
+    {
+      "path": "research_pipeline/examples/dra-binance-usdm-endpoint-oi-confirmation-v2.primary-prior.json",
+      "role": "FROZEN_PRIMARY_PRIOR",
+      "sha256": "4710d3dc4b785da3ef94f9e6bfa021aa19605721489a28ede9f11879a446f1cc"
+    },
+    {
+      "path": "research/btc_dra_binance_usdm_endpoint_oi_confirmation_v2.py",
+      "role": "FROZEN_RUNNER",
+      "sha256": "0fff57981aac0c3d55a461d87e9111143a5a4782958152ad588ac8cae0e5e18f"
+    }
+  ]
+}

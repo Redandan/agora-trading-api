@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 155)
+        self.assertEqual(len(catalog["closed_families"]), 156)
         self.assertEqual(
             {
                 family["family_id"]
@@ -97,6 +97,7 @@ class CandidateFunnelTest(unittest.TestCase):
             },
             {
                 "closed-dra-binance-usdm-deleveraging-flush-entry-admission-v1",
+                "closed-dra-binance-usdm-endpoint-oi-confirmation-v2",
                 "closed-dra-binance-usdm-positioning-divergence-entry-admission-v1",
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
@@ -2171,7 +2172,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 156)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 157)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

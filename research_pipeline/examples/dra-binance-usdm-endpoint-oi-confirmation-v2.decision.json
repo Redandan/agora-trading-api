@@ -1,0 +1,163 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BINANCE_USDM_ENDPOINT_OI_CONFIRMATION_V2_DECISION",
+  "decision_id": "dra-binance-usdm-endpoint-oi-confirmation-v2-historical-v1",
+  "family_id": "dra-binance-usdm-endpoint-oi-confirmation-v2",
+  "evaluated_at": "2026-08-23T02:33:28Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_ENDPOINT_OI_CONFIRMATION_V2",
+  "disposition": "PERMANENTLY_CLOSE_EXACT_23_55_ENDPOINT_NONDECREASING_OI_DRA_ENTRY_CONFIRMATION_FAMILY_WITHOUT_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "determinism": {
+    "byte_identical": true,
+    "run1": {
+      "path": ".research-state/experiments/dra-binance-usdm-endpoint-oi-confirmation-v2/artifacts/run1.json",
+      "sha256": "b3728cf906164dcb09b13ea26c7382932e7a01a74b5185f1346ddcc2878c0f88"
+    },
+    "run2": {
+      "path": ".research-state/experiments/dra-binance-usdm-endpoint-oi-confirmation-v2/artifacts/run2.json",
+      "sha256": "b3728cf906164dcb09b13ea26c7382932e7a01a74b5185f1346ddcc2878c0f88"
+    }
+  },
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/dra-binance-usdm-endpoint-oi-confirmation-v2.primary-prior.json",
+      "role": "FROZEN_PRIMARY_PRIOR",
+      "sha256": "4710d3dc4b785da3ef94f9e6bfa021aa19605721489a28ede9f11879a446f1cc"
+    },
+    {
+      "path": "research_pipeline/examples/dra-binance-usdm-endpoint-oi-confirmation-v2.hypothesis.json",
+      "role": "FROZEN_HYPOTHESIS",
+      "sha256": "84c7dbdfb3fb3c586c4facc089d2ec652e2143f2708cd1a6092e00c975445635"
+    },
+    {
+      "path": "research_pipeline/examples/dra-binance-usdm-endpoint-oi-confirmation-v2.manifest.json",
+      "role": "FROZEN_ECONOMIC_MANIFEST",
+      "sha256": "9cb68029c45775f8bd38b70a2a42d2545997f8a21d8b9417e071709756bee90f"
+    },
+    {
+      "path": "research/btc_dra_binance_usdm_endpoint_oi_confirmation_v2.py",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER",
+      "sha256": "0fff57981aac0c3d55a461d87e9111143a5a4782958152ad588ac8cae0e5e18f"
+    },
+    {
+      "path": ".research-state/experiments/dra-binance-usdm-endpoint-oi-confirmation-v2/inputs/endpoint-corpus.v2.json",
+      "role": "CREATE_ONCE_CHECKSUM_BOUND_ENDPOINT_CORPUS",
+      "sha256": "905e95ebf20aa5efe0f84e2c3cbcacf43c3c4cace7704dd7357cc71ae14edb85"
+    }
+  ],
+  "source_evidence": {
+    "archive_pair_count": 1583,
+    "endpoint_available_count": 1577,
+    "endpoint_unavailable_count": 6,
+    "endpoint_pair_count": 1570,
+    "endpoint_pair_coverage": "0.99241466",
+    "source_gate_passed": true
+  },
+  "gate_summary": {
+    "total_gate_count": 32,
+    "passed_gate_count": 18,
+    "failed_gate_count": 14,
+    "failed_gates": [
+      "annual_drawdown_non_worse_breadth",
+      "annual_median_holding_non_worse_breadth",
+      "annual_p90_holding_non_worse_breadth",
+      "annual_total_pnl_positive_delta_breadth",
+      "design_drawdown_non_worse",
+      "design_realized_pnl_nonnegative_delta",
+      "design_terminal_open_cost_non_worse",
+      "design_terminal_open_lots_non_worse",
+      "design_terminal_unrealized_non_worse",
+      "design_total_pnl_strictly_positive_delta",
+      "positive_annual_delta_exists",
+      "top1_positive_annual_contribution",
+      "validation_realized_pnl_nonnegative_delta",
+      "validation_total_pnl_strictly_positive_delta"
+    ]
+  },
+  "matched_capital_economics": {
+    "design": {
+      "parent_total_pnl_usdt": "6.56949484",
+      "candidate_total_pnl_usdt": "-18.01998895",
+      "total_pnl_delta_usdt": "-24.58948379",
+      "realized_pnl_delta_usdt": "-17.13922876",
+      "unrealized_pnl_delta_usdt": "-7.45025503",
+      "parent_max_drawdown_pct": "20.832470",
+      "candidate_max_drawdown_pct": "25.639406",
+      "max_drawdown_delta_pp": "4.806936",
+      "parent_median_p90_hold_hours": [
+        103.5,
+        636.1
+      ],
+      "candidate_median_p90_hold_hours": [
+        99.0,
+        567.3
+      ],
+      "vetoed_parent_signals": 29,
+      "parent_terminal_open_cost_usdt": "150.00000000",
+      "candidate_terminal_open_cost_usdt": "210.00000000",
+      "parent_terminal_open_lots": 5,
+      "candidate_terminal_open_lots": 7
+    },
+    "validation": {
+      "parent_total_pnl_usdt": "86.20298186",
+      "candidate_total_pnl_usdt": "71.05591639",
+      "total_pnl_delta_usdt": "-15.14706547",
+      "realized_pnl_delta_usdt": "-18.35526668",
+      "unrealized_pnl_delta_usdt": "3.20820121",
+      "parent_max_drawdown_pct": "7.121498",
+      "candidate_max_drawdown_pct": "6.546997",
+      "max_drawdown_delta_pp": "-0.574501",
+      "parent_median_p90_hold_hours": [
+        182.5,
+        1418.3
+      ],
+      "candidate_median_p90_hold_hours": [
+        145.0,
+        1262.0
+      ],
+      "vetoed_parent_signals": 38,
+      "parent_terminal_open_cost_usdt": "30.00000000",
+      "candidate_terminal_open_cost_usdt": "0",
+      "parent_terminal_open_lots": 1,
+      "candidate_terminal_open_lots": 0
+    },
+    "annual_total_pnl_delta_usdt": {
+      "2021": "-4.00370425",
+      "2022": "-35.51252761",
+      "2023": "-13.37694894",
+      "2024": "-4.97527311"
+    },
+    "annual_breadth": {
+      "positive_total_pnl_delta_years": 0,
+      "drawdown_non_worse_years": 2,
+      "median_holding_non_worse_years": 2,
+      "p90_holding_non_worse_years": 2,
+      "intervention_years": 4,
+      "year_count": 4
+    }
+  },
+  "material_conclusion": "Non-decreasing final-day Binance USD-M BTC contract open interest was not a useful confirmation gate for the frozen DRA parent. The filter removed 29 Design and 38 Validation signals, lost 24.58948379 and 15.14706547 USDT of total PnL respectively, worsened Design drawdown by 4.806936 percentage points, and produced negative total-PnL deltas in all four annual folds. Validation drawdown and terminal inventory improved only because the filter participated less and removed the remaining open lot; that cleanup did not offset the 18.35526668 USDT realized-PnL loss.",
+  "concept_to_teach": "A participation filter can improve drawdown, holding time, or terminal inventory while destroying realized and total PnL. Risk cleanup is not independent alpha when every annual PnL delta is negative.",
+  "prohibited_reopen": [
+    "Do not change the zero threshold, inequality, 23:55 endpoint, prior-calendar-day comparison, missingness policy, parent, costs, windows, gates, or holding logic after outcome access.",
+    "Do not reinterpret the Validation terminal-inventory cleanup or lower drawdown as a candidate because realized and total PnL failed and annual PnL breadth was zero of four.",
+    "Do not rerun this exact family against OOS or prospective evidence. A genuinely different mechanism requires independent prior support, a new duplicate fingerprint, and a separately frozen contract."
+  ],
+  "missing_proof": [
+    "The open-interest direction cannot distinguish new longs, new shorts, short covering, or long liquidation.",
+    "No post-2024 OOS or prospective strategy evidence was opened because Design and Validation gates failed.",
+    "The result closes only this exact endpoint confirmation family and does not establish that all derivatives positioning information is useless."
+  ],
+  "next_action": "PRESERVE_TOMBSTONE_AND_ADVANCE_ONE_INDEPENDENT_FREE_DATA_DIRECT_ECONOMIC_FAMILY_WITHOUT_TUNING_THIS_BRANCH",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "server_research_mcp_write_attempted": false,
+    "second_timer_created": false,
+    "candidate_created": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "trading_action_attempted": false
+  }
+}

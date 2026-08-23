@@ -4209,6 +4209,37 @@
       "parent_strategy_id": "NONE_PRE_ECONOMIC_PREDICTIVE_SUPPORT_ONLY",
       "prohibited_reopen": true,
       "title": "Fixed-2020 BTC-ETH log-spread one-day convergence"
+    },
+    {
+      "decision_feature": "CURRENT_COMPLETE_UTC_DAY_BINANCE_BTCUSDT_USDM_23_55_SUM_OPEN_INTEREST_GREATER_THAN_OR_EQUAL_TO_PRIOR_CALENDAR_DAY_23_55_VALUE",
+      "disposition": "NO_CANDIDATE_CLOSE_ENDPOINT_OI_CONFIRMATION_V2",
+      "duplicate_family_key": "dra-binance-usdm-endpoint-oi-confirmation-v2",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/dra-binance-usdm-endpoint-oi-confirmation-v2.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_FAMILY_CLOSURE",
+          "sha256": "28f8a6830c2f3706723f2b6480a796fd71970ced6de5ed9e5b3cd658d25f8cb4"
+        },
+        {
+          "path": "research_pipeline/examples/dra-binance-usdm-endpoint-oi-confirmation-v2.manifest.json",
+          "role": "FROZEN_SINGLE_VARIANT_ENDPOINT_OI_ECONOMIC_MANIFEST",
+          "sha256": "9cb68029c45775f8bd38b70a2a42d2545997f8a21d8b9417e071709756bee90f"
+        },
+        {
+          "path": ".research-state/experiments/dra-binance-usdm-endpoint-oi-confirmation-v2/inputs/endpoint-corpus.v2.json",
+          "role": "CREATE_ONCE_CHECKSUM_BOUND_ENDPOINT_CORPUS",
+          "sha256": "905e95ebf20aa5efe0f84e2c3cbcacf43c3c4cace7704dd7357cc71ae14edb85"
+        },
+        {
+          "path": ".research-state/experiments/dra-binance-usdm-endpoint-oi-confirmation-v2/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+          "sha256": "b3728cf906164dcb09b13ea26c7382932e7a01a74b5185f1346ddcc2878c0f88"
+        }
+      ],
+      "family_id": "closed-dra-binance-usdm-endpoint-oi-confirmation-v2",
+      "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "prohibited_reopen": true,
+      "title": "DRA final-day Binance USD-M BTC open-interest confirmation"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

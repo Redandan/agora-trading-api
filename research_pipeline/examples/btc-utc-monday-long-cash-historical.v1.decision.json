@@ -1,0 +1,144 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_UTC_MONDAY_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-utc-monday-long-cash-historical-v1",
+  "family_id": "btc-utc-monday-long-cash",
+  "decided_at": "2026-08-24T14:22:40Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_UTC_MONDAY_LONG_CASH_FAMILY",
+  "decision": "PERMANENTLY_CLOSE_EXACT_UTC_MONDAY_00_00_TO_TUESDAY_00_00_FULL_CAPITAL_LONG_CASH_FAMILY_WITHOUT_WEEKDAY_TIMEZONE_BOUNDARY_WEIGHT_DIRECTION_OR_GATE_TUNING",
+  "candidate_created": false,
+  "oos_opened": false,
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-utc-monday-long-cash-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-utc-monday-long-cash-historical-v1/artifacts/run2.json",
+    "run1_sha256": "cf62f9835a6751a3929981ab25bc784ebcdc544a21c3b30b6e9bd78584a49a6e",
+    "run2_sha256": "cf62f9835a6751a3929981ab25bc784ebcdc544a21c3b30b6e9bd78584a49a6e",
+    "byte_identical": true
+  },
+  "sealed_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-utc-monday-long-cash-historical.v1.manifest.json",
+      "role": "FROZEN_SINGLE_VARIANT_MATCHED_CAPITAL_HISTORICAL_MANIFEST",
+      "sha256": "03805a7a2dc6fe79c01c3fb22e3b797d2efc13c806bd8c4bd91cc9d9ee635b6c"
+    },
+    {
+      "path": "research/btc_utc_monday_long_cash_historical.py",
+      "role": "FROZEN_DETERMINISTIC_DIRECT_ECONOMIC_RUNNER",
+      "sha256": "25bfb57e45194fde4f3ade47b45477084a0ba3e352120c3a46fdc7522567a6ec"
+    },
+    {
+      "path": "research_pipeline/examples/btc-utc-monday-long-cash-primary-prior.v1.json",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
+      "sha256": "b3b544416811eb80bbaa7c461ac5820895b866913ea966c6edfdc5d737fe4e00"
+    },
+    {
+      "path": "research_pipeline/examples/btc-utc-monday-long-cash-v1.hypothesis.json",
+      "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
+      "sha256": "942ce04b60c039d94830595d78e7da92835665ec96a1d0f49b32b46a27ee6d7c"
+    },
+    {
+      "path": ".research-state/experiments/btc-utc-monday-long-cash-historical-v1/artifacts/run1.json",
+      "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+      "sha256": "cf62f9835a6751a3929981ab25bc784ebcdc544a21c3b30b6e9bd78584a49a6e"
+    }
+  ],
+  "calendar_relation_evidence": {
+    "design_2019_2022": {
+      "monday_mean_open_to_open_return_pct": "0.50216432",
+      "non_monday_mean_open_to_open_return_pct": "0.12276678",
+      "monday_observations": 208
+    },
+    "validation_2023_2024": {
+      "monday_mean_open_to_open_return_pct": "0.52923081",
+      "non_monday_mean_open_to_open_return_pct": "0.22592444",
+      "monday_observations": 105
+    },
+    "interpretation": "The externally specified gross Monday mean exceeded other weekdays in both windows, but this descriptive relation did not survive the full fee, adverse-slippage, opportunity-cost, drawdown, Calmar, annual-breadth and concentration contract."
+  },
+  "matched_capital_evidence": {
+    "design_normal": {
+      "candidate_total_return_pct": "24.55343828",
+      "candidate_maximum_drawdown_pct": "45.47649259",
+      "candidate_calmar_ratio": "0.53991495",
+      "buy_hold_total_return_pct": "346.32062389",
+      "buy_hold_maximum_drawdown_pct": "77.18955925",
+      "buy_hold_calmar_ratio": "4.48662523",
+      "upside_capture_ratio": "0.07089800"
+    },
+    "design_stress": {
+      "candidate_total_return_pct": "-33.26471958"
+    },
+    "validation_normal": {
+      "candidate_total_return_pct": "20.16671646",
+      "candidate_maximum_drawdown_pct": "26.45974003",
+      "candidate_calmar_ratio": "0.76216608",
+      "buy_hold_total_return_pct": "464.75475156",
+      "buy_hold_maximum_drawdown_pct": "32.28416349",
+      "buy_hold_calmar_ratio": "14.39575015",
+      "upside_capture_ratio": "0.04339217",
+      "completed_monday_episodes": 105,
+      "p90_hold_hours": "24.00000000",
+      "terminal_position": false,
+      "top_positive_episode_contribution_pct": "8.37945470"
+    },
+    "validation_stress": {
+      "candidate_total_return_pct": "-12.30371561",
+      "candidate_maximum_drawdown_pct": "32.70267048"
+    }
+  },
+  "annual_breadth": {
+    "normal_positive_years": "3_of_6",
+    "stress_positive_years": "2_of_6",
+    "normal_drawdown_non_worse_than_buy_hold_years": "5_of_6",
+    "normal_calmar_at_least_75pct_buy_hold_years": "1_of_6",
+    "normal_upside_capture_at_least_10pct_years": "3_of_6",
+    "top_year_positive_total_return_contribution_pct": "55.46283958",
+    "normal_year_total_return_pct": {
+      "2019": "16.30741026",
+      "2020": "61.61132216",
+      "2021": "-19.17719682",
+      "2022": "-18.01344414",
+      "2023": "-9.76241640",
+      "2024": "33.16703713"
+    }
+  },
+  "failed_gates": [
+    "design_stress_total_return_positive",
+    "design_drawdown_at_most_50pct_of_buy_hold",
+    "design_upside_capture_at_least_15pct",
+    "design_calmar_at_least_75pct_of_buy_hold",
+    "validation_stress_total_return_positive",
+    "validation_drawdown_at_most_50pct_of_buy_hold",
+    "validation_upside_capture_at_least_15pct",
+    "validation_calmar_at_least_75pct_of_buy_hold",
+    "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+    "normal_positive_annual_return_at_least_4_of_6",
+    "stress_positive_annual_return_at_least_4_of_6",
+    "annual_drawdown_non_worse_6_of_6",
+    "annual_calmar_at_least_75pct_buy_hold_at_least_4_of_6",
+    "annual_upside_capture_at_least_10pct_at_least_4_of_6",
+    "top_year_positive_contribution_at_most_50pct"
+  ],
+  "passed_evidence": [
+    "The exact sealed 52,608-row H1 corpus, source bindings, UTC day inventory, calendar counts and two byte-identical executions passed all integrity gates.",
+    "The gross Monday open-to-open mean exceeded the pooled non-Monday mean in both Design and Validation, so the literature direction replicated descriptively without selecting a weekday from repository outcomes.",
+    "Normal-cost aggregate returns were positive in both windows, all 313 Monday episodes completed at exactly twenty-four hours, terminal inventory was zero and Validation episode concentration passed.",
+    "These partial facts do not override the fifteen failed economic, stress, path-risk, opportunity-cost, annual-breadth and concentration gates."
+  ],
+  "material_learning": "A stable positive gross weekday mean is not a viable strategy by itself. Weekly two-sided friction turned the Monday-only policy negative under the frozen doubled-cost scenario in both windows, while the normal policy captured only 7.09 percent of Design and 4.34 percent of Validation buy-and-hold return. Validation drawdown remained 26.46 percent versus 32.28 percent for buy-and-hold and Calmar was 0.76 versus 14.40. Returns were positive in only three of six normal years and two of six stress years, including a negative 2023, so the anomaly lacked transferable risk-adjusted breadth.",
+  "scientific_claim": "The exact externally specified UTC Monday 00:00 to Tuesday 00:00 full-capital BTC-or-zero-yield-cash policy replicated a higher gross Monday mean in 2019-2022 and 2023-2024 but failed frozen cost-stress, drawdown, upside-capture, Calmar, annual-breadth and top-year concentration gates. It is not a candidate and the exact family is permanently closed.",
+  "prohibited_reopen": [
+    "Do not inspect or substitute Tuesday through Sunday, a weekday bundle, weekend, local timezone or shifted day boundary.",
+    "Do not change the twenty-four-hour hold, full-capital weight, zero cash yield, long-only direction, fee, slippage, comparator, window or gate.",
+    "Do not add trend, volatility, volume, macro, on-chain, session, month or event interactions to rescue the weekday result.",
+    "Do not open post-2024 or independent OOS for this closed family."
+  ],
+  "next_action": "KEEP_THIS_CALENDAR_LINEAGE_CLOSED_AND_PRIORITIZE_ALREADY_REGISTERED_FORWARD_VOLUME_RANGE_AND_POST_SHOCK_EVIDENCE_OR_A_GENUINELY_DISTINCT_FREE_DATA_MECHANISM",
+  "uncertainty": [
+    "This is one sealed OKX historical path and not live or multi-venue execution evidence.",
+    "The gross Monday relation may describe timing of volatility or information arrival, but the failed strategy does not prove all uses of weekday information are impossible; it only prohibits rescue of this exposed lineage.",
+    "The result contains no post-2024, independent OOS, forward, SHADOW, PAPER or LIVE evidence."
+  ],
+  "scope_note": "Offline historical Design and Validation only. No paid API, second timer, second writer, backfill, canonical write, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 163)
+        self.assertEqual(len(catalog["closed_families"]), 164)
         closed_nr7 = next(
             family
             for family in catalog["closed_families"]
@@ -2210,6 +2210,20 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
         )
         self.assertTrue(intraday_session["prohibited_reopen"])
+        monday_calendar = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"] == "closed-btc-utc-monday-long-cash-v1"
+        )
+        self.assertEqual(
+            monday_calendar["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_UTC_MONDAY_LONG_CASH_FAMILY",
+        )
+        self.assertEqual(
+            monday_calendar["duplicate_family_key"],
+            "btc-utc-monday-00-to-tuesday-00-full-capital-long-cash",
+        )
+        self.assertTrue(monday_calendar["prohibited_reopen"])
         self.assertTrue(
             all(
                 binding["verified"]
@@ -2227,7 +2241,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 164)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 165)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

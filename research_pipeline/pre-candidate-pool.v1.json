@@ -4467,6 +4467,37 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_SOURCE_AND_SUPPORT_GATES_HAD_PASSED",
       "prohibited_reopen": true,
       "title": "FRED SOFR minus IOER-IORB strictly-positive funding-pressure passive-core source family"
+    },
+    {
+      "decision_feature": "UTC_CALENDAR_WEEKDAY_IS_MONDAY_FROM_00_00_UTC_H1_OPEN_TO_FOLLOWING_TUESDAY_00_00_UTC_H1_OPEN",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_UTC_MONDAY_LONG_CASH_FAMILY",
+      "duplicate_family_key": "btc-utc-monday-00-to-tuesday-00-full-capital-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-utc-monday-long-cash-historical.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_HISTORICAL_ECONOMIC_FAMILY_CLOSURE",
+          "sha256": "50b8493158b6d3ad090928408e16847b2e81e94f5a14966c5fa9b30324b07ae4"
+        },
+        {
+          "path": "research_pipeline/examples/btc-utc-monday-long-cash-historical.v1.manifest.json",
+          "role": "FROZEN_SINGLE_VARIANT_MATCHED_CAPITAL_HISTORICAL_MANIFEST",
+          "sha256": "03805a7a2dc6fe79c01c3fb22e3b797d2efc13c806bd8c4bd91cc9d9ee635b6c"
+        },
+        {
+          "path": "research_pipeline/examples/btc-utc-monday-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
+          "sha256": "b3b544416811eb80bbaa7c461ac5820895b866913ea966c6edfdc5d737fe4e00"
+        },
+        {
+          "path": ".research-state/experiments/btc-utc-monday-long-cash-historical-v1/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+          "sha256": "cf62f9835a6751a3929981ab25bc784ebcdc544a21c3b30b6e9bd78584a49a6e"
+        }
+      ],
+      "family_id": "closed-btc-utc-monday-long-cash-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_HOURLY_VALUATION",
+      "prohibited_reopen": true,
+      "title": "Externally specified UTC Monday-only Bitcoin long-or-cash calendar policy"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

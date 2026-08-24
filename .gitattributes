@@ -22,6 +22,7 @@ research_pipeline/tests/test_btc_utc_monday_long_cash_historical.py text eol=lf
 research_pipeline/examples/btc-utc-monday-long-cash-primary-prior.v1.json text eol=lf
 research_pipeline/examples/btc-utc-monday-long-cash-v1.hypothesis.json text eol=lf
 research_pipeline/examples/btc-utc-monday-long-cash-historical.v1.manifest.json text eol=lf
+research_pipeline/examples/btc-utc-monday-long-cash-historical.v1.decision.json text eol=lf
 research_pipeline/examples/btc-fred-sofr-policy-spread-source-feasibility.v1.decision.json text eol=lf
 research_pipeline/btc-dra-cftc-tff-historical-entry-admission-manifest.v1.schema.json text eol=lf
 research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json text eol=lf

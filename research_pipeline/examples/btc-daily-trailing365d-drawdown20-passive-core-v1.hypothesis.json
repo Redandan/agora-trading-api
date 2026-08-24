@@ -1,0 +1,37 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "created_at": "2026-08-24T13:01:00Z",
+  "data_readiness": "READY",
+  "economic_rationale": "A cumulative-loss overlay is useful only if downside persistence creates a positive stopping premium after costs. The permanent half-size core must preserve at least 70 percent of buy-and-hold upside while the de-risked half materially reduces drawdown and improves Calmar with annual and 15/25-percent threshold breadth.",
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "regime_state_changes",
+    "realized_lot_holding",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "hypothesis_id": "btc-daily-trailing365d-drawdown20-passive-core-v1",
+  "mechanism": "After each complete UTC day, compute the latest close's percentage drawdown from the maximum close among the latest 365 complete UTC days including current. Hold 50 percent BTC plus 50 percent zero-yield cash when drawdown is at or below minus 20 percent and 100 percent BTC otherwise. Execute only a changed target at the next H1 open. Minus 15 and minus 25 percent are rejection-only neighbors.",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_FOR_DE_RISKED_HALF",
+  "ranking": {
+    "economic_mechanism": 4,
+    "evidence_readiness": 5,
+    "interpretability": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "required_capability": "btc-daily-trailing365d-drawdown20-passive-core-v1-direct-fractional-economic-runner",
+  "research_cycle_id": "2026-08-24-candidate-factory-cycle-trailing365d-drawdown20",
+  "schema_version": "1",
+  "source": "BTC_DAILY_TRAILING365D_DRAWDOWN20_PASSIVE_CORE_PRIMARY_PRIOR_V1_AND_SEALED_OKX_H1_DATA_PATH",
+  "thesis": "A causal trailing-365-complete-day 20-percent drawdown overlay can retain a permanent half-size BTC core while reducing the other half during persistent cumulative-loss states, improving after-cost risk-adjusted performance over full-capital buy-and-hold.",
+  "title": "Daily trailing-365-day 20-percent drawdown passive-core BTC risk overlay"
+}

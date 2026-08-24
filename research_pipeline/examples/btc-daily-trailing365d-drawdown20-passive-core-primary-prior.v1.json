@@ -1,0 +1,80 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_TRAILING365D_DRAWDOWN20_PASSIVE_CORE_PRIMARY_PRIOR_V1",
+  "family_id": "btc-daily-trailing365d-drawdown20-passive-core-risk-overlay",
+  "reviewed_at": "2026-08-24T13:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PREREGISTRATION_READY_NO_FAMILY_OUTCOME_ACCESS",
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_TRAILING365D_DRAWDOWN20_PASSIVE_CORE_SCREEN",
+  "claim_boundary": "Stop-loss research supports testing whether a known cumulative-loss state has conditional value when returns exhibit persistence, but it also predicts a negative stopping premium under random-walk behavior and emphasizes transaction costs. It does not establish Bitcoin alpha, the 365-day reference, the 20-percent threshold, the half-risk target or superiority to buy-and-hold.",
+  "causal_hypothesis": "A close at least 20 percent below the highest close in the latest 365 complete UTC days may identify a persistent downside state in which keeping only a permanent half-size BTC core reduces subsequent path loss. A same-threshold recovery above minus 20 percent restores full exposure without a fitted forecast.",
+  "economic_hypothesis": "A state-change-only 100/50-percent BTC passive-core overlay using a trailing-365-complete-day close drawdown threshold of 20 percent improves after-cost Calmar and materially reduces drawdown versus full-capital buy-and-hold while retaining at least 70 percent of upside in Design and historical Validation.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Kaminski and Lo, When do stop-loss rules stop losses?, Journal of Financial Markets 18, 2014",
+      "source": "https://doi.org/10.1016/j.finmar.2013.07.001",
+      "role": "PRIMARY_CUMULATIVE_LOSS_OVERLAY_MECHANISM_PRIOR",
+      "finding": "The paper derives that a stop-loss overlay can add value when returns exhibit sufficient momentum or regime persistence, but has a negative stopping premium under a random walk.",
+      "transfer_boundary": "Equity-index and futures evidence does not establish a Bitcoin threshold, passive-core weight, clock, cost robustness or candidate result."
+    },
+    {
+      "identity": "Lo and Remorov, Stop-loss strategies with serial correlation, regime switching, and transaction costs, Journal of Financial Markets 34, 2017",
+      "source": "https://doi.org/10.1016/j.finmar.2017.02.003",
+      "role": "PRIMARY_TRANSACTION_COST_AND_PERSISTENCE_ADVERSARIAL_PRIOR",
+      "finding": "The paper shows tight stop-loss rules can underperform after transaction costs and that outperformance requires sufficiently persistent returns.",
+      "transfer_boundary": "The result motivates frozen stress costs and regime-change bounds; it does not select 15, 20 or 25 percent Bitcoin drawdown thresholds."
+    },
+    {
+      "identity": "Agora sealed daily Ulcer21/28/35 lagged-median 100/50-percent passive-core closure",
+      "source": "research_pipeline/examples/local-research-result.btc-daily-ulcer28-passive-core-risk-overlay-v2.json",
+      "role": "INTERNAL_PATH_RISK_AND_OPPORTUNITY_COST_ADVERSARIAL_PRIOR",
+      "finding": "Ulcer28 reduced Validation drawdown by about 4.53pp but captured only 67.27 percent of buy-and-hold upside and failed Calmar and annual breadth gates.",
+      "transfer_boundary": "The present feature is current trailing-peak drawdown magnitude with fixed thresholds, not rolling squared drawdown depth-duration versus a lagged median. Ulcer lookbacks, medians and neighbor substitution remain permanently closed."
+    },
+    {
+      "identity": "Agora sealed DRA 90-day drawdown-recovery entry-admission closure",
+      "source": "research_pipeline/examples/dra-90d-drawdown-recovery-entry-admission.v1.decision.json",
+      "role": "INTERNAL_DRA_DRAWNDOWN_FEATURE_DEDUP_BOUNDARY",
+      "finding": "A first-peak-to-post-peak-trough 90-day recovery fraction reduced Design drawdown but lost realized and Validation PnL and worsened Validation path risk.",
+      "transfer_boundary": "The present policy is a standalone whole-portfolio passive-core exposure overlay using latest close versus the maximum close of 365 complete days. It cannot change or reinterpret the closed DRA recovery formula or thresholds."
+    },
+    {
+      "identity": "Agora sealed daily prior-SMA150/200/250 long-or-cash closure",
+      "source": "research_pipeline/examples/btc-daily-sma200-long-cash-historical.v1.decision.json",
+      "role": "INTERNAL_TREND_TIMING_DEDUP_BOUNDARY",
+      "finding": "The daily long-or-cash trend family is permanently closed.",
+      "transfer_boundary": "The present policy preserves a 50-percent BTC core and uses a bounded trailing-peak loss state, not price relative to a moving average; no SMA or full-cash rescue is permitted."
+    }
+  ],
+  "frozen_pre_outcome_contract": {
+    "source": "SEALED_PRE2025_OKX_BTC_USDT_H1_CORPUS",
+    "daily_feature": "LATEST_COMPLETE_DAY_CLOSE_DIVIDED_BY_MAXIMUM_CLOSE_OF_LATEST_365_COMPLETE_DAYS_MINUS_ONE",
+    "primary_high_risk_threshold_pct": -20,
+    "rejection_only_neighbor_thresholds_pct": [-15, -25],
+    "low_risk_target": "BTC_100_PERCENT",
+    "high_risk_target": "BTC_50_PERCENT_CASH_50_PERCENT",
+    "execution": "NEXT_H1_OPEN_AFTER_COMPLETE_UTC_DAY",
+    "rebalance": "ONLY_WHEN_TARGET_STATE_CHANGES",
+    "matched_parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD",
+    "variants": 3
+  },
+  "independence_assessment": {
+    "distinct_from_closed_ulcer": "No squared drawdown average, 21/28/35-day lookback or prior-252-value median is used. The feature is the latest close's point drawdown from a fixed trailing-365-day maximum close.",
+    "distinct_from_closed_dra_recovery": "No first peak, post-peak trough or recovery fraction gates a DRA entry. The action is a whole-portfolio 100/50 exposure state.",
+    "distinct_from_closed_trend_timing": "The overlay never goes fully to cash and has no moving average, oscillator, channel, band or forecast score.",
+    "duplicate_family_key": "btc-daily-trailing365d-drawdown15-20-25-passive-core-risk-overlay"
+  },
+  "stop_conditions": [
+    "Freeze runner, hypothesis, manifest, exact source hashes, costs, windows, parent and all-pass gates before opening this family's outcome.",
+    "Primary is minus 20 percent; minus 15 and minus 25 percent are rejection-only and cannot replace it after outcome access.",
+    "Use the latest 365 complete UTC daily closes including the current completed day, strict at-or-below negative threshold as high risk and next-H1-open state-change-only execution.",
+    "Any primary or neighbor gate failure permanently closes the exact family without drawdown window, high definition, threshold, relation, target weight, rebalance, cost, window, parent or gate tuning.",
+    "A positive historical result remains REPORTED_NOT_ACTIVATED and authorizes at most one separately sealed independent OOS."
+  ],
+  "missing_proof": [
+    "No primary, neighbor, regime count, trade, PnL, drawdown, Calmar, annual breadth, holding or terminal outcome has been observed for this exact family.",
+    "The prior supports only a testable conditional-loss mechanism; it does not prove persistent Bitcoin downside or a positive stopping premium after costs."
+  ],
+  "next_gate": "FREEZE_AND_RUN_ONE_THREE_VARIANT_MATCHED_CAPITAL_HISTORICAL_SCREEN",
+  "scope_note": "Prior and dedup boundary only. No family outcome, candidate, OOS, paid API, timer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

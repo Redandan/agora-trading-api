@@ -1,0 +1,103 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_SOFR_POLICY_SPREAD_PASSIVE_CORE_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-sofr-policy-spread-passive-core-risk-overlay",
+  "created_at": "2026-08-24T13:45:00Z",
+  "status": "PRIMARY_PRIOR_FROZEN_SOURCE_FEASIBILITY_REQUIRED",
+  "frozen_before_historical_sofr_policy_spread_values_or_btc_outcome_access": true,
+  "decision": "ADMIT_EXACTLY_ONE_SOURCE_AND_STATE_SUPPORT_GATE_THEN_AT_MOST_ONE_HASH_BOUND_MATCHED_CAPITAL_AUDIT",
+  "claim_boundary": "SOFR relative to the applicable Federal Reserve reserve-remuneration rate is a direct overnight Treasury-repo funding-price relation. Official Federal Reserve material supports monitoring repo-rate spreads to IORB for reserve and money-market pressure, while external crypto research supports only a broad funding-liquidity-to-volatility transmission prior. Neither source establishes that a strictly positive SOFR-policy spread predicts BTC returns or improves a 100/50 passive-core policy.",
+  "primary_sources": [
+    {
+      "title": "Secured Overnight Financing Rate",
+      "publisher": "Federal Reserve Bank of St. Louis FRED / Federal Reserve Bank of New York",
+      "url": "https://fred.stlouisfed.org/series/SOFR",
+      "use": "Official SOFR series identity and transaction-based Treasury-repurchase-market definition.",
+      "transfer_boundary": "A transaction-based overnight funding rate does not by itself imply a tradable BTC direction."
+    },
+    {
+      "title": "Interest on Reserve Balances Frequently Asked Questions",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/monetarypolicy/iorb-faqs.htm",
+      "use": "Official IORB policy-rate identity and monetary-policy implementation role.",
+      "transfer_boundary": "IORB is an administered rate, not a crypto risk-state threshold."
+    },
+    {
+      "title": "Market-Based Indicators on the Road to Ample Reserves",
+      "publisher": "Board of Governors of the Federal Reserve System",
+      "url": "https://www.federalreserve.gov/econres/notes/feds-notes/market-based-indicators-on-the-road-to-ample-reserves-20250131.html",
+      "use": "Official evidence that SOFR and other money-market spreads to IORB are monitored as reserve-supply and funding-pressure indicators.",
+      "transfer_boundary": "The note studies reserve conditions and temporary money-market pressures; it does not test BTC returns, the strict-zero relation or a 50-percent exposure rule."
+    },
+    {
+      "title": "Funding liquidity shocks and cryptocurrency returns",
+      "publisher": "Journal of Multinational Financial Management",
+      "url": "https://doi.org/10.1016/j.mulfin.2022.100729",
+      "use": "Peer-reviewed external prior that funding-liquidity shocks can carry information for cryptocurrency volatility and risk management.",
+      "transfer_boundary": "The paper does not establish this exact SOFR-minus-IOER-or-IORB state, publication lag, BTC spot direction, exposure weight or future performance."
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "FRED_SOFR_MINUS_APPLICABLE_IOER_OR_IORB_STRICTLY_POSITIVE_PLUS_5D",
+    "policy_splice": "IOER_THROUGH_2021_07_28_IORB_FROM_2021_07_29",
+    "high_funding_pressure_state": "SOFR_MINUS_APPLICABLE_POLICY_RATE_STRICTLY_GREATER_THAN_ZERO",
+    "other_state": "EQUALITY_OR_NEGATIVE_SPREAD",
+    "spread_unit": "BASIS_POINTS",
+    "availability_floor": "OBSERVATION_DAY_PLUS_5_CALENDAR_DAYS_AT_00_00_UTC",
+    "state_validity": "UNTIL_NEXT_AVAILABLE_LAGGED_SOFR_OBSERVATION_MAXIMUM_120_HOURS",
+    "execution_anchor": "FIRST_BTC_H1_OPEN_AT_OR_AFTER_AVAILABILITY_FLOOR",
+    "policy": "HOLD_50_PERCENT_BTC_AND_50_PERCENT_ZERO_YIELD_CASH_IN_HIGH_FUNDING_PRESSURE_STATE_OTHERWISE_100_PERCENT_BTC",
+    "high_pressure_btc_weight": "0.50",
+    "other_state_btc_weight": "1.00",
+    "variant_count": 1
+  },
+  "future_economic_contract_if_and_only_if_source_gate_passes": {
+    "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+    "comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_AND_ZERO_YIELD_CASH",
+    "required_visibility": [
+      "fees",
+      "adverse_slippage",
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "calmar",
+      "upside_participation",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "annual_breadth",
+      "underwater_duration",
+      "high_pressure_episode_concentration"
+    ]
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_nfci_and_stlfsi4": "NFCI and STLFSI4 are broad composites of many financial variables. This factor is one directly observed secured overnight funding-price spread with an official policy-rate denominator and no principal-component or percentile construction.",
+    "distinct_from_closed_fed_balance_tga_reserves_and_on_rrp": "Those families use balance-sheet quantities or their changes. This family uses the price of secured overnight funding relative to the applicable reserve-remuneration rate and cannot add a quantity trend.",
+    "distinct_from_closed_real_yield_treasury_yield_and_broad_dollar": "Those families use yield direction, real yields or exchange-value volatility. This family uses a same-day repo-policy spread and cannot add rate direction, dollar direction or volatility.",
+    "distinct_from_closed_crypto_funding_and_basis": "Perpetual funding and futures basis measure crypto leverage and carry. SOFR-policy spread measures U.S. dollar repo funding pressure and cannot reopen, rename or combine the closed crypto funding-carry families.",
+    "prohibited_rescue": "Do not add a magnitude threshold, percentile, rolling z-score, smoothing, direction inversion, policy-rate change, reserve quantity, VIX, NFCI, crypto funding, basis, alternate splice date, lag scan or alternate BTC weight after factor or outcome access."
+  },
+  "adversarial_prior": [
+    "SOFR normally trades below IORB, so strictly positive spreads may be too rare outside isolated quarter-end or stress episodes for independent Design and Validation support.",
+    "The 2019 repo-market disruption and 2020 pandemic can dominate any apparent state, creating event and year concentration rather than a general mechanism.",
+    "Higher funding pressure can coincide with both forced risk reduction and policy-liquidity responses; a directional BTC effect is not identified by the spread alone.",
+    "Present-vintage FRED history does not prove original publication-time vintages or revision-free point-in-time availability.",
+    "A 50-percent risk reduction can lower drawdown mechanically while surrendering too much BTC upside; matched-capital Calmar, upside and annual breadth must all pass."
+  ],
+  "stop_conditions": [
+    "Stop DATA_REJECT before hypothesis or BTC outcome access if the exact no-credential FRED CSV, four-column schema, IOER-IORB splice, SOFR observation lattice or 2018-2024 boundaries cannot be sealed.",
+    "Stop DATA_REJECT before hypothesis or BTC outcome access unless both Design and Validation pass every frozen positive-state, nonpositive-state, transition, year-support and concentration gate.",
+    "If and only if the source gate passes twice byte-identically, freeze one hypothesis and one direct matched-capital economic manifest before joining BTC outcomes; no threshold, lag, direction or weight variants are allowed.",
+    "Stop NO_CANDIDATE if either Design or Validation fails total-PnL, drawdown, Calmar, upside, annual-breadth, holding, terminal-inventory or episode-concentration gates.",
+    "Do not open post-2024 outcomes. Any historical pass remains REPORTED_NOT_ACTIVATED and requires separately sealed independent OOS."
+  ],
+  "missing_proof": [
+    "The exact multi-series FRED transport, CSV schema, IOER-IORB splice, SOFR observation count and 2018-2024 boundaries have not been sealed.",
+    "Strictly positive and nonpositive state support, transitions and year concentration have not been measured.",
+    "No BTC outcome, hash-bound hypothesis, economic manifest, runner or deterministic result exists.",
+    "No candidate, OOS, forward evidence or activation claim exists."
+  ],
+  "scope_note": "Primary and adversarial prior only. No historical SOFR, IOER or IORB value, BTC outcome, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

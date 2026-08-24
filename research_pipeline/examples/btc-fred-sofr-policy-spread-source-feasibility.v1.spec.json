@@ -1,0 +1,147 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_SOFR_POLICY_SPREAD_SOURCE_FEASIBILITY_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-sofr-policy-spread-passive-core-risk-overlay",
+  "created_at": "2026-08-24T13:46:00Z",
+  "status": "FROZEN_BEFORE_2018_2024_SOFR_POLICY_SPREAD_VALUE_ACCESS",
+  "purpose": "Test only whether one exact free official present-vintage FRED multi-series history has a deterministic SOFR observation lattice, the frozen IOER-to-IORB splice and enough strictly-positive versus nonpositive spread support in both Design and Validation before any BTC outcome is opened.",
+  "implementation_bindings": {
+    "primary_prior": {
+      "path": "research_pipeline/examples/btc-fred-sofr-policy-spread-passive-core-primary-prior.v1.json",
+      "role": "PRIMARY_PRIOR",
+      "sha256": "4bac269c3b386505e86a77bed5d847c91e356ef86aba6a96f19e6cc9be5ee76e"
+    },
+    "source_probe": {
+      "path": "research/fred_sofr_policy_spread_source_probe.py",
+      "role": "SOURCE_PROBE",
+      "sha256": "fa09cf1ca7154ad6d1dfe69b375a192ee0a034fcd98dcbe58f0ac22cc8661a87"
+    },
+    "source_probe_test": {
+      "path": "research_pipeline/tests/test_fred_sofr_policy_spread_source_probe.py",
+      "role": "SOURCE_PROBE_TEST",
+      "sha256": "8e6fd66857a3e66c8549566afb348dc87c6bef2b26226ec26314ec1b750167cb"
+    }
+  },
+  "source_contract": {
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "source_agencies": [
+      "Federal Reserve Bank of New York",
+      "Board of Governors of the Federal Reserve System"
+    ],
+    "series": [
+      "SOFR",
+      "IOER",
+      "IORB"
+    ],
+    "frequency": "SOFR_OBSERVATION_DAYS",
+    "years": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=SOFR%2CIOER%2CIORB&cosd=2018-01-01&coed=2024-12-31",
+    "expected_first_date": "2018-04-03",
+    "expected_last_date": "2024-12-31",
+    "minimum_rows": 1680,
+    "maximum_rows": 1720,
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "request_timeout_seconds": 60,
+    "maximum_response_bytes": 262144
+  },
+  "parser_contract": {
+    "exact_header": [
+      "observation_date",
+      "SOFR",
+      "IOER",
+      "IORB"
+    ],
+    "missing_sofr": "SKIP_ONLY_EMPTY_OR_DOT_ROWS",
+    "policy_join_before_2021_07_29": "REQUIRE_IOER_AND_REQUIRE_IORB_MISSING",
+    "policy_join_from_2021_07_29": "REQUIRE_IORB_AND_REQUIRE_IOER_MISSING",
+    "date_order": "STRICTLY_ASCENDING_UNIQUE",
+    "maximum_consecutive_sofr_observation_gap_days": 5,
+    "decimal_range_percent": [
+      "0",
+      "25"
+    ],
+    "normalized_columns": [
+      "observation_date",
+      "sofr",
+      "policy_rate",
+      "policy_name",
+      "sofr_minus_policy_bps"
+    ]
+  },
+  "feature_contract": {
+    "factor_identity": "FRED_SOFR_MINUS_APPLICABLE_IOER_OR_IORB_STRICTLY_POSITIVE_PLUS_5D",
+    "policy_splice": "IOER_THROUGH_2021_07_28_IORB_FROM_2021_07_29",
+    "spread_formula": "(SOFR_MINUS_APPLICABLE_POLICY_RATE)_TIMES_100_BASIS_POINTS",
+    "high_funding_pressure_relation": "SOFR_MINUS_APPLICABLE_POLICY_RATE_STRICTLY_GREATER_THAN_ZERO",
+    "other_relation": "EQUALITY_OR_NEGATIVE_SPREAD",
+    "availability": "OBSERVATION_DAY_PLUS_5_CALENDAR_DAYS_AT_00_00_UTC",
+    "availability_lag_days": 5,
+    "maximum_validity_hours": 120,
+    "direction_inversion": "DENY",
+    "threshold_smoothing_magnitude_or_lag_scan": "DENY"
+  },
+  "pre_outcome_support_gates": {
+    "design": {
+      "start": "2020-01-01",
+      "end_exclusive": "2023-01-01",
+      "minimum_evaluations": 700,
+      "minimum_positive_spread_days": 15,
+      "minimum_nonpositive_spread_days": 400,
+      "minimum_transitions": 6,
+      "minimum_positive_spread_years": 2,
+      "minimum_nonpositive_spread_years": 3,
+      "maximum_single_year_positive_share": "0.75"
+    },
+    "validation": {
+      "start": "2023-01-01",
+      "end_exclusive": "2025-01-01",
+      "minimum_evaluations": 480,
+      "minimum_positive_spread_days": 10,
+      "minimum_nonpositive_spread_days": 250,
+      "minimum_transitions": 4,
+      "minimum_positive_spread_years": 2,
+      "minimum_nonpositive_spread_years": 2,
+      "maximum_single_year_positive_share": "0.85"
+    }
+  },
+  "sealed_output_contract": {
+    "run1": {
+      "bundle": ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run1/bundle.json",
+      "raw": ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run1/fred.csv",
+      "normalized": ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run1/normalized.csv"
+    },
+    "run2": {
+      "bundle": ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run2/bundle.json",
+      "raw": ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run2/fred.csv",
+      "normalized": ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run2/normalized.csv"
+    },
+    "write_mode": "CREATE_ONCE_PRIVATE_RESEARCH_STATE",
+    "run2_admission": "ONLY_AFTER_RUN1_SOURCE_SCHEMA_LATTICE_AND_ALL_SUPPORT_GATES_PASS",
+    "successful_determinism_gate": "RUN1_AND_RUN2_RAW_NORMALIZED_AND_BUNDLE_SHA256_MUST_MATCH_BYTE_FOR_BYTE",
+    "first_failure_rule": "STOP_WITHOUT_RUN2_AND_WITHOUT_PARTIAL_OUTPUT_REUSE"
+  },
+  "decision": {
+    "pass": "SOURCE_AND_STATE_SUPPORT_FEASIBILITY_PASS_MAY_FREEZE_EXACTLY_ONE_HYPOTHESIS_BEFORE_BTC_OUTCOME_ACCESS",
+    "failure": "DATA_REJECT_PERMANENTLY_CLOSE_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+    "no_partial_pass": true
+  },
+  "prohibited_after_factor_access": [
+    "Do not change the SOFR-minus-policy relation, IOER-IORB splice, strict zero threshold, five-calendar-day availability lag, 120-hour maximum validity or support gates.",
+    "Do not add a magnitude threshold, percentile, smoothing, z-score, direction inversion, alternate policy rate, lag scan, VIX, NFCI, Fed quantity, crypto funding, basis or alternate BTC weight as a rescue.",
+    "Do not access BTC outcomes unless this exact source and state-support gate passes twice byte-identically.",
+    "Do not treat present-vintage revised history as original point-in-time release vintages or independent OOS."
+  ],
+  "scope_note": "No historical SOFR, IOER or IORB value, BTC outcome, hypothesis, manifest, runner result, economics, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed by this specification."
+}

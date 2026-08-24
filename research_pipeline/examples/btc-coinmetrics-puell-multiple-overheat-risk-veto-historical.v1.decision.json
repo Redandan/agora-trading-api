@@ -1,0 +1,123 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_PUELL_MULTIPLE_OVERHEAT_RISK_VETO_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-coinmetrics-puell-multiple-overheat-risk-veto-historical-v1",
+  "family_id": "btc-coinmetrics-puell-multiple-overheat-risk-veto-long-cash",
+  "decided_at": "2026-08-24T16:50:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_PUELL_MULTIPLE_OVERHEAT_RISK_VETO_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_ISSUANCE_ONLY_INCLUSIVE_365D_PUELL_GT4_RISK_VETO_AT_FROZEN_STATE_SUPPORT_AND_PRICE_INDEPENDENCE_GATES_WITHOUT_ECONOMIC_OPENING_RERUN_OR_RESCUE",
+  "economics_opened": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical-v1/artifacts/run2.json",
+    "run1_sha256": "e6d4cb6bd9158d5431f660e8126a570b98495128385ed39757ffbd6dc879f78c",
+    "run2_sha256": "e6d4cb6bd9158d5431f660e8126a570b98495128385ed39757ffbd6dc879f78c",
+    "byte_identical": true
+  },
+  "sealed_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical.v1.manifest.json",
+      "role": "FROZEN_SINGLE_VARIANT_SUPPORT_INDEPENDENCE_AND_MATCHED_CAPITAL_MANIFEST",
+      "sha256": "a23ffc5ee84e783400cacea069c6c0fa4efb2aa997db8401a12e15ef05653358"
+    },
+    {
+      "path": "research/btc_coinmetrics_puell_multiple_overheat_risk_veto_historical.py",
+      "role": "FROZEN_DETERMINISTIC_PRE_ECONOMIC_AND_DIRECT_ECONOMIC_RUNNER",
+      "sha256": "eca7521b28144bbc2d3325a618edbd85c4831c65eb3c9deb0638cd7b63e76ff4"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-primary-prior.v1.json",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
+      "sha256": "85d6ba3a455a18111952ff9ccc21a3fe34ae32cc3d34762b505b7b4f08d61be6"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-v1.hypothesis.json",
+      "role": "FROZEN_SINGLE_VARIANT_PRE_OUTCOME_HYPOTHESIS",
+      "sha256": "569f9451edd6ba78796ac300a814b0b88d55e3e0439c250c68d539ba572ca917"
+    },
+    {
+      "path": ".research-state/experiments/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical-v1/artifacts/run1.json",
+      "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+      "sha256": "e6d4cb6bd9158d5431f660e8126a570b98495128385ed39757ffbd6dc879f78c"
+    }
+  ],
+  "source_and_feature_evidence": {
+    "btc_hourly_rows": 52608,
+    "btc_complete_utc_days": 2192,
+    "issuance_rows": 2922,
+    "issuance_period": "2017-01-01_TO_2024-12-31",
+    "all_rows_nonnegative_and_contiguous": true,
+    "puell_evaluations": 1828,
+    "first_effective_time": "2020-01-01T00:00:00",
+    "last_effective_time": "2025-01-01T00:00:00",
+    "minimum_puell_multiple": "0.34674757",
+    "median_puell_multiple": "1.02747745",
+    "maximum_puell_multiple": "3.47336588",
+    "fixed_overheat_threshold": "4.00000000",
+    "long_days": 1828,
+    "overheat_days": 0,
+    "state_transitions": 0
+  },
+  "window_support_and_independence": {
+    "design_2020_2022": {
+      "evaluations": 1096,
+      "long_days": 1096,
+      "overheat_days": 0,
+      "transitions": 0,
+      "overheat_state_years": 0,
+      "top_year_overheat_share_pct": "100.00000000",
+      "pearson_puell_to_btc_price_365d_multiple": "0.93286188",
+      "maximum_allowed_abs_pearson": "0.90000000"
+    },
+    "validation_2023_2024": {
+      "evaluations": 731,
+      "long_days": 731,
+      "overheat_days": 0,
+      "transitions": 0,
+      "overheat_state_years": 0,
+      "top_year_overheat_share_pct": "100.00000000",
+      "pearson_puell_to_btc_price_365d_multiple": "0.60087920",
+      "maximum_allowed_abs_pearson": "0.90000000"
+    }
+  },
+  "failed_pre_economic_gates": [
+    "design_overheat_days_at_least_5",
+    "design_state_transitions_at_least_2",
+    "design_both_states_in_at_least_2_years",
+    "design_top_year_overheat_share_at_most_75pct",
+    "validation_overheat_days_at_least_2",
+    "validation_state_transitions_at_least_2",
+    "validation_both_states_in_both_years",
+    "validation_top_year_overheat_share_at_most_75pct",
+    "design_abs_pearson_to_btc_price_365d_multiple_at_most_0_90"
+  ],
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "adverse_slippage": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "realized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "unrealized_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "total_pnl": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "maximum_drawdown": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "holding": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "terminal_inventory": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_ACCESSED_BY_FROZEN_PRE_ECONOMIC_STOP"
+  },
+  "material_learning": "The externally fixed issuance-only Puell greater-than-four overheat marker did not occur once in the entire sealed 2020-2024 decision window; its maximum was only 3.47336588. The proposed policy therefore never differed from passive BTC and cannot establish a strategy, drawdown improvement or economic alpha. In Design, the continuous factor also correlated 0.93286188 with the same-data BTC price-to-365-day-mean ratio, failing the frozen price-independence gate. Lowering the threshold would be a new outcome-aware rule and is prohibited.",
+  "scientific_claim": "On the sealed present-vintage Coin Metrics IssTotNtv and pre-2025 OKX BTC corpus, the exact issuance-only inclusive-365-day Puell greater-than-four risk state had zero support and zero transitions in both Design and Validation and failed one continuous price-independence gate. It is not a candidate; strategy economics and OOS were not opened.",
+  "prohibited_reopen": [
+    "Do not rerun or economically evaluate the exact inclusive-365-day issuance-only Puell greater-than-four full-capital long-or-cash family.",
+    "Do not lower the threshold to two, three or the observed maximum, add the below-0.5 bottom state, change equality, smooth the factor, add hysteresis or select a halving window.",
+    "Do not substitute paid PuellMulRev, another provider, manual export, fee-inclusive revenue, hashrate, MVRV, SMA, DRA admission, fractional sizing, leverage or shorting.",
+    "Do not open post-2024 or independent OOS evidence for this closed lineage."
+  ],
+  "next_action": "KEEP_THE_EXACT_PUELL_OVERHEAT_LINEAGE_CLOSED_AND_ADVANCE_A_GENUINELY_DISTINCT_FREE_DATA_MECHANISM_OR_THE_EXISTING_FORWARD_VOLUME_RANGE_AND_POST_SHOCK_LANES",
+  "uncertainty": [
+    "The issuance series is a sealed present-vintage Community response; original daily publication vintages remain MISSING_PROOF.",
+    "The calculation uses the OKX BTC complete-day close rather than a provider reference rate, but no plausible same-day price basis can raise the observed maximum from 3.47336588 to the fixed 4.0 state without changing the frozen formula or source.",
+    "This result says nothing about lower Puell zones, a paid revenue-inclusive series, post-2024 values or miner treasury sales; those are outside this closed fingerprint."
+  ],
+  "scope_note": "Offline historical source, support and independence audit only. No paid API, second timer, second writer, external backfill, canonical write, strategy economics, post-2024 outcome, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

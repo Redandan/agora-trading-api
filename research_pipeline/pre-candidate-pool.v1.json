@@ -4581,6 +4581,37 @@
       "parent_strategy_id": "NO_PARENT_SELECTED_PRIMARY_PRIOR_REJECT_BEFORE_HYPOTHESIS",
       "prohibited_reopen": true,
       "title": "Single-BTC active-addresses-to-network-value own-history timing translation"
+    },
+    {
+      "decision_feature": "COIN_METRICS_BTC_ISS_TOT_NTV_TIMES_COMPLETE_DAY_BTC_CLOSE_DIVIDED_BY_INCLUSIVE_365D_MEAN_STRICTLY_GREATER_THAN_4_RISK_VETO",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_PUELL_MULTIPLE_OVERHEAT_RISK_VETO_FAMILY_PRE_ECONOMIC",
+      "duplicate_family_key": "btc-coinmetrics-puell-issuance-multiple-365d-gt4-risk-veto-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_PRE_ECONOMIC_ZERO_SUPPORT_AND_PRICE_INDEPENDENCE_FAMILY_CLOSURE",
+          "sha256": "7d2d79c2f50274da9a730a59f5d748da7805293998c6bf081d49ac77da9c6e35"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical.v1.manifest.json",
+          "role": "FROZEN_SINGLE_VARIANT_SUPPORT_INDEPENDENCE_AND_MATCHED_CAPITAL_MANIFEST",
+          "sha256": "a23ffc5ee84e783400cacea069c6c0fa4efb2aa997db8401a12e15ef05653358"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
+          "sha256": "85d6ba3a455a18111952ff9ccc21a3fe34ae32cc3d34762b505b7b4f08d61be6"
+        },
+        {
+          "path": ".research-state/experiments/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical-v1/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
+          "sha256": "e6d4cb6bd9158d5431f660e8126a570b98495128385ed39757ffbd6dc879f78c"
+        }
+      ],
+      "family_id": "closed-btc-coinmetrics-puell-multiple-overheat-risk-veto-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_SUPPORT_AND_PRICE_INDEPENDENCE_GATES_HAD_PASSED",
+      "prohibited_reopen": true,
+      "title": "Coin Metrics issuance-only Puell Multiple greater-than-four BTC overheat risk veto"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

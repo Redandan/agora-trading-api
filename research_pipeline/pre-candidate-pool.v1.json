@@ -4307,6 +4307,42 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_FOR_DE_RISKED_HALF",
       "prohibited_reopen": true,
       "title": "Lagged broad-dollar volatility 100/50-percent Bitcoin passive-core risk overlay"
+    },
+    {
+      "decision_feature": "STRICT_NORMALIZED_TRUE_RANGE_NR5_NR7_OR_NR10_COMPLETE_UTC_DAY_CONTRACTION_THEN_FIRST_IMMEDIATELY_NEXT_DAY_COMPLETE_H1_CLOSE_ABOVE_SETUP_DAY_HIGH",
+      "disposition": "BTC_DAILY_NR7_VOLATILITY_CONTRACTION_BREAKOUT_FAMILY_CLOSE",
+      "duplicate_family_key": "btc-daily-nr5-7-10-volatility-contraction-conditioned-prior-day-high-breakout-168h-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-daily-nr7-volatility-contraction-breakout-v2.json",
+          "role": "SCHEMA_VALIDATED_BYTE_IDENTICAL_DIRECT_ECONOMIC_FAMILY_CLOSURE",
+          "sha256": "256272648bf9d3964083ff21af14f7b1876918b2cc8532ac8667e8678cdda6a7"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-nr7-volatility-contraction-breakout-v2.json",
+          "role": "MANAGER_ACCEPTED_COUNTABLE_DIRECT_MECHANISM_CLOSURE",
+          "sha256": "d6def4e2c1b989ea5d74ab50eae12693557bba5c8f5f4fdacc46aedf6a732875"
+        },
+        {
+          "path": "research_pipeline/examples/btc-daily-nr7-volatility-contraction-breakout-historical.v1.manifest.json",
+          "role": "FROZEN_THREE_VARIANT_MATCHED_CONTROL_HISTORICAL_MANIFEST",
+          "sha256": "fcc9121b98f705c6e502cc4bfac1780efa8934b526d171ef09d510969980bfe0"
+        },
+        {
+          "path": "research_pipeline/examples/btc-daily-nr7-volatility-contraction-breakout-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_MECHANISM_AND_CLOSED_FAMILY_DEDUPLICATION_PRIOR",
+          "sha256": "ea9b7b2f7d21877ab998ffb9cdfe9b3daa2f6eab7cbea8c9e380eadbcb15f4d7"
+        },
+        {
+          "path": ".research-state/experiments/btc-daily-nr7-volatility-contraction-breakout-historical-v1/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+          "sha256": "2fbb4335193b3aefe4e464c4e36549b302db5aea2f01f601f5e87fb733b2b34c"
+        }
+      ],
+      "family_id": "closed-btc-daily-nr7-volatility-contraction-breakout-v1",
+      "parent_strategy_id": "IDENTICAL_PRIOR_COMPLETE_DAY_HIGH_BREAKOUT_168H_LONG_CASH_POLICY_WITHOUT_NR_FILTER",
+      "prohibited_reopen": true,
+      "title": "Strict NR7 volatility-contraction-conditioned next-day Bitcoin breakout"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

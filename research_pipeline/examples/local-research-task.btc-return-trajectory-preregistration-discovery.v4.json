@@ -1,0 +1,177 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-btc-return-trajectory-preregistration-v4",
+  "issued_at": "2026-08-24T11:00:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Use only the four frozen public primary manuscripts, the exact sealed pre-2025 BTC H1 corpus identity as a historical proxy, and the already authorized public OKX complete-candle path as prospective availability proof to decide whether one deterministic low-complexity predecision return-trajectory state is scientifically distinct from the already closed momentum, reversal, path-efficiency, autocorrelation, variance-ratio, technical-indicator, session-timing and shock families. Return either one preregistration-ready idea skeleton or close the family. Do not transfer FPCA, deep-learning, feature-selection or trading-rule search results into a factor; treat Binance-to-OKX venue transfer as MISSING_PROOF; do not inspect outcomes, compute a factor value, train a model, run a backtest, register a hypothesis, create a candidate or modify the active 90-day forward contract.",
+  "canonical_research_status": "SERVER_CANONICAL_20260824T101627Z_READY_V10_2_OF_90_QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "70a277dea310699d7a93a3c6bc5897c989ca53b8927022f344c82df87d3fc44d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "4324ca6dd4ac3cd1a8942e178f1934e8147d97de96a4289f306f8355963240f7"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "3091b438fd9145a099f6f912c4009beacdac247f71d8d34cc3edc8355a59c1e5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/pre-candidate-pool.v1.json",
+      "sha256": "762ce470ad17e68ea9bf9aa2cedd3c15f915f264bd41a7a641540b90cae12f70"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical.v1.decision.json",
+      "sha256": "aba1ed0a8e581b79f336361f4d2ab29dcff546df6da848e959094f963b7a6444"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/dra-intraday-price-path-efficiency-entry-admission.v1.decision.json",
+      "sha256": "6cc6c1de7582306477250274ed9e8c055ba5627021a69370ff852a795d7c3189"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/dra-h1-lag1-return-autocorrelation-entry-admission.v1.decision.json",
+      "sha256": "63db244d1d110769adba7493421932264b49363f28fcfaa313c39c270d0f7bf5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-historical.v1.decision.json",
+      "sha256": "d27ac8040456f9beac7dde35f0729f9dcab72dd95342f986f456cd9897cb7ee4"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Manager feature data path btc-usdt-complete-h1-ohlcv-return-trajectory-input at https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1H&limit=31 was probed at 2026-08-24T10:31:10Z without credentials: HTTP 200, API code 0, 31 rows of width 9, 30 confirm=1 completed rows spanning 2026-08-23T04:00:00Z through 2026-08-24T09:00:00Z, probe receipt SHA-256 5432144104e3dfa3ec91bcaf2c9ae1c963bcbfdb9e90174a04d14b0bfa72758a, and no OHLCV values retained. This proves schema and prospective availability only, not factor value, predictive value, venue equivalence or permission to alter the active forward diagnostic contract.",
+      "sha256": null
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Manager read canonical Research MCP status at 2026-08-24T10:16:27Z: policy, Worker and sole V10 cloud Ops contract READY; all research, registration, capture and ingest queues IDLE; current mechanism-neutral forward trigger has 2/90 sealed observations with zero lag and is awaiting the 2026-08-24 complete UTC day. No active experiment or evidence-ready direct task exists.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source: DOI 10.1002/for.70127 at publisher URL https://onlinelibrary.wiley.com/doi/full/10.1002/for.70127 ; readable manuscript https://arxiv.org/html/2505.20508 . Separate the paper's fitted rolling FPCA and dynamic-factor forecast from any fixed low-complexity decision-time trajectory property; do not transfer trained components, forecast ranks or selected hours.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source: DOI 10.1007/s10479-019-03357-1 at publisher URL https://link.springer.com/article/10.1007/s10479-019-03357-1 ; readable manuscript https://link.springer.com/article/10.1007/s10479-019-03357-1 . Use its multiple-testing-controlled technical-rule evidence as a negative control against relabeling ordinary trend, reversal or filter rules as a new trajectory family.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source: DOI 10.3390/risks13100195 at publisher URL https://www.mdpi.com/2227-9091/13/10/195 ; readable manuscript https://www.mdpi.com/2227-9091/13/10/195 . Preserve its time-series validation and regime-transition degradation limitations; do not transfer XGBoost, LSTM, GARCH-DL, feature selection or outcome-selected model comparisons.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Primary source: DOI 10.1186/s40854-024-00643-1 at publisher URL https://link.springer.com/article/10.1186/s40854-024-00643-1 ; readable manuscript https://link.springer.com/article/10.1186/s40854-024-00643-1 . Treat Boruta and CNN-LSTM model selection as non-transferable and require any proposed low-complexity state to have a distinct causal mechanism and fixed predecision inputs.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_REPOSITORY_INPUT_HASHES",
+    "VERIFY_SEALED_H1_CORPUS_IDENTITY_WITHOUT_VALUES",
+    "READ_LISTED_PRIMARY_PUBLIC_SOURCES",
+    "AUDIT_RETURN_TRAJECTORY_MECHANISM",
+    "AUDIT_DECISION_TIME_AVAILABILITY",
+    "AUDIT_MODEL_AND_CLUSTER_SELECTION_LEAKAGE",
+    "VERIFY_APPROVED_OKX_FEATURE_PATH_PROOF_WITHOUT_PRICE_VALUES",
+    "AUDIT_LARGE_MOVE_STABILITY",
+    "COMPARE_WITH_CLOSED_TECHNICAL_FAMILIES",
+    "DEFINE_ONE_PREREGISTRATION_IDEA_SKELETON",
+    "ASSESS_PERFORMANCE_DRAWDOWN_AND_COST",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT",
+    "PROBE_LISTED_PUBLIC_FEATURE_DATA_PATHS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "HISTORICAL_PERFORMANCE_RECOMPUTATION",
+    "HISTORICAL_FACTOR_VALUE_COMPUTATION",
+    "MODEL_TRAINING_OR_CLUSTER_FITTING",
+    "HYPOTHESIS_OR_CANDIDATE_REGISTRATION",
+    "RUNNER_BACKTEST_OR_STRATEGY_EXECUTION",
+    "THRESHOLD_TUNING_OR_CONTRACT_CHANGE",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "SERVER_NETWORK_OR_SSH_ACCESS",
+    "SECONDARY_SOURCE_AS_PRIMARY_EVIDENCE",
+    "GIT_STAGE_COMMIT_PUSH_RESET_OR_BRANCH_CHANGE",
+    "JAVA_MAVEN_SPRING_OR_TRADING_RUNNER_EXECUTION"
+  ],
+  "expected_outputs": [
+    "PRIMARY_SOURCE_EVIDENCE_MATRIX",
+    "RETURN_TRAJECTORY_MECHANISM_BOUNDARY",
+    "MODEL_SELECTION_AND_LEAKAGE_BOUNDARY",
+    "CLOSED_FAMILY_DEDUPLICATION_MATRIX",
+    "LARGE_MOVE_STABILITY_REQUIREMENT",
+    "ONE_PREREGISTRATION_READY_IDEA_OR_CLOSE",
+    "PERFORMANCE_DRAWDOWN_AND_COST_HYPOTHESIS",
+    "FALSIFICATION_AND_SUPPORT_REQUIREMENTS",
+    "OPPORTUNITY_COST_ASSESSMENT",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and Manager dispatch before analysis; verify every non-null input SHA-256, branch, clean HEAD equal origin, containment, regular-file type and non-link status. Any mismatch is PRIMARY_SOURCE_OR_DATA_PATH_EVIDENCE_INSUFFICIENT.",
+    "Use only the four listed public primary manuscripts and the exact fresh Local source-access proof. Search snippets, substituted papers, unlisted mirrors and secondary sources cannot support a claim.",
+    "Do not read any sealed H1 row value, strategy result, .research-state experiment artifact, current forward observation, sealed OOS or outcome-bearing artifact. Verify only the exact sealed H1 file identity and frozen coverage metadata plus the Manager-authored schema-only OKX feature-path proof. Treat the sealed Binance H1 corpus as a historical proxy and OKX as a prospective availability route; cross-venue equivalence remains MISSING_PROOF.",
+    "Treat closed variance-ratio, path-efficiency, lag-one autocorrelation, first-six-hour direction, time-series momentum, technical-indicator, three-percent shock and session-timing families as excluded. Renaming or recombining one of them is a family closure.",
+    "A positive idea must define one deterministic low-complexity trajectory state using only complete predecision returns, one fixed horizon, one fixed action and no FPCA fitting, trained component, cluster, neural network, tree, Boruta or other feature selection, technical-rule sweep, model selection, feature search or outcome-conditioned threshold.",
+    "A positive idea must explain what incremental information remains after ordinary momentum, reversal, volatility, sign persistence, path efficiency and autocorrelation; mathematical novelty alone is insufficient.",
+    "A positive idea must name one existing sealed BTC parent and matched-capital comparator, expected fee-adjusted total-PnL and drawdown direction, next-open timing, fees, adverse slippage, annual breadth, large-move stability and falsification conditions.",
+    "Close if the primary evidence supports only fitted-model forecastability, technical-rule search, in-sample classification, contemporaneous association, regime-dependent model rankings or outcome-selected trajectory regions rather than one preregistrable causal state.",
+    "Return no more than one idea and exactly one disposition: ONE_RETURN_TRAJECTORY_PREREGISTRATION_IDEA_READY, NO_INCREMENTAL_RETURN_TRAJECTORY_IDEA_CLOSE, or PRIMARY_SOURCE_OR_DATA_PATH_EVIDENCE_INSUFFICIENT.",
+    "The positive disposition is an idea skeleton only. It cannot register a hypothesis or candidate, compute a factor, train a model, authorize a runner, open OOS, change a forward contract, deploy or activate Trading.",
+    "Keep exact fee-adjusted PnL, realized and unrealized PnL, maximum drawdown, fills, slippage, capacity, breadth, holding age, inventory path and out-of-sample effect as MISSING_PROOF. Immediate PnL and drawdown effects are zero.",
+    "Return exactly one schema-valid local-research-result bound to this task SHA with empty artifacts and files_changed, dirty before and after false, all safety assertions false, concrete checks, uncertainty, one permitted disposition and one bounded next action; then stop without requesting permission."
+  ],
+  "limits": {
+    "timeout_seconds": 2400,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "PUBLIC_READ_ONLY"
+  }
+}

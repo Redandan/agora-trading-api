@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_SOPR_LOSS_REALIZATION_SOURCE_FEASIBILITY_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-sopr-loss-realization-next-day-contrarian-long-cash",
+  "experiment_id": "btc-coinmetrics-sopr-loss-realization-source-v1",
+  "decided_at": "2026-08-24T13:43:14Z",
+  "source_git_commit": "ddb1edc450276505f02331199b51997734b3af0c",
+  "research_classification": "PRE_OUTCOME_FREE_SOURCE_DATA_REJECT",
+  "status": "DATA_REJECT_CLOSE_COINMETRICS_SOPR_FREE_SOURCE_FAMILY_BEFORE_FACTOR_VALUES_OR_BTC_OUTCOMES",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_COINMETRICS_SOPR_LOSS_REALIZATION_NEXT_DAY_CONTRARIAN_FAMILY",
+  "candidate_created": false,
+  "oos_opened": false,
+  "material_conclusion": "The no-key Community catalog advertised daily BTC SOPR coverage, but the one permitted frozen timeseries request returned HTTP 403. The failure occurred before any response body was accepted, persisted or parsed and before any SOPR factor value or BTC outcome was accessed. Per the preregistered first-failure rule, run2 was not requested and the exact free-data family closes without endpoint, entitlement, metric or gate substitution.",
+  "source_evidence": {
+    "catalog_metadata_preflight": {
+      "path": "research_pipeline/examples/btc-coinmetrics-sopr-loss-realization-source-capability.v1.json",
+      "sha256": "24834c69de3eb4701af491acfde2342cb3776daa4f71c2ed02fe804ebd4ab4ba",
+      "result": "HTTP_200_METADATA_ONLY",
+      "advertised_asset": "btc",
+      "advertised_metric": "SOPR",
+      "advertised_frequency": "1d",
+      "advertised_min_time": "2010-07-18T00:00:00.000000000Z",
+      "advertised_max_time_at_capture": "2026-08-23T00:00:00.000000000Z",
+      "timeseries_values_accessed": false
+    },
+    "frozen_timeseries_gate": {
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=SOPR&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000",
+      "attempt_count": 1,
+      "observed_wall_seconds": "1.7471552",
+      "credentials": "DENY",
+      "redirect": "DENY",
+      "automatic_retry": "DENY",
+      "result": "SOURCE_REJECT_HTTP_403_BEFORE_RESPONSE_ACCEPTANCE",
+      "response_body_accepted": false,
+      "raw_response_sealed": false,
+      "normalized_subset_sealed": false,
+      "source_bundle_sealed": false,
+      "output_root_created": false,
+      "second_request_performed": false,
+      "sopr_factor_values_available_for_research": false,
+      "btc_outcome_accessed": false
+    }
+  },
+  "evidence_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-sopr-loss-realization-source-feasibility.v1.spec.json",
+      "role": "FROZEN_PRE_FACTOR_SOURCE_STATE_SUPPORT_AND_STOP_CONTRACT",
+      "sha256": "9386eca5023bd7880b7ea2c60df67baf7a267519cc934007499b8404119f40c4"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-sopr-loss-realization-next-day-contrarian-primary-prior.v1.json",
+      "role": "PRIMARY_ADVERSARIAL_AND_INDEPENDENT_LINEAGE_PRIOR",
+      "sha256": "54461d810915cdab2bedcd86f0ecf19c6e0a0d54c1fa42ebbdfddd01d9388829"
+    },
+    {
+      "path": "research/coinmetrics_btc_sopr_loss_realization_source_probe.cjs",
+      "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE",
+      "sha256": "fa73fc76e0fa6077a962d180be99c24f4559f93bbf2ac9803706780670f273e1"
+    }
+  ],
+  "performance_evidence": {
+    "state_support": "MISSING_PROOF_NOT_OPENED",
+    "predictive_relation": "MISSING_PROOF_NOT_RUN",
+    "fees": "MISSING_PROOF_NOT_RUN",
+    "adverse_slippage": "MISSING_PROOF_NOT_RUN",
+    "realized_pnl": "MISSING_PROOF_NOT_RUN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_RUN",
+    "total_pnl": "MISSING_PROOF_NOT_RUN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_RUN",
+    "holding_age": "MISSING_PROOF_NOT_RUN",
+    "terminal_inventory": "MISSING_PROOF_NOT_RUN",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_RUN",
+    "oos": "SEALED_UNOPENED"
+  },
+  "closed_fingerprint": {
+    "duplicate_family_key": "btc-coinmetrics-sopr-strict-below-one-plus-three-day-next-day-contrarian-long-cash",
+    "decision_feature": "COINMETRICS_BTC_DAILY_SOPR_STRICTLY_BELOW_ONE_AFTER_THREE_CALENDAR_DAY_AVAILABILITY_LAG",
+    "prohibited_reopen": true,
+    "prohibited_rescue": [
+      "SECOND_COMMUNITY_API_REQUEST_OR_RETRY",
+      "API_KEY_PAID_ENDPOINT_OR_ENTITLEMENT_CHANGE",
+      "STATUS_QUERY_REDIRECT_PROVIDER_OR_MANUAL_EXPORT_SUBSTITUTION",
+      "SOPROUT_ASOPR_STH_SOPR_LTH_SOPR_NVT_RVT_MVRV_NUPL_OR_OTHER_METRIC_SUBSTITUTION",
+      "THRESHOLD_EQUALITY_LAG_HORIZON_ACTION_SUPPORT_GATE_OR_DIRECTION_CHANGE",
+      "PRESENT_VINTAGE_OR_POST2024_OUTCOME_ACCESS"
+    ]
+  },
+  "uncertainty": [
+    "The HTTP 403 proves only that the exact frozen no-key timeseries path was not executable at the decision time; it is not evidence that SOPR lacks predictive or economic value.",
+    "The successful Community catalog metadata response did not guarantee entitlement to timeseries values and must not be treated as a source pass.",
+    "No SOPR value, state count, predictive outcome or strategy metric exists, so no positive or negative alpha conclusion is possible."
+  ],
+  "next_action": "PERMANENTLY_TOMBSTONE_THIS_EXACT_FREE_SOURCE_FAMILY_AND_KEEP_THE_ALTERNATIVE_ME_REPLACEMENT_SLOT_DEFERRED_UNTIL_A_DIFFERENT_DEDUPLICATED_SOURCE_IS_PROVEN_EXECUTABLE_BEFORE_FACTOR_DESIGN",
+  "scope_note": "One exact no-key source execution attempt only. No response body, SOPR value, BTC price, factor, return, strategy, PnL, drawdown, candidate, OOS, paid API, key, second request, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

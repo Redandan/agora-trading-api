@@ -1,0 +1,226 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BROAD_DOLLAR_VOLATILITY_PASSIVE_CORE_RISK_OVERLAY_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-broad-dollar-volatility-passive-core-risk-overlay-historical-v1",
+  "created_at": "2026-08-24T11:32:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "selection_cutoff": "2025-01-01T00:00:00Z",
+  "oos_access": "DENY",
+  "thesis": "A lagged high broad-dollar-volatility state identifies external funding stress in which reducing BTC from full exposure to a permanent half-size core improves matched-capital after-cost risk-adjusted performance over buy-and-hold.",
+  "economic_rationale": "This policy uses only an external Federal Reserve currency index and preserves a permanent BTC core. It is valuable only if its after-cost drawdown and Calmar gains survive Design, Validation, five annual resets and both rejection-only lookback neighbors without excessive upside loss.",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "source": {
+    "series_id": "DTWEXBGS",
+    "publisher": "Federal Reserve Bank of St. Louis FRED",
+    "present_vintage": true,
+    "weekly_aggregation": "MEAN_OF_3_TO_5_ACTUALLY_PUBLISHED_WEEKDAY_OBSERVATIONS",
+    "first_week": "2018-01-05",
+    "last_week": "2024-12-27",
+    "weekly_rows": 365,
+    "reuse_boundary": "EXACT_SEALED_BYTES_FROM_CLOSED_DOLLAR_DIRECTION_DRA_FAMILY_NO_NETWORK_REQUEST"
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_BROAD_DOLLAR_VOLATILITY_PASSIVE_CORE_RISK_OVERLAY_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "source_feature": "FRED_DTWEXBGS_WEEKLY_MEAN",
+    "availability": "WEEK_ENDING_FRIDAY_PLUS_5D_0000_UTC",
+    "volatility_formula": "ANNUALIZED_RMS_OF_WEEKLY_LOG_CHANGES",
+    "primary": {
+      "lookback_weeks": 13,
+      "reference_observations": 52,
+      "high_risk_relation": "CURRENT_VOLATILITY_STRICTLY_GREATER_THAN_LAGGED_MEDIAN"
+    },
+    "rejection_only_neighbors": [
+      {
+        "lookback_weeks": 8,
+        "reference_observations": 52
+      },
+      {
+        "lookback_weeks": 26,
+        "reference_observations": 52
+      }
+    ],
+    "low_risk_target": "BTC_100_PERCENT",
+    "high_risk_target": "BTC_50_PERCENT_CASH_50_PERCENT",
+    "cash_return": "0",
+    "rebalance_rule": "ONLY_WHEN_REGIME_TARGET_CHANGES",
+    "execution": "NEXT_H1_OPEN_AT_OR_AFTER_EFFECTIVE_TIME",
+    "short": "DENY",
+    "leverage": "DENY",
+    "neighbor_use": "STABILITY_REJECTION_ONLY_NO_SELECTION",
+    "variants": 3
+  },
+  "comparators": {
+    "primary": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "cash": "ZERO_YIELD_CASH_FOR_DE_RISKED_HALF",
+    "capital_matching": "SAME_INITIAL_EQUITY_HOURLY_PRICE_PATH_SCENARIO_COST_AND_VALUATION_BOUNDARY"
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2020-01-01T00:00:00",
+      "2023-01-01T00:00:00"
+    ],
+    "validation": [
+      "2023-01-01T00:00:00",
+      "2025-01-01T00:00:00"
+    ],
+    "annual_fair_reset_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "state": "FAIR_RESET_EACH_WINDOW_WITH_CAUSAL_PREWINDOW_FEATURE_HISTORY_CASH_INITIAL_CAPITAL_AND_FIRST_AVAILABLE_REGIME_TARGET_EXECUTED_AT_WINDOW_OPEN"
+  },
+  "gate_set": {
+    "id": "BTC_BROAD_DOLLAR_VOLATILITY_PASSIVE_CORE_MATCHED_CAPITAL_GATES_V1",
+    "primary_design": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_95pct_of_buy_hold",
+      "normal_upside_capture_at_least_70pct",
+      "normal_calmar_at_least_buy_hold"
+    ],
+    "primary_validation": [
+      "normal_and_stress_total_return_pct_gt_0",
+      "normal_drawdown_at_most_90pct_of_buy_hold",
+      "normal_upside_capture_at_least_70pct",
+      "normal_calmar_at_least_buy_hold",
+      "each_regime_observed_at_least_60_days",
+      "regime_change_trades_between_2_and_250",
+      "stress_drawdown_no_more_than_normal_plus_3pp"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_primary_return_at_least_4_of_5_years",
+      "normal_primary_drawdown_non_worse_at_least_4_of_5_years",
+      "normal_primary_calmar_at_least_buy_hold_at_least_3_of_5_years",
+      "normal_primary_upside_capture_at_least_50pct_at_least_4_of_5_years"
+    ],
+    "neighbor_stability": [
+      "both_neighbors_positive_normal_design_and_positive_normal_and_stress_validation_return",
+      "both_neighbors_validation_drawdown_non_worse_than_buy_hold",
+      "both_neighbors_validation_calmar_at_least_85pct_buy_hold",
+      "both_neighbors_validation_upside_capture_at_least_65pct",
+      "both_neighbors_observe_each_regime_at_least_60_days",
+      "both_neighbors_normal_positive_annual_return_at_least_4_of_5_years"
+    ],
+    "concentration_holding_and_inventory": [
+      "top_year_positive_return_contribution_at_most_60pct",
+      "validation_positive_realized_slice_present",
+      "validation_top_positive_realized_slice_contribution_at_most_60pct",
+      "validation_p90_hold_and_terminal_holding_age_at_most_17520_hours",
+      "terminal_liquidation_adjusted_return_positive_and_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_DTWEXBGS_VOL8_13_26_LAGGED_MEDIAN_100_50_PASSIVE_CORE_FAMILY_WITHOUT_TUNING"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_broad_dollar_volatility_passive_core_risk_overlay_historical.py",
+      "role": "FROZEN_DOLLAR_VOLATILITY_RUNNER",
+      "sha256": "c425a9adbb431bc946e6b7c3986bedc0d1979dfe419d7c80693c4c51f5d7ffc6"
+    },
+    {
+      "path": "research/btc_monthly_30d_volatility_target_40pct_historical.py",
+      "role": "FROZEN_FRACTIONAL_LEDGER_SUPPORT",
+      "sha256": "8eb185644904b62152feb9170964fa86032ee561680a1ba92786746dc9a466d6"
+    },
+    {
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "role": "FROZEN_PASSIVE_PATH_METRICS_SUPPORT",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "path": "research/btc_daily_ulcer28_passive_core_risk_overlay_historical.py",
+      "role": "FROZEN_ULCER_GATE_SUPPORT",
+      "sha256": "a345c0d83edc76b3f0fb97385cae99576c6e602ccb9fded3adefa086fc0bff68"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "role": "FROZEN_H1_PARSER",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "path": "research_pipeline/examples/btc-broad-dollar-volatility-passive-core-risk-overlay-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
+      "sha256": "0b4dc59b50c323eff2c4c3253c1d25301aa48235a9c7b6f3bfaea8f9421fae81"
+    },
+    {
+      "path": "research_pipeline/examples/btc-broad-dollar-volatility-passive-core-risk-overlay-v1.hypothesis.json",
+      "role": "FROZEN_SCHEMA_VALID_HYPOTHESIS",
+      "sha256": "0516714de46c5267d155cb3b3901c1d54ccff52767e6fe1ec52a599b599cdd9b"
+    },
+    {
+      "path": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/inputs/fred-dtwexbgs-weekly-2018-2024.csv",
+      "role": "SEALED_DTWEXBGS_WEEKLY_SOURCE",
+      "sha256": "080ec98e9b97644124f87d6070b881134df05945865407bd4a2028d41286ba33"
+    },
+    {
+      "path": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/inputs/fred-source-bundle.json",
+      "role": "SEALED_DTWEXBGS_SOURCE_BUNDLE",
+      "sha256": "6dd739ad97acf3a0958753387ce0194663803a8f3aa5585b1d137c3a4e5e898b"
+    },
+    {
+      "path": ".research-state/experiments/dra-broad-dollar-weakness-entry-admission-historical-v1/inputs/fred-dtwexbgs-2018-2024-source-parts.zip",
+      "role": "SEALED_DTWEXBGS_RAW_ARCHIVE",
+      "sha256": "fe2a77c53730fee5e27b472ca501d1f69fac080572eb2ff79b4bab6bc397dc85"
+    },
+    {
+      "path": "research_pipeline/examples/dra-broad-dollar-weakness-entry-admission-historical.v1.decision.json",
+      "role": "SEALED_PREVIOUS_DIRECTION_FAMILY_DECISION",
+      "sha256": "3f873a383bb60a5e4aa28cf5180cb0077d22efefc9abba83adb74ec8b162e1f9"
+    }
+  ],
+  "determinism": {
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "python_minimum": "3.11",
+    "reruns": 2,
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics if any repository, source-bundle, archive, DTWEXBGS, dataset, hourly lattice or hash identity fails.",
+    "Use only annualized RMS weekly log changes, 13-week primary, 8/26-week rejection-only neighbors and the lagged prior-52 median excluding current.",
+    "Do not select a neighbor after seeing outcomes even if it outperforms the primary.",
+    "Stop and close if the primary or either neighbor fails any frozen gate.",
+    "Do not scan another dollar index, source vintage, lookback, reference window, percentile, sign, magnitude, exposure, rebalance clock, delay, parent, DRA interaction, cost model or ensemble.",
+    "Do not use post-2024 data; a pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "NETWORK_REQUEST",
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ],
+  "opportunity_cost": "One frozen direct screen either identifies an external FX-stress risk overlay for independent OOS or closes this family before more macro-state or runtime work consumes capacity."
+}

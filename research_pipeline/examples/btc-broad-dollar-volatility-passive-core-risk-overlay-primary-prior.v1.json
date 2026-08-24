@@ -1,0 +1,67 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BROAD_DOLLAR_VOLATILITY_PASSIVE_CORE_RISK_OVERLAY_PRIMARY_PRIOR_V1",
+  "family_id": "btc-broad-dollar-volatility-passive-core-risk-overlay",
+  "reviewed_at": "2026-08-24T11:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PREREGISTRATION_READY_NO_OUTCOME_ACCESS",
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_DTWEXBGS_VOLATILITY_PASSIVE_CORE_SCREEN",
+  "claim_boundary": "The official broad-dollar series and prior Agora decision support a distinct external-FX-stress question, not alpha. This prior authorizes one exact 13-week annualized RMS weekly-log-change volatility state with 8-week and 26-week rejection-only neighbors, a lagged 52-observation median, and a 100/50-percent BTC passive-core policy.",
+  "causal_hypothesis": "Unusually high broad-dollar volatility can mark unstable global funding and cross-currency risk transmission that raises BTC path risk even when the direction of the dollar is not predictive.",
+  "economic_hypothesis": "Reducing BTC exposure from 100 to 50 percent only during high lagged broad-dollar volatility may preserve at least 70 percent of buy-and-hold upside while reducing drawdown enough to improve after-cost Calmar with annual and neighbor breadth.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Board of Governors of the Federal Reserve System Nominal Broad U.S. Dollar Index via FRED",
+      "source": "https://fred.stlouisfed.org/series/DTWEXBGS",
+      "role": "OFFICIAL_FREE_SERIES_IDENTITY",
+      "finding": "DTWEXBGS is the official daily nominal broad U.S. dollar index from the Federal Reserve H.10 release.",
+      "transfer_boundary": "The present-vintage index is not DXY, does not identify an exogenous shock and does not prove that its volatility forecasts BTC risk."
+    },
+    {
+      "identity": "Karau, Monetary policy and Bitcoin, Journal of International Money and Finance 137 (2023)",
+      "source": "https://doi.org/10.1016/j.jimonfin.2023.102880",
+      "role": "TIME_VARYING_MONETARY_TRANSMISSION_PRIOR",
+      "finding": "Bitcoin transmission from U.S. monetary conditions is time-varying and became more risk-asset-like in the later sample.",
+      "transfer_boundary": "A monetary-policy shock is not broad-dollar realized volatility, and the paper does not validate this exposure rule."
+    },
+    {
+      "identity": "Agora sealed broad-dollar direction family decision",
+      "source": "research_pipeline/examples/dra-broad-dollar-weakness-entry-admission-historical.v1.decision.json",
+      "role": "INTERNAL_ADVERSARIAL_AND_DEDUP_PRIOR",
+      "finding": "The exact negative four-week dollar-direction DRA admission rule failed economics and predictive gates, while its sealed uncertainty explicitly left independently preregistered dollar-volatility mechanisms unevaluated.",
+      "transfer_boundary": "This family may not reuse the closed sign, horizon, admission action or inverse rule; it must test volatility as a separate external path-risk state once."
+    }
+  ],
+  "frozen_pre_outcome_contract": {
+    "source": "SEALED_PRESENT_VINTAGE_DTWEXBGS_WEEKLY_MEANS_2018_2024",
+    "availability": "WEEK_ENDING_FRIDAY_PLUS_5D_0000_UTC",
+    "volatility_formula": "ANNUALIZED_RMS_OF_WEEKLY_LOG_CHANGES",
+    "primary_lookback_weeks": 13,
+    "rejection_only_neighbor_lookback_weeks": [8, 26],
+    "lagged_reference": "MEDIAN_PRIOR_52_AVAILABLE_VOLATILITY_VALUES_EXCLUDING_CURRENT",
+    "high_risk_relation": "CURRENT_VOLATILITY_STRICTLY_GREATER_THAN_LAGGED_MEDIAN",
+    "low_risk_target": "BTC_100_PERCENT",
+    "high_risk_target": "BTC_50_PERCENT_CASH_50_PERCENT",
+    "execution": "NEXT_H1_OPEN_ONLY_ON_REGIME_TARGET_CHANGE",
+    "variants": 3
+  },
+  "independence_assessment": {
+    "distinct_from_closed_dollar_direction": "The feature discards sign and measures the RMS magnitude of weekly dollar changes. The previous decision explicitly states that dollar-volatility mechanisms were not evaluated.",
+    "distinct_from_closed_btc_volatility": "The state is computed only from an external Federal Reserve currency index, not BTC returns, range, drawdown or volatility.",
+    "distinct_from_closed_daily_technical_families": "No BTC outcome input enters the decision feature; BTC is used only for matched-capital strategy economics after the specification is frozen.",
+    "duplicate_family_key": "btc-broad-dollar-volatility-passive-core-risk-overlay"
+  },
+  "stop_conditions": [
+    "Freeze hypothesis, manifest, runner, source hashes, costs, windows and all-pass gates before opening this family outcome.",
+    "Use only the exact sealed weekly DTWEXBGS source and Friday-plus-five-day availability; no new network request, repair or revision substitution is permitted.",
+    "Primary is 13 weeks; 8 and 26 weeks are rejection-only and cannot replace it after outcome access.",
+    "Any primary or neighbor gate failure permanently closes the exact family without lookback, reference, threshold, weight, direction, timing, cost or parent tuning.",
+    "A positive historical result remains REPORTED_NOT_ACTIVATED and requires one independent sealed OOS."
+  ],
+  "missing_proof": [
+    "Present-vintage DTWEXBGS does not prove original real-time H.10 vintages.",
+    "No matched-capital PnL, drawdown, Calmar, upside, holding, annual breadth, candidate or OOS outcome for this volatility family has been observed."
+  ],
+  "next_gate": "FREEZE_AND_RUN_ONE_THREE_VARIANT_MATCHED_CAPITAL_HISTORICAL_SCREEN",
+  "scope_note": "Prior and dedup boundary only. No new network request, factor outcome, PnL, drawdown, candidate, OOS, paid API, timer, canonical write or Trading action occurred."
+}

@@ -1,0 +1,37 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "created_at": "2026-08-24T11:31:00Z",
+  "data_readiness": "READY",
+  "economic_rationale": "Broad-dollar volatility is an external funding-stress state rather than another BTC direction signal. It is useful only if a permanent half-size BTC core retains most upside while high-volatility de-risking materially improves after-cost drawdown and Calmar with annual and 8/26-week neighbor breadth.",
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_buy_hold_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "upside_capture",
+    "average_exposure",
+    "turnover",
+    "regime_changes",
+    "holding_age",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "hypothesis_id": "btc-broad-dollar-volatility-passive-core-risk-overlay-v1",
+  "mechanism": "From sealed weekly DTWEXBGS means, compute annualized RMS weekly-log-change volatility over 13 weeks. After Friday plus five calendar days, compare it with the median of the prior 52 available 13-week values excluding current. Hold 50 percent BTC during a strictly higher-volatility state and 100 percent otherwise, changing target only at the next H1 open. Eight-week and 26-week versions are rejection-only neighbors.",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_FOR_DE_RISKED_HALF",
+  "ranking": {
+    "economic_mechanism": 4,
+    "evidence_readiness": 5,
+    "interpretability": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "required_capability": "btc-broad-dollar-volatility-passive-core-risk-overlay-v1-direct-fractional-economic-runner",
+  "research_cycle_id": "2026-08-24-candidate-factory-cycle-dollar-volatility",
+  "schema_version": "1",
+  "source": "SEALED_DTWEXBGS_WEEKLY_2018_2024_AND_SEALED_PRE2025_BTC_H1_CORPUS",
+  "thesis": "A causally lagged high broad-dollar-volatility state identifies external funding stress in which reducing BTC from full exposure to a permanent half-size core improves matched-capital after-cost risk-adjusted performance over buy-and-hold.",
+  "title": "Broad-dollar volatility passive-core BTC risk overlay"
+}

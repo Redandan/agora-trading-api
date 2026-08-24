@@ -4343,6 +4343,42 @@
       "parent_strategy_id": "IDENTICAL_PRIOR_COMPLETE_DAY_HIGH_BREAKOUT_168H_LONG_CASH_POLICY_WITHOUT_NR_FILTER",
       "prohibited_reopen": true,
       "title": "Strict NR7 volatility-contraction-conditioned next-day Bitcoin breakout"
+    },
+    {
+      "decision_feature": "LATEST_COMPLETE_UTC_DAY_CLOSE_DRAWDOWN_FROM_MAXIMUM_CLOSE_OF_LATEST_365_COMPLETE_DAYS_AT_OR_BELOW_MINUS_15_MINUS_20_OR_MINUS_25_PERCENT",
+      "disposition": "BTC_DAILY_TRAILING365D_DRAWDOWN20_PASSIVE_CORE_RISK_OVERLAY_FAMILY_CLOSE",
+      "duplicate_family_key": "btc-daily-trailing365d-drawdown15-20-25-passive-core-risk-overlay",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-daily-trailing365d-drawdown20-passive-core-v1.json",
+          "role": "SCHEMA_VALIDATED_BYTE_IDENTICAL_DIRECT_ECONOMIC_FAMILY_CLOSURE",
+          "sha256": "82881174ccad7598f652d0ec1ad483db59e0ce588098deb23fad9c01f6bc7293"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-daily-trailing365d-drawdown20-passive-core-v1.json",
+          "role": "MANAGER_ACCEPTED_COUNTABLE_DIRECT_MECHANISM_CLOSURE",
+          "sha256": "260437d195dfa99ddcf10478c0b31c0ee35b587c5e21ac955f1fdfebebbfde2f"
+        },
+        {
+          "path": "research_pipeline/examples/btc-daily-trailing365d-drawdown20-passive-core-risk-overlay-historical.v1.manifest.json",
+          "role": "FROZEN_THREE_VARIANT_MATCHED_CAPITAL_HISTORICAL_MANIFEST",
+          "sha256": "799f48b28e70567b85788cf29824bb4765385f8fca5cf0b202d840cf028bacec"
+        },
+        {
+          "path": "research_pipeline/examples/btc-daily-trailing365d-drawdown20-passive-core-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_MECHANISM_AND_CLOSED_FAMILY_DEDUPLICATION_PRIOR",
+          "sha256": "df250f21f5ba1d0879e91d34ca75a658710ffe5ad47ca55b40b1d1c806493169"
+        },
+        {
+          "path": ".research-state/experiments/btc-daily-trailing365d-drawdown20-passive-core-risk-overlay-historical-v1/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+          "sha256": "593cb68c113216692f32542bcca86f71902fddcdfe5b3f05cb807a276018cf0e"
+        }
+      ],
+      "family_id": "closed-btc-daily-trailing365d-drawdown20-passive-core-risk-overlay-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+      "prohibited_reopen": true,
+      "title": "Trailing-365-day drawdown 100/50-percent Bitcoin passive-core risk overlay"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 159)
+        self.assertEqual(len(catalog["closed_families"]), 160)
         closed_nr7 = next(
             family
             for family in catalog["closed_families"]
@@ -100,6 +100,17 @@ class CandidateFunnelTest(unittest.TestCase):
             "BTC_DAILY_NR7_VOLATILITY_CONTRACTION_BREAKOUT_FAMILY_CLOSE",
         )
         self.assertTrue(closed_nr7["prohibited_reopen"])
+        closed_trailing_drawdown = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-daily-trailing365d-drawdown20-passive-core-risk-overlay-v1"
+        )
+        self.assertEqual(
+            closed_trailing_drawdown["disposition"],
+            "BTC_DAILY_TRAILING365D_DRAWDOWN20_PASSIVE_CORE_RISK_OVERLAY_FAMILY_CLOSE",
+        )
+        self.assertTrue(closed_trailing_drawdown["prohibited_reopen"])
         self.assertEqual(
             {
                 family["family_id"]
@@ -2183,7 +2194,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 160)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 161)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

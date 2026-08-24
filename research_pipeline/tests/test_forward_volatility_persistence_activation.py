@@ -18,8 +18,9 @@ from research_pipeline.forward_volatility_persistence_activation import (
     ACCEPTED_IMPLEMENTATION_COMMIT,
     ACCEPTED_RESULT_RELATIVE,
     ACCEPTED_RESULT_SHA256,
+    ACTIVATION_HISTORY_DOCUMENT_TYPE,
+    ACTIVATION_HISTORY_STATE_KEY,
     ACTIVATION_MODULE_RELATIVE,
-    ACTIVATION_RECEIPT_RETIRED,
     ACTIVATION_STATE_KEY,
     ActivationDecision,
     ActivationIntegrityError,
@@ -92,6 +93,25 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
             "ACTIVATION_DORMANT_RELEASE_PROVENANCE_UNAVAILABLE", decision.status
         )
 
+    def test_history_without_primary_receipt_fails_closed(self) -> None:
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=_lineage(),
+        ):
+            with self.assertRaisesRegex(ActivationIntegrityError, "without the primary"):
+                prepare_forward_volatility_persistence_activation(
+                    self._store(),
+                    now=NOW,
+                    previous_success=PRIOR_SUCCESS,
+                    existing_receipt=None,
+                    existing_receipt_history={
+                        "schema_version": "2",
+                        "document_type": ACTIVATION_HISTORY_DOCUMENT_TYPE,
+                        "receipts": [],
+                    },
+                )
+
     def test_verified_release_creates_exact_receipt_once(self) -> None:
         store = self._store()
         release = _ReleaseFixture(Path(self.directory.name))
@@ -135,7 +155,7 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
             created.receipt["leaf_trigger_fingerprint"],
         )
 
-    def test_existing_receipt_is_retired_after_later_lawful_rollover(self) -> None:
+    def test_existing_receipt_creates_append_only_recovery_after_later_rollover(self) -> None:
         store = self._store()
         release = _ReleaseFixture(Path(self.directory.name))
         first_leaf = _lineage(rollover_depth=1)
@@ -151,15 +171,135 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
             "resolve_active_forward_trigger_lineage",
             return_value=later_leaf,
         ):
-            retired = self._prepare(store, release, existing=created.receipt)
+            recovered = self._prepare(
+                store,
+                release,
+                existing=created.receipt,
+                now=NOW + timedelta(days=1),
+            )
 
-        self.assertFalse(retired.created)
-        self.assertEqual(ACTIVATION_RECEIPT_RETIRED, retired.status)
-        self.assertEqual(created.receipt, retired.receipt)
-        self.assertNotEqual(
-            retired.receipt["leaf_trigger_id"],
+        self.assertTrue(recovered.created)
+        self.assertEqual(
+            "ACTIVATION_RECEIPT_RECOVERY_READY_TO_PERSIST", recovered.status
+        )
+        self.assertEqual(
+            ACTIVATION_HISTORY_DOCUMENT_TYPE,
+            recovered.receipt_history["document_type"],
+        )
+        self.assertEqual(
+            [created.receipt, recovered.receipt],
+            recovered.receipt_history["receipts"],
+        )
+        self.assertEqual(
+            recovered.receipt["leaf_trigger_id"],
             later_leaf.leaf_trigger["trigger_id"],
         )
+
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=later_leaf,
+        ):
+            repeated = self._prepare(
+                store,
+                release,
+                existing=created.receipt,
+                existing_history=recovered.receipt_history,
+                now=NOW + timedelta(days=1),
+            )
+        self.assertFalse(repeated.created)
+        self.assertEqual("ACTIVATION_RECEIPT_REVALIDATED", repeated.status)
+        self.assertEqual(recovered.receipt, repeated.receipt)
+
+    def test_existing_receipt_waits_for_a_later_normal_post_rollover_heartbeat(
+        self,
+    ) -> None:
+        store = self._store()
+        release = _ReleaseFixture(Path(self.directory.name))
+        first_leaf = _lineage(rollover_depth=1)
+        later_leaf = _lineage(rollover_depth=2)
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=first_leaf,
+        ):
+            primary = self._prepare(store, release, existing=None)
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=later_leaf,
+        ):
+            dormant = prepare_forward_volatility_persistence_activation(
+                store,
+                now=NOW + timedelta(days=1),
+                previous_success=first_leaf.leaf_trigger["created_at"],
+                existing_receipt=primary.receipt,
+                worker_root=release.worker_root,
+                control_current=release.control,
+                activation_module_path=release.release / ACTIVATION_MODULE_RELATIVE,
+                expected_root_uid=_uid(),
+            )
+        self.assertFalse(dormant.created)
+        self.assertEqual(
+            "ACTIVATION_RECOVERY_DORMANT_AWAITING_POST_ROLLOVER_HEARTBEAT",
+            dormant.status,
+        )
+        self.assertEqual(primary.receipt, dormant.receipt)
+
+    def test_recovery_history_appends_again_and_rejects_tampering(self) -> None:
+        store = self._store()
+        release = _ReleaseFixture(Path(self.directory.name))
+        first_leaf = _lineage(rollover_depth=1)
+        second_leaf = _lineage(rollover_depth=2)
+        third_leaf = _lineage(rollover_depth=3)
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=first_leaf,
+        ):
+            primary = self._prepare(store, release, existing=None)
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=second_leaf,
+        ):
+            second = self._prepare(
+                store,
+                release,
+                existing=primary.receipt,
+                now=NOW + timedelta(days=1),
+            )
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=third_leaf,
+        ):
+            third = self._prepare(
+                store,
+                release,
+                existing=primary.receipt,
+                existing_history=second.receipt_history,
+                now=NOW + timedelta(days=2),
+            )
+        self.assertTrue(third.created)
+        self.assertEqual(3, len(third.receipt_history["receipts"]))
+        self.assertEqual(primary.receipt, third.receipt_history["receipts"][0])
+
+        tampered = json.loads(json.dumps(third.receipt_history))
+        tampered["receipts"][1]["leaf_trigger_fingerprint"] = "f" * 64
+        with patch(
+            "research_pipeline.forward_volatility_persistence_activation."
+            "resolve_active_forward_trigger_lineage",
+            return_value=third_leaf,
+        ):
+            with self.assertRaises(ActivationIntegrityError):
+                self._prepare(
+                    store,
+                    release,
+                    existing=primary.receipt,
+                    existing_history=tampered,
+                    now=NOW + timedelta(days=2),
+                )
 
     def test_existing_conflicting_leaf_fails_but_verified_release_upgrade_survives(
         self,
@@ -388,6 +528,72 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
                 )
         self.assertEqual(["persist", "evaluate"], order)
 
+    def test_heartbeat_persists_recovery_history_without_replacing_primary(self) -> None:
+        store = self._store()
+        primary = {"receipt": "primary"}
+        recovered = {"receipt": "recovered"}
+        history = {
+            "schema_version": "2",
+            "document_type": ACTIVATION_HISTORY_DOCUMENT_TYPE,
+            "receipts": [primary, recovered],
+        }
+        state: dict[str, object] = {
+            "schema_version": "1",
+            "last_success": PRIOR_SUCCESS,
+            "last_weekly": None,
+            "last_monthly": None,
+            "last_research_fingerprint": "research",
+            "last_microstructure_fingerprint": "microstructure",
+            "btc_utc_day_3pct_shock_contract_activated_at": "2026-08-01T00:00:00Z",
+            ACTIVATION_STATE_KEY: primary,
+        }
+
+        def persist(_store: ResearchStore, value: dict[str, object]) -> None:
+            self.assertIs(primary, value[ACTIVATION_STATE_KEY])
+            self.assertIs(history, value[ACTIVATION_HISTORY_STATE_KEY])
+
+        with patch("research_pipeline.heartbeat._load_state", return_value=state), patch(
+            "research_pipeline.heartbeat._verify_report_record"
+        ), patch(
+            "research_pipeline.heartbeat._adopt_existing_reports", return_value=[]
+        ), patch(
+            "research_pipeline.heartbeat._read_microstructure_diagnostic",
+            return_value={"status": "DIAGNOSTIC_READY"},
+        ), patch(
+            "research_pipeline.heartbeat._research_fingerprint", return_value="research"
+        ), patch(
+            "research_pipeline.heartbeat._microstructure_fingerprint",
+            return_value="microstructure",
+        ), patch(
+            "research_pipeline.heartbeat._new_closed_evidence_review_events",
+            return_value=([], {}),
+        ), patch(
+            "research_pipeline.heartbeat.seal_r1_shock_diagnostics", return_value=[]
+        ), patch(
+            "research_pipeline.heartbeat.seal_r1_post_shock_factor_snapshots",
+            return_value=[],
+        ), patch(
+            "research_pipeline.heartbeat.prepare_forward_volatility_persistence_activation",
+            return_value=ActivationDecision(
+                recovered,
+                True,
+                "ACTIVATION_RECEIPT_RECOVERY_READY_TO_PERSIST",
+                history,
+            ),
+        ), patch(
+            "research_pipeline.heartbeat._write_state", side_effect=persist
+        ), patch(
+            "research_pipeline.heartbeat.seal_forward_volatility_persistence_snapshots",
+            return_value=[],
+        ):
+            run_heartbeat_cycle(
+                store,
+                {"policy_id": "test"},
+                now=NOW,
+                tick_preview={"status": "IDLE"},
+                tick_result={"status": "WAITING_FOR_EVIDENCE"},
+            )
+
     def test_heartbeat_source_persists_receipt_before_evaluator(self) -> None:
         source = Path("research_pipeline/heartbeat.py").read_text(encoding="utf-8")
         prepare = source.index("prepare_forward_volatility_persistence_activation(")
@@ -413,12 +619,15 @@ class ForwardVolatilityPersistenceActivationTest(unittest.TestCase):
         release: "_ReleaseFixture",
         *,
         existing: object,
+        existing_history: object = None,
+        now: datetime = NOW,
     ) -> ActivationDecision:
         return prepare_forward_volatility_persistence_activation(
             store,
-            now=NOW,
+            now=now,
             previous_success=PRIOR_SUCCESS,
             existing_receipt=existing,
+            existing_receipt_history=existing_history,
             worker_root=release.worker_root,
             control_current=release.control,
             activation_module_path=release.release / ACTIVATION_MODULE_RELATIVE,
@@ -563,3 +772,5 @@ def _uid() -> int:
 
 if __name__ == "__main__":
     unittest.main()
+    ACTIVATION_HISTORY_DOCUMENT_TYPE,
+    ACTIVATION_HISTORY_STATE_KEY,

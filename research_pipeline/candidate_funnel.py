@@ -17,6 +17,7 @@ from .forward_volatility_persistence import (
     _load_snapshots as _load_volatility_snapshots,
 )
 from .forward_volatility_persistence_activation import (
+    ACTIVATION_HISTORY_STATE_KEY,
     ACTIVATION_RECEIPT_RETIRED,
     ACTIVATION_STATE_KEY,
     prepare_forward_volatility_persistence_activation,
@@ -548,19 +549,33 @@ def _volatility_persistence_state(
             now=as_of,
             previous_success=heartbeat_state.get("last_success"),
             existing_receipt=receipt,
+            existing_receipt_history=heartbeat_state.get(
+                ACTIVATION_HISTORY_STATE_KEY
+            ),
         )
-        if activation.created or activation.receipt is None:
-            raise ValueError("read-only funnel cannot create an activation receipt")
+        if activation.receipt is None:
+            raise ValueError("volatility activation receipt is unavailable")
         lineage = resolve_active_forward_trigger_lineage(store)
         if lineage is None:
             raise ValueError("volatility activation lineage is unavailable")
-        if activation.status == ACTIVATION_RECEIPT_RETIRED:
+        recovery_pending = (
+            activation.created
+            or activation.status == ACTIVATION_RECEIPT_RETIRED
+            or activation.status.startswith("ACTIVATION_RECOVERY_")
+        )
+        if recovery_pending:
+            recovery_ready = activation.created
             return {
                 "stage": "DEFERRED",
-                "integrity_status": "LAWFUL_ROLLOVER_RETIRED_LEAF_BOUND_ACTIVATION",
+                "integrity_status": (
+                    "VERSIONED_ACTIVATION_RECOVERY_READY"
+                    if recovery_ready
+                    else "LAWFUL_ROLLOVER_RETIRED_LEAF_BOUND_ACTIVATION"
+                ),
                 "progress": {
                     "activation_status": activation.status,
                     "evidence_collection_active": False,
+                    "recovery_ready_to_persist": recovery_ready,
                     "activated_at": activation.receipt["activated_at"],
                     "receipt_leaf_trigger_id": activation.receipt[
                         "leaf_trigger_id"
@@ -575,11 +590,20 @@ def _volatility_persistence_state(
                         "fingerprint"
                     ],
                 },
-                "next_gate": "FREEZE_VERSIONED_ACTIVATION_RECOVERY_OR_CLOSE_FAMILY",
+                "next_gate": (
+                    "PERSIST_VERSIONED_ACTIVATION_RECOVERY_ON_NEXT_NORMAL_HEARTBEAT"
+                    if recovery_ready
+                    else "WAIT_FOR_POST_ROLLOVER_HEARTBEAT_OR_CLOSE_FAMILY"
+                ),
                 "estimated_days": None,
                 "missing_proof": [
                     *family["missing_proof"],
-                    "Versioned post-rollover activation recovery is not implemented.",
+                    (
+                        "Versioned recovery is ready but not yet persisted by the "
+                        "sole normal heartbeat."
+                        if recovery_ready
+                        else "The post-rollover activation receipt is not current."
+                    ),
                 ],
             }
         snapshots = _load_volatility_snapshots(store, lineage=lineage)

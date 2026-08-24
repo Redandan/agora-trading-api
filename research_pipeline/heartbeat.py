@@ -14,6 +14,7 @@ from .forward_volatility_persistence import (
     seal_forward_volatility_persistence_snapshots,
 )
 from .forward_volatility_persistence_activation import (
+    ACTIVATION_HISTORY_STATE_KEY,
     ACTIVATION_STATE_KEY,
     prepare_forward_volatility_persistence_activation,
 )
@@ -244,9 +245,15 @@ def run_heartbeat_cycle(
         existing_receipt=state.get(
                 "btc_utc_day_3pct_forward_volatility_persistence_activation"
         ),
+        existing_receipt_history=state.get(ACTIVATION_HISTORY_STATE_KEY),
     )
     if volatility_activation.created:
-        state[ACTIVATION_STATE_KEY] = volatility_activation.receipt
+        if volatility_activation.receipt_history is None:
+            state[ACTIVATION_STATE_KEY] = volatility_activation.receipt
+        else:
+            state[ACTIVATION_HISTORY_STATE_KEY] = (
+                volatility_activation.receipt_history
+            )
         # Persist the create-once receipt before evaluator execution.  A later
         # evaluator failure therefore cannot cause a different retry identity.
         _write_state(store, state)

@@ -1,0 +1,92 @@
+{
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/btc-broad-dollar-volatility-passive-core-risk-overlay-historical-v1/artifacts/run1.json",
+      "sha256": "a98b9d81f9c11149c9ab4970a6450156627d723b1d76fb757d01451285173883"
+    },
+    {
+      "path": ".research-state/experiments/btc-broad-dollar-volatility-passive-core-risk-overlay-historical-v1/artifacts/run2.json",
+      "sha256": "a98b9d81f9c11149c9ab4970a6450156627d723b1d76fb757d01451285173883"
+    }
+  ],
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "checks": [
+    {
+      "evidence": "The task, dispatch, classification intent, strategy path, runner, hypothesis, manifest, exact four sealed inputs and 23 task-bound files were frozen before outcome access at clean branch HEAD equal to origin f86f9efbcd0a7d5adf8af1525247b6a4bef7c503. Task ace43b7d4778bd11f8daa3d9b599612b6037529d15a8ff4d27fd30448302a9fd, dispatch 31176057549b943d67206f718169d1aff11b8794f2404ca8c56f722746bcc644, intent 76c28f5d91cc76b1de002b9a3fbf5c75fa3b1213772ba46fa086a4341402db54 and strategy path d007a5d00853b42ed76f70b44b7f7c7a2b1d74b34b5cbc84b3d9129b223d77be passed manager, strategy and allocation preflights. The allocation gate required a countable direct mechanism conclusion and projected governance share at 18.18 percent.",
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS"
+    },
+    {
+      "evidence": "The exact 52,608-row pre-2025 BTC H1 corpus matched SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd. The exact 365-row 2018-2024 FRED DTWEXBGS weekly corpus matched SHA-256 080ec98e9b97644124f87d6070b881134df05945865407bd4a2028d41286ba33 and its source bundle and archived source parts also matched their frozen hashes. The decision used annualized RMS of complete weekly log changes, Friday plus five-day availability, and the median of the prior 52 available same-lookback volatility observations excluding current; no current-week or future value entered a decision.",
+      "name": "SEALED_DATA_SOURCE_TEMPORAL_AND_FORMULA_IDENTITY",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Run1 and run2 were independently written to previously absent create-only paths and both had SHA-256 a98b9d81f9c11149c9ab4970a6450156627d723b1d76fb757d01451285173883.",
+      "name": "BYTE_IDENTICAL_DETERMINISM",
+      "status": "PASS"
+    },
+    {
+      "evidence": "The primary 13-week Design normal return was 178.20612889 percent versus 129.60544229 percent buy-and-hold, drawdown was 60.56916406 percent versus 77.18955925 percent, upside capture was 137.498955 percent and Calmar was 2.94219231 versus 1.67905405. Stress return remained positive at 174.77847186 percent with unchanged 60.56916406 percent drawdown. All frozen Design gates passed.",
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "PASS"
+    },
+    {
+      "evidence": "The same primary mechanism failed to transfer. Validation normal return was 228.65708383 percent versus 464.75475156 percent buy-and-hold, drawdown worsened to 32.84218355 percent versus 32.28416349 percent, upside capture was only 49.199515 percent versus the required 70 percent, and Calmar was 6.96229846 versus 14.39575015. Stress return remained positive at 224.24855492 percent, but drawdown rose further to 32.94193372 percent. Three frozen Validation risk-adjusted gates failed.",
+      "name": "VALIDATION_RISK_ADJUSTED_TRANSFER",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Validation contained 206 high-risk and 525 full-risk days, 19 regime-change trades and 86.95299904 percent average BTC exposure. Realized and unrealized returns were 172.11361723 and 56.54346659 percent; median and P90 realized-lot holding were 4704 and 6451.2 hours; terminal oldest lot age was 7728 hours; top positive realized-slice contribution was 22.57508045 percent. Terminal-liquidation-adjusted return remained 228.37045107 percent with 0.28663276pp liquidation cost, so the failure was not caused by a terminal inventory artifact.",
+      "name": "REALIZED_HOLDING_AND_TERMINAL_PATH",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Primary normal and stress positive-return breadth each reached 4/5 and drawdown non-worse breadth reached 4/5. However Calmar non-worse breadth was only 2/5 versus required 3/5, and annual upside capture above 50 percent was only 3/5 versus required 4/5. Top-year positive-return contribution was acceptable at 30.28612306 percent. The mechanism therefore lacked annual risk-adjusted and participation breadth despite positive aggregate return.",
+      "name": "ANNUAL_BREADTH_AND_PATH_RISK",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "The rejection-only 8-week neighbor failed Validation drawdown, upside-capture and Calmar stability; the 26-week neighbor failed Validation drawdown and Calmar stability. Both neighbors stayed positive and observed both regimes, but neither can rescue the primary and neither may be selected after outcome access.",
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Five primary gates and five neighbor gates failed. The valid disposition is BTC_BROAD_DOLLAR_VOLATILITY_PASSIVE_CORE_FAMILY_CLOSE. The exact DTWEXBGS 8/13/26-week lagged-median 100/50-percent passive-core family is permanently closed; no lookback, reference window, exposure, threshold, delay, cost, rebalance rule or gate may be tuned to rescue it.",
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS"
+    },
+    {
+      "evidence": "No canonical-state or server Research MCP write, schedule change, paid API, network request, external backfill, deployment, database mutation, and no Trading, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred. OOS remained sealed.",
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS"
+    }
+  ],
+  "completed_at": "2026-08-24T11:45:28Z",
+  "files_changed": [],
+  "recommended_next_action": "Permanently tombstone the exact DTWEXBGS 8/13/26-week annualized-RMS, prior-52-median, Friday-plus-five-day, 100/50-percent passive-core family. Reuse its learning rather than tuning it: the external volatility state produced attractive 2020-2022 Design de-risking but removed too much 2023-2024 upside while failing to reduce drawdown. Rotate the research slot to a mathematically and economically distinct free-data mechanism; do not reopen OOS or reinterpret the directional broad-dollar-weakness tombstone.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "server_research_mcp_write_attempted": false,
+    "trading_action_attempted": false
+  },
+  "schema_version": "1",
+  "source_git_commit": "f86f9efbcd0a7d5adf8af1525247b6a4bef7c503",
+  "source_git_dirty_after": false,
+  "source_git_dirty_before": false,
+  "started_at": "2026-08-24T11:44:42Z",
+  "status": "COMPLETED",
+  "summary": "BTC_BROAD_DOLLAR_VOLATILITY_PASSIVE_CORE_FAMILY_CLOSE. Two create-only executions produced byte-identical SHA-256 a98b9d81f9c11149c9ab4970a6450156627d723b1d76fb757d01451285173883. The primary 13-week external dollar-volatility state passed every Design gate: normal return 178.20612889 percent versus 129.60544229 percent buy-and-hold, drawdown 60.56916406 percent versus 77.18955925 percent, and Calmar 2.94219231 versus 1.67905405. It failed historical Validation transfer: return 228.65708383 percent versus 464.75475156 percent, drawdown 32.84218355 percent versus 32.28416349 percent, upside capture 49.199515 percent, and Calmar 6.96229846 versus 14.39575015. Annual Calmar and upside breadth were only 2/5 and 3/5. The rejection-only 8-week neighbor failed Validation drawdown, upside and Calmar; the 26-week neighbor failed drawdown and Calmar. Five primary and five neighbor gates failed, so the exact family is permanently closed without tuning, candidate creation or OOS access.",
+  "task_id": "local-node-btc-broad-dollar-volatility-passive-core-risk-overlay-v1",
+  "task_sha256": "ace43b7d4778bd11f8daa3d9b599612b6037529d15a8ff4d27fd30448302a9fd",
+  "uncertainty": [
+    "Historical Validation is development evidence rather than clean independent OOS; the closure applies to the exact DTWEXBGS 8, 13 and 26-week annualized-RMS, lagged-52-median, Friday-plus-five-day, 100/50-percent passive-core family and does not prove every external-FX or cross-asset mechanism lacks value.",
+    "The FRED source bundle establishes the downloaded values and provenance, but original H10 release vintages and subsequent revisions remain MISSING_PROOF; the five-day availability delay is conservative but not a vintage archive.",
+    "State-change-only rebalancing intentionally permits market drift away from exactly 50 percent between regime changes; daily weight restoration is a different, untested family and cannot be inferred from this result.",
+    "The 2020-2022 Design success and 2023-2024 Validation failure indicate regime dependence, but no post-outcome regime taxonomy may be introduced to rescue this frozen family.",
+    "No post-2024, forward, SHADOW, PAPER or LIVE evidence was opened or created."
+  ]
+}

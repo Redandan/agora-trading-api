@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 160)
+        self.assertEqual(len(catalog["closed_families"]), 161)
         closed_nr7 = next(
             family
             for family in catalog["closed_families"]
@@ -111,6 +111,17 @@ class CandidateFunnelTest(unittest.TestCase):
             "BTC_DAILY_TRAILING365D_DRAWDOWN20_PASSIVE_CORE_RISK_OVERLAY_FAMILY_CLOSE",
         )
         self.assertTrue(closed_trailing_drawdown["prohibited_reopen"])
+        closed_paxg_static = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-paxg-static-50-50-diversification-v1"
+        )
+        self.assertEqual(
+            closed_paxg_static["disposition"],
+            "NO_CANDIDATE_CLOSE_BTC_PAXG_STATIC_50_50_DIVERSIFICATION_FAMILY",
+        )
+        self.assertTrue(closed_paxg_static["prohibited_reopen"])
         self.assertEqual(
             {
                 family["family_id"]
@@ -2194,7 +2205,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 161)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 162)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

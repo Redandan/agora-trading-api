@@ -1,0 +1,121 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_PAXG_STATIC_50_50_DIVERSIFICATION_EVIDENCE_REUSE_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-paxg-static-50-50-diversification",
+  "decided_at": "2026-08-24T13:25:38Z",
+  "status": "NO_CANDIDATE_CLOSE_BTC_PAXG_STATIC_50_50_DIVERSIFICATION_FAMILY_FROM_ALREADY_EXPOSED_COMPARATOR_EVIDENCE",
+  "disposition": "NO_CANDIDATE_CLOSE_BTC_PAXG_STATIC_50_50_DIVERSIFICATION_FAMILY",
+  "candidate_created": false,
+  "oos_opened": false,
+  "evidence_reuse_contract": {
+    "new_runner_executed": false,
+    "performance_recomputed": false,
+    "source_or_price_value_reopened": false,
+    "sealed_run_path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-historical-v1/artifacts/run1.json",
+    "sealed_run_sha256": "2e1c7417c98f67afb25e57322b23b284eddf937d64e36be17328c456d8f961a6",
+    "byte_identical_run2_sha256": "2e1c7417c98f67afb25e57322b23b284eddf937d64e36be17328c456d8f961a6",
+    "prior_decision_path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.decision.json",
+    "prior_decision_sha256": "e300c8bd2828a0cbc1e54933df78e885ee9f52ccf92631aa6fde5277745a9f41"
+  },
+  "exact_policy": {
+    "assets": [
+      "BTCUSDT",
+      "PAXGUSDT"
+    ],
+    "initial_weights": {
+      "BTCUSDT": "0.50000000",
+      "PAXGUSDT": "0.50000000"
+    },
+    "rebalance_after_initial_purchase": false,
+    "leverage": false,
+    "shorting": false,
+    "yield_or_staking": false,
+    "normal_costs_per_side": {
+      "fee_bps": "10",
+      "adverse_slippage_bps": "5"
+    },
+    "stress_costs_per_side": {
+      "fee_bps": "20",
+      "adverse_slippage_bps": "10"
+    },
+    "opportunity_comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_WINDOW_COST_AND_VALUATION"
+  },
+  "matched_capital_evidence": {
+    "design_2021_03_01_to_2023_01_01_normal": {
+      "static_total_return_pct": "-29.56188877",
+      "btc_total_return_pct": "-63.40325462",
+      "static_maximum_drawdown_pct": "47.87179465",
+      "btc_maximum_drawdown_pct": "76.62925432",
+      "static_calmar": "-0.36277110",
+      "btc_calmar": "-0.54994272"
+    },
+    "validation_2023_01_01_to_2025_01_01_normal": {
+      "static_total_return_pct": "254.57133198",
+      "btc_total_return_pct": "464.84765284",
+      "btc_upside_capture_pct": "54.76446540",
+      "static_maximum_drawdown_pct": "18.85146124",
+      "btc_maximum_drawdown_pct": "26.15137505",
+      "drawdown_ratio_to_btc_pct": "72.08592743",
+      "static_calmar": "4.67969834",
+      "btc_calmar": "5.25878852",
+      "calmar_ratio_to_btc_pct": "88.98814474",
+      "static_terminal_liquidation_cost_pct": "0.53167971"
+    },
+    "validation_2023_01_01_to_2025_01_01_stress": {
+      "static_total_return_pct": "254.04053658",
+      "btc_total_return_pct": "464.00207252",
+      "static_maximum_drawdown_pct": "18.85146124",
+      "btc_maximum_drawdown_pct": "26.15137505",
+      "static_calmar": "4.67222736",
+      "btc_calmar": "5.25199221",
+      "static_terminal_liquidation_cost_pct": "1.06141353"
+    }
+  },
+  "annual_evidence": {
+    "2022_normal": {
+      "static_total_return_pct": "-32.55894660",
+      "btc_total_return_pct": "-64.26068257",
+      "static_maximum_drawdown_pct": "38.90225461",
+      "btc_maximum_drawdown_pct": "66.93123705",
+      "static_calmar": "-0.83741008",
+      "btc_calmar": "-0.96047621"
+    },
+    "2023_normal": {
+      "static_total_return_pct": "83.18676811",
+      "btc_total_return_pct": "155.23404416",
+      "static_maximum_drawdown_pct": "13.49121316",
+      "btc_maximum_drawdown_pct": "20.00274685",
+      "static_calmar": "6.17162701",
+      "btc_calmar": "7.76882816"
+    },
+    "2024_normal": {
+      "static_total_return_pct": "75.33798694",
+      "btc_total_return_pct": "120.97419278",
+      "static_maximum_drawdown_pct": "14.63358077",
+      "btc_maximum_drawdown_pct": "26.15137505",
+      "static_calmar": "5.13451502",
+      "btc_calmar": "4.61220327"
+    }
+  },
+  "material_learning": "A one-time 50/50 BTC-PAXG allocation materially reduced the observed drawdown path, especially in 2022, but the already exposed Validation comparator retained only 54.77 percent of BTC return and achieved lower aggregate Calmar than BTC. The result may describe a lower-risk portfolio preference, but it is not preregistered independent strategy evidence and cannot be promoted retrospectively.",
+  "decision_basis": [
+    "The exact 50/50 policy was already fully valued as a comparator in both Design and Validation before it was proposed as its own family, so candidate gates cannot now be chosen around the disclosed numbers.",
+    "The Validation drawdown reduction is real within this sealed path, but return opportunity cost is large and aggregate Calmar remains below BTC; risk reduction alone is not independent alpha.",
+    "Only 2022 through 2024 have sealed fair-reset annual summaries, leaving broader annual and regime transfer as MISSING_PROOF rather than permission to recompute.",
+    "Trying 40/60, 60/40, periodic rebalancing, volatility targeting, momentum, drawdown or macro overlays after seeing the 50/50 result would be post-outcome weight or mechanism selection."
+  ],
+  "prohibited_reopen": [
+    "Do not rerun the exact one-time 50/50 BTC-PAXG buy-and-hold allocation as a candidate.",
+    "Do not choose a neighboring fixed BTC/PAXG weight after observing the 50/50 comparator outcome.",
+    "Do not add rebalancing, trend, volatility, correlation, drawdown, macro, carry, leverage, shorting or a third asset to rescue this evidence lineage.",
+    "Do not open post-2024 or independent OOS for this exact family."
+  ],
+  "uncertainty": [
+    "PAXG secondary-market liquidity, spread and physical-gold tracking are not proven by the daily archive and fixed cost assumptions.",
+    "No preregistered static-allocation gate set existed before these comparator outcomes were exposed; this prevents a candidate claim even if a later discretionary investor accepts the observed return-risk trade-off.",
+    "The closure is exact to the disclosed one-time 50/50 BTC-PAXG policy and its post-outcome neighboring-weight lineage; it does not prove all multi-asset diversification lacks economic value."
+  ],
+  "next_action": "KEEP_THE_REMAINING_LOCAL_HISTORICAL_FRONTIER_CLOSED_AND_PRIORITIZE_THE_ALREADY_REGISTERED_FORWARD_VOLUME_RANGE_AND_POST_SHOCK_EVIDENCE_GATES_INSTEAD_OF_INVENTING_ANOTHER_GOLD_WEIGHT",
+  "scope_note": "Historical sealed evidence reuse only. No runner, archive, source request, recomputation, hypothesis, manifest, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

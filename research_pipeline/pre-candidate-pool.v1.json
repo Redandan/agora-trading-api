@@ -4379,6 +4379,32 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
       "prohibited_reopen": true,
       "title": "Trailing-365-day drawdown 100/50-percent Bitcoin passive-core risk overlay"
+    },
+    {
+      "decision_feature": "ONE_TIME_EQUAL_INITIAL_CAPITAL_BUY_AND_HOLD_ALLOCATION_TO_BINANCE_SPOT_BTCUSDT_AND_PAXGUSDT_WITHOUT_REBALANCING",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_PAXG_STATIC_50_50_DIVERSIFICATION_FAMILY",
+      "duplicate_family_key": "btc-paxg-static-50-50-buy-and-hold-diversification-and-post-outcome-neighbor-weight-lineage",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-paxg-static-50-50-diversification-evidence-reuse.v1.decision.json",
+          "role": "SEALED_COMPARATOR_EVIDENCE_REUSE_AND_POST_OUTCOME_CLOSURE_DECISION",
+          "sha256": "21067a5a2c6df0623c575c82f6f128ece75bb08d0b29f48b24a6eb43086ce9ea"
+        },
+        {
+          "path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-historical-v1/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_MATCHED_CAPITAL_STATIC_COMPARATOR_EVIDENCE",
+          "sha256": "2e1c7417c98f67afb25e57322b23b284eddf937d64e36be17328c456d8f961a6"
+        },
+        {
+          "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.decision.json",
+          "role": "ORIGINAL_SEALED_ROTATION_DECISION_WITH_STATIC_PARENT_OPPORTUNITY_COST",
+          "sha256": "e300c8bd2828a0cbc1e54933df78e885ee9f52ccf92631aa6fde5277745a9f41"
+        }
+      ],
+      "family_id": "closed-btc-paxg-static-50-50-diversification-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_INITIAL_CAPITAL_WINDOW_COST_AND_VALUATION",
+      "prohibited_reopen": true,
+      "title": "One-time static 50/50 BTC-PAXG buy-and-hold diversification"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_PUELL_MULTIPLE_OVERHEAT_RISK_VETO_CANONICAL_CLOSURE_V1",
+  "family_id": "btc-coinmetrics-puell-multiple-overheat-risk-veto-long-cash",
+  "decided_at": "2026-08-24T16:50:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_PUELL_MULTIPLE_OVERHEAT_RISK_VETO_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_ISSUANCE_ONLY_INCLUSIVE_365D_PUELL_GT4_RISK_VETO_AT_FROZEN_STATE_SUPPORT_AND_PRICE_INDEPENDENCE_GATES_WITHOUT_ECONOMIC_OPENING_RERUN_OR_RESCUE",
+  "upstream_research": {
+    "branch": "codex/candidate-factory-recovery-v1",
+    "preregistration_commit": "b4cff092",
+    "closure_commit": "272ad0bd",
+    "decision_path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical.v1.decision.json",
+    "decision_sha256": "7d2d79c2f50274da9a730a59f5d748da7805293998c6bf081d49ac77da9c6e35",
+    "manifest_sha256": "a23ffc5ee84e783400cacea069c6c0fa4efb2aa997db8401a12e15ef05653358",
+    "runner_sha256": "eca7521b28144bbc2d3325a618edbd85c4831c65eb3c9deb0638cd7b63e76ff4",
+    "run1_sha256": "e6d4cb6bd9158d5431f660e8126a570b98495128385ed39757ffbd6dc879f78c",
+    "run2_sha256": "e6d4cb6bd9158d5431f660e8126a570b98495128385ed39757ffbd6dc879f78c",
+    "byte_identical": true
+  },
+  "sealed_input_identity": {
+    "btc_h1_sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "btc_hourly_rows": 52608,
+    "btc_complete_utc_days": 2192,
+    "issuance_normalized_sha256": "7e443a284b5df553b5bb0c442126a1a00d752e6cadf5afd847de9b3c039f2ee6",
+    "issuance_rows": 2922,
+    "issuance_period": "2017-01-01_TO_2024-12-31",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "frozen_feature": {
+    "formula": "ISS_TOT_NTV_D_TIMES_BTC_COMPLETE_DAY_CLOSE_D_DIVIDED_BY_INCLUSIVE_365D_SIMPLE_MEAN_OF_THE_SAME_USD_ISSUANCE_SERIES",
+    "cash_condition": "PUELL_MULTIPLE_STRICTLY_GREATER_THAN_4",
+    "long_condition": "PUELL_MULTIPLE_LESS_THAN_OR_EQUAL_TO_4",
+    "availability": "COMPLETE_UTC_DAY_CLOSE_BEFORE_SAME_TIMESTAMP_NEXT_H1_OPEN",
+    "variants": 1
+  },
+  "result": {
+    "evaluations": 1828,
+    "minimum_puell_multiple": "0.34674757",
+    "median_puell_multiple": "1.02747745",
+    "maximum_puell_multiple": "3.47336588",
+    "overheat_threshold": "4.00000000",
+    "overheat_days": 0,
+    "state_transitions": 0,
+    "design_pearson_to_btc_price_365d_multiple": "0.93286188",
+    "validation_pearson_to_btc_price_365d_multiple": "0.60087920",
+    "maximum_allowed_abs_pearson": "0.90000000",
+    "economics_opened": false,
+    "candidate_created": false,
+    "oos_opened": false
+  },
+  "material_conclusion": "The externally fixed issuance-only Puell greater-than-four overheat state occurred zero times across all 1,828 sealed 2020-2024 decisions; the exact policy therefore never differed from passive BTC and could not establish a strategy. Design correlation of 0.93286188 to the BTC price-to-365-day-mean ratio also failed the frozen price-independence gate. Lowering the threshold would be outcome-aware and is prohibited.",
+  "economic_evidence": {
+    "fees": "MISSING_PROOF_PRE_ECONOMIC_STOP",
+    "adverse_slippage": "MISSING_PROOF_PRE_ECONOMIC_STOP",
+    "realized_pnl": "MISSING_PROOF_PRE_ECONOMIC_STOP",
+    "unrealized_pnl": "MISSING_PROOF_PRE_ECONOMIC_STOP",
+    "total_pnl": "MISSING_PROOF_PRE_ECONOMIC_STOP",
+    "maximum_drawdown": "MISSING_PROOF_PRE_ECONOMIC_STOP",
+    "holding": "MISSING_PROOF_PRE_ECONOMIC_STOP",
+    "terminal_inventory": "MISSING_PROOF_PRE_ECONOMIC_STOP",
+    "breadth_and_path_risk": "MISSING_PROOF_PRE_ECONOMIC_STOP"
+  },
+  "prohibited_reopen": [
+    "Do not rerun or economically evaluate the exact inclusive-365-day issuance-only Puell greater-than-four long-or-cash family.",
+    "Do not lower the threshold, add the below-0.5 bottom state, change equality, smooth, add hysteresis or select a halving window.",
+    "Do not substitute a paid provider metric, another source, fee-inclusive revenue, hashrate, MVRV, SMA, DRA admission, fractional sizing, leverage or shorting.",
+    "Do not open post-2024 or independent OOS evidence for this closed lineage."
+  ],
+  "scope_note": "Canonical tombstone evidence only. No runner, source corpus or research state is packaged in this release. No paid API, second timer, second writer, external backfill, heartbeat, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

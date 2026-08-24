@@ -1,0 +1,18 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_PUELL_MULTIPLE_OVERHEAT_RISK_VETO_CANONICAL_CLOSURE_ACCEPTANCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-puell-multiple-overheat-risk-veto-long-cash",
+  "accepted_at": "2026-08-24T16:55:00Z",
+  "source_result": {
+    "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-canonical-closure.v1.json",
+    "sha256": "59c020549a62738b7ad109a3ea5c202f913f590f6afff37c7af06cf9df404534"
+  },
+  "decision": "ACCEPT_NO_CANDIDATE_PRE_ECONOMIC_ZERO_SUPPORT_AND_PRICE_INDEPENDENCE_FAILURE",
+  "reason": "The preregistered issuance-only inclusive-365-day Puell greater-than-four state occurred zero times across 1,828 sealed 2020-2024 decisions, had zero transitions, and failed the Design price-independence gate. The policy never differed from passive BTC, so strategy economics and OOS correctly remained unopened.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_reopen": true,
+  "next_action": "KEEP_THE_EXACT_PUELL_OVERHEAT_LINEAGE_CLOSED_AND_ADVANCE_ONLY_A_GENUINELY_DISTINCT_FREE_DATA_MECHANISM_OR_EXISTING_FORWARD_LANE",
+  "scope_note": "Manager acceptance of a sealed pre-economic family closure only. No runner or corpus is packaged, no heartbeat is invoked, and no paid API, second timer, second writer, canonical state mutation outside normal deployment, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -919,6 +919,27 @@
       "parent_strategy_id": "NO_PARENT_SELECTED_SOURCE_REJECT_BEFORE_HYPOTHESIS",
       "prohibited_reopen": true,
       "title": "Blockchain.com mempool backlog extreme-congestion BTC risk veto"
+    },
+    {
+      "decision_feature": "COIN_METRICS_BTC_ISS_TOT_NTV_TIMES_COMPLETE_DAY_BTC_CLOSE_DIVIDED_BY_INCLUSIVE_365D_MEAN_STRICTLY_GREATER_THAN_4_RISK_VETO",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_PUELL_MULTIPLE_OVERHEAT_RISK_VETO_FAMILY_PRE_ECONOMIC",
+      "duplicate_family_key": "btc-coinmetrics-puell-issuance-multiple-365d-gt4-risk-veto-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-canonical-closure.v1.json",
+          "role": "SEALED_CANONICAL_PRE_ECONOMIC_ZERO_SUPPORT_AND_PRICE_INDEPENDENCE_FAMILY_CLOSURE",
+          "sha256": "59c020549a62738b7ad109a3ea5c202f913f590f6afff37c7af06cf9df404534"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-canonical-closure.v1.acceptance.json",
+          "role": "MANAGER_ACCEPTED_PRE_ECONOMIC_NO_CANDIDATE_FAMILY_CLOSURE",
+          "sha256": "71584538ceb76b101929b1d1e99ff5c96bf785eb6bf0ead2040a8395c2c493f0"
+        }
+      ],
+      "family_id": "closed-btc-coinmetrics-puell-multiple-overheat-risk-veto-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_SUPPORT_AND_PRICE_INDEPENDENCE_GATES_HAD_PASSED",
+      "prohibited_reopen": true,
+      "title": "Coin Metrics issuance-only Puell Multiple greater-than-four BTC overheat risk veto"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

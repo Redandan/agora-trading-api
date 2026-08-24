@@ -89,7 +89,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 36)
+        self.assertEqual(len(catalog["closed_families"]), 37)
         open_family_ids = {family["family_id"] for family in catalog["families"]}
         self.assertNotIn("dra-crypto-carry-risk-veto", open_family_ids)
         self.assertIn(
@@ -395,7 +395,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 37)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 38)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

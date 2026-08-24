@@ -1,0 +1,92 @@
+{
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/btc-daily-trailing365d-drawdown20-passive-core-risk-overlay-historical-v1/artifacts/run1.json",
+      "sha256": "593cb68c113216692f32542bcca86f71902fddcdfe5b3f05cb807a276018cf0e"
+    },
+    {
+      "path": ".research-state/experiments/btc-daily-trailing365d-drawdown20-passive-core-risk-overlay-historical-v1/artifacts/run2.json",
+      "sha256": "593cb68c113216692f32542bcca86f71902fddcdfe5b3f05cb807a276018cf0e"
+    }
+  ],
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "checks": [
+    {
+      "evidence": "At clean HEAD equal to origin 52420ed6f75ee7752ab6c48a16358e6e30aa7a2c, task dc68b04da6e44b9b50e26104930c3654f5a1b67d869a957569be7a0f28830ec1, dispatch 8d4d152f27999e93742a819004018048d08e544c5817a7c10ac7290344ebf0f8, intent f678e0b6f503edb309c73ebd45fc9d5f682c8f3283cbaed37206bb0d8b33ad38 and strategy path 6d989d1b7cd8b802f548aeeb35a8e913dafba9f102e7dbc22fea0ca85fb2c110 passed Manager, strategy and allocation preflights. The rolling allocation had 10 direct mechanisms among 12 outputs and projected governance share at 15.38 percent after this direct economic closure.",
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS"
+    },
+    {
+      "evidence": "The exact pre-2025 BTC H1 corpus matched SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd, 52,608 contiguous finite H1 rows and 2,192 complete UTC days. Each signal used only the latest complete daily close and the maximum close of the latest 365 complete UTC days including current; the first feature was available at 2020-01-01T00:00:00 and a changed target executed at that next H1 open.",
+      "name": "SEALED_DATA_SOURCE_TEMPORAL_AND_FORMULA_IDENTITY",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Run1 and run2 were independently written to previously absent create-only paths and both had SHA-256 593cb68c113216692f32542bcca86f71902fddcdfe5b3f05cb807a276018cf0e.",
+      "name": "BYTE_IDENTICAL_DETERMINISM",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Design normal minus-20-percent primary returned 226.28975178 percent versus 129.60544229 percent for full-capital buy-and-hold. Drawdown was 52.48109865 percent versus 77.18955925 percent, Calmar 4.31183336 versus 1.67905405 and upside capture 174.598958 percent. Stress returned 221.26653535 percent with 52.81136620 percent drawdown and 4.18975216 Calmar. Every frozen primary Design gate passed.",
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Validation normal primary returned 281.84289032 percent versus 464.75475156 percent for buy-and-hold, only 60.643359 percent upside capture. Drawdown was 32.04942869 percent versus 32.28416349 percent, an improvement of only 0.23473480pp and not the frozen requirement of at most 85 percent of buy-and-hold drawdown. Calmar was 8.79400669 versus 14.39575015. Stress returned 276.96804445 percent with 32.70039394 percent drawdown and 8.46986874 Calmar. The Validation drawdown, upside-capture and Calmar gates failed.",
+      "name": "VALIDATION_RISK_ADJUSTED_TRANSFER",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Validation primary observed 153 high-risk and 578 full-risk days with 18 regime-change trades and 15 realized lot slices. P90 realized holding was 11,400 hours, oldest terminal lot 2,880 hours, top positive realized-lot contribution 57.27670019 percent and normal terminal liquidation cost 0.57257341pp, all within frozen gates. The closure is not caused by insufficient state support, one isolated lot or hidden terminal cost; it is caused by weak upside capture and risk-adjusted transfer.",
+      "name": "SUPPORT_HOLDING_CONCENTRATION_AND_TERMINAL_PATH",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Primary normal and stress positive annual breadth were 4/5, drawdown non-worse breadth 5/5 and at-least-50-percent upside-capture breadth 4/5. However Calmar matched or beat buy-and-hold in only 2/5 years versus the frozen 3/5 requirement. Top-positive-year contribution was 52.49537254 percent and passed concentration, but annual risk-adjusted breadth failed.",
+      "name": "ANNUAL_BREADTH_AND_PATH_RISK",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "The rejection-only minus-15-percent neighbor returned 182.23651359 percent in Validation, captured 39.211329 percent of buy-and-hold, increased drawdown to 39.78279610 percent and achieved only 31.820412 percent of buy-and-hold Calmar. The minus-25-percent neighbor returned 331.65699836 percent with drawdown equal to buy-and-hold and 71.361723 percent of buy-and-hold Calmar, below the frozen 85 percent stability threshold. Neither neighbor passes, and minus 25 percent cannot replace the primary after outcome access.",
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Thirty-four gates passed and eight failed. The valid disposition is BTC_DAILY_TRAILING365D_DRAWDOWN20_PASSIVE_CORE_RISK_OVERLAY_FAMILY_CLOSE. The exact trailing-365-day drawdown15/20/25, at-or-below threshold, next-H1-open state-change-only 100/50 passive-core family is permanently closed; no lookback, threshold, target weight, relation, cost, window, comparator, neighbor selection or gate may be tuned to rescue it.",
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS"
+    },
+    {
+      "evidence": "No canonical-state or server Research MCP write, schedule change, paid API, network request, external backfill, deployment, database mutation, and no Trading, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred. OOS remained unopened.",
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS"
+    }
+  ],
+  "completed_at": "2026-08-24T13:14:00Z",
+  "files_changed": [],
+  "recommended_next_action": "Permanently tombstone the exact trailing-365-day drawdown15/20/25 at-or-below-threshold state-change-only 100/50 passive-core family. Reuse the learning rather than tuning it: a strong 2020-2022 cumulative-loss overlay did not transfer to 2023-2024, where it surrendered 39.36 percent of buy-and-hold upside while reducing drawdown by only 0.235pp and failed annual Calmar breadth. Rotate to a mathematically and economically distinct free-data mechanism after deduplication.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "server_research_mcp_write_attempted": false,
+    "trading_action_attempted": false
+  },
+  "schema_version": "1",
+  "source_git_commit": "52420ed6f75ee7752ab6c48a16358e6e30aa7a2c",
+  "source_git_dirty_after": false,
+  "source_git_dirty_before": false,
+  "started_at": "2026-08-24T13:12:00Z",
+  "status": "COMPLETED",
+  "summary": "BTC_DAILY_TRAILING365D_DRAWDOWN20_PASSIVE_CORE_RISK_OVERLAY_FAMILY_CLOSE. Two create-only executions produced byte-identical SHA-256 593cb68c113216692f32542bcca86f71902fddcdfe5b3f05cb807a276018cf0e. The minus-20-percent primary passed every Design gate, returning 226.28975178 percent with 52.48109865 percent drawdown versus buy-and-hold at 129.60544229 and 77.18955925 percent. It did not transfer: Validation returned 281.84289032 percent versus 464.75475156 percent, captured only 60.643359 percent of upside and reduced drawdown by only 0.23473480pp; Calmar was 8.79400669 versus 14.39575015 and annual Calmar breadth only 2/5. Minus-15 and minus-25 neighbors also failed frozen Validation stability. Thirty-four of 42 gates passed and eight failed, so the exact family is permanently closed without tuning, candidate creation or OOS access.",
+  "task_id": "local-node-btc-daily-trailing365d-drawdown20-passive-core-v1",
+  "task_sha256": "dc68b04da6e44b9b50e26104930c3654f5a1b67d869a957569be7a0f28830ec1",
+  "uncertainty": [
+    "Historical Validation is development evidence rather than clean independent OOS; the closure applies to the exact trailing-365-day drawdown15/20/25 at-or-below-threshold state-change-only 100/50 passive-core family and does not prove every cumulative-loss or stop-loss overlay lacks value.",
+    "The primary's strong Design result and minus-25 neighbor's better Validation return are visible but cannot justify threshold selection after outcome access; both fail the frozen transfer or stability contract.",
+    "A permanent 50-percent core and zero-yield cash are part of this exact family. Changing the core weight, adding yield, using a different reference peak or allowing gradual re-risking would define a new post-hoc family and is prohibited as a rescue.",
+    "No post-outcome year, regime, threshold, lookback, weight, stop or ensemble taxonomy may be introduced to rescue this family.",
+    "No post-2024, independent OOS, forward, SHADOW, PAPER or LIVE evidence was opened or created."
+  ]
+}

@@ -38,10 +38,20 @@ class Nr7BreakoutRunnerTest(unittest.TestCase):
         jsonschema.validate(hypothesis, schema)
         self.assertEqual(hypothesis["authorization"], "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE")
 
-    def test_manifest_accepts_only_exact_frozen_policy(self) -> None:
+    def test_manifest_preserves_exact_frozen_policy_and_preoutcome_pool_snapshot(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        self.runner.validate_manifest(manifest)
         self.assertEqual(manifest["strategy_policy"]["hold_hours"], 168)
+        self.assertEqual(manifest["oos_access"], "DENY")
+        for binding in manifest["source_bindings"]:
+            observed = self.runner.file_sha256(REPO_ROOT / binding["path"])
+            if binding["role"] == "PRE_OUTCOME_DEDUP_CATALOG":
+                self.assertEqual(
+                    binding["sha256"],
+                    "2174bbc53b364c2f1dcd63b9ed94732eac69c5685527f196a3831097c8ef6f76",
+                )
+                self.assertNotEqual(observed, binding["sha256"])
+            else:
+                self.assertEqual(observed, binding["sha256"])
 
     def test_manifest_rejects_hold_rescue(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))

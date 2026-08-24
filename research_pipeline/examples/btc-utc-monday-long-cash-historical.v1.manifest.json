@@ -71,7 +71,7 @@
   },
   "runner_binding": {
     "path": "research/btc_utc_monday_long_cash_historical.py",
-    "sha256": "517aba6fa36152b43408b69bd1b687b0998fe6ee068d3b2f41231a44784b4c35"
+    "sha256": "25bfb57e45194fde4f3ade47b45477084a0ba3e352120c3a46fdc7522567a6ec"
   },
   "source_bindings": [
     {

@@ -136,6 +136,11 @@ def weekday_return_diagnostic(
 ) -> tuple[dict[str, Any], dict[str, D]]:
     start, end = window
     opens = {bar.open_time: bar.open for bar in bars if bar.open_time.hour == 0}
+    if end not in opens:
+        terminal = next((bar.close for bar in bars if bar.close_time == end), None)
+        if terminal is None:
+            raise ResearchReject(f"DATA_REJECT:TERMINAL_UTC_DAY_BOUNDARY:{end.isoformat()}")
+        opens[end] = terminal
     monday: list[D] = []
     other: list[D] = []
     current = start

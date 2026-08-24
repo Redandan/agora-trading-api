@@ -27,8 +27,14 @@ from .storage import ResearchStore
 
 
 ACTIVATION_STATE_KEY = "btc_utc_day_3pct_forward_volatility_persistence_activation"
+ACTIVATION_HISTORY_STATE_KEY = (
+    "btc_utc_day_3pct_forward_volatility_persistence_activation_history_v2"
+)
 ACTIVATION_RECEIPT_RETIRED = (
     "ACTIVATION_RECEIPT_RETIRED_BY_LAWFUL_ROLLOVER"
+)
+ACTIVATION_HISTORY_DOCUMENT_TYPE = (
+    "BTC_UTC_DAY_3PCT_FORWARD_VOLATILITY_PERSISTENCE_ACTIVATION_HISTORY_V2"
 )
 ACCEPTED_IMPLEMENTATION_COMMIT = "5f4040de9e6a90864f4dc92477e5e377787d6a62"
 ACCEPTED_RESULT_SHA256 = (
@@ -85,6 +91,7 @@ class ActivationDecision:
     receipt: dict[str, Any] | None
     created: bool
     status: str
+    receipt_history: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -100,6 +107,7 @@ def prepare_forward_volatility_persistence_activation(
     now: datetime,
     previous_success: Any,
     existing_receipt: Any,
+    existing_receipt_history: Any = None,
     worker_root: Path = DEFAULT_WORKER_ROOT,
     control_current: Path | None = None,
     activation_module_path: Path | None = None,
@@ -115,6 +123,10 @@ def prepare_forward_volatility_persistence_activation(
 
     current = _aware_utc(now, "activation now")
     lineage = resolve_active_forward_trigger_lineage(store)
+    if existing_receipt is None and existing_receipt_history is not None:
+        raise ActivationIntegrityError(
+            "volatility activation history exists without the primary receipt"
+        )
 
     if existing_receipt is not None:
         if lineage is None:
@@ -122,27 +134,34 @@ def prepare_forward_volatility_persistence_activation(
                 "volatility activation receipt exists without forward lineage"
             )
         validated = _validated_existing_receipt(existing_receipt, current=current)
+        receipt_history, receipts = _validated_receipt_history(
+            existing_receipt_history,
+            primary_receipt=validated,
+            lineage=lineage,
+            current=current,
+        )
+        active_receipt = receipts[-1]
         matches_current_leaf = (
-            validated["leaf_trigger_id"] == lineage.leaf_trigger["trigger_id"]
-            and validated["leaf_trigger_fingerprint"]
+            active_receipt["leaf_trigger_id"] == lineage.leaf_trigger["trigger_id"]
+            and active_receipt["leaf_trigger_fingerprint"]
             == lineage.leaf_trigger["fingerprint"]
         )
         if not matches_current_leaf and not _receipt_binds_verified_ancestor(
-            lineage, validated
+            lineage, active_receipt
         ):
             raise ActivationIntegrityError(
                 "volatility activation receipt conflicts with current lineage"
             )
-        bound_created_at = _receipt_bound_created_at(lineage, validated)
+        bound_created_at = _receipt_bound_created_at(lineage, active_receipt)
         activated_at = parse_timestamp(
-            validated["activated_at"], "activation activated_at"
+            active_receipt["activated_at"], "activation activated_at"
         ).astimezone(timezone.utc)
         if activated_at <= bound_created_at:
             raise ActivationIntegrityError(
                 "volatility activation receipt predates bound successor observation"
             )
         try:
-            _require_release_identity(
+            release = _require_release_identity(
                 worker_root=Path(worker_root),
                 control_current=control_current,
                 activation_module_path=activation_module_path,
@@ -158,9 +177,42 @@ def prepare_forward_volatility_persistence_activation(
         if not matches_current_leaf:
             # Preserve the immutable receipt for its original verified leaf, but
             # never let it authorize evidence on a later lawful rollover leaf.
-            # Reactivation requires a separately versioned receipt.
+            # A separately versioned append-only history carries the new receipt.
+            recovery_ready = _post_rollover_heartbeat_ready(
+                lineage=lineage,
+                current=current,
+                previous_success=previous_success,
+            )
+            if not recovery_ready:
+                return ActivationDecision(
+                    active_receipt,
+                    False,
+                    "ACTIVATION_RECOVERY_DORMANT_AWAITING_POST_ROLLOVER_HEARTBEAT",
+                    receipt_history,
+                )
+            recovered = _build_receipt(
+                lineage=lineage,
+                activated_at=_iso_utc(current),
+                release=release,
+            )
+            try:
+                recovered = _validate_activation_receipt(recovered, current=current)
+            except ValueError as error:
+                raise ActivationIntegrityError(
+                    "recovered volatility activation receipt failed evaluator validation"
+                ) from error
+            updated_history = _build_receipt_history([*receipts, recovered])
+            _validated_receipt_history(
+                updated_history,
+                primary_receipt=validated,
+                lineage=lineage,
+                current=current,
+            )
             return ActivationDecision(
-                validated, False, ACTIVATION_RECEIPT_RETIRED
+                recovered,
+                True,
+                "ACTIVATION_RECEIPT_RECOVERY_READY_TO_PERSIST",
+                updated_history,
             )
         # The receipt preserves the immutable release that first activated the
         # evaluator.  A later clean Worker release is allowed to carry that
@@ -169,23 +221,24 @@ def prepare_forward_volatility_persistence_activation(
         # Rebinding the receipt to the new release would rewrite provenance;
         # requiring the historical release id to remain current would make every
         # lawful Worker upgrade an integrity incident.
-        return ActivationDecision(validated, False, "ACTIVATION_RECEIPT_REVALIDATED")
+        return ActivationDecision(
+            active_receipt,
+            False,
+            "ACTIVATION_RECEIPT_REVALIDATED",
+            receipt_history,
+        )
 
     if lineage is None or not lineage.rolled_over:
         return ActivationDecision(None, False, "ACTIVATION_DORMANT_AWAITING_ROLLOVER")
 
-    closed_at = _eligible_successor_closed_at(lineage)
-    if previous_success is None:
+    if not _post_rollover_heartbeat_ready(
+        lineage=lineage,
+        current=current,
+        previous_success=previous_success,
+    ):
         return ActivationDecision(
             None, False, "ACTIVATION_DORMANT_AWAITING_POST_ROLLOVER_HEARTBEAT"
         )
-    prior = _parse_canonical_timestamp(previous_success, "heartbeat last_success")
-    if prior < closed_at or current == prior:
-        return ActivationDecision(
-            None, False, "ACTIVATION_DORMANT_AWAITING_POST_ROLLOVER_HEARTBEAT"
-        )
-    if prior > current:
-        raise ActivationIntegrityError("heartbeat last_success is in the future")
 
     try:
         release = _require_release_identity(
@@ -214,6 +267,102 @@ def prepare_forward_volatility_persistence_activation(
             "new volatility activation receipt failed evaluator validation"
         ) from error
     return ActivationDecision(validated, True, "ACTIVATION_RECEIPT_READY_TO_PERSIST")
+
+
+def _post_rollover_heartbeat_ready(
+    *,
+    lineage: ActiveForwardTriggerLineage,
+    current: datetime,
+    previous_success: Any,
+) -> bool:
+    closed_at = _eligible_successor_closed_at(lineage)
+    if previous_success is None:
+        return False
+    prior = _parse_canonical_timestamp(previous_success, "heartbeat last_success")
+    if prior > current:
+        raise ActivationIntegrityError("heartbeat last_success is in the future")
+    return prior >= closed_at and current != prior
+
+
+def _validated_receipt_history(
+    value: Any,
+    *,
+    primary_receipt: dict[str, Any],
+    lineage: ActiveForwardTriggerLineage,
+    current: datetime,
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+    if value is None:
+        return None, [primary_receipt]
+    if not isinstance(value, dict) or set(value) != {
+        "schema_version",
+        "document_type",
+        "receipts",
+    }:
+        raise ActivationIntegrityError("volatility activation history fields are invalid")
+    if (
+        value.get("schema_version") != "2"
+        or value.get("document_type") != ACTIVATION_HISTORY_DOCUMENT_TYPE
+        or not isinstance(value.get("receipts"), list)
+        or len(value["receipts"]) < 2
+    ):
+        raise ActivationIntegrityError("volatility activation history is invalid")
+    receipts = [
+        _validated_existing_receipt(item, current=current)
+        for item in value["receipts"]
+    ]
+    if receipts[0] != primary_receipt:
+        raise ActivationIntegrityError(
+            "volatility activation history does not preserve the primary receipt"
+        )
+    identities = {
+        (trigger_id, fingerprint): (index, created_at)
+        for index, (trigger_id, fingerprint, created_at) in enumerate(
+            lineage.trigger_identities
+        )
+    }
+    prior_index = 0
+    prior_activated_at: datetime | None = None
+    seen: set[tuple[str, str]] = set()
+    for receipt in receipts:
+        identity = (
+            receipt["leaf_trigger_id"],
+            receipt["leaf_trigger_fingerprint"],
+        )
+        if identity in seen or identity not in identities:
+            raise ActivationIntegrityError(
+                "volatility activation history leaf is duplicated or outside lineage"
+            )
+        seen.add(identity)
+        index, created_at_text = identities[identity]
+        if index <= prior_index:
+            raise ActivationIntegrityError(
+                "volatility activation history is not strictly lineage ordered"
+            )
+        created_at = _parse_canonical_timestamp(
+            created_at_text, "activation history leaf created_at"
+        )
+        activated_at = _parse_canonical_timestamp(
+            receipt["activated_at"], "activation history activated_at"
+        )
+        if activated_at <= created_at:
+            raise ActivationIntegrityError(
+                "volatility activation history predates its bound leaf"
+            )
+        if prior_activated_at is not None and activated_at <= prior_activated_at:
+            raise ActivationIntegrityError(
+                "volatility activation history clock is not strictly increasing"
+            )
+        prior_index = index
+        prior_activated_at = activated_at
+    return value, receipts
+
+
+def _build_receipt_history(receipts: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "schema_version": "2",
+        "document_type": ACTIVATION_HISTORY_DOCUMENT_TYPE,
+        "receipts": receipts,
+    }
 
 
 def _receipt_binds_verified_ancestor(

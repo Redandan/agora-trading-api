@@ -22,6 +22,7 @@ from research_pipeline.forward_volatility_persistence import (
     _canonical_bytes as _volatility_canonical_bytes,
 )
 from research_pipeline.forward_volatility_persistence_activation import (
+    ACTIVATION_HISTORY_STATE_KEY,
     ACTIVATION_RECEIPT_RETIRED,
     ACTIVATION_STATE_KEY,
     ActivationDecision,
@@ -2571,6 +2572,60 @@ class CandidateFunnelTest(unittest.TestCase):
         )
         self.assertEqual("READY", snapshot["status"])
         self.assertEqual([], snapshot["summary"]["integrity_blocked_families"])
+        load_snapshots.assert_not_called()
+
+    def test_lawful_rollover_recovery_is_ready_without_read_only_state_write(
+        self,
+    ) -> None:
+        primary = _volatility_receipt()
+        recovered = dict(primary)
+        recovered["activated_at"] = "2026-08-19T01:05:00Z"
+        recovered["leaf_trigger_id"] = "rollover-r3"
+        recovered["leaf_trigger_fingerprint"] = "c" * 64
+        history = {"schema_version": "2", "document_type": "history", "receipts": [primary, recovered]}
+        current_leaf = {
+            "trigger_id": recovered["leaf_trigger_id"],
+            "fingerprint": recovered["leaf_trigger_fingerprint"],
+        }
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "research_pipeline.candidate_funnel."
+            "prepare_forward_volatility_persistence_activation",
+            return_value=ActivationDecision(
+                recovered,
+                True,
+                "ACTIVATION_RECEIPT_RECOVERY_READY_TO_PERSIST",
+                history,
+            ),
+        ), patch(
+            "research_pipeline.candidate_funnel.resolve_active_forward_trigger_lineage",
+            return_value=SimpleNamespace(leaf_trigger=current_leaf),
+        ), patch(
+            "research_pipeline.candidate_funnel._load_volatility_snapshots"
+        ) as load_snapshots:
+            snapshot = build_candidate_funnel(
+                _registry(),
+                microstructure=_microstructure("WAITING_FOR_DAY"),
+                heartbeat_state={
+                    ACTIVATION_STATE_KEY: primary,
+                    ACTIVATION_HISTORY_STATE_KEY: history,
+                },
+                state_root=Path(directory),
+                as_of=datetime(2026, 8, 19, 2, 5, tzinfo=timezone.utc),
+                repo_root=REPO_ROOT,
+            )
+
+        volatility = _family(snapshot, "btc-3pct-post-shock-volatility-persistence")
+        self.assertEqual("DEFERRED", volatility["stage"])
+        self.assertTrue(volatility["progress"]["recovery_ready_to_persist"])
+        self.assertEqual(
+            "VERSIONED_ACTIVATION_RECOVERY_READY",
+            volatility["integrity_status"],
+        )
+        self.assertEqual(
+            "PERSIST_VERSIONED_ACTIVATION_RECOVERY_ON_NEXT_NORMAL_HEARTBEAT",
+            volatility["next_gate"],
+        )
+        self.assertEqual("READY", snapshot["status"])
         load_snapshots.assert_not_called()
 
     def test_status_wrapper_fails_closed_when_catalog_is_outside_repo_root(self) -> None:

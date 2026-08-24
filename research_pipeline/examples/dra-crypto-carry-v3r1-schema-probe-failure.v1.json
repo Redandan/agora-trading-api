@@ -1,0 +1,74 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_CRYPTO_CARRY_V3R1_SCHEMA_PROBE_FAILURE_V1",
+  "decision_id": "dra-crypto-carry-v3r1-schema-probe-failure-v1",
+  "decided_at": "2026-08-20T05:06:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-crypto-carry-risk-veto",
+  "probe_execution": {
+    "request_id": "okx-dra-crypto-carry-public-axes-schema-probe-v3r1-20260819",
+    "request_sha256": "f0bd0d148cfdc6e5164e51f370300edcb03022879d6c04f1cfbc4c1dc99f0f9e",
+    "source_contract_id": "OKX_DRA_CRYPTO_CARRY_PUBLIC_AXES_SOURCE_V3R1",
+    "source_contract_sha256": "2e44b85a5a3998bf7285adbaba62095f80f0c7fce3fec9c75a0ec26369d90bcd",
+    "producer_sha256": "b5bfb85c2bb1b3fcbcaf454220c89adfbd1dfd9abed336af7274ccfc089c702e",
+    "control_release_id": "20260820T050308Z",
+    "carry_release_id": "20260820T050308Z",
+    "data_release_id_preserved": "20260812T044255Z",
+    "source_git_commit": "8572a4bd23a8432d36a9fb69b8109453899070df",
+    "started_at": "2026-08-20T05:06:00Z",
+    "finished_at": "2026-08-20T05:06:00Z",
+    "unit_result": "exit-code",
+    "exec_main_status": 1,
+    "endpoint_access_performed": true,
+    "output_artifact_created": false
+  },
+  "failure": {
+    "stage": "FROZEN_SCHEMA_ONLY_SOURCE_ACCESS",
+    "endpoint_id": "FUTURES_OPEN_INTEREST",
+    "code": "SOURCE_ACCESS_REJECT_NO_DATA_ROWS",
+    "bounded_detail": "FUTURES_OPEN_INTEREST has no data rows",
+    "contract_effect": "The frozen source requires at least one closed-schema response row and forbids substituting another endpoint, query, instrument, response-selection rule or empty-row interpretation."
+  },
+  "privacy_and_scope": {
+    "credentials_sent": false,
+    "raw_responses_persisted": false,
+    "raw_responses_transported": false,
+    "market_values_persisted": false,
+    "market_values_transported": false,
+    "source_activation_authorized": false,
+    "canonical_state_changed": false,
+    "second_timer_or_path_created": false,
+    "trading_action_occurred": false
+  },
+  "infrastructure_result": {
+    "isolated_carry_release_lane": "PASS",
+    "dedicated_identity_and_filesystem_confinement": "PASS",
+    "service_pre_probe_state": "INACTIVE_UNFAILED_PID_ZERO",
+    "timer_count": 0,
+    "path_count": 0,
+    "microstructure_failed_state_preserved_without_reset_or_restart": true,
+    "interpretation": "The isolated source capability worked as designed and failed closed at the first unavailable frozen semantic axis. Infrastructure readiness is not factor or strategy evidence."
+  },
+  "scientific_disposition": {
+    "decision": "NO_SOURCE_CLOSE_DRA_CRYPTO_CARRY_RISK_VETO_FAMILY",
+    "reason": "The pre-registered public semantic-axis contract is not executable because a required axis returns no rows. Retrying or replacing that axis after access would be outcome-informed source selection.",
+    "retry": "DENY",
+    "endpoint_or_query_change": "DENY_FOR_THIS_FAMILY",
+    "source_contract_relaxation": "DENY",
+    "candidate_created": false,
+    "oos_opened": false,
+    "prohibited_reopen": true
+  },
+  "economic_claim_boundary": {
+    "factor_value": "MISSING_PROOF",
+    "predictive_value": "MISSING_PROOF",
+    "fees": "MISSING_PROOF",
+    "realized_pnl": "MISSING_PROOF",
+    "unrealized_pnl": "MISSING_PROOF",
+    "total_pnl": "MISSING_PROOF",
+    "maximum_drawdown": "MISSING_PROOF",
+    "holding_age": "MISSING_PROOF",
+    "terminal_inventory": "MISSING_PROOF"
+  },
+  "next_action": "Exclude this exact family from ranking and replace the open pool slot with an independent free-historical-data mechanism that reaches matched-capital economics without another source deployment."
+}

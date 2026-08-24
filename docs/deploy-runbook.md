@@ -224,7 +224,11 @@ without any network action:
 ```
 
 `PackageOnly` performs the clean-commit gate, offline build, staging, manifest,
-archive, extraction, and equality checks, then exits before SSH/SCP. Do not run
+archive, extraction, and equality checks, then exits before SSH/SCP. It also
+requires every open and closed Candidate Pool evidence binding to be a regular
+file inside the staged package with the cataloged SHA-256; a local-only
+`.research-state` binding therefore blocks the release before network access.
+Do not run
 it in a dirty worktree; failure there is intentional, and the task that prepares
 the commit may use only static parser/closure checks. A successful package-only
 result is still not Linux/server/deployment proof.

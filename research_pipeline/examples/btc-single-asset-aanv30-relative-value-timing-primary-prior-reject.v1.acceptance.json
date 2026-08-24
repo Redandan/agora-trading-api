@@ -1,0 +1,18 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_SINGLE_ASSET_AANV30_RELATIVE_VALUE_TIMING_PRIMARY_PRIOR_REJECT_ACCEPTANCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-single-asset-aanv30-relative-value-timing",
+  "accepted_at": "2026-08-24T15:50:21Z",
+  "source_result": {
+    "path": "research_pipeline/examples/btc-single-asset-aanv30-relative-value-timing-primary-prior-reject.v1.json",
+    "sha256": "c9885c73305581519f13c3b8e909c9775342b47cc50c7f3f3aa2372c53a465ed"
+  },
+  "decision": "ACCEPT_NO_HYPOTHESIS_PRIMARY_PRIOR_TRANSFER_AND_DEDUPLICATION_GATE_CLOSE",
+  "reason": "The published AANV30 result is a contemporaneous multi-asset cross-sectional sort, while the proposed BTC-only rule would require an unsupported own-history threshold after related active-address outcomes are already known.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_reopen": true,
+  "next_action": "SELECT_A_DIFFERENT_INDEPENDENT_FREE_DATA_MECHANISM_WITHOUT_REUSING_ACTIVE_ADDRESS_MARKET_CAP_MVRV_OR_NVT_LINEAGES",
+  "scope_note": "Acceptance of a sealed no-hypothesis result only. No source value, factor, outcome, experiment, candidate, OOS, canonical state, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

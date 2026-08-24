@@ -207,33 +207,33 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "dra-crypto-carry-risk-veto",
-      "title": "Crypto-carry-conditioned DRA entry risk veto",
-      "decision_feature": "POINT_IN_TIME_CRYPTO_CARRY_STATE_WITH_BOTH_FIXED_MATURITY_AND_PERPETUAL_SEMANTICS",
-      "causal_hypothesis": "Crypto carry may expose leveraged demand, market segmentation and constrained arbitrage capital before an otherwise valid unlevered spot DRA entry.",
-      "economic_hypothesis": "A parameter-free carry risk veto may reduce adverse DRA entry paths without losing enough profitable participation to lower matched-capital total PnL.",
-      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
-      "matched_comparator_id": "BTC_DRA_V1_WITHOUT_CARRY_RISK_VETO",
-      "runner_id": "MISSING_PROOF",
+      "family_id": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+      "title": "Archived Alternative.me exact Extreme Fear label contrarian BTC long-or-cash",
+      "decision_feature": "LATEST_COMPLETE_ALTERNATIVE_ME_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
+      "causal_hypothesis": "If the exact completed Extreme Fear label captures emotional overselling beyond the price inputs embedded in the index, it may precede a next-day rebound; otherwise reverse causality and price-derived inputs should fail the frozen predictive gates.",
+      "economic_hypothesis": "Holding BTC on the next UTC day only after the exact Extreme Fear label may improve next-day return and downside risk versus all other labels before matched-capital economics are opened.",
+      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
+      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_EXTREME_FEAR_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
+      "runner_id": "NOT_BUILT_EXACT_ARCHIVED_FGI_SOURCE_GATE_FIRST",
       "base_stage": "DEFERRED",
       "estimated_days_to_next_gate": null,
-      "compute_cost_class": "HIGH",
-      "independence_key": "crypto-carry-leveraged-demand-risk",
-      "next_gate": "PROVE_SOURCE_REPRESENTATION_AND_POINT_IN_TIME_AXIS_COVERAGE_AFTER_ACTIVE_LANE",
+      "compute_cost_class": "LOW",
+      "independence_key": "publisher-composite-crypto-sentiment-label-not-consumer-sentiment-search-volume-price-premium-single-price-indicator-or-calendar",
+      "next_gate": "NO_SECOND_REQUEST_SELECT_AND_BIND_ONE_DIFFERENT_EXECUTABLE_FREE_DATA_REPLACEMENT_THEN_CLOSE_THIS_DEFERRED_SLOT",
       "canonical_binding": {
         "kind": "NONE",
-        "id": "OFFLINE_DISABLED_NOT_REGISTERED"
+        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json",
-          "role": "SEALED_PARAMETER_FREE_FACTOR_BOUNDARY",
-          "sha256": "9656429e3e51c64207c667ee85657d3505ea3c1a4dbff424b2901c45e53a3b18"
+          "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "3034f11ef0abab8fe42ed8e3fd8170027a2e2b549548ad8b2844cb3ed5334b5b"
         },
         {
-          "path": "research_pipeline/okx-dra-crypto-carry-expiry-futures-source-contract.v2.json",
-          "role": "OFFLINE_DISABLED_SOURCE_CONTRACT",
-          "sha256": "183eeb35dc4729ff91970e4b892f141f58452abfa350591888587ce01035e4ad"
+          "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-source.v1.execution.json",
+          "role": "SEALED_ONE_ATTEMPT_SOURCE_TRANSPORT_INDETERMINATE_NO_ARTIFACT_NO_RETRY",
+          "sha256": "d02427065a5b7f416d3d2dd4f45d8d51a06ec3695eff800c307be5a9c379e6de"
         }
       ],
       "economic_evidence_status": {
@@ -245,14 +245,15 @@
         "maximum_drawdown": "MISSING_PROOF",
         "holding_age": "MISSING_PROOF",
         "terminal_inventory": "MISSING_PROOF",
-        "breadth_and_path_risk": "MISSING_PROOF"
+        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
       },
       "missing_proof": [
-        "The source representation does not yet prove both required semantic axes.",
-        "No point-in-time factor formula, sign, runner or matched-capital experiment exists.",
-        "Predictive, economic and OOS value remain missing."
+        "The one exact archived-source execution reached its 30-second deadline without stdout, response evidence or artifact; no second request is permitted in this lineage.",
+        "No exact archived official API response, schema, label continuity or selected pre-2025 FGI corpus is sealed.",
+        "No Extreme Fear state support, independent next-day relation or stable Design and Validation direction has been measured.",
+        "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."
       ],
-      "duplicate_family_key": "dra-crypto-carry-risk-veto"
+      "duplicate_family_key": "btc-alternative-me-exact-extreme-fear-label-next-day-contrarian-long-cash"
     }
   ],
   "closed_families": [
@@ -850,6 +851,53 @@
         {"path": "research_pipeline/examples/btc-daily-supertrend10x3-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR", "sha256": "12ce9bb7c779346e0c66d280bb76397890bb8787ca2648a6cd7adf33fd7029d7"}
       ],
       "prohibited_reopen": true
+    },
+    {
+      "family_id": "closed-dra-crypto-carry-risk-veto",
+      "title": "Crypto-carry-conditioned DRA entry risk veto",
+      "decision_feature": "POINT_IN_TIME_CRYPTO_CARRY_STATE_WITH_BOTH_FIXED_MATURITY_AND_PERPETUAL_SEMANTICS",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "disposition": "NO_SOURCE_CLOSE_DRA_CRYPTO_CARRY_RISK_VETO_FAMILY",
+      "duplicate_family_key": "dra-crypto-carry-risk-veto",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/dra-crypto-carry-v3r1-schema-probe-failure.v1.json",
+          "role": "SEALED_V3R1_SCHEMA_ONLY_SOURCE_FAILURE",
+          "sha256": "0a32d475b91da77aa523aa06108ac5e8946d7031b8d406519f61423afb8488f6"
+        },
+        {
+          "path": "research_pipeline/okx-dra-crypto-carry-public-axes-source-contract.v3r1.json",
+          "role": "FROZEN_V3R1_PUBLIC_SOURCE_CONTRACT",
+          "sha256": "2e44b85a5a3998bf7285adbaba62095f80f0c7fce3fec9c75a0ec26369d90bcd"
+        },
+        {
+          "path": "research_pipeline/examples/dra-crypto-carry-v3r1-source-contract-supersession.v1.json",
+          "role": "PREACCESS_V3_TO_V3R1_SUPERSESSION_DECISION",
+          "sha256": "12f3af28a961996edf9ac5467806ca3a42d32183a8b89d5850ead353288df74a"
+        }
+      ],
+      "prohibited_reopen": true
+    },
+    {
+      "decision_feature": "NO_SINGLE_BTC_OWN_HISTORY_AANV30_THRESHOLD_OR_ACTION_SURVIVED_CROSS_SECTIONAL_TRANSFER_AND_CLOSED_PRIMITIVE_DEDUPLICATION",
+      "disposition": "NO_HYPOTHESIS_PRIMARY_PRIOR_TRANSFER_AND_DEDUPLICATION_GATE_CLOSE",
+      "duplicate_family_key": "btc-single-asset-aanv30-own-history-relative-value-timing",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-single-asset-aanv30-relative-value-timing-primary-prior-reject.v1.json",
+          "role": "SEALED_EXTERNAL_PRIMARY_TRANSFER_AND_LOCAL_DEDUPLICATION_PRIOR_REJECT",
+          "sha256": "c9885c73305581519f13c3b8e909c9775342b47cc50c7f3f3aa2372c53a465ed"
+        },
+        {
+          "path": "research_pipeline/examples/btc-single-asset-aanv30-relative-value-timing-primary-prior-reject.v1.acceptance.json",
+          "role": "MANAGER_ACCEPTED_NO_HYPOTHESIS_FAMILY_CLOSURE",
+          "sha256": "f506757a7bd8e67a2887ec29d9414ce20392df6b3e85df8b8d75c48721fac792"
+        }
+      ],
+      "family_id": "closed-btc-single-asset-aanv30-relative-value-timing-primary-prior-reject-v1",
+      "parent_strategy_id": "NO_PARENT_SELECTED_PRIMARY_PRIOR_REJECT_BEFORE_HYPOTHESIS",
+      "prohibited_reopen": true,
+      "title": "Single-BTC active-addresses-to-network-value own-history timing translation"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

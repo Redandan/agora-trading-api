@@ -324,12 +324,70 @@ function Assert-PackageTree {
             throw "Package contains a forbidden path: $relative"
         }
     }
+    Assert-CandidatePoolEvidenceClosure -PackageRoot $PackageRoot
     if ($IncludeCarryDistribution) {
         Assert-ExactOptInDistribution -DistributionRoot (Join-Path $PackageRoot "target/microstructure-dist") -Kind Microstructure
         Assert-ExactOptInDistribution -DistributionRoot (Join-Path $PackageRoot "target/dra-crypto-carry-dist") -Kind Carry
     }
     else {
         Assert-ExactDistribution -DistributionRoot (Join-Path $PackageRoot "target/microstructure-dist")
+    }
+}
+
+function Assert-CandidatePoolEvidenceClosure {
+    param([Parameter(Mandatory = $true)][string]$PackageRoot)
+
+    $catalogPath = Join-Path $PackageRoot "research_pipeline/pre-candidate-pool.v1.json"
+    if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) {
+        throw "Candidate pool catalog is missing from the staged package."
+    }
+    try {
+        $catalog = Get-Content -Raw -LiteralPath $catalogPath | ConvertFrom-Json -Depth 100
+    }
+    catch {
+        throw "Candidate pool catalog is not valid JSON: $($_.Exception.Message)"
+    }
+
+    $packageRootFull = [System.IO.Path]::GetFullPath($PackageRoot).TrimEnd('\', '/')
+    $bindings = @(
+        @($catalog.families) + @($catalog.closed_families) |
+            ForEach-Object { @($_.evidence_bindings) }
+    )
+    if ($bindings.Count -eq 0) {
+        throw "Candidate pool catalog has no evidence bindings."
+    }
+    foreach ($binding in $bindings) {
+        $relative = ([string]$binding.path).Replace('\', '/')
+        $expectedHash = ([string]$binding.sha256).ToLowerInvariant()
+        if ([string]::IsNullOrWhiteSpace($relative) -or
+                [System.IO.Path]::IsPathRooted($relative) -or
+                $relative -match '(^|/)\.\.(/|$)' -or
+                $relative.StartsWith("/", [System.StringComparison]::Ordinal)) {
+            throw "Candidate pool evidence binding escaped the package: $relative"
+        }
+        if ($expectedHash -notmatch '^[0-9a-f]{64}$') {
+            throw "Candidate pool evidence binding has an invalid SHA-256: $relative"
+        }
+        $resolved = [System.IO.Path]::GetFullPath(
+            (Join-Path $packageRootFull $relative.Replace('/', [System.IO.Path]::DirectorySeparatorChar))
+        )
+        if (-not $resolved.StartsWith(
+                $packageRootFull + [System.IO.Path]::DirectorySeparatorChar,
+                [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "Candidate pool evidence binding escaped the package: $relative"
+        }
+        if (-not (Test-Path -LiteralPath $resolved -PathType Leaf)) {
+            throw "Candidate pool evidence binding is not packaged: $relative"
+        }
+        $item = Get-Item -LiteralPath $resolved -Force
+        if ($item.PSIsContainer -or
+                ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Candidate pool evidence binding is not a regular file: $relative"
+        }
+        $actualHash = (Get-FileHash -LiteralPath $resolved -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actualHash -ne $expectedHash) {
+            throw "Candidate pool evidence binding hash mismatch: $relative"
+        }
     }
 }
 

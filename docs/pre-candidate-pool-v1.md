@@ -60,8 +60,12 @@ by the funnel.
   unrealized, and total PnL, maximum drawdown, holding age, terminal inventory,
   and breadth/path risk. `MISSING_PROOF` remains explicit.
 
-The active V1 catalog contains five open families and twenty-eight repository-sealed
-closed or excluded families. One is the Amihud-style `DATA_REJECT`: it records
+The active V1 catalog contains five open families and thirty-five repository-sealed
+closed or excluded families. The crypto-carry DRA risk-veto family is closed at
+its frozen public-source schema gate and cannot be reopened from the separate
+funding-cashflow corpus. Its open slot is retained as a deferred archived
+sentiment-source line until one different executable free-data replacement is
+bound. One closure is the Amihud-style `DATA_REJECT`: it records
 missing economic proof rather than a negative performance conclusion, while
 still prohibiting imputation, row deletion, or relabeling from silently
 reopening the exact rejected formula. Catalog membership is not authorization

@@ -688,6 +688,32 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn("PACKAGE_ONLY=COMPLETE_NO_NETWORK", section)
         self.assertIn("return", section)
 
+    def test_package_requires_every_candidate_pool_evidence_binding(self) -> None:
+        self.assertIn("function Assert-CandidatePoolEvidenceClosure", self.wrapper)
+        self.assertIn(
+            '"research_pipeline/pre-candidate-pool.v1.json"',
+            self.wrapper,
+        )
+        self.assertIn(
+            "@($catalog.families) + @($catalog.closed_families)",
+            self.wrapper,
+        )
+        self.assertIn(
+            "Candidate pool evidence binding is not packaged",
+            self.wrapper,
+        )
+        self.assertIn(
+            "Candidate pool evidence binding hash mismatch",
+            self.wrapper,
+        )
+        package_tree = self.wrapper.index("function Assert-PackageTree")
+        guard_call = self.wrapper.index(
+            "Assert-CandidatePoolEvidenceClosure -PackageRoot $PackageRoot"
+        )
+        manifest = self.wrapper.index("function Get-PackageManifestLines")
+        self.assertLess(package_tree, guard_call)
+        self.assertLess(guard_call, manifest)
+
     def test_release_wrapper_handles_detached_head_before_trimming_branch(self) -> None:
         self.assertNotIn(
             '$gitBranch = (& git -C $repoRoot branch --show-current).Trim()',

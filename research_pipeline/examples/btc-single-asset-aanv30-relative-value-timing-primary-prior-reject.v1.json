@@ -1,0 +1,80 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_SINGLE_ASSET_AANV30_RELATIVE_VALUE_TIMING_PRIMARY_PRIOR_REJECT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-single-asset-aanv30-relative-value-timing",
+  "created_at": "2026-08-24T15:33:06Z",
+  "status": "NO_HYPOTHESIS_PRIMARY_PRIOR_TRANSFER_AND_DEDUPLICATION_GATE_CLOSE",
+  "decision": "DO_NOT_TRANSLATE_A_CROSS_SECTIONAL_MULTI_ASSET_AANV30_SORT_INTO_A_SINGLE_BTC_TIME_SERIES_THRESHOLD_AFTER_RELATED_ACTIVE_ADDRESS_OUTCOMES_ARE_KNOWN",
+  "considered_lineage": {
+    "mechanism_question": "Can the 30-day mean of Bitcoin active addresses divided by current Bitcoin market capitalization identify a low-complexity weekly BTC long-or-cash value state?",
+    "external_formula": "AANV30_EQUALS_PREVIOUS_30_DAY_MEAN_ACTIVE_ADDRESSES_DIVIDED_BY_CURRENT_NETWORK_VALUE",
+    "external_test_design": "TUESDAY_CROSS_SECTIONAL_SORT_OF_652_CRYPTOASSETS_INTO_QUINTILES_WITH_HIGH_MINUS_LOW_PORTFOLIO_EVIDENCE",
+    "requested_translation": "SINGLE_BTC_TIME_SERIES_COMPARISON_TO_ITS_OWN_TRAILING_DISTRIBUTION",
+    "variants_admitted": 0
+  },
+  "primary_and_adversarial_prior": [
+    {
+      "identity": "Liebi, Is there a value premium in cryptoasset markets?, Economic Modelling 109, 2022, DOI 10.1016/j.econmod.2022.105777",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0264999322000232",
+      "open_manuscript": "https://www.efmaefm.org/0EFMAMEETINGS/EFMA%20ANNUAL%20MEETINGS/2021-Leeds/papers/EFMA%202021_stage-2049_question-Full%20Paper_id-202.pdf",
+      "finding": "The paper defines aanv30 as average active addresses over the previous 30 days divided by current market capitalization and reports a value premium from weekly cross-sectional sorts across 652 cryptoassets.",
+      "role": "DIRECT_AANV30_CROSS_SECTIONAL_VALUE_PRIOR",
+      "transfer_boundary": "The paper does not specify a BTC-only rolling lookback, absolute threshold, own-history quantile, binary cash action or matched-capital BTC timing comparator. Its high and low states exist only relative to other assets in the same weekly cross-section."
+    },
+    {
+      "identity": "Liebi 2021 open manuscript adversarial measurement discussion",
+      "url": "https://www.efmaefm.org/0EFMAMEETINGS/EFMA%20ANNUAL%20MEETINGS/2021-Leeds/papers/EFMA%202021_stage-2049_question-Full%20Paper_id-202.pdf",
+      "finding": "The manuscript states that one user may own multiple active addresses and documents sensitivity of active-address and transaction measures to mixer activity. It uses proprietary data under a nondisclosure agreement and cross-sectional winsorization.",
+      "role": "MEASUREMENT_AND_REPLICATION_ADVERSARIAL_PRIOR",
+      "transfer_boundary": "A free Coin Metrics BTC series would be a provider-and-universe translation, not a direct replication of the paper's proprietary multi-asset panel."
+    }
+  ],
+  "closed_family_deduplication": [
+    {
+      "family": "btc-onchain-activity-breadth-28d-vs-52w-long-cash",
+      "binding": "research_pipeline/examples/btc-onchain-activity-breadth-long-cash-historical.v1.decision.json",
+      "sha256": "e1aa08d08415ec429474f058f05ee8bfc067dd79b9ee769a2a3c639159878d90",
+      "boundary": "The AdrActCnt axis and its next-week BTC outcomes are already known. Its frozen active-address-only neighbor was identical to the failed primary in Validation, with only 15.402117% upside capture and Calmar at 17.464393% of buy-and-hold. Adding market-cap normalization now would be outcome-aware feature engineering on a closed primitive."
+    },
+    {
+      "family": "dra-onchain-activity-breadth-28d-vs-52w-entry-admission",
+      "binding": "research_pipeline/examples/dra-onchain-activity-breadth-entry-admission-historical.v1.decision.json",
+      "sha256": "cff5baa7a3a1c660a0560ca41c445506f47d16e1d813c97ef4f8564a2e9dccec",
+      "boundary": "The same active-address flow has also failed an independently matched-capital DRA admission audit, so a renamed ratio cannot reopen that entry-filter lineage."
+    },
+    {
+      "family": "dra-coinmetrics-btc-mvrv-sunday-below-prior-365d-median-entry-admission",
+      "binding": "research_pipeline/examples/dra-bitcoin-mvrv-relative-value-entry-admission-historical.v1.decision.json",
+      "sha256": "9fa546266ea17871f4b0002b9252d8fd13013ff131984bec8604657c007d383e",
+      "boundary": "A BTC-only own-history market-cap-relative valuation state has already reached a terminal economic decision. AANV30 is not MVRV, but inventing another own-history threshold after the cross-sectional source does not supply one would repeat the same unsupported timing translation."
+    },
+    {
+      "family": "dra-coinmetrics-btc-nvtadj-sunday-relative-utility-entry-admission",
+      "binding": "research_pipeline/examples/dra-bitcoin-nvt-relative-utility-entry-admission-source-gate.v1.decision.json",
+      "sha256": "bb7494532bd84061df3ec438c1f4ba3ca21687a38037ef1038f493307add4791",
+      "boundary": "The nearest network-utility-to-market-value family is already closed under its exact free-source contract. AANV30 cannot be presented as an NVT source substitution or rescue."
+    }
+  ],
+  "why_no_hypothesis": [
+    "The primary evidence is cross-sectional: high and low AANV30 are defined by contemporaneous ranks among many assets, not by whether BTC is high relative to its own past.",
+    "A BTC-only trailing median, quintile, z-score or absolute threshold would have to be selected by this research program; none is fixed by the source.",
+    "The historical BTC return behavior of the active-address primitive is already known from two closed audits, so adding current market capitalization and selecting a time-series threshold would be outcome-aware neighboring-feature construction.",
+    "The proprietary 652-asset panel, weekly cross-sectional availability, survivorship treatment and winsorization cannot be reproduced by the existing free single-BTC corpus without materially changing the design.",
+    "The only faithful test would require a broad point-in-time multi-asset on-chain panel. That is outside the current free-data, low-cost, single-BTC execution path and is not the fastest credible route to a strategy."
+  ],
+  "missing_proof": [
+    "No primary source fixes a single-BTC own-history AANV30 threshold, direction-conditioned cash action and holding horizon.",
+    "No free point-in-time 652-asset-equivalent active-address and market-cap panel with survivorship and revision controls is bound.",
+    "No AANV30 value, BTC outcome, factor support, hypothesis, manifest, runner, economics, candidate, OOS or forward evidence was accessed or computed."
+  ],
+  "prohibited_reopen": [
+    "Do not scan BTC-only AANV30 medians, quantiles, z-scores, lookbacks, weekdays, directions, cash weights or holding periods on the existing historical outcomes.",
+    "Do not add market-cap normalization to the closed active-address activity families or relabel MVRV, NVT or active-address growth as AANV value timing.",
+    "Do not substitute a present-vintage single-BTC Coin Metrics series for the paper's proprietary multi-asset cross-section and call it a replication.",
+    "Do not open post-2024 or OOS evidence for this rejected no-hypothesis lineage."
+  ],
+  "reconsideration_trigger": "ONE_FREE_POINT_IN_TIME_MULTI_ASSET_PANEL_WITH_SURVIVORSHIP_CONTROLS_AND_A_PRE_OUTCOME_REPLICATION_CONTRACT_FOR_THE_PUBLISHED_CROSS_SECTIONAL_AANV30_SORT_OR_ONE_NEW_PRIMARY_SOURCE_FIXING_A_SINGLE_BTC_TIME_SERIES_RULE",
+  "material_learning": "A published cross-sectional factor is not automatically a single-asset timing signal. AANV30 may rank cryptoassets by relative value, but converting that rank into a BTC own-history threshold requires a new model choice. Because the active-address primitive's BTC outcomes are already known, making that choice now would be data-dependent feature engineering rather than an independent preregistration.",
+  "scope_note": "External primary-prior and local tombstone deduplication only. No Coin Metrics or other source value, active-address value, market-cap value, AANV30 factor, BTC outcome, hypothesis, manifest, runner, strategy economics, candidate, post-2024 outcome, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

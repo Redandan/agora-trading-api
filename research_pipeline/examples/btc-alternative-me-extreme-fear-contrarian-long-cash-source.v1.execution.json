@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ALTERNATIVE_ME_FGI_WAYBACK_SOURCE_EXECUTION_V1",
+  "family_id": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+  "executed_at": "2026-08-22T22:15:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_FGI_VALUE_SOURCE_TRANSPORT_INDETERMINATE_NO_CANDIDATE_NO_OOS",
+  "status": "SOURCE_TRANSPORT_INDETERMINATE_DEFERRED_NO_ARTIFACT_NO_RETRY",
+  "disposition": "DEFER_EXACT_ARCHIVED_FGI_FAMILY_WITHOUT_SECOND_REQUEST",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-source.v1.spec.json",
+      "sha256": "37bb0cee18f98717eb2b218e06c5a54f3c8f7afa9ad92dbfb3eb1e8abab42782",
+      "role": "FROZEN_PREVALUE_EXACT_WAYBACK_SOURCE_AND_PREDICTIVE_CONTRACT"
+    },
+    {
+      "path": "research/alternative_me_fgi_wayback_source_v1.py",
+      "sha256": "6d6ac49a0296cf0edf53eb224b4e8a9fa7dbae436b7c07c82072a607290c5f45",
+      "role": "FROZEN_CREATE_ONLY_EXACT_WAYBACK_SOURCE_ADAPTER"
+    },
+    {
+      "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
+      "sha256": "3034f11ef0abab8fe42ed8e3fd8170027a2e2b549548ad8b2844cb3ed5334b5b",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR"
+    }
+  ],
+  "source_attempt": {
+    "attempt_count": 1,
+    "capture_timestamp": "20241126094019",
+    "original_url": "https://api.alternative.me/fng/?limit=10000",
+    "replay_url": "https://web.archive.org/web/20241126094019id_/https://api.alternative.me/fng/?limit=10000",
+    "runner_timeout_seconds": 30,
+    "observed_wall_seconds": 30.2,
+    "observed_result": "EXECUTION_RETURNED_NO_STDOUT_STDERR_OR_ARTIFACT_AT_DEADLINE",
+    "response_status_observed": false,
+    "response_body_observed": false,
+    "fgi_value_or_label_observed": false,
+    "btc_outcome_observed": false,
+    "bundle_created": false,
+    "normalized_gzip_created": false,
+    "second_request_performed": false
+  },
+  "classification_boundary": "The execution did not produce enough evidence to distinguish a Wayback transport timeout, outer process deadline or another pre-response failure. It is therefore MISSING_PROOF rather than a fabricated HTTP or data rejection. The frozen no-retry rule prevents a second request in this lineage.",
+  "performance_evidence": {
+    "source_values": "MISSING_PROOF_NOT_OBSERVED",
+    "predictive_relation": "MISSING_PROOF_NOT_RUN",
+    "fees": "MISSING_PROOF_NOT_RUN",
+    "slippage": "MISSING_PROOF_NOT_RUN",
+    "realized_pnl": "MISSING_PROOF_NOT_RUN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_RUN",
+    "total_pnl": "MISSING_PROOF_NOT_RUN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_RUN",
+    "oos": "SEALED_UNOPENED"
+  },
+  "prohibited_retry": true,
+  "next_action": "Do not request this exact replay again. Keep the family deferred while the candidate factory selects a different independently preregistered executable free-data family; close this deferred slot when that replacement is bound.",
+  "scope_note": "One exact archived-source execution attempt only. No response body, FGI value, BTC price, return, factor, strategy, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

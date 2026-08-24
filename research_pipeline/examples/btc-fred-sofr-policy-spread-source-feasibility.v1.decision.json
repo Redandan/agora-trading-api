@@ -1,0 +1,101 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FRED_SOFR_POLICY_SPREAD_SOURCE_FEASIBILITY_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-fred-sofr-policy-spread-passive-core-risk-overlay",
+  "experiment_id": "btc-fred-sofr-policy-spread-source-v1",
+  "decided_at": "2026-08-24T14:01:18Z",
+  "source_git_commit": "25ced9f04e6bcb88d38230561c28a61191d04535",
+  "research_classification": "PRE_OUTCOME_FREE_SOURCE_DATA_REJECT",
+  "status": "DATA_REJECT_CLOSE_FRED_SOFR_POLICY_SPREAD_FAMILY_BEFORE_FACTOR_VALUES_OR_BTC_OUTCOMES",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_SOFR_POLICY_SPREAD_PASSIVE_CORE_RISK_OVERLAY_FAMILY",
+  "candidate_created": false,
+  "oos_opened": false,
+  "material_conclusion": "The one permitted frozen no-credential FRED multi-series request returned bytes that failed the exact UTF-8 CSV contract at byte position 14 with invalid start byte 0xAA. The response was not decoded, accepted, persisted or parsed into any SOFR, IOER or IORB value. Per the preregistered first-failure rule, run2 was not requested and the exact free-data family closes without content-encoding inference, decompression, endpoint, series, threshold, lag or policy substitution.",
+  "source_evidence": {
+    "frozen_gate": {
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=SOFR%2CIOER%2CIORB&cosd=2018-01-01&coed=2024-12-31",
+      "attempt_count": 1,
+      "credentials": "DENY",
+      "redirect": "DENY",
+      "automatic_retry": "DENY",
+      "result": "SOURCE_REJECT_UTF8_INVALID_START_BYTE_0xAA_AT_POSITION_14",
+      "response_fetched_to_ephemeral_memory": true,
+      "response_decoded": false,
+      "response_accepted": false,
+      "raw_response_sealed": false,
+      "normalized_subset_sealed": false,
+      "source_bundle_sealed": false,
+      "run1_output_paths_created": false,
+      "run2_output_paths_created": false,
+      "second_request_performed": false,
+      "sofr_ioer_iorb_values_available_for_research": false,
+      "state_support_computed": false,
+      "btc_outcome_accessed": false
+    },
+    "sealed_path_postcheck": {
+      ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run1/bundle.json": false,
+      ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run1/fred.csv": false,
+      ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run1/normalized.csv": false,
+      ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run2/bundle.json": false,
+      ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run2/fred.csv": false,
+      ".research-state/source-feasibility/btc-fred-sofr-policy-spread-v1/run2/normalized.csv": false
+    }
+  },
+  "evidence_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-fred-sofr-policy-spread-source-feasibility.v1.spec.json",
+      "role": "FROZEN_PRE_FACTOR_SOURCE_STATE_SUPPORT_AND_FIRST_FAILURE_STOP_CONTRACT",
+      "sha256": "eb7833c56852c50b36f2848f8e20e070d969b00a35c040f2aaeac1e26b0de93f"
+    },
+    {
+      "path": "research_pipeline/examples/btc-fred-sofr-policy-spread-passive-core-primary-prior.v1.json",
+      "role": "PRIMARY_OFFICIAL_ADVERSARIAL_AND_INDEPENDENT_LINEAGE_PRIOR",
+      "sha256": "4bac269c3b386505e86a77bed5d847c91e356ef86aba6a96f19e6cc9be5ee76e"
+    },
+    {
+      "path": "research/fred_sofr_policy_spread_source_probe.py",
+      "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE",
+      "sha256": "fa09cf1ca7154ad6d1dfe69b375a192ee0a034fcd98dcbe58f0ac22cc8661a87"
+    },
+    {
+      "path": "research_pipeline/tests/test_fred_sofr_policy_spread_source_probe.py",
+      "role": "FROZEN_PARSER_SPLICE_SUPPORT_AND_HASH_BINDING_TESTS",
+      "sha256": "8e6fd66857a3e66c8549566afb348dc87c6bef2b26226ec26314ec1b750167cb"
+    }
+  ],
+  "performance_evidence": {
+    "state_support": "MISSING_PROOF_NOT_COMPUTED",
+    "predictive_relation": "MISSING_PROOF_NOT_RUN",
+    "fees": "MISSING_PROOF_NOT_RUN",
+    "adverse_slippage": "MISSING_PROOF_NOT_RUN",
+    "realized_pnl": "MISSING_PROOF_NOT_RUN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_RUN",
+    "total_pnl": "MISSING_PROOF_NOT_RUN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_RUN",
+    "holding_age": "MISSING_PROOF_NOT_RUN",
+    "terminal_inventory": "MISSING_PROOF_NOT_RUN",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_RUN",
+    "oos": "SEALED_UNOPENED"
+  },
+  "closed_fingerprint": {
+    "duplicate_family_key": "btc-fred-sofr-minus-ioer-iorb-strict-positive-plus5d-100-50-passive-core",
+    "decision_feature": "FRED_SOFR_MINUS_APPLICABLE_IOER_OR_IORB_STRICTLY_POSITIVE_PLUS_5_CALENDAR_DAY_AVAILABILITY_LAG",
+    "prohibited_reopen": true,
+    "prohibited_rescue": [
+      "SECOND_FRED_REQUEST_OR_RETRY",
+      "CONTENT_ENCODING_DECOMPRESSION_ACCEPT_HEADER_OR_TRANSPORT_INFERENCE",
+      "ALTERNATE_FRED_DOWNLOAD_API_SERIES_ENDPOINT_PROVIDER_OR_MANUAL_EXPORT",
+      "EFFR_OBFR_TGCR_BGCR_RRP_REPO_QUANTITY_NFCI_STLFSI4_VIX_OR_CRYPTO_FUNDING_SUBSTITUTION",
+      "IOER_IORB_SPLICE_THRESHOLD_EQUALITY_LAG_VALIDITY_WEIGHT_OR_DIRECTION_CHANGE",
+      "PRESENT_VINTAGE_OR_POST2024_OUTCOME_ACCESS"
+    ]
+  },
+  "uncertainty": [
+    "The UTF-8 transport rejection proves only that the exact frozen response did not satisfy the selected CSV contract at the decision time; it is not evidence that the SOFR-policy spread lacks predictive or economic value.",
+    "The bytes may have used a content encoding or a different representation, but inspecting or adapting that transport after the frozen first attempt would be a post-access rescue and is prohibited for this family.",
+    "No policy-spread value, state count, BTC outcome or strategy metric exists, so no positive or negative alpha conclusion is possible."
+  ],
+  "next_action": "PERMANENTLY_TOMBSTONE_THIS_EXACT_FREE_SOURCE_FAMILY_AND_ROTATE_TO_A_DIFFERENT_DEDUPLICATED_EXECUTABLE_FREE_DATA_MECHANISM_WITHOUT_RETRYING_OR_ADAPTING_THE_FAILED_FRED_TRANSPORT",
+  "scope_note": "One exact no-key source execution attempt only. No decoded or persisted SOFR, IOER or IORB value, BTC price, factor, return, strategy, PnL, drawdown, candidate, OOS, paid API, key, second request, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

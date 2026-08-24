@@ -17,6 +17,7 @@ research/fred_sofr_policy_spread_source_probe.py text eol=lf
 research_pipeline/tests/test_fred_sofr_policy_spread_source_probe.py text eol=lf
 research_pipeline/examples/btc-fred-sofr-policy-spread-passive-core-primary-prior.v1.json text eol=lf
 research_pipeline/examples/btc-fred-sofr-policy-spread-source-feasibility.v1.spec.json text eol=lf
+research_pipeline/examples/btc-fred-sofr-policy-spread-source-feasibility.v1.decision.json text eol=lf
 research_pipeline/btc-dra-cftc-tff-historical-entry-admission-manifest.v1.schema.json text eol=lf
 research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.manifest.json text eol=lf
 research_pipeline/examples/cftc-tff-dra-entry-admission-historical.v1.decision.json text eol=lf

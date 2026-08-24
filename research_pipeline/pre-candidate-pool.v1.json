@@ -4431,6 +4431,42 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_PREDICTIVE_GATE_HAD_PASSED",
       "prohibited_reopen": true,
       "title": "Coin Metrics BTC SOPR below-one loss-realization next-day contrarian source family"
+    },
+    {
+      "decision_feature": "FRED_SOFR_MINUS_APPLICABLE_IOER_OR_IORB_STRICTLY_POSITIVE_PLUS_5_CALENDAR_DAY_AVAILABILITY_LAG",
+      "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_SOFR_POLICY_SPREAD_PASSIVE_CORE_RISK_OVERLAY_FAMILY",
+      "duplicate_family_key": "btc-fred-sofr-minus-ioer-iorb-strict-positive-plus5d-100-50-passive-core",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-fred-sofr-policy-spread-source-feasibility.v1.decision.json",
+          "role": "SEALED_PRE_OUTCOME_EXACT_FREE_SOURCE_UTF8_DATA_REJECT_DECISION",
+          "sha256": "322bccf7043f365a6d0737798c841517c24071426d64c88e33b53d28d194dd4f"
+        },
+        {
+          "path": "research_pipeline/examples/btc-fred-sofr-policy-spread-source-feasibility.v1.spec.json",
+          "role": "FROZEN_SOURCE_STATE_SUPPORT_AND_FIRST_FAILURE_STOP_CONTRACT",
+          "sha256": "eb7833c56852c50b36f2848f8e20e070d969b00a35c040f2aaeac1e26b0de93f"
+        },
+        {
+          "path": "research_pipeline/examples/btc-fred-sofr-policy-spread-passive-core-primary-prior.v1.json",
+          "role": "PRIMARY_OFFICIAL_ADVERSARIAL_AND_INDEPENDENT_LINEAGE_PRIOR",
+          "sha256": "4bac269c3b386505e86a77bed5d847c91e356ef86aba6a96f19e6cc9be5ee76e"
+        },
+        {
+          "path": "research/fred_sofr_policy_spread_source_probe.py",
+          "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE",
+          "sha256": "fa09cf1ca7154ad6d1dfe69b375a192ee0a034fcd98dcbe58f0ac22cc8661a87"
+        },
+        {
+          "path": "research_pipeline/tests/test_fred_sofr_policy_spread_source_probe.py",
+          "role": "FROZEN_PARSER_SPLICE_SUPPORT_AND_HASH_BINDING_TESTS",
+          "sha256": "8e6fd66857a3e66c8549566afb348dc87c6bef2b26226ec26314ec1b750167cb"
+        }
+      ],
+      "family_id": "closed-btc-fred-sofr-policy-spread-source-format-reject-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_SOURCE_AND_SUPPORT_GATES_HAD_PASSED",
+      "prohibited_reopen": true,
+      "title": "FRED SOFR minus IOER-IORB strictly-positive funding-pressure passive-core source family"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

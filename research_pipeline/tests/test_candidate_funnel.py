@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 162)
+        self.assertEqual(len(catalog["closed_families"]), 163)
         closed_nr7 = next(
             family
             for family in catalog["closed_families"]
@@ -133,6 +133,17 @@ class CandidateFunnelTest(unittest.TestCase):
             "DATA_REJECT_PERMANENTLY_CLOSE_BTC_COINMETRICS_SOPR_LOSS_REALIZATION_NEXT_DAY_CONTRARIAN_FAMILY",
         )
         self.assertTrue(closed_sopr["prohibited_reopen"])
+        closed_sofr_policy_spread = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-fred-sofr-policy-spread-source-format-reject-v1"
+        )
+        self.assertEqual(
+            closed_sofr_policy_spread["disposition"],
+            "DATA_REJECT_PERMANENTLY_CLOSE_BTC_FRED_SOFR_POLICY_SPREAD_PASSIVE_CORE_RISK_OVERLAY_FAMILY",
+        )
+        self.assertTrue(closed_sofr_policy_spread["prohibited_reopen"])
         self.assertEqual(
             {
                 family["family_id"]
@@ -2216,7 +2227,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 163)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 164)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

@@ -1,0 +1,30 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-utc-monday-long-cash-v1",
+  "title": "UTC Monday-only Bitcoin long-or-cash calendar replication",
+  "thesis": "The externally specified positive Bitcoin Monday effect may persist after 2018 strongly enough that owning BTC only from Monday 00:00 UTC to Tuesday 00:00 UTC produces positive after-cost Design and Validation returns with broad weekly and annual support and risk-adjusted value relative to buy-and-hold.",
+  "mechanism": "Calendar-known information and trading participation accumulated around the start of the traditional business week may create a Monday return and volatility premium. Enter full-capital unlevered BTC at each Monday 00:00 UTC H1 open and exit at the following Tuesday 00:00 UTC H1 open; otherwise hold zero-yield cash. Use one variant and never scan another weekday, timezone, boundary, holding duration, weight, direction or interaction.",
+  "economic_rationale": "The policy is useful only if the gross Monday mean exceeds other weekdays in both windows, explicit normal and doubled costs leave positive returns, the strategy captures more than its one-seventh time exposure, Calmar remains competitive, and gains are not concentrated in one year or a few Mondays.",
+  "source": "BTC_UTC_MONDAY_LONG_CASH_PRIMARY_PRIOR_V1_AND_SEALED_PRE2025_BTC_H1_CORPUS",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "btc-utc-monday-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY_EXISTING_SEALED_CORPUS_NO_EXTERNAL_ACQUISITION",
+  "expected_metrics": [
+    "monday_and_non_monday_gross_open_to_open_mean_return",
+    "normal_and_stress_realized_unrealized_total_return",
+    "matched_buy_hold_drawdown_calmar_and_upside_capture",
+    "average_exposure_position_changes_episode_count_and_holding",
+    "annual_return_drawdown_calmar_and_upside_breadth",
+    "top_year_and_top_episode_concentration",
+    "terminal_inventory_and_liquidation_cost"
+  ],
+  "ranking": {
+    "economic_mechanism": 2,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-24-candidate-factory-cycle-utc-monday-1",
+  "created_at": "2026-08-24T14:15:12Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

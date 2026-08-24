@@ -1,0 +1,95 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_UTC_MONDAY_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-utc-monday-long-cash",
+  "created_at": "2026-08-24T14:15:12Z",
+  "status": "PRIMARY_AND_ADVERSARIAL_PRIOR_FROZEN_BEFORE_REPOSITORY_WEEKDAY_OUTCOME_ACCESS",
+  "decision": "ADMIT_EXACTLY_ONE_UTC_MONDAY_ONLY_MATCHED_CAPITAL_HISTORICAL_REPLICATION_WITHOUT_WEEKDAY_OR_TIMEZONE_SCAN",
+  "claim_boundary": "Several pre-2019 Bitcoin studies report a positive Monday return effect, but a seven-exchange high-frequency study reports that return patterns were not persistent across time. This conflict justifies one exact post-literature replication, not a calendar-alpha claim and not a search over weekdays.",
+  "primary_sources": [
+    {
+      "title": "Bitcoin and the day-of-the-week effect",
+      "publisher": "Finance Research Letters",
+      "doi": "10.1016/j.frl.2018.12.004",
+      "url": "https://doi.org/10.1016/j.frl.2018.12.004",
+      "finding": "Using 2010-2017 daily data, the study reports higher Monday returns and volatility relative to other weekdays.",
+      "role": "PRIMARY_EXTERNAL_MONDAY_DIRECTION_PRIOR"
+    },
+    {
+      "title": "The day of the week effect in the cryptocurrency market",
+      "publisher": "Finance Research Letters",
+      "doi": "10.1016/j.frl.2018.11.012",
+      "url": "https://doi.org/10.1016/j.frl.2018.11.012",
+      "finding": "Bitcoin was the exception with significantly higher Monday returns, while the paper states that most simulated profit results were not significantly different from random outcomes.",
+      "role": "PRIMARY_DIRECTION_AND_TRADABILITY_CAUTION_PRIOR"
+    },
+    {
+      "title": "Bitcoin time-of-day, day-of-week and month-of-year effects in returns and trading volume",
+      "publisher": "Finance Research Letters",
+      "doi": "10.1016/j.frl.2019.04.023",
+      "url": "https://doi.org/10.1016/j.frl.2019.04.023",
+      "finding": "Across seven exchanges and more than fifteen million observations, return anomalies were not persistent across time even though lower weekend trading activity was persistent.",
+      "role": "ADVERSARIAL_STABILITY_PRIOR"
+    },
+    {
+      "title": "The day-of-the-week effect on Bitcoin return and volatility",
+      "publisher": "Research in International Business and Finance",
+      "doi": "10.1016/j.ribaf.2019.02.003",
+      "url": "https://doi.org/10.1016/j.ribaf.2019.02.003",
+      "finding": "The 2013-2018 study finds that return effects vary by sample period and associates the reported Monday mean with higher volatility.",
+      "role": "ADVERSARIAL_RISK_AND_SAMPLE_DEPENDENCE_PRIOR"
+    }
+  ],
+  "frozen_feature": {
+    "factor_identity": "UTC_CALENDAR_DAY_WEEKDAY_IS_MONDAY_V1",
+    "risk_on_interval": "FROM_EACH_MONDAY_00_00_UTC_H1_OPEN_THROUGH_THE_IMMEDIATELY_FOLLOWING_TUESDAY_00_00_UTC_H1_OPEN",
+    "risk_off_interval": "ALL_OTHER_TIMES",
+    "policy": "FULL_CAPITAL_UNLEVERED_BTC_DURING_EACH_UTC_MONDAY_ELSE_ZERO_YIELD_CASH",
+    "execution_anchor": "EXACT_H1_OPEN_AT_UTC_DAY_BOUNDARY",
+    "variant_count": 1,
+    "weekday_scan": "DENY",
+    "timezone_or_boundary_scan": "DENY"
+  },
+  "future_economic_contract": {
+    "primary_comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_HOURLY_VALUATION",
+    "secondary_comparator": "ZERO_YIELD_CASH",
+    "historical_windows": {
+      "design": "2019-01-01_TO_2022-12-31",
+      "validation": "2023-01-01_TO_2024-12-31"
+    },
+    "costs": "NORMAL_10_BPS_FEE_PLUS_5_BPS_ADVERSE_SLIPPAGE_PER_SIDE_AND_STRESS_DOUBLE",
+    "required_visibility": [
+      "gross_monday_mean_relative_to_all_other_days",
+      "realized_unrealized_and_total_return",
+      "maximum_drawdown_and_calmar",
+      "upside_capture_and_average_exposure",
+      "weekly_episode_count_holding_and_concentration",
+      "annual_breadth_and_terminal_inventory"
+    ]
+  },
+  "independence_and_duplicate_boundary": {
+    "distinct_from_closed_dra_weekend_veto": "The closed DRA calendar family vetoed entries by whether the prior day was Monday-through-Friday. This family has no DRA signal or inventory and owns BTC only during the externally specified UTC Monday interval.",
+    "distinct_from_closed_intraday_session": "The closed session family entered every day for an eight-hour activity window. This family uses a weekly twenty-four-hour calendar interval and may not inherit or shift that session result.",
+    "distinct_from_closed_halloween_and_turn_of_month": "This rule has no month selection or month-boundary event and cannot be combined with either closed seasonal family.",
+    "prohibited_rescue": "Do not inspect or substitute Tuesday through Sunday, a weekday bundle, weekend, local timezone, shifted boundary, partial exposure, short direction, holding extension, price filter or interaction after outcome access."
+  },
+  "adversarial_prior": [
+    "The reported literature effect predates the 2019-2024 repository window and may have disappeared as Bitcoin markets matured.",
+    "A mean Monday premium can be driven by a few extreme weeks or by higher volatility rather than repeatable risk-adjusted return.",
+    "A weekly round trip incurs enough fee and adverse slippage to consume a small raw calendar effect.",
+    "Four years of Design and two years of Validation contain many weekly episodes but only six annual regimes, so annual breadth and concentration are mandatory.",
+    "A roughly one-seventh exposure policy can reduce drawdown mechanically; it must exceed time-proportional upside and pass Calmar gates rather than claim value from low exposure alone."
+  ],
+  "stop_conditions": [
+    "Freeze one hypothesis, one runner, one manifest and all source, clock, cost, Design, Validation, weekday-spread, path-risk, breadth, concentration and determinism gates before repository weekday outcomes are calculated.",
+    "Use only UTC Monday 00:00 through Tuesday 00:00, one full-capital BTC-or-cash variant and zero cash yield.",
+    "Stop NO_CANDIDATE on any required gate failure and permanently close the exact family without changing weekday, timezone, boundary, sizing, direction, cost or gate.",
+    "Do not open post-2024 outcomes. A historical pass remains REPORTED_NOT_ACTIVATED and requires one separately sealed independent OOS."
+  ],
+  "missing_proof": [
+    "No repository 2019-2024 weekday return or strategy outcome has been calculated under this family.",
+    "No hash-bound runner or manifest, matched-capital economics, candidate, OOS or forward evidence exists."
+  ],
+  "scope_note": "Primary and adversarial prior only. No repository BTC weekday outcome, post-2024 value, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

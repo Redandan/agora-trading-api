@@ -1,0 +1,66 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMARKETCAP_EXTREME_FEAR_CONTRARIAN_LONG_CASH_PRIMARY_PRIOR_V1",
+  "family_id": "btc-coinmarketcap-extreme-fear-contrarian-long-cash",
+  "reviewed_at": "2026-08-24T16:44:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_OFFICIAL_SOURCE_AND_DEDUP_PRIOR_NO_HISTORICAL_VALUE_OR_BTC_OUTCOME_ACCESS",
+  "decision": "AUTHORIZE_ONE_FIXED_SIX_PAGE_KEYLESS_SOURCE_FEASIBILITY_ACQUISITION_BEFORE_ANY_BTC_OUTCOME",
+  "official_source_evidence": [
+    {
+      "url": "https://coinmarketcap.com/api/documentation/pro-api-reference/keyless-public-api",
+      "role": "OFFICIAL_KEYLESS_PUBLIC_API_CONTRACT",
+      "finding": "CoinMarketCap lists its proprietary Fear and Greed latest and historical endpoints as available without an API key, signup or authorization header through the public-api path."
+    },
+    {
+      "url": "https://coinmarketcap.com/api/documentation/pro-api-reference/global-metrics",
+      "role": "OFFICIAL_HISTORICAL_ENDPOINT_SCHEMA_AND_PAGINATION_CONTRACT",
+      "finding": "The historical endpoint returns paginated timestamp, value and value_classification rows at 00:00 UTC; start is one-based and limit is capped at 500."
+    },
+    {
+      "url": "https://coinmarketcap.com/charts/fear-and-greed-index/",
+      "role": "OFFICIAL_PUBLISHER_INDEX_PAGE",
+      "finding": "The publisher presents the index as a crypto-market sentiment measure. Its proprietary construction and historical revision process are not reproduced by this repository."
+    }
+  ],
+  "replacement_boundary": {
+    "replaces_deferred_source_slot": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+    "same_mechanism_disclosed": "EXTREME_FEAR_CONTRARIAN_NEXT_DAY_LONG_OR_CASH",
+    "independent_provider": "COINMARKETCAP_PROPRIETARY_INDEX_NOT_ALTERNATIVE_ME_INDEX",
+    "not_a_retry": "No Alternative.me URL, archive capture, payload or second request is used.",
+    "dedup_rule": "Source feasibility may be measured, but a downstream experiment is forbidden unless the replacement has complete frozen-window support and the old deferred slot is closed rather than run in parallel."
+  },
+  "pre_value_contract": {
+    "endpoint": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical",
+    "page_starts": [1, 501, 1001, 1501, 2001, 2501],
+    "page_limit": 500,
+    "request_count": 6,
+    "automatic_retry": "DENY",
+    "redirect": "DENY",
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "btc_outcome_access": "DENY",
+    "selected_source_window": "2020-01-01_THROUGH_2024-11-25",
+    "design_source_window": "2020-01-01_THROUGH_2022-12-31",
+    "validation_source_window": "2023-01-01_THROUGH_2024-11-25"
+  },
+  "frozen_feature_if_source_passes": {
+    "decision_feature": "LATEST_COMPLETE_COINMARKETCAP_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
+    "mapping": "AFTER_INDEX_DAY_D_COMPLETES_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_D_PLUS_1_UTC_OPEN_TO_D_PLUS_2_UTC_OPEN_WHEN_LABEL_IS_EXTREME_FEAR_OTHERWISE_ZERO_YIELD_CASH",
+    "variants": 1,
+    "minimum_extreme_fear_days_per_window": 50,
+    "minimum_other_label_days_per_window": 50,
+    "minimum_label_transitions_per_window": 4,
+    "numeric_threshold_scan": "DENY",
+    "smoothing_or_regime_interaction": "DENY"
+  },
+  "revision_and_causality_boundary": "The endpoint is a present-vintage proprietary history. Original publication vintages, revisions and input composition are MISSING_PROOF. Even a source pass would authorize only a lagged discovery test with untouched OOS; it would not establish sentiment causality or alpha.",
+  "stop_conditions": [
+    "Freeze and hash-bind the exact six request URLs, parser, source gates and old-slot replacement boundary before historical values are requested.",
+    "Each page is requested exactly once with no redirect or retry; stop on any transport, HTTP, byte-cap, JSON, status, row-schema, timestamp, range, label or duplicate failure.",
+    "Seal DATA_REJECT before BTC outcomes if every selected calendar day is not present or either frozen window lacks required Extreme Fear, other-label or transition support.",
+    "Do not lower support counts, change the exact label, add a numeric threshold, use another provider or open BTC outcomes to rescue a failure."
+  ],
+  "next_action": "FREEZE_SOURCE_SPEC_PROBE_AND_SYNTHETIC_TESTS_THEN_EXECUTE_THE_FIXED_SIX_PAGE_SOURCE_GATE_EXACTLY_ONCE",
+  "scope_note": "Official source metadata and preregistration only. No historical index value, BTC price, return, factor outcome, strategy ledger, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

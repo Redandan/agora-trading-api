@@ -1,0 +1,149 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMARKETCAP_FGI_HISTORICAL_SOURCE_FEASIBILITY_SPEC_V1",
+  "family_id": "btc-coinmarketcap-extreme-fear-contrarian-long-cash",
+  "created_at": "2026-08-24T16:48:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "PRE_HISTORICAL_FGI_VALUE_SOURCE_AND_SUPPORT_PREREGISTRATION",
+  "status": "FROZEN_BEFORE_ANY_CMC_HISTORICAL_VALUE_OR_BTC_OUTCOME_ACCESS",
+  "purpose": "Determine whether CoinMarketCap's independently published keyless proprietary index supplies complete 2020-2024 daily history and enough exact Extreme Fear state support to replace the deferred Alternative.me source slot before any BTC outcome is opened.",
+  "bindings": [
+    {
+      "path": "research/coinmarketcap_fgi_historical_source_probe_v1.py",
+      "sha256": "8cc6db830d3b5a5ed5148075260ab974a1fce3a2dab4b277c7fc2206f4488e54",
+      "role": "FROZEN_CREATE_ONCE_SIX_PAGE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
+      "sha256": "91fac27c20924c5c5d1621e1eb197d5eaf020eddf3e1cd0ae0fc43e0e0bab8e7",
+      "role": "FROZEN_OFFICIAL_SOURCE_REPLACEMENT_AND_DEDUP_PRIOR"
+    },
+    {
+      "path": "research_pipeline/tests/test_coinmarketcap_fgi_historical_source_probe_v1.py",
+      "sha256": "4970293a0825b3365ae6aec2a5d2439894f7c3d65905dd8a975a8a0bda95c41f",
+      "role": "FROZEN_SYNTHETIC_SCHEMA_TIMESTAMP_DUPLICATE_AND_COVERAGE_TESTS"
+    }
+  ],
+  "request_contract": {
+    "endpoint": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical",
+    "publisher": "CoinMarketCap",
+    "response_format": "JSON_DATA_AND_STATUS_ENVELOPE",
+    "fixed_page_starts": [1, 501, 1001, 1501, 2001, 2501],
+    "fixed_page_limit": 500,
+    "fixed_request_count": 6,
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical?start=1&limit=500",
+        "start": 1,
+        "limit": 500,
+        "credentials": "DENY",
+        "redirect": "DENY",
+        "automatic_retry": "DENY",
+        "maximum_response_bytes": 262144,
+        "timeout_seconds": 30
+      },
+      {
+        "method": "GET",
+        "url": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical?start=501&limit=500",
+        "start": 501,
+        "limit": 500,
+        "credentials": "DENY",
+        "redirect": "DENY",
+        "automatic_retry": "DENY",
+        "maximum_response_bytes": 262144,
+        "timeout_seconds": 30
+      },
+      {
+        "method": "GET",
+        "url": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical?start=1001&limit=500",
+        "start": 1001,
+        "limit": 500,
+        "credentials": "DENY",
+        "redirect": "DENY",
+        "automatic_retry": "DENY",
+        "maximum_response_bytes": 262144,
+        "timeout_seconds": 30
+      },
+      {
+        "method": "GET",
+        "url": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical?start=1501&limit=500",
+        "start": 1501,
+        "limit": 500,
+        "credentials": "DENY",
+        "redirect": "DENY",
+        "automatic_retry": "DENY",
+        "maximum_response_bytes": 262144,
+        "timeout_seconds": 30
+      },
+      {
+        "method": "GET",
+        "url": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical?start=2001&limit=500",
+        "start": 2001,
+        "limit": 500,
+        "credentials": "DENY",
+        "redirect": "DENY",
+        "automatic_retry": "DENY",
+        "maximum_response_bytes": 262144,
+        "timeout_seconds": 30
+      },
+      {
+        "method": "GET",
+        "url": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical?start=2501&limit=500",
+        "start": 2501,
+        "limit": 500,
+        "credentials": "DENY",
+        "redirect": "DENY",
+        "automatic_retry": "DENY",
+        "maximum_response_bytes": 262144,
+        "timeout_seconds": 30
+      }
+    ],
+    "other_endpoint_or_provider": "DENY",
+    "btc_outcome_access": "DENY"
+  },
+  "pre_outcome_source_support_gate": {
+    "selected_first_day": "2020-01-01",
+    "design_last_day": "2022-12-31",
+    "validation_first_day": "2023-01-01",
+    "selected_last_day": "2024-11-25",
+    "require_every_selected_calendar_day": true,
+    "minimum_extreme_fear_days_per_window": 50,
+    "minimum_other_label_days_per_window": 50,
+    "minimum_label_transitions_per_window": 4,
+    "btc_outcome_access": "DENY"
+  },
+  "frozen_downstream_contract_if_source_passes": {
+    "decision_feature": "LATEST_COMPLETE_COINMARKETCAP_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
+    "other_state": "EVERY_ALLOWED_LABEL_OTHER_THAN_EXTREME_FEAR",
+    "signal_lag": "ONE_COMPLETE_INDEX_DAY",
+    "mapping": "AFTER_INDEX_DAY_D_COMPLETES_HOLD_FULL_CAPITAL_UNLEVERED_BTC_FROM_D_PLUS_1_UTC_OPEN_TO_D_PLUS_2_UTC_OPEN_WHEN_LABEL_IS_EXTREME_FEAR_OTHERWISE_ZERO_YIELD_CASH",
+    "variants": 1,
+    "numeric_threshold_scan": "DENY",
+    "smoothing_or_interaction": "DENY",
+    "btc_outcome_source": "EXISTING_CHECKSUM_BOUND_PRE2025_BTCUSDT_COMPLETE_H1_CORPUS_ONLY_AFTER_SOURCE_PASS",
+    "oos_access": "DENY_UNTIL_ALL_FUTURE_FROZEN_DESIGN_VALIDATION_PREDICTIVE_ECONOMIC_AND_PATH_RISK_GATES_PASS"
+  },
+  "replacement_boundary": {
+    "deferred_slot": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+    "replacement_family": "btc-coinmarketcap-extreme-fear-contrarian-long-cash",
+    "parallel_execution": "DENY",
+    "alternative_me_retry_or_payload_access": "DENY",
+    "old_slot_disposition_on_source_pass": "CLOSE_DEFERRED_ALTERNATIVE_ME_SLOT_BEFORE_REGISTERING_ONE_COINMARKETCAP_REPLACEMENT",
+    "old_slot_disposition_on_source_reject": "CLOSE_DEFERRED_ALTERNATIVE_ME_SLOT_AND_COINMARKETCAP_REPLACEMENT_AS_NO_EXECUTABLE_FREE_SENTIMENT_SOURCE"
+  },
+  "all_pass_gate": [
+    "All six exact keyless request URLs return HTTP 200 once each without redirect, credential, retry or response-cap breach.",
+    "Every envelope, status, timestamp, value and exact publisher classification passes the frozen parser and no day is duplicated across pages.",
+    "Every calendar day from 2020-01-01 through 2024-11-25 is present without repair or imputation.",
+    "Design and Validation each contain at least 50 exact Extreme Fear days, 50 other-label days and four label transitions."
+  ],
+  "stop_conditions": [
+    "Stop without a second request on any transport or source-format failure.",
+    "Seal DATA_REJECT before BTC outcomes on selected-day coverage or either-window support failure.",
+    "Do not change page boundaries, date windows, support counts, label, lag, direction or provider after historical values are observed.",
+    "Do not treat a present-vintage source pass as prospective evidence or a profitability claim."
+  ],
+  "next_action_on_pass": "CLOSE_THE_DEFERRED_ALTERNATIVE_ME_SLOT_THEN_PREREGISTER_ONE_COINMARKETCAP_EXACT_LABEL_PREDICTIVE_ONLY_RUNNER_WITH_FROZEN_GATES_BEFORE_BTC_OUTCOME_ACCESS",
+  "scope_note": "Frozen source and state-support contract only. No historical index value, BTC price, return, factor outcome, strategy ledger, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

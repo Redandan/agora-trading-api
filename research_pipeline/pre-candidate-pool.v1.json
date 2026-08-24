@@ -4240,6 +4240,37 @@
       "parent_strategy_id": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
       "prohibited_reopen": true,
       "title": "DRA final-day Binance USD-M BTC open-interest confirmation"
+    },
+    {
+      "decision_feature": "NO_FIXED_LOW_COMPLEXITY_PREDECISION_RETURN_TRAJECTORY_STATE_SURVIVES_FITTED_MODEL_REMOVAL_AND_CLOSED_FAMILY_DEDUPLICATION",
+      "disposition": "NO_INCREMENTAL_RETURN_TRAJECTORY_IDEA_CLOSE",
+      "duplicate_family_key": "btc-return-trajectory-magnitude-stability",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-return-trajectory-preregistration-discovery.v4.json",
+          "role": "SCHEMA_VALIDATED_PRIMARY_SOURCE_AND_DEDUPLICATION_FAMILY_CLOSURE",
+          "sha256": "1bf6f72dba2b6849808885dcc3a91e675b75c08eab6c38ba54367c9363905afc"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-return-trajectory-preregistration-discovery.v4.json",
+          "role": "MANAGER_ACCEPTED_COUNTABLE_NO_IDEA_CLOSURE",
+          "sha256": "aefd8701160edc51bfdd41c91d78e3ba8879bbb759184dee840189c08fff81e9"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-task.btc-return-trajectory-preregistration-discovery.v4.json",
+          "role": "FROZEN_SINGLE_IDEA_NO_OUTCOME_DISCOVERY_CONTRACT",
+          "sha256": "ba4a7ed67f6e650fcc7545aae023ddfc4c855541e669a105ac9a1010370dd2f1"
+        },
+        {
+          "path": "research_pipeline/examples/local-primary-source-access-proof.btc-return-trajectory.v4.json",
+          "role": "FOUR_SOURCE_FULL_TEXT_ACCESS_PROOF",
+          "sha256": "b824e7cae68240f594081590fc3ce94fd35f08a6220457ba3ffa0ea9c2fb5358"
+        }
+      ],
+      "family_id": "closed-btc-return-trajectory-magnitude-stability",
+      "parent_strategy_id": "NONE_PRE_ECONOMIC_LITERATURE_AND_DEDUPLICATION_GATE",
+      "prohibited_reopen": true,
+      "title": "Low-complexity predecision BTC return-trajectory magnitude stability"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

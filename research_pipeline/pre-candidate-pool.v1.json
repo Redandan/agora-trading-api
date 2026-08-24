@@ -4555,6 +4555,32 @@
       "parent_strategy_id": "NO_PARENT_SELECTED_PRIMARY_PRIOR_REJECT_BEFORE_HYPOTHESIS",
       "prohibited_reopen": true,
       "title": "Simple daily ETH-to-next-BTC return or volatility lead-lag strategy"
+    },
+    {
+      "decision_feature": "NO_SINGLE_BTC_OWN_HISTORY_AANV30_THRESHOLD_OR_ACTION_SURVIVED_CROSS_SECTIONAL_TRANSFER_AND_CLOSED_PRIMITIVE_DEDUPLICATION",
+      "disposition": "NO_HYPOTHESIS_PRIMARY_PRIOR_TRANSFER_AND_DEDUPLICATION_GATE_CLOSE",
+      "duplicate_family_key": "btc-single-asset-aanv30-own-history-relative-value-timing",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-single-asset-aanv30-relative-value-timing-primary-prior-reject.v1.json",
+          "role": "SEALED_EXTERNAL_PRIMARY_TRANSFER_AND_LOCAL_DEDUPLICATION_PRIOR_REJECT",
+          "sha256": "c9885c73305581519f13c3b8e909c9775342b47cc50c7f3f3aa2372c53a465ed"
+        },
+        {
+          "path": "research_pipeline/examples/btc-onchain-activity-breadth-long-cash-historical.v1.decision.json",
+          "role": "SEALED_ACTIVE_ADDRESS_PRIMITIVE_HISTORICAL_ECONOMIC_CLOSURE",
+          "sha256": "e1aa08d08415ec429474f058f05ee8bfc067dd79b9ee769a2a3c639159878d90"
+        },
+        {
+          "path": "research_pipeline/examples/dra-bitcoin-mvrv-relative-value-entry-admission-historical.v1.decision.json",
+          "role": "SEALED_NEAREST_SINGLE_BTC_OWN_HISTORY_RELATIVE_VALUE_FAMILY_CLOSURE",
+          "sha256": "9fa546266ea17871f4b0002b9252d8fd13013ff131984bec8604657c007d383e"
+        }
+      ],
+      "family_id": "closed-btc-single-asset-aanv30-relative-value-timing-primary-prior-reject-v1",
+      "parent_strategy_id": "NO_PARENT_SELECTED_PRIMARY_PRIOR_REJECT_BEFORE_HYPOTHESIS",
+      "prohibited_reopen": true,
+      "title": "Single-BTC active-addresses-to-network-value own-history timing translation"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

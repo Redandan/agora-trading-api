@@ -1,0 +1,72 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_PUELL_MULTIPLE_OVERHEAT_RISK_VETO_PRIMARY_PRIOR_V1",
+  "family_id": "btc-coinmetrics-puell-multiple-overheat-risk-veto-long-cash",
+  "created_at": "2026-08-24T16:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "claim_boundary": "Primary provider documentation fixes the Puell Multiple as complete-day USD issuance divided by its inclusive 365-day simple mean and describes values above 4.0 as a historical market-top zone. This is a descriptive prior, not point-in-time evidence, a causal miner-selling measurement or proof of after-cost BTC timing value.",
+  "primary_sources": [
+    {
+      "url": "https://gitbook-docs.coinmetrics.io/network-data/network-data-overview/supply/miner-revenue",
+      "publisher": "Coin Metrics",
+      "use": "Primary definition of the Puell revenue multiple as RevUSD divided by ma365 RevUSD and the interpretation that unusually high miner revenue may indicate selling or profit-taking pressure.",
+      "transfer_boundary": "The provider PuellMulRev field is a paid Network Data Pro metric and is not used. No API key, paid response or provider-computed Puell value is authorized."
+    },
+    {
+      "url": "https://docs.glassnode.com/guides-and-tutorials/metric-guides/coin-issuance/puell-multiple",
+      "publisher": "Glassnode",
+      "use": "Primary public formula for issuance-only Puell Multiple and the externally fixed historical overheat marker greater than 4.0.",
+      "transfer_boundary": "The threshold is historically descriptive and may be sparse, stale or price-dominated. No Glassnode value, API, chart export or post-2024 observation is used."
+    }
+  ],
+  "executable_free_data_path": {
+    "issuance": {
+      "metric": "Coin Metrics Community IssTotNtv",
+      "source_role": "SEALED_PRESENT_VINTAGE_COMPLETE_DAILY_NATIVE_ISSUANCE_ONLY",
+      "normalized_sha256": "7e443a284b5df553b5bb0c442126a1a00d752e6cadf5afd847de9b3c039f2ee6",
+      "rows": 2922,
+      "first_date": "2017-01-01",
+      "last_date": "2024-12-31"
+    },
+    "price": {
+      "source_role": "SEALED_OKX_BTC_USDT_H1_CORPUS_AGGREGATED_TO_COMPLETE_UTC_DAYS",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "complete_utc_days": 2192
+    },
+    "formula": "ISS_TOT_NTV_D_TIMES_BTC_COMPLETE_DAY_CLOSE_D_DIVIDED_BY_INCLUSIVE_365D_SIMPLE_MEAN_OF_THE_SAME_USD_ISSUANCE_SERIES",
+    "availability": "COMPLETE_UTC_DAY_CLOSE_BEFORE_THE_SAME_TIMESTAMP_NEXT_H1_OPEN",
+    "external_backfill_required": false,
+    "paid_api_required": false
+  },
+  "economic_mechanism": "A day on which newly issued BTC has a USD value more than four times its trailing one-year norm may represent unusually high miner revenue and stronger profit-taking capacity. A full-capital BTC policy may avoid part of a subsequent drawdown by holding zero-yield cash only in that fixed overheat state.",
+  "adversarial_prior": [
+    "IssTotNtv is protocol issuance, not observed miner sales or treasury liquidation.",
+    "The numerator and denominator both embed BTC price, so the factor can be a nonlinear price-trend repackaging rather than independent on-chain information.",
+    "Halvings mechanically lower issuance and change the ratio for about one year without measuring a demand shock.",
+    "The fixed 4.0 state may be too sparse or absent in 2023-2024 to support a validation decision.",
+    "A sparse veto can appear to preserve upside while lacking enough independent state transitions to establish a repeatable strategy."
+  ],
+  "deduplication": {
+    "distinct_from_closed_native_issuance_contraction": "The closed family compared 28-day native issuance with the same period one year earlier as a weekly supply-pressure state. This family uses a named external valuation ratio, daily USD issuance, an inclusive 365-day normalization and a standalone passive-risk action.",
+    "distinct_from_closed_miner_revenue_per_hash": "The closed family divided theoretical miner revenue by hashrate and tested short-horizon momentum. This family contains no hashrate and uses one fixed absolute overheat level.",
+    "distinct_from_closed_sma_and_mvrv": "The formula includes protocol issuance and a fixed externally named cycle threshold, but it must still pass a preregistered continuous correlation gate against the same-data BTC price-to-365-day-mean ratio before strategy economics may open.",
+    "duplicate_family_key": "btc-coinmetrics-puell-issuance-multiple-365d-gt4-risk-veto-long-cash"
+  },
+  "frozen_mapping": {
+    "primary_variant": "LONG_BTC_WHEN_PUELL_MULTIPLE_LESS_THAN_OR_EQUAL_TO_4_OTHERWISE_ZERO_YIELD_CASH",
+    "variants": 1,
+    "execution": "NEXT_H1_OPEN_AT_COMPLETE_DAY_CLOSE_TIMESTAMP_ONLY_WHEN_TARGET_CHANGES",
+    "sizing": "FULL_AVAILABLE_EQUITY_NO_LEVERAGE_NO_SHORT",
+    "normal_cost_per_side": "0.0010_FEE_PLUS_0.0005_ADVERSE_SLIPPAGE",
+    "stress_cost_per_side": "0.0020_FEE_PLUS_0.0010_ADVERSE_SLIPPAGE"
+  },
+  "prohibited_rescue": [
+    "Do not use the paid PuellMulRev field, an API key, another provider, manual export or a newly downloaded historical series.",
+    "Do not change 365 days, the inclusive mean, threshold 4.0, equality, price clock, availability, direction, weight, costs, comparator or gates after outcome access.",
+    "Do not add the 0.5 bottom zone, a 2.0 caution zone, smoothing, hysteresis, halving windows, fee revenue, miner balances, hashrate, MVRV, SMA, DRA admission or another factor.",
+    "Do not inspect post-2024 or independent OOS unless every frozen historical gate passes."
+  ],
+  "oos_access": "DENY",
+  "scope_note": "Primary prior and pre-existing free sealed data-path proof only. No factor value, BTC outcome, strategy economics, post-2024 evidence, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action was accessed."
+}

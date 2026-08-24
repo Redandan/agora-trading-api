@@ -1,0 +1,28 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-coinmetrics-puell-multiple-overheat-risk-veto-v1",
+  "research_cycle_id": "2026-08-25-candidate-factory-cycle-puell-overheat",
+  "title": "Coin Metrics issuance-only Puell Multiple overheat BTC risk veto",
+  "source": "REUSED_SEALED_COIN_METRICS_ISS_TOT_NTV_AND_OKX_BTC_H1_NO_NEW_DOWNLOAD",
+  "thesis": "Holding full BTC except when the completed-day issuance-only Puell Multiple is strictly above the externally fixed 4.0 overheat level improves after-cost risk-adjusted performance versus matched full-capital buy-and-hold in both Design and historical Validation.",
+  "mechanism": "For each complete UTC day, multiply sealed native issuance by the sealed BTC day close, divide by the inclusive 365-complete-day simple mean of the same USD issuance series, and make the state available at that close before the next H1 open. Hold BTC when the ratio is at most 4.0 and zero-yield cash when it is above 4.0.",
+  "economic_rationale": "The rule is useful only if the rare miner-revenue overheat state is broad and independent enough to avoid material drawdown without sacrificing required upside, Calmar, annual breadth or concentrating the result in one episode.",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "btc-coinmetrics-puell-multiple-overheat-risk-veto-historical-v1-direct-runner",
+  "data_readiness": "READY_REUSED_SEALED_INPUTS",
+  "expected_metrics": [
+    "factor_state_support_and_transitions",
+    "continuous_correlation_to_btc_price_365d_multiple",
+    "fee_and_slippage_adjusted_realized_unrealized_total_return",
+    "maximum_drawdown_calmar_upside_capture_and_underwater_duration",
+    "position_changes_holding_terminal_inventory_and_liquidation_sensitivity",
+    "annual_breadth_and_episode_concentration"
+  ],
+  "ranking": {
+    "evidence_readiness": 5,
+    "economic_mechanism": 4,
+    "interpretability": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

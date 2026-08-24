@@ -1,0 +1,38 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_SOPR_LOSS_REALIZATION_SOURCE_CAPABILITY_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-sopr-loss-realization-next-day-contrarian-long-cash",
+  "captured_at": "2026-08-24T13:32:00Z",
+  "status": "CATALOG_METADATA_PASS_TIMESERIES_VALUES_UNOPENED",
+  "publisher": "Coin Metrics Community API",
+  "catalog_request": {
+    "method": "GET",
+    "url": "https://community-api.coinmetrics.io/v4/catalog-all-v2/asset-metrics?assets=btc&metrics=SOPR&pretty=false&page_size=100",
+    "credentials": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "http_status": 200,
+    "content_type": "application/json",
+    "response_bytes": 179,
+    "response_sha256": "eb6e79744dcc2fdd8bd21a81ca39725f6bfc9d275dcdd53a918199f37f06f626",
+    "exact_response": "{\"data\":[{\"asset\":\"btc\",\"metrics\":[{\"metric\":\"SOPR\",\"frequencies\":[{\"frequency\":\"1d\",\"min_time\":\"2010-07-18T00:00:00.000000000Z\",\"max_time\":\"2026-08-23T00:00:00.000000000Z\"}]}]}]}"
+  },
+  "catalog_identity": {
+    "asset": "btc",
+    "metric": "SOPR",
+    "frequency": "1d",
+    "minimum_time": "2010-07-18T00:00:00.000000000Z",
+    "maximum_time_at_capture": "2026-08-23T00:00:00.000000000Z"
+  },
+  "official_semantics": {
+    "metric_definition": "SUM_OF_SPENT_OUTPUT_VALUE_AT_SPEND_TIME_DIVIDED_BY_SUM_OF_THE_SAME_OUTPUTS_VALUE_AT_CREATION_TIME_FOR_THE_INTERVAL",
+    "loss_realization_state": "SOPR_STRICTLY_BELOW_1",
+    "profit_or_breakeven_state": "SOPR_GREATER_THAN_OR_EQUAL_TO_1",
+    "documentation": "https://docs.coinmetrics.io/asset-metrics/economics/nvtadj",
+    "free_access_documentation": "https://docs.coinmetrics.io/api"
+  },
+  "claim_boundary": "This proves only that the no-key Community catalog currently advertises daily BTC SOPR coverage spanning the complete 2018-2024 source target. It does not prove timeseries entitlement, complete rows, original point-in-time vintages, the count or stability of loss-realization states, predictive value, economics, candidate value or OOS.",
+  "next_gate": "FREEZE_ONE_EXACT_NO_KEY_CREATE_ONCE_2018_2024_SOPR_SOURCE_AND_SUPPORT_CONTRACT_BEFORE_ANY_SOPR_VALUE_OR_BTC_OUTCOME_ACCESS",
+  "scope_note": "Metadata-only public catalog probe. No SOPR timeseries value, BTC price, factor, return, strategy, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

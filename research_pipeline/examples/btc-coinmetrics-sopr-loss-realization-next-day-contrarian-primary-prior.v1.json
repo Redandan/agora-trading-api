@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_SOPR_LOSS_REALIZATION_NEXT_DAY_CONTRARIAN_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-sopr-loss-realization-next-day-contrarian-long-cash",
+  "reviewed_at": "2026-08-24T13:37:08Z",
+  "status": "PRIMARY_AND_ADVERSARIAL_PRIOR_WITH_METADATA_ONLY_SOURCE_CAPABILITY_NO_FACTOR_OR_OUTCOME_ACCESS",
+  "decision": "ALLOW_ONE_SOURCE_FIRST_SOPR_TIMESERIES_AND_STATE_SUPPORT_GATE_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+  "causal_hypothesis": "A completed daily SOPR below one identifies coins actually spent at an aggregate realized loss rather than merely held at an unrealized loss. If this flow represents forced or emotional capitulation that temporarily exhausts sellers, the next complete BTC day may have higher return and no worse downside than days following profit-or-breakeven realization.",
+  "economic_hypothesis": "Only if the frozen source and predictive gates pass, holding unlevered BTC for exactly one complete UTC day after a loss-realization observation becomes usable and otherwise holding zero-yield cash may produce positive fee- and slippage-adjusted returns with substantially lower drawdown than buy-and-hold, broad annual support and no terminal-inventory uplift.",
+  "claim_boundary": "The official definition and catalog metadata justify exactly one low-confidence source-first screen. They do not establish contemporaneous availability, predictability, profitability, drawdown improvement, a candidate, OOS value or Trading authority.",
+  "data_path": {
+    "publisher": "Coin Metrics Community API",
+    "asset": "btc",
+    "metric": "SOPR",
+    "frequency": "1d",
+    "selected_first_day": "2018-01-01",
+    "selected_last_day": "2024-12-31",
+    "source_cost": "FREE_PUBLIC_NO_API_KEY_FOR_NON_COMMERCIAL_RESEARCH",
+    "source_capability_path": "research_pipeline/examples/btc-coinmetrics-sopr-loss-realization-source-capability.v1.json",
+    "source_capability_sha256": "24834c69de3eb4701af491acfde2342cb3776daa4f71c2ed02fe804ebd4ab4ba",
+    "status": "CATALOG_METADATA_READY_TIMESERIES_VALUES_UNOPENED"
+  },
+  "frozen_pre_source_contract": {
+    "decision_feature": "LATEST_COMPLETE_COINMETRICS_BTC_DAILY_SOPR_STRICTLY_BELOW_1_AFTER_THREE_CALENDAR_DAY_AVAILABILITY_LAG",
+    "loss_realization_relation": "STRICTLY_BELOW_1",
+    "other_state_relation": "GREATER_THAN_OR_EQUAL_TO_1",
+    "availability_lag": "SOURCE_DAY_D_PLUS_3_CALENDAR_DAYS_AT_00_00_UTC",
+    "predictive_horizon_if_source_passes": "NEXT_24_CONTIGUOUS_BTC_H1_BARS_FROM_FIRST_H1_OPEN_AT_OR_AFTER_FEATURE_AVAILABILITY",
+    "strategy_mapping_if_predictive_passes": "FULL_CAPITAL_UNLEVERED_BTC_FOR_EXACTLY_24_HOURS_AFTER_LOSS_REALIZATION_OTHERWISE_ZERO_YIELD_CASH",
+    "maximum_variants": 1,
+    "threshold_scan": "DENY",
+    "smoothing_or_lookback": "DENY",
+    "shorting_and_leverage": "DENY",
+    "outcome_tuning": "DENY"
+  },
+  "independence_assessment": {
+    "mathematically_distinct": true,
+    "not_alternative_me_sentiment": "SOPR is computed from the realized cost basis of spent Bitcoin UTXOs, not a publisher composite label containing price, volatility, volume, dominance or search inputs. It replaces the deferred source slot, not its feature or outcome lineage.",
+    "not_mvrv_or_nupl_value_stock": "SOPR measures the flow of coins actually spent at profit or loss. MVRV and NUPL describe the unrealized valuation state of a broader outstanding stock. No MVRV threshold, lookback, sampling or action is reused.",
+    "not_nvt_source_rescue": "The closed NVTAdj family measured network value relative to adjusted transfer utility and its fixed timeseries request returned HTTP 403. This SOPR family is bound to its own metric semantics, exact endpoint, standalone next-day response and Alternative.me replacement lineage. It does not retry NVTAdj, replace an NVT field inside that experiment, or reinterpret the NVT source failure.",
+    "residual_conflict_boundary": "Because the NVT decision named SOPR as a prohibited within-lineage substitution, any implementation must bind this independent family id and prior. A generic metric swap in the NVT adapter, hypothesis, comparator or tombstone remains forbidden."
+  },
+  "primary_prior_matrix": [
+    {
+      "identity": "Coin Metrics, Valuation metric documentation",
+      "role": "OFFICIAL_METRIC_IDENTITY_AND_FIXED_BREAK_EVEN_THRESHOLD",
+      "source": "https://docs.coinmetrics.io/asset-metrics/economics/nvtadj",
+      "finding": "Coin Metrics defines daily SOPR as spent-output value at spend time divided by the same outputs' value at creation, with one as the aggregate realized break-even boundary and values below one representing realized losses.",
+      "transfer_boundary": "Metric identity and an economic interpretation do not prove that a below-one observation precedes a tradable rebound or that the value was available without revision at the assumed time."
+    },
+    {
+      "identity": "Coin Metrics API conventions",
+      "role": "OFFICIAL_FREE_TRANSPORT_PRIOR",
+      "source": "https://docs.coinmetrics.io/api",
+      "finding": "Coin Metrics documents the Community API as a no-key free tier for non-commercial use and publishes a catalog endpoint for supported asset metrics and coverage.",
+      "transfer_boundary": "A successful catalog metadata response does not prove the exact SOPR timeseries endpoint returns complete accepted data; the one frozen source gate must establish that separately."
+    },
+    {
+      "identity": "Let, Sobanski, Swider and Wlosik, Is the cryptocurrency market efficient? Evidence from an analysis of fundamental factors for Bitcoin and Ethereum",
+      "role": "ADVERSARIAL_SOPR_STRATEGY_PRIOR",
+      "source": "https://doi.org/10.2478/ijme-2022-0030",
+      "finding": "The study reports mixed BTC SOPR strategy results and materially weaker risk-adjusted performance for several active implementations than buy-and-hold, so SOPR should not be assumed to be profitable from its narrative alone.",
+      "transfer_boundary": "The paper's thresholds, data provider, period and portfolio rules do not establish the exact below-one, three-day-lag, next-day Agora policy. Its mixed evidence lowers prior confidence and strengthens the all-pass source, predictive and economic gates."
+    }
+  ],
+  "source_and_support_stop_conditions": [
+    "Freeze the exact endpoint, 2018-2024 rows, response size, envelope, metric identity, continuity, availability lag and Design/Validation support gates before any SOPR value is opened.",
+    "Perform at most two successful create-once requests for source determinism. A first HTTP, envelope, pagination, row, continuity, range or support failure closes the family without a second request.",
+    "Require sufficient below-one and other-state observations, transitions, calendar-year breadth and bounded single-year concentration in both Design and Validation before any BTC outcome access.",
+    "Do not substitute NVTAdj, NVTAdj90, RVT, MVRV, NUPL, SOPROut, adjusted SOPR, holder-cohort SOPR, another provider, API key, paid data, manual export or a different availability lag.",
+    "A source pass may freeze exactly one predictive hypothesis using the fixed below-one relation and next-day horizon. Any predictive failure closes before matched-capital economics.",
+    "A later positive historical result may create at most one REPORTED_NOT_ACTIVATED candidate and one independent sealed OOS gate; it authorizes no Trading action."
+  ],
+  "missing_proof": [
+    "The exact 2018-2024 SOPR timeseries entitlement, payload, continuity and deterministic hashes are not sealed.",
+    "Original daily publication timestamps and original vintages are not available; plus-three-day use is conservative historical research timing, not clean point-in-time proof.",
+    "Loss-realization state support, transitions, annual breadth and concentration are unknown.",
+    "No predictive response, hypothesis, economic manifest, deterministic strategy runner, fees, slippage, realized or unrealized PnL, total return, drawdown, holding, inventory, candidate, OOS or forward evidence exists."
+  ],
+  "next_gate": "FREEZE_AND_EXECUTE_ONE_EXACT_CREATE_ONCE_COINMETRICS_SOPR_2018_2024_SOURCE_AND_SUPPORT_GATE_WITH_NO_BTC_OUTCOME_ACCESS",
+  "scope_note": "Primary, adversarial, metadata-only source and deduplication prior. No SOPR timeseries value, BTC outcome, hypothesis, manifest, runner result, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

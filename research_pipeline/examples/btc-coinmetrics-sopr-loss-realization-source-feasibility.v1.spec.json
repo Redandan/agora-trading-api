@@ -1,0 +1,115 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_SOPR_LOSS_REALIZATION_SOURCE_FEASIBILITY_SPEC_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-sopr-loss-realization-next-day-contrarian-long-cash",
+  "created_at": "2026-08-24T13:37:08Z",
+  "status": "FROZEN_BEFORE_2018_2024_SOPR_TIMESERIES_OR_BTC_OUTCOME_ACCESS",
+  "purpose": "Determine whether the exact official no-key daily BTC SOPR history is executable, complete and has broad below-one loss-realization state support in both Design and Validation before any BTC outcome or strategy economics is opened.",
+  "bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-sopr-loss-realization-source-capability.v1.json",
+      "role": "METADATA_ONLY_COMMUNITY_CATALOG_CAPABILITY",
+      "sha256": "24834c69de3eb4701af491acfde2342cb3776daa4f71c2ed02fe804ebd4ab4ba"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-sopr-loss-realization-next-day-contrarian-primary-prior.v1.json",
+      "role": "PRIMARY_ADVERSARIAL_AND_INDEPENDENT_LINEAGE_PRIOR",
+      "sha256": "54461d810915cdab2bedcd86f0ecf19c6e0a0d54c1fa42ebbdfddd01d9388829"
+    },
+    {
+      "path": "research/coinmetrics_btc_sopr_loss_realization_source_probe.cjs",
+      "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_AND_SUPPORT_PROBE",
+      "sha256": "fa73fc76e0fa6077a962d180be99c24f4559f93bbf2ac9803706780670f273e1"
+    },
+    {
+      "path": "research_pipeline/tests/test_coinmetrics_btc_sopr_loss_realization_source_probe.cjs",
+      "role": "FOCUSED_SYNTHETIC_SOURCE_CLOCK_THRESHOLD_AND_FAIL_CLOSED_TEST",
+      "sha256": "a11f2f014faedc778622e4dc6cd6fa051b43e0521077d8540af1ba0b73ea2fa8"
+    }
+  ],
+  "source_contract": {
+    "method": "GET",
+    "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=SOPR&frequency=1d&start_time=2018-01-01&end_time=2024-12-31&page_size=10000",
+    "metric": "SOPR",
+    "asset": "btc",
+    "publisher": "Coin Metrics Community API",
+    "frequency": "1d",
+    "start_date": "2018-01-01",
+    "end_date": "2024-12-31",
+    "expected_rows": 2557,
+    "expected_first_date": "2018-01-01",
+    "expected_last_date": "2024-12-31",
+    "maximum_response_bytes": 1048576,
+    "timeout_seconds": 30,
+    "credentials": "DENY",
+    "paid_api": "DENY",
+    "redirect": "DENY",
+    "automatic_retry": "DENY",
+    "maximum_successful_requests": 2,
+    "second_request_condition": "RUN1_SOURCE_AND_SUPPORT_PASS_ONLY"
+  },
+  "feature_contract": {
+    "factor_identity": "COINMETRICS_BTC_SOPR_STRICTLY_BELOW_ONE_LOSS_REALIZATION_NEXT_DAY_CONTRARIAN_V1",
+    "loss_realization_condition": "SOPR_STRICTLY_BELOW_1",
+    "other_condition": "SOPR_GREATER_THAN_OR_EQUAL_TO_1",
+    "availability": "COMPLETE_SOURCE_DAY_D_PLUS_3_CALENDAR_DAYS_AT_00_00_UTC",
+    "future_predictive_horizon_if_source_passes": "NEXT_24_CONTIGUOUS_BTC_H1_BARS_FROM_FIRST_H1_OPEN_AT_OR_AFTER_AVAILABILITY",
+    "future_policy_if_predictive_passes": "FULL_CAPITAL_UNLEVERED_BTC_FOR_EXACTLY_24_HOURS_AFTER_LOSS_REALIZATION_OTHERWISE_ZERO_YIELD_CASH",
+    "variants": 1,
+    "metric_threshold_or_smoothing_scan": "DENY",
+    "direction_inversion": "DENY"
+  },
+  "pre_outcome_support_gates": {
+    "design": {
+      "start": "2020-01-01T00:00:00Z",
+      "end_exclusive": "2023-01-01T00:00:00Z",
+      "minimum_evaluations": 1000,
+      "minimum_loss_realization_days": 30,
+      "minimum_profit_or_breakeven_days": 500,
+      "minimum_transitions": 12,
+      "minimum_loss_realization_calendar_years": 2,
+      "minimum_profit_or_breakeven_calendar_years": 3,
+      "maximum_single_calendar_year_loss_realization_share": "0.65"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00Z",
+      "end_exclusive": "2025-01-01T00:00:00Z",
+      "minimum_evaluations": 700,
+      "minimum_loss_realization_days": 10,
+      "minimum_profit_or_breakeven_days": 300,
+      "minimum_transitions": 4,
+      "minimum_loss_realization_calendar_years": 1,
+      "minimum_profit_or_breakeven_calendar_years": 2,
+      "maximum_single_calendar_year_loss_realization_share": "0.85"
+    }
+  },
+  "sealed_output_contract": {
+    "run1": {
+      "bundle": ".research-state/experiments/btc-coinmetrics-sopr-loss-realization-source-v1/inputs/source.v1.run1.bundle.json",
+      "raw": ".research-state/experiments/btc-coinmetrics-sopr-loss-realization-source-v1/inputs/source.v1.run1.raw.json",
+      "normalized": ".research-state/experiments/btc-coinmetrics-sopr-loss-realization-source-v1/inputs/btc-sopr-daily-2018-2024.v1.run1.csv"
+    },
+    "run2": {
+      "bundle": ".research-state/experiments/btc-coinmetrics-sopr-loss-realization-source-v1/inputs/source.v1.run2.bundle.json",
+      "raw": ".research-state/experiments/btc-coinmetrics-sopr-loss-realization-source-v1/inputs/source.v1.run2.raw.json",
+      "normalized": ".research-state/experiments/btc-coinmetrics-sopr-loss-realization-source-v1/inputs/btc-sopr-daily-2018-2024.v1.run2.csv"
+    },
+    "determinism": "RUN1_AND_RUN2_BUNDLE_RAW_AND_NORMALIZED_BYTES_MUST_ALL_BE_PAIRWISE_IDENTICAL",
+    "overwrite": "DENY_CREATE_ONCE_ONLY"
+  },
+  "decision": {
+    "pass": "SEALED_SOURCE_AND_SUPPORT_GATE_PASS_MAY_FREEZE_EXACTLY_ONE_PREDICTIVE_HYPOTHESIS_BEFORE_BTC_OUTCOME_ACCESS",
+    "failure": "DATA_REJECT_PERMANENTLY_CLOSE_EXACT_SOPR_LOSS_REALIZATION_FAMILY_BEFORE_HYPOTHESIS_OR_BTC_OUTCOME_ACCESS",
+    "no_partial_pass": true,
+    "first_failure_stops_second_request": true
+  },
+  "prohibited_after_source_or_factor_access": [
+    "Do not retry a failed run1 request or relax HTTP, response-size, envelope, pagination, row, metric, continuity, range or support gates.",
+    "Do not change the below-one relation, equality rule, three-day availability lag, next-day horizon, support window or support threshold.",
+    "Do not substitute NVTAdj, NVTAdj90, RVT, MVRV, NUPL, SOPROut, adjusted SOPR, cohort SOPR, another provider, credentials, paid data or manual export.",
+    "Do not access BTC outcomes, freeze a strategy hypothesis or compute economics unless every source, support and determinism gate passes.",
+    "Do not treat present-vintage historical values as original point-in-time vintages or independent OOS."
+  ],
+  "scope_note": "Frozen source and state-support gate only. No SOPR timeseries value, BTC outcome, hypothesis, economic manifest, strategy runner, PnL, drawdown, candidate, OOS, paid API, key, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred by this specification."
+}

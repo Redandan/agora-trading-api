@@ -1,0 +1,30 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "btc-coinmetrics-hash-ribbon-health-state-long-cash-v1",
+  "title": "Coin Metrics Bitcoin 30/60-day hash-rate health-state long-or-cash policy",
+  "thesis": "A conservatively delayed daily 30-day mean Bitcoin hash rate strictly above its 60-day mean may identify miner recovery and network participation strongly enough for a standalone BTC-or-cash policy to retain buy-and-hold-like upside with lower drawdown and superior Calmar after costs in both Design and Validation.",
+  "mechanism": "Use only the sealed reviewed Coin Metrics daily HashRate series. At observation date plus three calendar days 00:00 UTC, hold full-capital unlevered BTC when the latest 30 complete observations have a strictly higher simple mean than the latest 60; otherwise hold zero-yield cash. Execute a changed target at the same-time H1 open. Do not add price confirmation, another average, crossover-only event, holding extension, partial exposure, shorting or leverage.",
+  "economic_rationale": "Miner recovery can remove forced-seller and network-stress pressure, but it is useful only if the hash-only state is not a duplicate of the closed weekly 28-day growth veto or a repackaged BTC trend, has both-state support, and improves fee-adjusted path risk without sacrificing excessive upside or annual breadth.",
+  "source": "SEALED_COIN_METRICS_BTC_HASHRATE_2018_2024_AND_SEALED_PRE2025_BTC_H1_CORPUS",
+  "parent": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_VALUATION",
+  "required_capability": "btc-coinmetrics-hash-ribbon-health-state-long-cash-v1-direct-economic-runner",
+  "data_readiness": "READY_AFTER_LOCAL_HASH_VERIFIED_SEALED_SOURCE_REUSE",
+  "expected_metrics": [
+    "source_hash_daily_lattice_and_availability_integrity",
+    "health_stress_support_transitions_and_annual_state_breadth",
+    "closed_28d_growth_state_disagreement_and_lagged_btc_60d_trend_phi",
+    "normal_and_stress_realized_unrealized_total_and_terminal_return",
+    "matched_buy_hold_drawdown_calmar_upside_and_underwater_path",
+    "position_changes_average_exposure_holding_and_inventory",
+    "annual_return_drawdown_calmar_upside_and_concentration"
+  ],
+  "ranking": {
+    "economic_mechanism": 3,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-24-candidate-factory-cycle-hash-ribbon-1",
+  "created_at": "2026-08-24T14:28:46Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

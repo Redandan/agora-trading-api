@@ -1,0 +1,235 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_HASH_RIBBON_HEALTH_STATE_LONG_CASH_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-coinmetrics-hash-ribbon-health-state-long-cash-historical-v1",
+  "hypothesis_id": "btc-coinmetrics-hash-ribbon-health-state-long-cash-v1",
+  "created_at": "2026-08-24T14:37:09Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_SOURCE_DEDUP_DESIGN_VALIDATION_NO_OOS",
+  "thesis": "A conservatively delayed 30-day Bitcoin hash-rate mean strictly above its 60-day mean may identify miner recovery strongly enough for an unlevered BTC-or-cash policy to preserve broad upside while improving drawdown and Calmar after costs.",
+  "uniqueness": {
+    "duplicate_family_key": "btc-coinmetrics-hashrate-30d-above-60d-plus3d-full-capital-long-cash",
+    "closed_family_comparator": "dra-coinmetrics-btc-hashrate-adjacent-28d-growth-entry-admission",
+    "required_state_disagreement": "AT_OLD_WEEKLY_WEDNESDAY_CLOCKS_AT_LEAST_15PCT_DESIGN_AND_10PCT_VALIDATION",
+    "required_price_independence": "ABS_BINARY_PHI_TO_SAME_CLOCK_LAGGED_BTC_60D_POSITIVE_PRICE_TREND_AT_MOST_0_80_IN_BOTH_WINDOWS",
+    "standalone_action": "FULL_CAPITAL_BTC_OR_ZERO_YIELD_CASH_WITH_NO_DRA_SIGNAL_LOT_OR_INVENTORY",
+    "prohibited_rescue": "No period, source lag, threshold, equality, price confirmation, crossover-only event, holding extension, weight, direction, leverage, cost or gate may be scanned or substituted after outcome access."
+  },
+  "datasets": {
+    "btc": {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+      "hourly_rows": 52608,
+      "selection_cutoff": "2025-01-01T00:00:00"
+    },
+    "hashrate": {
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-btc-hashrate-2018-2024.csv",
+      "sha256": "1dfdfde2f8806f912c6dc3c3d48e2bf244c40af94e9aeb4389ed2cc8337ec273",
+      "rows": 2557,
+      "first_date": "2018-01-01",
+      "last_date": "2024-12-31",
+      "present_vintage": true
+    },
+    "raw_hashrate": {
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-btc-hashrate-2018-2024-raw.json",
+      "sha256": "599a2ca96d1179875f102d2e3431267ea6c89ce1f83dddd1c463b59eeda6be58"
+    },
+    "source_bundle": {
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-source-bundle.json",
+      "sha256": "177675c165dbb70c76ca4fb4c967dfdb80529a0bcdaa037071b6cce4f1e81e13"
+    }
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_COINMETRICS_HASH_RIBBON_HEALTH_STATE_LONG_CASH_V1",
+    "source_metric": "COIN_METRICS_BTC_HASHRATE_DAILY_REVIEWED_PRESENT_VINTAGE",
+    "fast_average_complete_days": 30,
+    "slow_average_complete_days": 60,
+    "long_condition": "FAST_30D_SIMPLE_MEAN_STRICTLY_GREATER_THAN_SLOW_60D_SIMPLE_MEAN",
+    "cash_condition": "FAST_30D_SIMPLE_MEAN_LESS_THAN_OR_EQUAL_TO_SLOW_60D_SIMPLE_MEAN",
+    "availability": "OBSERVATION_DATE_PLUS_3_CALENDAR_DAYS_AT_00_00_UTC",
+    "execution": "SAME_TIMESTAMP_BTC_H1_OPEN_ONLY_WHEN_TARGET_CHANGES",
+    "sizing": "FULL_AVAILABLE_EQUITY_WITH_NO_LEVERAGE",
+    "cash_return": "0",
+    "price_confirmation": "DENY",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 1
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": {
+      "start": "2020-01-01T00:00:00",
+      "end_exclusive": "2023-01-01T00:00:00"
+    },
+    "validation": {
+      "start": "2023-01-01T00:00:00",
+      "end_exclusive": "2025-01-01T00:00:00"
+    },
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024]
+  },
+  "comparators": {
+    "primary": "BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD_WITH_MATCHED_SCENARIO_ENTRY_COST_AND_HOURLY_MARK_TO_MARKET",
+    "secondary": "INITIAL_EQUITY_1_CASH_WITH_ZERO_RETURN",
+    "closed_family": "WEEKLY_ADJACENT_NONOVERLAPPING_28D_HASHRATE_GROWTH_DRA_ENTRY_ADMISSION_STATE",
+    "price_repackaging": "SAME_CLOCK_BTC_CLOSE_STRICTLY_ABOVE_60_COMPLETE_DAYS_EARLIER_CLOSE",
+    "capital_matching": "SAME_INITIAL_EQUITY_AND_SAME_HOURLY_PRICE_PATH"
+  },
+  "valuation": {
+    "strategy": "HOURLY_CLOSE_MARK_TO_MARKET",
+    "execution": "EXACT_H1_OPEN_AT_EACH_AVAILABLE_DAILY_STATE_ONLY_WHEN_TARGET_CHANGES",
+    "terminal_sensitivity": "HYPOTHETICAL_LAST_CLOSE_EXIT_WITH_SCENARIO_FEE_AND_ADVERSE_SLIPPAGE",
+    "realized_unrealized_split": "COMPLETED_STATE_EPISODE_SALES_REALIZED_PLUS_TERMINAL_MARK_TO_MARKET_RESIDUAL",
+    "cash_return": "ZERO"
+  },
+  "runner_binding": {
+    "path": "research/btc_coinmetrics_hash_ribbon_health_state_long_cash_historical.py",
+    "sha256": "0584e001818e10fa1957f0eef7cae3297e08d6cc5446a4f33f163197a33e18af"
+  },
+  "source_bindings": [
+    {
+      "key": "economic_kernel",
+      "path": "research/btc_m2_liquidity_acceleration_long_cash_historical.py",
+      "sha256": "eb059aed19f839f9b6c1f443df45e6611e7170b431904c6a28e35d7c2dc2eb09"
+    },
+    {
+      "key": "long_cash_ledger",
+      "path": "research/btc_daily_chaikin_money_flow_long_cash_historical.py",
+      "sha256": "5c43069168824670dcda0c6ec0c4f7d08389e8dcc718246ff57390ed872927bd"
+    },
+    {
+      "key": "path_reference",
+      "path": "research/btc_monthly_12m_time_series_momentum_historical.py",
+      "sha256": "6682a56f08f70435064e4fdd2394350e418f9a2f5cd76c02ec936c6ee8802c1b"
+    },
+    {
+      "key": "h1_parser",
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "key": "primary_prior",
+      "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-primary-prior.v1.json",
+      "sha256": "82972a8425f1f12bab182296002b1a5937c9c70f775ddbb8b5bbb2ba43c4830a"
+    },
+    {
+      "key": "hypothesis",
+      "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-v1.hypothesis.json",
+      "sha256": "cf23073123ebec45fe3e66d5d2c5ebd4fb7ffc17f5205d204074ec7ef86b0869"
+    },
+    {
+      "key": "normalized_hashrate",
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-btc-hashrate-2018-2024.csv",
+      "sha256": "1dfdfde2f8806f912c6dc3c3d48e2bf244c40af94e9aeb4389ed2cc8337ec273"
+    },
+    {
+      "key": "raw_hashrate",
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-btc-hashrate-2018-2024-raw.json",
+      "sha256": "599a2ca96d1179875f102d2e3431267ea6c89ce1f83dddd1c463b59eeda6be58"
+    },
+    {
+      "key": "source_bundle",
+      "path": ".research-state/experiments/dra-bitcoin-hashrate-growth-entry-admission-historical-v1/inputs/coinmetrics-source-bundle.json",
+      "sha256": "177675c165dbb70c76ca4fb4c967dfdb80529a0bcdaa037071b6cce4f1e81e13"
+    }
+  ],
+  "metrics": [
+    "source_hash_daily_lattice_availability_and_state_support",
+    "closed_28d_state_disagreement_and_lagged_btc_60d_price_trend_phi",
+    "realized_unrealized_total_and_terminal_liquidation_adjusted_return_pct",
+    "maximum_drawdown_pct_calmar_ratio_upside_capture_and_underwater_duration",
+    "fees_turnover_average_exposure_position_changes_and_completed_episodes",
+    "median_p90_and_terminal_holding_hours",
+    "annual_state_breadth_return_path_risk_and_episode_concentration"
+  ],
+  "gate_set": {
+    "id": "BTC_COINMETRICS_HASH_RIBBON_HEALTH_STATE_MATCHED_CAPITAL_GATES_V1",
+    "pre_economic_required": [
+      "btc_sha256_and_52608_rows_match",
+      "hashrate_normalized_raw_and_bundle_sha256_match",
+      "hashrate_2557_positive_contiguous_daily_rows_2018_2024_pass",
+      "frozen_runner_kernel_ledger_reference_parser_prior_and_hypothesis_sha256_match",
+      "single_variant_30d_above_60d_plus3d_no_price_confirmation_contract_pass",
+      "design_evaluations_at_least_1000",
+      "design_each_state_at_least_60_days",
+      "design_state_transitions_at_least_4",
+      "design_both_states_in_at_least_2_years",
+      "validation_evaluations_at_least_650",
+      "validation_each_state_at_least_30_days",
+      "validation_state_transitions_at_least_2",
+      "validation_both_states_in_both_years",
+      "design_closed_28d_comparisons_at_least_150",
+      "validation_closed_28d_comparisons_at_least_90",
+      "design_state_disagreement_with_closed_28d_family_at_least_15pct",
+      "validation_state_disagreement_with_closed_28d_family_at_least_10pct",
+      "design_abs_phi_to_lagged_btc_60d_price_trend_at_most_0_80",
+      "validation_abs_phi_to_lagged_btc_60d_price_trend_at_most_0_80"
+    ],
+    "economic_required": [
+      "design_normal_total_return_positive",
+      "design_stress_total_return_positive",
+      "design_drawdown_at_most_90pct_of_buy_hold",
+      "design_upside_capture_at_least_70pct",
+      "design_calmar_at_least_buy_hold",
+      "validation_normal_total_return_positive",
+      "validation_stress_total_return_positive",
+      "validation_drawdown_at_most_90pct_of_buy_hold",
+      "validation_upside_capture_at_least_70pct",
+      "validation_calmar_at_least_buy_hold",
+      "validation_position_changes_between_2_and_100",
+      "validation_stress_drawdown_no_more_than_normal_plus_3pp",
+      "normal_positive_annual_return_at_least_4_of_5",
+      "stress_positive_annual_return_at_least_4_of_5",
+      "annual_drawdown_non_worse_at_least_4_of_5",
+      "annual_calmar_at_least_75pct_buy_hold_at_least_3_of_5",
+      "annual_upside_capture_at_least_60pct_at_least_4_of_5",
+      "top_year_positive_contribution_at_most_60pct",
+      "validation_top_positive_episode_contribution_at_most_60pct",
+      "validation_p90_hold_at_most_8760_hours",
+      "validation_terminal_holding_age_at_most_8760_hours",
+      "validation_terminal_liquidation_adjusted_return_positive",
+      "validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_PRE_ECONOMIC_AND_ECONOMIC_GATES_PASS_OR_PERMANENTLY_CLOSE_WITHOUT_TUNING"
+  },
+  "determinism": {
+    "python_minimum": "3.11",
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "reruns": 2,
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before feature evaluation if any BTC, normalized HashRate, raw response, source bundle, runner or support binding hash differs; do not reacquire or repair data.",
+    "Stop before economics if either frozen window lacks state support or transitions, if the state insufficiently differs from the closed 28-day family, or if it is too correlated with lagged BTC price trend.",
+    "Use exactly one 30-day-above-60-day plus-three-calendar-day full-capital unlevered BTC-or-cash variant under the frozen costs, windows and gates.",
+    "Stop and permanently close the exact family if any Design, Validation, path-risk, annual breadth, concentration, holding, terminal or determinism gate fails.",
+    "Do not inspect or substitute price confirmation, crossover-only events, another source, period, lag, threshold, equality, weight, direction, leverage, cost, comparator or gate after outcomes.",
+    "Do not use post-2024 data. A pass may only become CANDIDATE_FROZEN_REPORTED_NOT_ACTIVATED and still requires one independent sealed OOS."
+  ],
+  "oos_access": "DENY",
+  "prohibited_actions": [
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "EXTERNAL_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ]
+}

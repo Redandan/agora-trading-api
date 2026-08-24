@@ -1,0 +1,101 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_HASH_RIBBON_HEALTH_STATE_LONG_CASH_PRIMARY_PRIOR_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmetrics-hash-ribbon-health-state-long-cash",
+  "created_at": "2026-08-24T14:28:46Z",
+  "status": "PRIMARY_AND_ADVERSARIAL_PRIOR_FROZEN_BEFORE_HASH_RIBBON_OR_BTC_OUTCOME_ACCESS",
+  "decision": "ADMIT_ONE_EXACT_HASH_ONLY_30D_ABOVE_60D_HEALTH_STATE_MATCHED_CAPITAL_AUDIT_WITH_DEDUP_GATE_AND_NO_PRICE_CONFIRMATION",
+  "claim_boundary": "The original 2019 Hash Ribbons article specifies one- and two-month simple moving averages of daily Bitcoin hash rate and reports recovery when the fast average crosses above the slow average. It also shows a separate price-confirmed construction. This family tests only the hash-only health state with conservative source availability; it does not import the article's historical returns or authorize adding price confirmation after results.",
+  "primary_sources": [
+    {
+      "title": "Hash Ribbons & Bitcoin Bottoms",
+      "publisher": "Capriole Investments",
+      "published": "2019-10-30",
+      "url": "https://capriole.com/hash-ribbons-bitcoin-bottoms",
+      "finding": "The indicator creator defines a one-month and two-month simple-moving-average crossover of daily Bitcoin hash rate, treating the fast average crossing above the slow average as miner recovery.",
+      "role": "PRIMARY_EXTERNAL_FORMULA_DIRECTION_AND_MECHANISM_PRIOR"
+    },
+    {
+      "title": "A System Dynamics Model of Bitcoin: Mining as an Efficient Market and the Possibility of Peak Hash",
+      "publisher": "arXiv",
+      "identifier": "arXiv:2004.09212",
+      "url": "https://arxiv.org/abs/2004.09212",
+      "finding": "The model treats hash-rate adjustment as a delayed response to mining profitability, including Bitcoin price, subsidy, fees, energy cost and hardware constraints.",
+      "role": "ADVERSARIAL_REVERSE_CAUSALITY_AND_DELAY_PRIOR"
+    },
+    {
+      "title": "Bitcoin price dynamics and internal-external determinants",
+      "publisher": "University of Strasbourg Working Paper 2024-31",
+      "url": "https://beta.u-strasbg.fr/WP/2024/2024-31.pdf",
+      "finding": "The study reports that hash-rate influence is regime dependent and notes evidence that Bitcoin price can lead hash rate, so a ribbon may be a lagging price-state proxy outside miner-capitulation periods.",
+      "role": "ADVERSARIAL_REGIME_AND_PRICE_LEAD_PRIOR"
+    },
+    {
+      "title": "Coin Metrics Community API reviewed Bitcoin HashRate history",
+      "publisher": "Coin Metrics",
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics",
+      "finding": "The previously sealed no-key reviewed daily HashRate response supplies one present-vintage 2018-2024 source corpus with explicit raw and normalized hashes.",
+      "role": "FREE_SOURCE_IDENTITY_PRIOR"
+    }
+  ],
+  "frozen_feature": {
+    "source_metric": "COIN_METRICS_BTC_HASHRATE_DAILY_REVIEWED_PRESENT_VINTAGE",
+    "fast_average": "SIMPLE_MEAN_OF_LATEST_30_COMPLETE_DAILY_HASHRATE_OBSERVATIONS",
+    "slow_average": "SIMPLE_MEAN_OF_LATEST_60_COMPLETE_DAILY_HASHRATE_OBSERVATIONS",
+    "health_state": "FAST_30D_MEAN_STRICTLY_GREATER_THAN_SLOW_60D_MEAN",
+    "stress_state": "FAST_30D_MEAN_LESS_THAN_OR_EQUAL_TO_SLOW_60D_MEAN",
+    "availability": "SOURCE_OBSERVATION_DATE_PLUS_3_CALENDAR_DAYS_AT_00_00_UTC",
+    "policy": "FULL_CAPITAL_UNLEVERED_BTC_IN_HEALTH_STATE_ELSE_ZERO_YIELD_CASH",
+    "execution": "FIRST_BTC_H1_OPEN_AT_EXACT_AVAILABLE_TIME",
+    "variant_count": 1,
+    "price_confirmation": "DENY",
+    "window_or_threshold_scan": "DENY"
+  },
+  "deduplication_contract": {
+    "closed_family": "dra-coinmetrics-btc-hashrate-adjacent-28d-growth-entry-admission",
+    "closed_formula": "CURRENT_NONOVERLAPPING_28D_MEAN_MINUS_IMMEDIATELY_PRIOR_28D_MEAN_AT_WEEKLY_CLOCK",
+    "new_formula": "OVERLAPPING_DAILY_30D_MEAN_STRICTLY_ABOVE_OVERLAPPING_DAILY_60D_MEAN",
+    "economic_action_difference": "The closed family vetoed otherwise unchanged DRA entries for seven days. This family controls a standalone full-capital BTC-or-cash state every available day and has no DRA inventory.",
+    "pre_economic_gate": "At the old Wednesday weekly decision clocks, require the two binary states to disagree on at least 15 percent of Design comparisons and 10 percent of Validation comparisons; otherwise close as a duplicate before BTC economics.",
+    "price_repackaging_gate": "Require absolute binary phi correlation between the ribbon health state and lagged BTC 60-complete-day positive price trend at most 0.80 in Design and Validation before matched-capital economics may count."
+  },
+  "future_economic_contract": {
+    "primary_comparator": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_HOURLY_VALUATION",
+    "secondary_comparator": "ZERO_YIELD_CASH",
+    "historical_windows": {
+      "design": "2020-01-01_TO_2022-12-31",
+      "validation": "2023-01-01_TO_2024-12-31"
+    },
+    "costs": "NORMAL_10_BPS_FEE_PLUS_5_BPS_ADVERSE_SLIPPAGE_PER_SIDE_AND_STRESS_DOUBLE",
+    "required_visibility": [
+      "source_and_daily_lattice_integrity",
+      "health_stress_state_support_transitions_and_annual_breadth",
+      "closed_28d_family_state_disagreement_and_lagged_price_trend_phi",
+      "realized_unrealized_total_and_terminal_liquidation_adjusted_return",
+      "maximum_drawdown_calmar_upside_capture_and_underwater_duration",
+      "position_changes_holding_average_exposure_and_terminal_inventory",
+      "annual_and_episode_concentration"
+    ]
+  },
+  "adversarial_prior": [
+    "Hash rate is an estimate derived from observed block production and can be noisy even when actual deployed hardware is unchanged.",
+    "Mining profitability depends materially on BTC price, subsidy, fees, energy and hardware efficiency, so the health state may lag the asset it attempts to predict.",
+    "The original article selected historical recovery episodes and later added a price-momentum confirmation; neither result is independent evidence for this repository window.",
+    "A largely healthy state can resemble buy-and-hold and claim small drawdown differences without independent return contribution.",
+    "Halvings, the 2021 China mining relocation and hardware cycles can dominate a small number of transitions and destroy annual breadth."
+  ],
+  "stop_conditions": [
+    "Before any ribbon or BTC outcome is calculated, freeze one hypothesis, one source-reuse manifest, one runner and all source, timing, support, deduplication, price-repackaging, Design, Validation, cost, breadth, concentration, holding and determinism gates.",
+    "Reject before economics if the sealed normalized source, raw source, source bundle, BTC corpus or any bound runner support hash differs; do not reacquire or repair data.",
+    "Reject before economics if either window lacks both states or transitions, the new state is insufficiently different from the closed 28-day family, or it is too correlated with lagged BTC price trend.",
+    "Stop NO_CANDIDATE on any economic or path-risk gate failure and permanently close the exact 30/60, plus-three-day, full-capital long-or-cash family.",
+    "Do not add the original article's 10/20 price confirmation, choose only recovery crossings, extend holding, change moving-average periods, lag, equality, source, weight, direction, cost or gate after outcomes.",
+    "Do not open post-2024 outcomes. A historical pass remains REPORTED_NOT_ACTIVATED and needs one independent sealed OOS."
+  ],
+  "missing_proof": [
+    "The sealed source exists in another local research worktree but has not yet been hash-verified into this task-owned research-state path.",
+    "No 30/60 ribbon state, deduplication metric, price-trend correlation, matched-capital economics, candidate, OOS or forward evidence has been calculated for this family."
+  ],
+  "scope_note": "Primary, adversarial, source-reuse and deduplication prior only. No hash-ribbon factor value, BTC outcome, post-2024 value, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

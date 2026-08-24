@@ -1,0 +1,92 @@
+{
+  "artifacts": [
+    {
+      "path": ".research-state/experiments/btc-daily-nr7-volatility-contraction-breakout-historical-v1/artifacts/run1.json",
+      "sha256": "2fbb4335193b3aefe4e464c4e36549b302db5aea2f01f601f5e87fb733b2b34c"
+    },
+    {
+      "path": ".research-state/experiments/btc-daily-nr7-volatility-contraction-breakout-historical-v1/artifacts/run2.json",
+      "sha256": "2fbb4335193b3aefe4e464c4e36549b302db5aea2f01f601f5e87fb733b2b34c"
+    }
+  ],
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "checks": [
+    {
+      "evidence": "The V1 package was rejected before dispatch because one non-essential hypothesis-schema input had working-tree bytes different from current HEAD under Windows line-ending normalization. No outcome was accessed. V2 removed only that redundant input and retained the exact hypothesis, runner, manifest, costs, windows, three variants, gates and stop conditions. At clean HEAD equal to origin 95a3d27dbbbadbe7779a22f1a4e27e4dfaa4be88, task 35f455cb1095473dc315a62e635df3d9c770d1455dff211da339cf7c7092eb5e, dispatch 41c185597b78ee28e783a343976daa1d6f69f767f7dcb555e77f9ded2986067e, intent e17b63cb030566129d0d03599cb7323161038d05693d4b253475ea8f466424e0 and strategy path 979a0d39f62c31efe0234109595a6297922dae82ada62b5246ac74e71a2968b2 passed Manager, strategy and allocation preflights. The rolling allowlist had 9 direct mechanisms among 11 outputs and projected governance share at 16.66 percent.",
+      "name": "FROZEN_PACKAGE_AND_ALLOCATION_PREFLIGHT",
+      "status": "PASS"
+    },
+    {
+      "evidence": "The exact pre-2025 BTC H1 corpus matched SHA-256 e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd, 52,608 contiguous finite H1 rows and 2,192 complete UTC days. Each normalized true range used only the complete setup-day high/low and previous complete-day close. A trigger was allowed only on the immediately following UTC day after a complete H1 close above the setup high, with execution at the next H1 open.",
+      "name": "SEALED_DATA_SOURCE_TEMPORAL_AND_FORMULA_IDENTITY",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Run1 and run2 were independently written to previously absent create-only paths and both had SHA-256 2fbb4335193b3aefe4e464c4e36549b302db5aea2f01f601f5e87fb733b2b34c.",
+      "name": "BYTE_IDENTICAL_DETERMINISM",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Design normal NR7 returned 96.61718578 percent versus 120.34513663 percent for the identical unconditioned breakout parent and 129.60544229 percent for buy-and-hold. Drawdown was 53.52400710 percent versus 78.99269833 and 77.18955925 percent; Calmar was 0.47214843 versus 0.38129227 and 0.41348533. Stress NR7 returned 65.21676093 percent with 55.38927977 percent drawdown and 0.32883231 Calmar. It beat the parent drawdown and Calmar gates but failed the frozen drawdown-at-most-65-percent-of-buy-and-hold gate under both cost scenarios.",
+      "name": "DESIGN_ECONOMIC_PATH",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Validation normal NR7 returned 17.73458741 percent versus 247.35427699 percent for the identical parent and 464.75475156 percent for buy-and-hold. It captured only 7.169711 percent of parent return and 3.815902 percent of buy-and-hold while drawdown worsened to 42.52778116 percent versus 32.46947715 and 32.28416349 percent; Calmar was only 0.19985787 versus 2.65772924 and 4.25920995. Under stress NR7 returned 3.17562165 percent, captured only 1.872694 percent of parent and 0.684535 percent of buy-and-hold, with 44.55998545 percent drawdown and 0.03533025 Calmar. Fourteen primary Validation gates failed across the two cost scenarios.",
+      "name": "VALIDATION_RISK_ADJUSTED_TRANSFER",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Validation NR7 had 104 eligible setup days and 44 completed trades. Median and P90 holding were exactly 168 hours, no terminal inventory remained, terminal liquidation cost was 0pp and the top positive realized-trade contribution was 13.48633502 percent. The closure is therefore not caused by sparse support, hidden terminal inventory, excessive holding or one winning trade; it is caused by weak return capture and worse path risk.",
+      "name": "SUPPORT_HOLDING_CONCENTRATION_AND_TERMINAL_PATH",
+      "status": "PASS"
+    },
+    {
+      "evidence": "Normal annual positive breadth reached 4/5, but return support versus parent was 1/5, drawdown non-worse breadth 2/5 and Calmar non-worse breadth 1/5. Under stress, positive breadth was only 3/5, return support 2/5, drawdown breadth 2/5 and Calmar breadth 1/5. Stress top-positive-year contribution was 63.07157573 percent versus the 60 percent limit. Eight annual breadth and concentration gates failed.",
+      "name": "ANNUAL_BREADTH_AND_PATH_RISK",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "The rejection-only NR5 neighbor remained positive but captured only 35.620329 percent of parent Validation normal return, had worse 37.51083494 percent drawdown than the 32.46947715 percent parent and had 0.98966029 Calmar below the frozen stability requirement. NR10 captured only 5.461817 percent of parent return with 0.28225988 Calmar; under stress it returned only 3.11976769 percent. NR10's strong Design result cannot replace the primary after outcome access, and both neighbors failed their frozen Validation stability gates.",
+      "name": "NEIGHBOR_STABILITY",
+      "status": "FAIL"
+    },
+    {
+      "evidence": "Forty-six gates passed and 32 failed. The valid disposition is BTC_DAILY_NR7_VOLATILITY_CONTRACTION_BREAKOUT_FAMILY_CLOSE. The exact strict normalized-true-range NR5/NR7/NR10 contraction, immediately-next-day prior-high H1-close breakout and 168-hour long/cash family is permanently closed; no range estimator, lookback, tie rule, breakout level, hold, stop, weight, cost, window, parent, neighbor selection or gate may be tuned to rescue it.",
+      "name": "TERMINAL_DISPOSITION",
+      "status": "PASS"
+    },
+    {
+      "evidence": "No canonical-state or server Research MCP write, schedule change, paid API, network request, external backfill, deployment, database mutation, and no Trading, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred. OOS remained unopened.",
+      "name": "FORBIDDEN_ACTION_AND_SAFETY_BOUNDARY",
+      "status": "PASS"
+    }
+  ],
+  "completed_at": "2026-08-24T12:45:00Z",
+  "files_changed": [],
+  "recommended_next_action": "Permanently tombstone the exact NR5/NR7/NR10 normalized-true-range contraction-conditioned immediately-next-day prior-high breakout with a fixed 168-hour hold. Reuse the learning rather than tuning it: the contraction filter produced adequate sample support and clean terminal accounting but removed nearly all 2023-2024 upside while worsening drawdown. Preserve the separate open DRA forward range-expansion family and closed 20/10 Donchian family; rotate to a mathematically and economically distinct free-data mechanism.",
+  "safety_assertions": {
+    "canonical_state_changed": false,
+    "oos_opened": false,
+    "paid_api_used": false,
+    "second_timer_created": false,
+    "server_research_mcp_write_attempted": false,
+    "trading_action_attempted": false
+  },
+  "schema_version": "1",
+  "source_git_commit": "95a3d27dbbbadbe7779a22f1a4e27e4dfaa4be88",
+  "source_git_dirty_after": false,
+  "source_git_dirty_before": false,
+  "started_at": "2026-08-24T12:43:30Z",
+  "status": "COMPLETED",
+  "summary": "BTC_DAILY_NR7_VOLATILITY_CONTRACTION_BREAKOUT_FAMILY_CLOSE. Two create-only executions produced byte-identical SHA-256 2fbb4335193b3aefe4e464c4e36549b302db5aea2f01f601f5e87fb733b2b34c. NR7 passed support, terminal, holding and concentration checks, but failed 32 of 78 frozen gates. Design drawdown remained too high relative to buy-and-hold. Validation normal return was 17.73458741 percent versus 247.35427699 percent for the identical breakout parent and 464.75475156 percent for buy-and-hold, while drawdown worsened to 42.52778116 percent versus 32.46947715 and 32.28416349 percent. Stress return fell to 3.17562165 percent with 44.55998545 percent drawdown. Normal annual return, drawdown and Calmar breadth were only 1/5, 2/5 and 1/5; stress positive breadth was 3/5. NR5 and NR10 also failed Validation stability. The exact family is permanently closed without tuning, candidate creation or OOS access.",
+  "task_id": "local-node-btc-daily-nr7-volatility-contraction-breakout-v2",
+  "task_sha256": "35f455cb1095473dc315a62e635df3d9c770d1455dff211da339cf7c7092eb5e",
+  "uncertainty": [
+    "Historical Validation is development evidence rather than clean independent OOS; the closure applies to the exact NR5, NR7 and NR10 normalized-true-range, immediately-next-day prior-high breakout and 168-hour long/cash family and does not prove every volatility-contraction or breakout mechanism lacks value.",
+    "The fixed 168-hour hold may be economically mismatched to a short-lived breakout, but changing it after outcome access would define a new post-hoc family and is prohibited as a rescue.",
+    "NR10 had a strong Design result but was preregistered as rejection-only and failed Validation return and Calmar stability; it cannot be promoted or selectively rerun.",
+    "No post-outcome year, regime, volatility estimator, breakout threshold, stop or exit taxonomy may be introduced to rescue this family.",
+    "No post-2024, independent OOS, forward, SHADOW, PAPER or LIVE evidence was opened or created."
+  ]
+}

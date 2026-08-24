@@ -4271,6 +4271,42 @@
       "parent_strategy_id": "NONE_PRE_ECONOMIC_LITERATURE_AND_DEDUPLICATION_GATE",
       "prohibited_reopen": true,
       "title": "Low-complexity predecision BTC return-trajectory magnitude stability"
+    },
+    {
+      "decision_feature": "ANNUALIZED_RMS_OF_LATEST_8_13_OR_26_COMPLETE_WEEKLY_DTWEXBGS_LOG_CHANGES_STRICTLY_ABOVE_MEDIAN_OF_PRIOR_52_AVAILABLE_SAME_LOOKBACK_VALUES_WITH_FRIDAY_PLUS_FIVE_DAY_AVAILABILITY",
+      "disposition": "BTC_BROAD_DOLLAR_VOLATILITY_PASSIVE_CORE_FAMILY_CLOSE",
+      "duplicate_family_key": "btc-broad-dollar-volatility-passive-core-risk-overlay",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-broad-dollar-volatility-passive-core-risk-overlay-v1.json",
+          "role": "SCHEMA_VALIDATED_BYTE_IDENTICAL_DIRECT_ECONOMIC_FAMILY_CLOSURE",
+          "sha256": "dbff41e57d3d4a8b71b526fc9153a2326b0df0a47d039e6a04d28c779ef572c5"
+        },
+        {
+          "path": "research_pipeline/examples/local-weekly-output-classification.acceptance.btc-broad-dollar-volatility-passive-core-risk-overlay-v1.json",
+          "role": "MANAGER_ACCEPTED_COUNTABLE_DIRECT_MECHANISM_CLOSURE",
+          "sha256": "3e3f5cecfc54659a2816ddf3d926695e29bf53df7093767f0d570bdfd6937043"
+        },
+        {
+          "path": "research_pipeline/examples/btc-broad-dollar-volatility-passive-core-risk-overlay-historical.v1.manifest.json",
+          "role": "FROZEN_THREE_VARIANT_MATCHED_CAPITAL_HISTORICAL_MANIFEST",
+          "sha256": "c7b5a450a45f07b1a91d0025a0f6d4240549fc7ce2dd200eb79bcb0122c6648b"
+        },
+        {
+          "path": "research_pipeline/examples/btc-broad-dollar-volatility-passive-core-risk-overlay-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_MECHANISM_AND_CLOSED_FAMILY_DEDUPLICATION_PRIOR",
+          "sha256": "0b4dc59b50c323eff2c4c3253c1d25301aa48235a9c7b6f3bfaea8f9421fae81"
+        },
+        {
+          "path": ".research-state/experiments/btc-broad-dollar-volatility-passive-core-risk-overlay-historical-v1/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
+          "sha256": "a98b9d81f9c11149c9ab4970a6450156627d723b1d76fb757d01451285173883"
+        }
+      ],
+      "family_id": "closed-btc-broad-dollar-volatility-passive-core-risk-overlay-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_WITH_ZERO_YIELD_CASH_FOR_DE_RISKED_HALF",
+      "prohibited_reopen": true,
+      "title": "Lagged broad-dollar volatility 100/50-percent Bitcoin passive-core risk overlay"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

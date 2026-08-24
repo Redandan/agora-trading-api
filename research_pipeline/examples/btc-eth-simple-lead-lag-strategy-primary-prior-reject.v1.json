@@ -1,0 +1,98 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_ETH_SIMPLE_LEAD_LAG_STRATEGY_PRIMARY_PRIOR_REJECT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-eth-simple-return-or-volatility-lead-lag-strategy",
+  "created_at": "2026-08-24T14:46:08Z",
+  "status": "NO_HYPOTHESIS_PRIMARY_PRIOR_AND_DEDUPLICATION_GATE_CLOSE",
+  "decision": "DO_NOT_REGISTER_A_SIMPLE_DAILY_ETH_TO_NEXT_BTC_RETURN_OR_VOLATILITY_STRATEGY_WITHOUT_AN_EXTERNALLY_FIXED_TRANSFERABLE_FEATURE_DIRECTION_HORIZON_AND_THRESHOLD",
+  "considered_lineage": {
+    "mechanism_question": "Can one low-complexity decision-time-known ETH daily state predict the next BTC directional or volatility state strongly enough to map to a BTC long-or-cash or full-versus-half-risk policy?",
+    "allowed_complexity": "ONE_FIXED_NONFITTED_DAILY_FEATURE_ONE_FIXED_HORIZON_ONE_FIXED_DIRECTION_ONE_FIXED_THRESHOLD",
+    "available_source": "EXISTING_SEALED_CHECKSUM_BOUND_BINANCE_BTCUSDT_ETHUSDT_2020_2024_COMPLETE_DAILY_INTERSECTION",
+    "source_status": "READY_BUT_NOT_SUFFICIENT_FOR_MECHANISM_ADMISSION",
+    "variants_admitted": 0
+  },
+  "primary_and_adversarial_prior": [
+    {
+      "identity": "Sifat, Mohamad and Mohamed Shariff, Lead-Lag relationship between Bitcoin and Ethereum: Evidence from hourly and daily data, Research in International Business and Finance 50, 2019, DOI 10.1016/j.ribaf.2019.06.012",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0275531919300522",
+      "finding": "The paper applies VECM, Granger causality, ARMA, ARDL and wavelet coherence to one year of hourly and daily BTC and ETH data. Its tests are varied, largely suggest bidirectional causality, and conclude that traders can barely exploit the price-discovery process.",
+      "role": "DIRECT_BTC_ETH_LEAD_LAG_AND_ADVERSARIAL_TRADABILITY_PRIOR",
+      "transfer_boundary": "A fitted and lag-selected mixed result supplies no fixed ETH feature, one-way direction, threshold or holding horizon for a preregistered simple BTC policy."
+    },
+    {
+      "identity": "Beneki, Koulis, Kyriazis and Papadamou, Investigating volatility transmission and hedging properties between Bitcoin and Ethereum, Research in International Business and Finance 48, 2019, DOI 10.1016/j.ribaf.2019.01.001",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0275531918307165",
+      "finding": "The BEKK-GARCH and VAR impulse-response study reports time-varying correlation and a delayed positive BTC-volatility response to an ETH volatility shock that peaks inside ten days and then fades.",
+      "role": "ETH_TO_BTC_VOLATILITY_SPILLOVER_MECHANISM_PRIOR",
+      "transfer_boundary": "A fitted conditional-volatility shock and impulse-response path does not identify a fixed realized-volatility formula, threshold, one-day decision or executable risk weight."
+    },
+    {
+      "identity": "Smales, Volatility Spillovers among Cryptocurrencies, Journal of Risk and Financial Management 14(10), 493, 2021, DOI 10.3390/jrfm14100493",
+      "url": "https://www.mdpi.com/1911-8074/14/10/493",
+      "finding": "The multivariate GARCH study reports bidirectional return and long-run BTC-ETH volatility spillovers but only short-run BTC-to-ETH volatility transmission, while conditional correlation changes materially through time.",
+      "role": "ADVERSARIAL_DIRECTION_AND_REGIME_PRIOR",
+      "transfer_boundary": "The reported short-run volatility direction conflicts with a simple ETH-leads-BTC risk rule and remains model-dependent rather than a fixed trading feature."
+    },
+    {
+      "identity": "Gemici and Polat, Causality-in-mean and causality-in-variance among Bitcoin, Litecoin, and Ethereum, Studies in Economics and Finance 38(4), 2021, DOI 10.1108/SEF-07-2020-0251",
+      "url": "https://doi.org/10.1108/SEF-07-2020-0251",
+      "finding": "After structural-break treatment, the study reports one-way mean causality from BTC to ETH and no ETH-to-BTC causality-in-mean in its sample.",
+      "role": "ADVERSARIAL_ETH_TO_BTC_DIRECTIONAL_PRIOR",
+      "transfer_boundary": "The result directly weakens a simple ETH-return-leading-BTC-return rule and does not fix an alternative transferable variance threshold."
+    }
+  ],
+  "closed_family_deduplication": [
+    {
+      "family": "btc-eth-static-log-spread-one-day-convergence",
+      "binding": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-predictive.v1.decision.json",
+      "sha256": "758ebfc60a676cfe0ec63d8fed5c1685c6d9534e42f34099174f233a16e34e57",
+      "boundary": "A fixed formation-period BTC-ETH price relation already failed preregistered predictive stability and convergence gates before economics."
+    },
+    {
+      "family": "dra-eth-relative-strength-breadth-entry-admission",
+      "binding": "research_pipeline/examples/dra-eth-relative-strength-breadth-entry-admission-source-gate.v1.decision.json",
+      "sha256": "0071f07247454a6d544b51af5e6e5814a9db98680598bcaffc8969dd188b5ea4",
+      "boundary": "The exact ETH-minus-BTC 28-day relative-strength route is already closed at its frozen source boundary and cannot be recreated with a provider substitution."
+    },
+    {
+      "family": "btc-eth-fixed-universe-monthly-low-volatility-rotation",
+      "binding": "research_pipeline/examples/btc-eth-fixed-universe-monthly-low-volatility-rotation-source-boundary.v1.decision.json",
+      "sha256": "3f3e7e79f051a448baba96863cf1ae473e103efdc5fd15ac806925947cdff256",
+      "boundary": "The two-asset lower-volatility rotation is closed under its explicit source-substitution prohibition."
+    },
+    {
+      "family": "btc-eth-monthly-equal-weight-rebalancing-premium",
+      "binding": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.decision.json",
+      "sha256": "c606609f9dfe5022927e773f133243998c89922fb4e8444c657cc3435a9d7a4c",
+      "boundary": "The long-only two-asset monthly rebalancing mechanism already has a terminal matched-capital decision and is not a lead-lag rescue path."
+    }
+  ],
+  "source_readiness_evidence": {
+    "binding": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.decision.json",
+    "sha256": "8dc227dabcebea43c7a22d286fe70d7353d454563649038109a6247c69755e14",
+    "facts": "A byte-identical Binance BTCUSDT and ETHUSDT complete-daily 2020-2024 intersection exists with 1827 days per symbol and no missing or duplicate days.",
+    "interpretation": "This closure is not caused by unavailable data. It is caused by the absence of one externally fixed, low-complexity, nonduplicate causal mapping before outcome access."
+  },
+  "why_no_hypothesis": [
+    "The direct lead-lag literature is bidirectional, model- and lag-dependent, sample-sensitive and adversarial on simple tradability.",
+    "The volatility-spillover literature does not agree on the short-run direction and does not specify a nonfitted realized-volatility transform or threshold.",
+    "Choosing one lag, absolute-return threshold, rolling volatility window, relative-volatility ratio or risk weight now would be researcher-selected translation rather than replication of a fixed primary mechanism.",
+    "The nearest low-complexity BTC-ETH price, relative-strength, volatility-selection and rebalancing lineages are already closed and may not be rescued through renamed features."
+  ],
+  "missing_proof": [
+    "No primary source was found that fixes one simple ETH observation, direction, threshold and horizon for predicting next BTC direction or volatility independently of fitted model selection.",
+    "No lead-lag feature, return, volatility, threshold support, matched-capital PnL, drawdown, Calmar, holding, inventory, candidate, OOS or forward evidence was computed.",
+    "A genuinely new formula could be reconsidered only if a future pre-outcome primary source specifies it independently and it survives exact closed-family fingerprinting."
+  ],
+  "prohibited_reopen": [
+    "Do not invent or scan ETH return, absolute-return, realized-volatility, volume, correlation or spread windows, lags, thresholds, directions or BTC risk weights from the existing 2020-2024 source.",
+    "Do not relabel the closed ETH relative-strength, static spread-convergence, low-volatility rotation or equal-weight rebalancing families as lead-lag.",
+    "Do not fit VAR, VECM, ARDL, GARCH, wavelet, rolling beta or dynamic-correlation models and select a profitable specification on the sealed historical outcomes.",
+    "Do not open post-2024 or OOS evidence for this rejected no-hypothesis lineage."
+  ],
+  "reconsideration_trigger": "ONE_NEW_PRIMARY_SOURCE_PUBLISHED_OR_LOCATED_BEFORE_OUTCOME_ACCESS_THAT_FIXES_A_LOW_COMPLEXITY_ETH_TO_BTC_FEATURE_DIRECTION_HORIZON_AND_THRESHOLD_DISTINCT_FROM_ALL_BOUND_TOMBSTONES",
+  "material_learning": "Having a clean free two-asset corpus does not make a factor research-ready. When the literature supports only fitted, bidirectional and regime-varying connectedness, turning that relationship into a binary ETH-leads-BTC strategy requires researcher-selected lags and thresholds. That is a model search, not an externally anchored hypothesis, and should close before another backtest.",
+  "scope_note": "External primary-prior and local tombstone deduplication only. No BTC or ETH source value, factor, return, volatility, fitted model, hypothesis, manifest, runner, strategy economics, candidate, post-2024 outcome, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

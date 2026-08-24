@@ -4529,6 +4529,32 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_NONREDUNDANCY_GATES_HAD_PASSED",
       "prohibited_reopen": true,
       "title": "Coin Metrics Bitcoin 30/60-day hash-rate health-state long-or-cash policy"
+    },
+    {
+      "decision_feature": "NO_FIXED_LOW_COMPLEXITY_ETH_TO_NEXT_BTC_RETURN_OR_VOLATILITY_FEATURE_DIRECTION_HORIZON_AND_THRESHOLD_SURVIVED_PRIMARY_PRIOR_AND_DEDUPLICATION",
+      "disposition": "NO_HYPOTHESIS_PRIMARY_PRIOR_AND_DEDUPLICATION_GATE_CLOSE",
+      "duplicate_family_key": "btc-eth-simple-daily-return-or-volatility-lead-lag-strategy",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-eth-simple-lead-lag-strategy-primary-prior-reject.v1.json",
+          "role": "SEALED_EXTERNAL_PRIMARY_ADVERSARIAL_AND_LOCAL_DEDUPLICATION_PRIOR_REJECT",
+          "sha256": "3505a84525f5c4e1095eb88b6423be6ce437aa0c47d173c49d9769e12c2033fa"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-source.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_BTC_ETH_DAILY_SOURCE_READINESS_EVIDENCE",
+          "sha256": "8dc227dabcebea43c7a22d286fe70d7353d454563649038109a6247c69755e14"
+        },
+        {
+          "path": "research_pipeline/examples/btc-eth-static-log-spread-one-day-convergence-predictive.v1.decision.json",
+          "role": "SEALED_NEAREST_FIXED_PAIR_PREDICTIVE_FAMILY_CLOSURE",
+          "sha256": "758ebfc60a676cfe0ec63d8fed5c1685c6d9534e42f34099174f233a16e34e57"
+        }
+      ],
+      "family_id": "closed-btc-eth-simple-lead-lag-primary-prior-reject-v1",
+      "parent_strategy_id": "NO_PARENT_SELECTED_PRIMARY_PRIOR_REJECT_BEFORE_HYPOTHESIS",
+      "prohibited_reopen": true,
+      "title": "Simple daily ETH-to-next-BTC return or volatility lead-lag strategy"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

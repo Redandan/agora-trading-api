@@ -88,7 +88,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 165)
+        self.assertEqual(len(catalog["closed_families"]), 166)
         closed_nr7 = next(
             family
             for family in catalog["closed_families"]
@@ -2248,6 +2248,29 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
         )
         self.assertTrue(hash_ribbon["prohibited_reopen"])
+        btc_eth_lead_lag = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-eth-simple-lead-lag-primary-prior-reject-v1"
+        )
+        self.assertEqual(
+            btc_eth_lead_lag["disposition"],
+            "NO_HYPOTHESIS_PRIMARY_PRIOR_AND_DEDUPLICATION_GATE_CLOSE",
+        )
+        self.assertEqual(
+            btc_eth_lead_lag["duplicate_family_key"],
+            "btc-eth-simple-daily-return-or-volatility-lead-lag-strategy",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in btc_eth_lead_lag["evidence_bindings"]],
+            [
+                "SEALED_EXTERNAL_PRIMARY_ADVERSARIAL_AND_LOCAL_DEDUPLICATION_PRIOR_REJECT",
+                "SEALED_BYTE_IDENTICAL_BTC_ETH_DAILY_SOURCE_READINESS_EVIDENCE",
+                "SEALED_NEAREST_FIXED_PAIR_PREDICTIVE_FAMILY_CLOSURE",
+            ],
+        )
+        self.assertTrue(btc_eth_lead_lag["prohibited_reopen"])
         self.assertTrue(
             all(
                 binding["verified"]
@@ -2265,7 +2288,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 166)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 167)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

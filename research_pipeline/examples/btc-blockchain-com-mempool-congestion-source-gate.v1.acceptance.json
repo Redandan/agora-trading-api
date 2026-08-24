@@ -1,0 +1,18 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BLOCKCHAIN_COM_MEMPOOL_CONGESTION_SOURCE_GATE_ACCEPTANCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-blockchain-com-mempool-congestion-risk-veto",
+  "accepted_at": "2026-08-24T16:11:19Z",
+  "source_result": {
+    "path": "research_pipeline/examples/btc-blockchain-com-mempool-congestion-source-gate.v1.json",
+    "sha256": "120f708b558f6240a8b42837cf938da4c326139460160cf84d7dbde63ce4b89a"
+  },
+  "decision": "ACCEPT_DATA_REJECT_FREE_MACHINE_READABLE_HISTORY_UNAVAILABLE",
+  "reason": "Blockchain.com documents public mempool charts and a JSON chart API pattern, but the bounded schema-only probes for both mempool count and mempool size returned HTTP 404. Historical coverage, time identity and revisions therefore remain unproven, so no hypothesis or economic screen is admissible.",
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_reopen": true,
+  "next_action": "KEEP_THE_EXISTING_DEFERRED_POOL_SLOT_UNCHANGED_AND_SELECT_A_DIFFERENT_INDEPENDENT_MECHANISM_ONLY_WHEN_ITS_MACHINE_READABLE_FREE_DATA_PATH_PASSES_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
+  "scope_note": "Acceptance of a sealed source DATA_REJECT only. No historical import, factor, outcome, experiment, candidate, OOS, canonical state, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

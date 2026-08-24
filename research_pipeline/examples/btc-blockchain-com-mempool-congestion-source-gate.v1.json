@@ -1,0 +1,68 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_BLOCKCHAIN_COM_MEMPOOL_CONGESTION_SOURCE_GATE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-blockchain-com-mempool-congestion-risk-veto",
+  "created_at": "2026-08-24T16:10:32Z",
+  "status": "DATA_REJECT_FREE_MACHINE_READABLE_HISTORY_UNAVAILABLE",
+  "decision": "DO_NOT_ALLOCATE_A_HYPOTHESIS_OR_HISTORICAL_SCREEN_WITHOUT_A_SUCCESSFUL_MACHINE_READABLE_MEMPOOL_SOURCE_PROBE",
+  "considered_mechanism": {
+    "question": "Can a lagged extreme Bitcoin mempool backlog identify a congestion or speculative-excess state in which a matched-capital BTC long-or-cash risk veto improves drawdown without destroying total PnL?",
+    "candidate_feature": "LATEST_COMPLETE_DAY_MEMPOOL_BACKLOG_RELATIVE_TO_ITS_PRIOR_POINT_IN_TIME_DISTRIBUTION",
+    "candidate_variants_admitted": 0,
+    "factor_values_opened": false,
+    "btc_outcomes_opened": false
+  },
+  "primary_source_contract": {
+    "provider": "Blockchain.com Explorer",
+    "chart_api_documentation": "https://www.blockchain.com/explorer/api/charts_api",
+    "mempool_count_documentation": "https://www.blockchain.com/explorer/charts/mempool-count",
+    "mempool_size_documentation": "https://www.blockchain.com/explorer/charts/mempool-size",
+    "documented_transport": "GET https://api.blockchain.info/charts/$chartName with UTC date parameters and JSON or CSV format",
+    "documented_semantics": "Mempool count is the number of unconfirmed transactions; mempool size is the aggregate bytes waiting for confirmation and is assembled from Blockchain.com Bitcoin nodes."
+  },
+  "schema_only_probes": [
+    {
+      "url": "https://api.blockchain.info/charts/mempool-count?timespan=1month&format=json&sampled=false",
+      "http_status": 404,
+      "result": "SOURCE_ROUTE_UNAVAILABLE"
+    },
+    {
+      "url": "https://api.blockchain.info/charts/mempool-size?timespan=1month&format=json&sampled=false",
+      "http_status": 404,
+      "result": "SOURCE_ROUTE_UNAVAILABLE"
+    }
+  ],
+  "source_gate": {
+    "probe_window_utc": "2026-08-24T16:05:00Z/2026-08-24T16:10:32Z",
+    "credential_required": false,
+    "paid_api_used": false,
+    "manual_export_used": false,
+    "machine_readable_schema_proven": false,
+    "timestamp_field_proven": false,
+    "point_in_time_identity_proven": false,
+    "revision_identity_proven": false,
+    "historical_coverage_proven": false,
+    "prospective_availability_proven": false,
+    "further_requests_permitted_for_this_lineage": false
+  },
+  "deduplication_boundary": {
+    "nearest_closed_family": "dra-coinmetrics-btc-native-transaction-fee-pressure-adjacent-28d-growth-entry-admission",
+    "distinction_if_source_had_passed": "An unconfirmed backlog level is a stock of unmet blockspace demand, whereas the closed family used confirmed native transaction-fee growth as a DRA admission flow.",
+    "outcome_aware_rescue_prohibited": "Do not substitute confirmed fees, transaction count, active addresses, exchange flow, MVRV or NVT after the mempool route failed; those primitives already have sealed terminal dispositions."
+  },
+  "missing_proof": [
+    "No documented machine-readable mempool route returned a schema-bearing response in the bounded probe.",
+    "Historical row count, daily completeness, timestamp convention, vintage or revision behavior and prospective availability remain unproven.",
+    "No primary source fixes a BTC allocation direction, threshold or holding rule from mempool backlog.",
+    "No feature, hypothesis, manifest, runner, PnL, drawdown, stability, candidate, OOS or forward evidence was created or opened."
+  ],
+  "prohibited_reopen": [
+    "Do not retry the two failed Blockchain.com chart routes or use an undocumented browser export in this lineage.",
+    "Do not scan mempool thresholds, lookbacks, cash weights or holding periods without a new executable point-in-time source contract fixed before outcomes.",
+    "Do not relabel the closed fee-pressure, transaction-activity, exchange-flow, MVRV or NVT families as a mempool replacement."
+  ],
+  "reconsideration_trigger": "ONE_NEW_DOCUMENTED_FREE_NO_CREDENTIAL_MACHINE_READABLE_MEMPOOL_HISTORY_WITH_AT_LEAST_2018_2024_COVERAGE_TIMESTAMP_AND_REVISION_IDENTITY_AND_PROSPECTIVE_AVAILABILITY_PROVEN_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
+  "material_learning": "A visible public chart is not an executable historical data path. The documented no-credential chart API returned 404 for both mempool count and mempool size, so the mechanism stops at DATA_REJECT instead of using a manual export or substituting a related closed on-chain primitive.",
+  "scope_note": "Primary documentation and two schema-only HTTP probes only. No historical import, browser export, factor value, BTC outcome, hypothesis, experiment, runner, candidate, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

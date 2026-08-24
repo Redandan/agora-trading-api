@@ -898,6 +898,27 @@
       "parent_strategy_id": "NO_PARENT_SELECTED_PRIMARY_PRIOR_REJECT_BEFORE_HYPOTHESIS",
       "prohibited_reopen": true,
       "title": "Single-BTC active-addresses-to-network-value own-history timing translation"
+    },
+    {
+      "decision_feature": "NO_MACHINE_READABLE_BLOCKCHAIN_COM_MEMPOOL_HISTORY_SURVIVED_THE_PRE_FACTOR_SOURCE_GATE",
+      "disposition": "DATA_REJECT_FREE_MACHINE_READABLE_HISTORY_UNAVAILABLE",
+      "duplicate_family_key": "btc-blockchain-com-mempool-backlog-extreme-congestion-risk-veto",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-blockchain-com-mempool-congestion-source-gate.v1.json",
+          "role": "SEALED_PRE_FACTOR_FREE_SOURCE_DATA_REJECT",
+          "sha256": "120f708b558f6240a8b42837cf938da4c326139460160cf84d7dbde63ce4b89a"
+        },
+        {
+          "path": "research_pipeline/examples/btc-blockchain-com-mempool-congestion-source-gate.v1.acceptance.json",
+          "role": "MANAGER_ACCEPTED_SOURCE_DATA_REJECT_FAMILY_CLOSURE",
+          "sha256": "1cdec8a3b30173a794ec826afb0a547ee9d2248c325333fb783940f1765d46ef"
+        }
+      ],
+      "family_id": "closed-btc-blockchain-com-mempool-congestion-source-gate-v1",
+      "parent_strategy_id": "NO_PARENT_SELECTED_SOURCE_REJECT_BEFORE_HYPOTHESIS",
+      "prohibited_reopen": true,
+      "title": "Blockchain.com mempool backlog extreme-congestion BTC risk veto"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

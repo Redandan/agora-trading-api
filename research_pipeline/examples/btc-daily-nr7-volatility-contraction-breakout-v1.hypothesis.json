@@ -1,0 +1,36 @@
+{
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "created_at": "2026-08-24T12:21:00Z",
+  "data_readiness": "READY",
+  "economic_rationale": "The strict narrow-range setup is useful only if it improves the quality of an otherwise identical one-day-high breakout, not merely by withholding capital. The candidate must preserve sufficient parent and buy-and-hold return while improving after-cost drawdown and Calmar with annual and neighbor breadth.",
+  "expected_metrics": [
+    "fee_adjusted_total_return_and_parent_delta",
+    "realized_return",
+    "unrealized_return",
+    "maximum_drawdown",
+    "maximum_underwater_duration",
+    "calmar_ratio",
+    "parent_and_buy_hold_return_capture",
+    "setup_and_breakout_support",
+    "turnover",
+    "holding_age",
+    "terminal_inventory",
+    "annual_breadth",
+    "neighbor_stability"
+  ],
+  "hypothesis_id": "btc-daily-nr7-volatility-contraction-breakout-v1",
+  "mechanism": "A complete UTC day whose normalized true range is strictly the smallest of the latest seven complete days is an NR7 setup. On the next UTC day only, the first complete H1 close strictly above that setup day's high queues a full-capital unlevered BTC entry at the next H1 open. Hold exactly 168 hours, then exit at that H1 open. NR5 and NR10 are rejection-only neighbors.",
+  "parent": "IDENTICAL_PRIOR_COMPLETE_DAY_HIGH_BREAKOUT_168H_LONG_CASH_POLICY_WITHOUT_NR_FILTER",
+  "ranking": {
+    "economic_mechanism": 4,
+    "evidence_readiness": 5,
+    "interpretability": 5,
+    "opportunity_cost_reduction": 4
+  },
+  "required_capability": "btc-daily-nr7-volatility-contraction-breakout-v1-direct-economic-runner",
+  "research_cycle_id": "2026-08-24-candidate-factory-cycle-nr7-breakout",
+  "schema_version": "1",
+  "source": "SEALED_PRE2025_OKX_BTC_USDT_H1_CORPUS",
+  "title": "BTC Daily NR7 Volatility-Contraction Breakout V1",
+  "thesis": "A strict NR7 complete-day contraction followed by a causal next-day prior-high breakout improves after-cost risk-adjusted performance versus the same breakout without the contraction filter."
+}

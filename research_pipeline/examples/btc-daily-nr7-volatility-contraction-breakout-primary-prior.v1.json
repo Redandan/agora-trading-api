@@ -1,0 +1,73 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_NR7_VOLATILITY_CONTRACTION_BREAKOUT_PRIMARY_PRIOR_V1",
+  "family_id": "btc-daily-nr7-volatility-contraction-breakout-long-cash",
+  "reviewed_at": "2026-08-24T12:20:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "COMPLETED_PREREGISTRATION_READY_NO_FAMILY_OUTCOME_ACCESS",
+  "decision": "PRIOR_SUPPORTS_ONE_FROZEN_NR7_CONTRACTION_CONDITIONED_BREAKOUT_SCREEN",
+  "claim_boundary": "Published breakout and volatility evidence supports testing whether an unusually narrow complete-day range contains information about a subsequent directional expansion. It does not establish Bitcoin alpha, the NR7 horizon, a seven-day holding period or superiority to an otherwise identical unconditioned breakout control.",
+  "causal_hypothesis": "A strict lowest-normalized-true-range day may represent temporarily balanced inventory and compressed risk transfer. A subsequent close above that day's high is the directional information event; if the contraction is useful, those breakouts should preserve more return per unit of drawdown than all prior-day-high breakouts.",
+  "economic_hypothesis": "A full-capital unlevered BTC entry at the first next-H1 open after a next-day close above a strict NR7 setup high, held for exactly 168 hours, improves after-cost Calmar and drawdown versus the identical unconditioned breakout parent while retaining sufficient return and annual breadth.",
+  "primary_prior_matrix": [
+    {
+      "identity": "Zhou and Sornette, Scaling and Volatility of Breakouts and Breakdowns in Stock Price Dynamics, PLOS ONE 8(12), 2013",
+      "source": "https://doi.org/10.1371/journal.pone.0082771",
+      "role": "PRIMARY_BREAKOUT_DISTRIBUTION_PRIOR",
+      "finding": "The paper documents structured heavy-tailed distributions of breakouts and breakdowns across horizons in U.S. and Chinese equities.",
+      "transfer_boundary": "Cross-sectional equity breakout distributions do not establish a profitable long-only BTC policy, a contraction condition, execution costs or this fixed holding horizon."
+    },
+    {
+      "identity": "Katsiampa, Corbet and Lucey, An empirical investigation of volatility dynamics in the cryptocurrency market, Research in International Business and Finance 50, 2019",
+      "source": "https://doi.org/10.1016/j.ribaf.2019.06.004",
+      "role": "PRIMARY_CRYPTO_VOLATILITY_PERSISTENCE_PRIOR",
+      "finding": "The study finds cryptocurrency conditional variance responds to past shocks and past conditional volatility, with asymmetric effects for major assets including Bitcoin.",
+      "transfer_boundary": "Conditional-volatility persistence does not imply that an NR7 setup forecasts an upward break or after-cost return."
+    },
+    {
+      "identity": "Agora sealed BTC standalone Donchian 20-day breakout and 10-day breakdown decision",
+      "source": "research_pipeline/examples/btc-donchian-20d-10d-standalone-historical.v1.decision.json",
+      "role": "INTERNAL_ADVERSARIAL_AND_DEDUP_PRIOR",
+      "finding": "The unconditional long-only 20/10 Donchian policy was positive but failed upside, Calmar and concentration gates and is permanently closed.",
+      "transfer_boundary": "The present family cannot change that policy's periods, stops, risk fraction or exits. It uses a different one-day reference breakout and asks whether a strict pre-breakout contraction adds value over an exact unconditioned one-day breakout control."
+    },
+    {
+      "identity": "Agora sealed DRA range-confirmation forward family",
+      "source": "research_pipeline/pre-candidate-pool.v1.json",
+      "role": "OPEN_FAMILY_DEDUP_BOUNDARY",
+      "finding": "The open prospective family measures expansion of a latest complete day's range relative to a prior 20-day median only when an unchanged DRA entry signal occurs.",
+      "transfer_boundary": "NR7 is a strict contraction setup for a standalone later breakout and fixed holding period; it cannot consume, reinterpret or replace the forward DRA range family."
+    }
+  ],
+  "frozen_pre_outcome_contract": {
+    "source": "SEALED_PRE2025_OKX_BTC_USDT_H1_CORPUS",
+    "range_formula": "NORMALIZED_TRUE_RANGE_USING_PREVIOUS_COMPLETE_DAY_CLOSE",
+    "primary_setup": "STRICT_NR7",
+    "rejection_only_neighbors": ["STRICT_NR5", "STRICT_NR10"],
+    "direction_event": "FIRST_NEXT_DAY_COMPLETE_H1_CLOSE_STRICTLY_ABOVE_SETUP_DAY_HIGH",
+    "execution": "NEXT_H1_OPEN",
+    "holding_period_hours": 168,
+    "matched_parent": "IDENTICAL_PRIOR_DAY_HIGH_BREAKOUT_168H_POLICY_WITHOUT_NR_FILTER",
+    "opportunity_cost": "FULL_CAPITAL_BUY_AND_HOLD",
+    "variants": 3
+  },
+  "independence_assessment": {
+    "distinct_from_closed_donchian": "No 20-day entry channel, 10-day exit channel, ATR stop or one-percent risk sizing is used. The parent is a one-day high breakout and the candidate contribution is strict prior-day contraction.",
+    "distinct_from_open_dra_range": "The open family is a prospective DRA admission filter on range expansion. This is a historical standalone contraction-conditioned breakout with a different parent, action, clock and holding ledger.",
+    "distinct_from_closed_bollinger_mean_reversion": "No moving average, standard-deviation band, lower-cross entry, upper-cross exit or mean-reversion direction is used.",
+    "duplicate_family_key": "btc-daily-nr5-7-10-volatility-contraction-conditioned-prior-day-high-breakout-168h-long-cash"
+  },
+  "stop_conditions": [
+    "Freeze runner, hypothesis, manifest, source hashes, costs, windows, parent and all-pass gates before opening this family's outcome.",
+    "Primary is strict NR7; strict NR5 and NR10 are rejection-only and cannot replace it after outcome access.",
+    "Require the exact unconditioned one-day-high-breakout 168-hour control to be positive; a failed parent is BASELINE_REJECT, not permission to change the breakout or holding clock.",
+    "Any primary or neighbor gate failure permanently closes the exact family without range estimator, lookback, relation, breakout level, hold, stop, weight, cost, window or parent tuning.",
+    "A positive historical result remains REPORTED_NOT_ACTIVATED and authorizes at most one separately sealed independent OOS."
+  ],
+  "missing_proof": [
+    "No NR5, NR7 or NR10 setup, breakout, trade, PnL, drawdown, Calmar, annual breadth or terminal outcome has been observed for this family.",
+    "The prior supports only a testable mechanism and does not prove independent alpha or point-in-time live execution quality."
+  ],
+  "next_gate": "FREEZE_AND_RUN_ONE_THREE_VARIANT_MATCHED_CONTROL_HISTORICAL_SCREEN",
+  "scope_note": "Prior and dedup boundary only. No family outcome, candidate, OOS, paid API, timer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

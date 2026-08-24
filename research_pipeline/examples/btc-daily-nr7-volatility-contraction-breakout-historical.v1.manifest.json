@@ -1,0 +1,176 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DAILY_NR7_VOLATILITY_CONTRACTION_BREAKOUT_HISTORICAL_MANIFEST_V1",
+  "experiment_id": "btc-daily-nr7-volatility-contraction-breakout-historical-v1",
+  "created_at": "2026-08-24T12:22:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "research_classification": "HISTORICAL_PREREGISTERED_DESIGN_VALIDATION_NO_OOS",
+  "selection_cutoff": "2025-01-01T00:00:00",
+  "oos_access": "DENY",
+  "thesis": "A strict NR7 complete-day contraction followed by a causal next-day prior-high breakout improves after-cost risk-adjusted performance versus the same breakout without the contraction filter.",
+  "economic_rationale": "The contraction condition must add quality to an otherwise identical breakout and fixed holding ledger. A candidate requires sufficient parent and passive return capture, lower drawdown, higher Calmar, broad annual support and stable NR5/NR10 rejection-only neighbors.",
+  "dataset": {
+    "path": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "hourly_rows": 52608,
+    "first_open_time": "2019-01-01T00:00:00",
+    "last_close_time": "2025-01-01T00:00:00",
+    "selection_cutoff": "2025-01-01T00:00:00"
+  },
+  "strategy_policy": {
+    "policy_id": "BTC_DAILY_NR7_VOLATILITY_CONTRACTION_BREAKOUT_LONG_CASH_V1",
+    "instrument": "OKX_BTC_USDT_SPOT",
+    "bar_interval": "1h",
+    "daily_clock": "COMPLETE_UTC_DAY_0000_TO_2359",
+    "range_formula": "MAX_HIGH_MINUS_LOW_ABS_HIGH_MINUS_PREVIOUS_CLOSE_ABS_LOW_MINUS_PREVIOUS_CLOSE_DIVIDED_BY_PREVIOUS_CLOSE",
+    "primary_setup": "LATEST_COMPLETE_DAY_NORMALIZED_TRUE_RANGE_STRICTLY_SMALLEST_OF_7_COMPLETE_DAYS",
+    "rejection_only_neighbors": [
+      "STRICTLY_SMALLEST_OF_5_COMPLETE_DAYS",
+      "STRICTLY_SMALLEST_OF_10_COMPLETE_DAYS"
+    ],
+    "breakout": "FIRST_NEXT_DAY_COMPLETE_H1_CLOSE_STRICTLY_ABOVE_SETUP_DAY_HIGH",
+    "entry": "NEXT_H1_OPEN_AFTER_BREAKOUT_CLOSE",
+    "hold_hours": 168,
+    "exit": "H1_OPEN_EXACTLY_168_HOURS_AFTER_ENTRY",
+    "same_open_reentry": "DENY",
+    "overlapping_signal": "IGNORE_WHILE_LONG",
+    "position": "FULL_CAPITAL_UNLEVERED_BTC_OR_ZERO_YIELD_CASH",
+    "short": "DENY",
+    "leverage": "DENY",
+    "variants": 3
+  },
+  "comparators": {
+    "primary": "IDENTICAL_PRIOR_COMPLETE_DAY_HIGH_BREAKOUT_168H_LONG_CASH_POLICY_WITHOUT_NR_FILTER",
+    "opportunity_cost": "FULL_CAPITAL_BTC_BUY_AT_FIRST_WINDOW_OPEN_AND_HOLD",
+    "capital_matching": "SAME_INITIAL_EQUITY_H1_PRICE_PATH_SCENARIO_COST_VALUATION_AND_FAIR_RESET_BOUNDARY"
+  },
+  "cost_scenarios": {
+    "NORMAL": {
+      "fee_rate_per_side": "0.0010",
+      "adverse_slippage_rate_per_side": "0.0005"
+    },
+    "STRESS": {
+      "fee_rate_per_side": "0.0020",
+      "adverse_slippage_rate_per_side": "0.0010"
+    }
+  },
+  "windows": {
+    "design": [
+      "2020-01-01T00:00:00",
+      "2023-01-01T00:00:00"
+    ],
+    "validation": [
+      "2023-01-01T00:00:00",
+      "2025-01-01T00:00:00"
+    ],
+    "annual_fair_reset_years": [2020, 2021, 2022, 2023, 2024],
+    "warmup_start": "2019-01-01T00:00:00",
+    "state": "FAIR_RESET_IDENTICAL_INITIAL_EQUITY_CASH_AND_SIGNAL_STATE_EACH_WINDOW"
+  },
+  "gate_set": {
+    "id": "BTC_DAILY_NR7_VOLATILITY_CONTRACTION_BREAKOUT_MATCHED_CONTROL_GATES_V1",
+    "primary_design_and_validation": [
+      "normal_and_stress_unconditioned_parent_total_return_positive",
+      "normal_and_stress_candidate_total_and_terminal_return_positive",
+      "minimum_completed_trades_8_design_and_5_validation",
+      "minimum_setup_days_24_design_and_16_validation",
+      "candidate_total_return_at_least_60pct_of_parent",
+      "candidate_drawdown_at_most_75pct_of_parent",
+      "candidate_calmar_at_least_parent",
+      "candidate_drawdown_at_most_65pct_of_buy_hold",
+      "candidate_calmar_at_least_75pct_of_buy_hold",
+      "candidate_upside_capture_at_least_20pct_of_buy_hold"
+    ],
+    "neighbor_stability": [
+      "nr5_and_nr10_validation_normal_and_stress_total_and_terminal_return_positive",
+      "nr5_and_nr10_validation_completed_trades_at_least_4",
+      "nr5_and_nr10_validation_return_at_least_40pct_parent",
+      "nr5_and_nr10_validation_drawdown_non_worse_parent",
+      "nr5_and_nr10_validation_calmar_at_least_75pct_parent"
+    ],
+    "annual_breadth": [
+      "normal_and_stress_positive_candidate_return_at_least_4_of_5",
+      "normal_and_stress_candidate_return_at_least_60pct_parent_at_least_3_of_5",
+      "normal_and_stress_drawdown_non_worse_parent_at_least_4_of_5",
+      "normal_and_stress_calmar_non_worse_parent_at_least_3_of_5",
+      "normal_and_stress_top_positive_year_return_contribution_at_most_60pct"
+    ],
+    "concentration_holding_and_inventory": [
+      "validation_top_positive_realized_trade_contribution_at_most_60pct",
+      "validation_p90_holding_and_terminal_age_at_most_168_hours",
+      "validation_terminal_liquidation_cost_at_most_1pp"
+    ],
+    "decision": "ALL_GATES_PASS_OR_PERMANENTLY_CLOSE_EXACT_NR5_7_10_NORMALIZED_TRUE_RANGE_CONTRACTION_NEXT_DAY_PRIOR_HIGH_BREAKOUT_168H_FAMILY_WITHOUT_TUNING"
+  },
+  "source_bindings": [
+    {
+      "path": "research/btc_daily_nr7_volatility_contraction_breakout_historical.py",
+      "role": "FROZEN_DIRECT_ECONOMIC_RUNNER",
+      "sha256": "0403de054c3e5b4c55d91f5f9c6d552fb57c3a806298a5617ed9bd11b019ced4"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-nr7-volatility-contraction-breakout-primary-prior.v1.json",
+      "role": "SEALED_PRIMARY_ADVERSARIAL_AND_DEDUP_PRIOR",
+      "sha256": "ea9b7b2f7d21877ab998ffb9cdfe9b3daa2f6eab7cbea8c9e380eadbcb15f4d7"
+    },
+    {
+      "path": "research_pipeline/examples/btc-daily-nr7-volatility-contraction-breakout-v1.hypothesis.json",
+      "role": "FROZEN_SCHEMA_VALID_HYPOTHESIS",
+      "sha256": "3a823b16afabd1ec7a5a3043c0b58adab61be9849d1d44f8d980bc56dc9c8c8a"
+    },
+    {
+      "path": "research/btc_dra_reversal_confirmed_exit_v2c.py",
+      "role": "FROZEN_H1_PARSER_REFERENCE",
+      "sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37"
+    },
+    {
+      "path": "research_pipeline/examples/btc-donchian-20d-10d-standalone-historical.v1.decision.json",
+      "role": "SEALED_DONCHIAN_ADVERSARIAL_DECISION",
+      "sha256": "9032a111eb8288aa45d016f044b2823c06e003d6f9f0f06be00202d150d2e67c"
+    },
+    {
+      "path": "research_pipeline/pre-candidate-pool.v1.json",
+      "role": "PRE_OUTCOME_DEDUP_CATALOG",
+      "sha256": "2174bbc53b364c2f1dcd63b9ed94732eac69c5685527f196a3831097c8ef6f76"
+    },
+    {
+      "path": ".research-state/java-parity/selection-2019-2024.tsv",
+      "role": "SEALED_PRE2025_H1_CORPUS",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+    }
+  ],
+  "determinism": {
+    "launch": "DIRECT_PYTHON_NO_SPRING_NO_SERVER_NO_DATABASE",
+    "python_minimum": "3.11",
+    "reruns": 2,
+    "output": "CREATE_NEW_SEALED_CANONICAL_JSON",
+    "required": "BYTE_IDENTICAL_OUTPUTS"
+  },
+  "stop_conditions": [
+    "Stop DATA_REJECT before economics if any source binding, dataset hash, H1 lattice, daily lattice, OHLCV or window identity fails.",
+    "Use only strict normalized-true-range NR7 primary and strict NR5/NR10 rejection-only neighbors, next-day prior-high close breakout, next-H1-open execution and 168-hour hold.",
+    "Do not select a rejection-only neighbor after outcome access even if it outperforms the primary.",
+    "Stop BASELINE_REJECT if the identical unconditioned breakout parent is not positive; do not change the parent or holding horizon.",
+    "Any valid economic gate failure closes the exact family without estimator, lookback, tie, breakout, holding, exit, stop, weight, cost, window, source or comparator tuning.",
+    "Do not use post-2024 data; a pass may only become CANDIDATE_ELIGIBLE_HISTORICAL_PASS_REPORTED_NOT_ACTIVATED with one independent sealed OOS still required."
+  ],
+  "prohibited_actions": [
+    "NETWORK_REQUEST",
+    "PAID_API",
+    "SECOND_TIMER",
+    "SECOND_WRITER",
+    "UNSEALED_BACKFILL",
+    "PRODUCTION",
+    "TRADING",
+    "DATABASE",
+    "ORDERS",
+    "FUNDS",
+    "OCO",
+    "GRID",
+    "SHADOW",
+    "PAPER",
+    "LIVE",
+    "OOS_OPEN"
+  ],
+  "opportunity_cost": "One frozen screen either admits a contraction-conditioned breakout to one independent OOS or closes it before more price-feature combinations consume capacity."
+}

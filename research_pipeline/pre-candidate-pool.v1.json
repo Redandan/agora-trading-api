@@ -4498,6 +4498,37 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_COST_AND_HOURLY_VALUATION",
       "prohibited_reopen": true,
       "title": "Externally specified UTC Monday-only Bitcoin long-or-cash calendar policy"
+    },
+    {
+      "decision_feature": "COIN_METRICS_BTC_DAILY_HASHRATE_30D_SIMPLE_MEAN_STRICTLY_ABOVE_60D_SIMPLE_MEAN_PLUS_3_CALENDAR_DAYS",
+      "disposition": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_HASH_RIBBON_HEALTH_STATE_FAMILY_PRE_ECONOMIC",
+      "duplicate_family_key": "btc-coinmetrics-hashrate-30d-above-60d-plus3d-full-capital-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical.v1.decision.json",
+          "role": "SEALED_BYTE_IDENTICAL_PRE_ECONOMIC_DUPLICATE_FAMILY_CLOSURE",
+          "sha256": "9363b505e6751b62a9675f3f8fb6fc1ef99d9943b949154fbb7f87cd4cd70e74"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical.v1.manifest.json",
+          "role": "FROZEN_SOURCE_DEDUPLICATION_AND_MATCHED_CAPITAL_MANIFEST",
+          "sha256": "313d44a571a9774076f347fc5c1e9818ff276d590c71fd99075776f1b68d1d09"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
+          "sha256": "82972a8425f1f12bab182296002b1a5937c9c70f775ddbb8b5bbb2ba43c4830a"
+        },
+        {
+          "path": ".research-state/experiments/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical-v1/artifacts/run1.json",
+          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_DEDUPLICATION_EVIDENCE",
+          "sha256": "594f50a9d480ed5bbefe6a98e3e1be534f9eed0a3835d08eaea6427d778f98ca"
+        }
+      ],
+      "family_id": "closed-btc-coinmetrics-hash-ribbon-health-state-long-cash-v1",
+      "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_NONREDUNDANCY_GATES_HAD_PASSED",
+      "prohibited_reopen": true,
+      "title": "Coin Metrics Bitcoin 30/60-day hash-rate health-state long-or-cash policy"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

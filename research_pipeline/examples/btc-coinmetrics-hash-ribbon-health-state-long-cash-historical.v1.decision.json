@@ -1,0 +1,115 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMETRICS_HASH_RIBBON_HEALTH_STATE_LONG_CASH_HISTORICAL_DECISION_V1",
+  "experiment_id": "btc-coinmetrics-hash-ribbon-health-state-long-cash-historical-v1",
+  "family_id": "btc-coinmetrics-hash-ribbon-health-state-long-cash",
+  "decided_at": "2026-08-24T14:40:56Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "status": "NO_CANDIDATE_CLOSE_BTC_COINMETRICS_HASH_RIBBON_HEALTH_STATE_FAMILY_PRE_ECONOMIC",
+  "decision": "PERMANENTLY_CLOSE_EXACT_30D_60D_PLUS3D_HASH_RIBBON_HEALTH_STATE_FAMILY_AS_A_NEAR_DUPLICATE_OF_THE_CLOSED_ADJACENT_28D_HASHRATE_GROWTH_FAMILY_WITHOUT_ECONOMIC_OPENING_RERUN_OR_RESCUE",
+  "economics_opened": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "determinism": {
+    "run1_path": ".research-state/experiments/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical-v1/artifacts/run1.json",
+    "run2_path": ".research-state/experiments/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical-v1/artifacts/run2.json",
+    "run1_sha256": "594f50a9d480ed5bbefe6a98e3e1be534f9eed0a3835d08eaea6427d778f98ca",
+    "run2_sha256": "594f50a9d480ed5bbefe6a98e3e1be534f9eed0a3835d08eaea6427d778f98ca",
+    "byte_identical": true
+  },
+  "sealed_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical.v1.manifest.json",
+      "role": "FROZEN_SOURCE_DEDUPLICATION_AND_MATCHED_CAPITAL_MANIFEST",
+      "sha256": "313d44a571a9774076f347fc5c1e9818ff276d590c71fd99075776f1b68d1d09"
+    },
+    {
+      "path": "research/btc_coinmetrics_hash_ribbon_health_state_long_cash_historical.py",
+      "role": "FROZEN_DETERMINISTIC_PRE_ECONOMIC_AND_DIRECT_ECONOMIC_RUNNER",
+      "sha256": "0584e001818e10fa1957f0eef7cae3297e08d6cc5446a4f33f163197a33e18af"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-primary-prior.v1.json",
+      "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
+      "sha256": "82972a8425f1f12bab182296002b1a5937c9c70f775ddbb8b5bbb2ba43c4830a"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-v1.hypothesis.json",
+      "role": "FROZEN_SINGLE_VARIANT_PRE_OUTCOME_HYPOTHESIS",
+      "sha256": "cf23073123ebec45fe3e66d5d2c5ebd4fb7ffc17f5205d204074ec7ef86b0869"
+    },
+    {
+      "path": ".research-state/experiments/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical-v1/artifacts/run1.json",
+      "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_DEDUPLICATION_EVIDENCE",
+      "sha256": "594f50a9d480ed5bbefe6a98e3e1be534f9eed0a3835d08eaea6427d778f98ca"
+    }
+  ],
+  "source_and_state_support": {
+    "sealed_hashrate_rows": 2557,
+    "sealed_hashrate_period": "2018-01-01_TO_2024-12-31",
+    "all_rows_positive_and_contiguous": true,
+    "total_state_evaluations": 2495,
+    "total_health_days": 2005,
+    "total_stress_days": 490,
+    "total_state_transitions": 34,
+    "design": {
+      "evaluations": 1096,
+      "health_days": 807,
+      "stress_days": 289,
+      "transitions": 17,
+      "years_with_both_states": 3
+    },
+    "validation": {
+      "evaluations": 731,
+      "health_days": 633,
+      "stress_days": 98,
+      "transitions": 13,
+      "years_with_both_states": 2
+    }
+  },
+  "deduplication_evidence": {
+    "closed_family": "dra-coinmetrics-btc-hashrate-adjacent-28d-growth-entry-admission",
+    "design": {
+      "weekly_comparisons": 157,
+      "state_disagreements": 5,
+      "state_disagreement_pct": "3.18471338",
+      "required_minimum_pct": "15.00000000",
+      "lagged_btc_60d_price_trend_phi": "0.22678969",
+      "maximum_abs_phi": "0.80000000"
+    },
+    "validation": {
+      "weekly_comparisons": 104,
+      "state_disagreements": 4,
+      "state_disagreement_pct": "3.84615385",
+      "required_minimum_pct": "10.00000000",
+      "lagged_btc_60d_price_trend_phi": "0.21175782",
+      "maximum_abs_phi": "0.80000000"
+    },
+    "interpretation": "The ribbon was not merely a lagged BTC price-trend proxy under the frozen phi gate, but at the closed family's weekly clocks it selected the same hash-rate state more than 96 percent of the time in both windows. The formula and portfolio action differed while the decision information did not differ enough to justify another economic test."
+  },
+  "failed_pre_economic_gates": [
+    "design_state_disagreement_with_closed_28d_family_at_least_15pct",
+    "validation_state_disagreement_with_closed_28d_family_at_least_10pct"
+  ],
+  "passed_pre_economic_evidence": [
+    "The exact sealed BTC, normalized HashRate, raw response and source bundle hashes and all frozen runner support hashes matched.",
+    "The daily HashRate lattice, both-state support, transition counts and annual state breadth passed in Design and Validation.",
+    "Absolute phi to lagged BTC 60-day price trend passed in both windows, so the early closure is specifically a duplicate-family result rather than a price-repackaging result.",
+    "Two create-only executions were byte-identical and did not open economic, candidate or OOS evidence."
+  ],
+  "material_learning": "Changing overlapping windows from adjacent 28-day means to 30-day versus 60-day means and changing the action from a DRA entry veto to standalone BTC-or-cash does not create an independent factor when both formulas select the same weekly hash-rate state more than 96 percent of the time. Source readiness and adequate state support are not enough; decision-information independence must precede another fee-adjusted strategy backtest.",
+  "scientific_claim": "On the sealed present-vintage Coin Metrics 2018-2024 HashRate corpus, the exact 30-day-above-60-day plus-three-day health state passed source, support and price-trend-repackaging gates but failed preregistered nonredundancy against the already closed adjacent 28-day hash-rate growth state in both Design and Validation. It is not a candidate and no strategy economics were opened.",
+  "prohibited_reopen": [
+    "Do not rerun or economically evaluate the exact 30/60, plus-three-day, hash-only, full-capital long-or-cash family.",
+    "Do not add the article's price confirmation, choose crossover recovery episodes, extend holdings or change the moving-average periods, lag, equality, source, threshold, weight or direction.",
+    "Do not reuse this result to reopen the closed adjacent 28-day HashRate growth entry-admission family or miner-revenue-per-hash proxy family.",
+    "Do not open post-2024 or independent OOS evidence for this closed lineage."
+  ],
+  "next_action": "KEEP_HASHRATE_TREND_AND_RIBBON_LINEAGES_CLOSED_AND_SELECT_A_GENUINELY_DISTINCT_FREE_DATA_MECHANISM_OR_CONTINUE_THE_EXISTING_FORWARD_VOLUME_RANGE_AND_POST_SHOCK_LANES",
+  "uncertainty": [
+    "This result establishes historical source support and nonredundancy failure only; strategy PnL, drawdown, Calmar, holdings and terminal inventory were intentionally not calculated.",
+    "The HashRate series is present-vintage and estimated from observed block production; this audit is not point-in-time vintage or live evidence.",
+    "A different independently sourced mining mechanism could be admissible only under a new primary prior and fingerprint; nearby HashRate smoothing or price-confirmed variants are prohibited rescue attempts."
+  ],
+  "scope_note": "Offline historical source, support and deduplication audit only. No paid API, second timer, second writer, external backfill, canonical write, strategy economics, post-2024 outcome, OOS opening, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

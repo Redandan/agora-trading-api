@@ -191,3 +191,4 @@ research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-pr
 research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-v1.hypothesis.json text eol=lf
 research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical.v1.manifest.json text eol=lf
 research_pipeline/tests/test_btc_coinmetrics_hash_ribbon_health_state_long_cash_historical.py text eol=lf
+research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical.v1.decision.json text eol=lf

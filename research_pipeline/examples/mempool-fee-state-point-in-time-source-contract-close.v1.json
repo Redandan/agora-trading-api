@@ -1,0 +1,127 @@
+{
+  "schema_version": "1",
+  "document_type": "MEMPOOL_FEE_STATE_POINT_IN_TIME_SOURCE_CONTRACT_CLOSE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-mempool-fee-congestion-point-in-time",
+  "created_at": "2026-08-25T02:36:18Z",
+  "status": "DATA_REJECT_CLOSE_MEMPOOL_POINT_IN_TIME_FEE_CONGESTION_SOURCE_FAMILY_BEFORE_CAPTURE_FACTOR_OR_OUTCOME_ACCESS",
+  "decision": "PERMANENTLY_CLOSE_THE_HOSTED_MEMPOOL_POINT_IN_TIME_FEE_CONGESTION_SOURCE_ROUTE_AND_DO_NOT_SELF_HOST_IT_FOR_THIS_RESEARCH_FAMILY",
+  "frozen_before_capture_factor_or_strategy_outcome_access": true,
+  "official_source_version": {
+    "repository": "https://github.com/mempool/mempool",
+    "branch": "master",
+    "commit_sha256_identity": "3ca4f9f7aa7a1f49037ccc69751a501b50f766a2",
+    "resolved_at": "2026-08-25T02:36:18Z",
+    "resolution_method": "GIT_LS_REMOTE_SINGLE_BRANCH_IDENTITY_ONLY_NO_CLONE",
+    "latest_release_observed": "v3.3.1"
+  },
+  "official_contract_evidence": [
+    {
+      "locator": "https://github.com/mempool/mempool/blob/3ca4f9f7aa7a1f49037ccc69751a501b50f766a2/backend/src/api/fee-api.ts",
+      "role": "IMMUTABLE_FEE_PAYLOAD_AND_CURRENT_STATE_IMPLEMENTATION",
+      "finding": "RecommendedFees contains fastestFee, halfHourFee, hourFee, economyFee and minimumFee. getRecommendedFee reads the current projected mempool blocks and current mempool info and returns a computed payload without a source observation timestamp, snapshot identifier, source sequence, schema version or revision identity."
+    },
+    {
+      "locator": "https://github.com/mempool/mempool/blob/3ca4f9f7aa7a1f49037ccc69751a501b50f766a2/backend/src/api/bitcoin/bitcoin.routes.ts",
+      "role": "IMMUTABLE_HOSTED_ROUTE_AND_EXPLICIT_UNSYNCHRONIZED_STATE",
+      "finding": "The recommended and precise fee routes return HTTP 503 while the mempool service is not synchronized, otherwise they serialize only the current calculated fee object. This is a useful instantaneous failure state but does not provide observation time, immutable identity, missed-snapshot recovery, continuity proof or replay."
+    },
+    {
+      "locator": "https://github.com/mempool/mempool/blob/3ca4f9f7aa7a1f49037ccc69751a501b50f766a2/frontend/src/app/docs/api-docs/api-docs-data.ts",
+      "role": "IMMUTABLE_HAND_MAINTAINED_API_EXAMPLE_SURFACE",
+      "finding": "The live-data examples expose current mempoolInfo, projected blocks and fee fields but no source observation timestamp, immutable snapshot identity, response sequence or schema version. Transaction input sequence fields are transaction semantics and must not be misread as snapshot identity."
+    },
+    {
+      "locator": "https://github.com/mempool/mempool/issues/6377",
+      "role": "FIRST_PARTY_CURRENT_SCHEMA_CHANGE_CONTROL_EVIDENCE",
+      "finding": "The open first-party documentation issue states that current API docs can drift from routes, example responses are copied rather than generated or validated, and no machine-readable OpenAPI specification exists. The proposed single-source and CI-enforced schema remain an unimplemented plan in the reviewed evidence."
+    },
+    {
+      "locator": "https://github.com/mempool/mempool/blob/3ca4f9f7aa7a1f49037ccc69751a501b50f766a2/LICENSE",
+      "role": "IMMUTABLE_SOFTWARE_LICENSE_BOUNDARY",
+      "finding": "The repository software is AGPL-3.0 licensed. No reviewed first-party versioned artifact extends that software license into an explicit hosted response-data reuse, retention, availability or continuity commitment."
+    }
+  ],
+  "source_contract_gate_matrix": {
+    "source_observation_timestamp": "FAIL_MISSING_FROM_FEE_RESPONSE_CONTRACT",
+    "immutable_snapshot_or_source_sequence_identity": "FAIL_MISSING_TRANSACTION_INPUT_SEQUENCE_IS_NOT_A_SNAPSHOT_SEQUENCE",
+    "machine_validated_schema_version": "FAIL_FIRST_PARTY_OPEN_ISSUE_CONFIRMS_NO_OPENAPI_AND_DOCUMENTATION_DRIFT",
+    "refresh_and_revision_semantics": "FAIL_NO_VERSIONED_HOSTED_COMMITMENT",
+    "historical_retention_or_explicit_nonretention": "FAIL_NO_VERSIONED_HOSTED_COMMITMENT",
+    "replay_or_earlier_response_reconstruction": "FAIL_NO_VERSIONED_HOSTED_COMMITMENT",
+    "continuity_and_missed_snapshot_recovery": "FAIL_ONLY_CURRENT_UNSYNCHRONIZED_HTTP_503_STATE_IS_DEFINED",
+    "explicit_gap_state": "PARTIAL_HTTP_503_PROVES_ONLY_CURRENT_SERVICE_UNSYNCHRONIZED_STATE",
+    "hosted_payload_reuse_terms": "FAIL_SOFTWARE_LICENSE_DOES_NOT_PROVE_HOSTED_DATA_TERMS",
+    "credential_free_current_access": "PASS_IMPLEMENTATION_SURFACE_ONLY_NOT_A_LONG_TERM_HOSTED_COMMITMENT"
+  },
+  "sealed_internal_evidence": [
+    {
+      "path": "research_pipeline/examples/local-research-result.mempool-fee-state-point-in-time-proof.v1.json",
+      "sha256": "bec7b8b9a74841e95ceba79f52a1afc2aec6d1648d414689fd3325323ecc4056",
+      "role": "SEALED_PRIOR_OFFICIAL_SOURCE_CONTRACT_WAIT",
+      "finding": "The prior bounded audit already named the same absent observation clock, snapshot identity, revision, retention, continuity, hosted reuse and schema-drift proof and prohibited substituting Manager receipt time for source observation time."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.public-forward-source-branch-closure-matrix.v1.json",
+      "sha256": "f44d88c924a62a9907166dfd7025e67ca352cf0ff301d3522b104703aee64d7e",
+      "role": "SEALED_PUBLIC_FORWARD_SOURCE_OPPORTUNITY_COST_WAIT",
+      "finding": "The cross-source matrix retained mempool only behind a specifically named point-in-time proof and prohibited further source retrieval or factor definition without that proof."
+    },
+    {
+      "path": "research_pipeline/examples/dra-bitcoin-fee-pressure-entry-admission-historical.v2.decision.json",
+      "sha256": "f6b6da645de328c22d20c978c4351759f06f359b57cd85a75551c20949e57e03",
+      "role": "SEALED_NEAREST_FEE_PRESSURE_MATCHED_CAPITAL_NO_CANDIDATE_CLOSURE",
+      "finding": "The closest sealed historical congestion proxy reduced Validation drawdown by 2.427765 percentage points but cut total PnL from 86.20298186 to 42.66744615 USDT, cut realized PnL from 89.41118307 to 42.66744615 USDT, worsened underwater duration by 759 hours, won total PnL in only one of five years and failed Validation predictive sign gates."
+    },
+    {
+      "path": "research_pipeline/examples/coinmetrics-btc-fee-pressure-daily-2018-2024.v1.source.json",
+      "sha256": "03cf5e5c5f18c19597bcd5fd61024158ef25369da806f32820c632457281d17d",
+      "role": "SEALED_DISTINCT_PRESENT_VINTAGE_HISTORICAL_FEE_SOURCE_IDENTITY",
+      "finding": "A free sealed historical FeeTotNtv source already supplied the lower-cost economic falsification path; its present-vintage limitation required untouched OOS but did not prevent the historical family from failing before OOS."
+    }
+  ],
+  "operating_cost_and_opportunity_cost": {
+    "hosted_capture": "REJECTED_BECAUSE_RECEIPT_TIME_CANNOT_REPAIR_ABSENT_SOURCE_OBSERVATION_AND_SNAPSHOT_IDENTITY",
+    "self_hosted_capture": "REJECTED_FOR_THIS_FAMILY_BECAUSE_A_LONG_RUNNING_BITCOIN_MEMPOOL_INDEX_AND_STORAGE_PATH_WOULD_ADD_A_NEW_DATA_PLANE_BEFORE_INCREMENTAL_PREDICTIVE_OR_ECONOMIC_VALUE",
+    "nearest_historical_mechanism": "NO_CANDIDATE_CLOSE_BITCOIN_FEE_PRESSURE_FAMILY",
+    "incremental_learning_case": "INSUFFICIENT_AFTER_SOURCE_CONTRACT_FAILURE_AND_NEAREST_MATCHED_CAPITAL_FEE_PRESSURE_FAILURE",
+    "decision_rule": "SOURCE_OPERATING_BURDEN_DOMINATES_INCREMENTAL_LEARNING_VALUE"
+  },
+  "closure_and_pool_transition": {
+    "scientific_family_disposition": "PERMANENTLY_CLOSED",
+    "prohibited_reopen": true,
+    "candidate_pool_catalog_mutated_now": false,
+    "reason_catalog_not_mutated_now": "THE_CATALOG_REQUIRES_AT_LEAST_FIVE_GENUINELY_OPEN_FAMILIES_AND_NO_DISTINCT_REPLACEMENT_HAS_YET_PASSED_PRIMARY_DEDUPLICATION_AND_SOURCE_READINESS",
+    "required_atomic_transition": "AFTER_ONE_DISTINCT_REPLACEMENT_FAMILY_PASSES_PRE_OUTCOME_DEDUPLICATION_AND_FREE_SOURCE_READINESS_MOVE_THIS_FAMILY_TO_CLOSED_FAMILIES_AND_ADD_THE_REPLACEMENT_IN_THE_SAME_VALIDATED_CHANGE",
+    "anti_metric_gaming_rule": "DO_NOT_INVENT_OR_RELABEL_A_LOW_QUALITY_FAMILY_ONLY_TO_PRESERVE_THE_OPEN_COUNT"
+  },
+  "claim_boundary": "This decision rejects the current hosted point-in-time source contract and the self-hosting investment for this research family. It does not prove that Bitcoin blockspace demand contains zero information. It proves that the required causal source identity is absent and that the nearest lower-cost sealed fee-pressure mechanism already lacked risk-adjusted economic breadth.",
+  "performance_evidence": {
+    "mempool_value_opened_in_this_audit": false,
+    "btc_outcome_opened_in_this_audit": false,
+    "formula": "NOT_CREATED",
+    "threshold": "NOT_CREATED",
+    "fees": "NOT_OPENED_FOR_THIS_SOURCE_FAMILY",
+    "adverse_slippage": "NOT_OPENED_FOR_THIS_SOURCE_FAMILY",
+    "realized_pnl": "NEAREST_SEALED_FAMILY_ONLY_VALIDATION_42_66744615_VS_PARENT_89_41118307_USDT",
+    "unrealized_pnl": "NEAREST_SEALED_FAMILY_ONLY_NOT_REINTERPRETED_AS_THIS_SOURCE_RESULT",
+    "total_pnl": "NEAREST_SEALED_FAMILY_ONLY_VALIDATION_42_66744615_VS_PARENT_86_20298186_USDT",
+    "maximum_drawdown": "NEAREST_SEALED_FAMILY_ONLY_IMPROVED_2_427765_PERCENTAGE_POINTS_WITH_WORSE_UNDERWATER_DURATION",
+    "annual_breadth": "NEAREST_SEALED_FAMILY_ONLY_ONE_OF_FIVE_TOTAL_PNL_WINS",
+    "candidate_or_oos_claim": "NONE"
+  },
+  "next_action": "IDENTIFY_ONE_DISTINCT_FREE_HISTORICAL_MECHANISM_WITH_AN_EXACT_PRIMARY_FORMULA_EXISTING_MATCHED_CAPITAL_RUNNER_PATH_AND_NO_CLOSED_FINGERPRINT_THEN_ATOMICALLY_REPLACE_THIS_POOL_SLOT_BEFORE_ANY_OUTCOME_ACCESS",
+  "source_capture_created": false,
+  "hypothesis_created": false,
+  "manifest_created": false,
+  "runner_created": false,
+  "experiment_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "paid_api_used": false,
+  "second_timer_created": false,
+  "second_writer_created": false,
+  "canonical_state_changed": false,
+  "trading_action_attempted": false,
+  "scope_note": "Official first-party source-contract and sealed opportunity-cost audit only. No live mempool endpoint, market value, source capture, repository clone, dataset download, factor, formula, threshold, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, external backfill, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

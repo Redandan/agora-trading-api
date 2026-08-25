@@ -89,7 +89,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 170)
+        self.assertEqual(len(catalog["closed_families"]), 171)
         closed_nr7 = next(
             family
             for family in catalog["closed_families"]
@@ -154,6 +154,7 @@ class CandidateFunnelTest(unittest.TestCase):
             {
                 "closed-dra-binance-usdm-deleveraging-flush-entry-admission-v1",
                 "closed-dra-binance-usdm-endpoint-oi-confirmation-v2",
+                "closed-dra-binance-usdm-funding-crowding-entry-risk-state-v1",
                 "closed-dra-binance-usdm-positioning-divergence-entry-admission-v1",
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
@@ -927,6 +928,26 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
         )
         self.assertTrue(carry["prohibited_reopen"])
+        funding_crowding = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-binance-usdm-funding-crowding-entry-risk-state-v1"
+        )
+        self.assertEqual(
+            funding_crowding["disposition"],
+            "NO_HYPOTHESIS_CLOSE_FUNDING_ONLY_REINTERPRETATION_OF_TOMBSTONED_DRA_CRYPTO_CARRY_RISK_VETO",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in funding_crowding["evidence_bindings"]],
+            [
+                "SEALED_DESCENDANT_FINGERPRINT_AND_PRE_OUTCOME_DEDUPLICATION_CLOSURE",
+                "SEALED_TWO_AXIS_SEMANTIC_BOUNDARY_AND_EXPLICIT_FUNDING_ONLY_DUPLICATION_RULE",
+                "SEALED_ANCESTOR_FAMILY_TOMBSTONE_AND_PROHIBITED_REOPEN_DECISION",
+                "SEALED_DISTINCT_DELTA_NEUTRAL_FUNDING_CASHFLOW_FAMILY_CLOSURE",
+            ],
+        )
+        self.assertTrue(funding_crowding["prohibited_reopen"])
         drawdown_recovery = next(
             family
             for family in catalog["closed_families"]
@@ -2303,7 +2324,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 171)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 172)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

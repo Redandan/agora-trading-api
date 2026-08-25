@@ -4668,6 +4668,37 @@
       "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_SOURCE_GATE_HAD_PASSED",
       "prohibited_reopen": true,
       "title": "CoinMarketCap exact Extreme Fear contrarian keyless-source replacement"
+    },
+    {
+      "decision_feature": "LAGGED_BINANCE_USDM_BTCUSDT_PERPETUAL_FUNDING_CROWDING_STATE",
+      "disposition": "NO_HYPOTHESIS_CLOSE_FUNDING_ONLY_REINTERPRETATION_OF_TOMBSTONED_DRA_CRYPTO_CARRY_RISK_VETO",
+      "duplicate_family_key": "dra-binance-usdm-funding-crowding-entry-risk-state",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/dra-binance-usdm-funding-crowding-entry-risk-state-primary-prior-reject.v1.json",
+          "role": "SEALED_DESCENDANT_FINGERPRINT_AND_PRE_OUTCOME_DEDUPLICATION_CLOSURE",
+          "sha256": "d5c173b74c583cde0ae0c6e659efc56608b3b80abf4bce04030987446cb652e1"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json",
+          "role": "SEALED_TWO_AXIS_SEMANTIC_BOUNDARY_AND_EXPLICIT_FUNDING_ONLY_DUPLICATION_RULE",
+          "sha256": "3fb24f7b5034d7af20b6425a206471ede995eb149d92dafa36d0ef770e83729a"
+        },
+        {
+          "path": "research_pipeline/examples/dra-crypto-carry-v3r1-schema-probe-failure.v1.json",
+          "role": "SEALED_ANCESTOR_FAMILY_TOMBSTONE_AND_PROHIBITED_REOPEN_DECISION",
+          "sha256": "0a32d475b91da77aa523aa06108ac5e8946d7031b8d406519f61423afb8488f6"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
+          "role": "SEALED_DISTINCT_DELTA_NEUTRAL_FUNDING_CASHFLOW_FAMILY_CLOSURE",
+          "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
+        }
+      ],
+      "family_id": "closed-dra-binance-usdm-funding-crowding-entry-risk-state-v1",
+      "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+      "prohibited_reopen": true,
+      "title": "Binance USDM perpetual funding crowding as a DRA entry risk state"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

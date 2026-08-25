@@ -1,0 +1,90 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BINANCE_USDM_FUNDING_CROWDING_ENTRY_RISK_STATE_PRIMARY_PRIOR_REJECT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-binance-usdm-funding-crowding-entry-risk-state",
+  "created_at": "2026-08-25T02:08:45Z",
+  "status": "NO_HYPOTHESIS_CLOSE_FUNDING_ONLY_REINTERPRETATION_OF_TOMBSTONED_DRA_CRYPTO_CARRY_RISK_VETO",
+  "decision": "PERMANENTLY_CLOSE_BINANCE_USDM_PERPETUAL_FUNDING_CROWDING_AS_A_DRA_ENTRY_RISK_STATE_WITHOUT_FORMULA_THRESHOLD_OR_STRATEGY_OUTCOME_ACCESS",
+  "frozen_before_formula_or_strategy_outcome_access": true,
+  "proposed_transfer": {
+    "feature": "LAGGED_BINANCE_USDM_BTCUSDT_PERPETUAL_FUNDING_CROWDING_STATE",
+    "action": "ADMIT_AN_OTHERWISE_VALID_UNCHANGED_DRA_ENTRY_OR_HOLD_CASH",
+    "parent": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+    "required_causal_link": "PERPETUAL_FUNDING_CROWDING_MUST_IDENTIFY_PRE_DECISION_DERIVATIVE_DEMAND_AND_CONSTRAINED_ARBITRAGE_CAPITAL_WITH_INCREMENTAL_MATCHED_CAPITAL_PATH_RISK_VALUE"
+  },
+  "sealed_internal_evidence": [
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json",
+      "sha256": "3fb24f7b5034d7af20b6425a206471ede995eb149d92dafa36d0ef770e83729a",
+      "role": "SEALED_TWO_AXIS_SEMANTIC_BOUNDARY_AND_EXPLICIT_FUNDING_ONLY_DUPLICATION_RULE",
+      "finding": "The accepted definition requires derivative-demand and constrained-arbitrage-capital axes, keeps fixed-maturity basis and perpetual funding separately typed, and requires any funding-only Boolean, sign inversion or renamed funding gate to close as a duplicate."
+    },
+    {
+      "path": "research_pipeline/examples/dra-crypto-carry-v3r1-schema-probe-failure.v1.json",
+      "sha256": "0a32d475b91da77aa523aa06108ac5e8946d7031b8d406519f61423afb8488f6",
+      "role": "SEALED_SOURCE_FAILURE_AND_EXACT_DRA_CRYPTO_CARRY_RISK_VETO_TOMBSTONE",
+      "finding": "The bounded source route failed before values and permanently closed the DRA crypto-carry risk-veto family; retry, endpoint substitution, query relaxation and family reopen were denied."
+    },
+    {
+      "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
+      "sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38",
+      "role": "SEALED_DISTINCT_DELTA_NEUTRAL_FUNDING_CASHFLOW_FAMILY_CLOSURE",
+      "finding": "The existing Binance USDM funding study is a delta-neutral cashflow mechanism rather than a directional DRA admission rule, and its sealed result cannot be reinterpreted as evidence for this entry-risk state."
+    }
+  ],
+  "sealed_corpus_identity_reuse": {
+    "bundle_path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
+    "bundle_sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74",
+    "normalized_gzip_sha256": "0bc3fae0fd1de2ce546592971ae9867c3c7cc4328d2b9733b43c357131a0e24b",
+    "normalized_csv_sha256": "a6e931eb4f260c29857982c0d31fecf273640414ee6a62de56df942f10f9e343",
+    "coverage": "2020-01-01T00:00:00Z_THROUGH_2024-12-31T23:00:00Z",
+    "h1_row_count": 43848,
+    "funding_event_count": 5481,
+    "audit_use": "IDENTITY_AND_CAPABILITY_ONLY_NO_ROW_OR_OUTCOME_ACCESS_IN_THIS_AUDIT",
+    "nonreopen_rule": "A usable funding corpus removes acquisition cost but does not satisfy the missing second semantic axis or override the prohibited-reopen tombstone."
+  },
+  "deduplication_proof": {
+    "closed_ancestor_family_key": "dra-crypto-carry-risk-veto",
+    "descendant_fingerprint": "dra-binance-usdm-funding-crowding-entry-risk-state",
+    "same_parent": true,
+    "same_action": true,
+    "same_directional_participation_claim": true,
+    "semantic_axis_coverage": "PERPETUAL_FUNDING_ONLY",
+    "required_axis_coverage": "FIXED_MATURITY_AND_PERPETUAL_SEMANTICS_PLUS_DERIVATIVE_DEMAND_AND_CONSTRAINED_ARBITRAGE_CAPITAL",
+    "independent_mechanism": false,
+    "reason": "The proposed feature is a single-axis funding representation of the already tombstoned DRA participation veto. Availability of historical funding values cannot convert a prohibited representation into an independent hypothesis.",
+    "prohibited_substitutions": [
+      "Do not select a funding level, sign, percentile, z-score, lookback, persistence rule, threshold or holding response after this closure.",
+      "Do not relabel funding crowding as carry, basis stress, leverage demand, sentiment or risk appetite to reopen the same DRA admit-or-hold-cash action.",
+      "Do not borrow the delta-neutral funding-carry PnL or its sealed corpus as directional DRA evidence.",
+      "Do not change venue, perpetual contract, bar interval, capital, DRA parent or risk fraction to evade the closed fingerprint."
+    ]
+  },
+  "claim_boundary": "This closure establishes duplication and lack of authority to reopen, not that funding has zero predictive information. A genuinely independent funding mechanism would need a different economic action and parent, preregistered causal cashflow, and no dependence on the closed DRA participation claim.",
+  "performance_evidence": {
+    "funding_values_opened_in_this_audit": false,
+    "btc_outcomes_opened_in_this_audit": false,
+    "formula": "NOT_CREATED",
+    "threshold": "NOT_CREATED",
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "annual_regime_breadth": "NOT_OPENED",
+    "path_risk": "NOT_OPENED"
+  },
+  "next_action": "ROTATE_TO_ONE_INDEPENDENT_FREE_DATA_MECHANISM_THAT_DOES_NOT_REUSE_FUNDING_BASIS_CARRY_OR_THE_DRA_ENTRY_RISK_VETO_ACTION",
+  "hypothesis_created": false,
+  "manifest_created": false,
+  "runner_created": false,
+  "experiment_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_reopen": true,
+  "scope_note": "Sealed-evidence deduplication and descendant fingerprint closure only. No network, source request, corpus row, funding value, BTC outcome, formula, threshold, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, external backfill, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

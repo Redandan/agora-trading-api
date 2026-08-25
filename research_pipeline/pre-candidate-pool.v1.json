@@ -207,33 +207,33 @@
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
     },
     {
-      "family_id": "btc-alternative-me-extreme-fear-contrarian-long-cash",
-      "title": "Archived Alternative.me exact Extreme Fear label contrarian BTC long-or-cash",
-      "decision_feature": "LATEST_COMPLETE_ALTERNATIVE_ME_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
-      "causal_hypothesis": "If the exact completed Extreme Fear label captures emotional overselling beyond the price inputs embedded in the index, it may precede a next-day rebound; otherwise reverse causality and price-derived inputs should fail the frozen predictive gates.",
-      "economic_hypothesis": "Holding BTC on the next UTC day only after the exact Extreme Fear label may improve next-day return and downside risk versus all other labels before matched-capital economics are opened.",
-      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW",
-      "matched_comparator_id": "IDENTICAL_BTC_POLICY_WITH_EXTREME_FEAR_STATE_DISABLED_SAME_CAPITAL_COSTS_AND_MARKING",
-      "runner_id": "NOT_BUILT_EXACT_ARCHIVED_FGI_SOURCE_GATE_FIRST",
+      "family_id": "btc-mempool-fee-congestion-point-in-time",
+      "title": "Bitcoin mempool fee-congestion point-in-time risk-state family",
+      "decision_feature": "NOT_SELECTED_PENDING_SOURCE_INTRINSIC_OBSERVATION_CLOCK_SNAPSHOT_IDENTITY_RETENTION_AND_CONTINUITY_PROOF",
+      "causal_hypothesis": "A causally sealed Bitcoin blockspace-demand and fee-congestion state may contain settlement-pressure information distinct from spot price, volume, derivatives carry and participant positioning, but only if source-native point-in-time identity prevents revised current estimates from masquerading as historical evidence.",
+      "economic_hypothesis": "A later separately frozen congestion risk state could reduce adverse BTC exposure or screen DRA entries only if it improves fee-adjusted matched-capital drawdown and Calmar without excessive missed participation; no direction, threshold, horizon or strategy mapping is selected yet.",
+      "parent_strategy_id": "NOT_SELECTED_SOURCE_CONTRACT_AND_FACTOR_SEMANTICS_FIRST",
+      "matched_comparator_id": "NOT_SELECTED_SOURCE_CONTRACT_AND_FACTOR_SEMANTICS_FIRST",
+      "runner_id": "NOT_BUILT_POINT_IN_TIME_SOURCE_PROOF_FIRST",
       "base_stage": "DEFERRED",
       "estimated_days_to_next_gate": null,
-      "compute_cost_class": "LOW",
-      "independence_key": "publisher-composite-crypto-sentiment-label-not-consumer-sentiment-search-volume-price-premium-single-price-indicator-or-calendar",
-      "next_gate": "NO_SECOND_REQUEST_SELECT_AND_BIND_ONE_DIFFERENT_EXECUTABLE_FREE_DATA_REPLACEMENT_THEN_CLOSE_THIS_DEFERRED_SLOT",
+      "compute_cost_class": "MEDIUM",
+      "independence_key": "bitcoin-blockspace-demand-and-fee-market-point-in-time-state-not-spot-candle-volume-carry-positioning-or-composite-sentiment",
+      "next_gate": "WAIT_FOR_ONE_OFFICIAL_VERSIONED_PROOF_BINDING_SOURCE_OBSERVATION_TIME_IMMUTABLE_SNAPSHOT_OR_SEQUENCE_ID_SCHEMA_VERSION_REVISION_RETENTION_CONTINUITY_GAP_STATE_AND_HOSTED_REUSE_TERMS",
       "canonical_binding": {
         "kind": "NONE",
-        "id": "OFFLINE_HISTORICAL_RESEARCH_ONLY"
+        "id": "SOURCE_CONTRACT_WAIT_NO_CAPTURE_OR_WRITER"
       },
       "evidence_bindings": [
         {
-          "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
-          "role": "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
-          "sha256": "3034f11ef0abab8fe42ed8e3fd8170027a2e2b549548ad8b2844cb3ed5334b5b"
+          "path": "research_pipeline/examples/local-research-result.mempool-fee-state-point-in-time-proof.v1.json",
+          "role": "SEALED_OFFICIAL_SOURCE_CONTRACT_WAIT_AND_NAMED_MISSING_PROOF",
+          "sha256": "bec7b8b9a74841e95ceba79f52a1afc2aec6d1648d414689fd3325323ecc4056"
         },
         {
-          "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-source.v1.execution.json",
-          "role": "SEALED_ONE_ATTEMPT_SOURCE_TRANSPORT_INDETERMINATE_NO_ARTIFACT_NO_RETRY",
-          "sha256": "d02427065a5b7f416d3d2dd4f45d8d51a06ec3695eff800c307be5a9c379e6de"
+          "path": "research_pipeline/examples/local-research-task.mempool-fee-state-point-in-time-proof.v1.json",
+          "role": "FROZEN_READ_ONLY_OFFICIAL_SOURCE_POINT_IN_TIME_PROOF_TASK",
+          "sha256": "4ec0999d7ed703b484725f59f06d4db19ec85f8476ed9339803e5a329b78200c"
         }
       ],
       "economic_evidence_status": {
@@ -245,15 +245,14 @@
         "maximum_drawdown": "MISSING_PROOF",
         "holding_age": "MISSING_PROOF",
         "terminal_inventory": "MISSING_PROOF",
-        "breadth_and_path_risk": "HISTORICAL_PRIOR_ONLY"
+        "breadth_and_path_risk": "MISSING_PROOF"
       },
       "missing_proof": [
-        "The one exact archived-source execution reached its 30-second deadline without stdout, response evidence or artifact; no second request is permitted in this lineage.",
-        "No exact archived official API response, schema, label continuity or selected pre-2025 FGI corpus is sealed.",
-        "No Extreme Fear state support, independent next-day relation or stable Design and Validation direction has been measured.",
-        "All source, predictive, matched-capital, drawdown, breadth, candidate and OOS evidence remains missing."
+        "Official evidence does not yet prove a source observation timestamp, immutable snapshot or sequence identity, historical retention or replay semantics, continuity guarantees, hosted payload reuse terms or versioned schema-drift protocol.",
+        "No source capture, factor field, formula, sign, threshold, direction, horizon, parent, comparator or runner is authorized or selected.",
+        "No historical, forward, predictive, matched-capital, drawdown, breadth, candidate or OOS evidence exists."
       ],
-      "duplicate_family_key": "btc-alternative-me-exact-extreme-fear-label-next-day-contrarian-long-cash"
+      "duplicate_family_key": "btc-mempool-point-in-time-congestion-or-fee-state"
     }
   ],
   "closed_families": [
@@ -4612,6 +4611,63 @@
       "parent_strategy_id": "FULL_CAPITAL_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_SUPPORT_AND_PRICE_INDEPENDENCE_GATES_HAD_PASSED",
       "prohibited_reopen": true,
       "title": "Coin Metrics issuance-only Puell Multiple greater-than-four BTC overheat risk veto"
+    },
+    {
+      "decision_feature": "LATEST_COMPLETE_ALTERNATIVE_ME_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
+      "disposition": "DATA_REJECT_CLOSE_DEFERRED_ALTERNATIVE_ME_EXTREME_FEAR_SOURCE_LINEAGE_AFTER_ONE_FAILED_ARCHIVE_ATTEMPT_AND_ONE_FAILED_INDEPENDENT_REPLACEMENT",
+      "duplicate_family_key": "btc-alternative-me-exact-extreme-fear-label-next-day-contrarian-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-source-feasibility.v1.decision.json",
+          "role": "SEALED_INDEPENDENT_REPLACEMENT_FAILURE_AND_DEFERRED_SLOT_FINAL_CLOSURE",
+          "sha256": "17058f5643bebc0bbcb2e441d5f6450ea61ba9f0ab6255ba54914386ff488dfc"
+        },
+        {
+          "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-source.v1.execution.json",
+          "role": "SEALED_ONE_EXACT_ARCHIVE_ATTEMPT_TRANSPORT_INDETERMINATE_NO_ARTIFACT_NO_RETRY",
+          "sha256": "d02427065a5b7f416d3d2dd4f45d8d51a06ec3695eff800c307be5a9c379e6de"
+        },
+        {
+          "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
+          "sha256": "3034f11ef0abab8fe42ed8e3fd8170027a2e2b549548ad8b2844cb3ed5334b5b"
+        }
+      ],
+      "family_id": "closed-btc-alternative-me-extreme-fear-source-lineage-v1",
+      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_SOURCE_GATE_HAD_PASSED",
+      "prohibited_reopen": true,
+      "title": "Alternative.me exact Extreme Fear contrarian source lineage"
+    },
+    {
+      "decision_feature": "LATEST_COMPLETE_COINMARKETCAP_DAILY_VALUE_CLASSIFICATION_EXACTLY_EXTREME_FEAR",
+      "disposition": "DATA_REJECT_CLOSE_COINMARKETCAP_KEYLESS_EXTREME_FEAR_REPLACEMENT_BEFORE_HISTORICAL_VALUES_OR_BTC_OUTCOMES",
+      "duplicate_family_key": "btc-coinmarketcap-exact-extreme-fear-label-next-day-contrarian-long-cash",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-source-feasibility.v1.decision.json",
+          "role": "SEALED_PREVALUE_FIRST_PAGE_API_STATUS_REJECT_AND_FAMILY_CLOSURE",
+          "sha256": "17058f5643bebc0bbcb2e441d5f6450ea61ba9f0ab6255ba54914386ff488dfc"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-source-feasibility.v1.spec.json",
+          "role": "FROZEN_PREVALUE_SIX_PAGE_SOURCE_AND_SUPPORT_CONTRACT",
+          "sha256": "0e80256ff32017a4e11a265cfa378347b2c0b1c4c025370deaa439485cc56b76"
+        },
+        {
+          "path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
+          "role": "FROZEN_OFFICIAL_SOURCE_REPLACEMENT_AND_DEDUP_PRIOR",
+          "sha256": "91fac27c20924c5c5d1621e1eb197d5eaf020eddf3e1cd0ae0fc43e0e0bab8e7"
+        },
+        {
+          "path": "research/coinmarketcap_fgi_historical_source_probe_v1.py",
+          "role": "FROZEN_FAILED_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE",
+          "sha256": "8cc6db830d3b5a5ed5148075260ab974a1fce3a2dab4b277c7fc2206f4488e54"
+        }
+      ],
+      "family_id": "closed-btc-coinmarketcap-extreme-fear-source-status-reject-v1",
+      "parent_strategy_id": "FULL_CAPITAL_UNLEVERED_BTC_BUY_AND_HOLD_SAME_WINDOW_IF_SOURCE_GATE_HAD_PASSED",
+      "prohibited_reopen": true,
+      "title": "CoinMarketCap exact Extreme Fear contrarian keyless-source replacement"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

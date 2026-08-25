@@ -89,7 +89,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 168)
+        self.assertEqual(len(catalog["closed_families"]), 170)
         closed_nr7 = next(
             family
             for family in catalog["closed_families"]
@@ -158,24 +158,38 @@ class CandidateFunnelTest(unittest.TestCase):
                 "closed-dra-binance-usdm-taker-flow-open-interest-confirmation-entry-admission-v1",
             },
         )
-        extreme_fear = next(
+        mempool = next(
             family
             for family in catalog["families"]
             if family["family_id"]
-            == "btc-alternative-me-extreme-fear-contrarian-long-cash"
+            == "btc-mempool-fee-congestion-point-in-time"
         )
-        self.assertEqual(extreme_fear["base_stage"], "DEFERRED")
-        self.assertIsNone(extreme_fear["estimated_days_to_next_gate"])
+        self.assertEqual(mempool["base_stage"], "DEFERRED")
+        self.assertIsNone(mempool["estimated_days_to_next_gate"])
         self.assertEqual(
             [
                 binding["role"]
-                for binding in extreme_fear["evidence_bindings"]
+                for binding in mempool["evidence_bindings"]
             ],
             [
-                "FROZEN_PRIMARY_ADVERSARIAL_ARCHIVED_SOURCE_AND_DEDUP_BOUNDARY_PRIOR",
-                "SEALED_ONE_ATTEMPT_SOURCE_TRANSPORT_INDETERMINATE_NO_ARTIFACT_NO_RETRY",
+                "SEALED_OFFICIAL_SOURCE_CONTRACT_WAIT_AND_NAMED_MISSING_PROOF",
+                "FROZEN_READ_ONLY_OFFICIAL_SOURCE_POINT_IN_TIME_PROOF_TASK",
             ],
         )
+        closed_alternative_me = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-alternative-me-extreme-fear-source-lineage-v1"
+        )
+        self.assertTrue(closed_alternative_me["prohibited_reopen"])
+        closed_coinmarketcap = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-btc-coinmarketcap-extreme-fear-source-status-reject-v1"
+        )
+        self.assertTrue(closed_coinmarketcap["prohibited_reopen"])
         closed_btc_eth_spread = next(
             family
             for family in catalog["closed_families"]
@@ -2289,7 +2303,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 169)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 171)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

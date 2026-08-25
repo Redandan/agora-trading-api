@@ -1,0 +1,114 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_COINMARKETCAP_FGI_HISTORICAL_SOURCE_FEASIBILITY_DECISION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-coinmarketcap-extreme-fear-contrarian-long-cash",
+  "replaced_deferred_family_id": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+  "decided_at": "2026-08-24T16:51:00Z",
+  "research_classification": "PRE_HISTORICAL_VALUE_SOURCE_STATUS_REJECT_NO_CANDIDATE_NO_OOS",
+  "status": "DATA_REJECT_CLOSE_COINMARKETCAP_REPLACEMENT_AND_DEFERRED_ALTERNATIVE_ME_SLOT_BEFORE_HISTORICAL_VALUES_OR_BTC_OUTCOMES",
+  "disposition": "DATA_REJECT_PERMANENTLY_CLOSE_FREE_EXTREME_FEAR_REPLACEMENT_LINEAGE",
+  "material_conclusion": "The independently preregistered CoinMarketCap keyless replacement reached HTTP 200 on its first frozen page, decoded as JSON and matched the top-level data/status envelope, but the API status object did not satisfy the official success contract. The probe stopped before parsing any historical row and did not request pages 501 through 2501. No retry is permitted. Alternative.me already exhausted its one exact archived request without response evidence, so the deferred sentiment slot now has no executable frozen free source and both source lineages close before BTC outcomes.",
+  "execution_evidence": {
+    "source_git_commit": "51e9bdbd1dae62933a7f4c73aace66b6556a0ede",
+    "attempted_at": "2026-08-24T16:49:00Z",
+    "command_class": "DIRECT_PYTHON_OFFLINE_RESEARCH_SOURCE_PROBE_WITH_NETWORK_ONLY_TO_FROZEN_ENDPOINT",
+    "requested_page": {
+      "start": 1,
+      "limit": 500,
+      "url": "https://pro-api.coinmarketcap.com/public-api/v3/fear-and-greed/historical?start=1&limit=500",
+      "attempt_count": 1,
+      "http_200_reached": true,
+      "response_within_byte_cap": true,
+      "json_decoded": true,
+      "top_level_data_and_status_envelope_matched": true,
+      "success_status_contract_matched": false,
+      "terminal_error": "SOURCE_REJECT:STATUS:1"
+    },
+    "unrequested_pages": [501, 1001, 1501, 2001, 2501],
+    "why_unrequested": "FIRST_FAILURE_STOP_AND_NO_RETRY_CONTRACT",
+    "raw_response_persisted": false,
+    "source_bundle_persisted": false,
+    "normalized_subset_persisted": false,
+    "historical_value_or_label_parsed": false,
+    "btc_outcome_accessed": false,
+    "second_request_performed": false
+  },
+  "classification_boundary": "The rejected response's exact API error code and message were not emitted or persisted by the frozen adapter and remain MISSING_PROOF. This decision therefore does not claim that the public endpoint is universally unavailable. It establishes only that the one permitted exact frozen acquisition failed its success-status gate and cannot be retried or repaired inside this lineage.",
+  "alternative_me_slot_closure": {
+    "prior_status": "SOURCE_TRANSPORT_INDETERMINATE_DEFERRED_NO_ARTIFACT_NO_RETRY",
+    "prior_attempt_count": 1,
+    "replacement_selected": "COINMARKETCAP_PROPRIETARY_FEAR_AND_GREED_HISTORICAL_KEYLESS_API",
+    "replacement_result": "DATA_REJECT_AT_FIRST_PAGE_STATUS_BEFORE_HISTORICAL_VALUES",
+    "final_disposition": "CLOSE_DEFERRED_ALTERNATIVE_ME_SLOT_WITHOUT_SECOND_REQUEST_OR_OTHER_SENTIMENT_PROVIDER",
+    "parallel_or_blended_index": "DENY"
+  },
+  "performance_evidence": {
+    "source_values": "MISSING_PROOF_NOT_PARSED",
+    "state_support": "MISSING_PROOF_NOT_RUN",
+    "predictive_relation": "MISSING_PROOF_NOT_RUN",
+    "fees": "MISSING_PROOF_NOT_RUN",
+    "adverse_slippage": "MISSING_PROOF_NOT_RUN",
+    "realized_pnl": "MISSING_PROOF_NOT_RUN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_RUN",
+    "total_pnl": "MISSING_PROOF_NOT_RUN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_RUN",
+    "holding_age": "MISSING_PROOF_NOT_RUN",
+    "terminal_inventory": "MISSING_PROOF_NOT_RUN",
+    "annual_breadth": "MISSING_PROOF_NOT_RUN",
+    "oos": "SEALED_UNOPENED"
+  },
+  "evidence_bindings": [
+    {
+      "path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-source-feasibility.v1.spec.json",
+      "sha256": "0e80256ff32017a4e11a265cfa378347b2c0b1c4c025370deaa439485cc56b76",
+      "role": "FROZEN_PREVALUE_SIX_PAGE_SOURCE_AND_SUPPORT_CONTRACT"
+    },
+    {
+      "path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-primary-prior.v1.json",
+      "sha256": "91fac27c20924c5c5d1621e1eb197d5eaf020eddf3e1cd0ae0fc43e0e0bab8e7",
+      "role": "FROZEN_OFFICIAL_SOURCE_REPLACEMENT_AND_DEDUP_PRIOR"
+    },
+    {
+      "path": "research/coinmarketcap_fgi_historical_source_probe_v1.py",
+      "sha256": "8cc6db830d3b5a5ed5148075260ab974a1fce3a2dab4b277c7fc2206f4488e54",
+      "role": "FROZEN_FAILED_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE"
+    },
+    {
+      "path": "research_pipeline/tests/test_coinmarketcap_fgi_historical_source_probe_v1.py",
+      "sha256": "4970293a0825b3365ae6aec2a5d2439894f7c3d65905dd8a975a8a0bda95c41f",
+      "role": "FROZEN_SYNTHETIC_SCHEMA_TIMESTAMP_DUPLICATE_AND_COVERAGE_TESTS"
+    },
+    {
+      "path": "research_pipeline/examples/btc-alternative-me-extreme-fear-contrarian-long-cash-source.v1.execution.json",
+      "sha256": "d02427065a5b7f416d3d2dd4f45d8d51a06ec3695eff800c307be5a9c379e6de",
+      "role": "SEALED_PREDECESSOR_ONE_ATTEMPT_TRANSPORT_INDETERMINATE_NO_RETRY"
+    }
+  ],
+  "closed_fingerprints": [
+    {
+      "duplicate_family_key": "btc-coinmarketcap-exact-extreme-fear-label-next-day-contrarian-long-cash",
+      "prohibited_reopen": true,
+      "prohibited_rescue": [
+        "SECOND_COINMARKETCAP_REQUEST",
+        "API_KEY_PAID_PLAN_PLUGIN_OR_SIGNUP",
+        "ALTERNATE_COINMARKETCAP_ENDPOINT_OR_PAGE_BOUNDARY",
+        "ANOTHER_SENTIMENT_INDEX_PROVIDER",
+        "NUMERIC_THRESHOLD_SMOOTHING_DIRECTION_HORIZON_OR_INTERACTION_CHANGE"
+      ]
+    },
+    {
+      "duplicate_family_key": "btc-alternative-me-exact-extreme-fear-label-next-day-contrarian-long-cash",
+      "prohibited_reopen": true,
+      "prohibited_rescue": [
+        "SECOND_WAYBACK_OR_LIVE_ALTERNATIVE_ME_REQUEST",
+        "OTHER_CAPTURE_ARCHIVE_OR_PROVIDER_SUBSTITUTION",
+        "NUMERIC_THRESHOLD_SMOOTHING_DIRECTION_HORIZON_OR_INTERACTION_CHANGE"
+      ]
+    }
+  ],
+  "candidate_created": false,
+  "oos_opened": false,
+  "next_action": "REMOVE_THE_DEFERRED_SENTIMENT_SLOT_FROM_THE_OPEN_POOL_AND_ROTATE_TO_A_DIFFERENT_CAUSAL_FREE_SOURCE_MECHANISM_WITHOUT_RETRYING_EITHER_INDEX",
+  "scope_note": "One frozen first-page source request only. No historical source value or label, BTC price, return, factor outcome, strategy ledger, PnL, drawdown, candidate, OOS, paid API, key, plugin, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FREE_EXTREME_FEAR_SOURCE_LINEAGE_CANONICAL_CLOSURE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "accepted_at": "2026-08-24T16:55:00Z",
+  "status": "DATA_REJECT_CLOSE_ALTERNATIVE_ME_AND_COINMARKETCAP_FREE_EXTREME_FEAR_SOURCE_LINEAGES_BEFORE_HISTORICAL_VALUES_OR_BTC_OUTCOMES",
+  "source_research": {
+    "branch": "codex/candidate-factory-recovery-v1",
+    "commit": "a2402f87",
+    "decision_path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-source-feasibility.v1.decision.json",
+    "decision_sha256": "17058f5643bebc0bbcb2e441d5f6450ea61ba9f0ab6255ba54914386ff488dfc",
+    "prevalue_spec_sha256": "0e80256ff32017a4e11a265cfa378347b2c0b1c4c025370deaa439485cc56b76",
+    "source_probe_sha256": "8cc6db830d3b5a5ed5148075260ab974a1fce3a2dab4b277c7fc2206f4488e54"
+  },
+  "alternative_me": {
+    "family_id": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+    "duplicate_family_key": "btc-alternative-me-exact-extreme-fear-label-next-day-contrarian-long-cash",
+    "prior_attempt": "ONE_EXACT_WAYBACK_REQUEST_REACHED_30_SECOND_DEADLINE_WITHOUT_RESPONSE_EVIDENCE_OR_ARTIFACT",
+    "retry": "DENY",
+    "final_disposition": "DATA_REJECT_CLOSE_DEFERRED_SOURCE_SLOT_AFTER_INDEPENDENT_REPLACEMENT_FAILURE"
+  },
+  "coinmarketcap": {
+    "family_id": "btc-coinmarketcap-extreme-fear-contrarian-long-cash",
+    "duplicate_family_key": "btc-coinmarketcap-exact-extreme-fear-label-next-day-contrarian-long-cash",
+    "official_contract": "KEYLESS_PUBLIC_V3_FEAR_AND_GREED_HISTORICAL_START_ONE_BASED_LIMIT_MAX_500",
+    "frozen_attempt": "FIRST_PAGE_START_1_LIMIT_500_EXACTLY_ONCE",
+    "observed_boundary": "HTTP_200_JSON_DATA_STATUS_ENVELOPE_THEN_SOURCE_REJECT_STATUS_1_BEFORE_ANY_HISTORICAL_ROW_PARSE",
+    "unrequested_pages": [501, 1001, 1501, 2001, 2501],
+    "retry_key_plugin_paid_plan_or_alternate_endpoint": "DENY",
+    "final_disposition": "DATA_REJECT_CLOSE_REPLACEMENT_BEFORE_SOURCE_SUPPORT_OR_BTC_OUTCOMES"
+  },
+  "performance_evidence": {
+    "historical_index_values": "MISSING_PROOF_NOT_PARSED",
+    "state_support": "MISSING_PROOF_NOT_RUN",
+    "predictive_relation": "MISSING_PROOF_NOT_RUN",
+    "fees": "MISSING_PROOF_NOT_RUN",
+    "adverse_slippage": "MISSING_PROOF_NOT_RUN",
+    "realized_pnl": "MISSING_PROOF_NOT_RUN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_RUN",
+    "total_pnl": "MISSING_PROOF_NOT_RUN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_RUN",
+    "holding_age": "MISSING_PROOF_NOT_RUN",
+    "terminal_inventory": "MISSING_PROOF_NOT_RUN",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_RUN",
+    "candidate": false,
+    "oos": "SEALED_UNOPENED"
+  },
+  "candidate_pool_transition": {
+    "remove_open_family": "btc-alternative-me-extreme-fear-contrarian-long-cash",
+    "add_closed_families": [
+      "closed-btc-alternative-me-extreme-fear-source-lineage-v1",
+      "closed-btc-coinmarketcap-extreme-fear-source-status-reject-v1"
+    ],
+    "replacement_open_family": "btc-mempool-fee-congestion-point-in-time",
+    "replacement_stage": "DEFERRED",
+    "replacement_claim_boundary": "Pool-width maintenance and distinct-source wait only; no capture, factor, hypothesis, strategy or candidate is created."
+  },
+  "prohibited_reopen": [
+    "SECOND_ALTERNATIVE_ME_OR_COINMARKETCAP_REQUEST",
+    "OTHER_ARCHIVE_CAPTURE_SENTIMENT_PROVIDER_PLUGIN_KEY_OR_PAID_PLAN",
+    "NUMERIC_THRESHOLD_LABEL_SMOOTHING_DIRECTION_HORIZON_OR_INTERACTION_RESCUE",
+    "BTC_OUTCOME_OOS_OR_ECONOMIC_ACCESS_FOR_EITHER_CLOSED_SOURCE_LINEAGE"
+  ],
+  "scope_note": "Canonical evidence summary only. No network request, source value, BTC outcome, strategy runner, candidate, OOS, paid API, plugin, timer, writer, heartbeat, schedule, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred in this acceptance artifact."
+}

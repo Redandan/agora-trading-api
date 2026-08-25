@@ -1,0 +1,25 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_FREE_EXTREME_FEAR_SOURCE_LINEAGE_CANONICAL_CLOSURE_ACCEPTANCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "accepted_at": "2026-08-24T16:56:00Z",
+  "status": "ACCEPTED_DATA_REJECT_NO_CANDIDATE_NO_OOS",
+  "decision": "ACCEPT_AND_TOMBSTONE_BOTH_FREE_EXTREME_FEAR_SOURCE_FINGERPRINTS_WITHOUT_RETRY",
+  "closure_binding": {
+    "path": "research_pipeline/examples/btc-free-extreme-fear-source-lineage-canonical-closure.v1.json",
+    "sha256": "bb6c2ae419936b68b0da16e72fadfe09de464882be33cfaaff6637bf7aaa9054"
+  },
+  "acceptance_checks": {
+    "source_research_commit_and_decision_hash_bound": true,
+    "alternative_me_one_attempt_no_retry_preserved": true,
+    "coinmarketcap_first_failure_stop_preserved": true,
+    "historical_values_not_parsed": true,
+    "btc_outcomes_not_accessed": true,
+    "candidate_not_created": true,
+    "oos_unopened": true,
+    "open_pool_width_preserved_without_second_writer": true
+  },
+  "claim_boundary": "This acceptance proves a fail-closed source decision and pool transition only. It is not evidence against the economic concept of sentiment, not proof that either provider is universally unavailable, and not alpha, PnL, drawdown, candidate or OOS evidence.",
+  "next_action": "Keep both sentiment fingerprints excluded and continue ranking executable non-sentiment families. The mempool pool slot remains DEFERRED until its already named official point-in-time source proof exists.",
+  "scope_note": "Read-only canonical acceptance metadata only. No source call, market value, outcome, strategy action, heartbeat, schedule, timer, writer, paid API, plugin, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

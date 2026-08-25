@@ -1,0 +1,28 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BINANCE_USDM_FUNDING_CROWDING_ENTRY_RISK_STATE_CANONICAL_CLOSURE_ACCEPTANCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "accepted_at": "2026-08-25T02:12:30Z",
+  "status": "ACCEPTED_NO_HYPOTHESIS_NO_CANDIDATE_NO_OOS",
+  "decision": "ACCEPT_AND_TOMBSTONE_THE_FUNDING_ONLY_DRA_ENTRY_RISK_STATE_DESCENDANT_WITHOUT_BACKTEST",
+  "closure_binding": {
+    "path": "research_pipeline/examples/dra-binance-usdm-funding-crowding-entry-risk-state-canonical-closure.v1.json",
+    "sha256": "f42f4d7b4f83ca9c010b61c809f7e8b3405f83ac5a9e857f0d1002e83de7411b"
+  },
+  "acceptance_checks": {
+    "source_research_commit_and_closure_hash_bound": true,
+    "canonical_two_axis_boundary_bound": true,
+    "canonical_ancestor_tombstone_bound": true,
+    "usable_funding_corpus_does_not_override_tombstone": true,
+    "funding_values_not_accessed_in_this_audit": true,
+    "btc_outcomes_not_accessed_in_this_audit": true,
+    "formula_or_threshold_not_created": true,
+    "backtest_not_run": true,
+    "candidate_not_created": true,
+    "oos_unopened": true,
+    "open_pool_width_unchanged": true
+  },
+  "claim_boundary": "Acceptance proves that the proposed funding-crowding DRA action is a prohibited descendant fingerprint. It is not evidence that funding has no predictive information and it is not alpha, PnL, drawdown, candidate or OOS evidence.",
+  "next_action": "Keep this fingerprint excluded and rotate to a genuinely independent free-data mechanism.",
+  "scope_note": "Read-only canonical acceptance metadata only. No source call, market value, outcome, backtest, strategy action, heartbeat, schedule, timer, writer, paid API, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

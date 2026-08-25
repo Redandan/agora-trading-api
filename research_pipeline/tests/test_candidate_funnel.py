@@ -89,7 +89,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 39)
+        self.assertEqual(len(catalog["closed_families"]), 40)
         open_family_ids = {family["family_id"] for family in catalog["families"]}
         self.assertNotIn("dra-crypto-carry-risk-veto", open_family_ids)
         self.assertIn(
@@ -120,6 +120,29 @@ class CandidateFunnelTest(unittest.TestCase):
             "closed-btc-coinmarketcap-extreme-fear-source-status-reject-v1",
             closed_family_ids,
         )
+        self.assertIn(
+            "closed-dra-binance-usdm-funding-crowding-entry-risk-state-v1",
+            closed_family_ids,
+        )
+        funding_crowding = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-binance-usdm-funding-crowding-entry-risk-state-v1"
+        )
+        self.assertEqual(
+            funding_crowding["disposition"],
+            "NO_HYPOTHESIS_CLOSE_FUNDING_ONLY_REINTERPRETATION_OF_TOMBSTONED_DRA_CRYPTO_CARRY_RISK_VETO",
+        )
+        self.assertEqual(
+            [binding["role"] for binding in funding_crowding["evidence_bindings"]],
+            [
+                "SEALED_CANONICAL_DESCENDANT_FINGERPRINT_AND_PRE_OUTCOME_DEDUPLICATION_CLOSURE",
+                "MANAGER_ACCEPTED_NO_HYPOTHESIS_NO_CANDIDATE_DESCENDANT_TOMBSTONE",
+                "SEALED_ANCESTOR_FAMILY_TOMBSTONE_AND_PROHIBITED_REOPEN_DECISION",
+            ],
+        )
+        self.assertTrue(funding_crowding["prohibited_reopen"])
         volatility_instability = next(
             family
             for family in catalog["closed_families"]
@@ -407,7 +430,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 40)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 41)
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)

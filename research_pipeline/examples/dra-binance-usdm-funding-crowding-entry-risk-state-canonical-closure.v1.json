@@ -1,0 +1,70 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BINANCE_USDM_FUNDING_CROWDING_ENTRY_RISK_STATE_CANONICAL_CLOSURE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "accepted_at": "2026-08-25T02:11:52Z",
+  "status": "NO_HYPOTHESIS_CLOSE_FUNDING_ONLY_REINTERPRETATION_OF_TOMBSTONED_DRA_CRYPTO_CARRY_RISK_VETO",
+  "source_research": {
+    "branch": "codex/candidate-factory-recovery-v1",
+    "commit": "1873fd67df367f840b7ffd3f81812197fb13afea",
+    "closure_path": "research_pipeline/examples/dra-binance-usdm-funding-crowding-entry-risk-state-primary-prior-reject.v1.json",
+    "closure_sha256": "d5c173b74c583cde0ae0c6e659efc56608b3b80abf4bce04030987446cb652e1",
+    "sealed_delta_neutral_funding_decision_sha256": "2ea20b3d627445b9646de2b61f6570f0e657db71266d3ea0970e7391e2f83e38"
+  },
+  "canonical_evidence": [
+    {
+      "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json",
+      "sha256": "9656429e3e51c64207c667ee85657d3505ea3c1a4dbff424b2901c45e53a3b18",
+      "role": "CANONICAL_TWO_AXIS_SEMANTIC_BOUNDARY_AND_FUNDING_ONLY_DUPLICATION_RULE"
+    },
+    {
+      "path": "research_pipeline/examples/dra-crypto-carry-v3r1-schema-probe-failure.v1.json",
+      "sha256": "0a32d475b91da77aa523aa06108ac5e8946d7031b8d406519f61423afb8488f6",
+      "role": "CANONICAL_ANCESTOR_FAMILY_TOMBSTONE_AND_PROHIBITED_REOPEN_DECISION"
+    }
+  ],
+  "deduplication_decision": {
+    "family_id": "dra-binance-usdm-funding-crowding-entry-risk-state",
+    "closed_ancestor_family_key": "dra-crypto-carry-risk-veto",
+    "feature": "LAGGED_BINANCE_USDM_BTCUSDT_PERPETUAL_FUNDING_CROWDING_STATE",
+    "parent": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+    "action": "ADMIT_AN_OTHERWISE_VALID_UNCHANGED_DRA_ENTRY_OR_HOLD_CASH",
+    "independent_mechanism": false,
+    "reason": "Funding crowding alone is the explicitly prohibited single-axis representation of the already closed two-axis DRA carry-risk participation veto. A sealed funding corpus lowers acquisition cost but does not override a prohibited-reopen decision.",
+    "prohibited_reopen": true
+  },
+  "corpus_capability_boundary": {
+    "sealed_bundle_sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74",
+    "coverage": "2020_THROUGH_2024_WITH_43848_H1_ROWS_AND_5481_FUNDING_EVENTS",
+    "use_in_closure": "IDENTITY_AND_CAPABILITY_ONLY",
+    "rows_or_values_accessed_in_closure_audit": false,
+    "claim": "Corpus availability is not independent-alpha or family-reopen evidence."
+  },
+  "performance_evidence": {
+    "formula": "NOT_CREATED",
+    "threshold": "NOT_CREATED",
+    "funding_values": "NOT_ACCESSED_IN_THIS_AUDIT",
+    "btc_outcomes": "NOT_ACCESSED_IN_THIS_AUDIT",
+    "fees": "MISSING_PROOF_NOT_RUN",
+    "adverse_slippage": "MISSING_PROOF_NOT_RUN",
+    "realized_pnl": "MISSING_PROOF_NOT_RUN",
+    "unrealized_pnl": "MISSING_PROOF_NOT_RUN",
+    "total_pnl": "MISSING_PROOF_NOT_RUN",
+    "maximum_drawdown": "MISSING_PROOF_NOT_RUN",
+    "holding_age": "MISSING_PROOF_NOT_RUN",
+    "terminal_inventory": "MISSING_PROOF_NOT_RUN",
+    "breadth_and_path_risk": "MISSING_PROOF_NOT_RUN",
+    "candidate": false,
+    "oos": "SEALED_UNOPENED"
+  },
+  "candidate_pool_transition": {
+    "open_family_count_change": 0,
+    "add_closed_family": "closed-dra-binance-usdm-funding-crowding-entry-risk-state-v1",
+    "active_experiment_count_change": 0,
+    "candidate_count_change": 0,
+    "oos_count_change": 0
+  },
+  "claim_boundary": "This is a duplication and authority closure, not evidence that funding has zero predictive information. It does not close a future mechanism with a genuinely different action, parent and preregistered causal cashflow.",
+  "next_action": "RANK_ONE_INDEPENDENT_FREE_DATA_MECHANISM_THAT_DOES_NOT_REUSE_FUNDING_BASIS_CARRY_OR_THE_DRA_ENTRY_RISK_VETO_ACTION",
+  "scope_note": "Canonical closure summary only. No network request, corpus row, funding value, BTC outcome, formula, threshold, runner, experiment, candidate, OOS, heartbeat, schedule, paid API, second timer, second writer, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

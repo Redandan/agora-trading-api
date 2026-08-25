@@ -90,7 +90,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 4)
-        self.assertEqual(len(catalog["closed_families"]), 172)
+        self.assertEqual(len(catalog["closed_families"]), 173)
         self.assertEqual(
             catalog["open_family_floor"]["status"],
             "SEALED_EXHAUSTION_SHORTFALL",
@@ -554,6 +554,30 @@ class CandidateFunnelTest(unittest.TestCase):
             "DATA_REJECT_PERMANENTLY_CLOSE_BINANCE_SPOT_TAKER_BUY_IMBALANCE_FAMILY_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
         )
         self.assertTrue(closed_taker_buy["prohibited_reopen"])
+        closed_cross_market_taker_buy = next(
+            family
+            for family in catalog["closed_families"]
+            if family["family_id"]
+            == "closed-dra-binance-spot-perpetual-taker-buy-pressure-divergence-entry-admission-v1"
+        )
+        self.assertEqual(
+            closed_cross_market_taker_buy["disposition"],
+            "DATA_REJECT_NO_HYPOTHESIS_LOCAL_SEALED_FEATURE_ROWS_ABSENT",
+        )
+        self.assertEqual(
+            [
+                binding["role"]
+                for binding in closed_cross_market_taker_buy["evidence_bindings"]
+            ],
+            [
+                "SEALED_PRIMARY_PRIOR_SOURCE_PATH_AND_DEDUPLICATION_REJECT",
+                "SEALED_OFFICIAL_ARCHIVE_CAPABILITY_AND_DERIVATIVES_FAMILY_DEDUP_BOUNDARY",
+                "SEALED_ABSENT_LOCAL_SPOT_TAKER_BUY_ROWS_AND_NO_EXTERNAL_BACKFILL_TOMBSTONE",
+                "FROZEN_FUNDING_CORPUS_NORMALIZED_COLUMN_CLOSURE",
+                "NETWORK_DEPENDENT_BUILDER_THAT_DISCARDS_TAKER_BUY_FIELDS_FROM_THE_SEALED_NORMALIZED_OUTPUT",
+            ],
+        )
+        self.assertTrue(closed_cross_market_taker_buy["prohibited_reopen"])
         closed_variance_ratio = next(
             family
             for family in catalog["closed_families"]
@@ -2371,7 +2395,7 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 4)
         self.assertEqual(snapshot["summary"]["open_family_shortfall_count"], 1)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 173)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 174)
         self.assertEqual(snapshot["constraint_violations"], [])
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)

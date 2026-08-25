@@ -1,0 +1,141 @@
+{
+  "schema_version": "1",
+  "document_type": "DRA_BINANCE_SPOT_PERPETUAL_TAKER_BUY_PRESSURE_DIVERGENCE_PRIMARY_PRIOR_REJECT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "dra-binance-spot-perpetual-taker-buy-pressure-divergence-entry-admission",
+  "created_at": "2026-08-25T04:48:59Z",
+  "status": "DATA_REJECT_NO_HYPOTHESIS_LOCAL_SEALED_FEATURE_ROWS_ABSENT",
+  "decision": "CLOSE_THE_EXACT_BINANCE_SPOT_PERPETUAL_TAKER_BUY_PRESSURE_DIVERGENCE_DRA_ENTRY_ADMISSION_FAMILY_BEFORE_FORMULA_THRESHOLD_FACTOR_OR_OUTCOME_ACCESS",
+  "frozen_before_formula_or_strategy_outcome_access": true,
+  "proposed_transfer": {
+    "feature_family": "LAGGED_CROSS_MARKET_SPOT_PERPETUAL_AGGRESSIVE_BUY_PRESSURE_DIVERGENCE_OR_AGREEMENT",
+    "provisional_feature": "LATEST_COMPLETE_UTC_DAY_NORMALIZED_PERPETUAL_TAKER_BUY_QUOTE_SHARE_MINUS_NORMALIZED_SPOT_TAKER_BUY_QUOTE_SHARE",
+    "action": "ADMIT_AN_OTHERWISE_VALID_UNCHANGED_DRA_ENTRY_OR_HOLD_CASH",
+    "parent": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
+    "required_causal_link": "A PRE_DECISION DIFFERENCE_BETWEEN DERIVATIVES_AND_SPOT_AGGRESSOR FLOW MUST ADD INFORMATION BEYOND PRICE_TREND_SINGLE_MARKET_FLOW_FUNDING_BASIS_AND_OPEN_INTEREST"
+  },
+  "primary_prior_boundary": {
+    "general_support": [
+      {
+        "identity": "Kapar and Olmo, An analysis of price discovery between Bitcoin futures and spot markets",
+        "source": "https://doi.org/10.1016/j.econlet.2018.12.031",
+        "finding": "The study reports a futures-leading price-discovery relationship and predictive content from futures-versus-spot price deviations.",
+        "transfer_boundary": "Price-level discovery does not define a Binance taker-buy-pressure formula or establish incremental DRA entry value."
+      },
+      {
+        "identity": "Alexander, Choi, Park and Sohn, BitMEX Bitcoin Derivatives: Price Discovery, Informational Efficiency and Hedging Effectiveness",
+        "source": "https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID3432885_code502180.pdf?abstractid=3353583&mirid=1&type=2",
+        "finding": "The full paper reports that BitMEX derivatives lead major spot venues and that inter-market spreads and relative volumes are relevant to price discovery.",
+        "transfer_boundary": "A BitMEX price-discovery result does not freeze an aggressor-flow divergence sign threshold window or Binance DRA policy."
+      },
+      {
+        "identity": "Doan and Vo, The interconnection between net buying pressures in derivatives and spot markets",
+        "source": "https://research-repository.uwa.edu.au/en/publications/the-interconnection-between-net-buying-pressures-in-derivatives-a/",
+        "finding": "The public abstract reports cross-market predictive information in hourly spot futures and options order imbalance for Bitcoin and Ethereum.",
+        "transfer_boundary": "The accessible abstract is not sufficient to reproduce the paper's exact feature construction or translate it into a one-variant DRA admission rule."
+      }
+    ],
+    "formula_status": "NOT_FROZEN_PRIMARY_LITERATURE_SUPPORTS_GENERAL_CROSS_MARKET_INFORMATION_TRANSMISSION_ONLY",
+    "scientific_boundary": "The literature makes the joint cross-market mechanism plausible enough to audit, but it does not overcome the missing local feature rows or authorize selecting a sign threshold lookback or policy from outcomes."
+  },
+  "sealed_source_audit": {
+    "bundle_path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
+    "bundle_sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74",
+    "normalized_gzip_path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/btcusdt-spot-perp-mark-funding-2020-2024.v3.csv.gz",
+    "normalized_gzip_sha256": "0bc3fae0fd1de2ce546592971ae9867c3c7cc4328d2b9733b43c357131a0e24b",
+    "normalized_csv_sha256": "a6e931eb4f260c29857982c0d31fecf273640414ee6a62de56df942f10f9e343",
+    "coverage": "2020-01-01T00:00:00Z_THROUGH_2024-12-31T23:00:00Z",
+    "h1_row_count": 43848,
+    "normalized_columns": [
+      "open_time_ms",
+      "spot_open",
+      "spot_close",
+      "spot_price_source",
+      "perp_open",
+      "perp_close",
+      "mark_open",
+      "mark_close",
+      "funding_calc_time_ms",
+      "funding_offset_ms",
+      "funding_rate"
+    ],
+    "required_but_absent_columns": [
+      "spot_quote_volume",
+      "spot_taker_buy_quote_volume",
+      "perpetual_quote_volume",
+      "perpetual_taker_buy_quote_volume"
+    ],
+    "raw_archive_rows_retained_locally": false,
+    "builder_parses_but_does_not_seal_required_fields": true,
+    "external_archive_enumeration_and_download_required": true,
+    "external_backfill_authorized_for_this_cycle": false,
+    "executable_feature_data_path": false
+  },
+  "sealed_repository_evidence": [
+    {
+      "path": "research_pipeline/examples/binance-usdm-derivatives-archive-source-capability.v1.json",
+      "sha256": "166deda2f8d86a259e93e26162fa520344e2077009919a780cd64dc08f0ff2e4",
+      "role": "SEALED_OFFICIAL_ARCHIVE_CAPABILITY_AND_DERIVATIVES_FAMILY_DEDUP_BOUNDARY"
+    },
+    {
+      "path": "research_pipeline/examples/btc-binance-spot-seven-day-taker-buy-imbalance-long-cash-source-gate.v1.decision.json",
+      "sha256": "b8ebeb64bce64ee513fbc153dcec0bbc6224afab00c8d5d4780b4a614dc3f60a",
+      "role": "SEALED_ABSENT_LOCAL_SPOT_TAKER_BUY_ROWS_AND_NO_EXTERNAL_BACKFILL_TOMBSTONE"
+    },
+    {
+      "path": "research_pipeline/examples/btc-binance-usdm-delta-neutral-funding-carry-historical.v3.source-integrity-closure.json",
+      "sha256": "35e048656e72dd1e273f67fa8149c25a43e62f62e25202132fa4f96ebb9f04a0",
+      "role": "FROZEN_FUNDING_CORPUS_NORMALIZED_COLUMN_CLOSURE"
+    },
+    {
+      "path": "research/binance_btcusdt_funding_carry_corpus_v3.py",
+      "sha256": "605d60e5e44d2543ac29a382640e5a34d33fb21c2a38810e93851455cf23dfcd",
+      "role": "NETWORK_DEPENDENT_BUILDER_THAT_DISCARDS_TAKER_BUY_FIELDS_FROM_THE_SEALED_NORMALIZED_OUTPUT"
+    }
+  ],
+  "deduplication_proof": {
+    "independent_joint_mechanism_in_principle": true,
+    "distinct_from_closed_spot_taker_buy_level": "The proposed state is a simultaneous normalized difference or agreement between spot and perpetual aggressor flow, not a single-market above-one-half share.",
+    "distinct_from_closed_perpetual_taker_flow_open_interest_confirmation": "The proposed state compares spot with perpetual aggressor flow and contains no open-interest confirmation.",
+    "not_a_valid_reopen": "The distinct joint interpretation still requires the same absent row-level taker-buy fields. Replacing spot with perpetual data parent strategy or a renamed threshold cannot bypass the sealed source failure.",
+    "prohibited_substitutions": [
+      "Do not infer taker-buy pressure from close direction total volume funding or basis.",
+      "Do not download or reconstruct the discarded archive rows in this cycle.",
+      "Do not select a difference sign ratio z-score percentile lookback threshold agreement rule or DRA action after this rejection.",
+      "Do not borrow price-discovery literature as evidence of Binance DRA PnL drawdown or incremental alpha.",
+      "Do not reopen either the spot-only taker-buy family or the perpetual taker-flow-plus-open-interest family."
+    ]
+  },
+  "terminal_failure": {
+    "classification": "SOURCE_PATH_NOT_EXECUTABLE_UNDER_ACTIVE_LOCAL_SEALED_DATA_BOUNDARY",
+    "reason": "The only checksum-bound local spot-perpetual corpus deliberately seals prices mark prices and funding but not either market's total or taker-buy quote volume. Raw ZIP payloads are not retained, so the proposed joint feature would require a new external archive acquisition and a new corpus rather than reuse of existing sealed evidence.",
+    "runner_path_reviewed": false,
+    "runner_path_not_reviewed_reason": "The source-data stop condition preempts runner and allocation work.",
+    "hypothesis_created": false,
+    "manifest_created": false,
+    "factor_computed": false,
+    "btc_outcome_accessed": false,
+    "strategy_runner_executed": false
+  },
+  "performance_evidence": {
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "annual_regime_breadth": "NOT_OPENED",
+    "path_risk": "NOT_OPENED"
+  },
+  "next_action": "DO_NOT_FILL_THE_OPEN_POOL_WITH_THIS_SOURCE_BLOCKED_FAMILY; RETAIN_THE_SEALED_ONE_SLOT_EXHAUSTION_EXCEPTION_AND_ADVANCE_ONLY_AN_EXISTING_OPEN_FAMILY_OR_A_DISTINCT_MECHANISM_WITH_ALREADY_SEALED_FEATURE_ROWS",
+  "hypothesis_created": false,
+  "manifest_created": false,
+  "runner_created": false,
+  "experiment_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_reopen": true,
+  "scope_note": "Primary-prior transfer boundary source-capability and deduplication audit only. No archive download external backfill corpus mutation factor formula threshold hypothesis manifest runner experiment candidate OOS paid API second timer second writer canonical write Production Trading database order fund OCO Grid SHADOW PAPER or LIVE action occurred."
+}

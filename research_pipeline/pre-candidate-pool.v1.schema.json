@@ -204,7 +204,7 @@
           "additionalProperties": false,
           "required": ["kind", "id"],
           "properties": {
-            "kind": {"enum": ["FORWARD_MECHANISM", "FORWARD_VOLATILITY_PERSISTENCE", "MICROSTRUCTURE", "NONE"]},
+            "kind": {"enum": ["FORWARD_MECHANISM", "FORWARD_POST_SHOCK_FACTOR", "FORWARD_VOLATILITY_PERSISTENCE", "MICROSTRUCTURE", "NONE"]},
             "id": {"type": "string", "minLength": 1}
           }
         },

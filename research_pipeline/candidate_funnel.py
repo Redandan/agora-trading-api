@@ -22,6 +22,13 @@ from .forward_volatility_persistence_activation import (
     ACTIVATION_STATE_KEY,
     prepare_forward_volatility_persistence_activation,
 )
+from .post_shock_factor import (
+    CONTINUATION as POST_SHOCK_CONTINUATION,
+    NO_FACTOR as POST_SHOCK_NO_FACTOR,
+    REVERSAL as POST_SHOCK_REVERSAL,
+    _load_snapshots as _load_post_shock_snapshots,
+    _load_snapshots_v2 as _load_post_shock_snapshots_v2,
+)
 from .storage import ResearchStore, sha256_file, store_relative_reference
 
 
@@ -30,6 +37,9 @@ DOCUMENT_TYPE = "PRE_CANDIDATE_POOL_CATALOG_V1"
 OUTPUT_TYPE = "CANDIDATE_FUNNEL_SNAPSHOT_V1"
 STATE_AUTHORITY = "SERVER_CANONICAL"
 TIMER_AUTHORITY = "CODEX_CLOUD_OPS_ONLY"
+POST_SHOCK_ACTIVATED_AT_STATE_KEY = (
+    "btc_utc_day_3pct_shock_contract_activated_at"
+)
 CATALOG_PATH = Path(__file__).with_name("pre-candidate-pool.v1.json")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 RELEASE_PORTABLE_EVIDENCE_PREFIXES = (
@@ -212,6 +222,7 @@ def _validate_family(repo_root: Path, value: Any, index: int) -> dict[str, Any]:
     _exact_keys(canonical, {"id", "kind"}, f"families[{index}].canonical_binding")
     if canonical["kind"] not in {
         "FORWARD_MECHANISM",
+        "FORWARD_POST_SHOCK_FACTOR",
         "FORWARD_VOLATILITY_PERSISTENCE",
         "MICROSTRUCTURE",
         "NONE",
@@ -585,6 +596,142 @@ def _static_state(family: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _post_shock_factor_state(
+    family: dict[str, Any],
+    *,
+    heartbeat_state: dict[str, Any] | None,
+    state_root: Path | None,
+    as_of: datetime,
+) -> dict[str, Any]:
+    if not isinstance(heartbeat_state, dict):
+        return _static_state(family)
+    activated_at = heartbeat_state.get(POST_SHOCK_ACTIVATED_AT_STATE_KEY)
+    if activated_at is None:
+        return _static_state(family)
+    if not isinstance(activated_at, str) or not activated_at.strip():
+        return {
+            "stage": "INTEGRITY_BLOCKED",
+            "integrity_status": "POST_SHOCK_ACTIVATION_TIMESTAMP_INVALID",
+            "progress": None,
+            "next_gate": "RESTORE_POST_SHOCK_ACTIVATION_INTEGRITY_WITHOUT_REWRITE",
+            "estimated_days": None,
+        }
+    try:
+        parsed_activation = datetime.fromisoformat(
+            activated_at.replace("Z", "+00:00")
+        )
+        if parsed_activation.tzinfo is None:
+            raise ValueError("post-shock activation timestamp has no timezone")
+        if parsed_activation.astimezone(timezone.utc) > as_of:
+            raise ValueError("post-shock activation timestamp is in the future")
+    except ValueError:
+        return {
+            "stage": "INTEGRITY_BLOCKED",
+            "integrity_status": "POST_SHOCK_ACTIVATION_TIMESTAMP_INVALID",
+            "progress": None,
+            "next_gate": "RESTORE_POST_SHOCK_ACTIVATION_INTEGRITY_WITHOUT_REWRITE",
+            "estimated_days": None,
+        }
+    if state_root is None:
+        return {
+            "stage": "INTEGRITY_BLOCKED",
+            "integrity_status": "POST_SHOCK_CANONICAL_STATE_ROOT_MISSING",
+            "progress": None,
+            "next_gate": "RESTORE_READ_ONLY_CANONICAL_STATE_BINDING",
+            "estimated_days": None,
+        }
+
+    store = ResearchStore(Path(state_root), lock_stale_seconds=3600)
+    try:
+        lineage = resolve_active_forward_trigger_lineage(store)
+        if lineage is None:
+            raise ValueError("post-shock active trigger lineage is unavailable")
+        snapshots = (
+            _load_post_shock_snapshots_v2(store, lineage)
+            if lineage.rolled_over
+            else _load_post_shock_snapshots(store)
+        )
+    except (FileNotFoundError, OSError, ValueError) as error:
+        return {
+            "stage": "INTEGRITY_BLOCKED",
+            "integrity_status": f"POST_SHOCK_LINEAGE_OR_SNAPSHOT_INVALID:{error}",
+            "progress": None,
+            "next_gate": "RESTORE_POST_SHOCK_EVIDENCE_INTEGRITY_WITHOUT_REWRITE",
+            "estimated_days": None,
+        }
+
+    latest_path: Path | None = None
+    latest: dict[str, Any] | None = None
+    if snapshots:
+        latest_path, latest = snapshots[-1]
+    episode_count = len(latest["episodes"]) if latest is not None else 0
+    terminal = bool(latest and latest["terminal"])
+    disposition = latest.get("disposition") if latest is not None else None
+    latest_reference = (
+        {
+            "artifact_path": store_relative_reference(store.root, latest_path),
+            "sha256": sha256_file(latest_path),
+        }
+        if latest_path is not None
+        else None
+    )
+    progress = {
+        "activation_status": "SHOCK_CONTRACT_ACTIVATED",
+        "activated_at": activated_at,
+        "root_trigger_id": lineage.root_trigger["trigger_id"],
+        "root_trigger_fingerprint": lineage.root_trigger["fingerprint"],
+        "leaf_trigger_id": lineage.leaf_trigger["trigger_id"],
+        "leaf_trigger_fingerprint": lineage.leaf_trigger["fingerprint"],
+        "snapshot_version": "V2" if lineage.rolled_over else "V1",
+        "snapshot_count": len(snapshots),
+        "episode_count": episode_count,
+        "minimum_episodes": 8,
+        "terminal": terminal,
+        "disposition": disposition,
+        "latest_snapshot": latest_reference,
+    }
+    if terminal and disposition == POST_SHOCK_REVERSAL:
+        return {
+            "stage": "READY_FOR_HYPOTHESIS",
+            "integrity_status": "SEALED_FORWARD_REVERSAL_RETAIN",
+            "progress": progress,
+            "next_gate": "SELECT_ONE_PARENT_AND_FREEZE_AT_MOST_ONE_REVERSAL_HYPOTHESIS",
+            "estimated_days": 0,
+            "missing_proof": [
+                family["missing_proof"][0],
+                *family["missing_proof"][2:],
+            ],
+        }
+    if terminal and disposition in {
+        POST_SHOCK_CONTINUATION,
+        POST_SHOCK_NO_FACTOR,
+    }:
+        return {
+            "stage": "FORWARD_EVIDENCE",
+            "integrity_status": "SEALED_FORWARD_REVERSAL_FAMILY_CLOSE",
+            "progress": progress,
+            "next_gate": "KEEP_REVERSAL_FAMILY_CLOSED_NO_RETUNING",
+            "estimated_days": 0,
+            "dynamic_closure": {
+                "disposition": disposition,
+                "artifact_path": latest_reference["artifact_path"],
+                "sha256": latest_reference["sha256"],
+                "role": "SERVER_CANONICAL_POST_SHOCK_DIRECTIONAL_TERMINAL",
+            },
+        }
+    return {
+        "stage": "FORWARD_EVIDENCE",
+        "integrity_status": "SEALED_POST_SHOCK_FORWARD_EVIDENCE_COLLECTING",
+        "progress": progress,
+        "next_gate": (
+            "ACCUMULATE_FIRST_ELIGIBLE_FORWARD_SHOCK_EPISODE"
+            if episode_count == 0
+            else "ACCUMULATE_TO_EARLIEST_FROZEN_DIRECTIONAL_TERMINAL_PREFIX"
+        ),
+        "estimated_days": None,
+    }
+
+
 def _volatility_persistence_state(
     family: dict[str, Any],
     *,
@@ -763,6 +910,13 @@ def _family_snapshot(
     kind = family["canonical_binding"]["kind"]
     if kind == "FORWARD_MECHANISM":
         dynamic = _forward_mechanism_state(family, registry)
+    elif kind == "FORWARD_POST_SHOCK_FACTOR":
+        dynamic = _post_shock_factor_state(
+            family,
+            heartbeat_state=heartbeat_state,
+            state_root=state_root,
+            as_of=as_of,
+        )
     elif kind == "FORWARD_VOLATILITY_PERSISTENCE":
         dynamic = _volatility_persistence_state(
             family,
@@ -886,7 +1040,9 @@ def _dynamic_closed_snapshot(
         "evidence_bindings": [
             *family["evidence_bindings"],
             {
-                "role": "SERVER_CANONICAL_FORWARD_VOLATILITY_TERMINAL",
+                "role": closure.get(
+                    "role", "SERVER_CANONICAL_FORWARD_VOLATILITY_TERMINAL"
+                ),
                 "path": closure["artifact_path"],
                 "sha256": closure["sha256"],
                 "verified": True,

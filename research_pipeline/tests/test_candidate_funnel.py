@@ -12,10 +12,16 @@ from unittest.mock import patch
 from jsonschema import Draft202012Validator
 
 from research_pipeline.candidate_funnel import (
+    POST_SHOCK_ACTIVATED_AT_STATE_KEY,
     _validate_open_family_floor,
     build_candidate_funnel,
     candidate_funnel_status,
     load_candidate_pool_catalog,
+)
+from research_pipeline.post_shock_factor import (
+    CONTINUATION as POST_SHOCK_CONTINUATION,
+    NO_FACTOR as POST_SHOCK_NO_FACTOR,
+    REVERSAL as POST_SHOCK_REVERSAL,
 )
 from research_pipeline.forward_volatility_persistence import (
     CLOSE as VOLATILITY_CLOSE,
@@ -2503,6 +2509,151 @@ class CandidateFunnelTest(unittest.TestCase):
             ["MAXIMUM_ACTIVE_EXPERIMENTS_EXCEEDED", "MAXIMUM_CANDIDATE_OOS_EXCEEDED"],
         )
 
+    def test_post_shock_reversal_binding_exposes_forward_progress(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "research_pipeline.candidate_funnel."
+            "resolve_active_forward_trigger_lineage",
+            return_value=_post_shock_lineage(),
+        ), patch(
+            "research_pipeline.candidate_funnel._load_post_shock_snapshots_v2",
+            return_value=[],
+        ):
+            snapshot = build_candidate_funnel(
+                _registry(),
+                microstructure=_microstructure("WAITING_FOR_DAY"),
+                heartbeat_state={
+                    POST_SHOCK_ACTIVATED_AT_STATE_KEY: "2026-08-18T01:05:00Z",
+                },
+                state_root=Path(directory),
+                as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                repo_root=REPO_ROOT,
+            )
+
+        reversal = _family(snapshot, "btc-3pct-post-shock-reversal")
+        self.assertEqual("FORWARD_EVIDENCE", reversal["stage"])
+        self.assertEqual(
+            "FORWARD_POST_SHOCK_FACTOR",
+            reversal["canonical_binding"]["kind"],
+        )
+        self.assertEqual(0, reversal["progress"]["episode_count"])
+        self.assertEqual(8, reversal["progress"]["minimum_episodes"])
+        self.assertFalse(reversal["progress"]["terminal"])
+        self.assertEqual(
+            "ACCUMULATE_FIRST_ELIGIBLE_FORWARD_SHOCK_EPISODE",
+            reversal["next_gate"],
+        )
+
+    def test_post_shock_terminal_reversal_is_not_a_formal_candidate(self) -> None:
+        terminal = _post_shock_terminal(POST_SHOCK_REVERSAL)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "terminal-reversal.json"
+            path.write_text("{}\n", encoding="utf-8")
+            with patch(
+                "research_pipeline.candidate_funnel."
+                "resolve_active_forward_trigger_lineage",
+                return_value=_post_shock_lineage(),
+            ), patch(
+                "research_pipeline.candidate_funnel."
+                "_load_post_shock_snapshots_v2",
+                return_value=[(path, terminal)],
+            ):
+                snapshot = build_candidate_funnel(
+                    _registry(),
+                    microstructure=_microstructure("WAITING_FOR_DAY"),
+                    heartbeat_state={
+                        POST_SHOCK_ACTIVATED_AT_STATE_KEY: "2026-08-18T01:05:00Z",
+                    },
+                    state_root=Path(directory),
+                    as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                    repo_root=REPO_ROOT,
+                )
+
+        reversal = _family(snapshot, "btc-3pct-post-shock-reversal")
+        self.assertEqual("READY_FOR_HYPOTHESIS", reversal["stage"])
+        self.assertEqual(
+            "SEALED_FORWARD_REVERSAL_RETAIN", reversal["integrity_status"]
+        )
+        self.assertTrue(reversal["progress"]["terminal"])
+        self.assertEqual(POST_SHOCK_REVERSAL, reversal["progress"]["disposition"])
+        self.assertEqual(0, snapshot["summary"]["formal_candidate_count"])
+
+    def test_post_shock_non_reversal_terminal_closes_exact_family(self) -> None:
+        for disposition in (POST_SHOCK_CONTINUATION, POST_SHOCK_NO_FACTOR):
+            with (
+                self.subTest(disposition=disposition),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                path = Path(directory) / "terminal-close.json"
+                path.write_text("{}\n", encoding="utf-8")
+                with patch(
+                    "research_pipeline.candidate_funnel."
+                    "resolve_active_forward_trigger_lineage",
+                    return_value=_post_shock_lineage(),
+                ), patch(
+                    "research_pipeline.candidate_funnel."
+                    "_load_post_shock_snapshots_v2",
+                    return_value=[(path, _post_shock_terminal(disposition))],
+                ):
+                    snapshot = build_candidate_funnel(
+                        _registry(),
+                        microstructure=_microstructure("WAITING_FOR_DAY"),
+                        heartbeat_state={
+                            POST_SHOCK_ACTIVATED_AT_STATE_KEY: (
+                                "2026-08-18T01:05:00Z"
+                            ),
+                        },
+                        state_root=Path(directory),
+                        as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                        repo_root=REPO_ROOT,
+                    )
+
+            self.assertNotIn(
+                "btc-3pct-post-shock-reversal",
+                [family["family_id"] for family in snapshot["ranked_families"]],
+            )
+            closed = _family(
+                {"ranked_families": snapshot["closed_families"]},
+                "btc-3pct-post-shock-reversal",
+            )
+            self.assertEqual("CLOSED", closed["stage"])
+            self.assertEqual(disposition, closed["disposition"])
+            self.assertEqual(
+                "SERVER_CANONICAL_POST_SHOCK_DIRECTIONAL_TERMINAL",
+                closed["evidence_bindings"][-1]["role"],
+            )
+            self.assertTrue(closed["prohibited_reopen"])
+
+    def test_post_shock_snapshot_conflict_blocks_only_that_family(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "research_pipeline.candidate_funnel."
+            "resolve_active_forward_trigger_lineage",
+            return_value=_post_shock_lineage(),
+        ), patch(
+            "research_pipeline.candidate_funnel._load_post_shock_snapshots_v2",
+            side_effect=ValueError("synthetic post-shock snapshot conflict"),
+        ):
+            snapshot = build_candidate_funnel(
+                _registry(),
+                microstructure=_microstructure("WAITING_FOR_DAY"),
+                heartbeat_state={
+                    POST_SHOCK_ACTIVATED_AT_STATE_KEY: "2026-08-18T01:05:00Z",
+                },
+                state_root=Path(directory),
+                as_of=datetime(2026, 8, 18, 2, 5, tzinfo=timezone.utc),
+                repo_root=REPO_ROOT,
+            )
+
+        reversal = _family(snapshot, "btc-3pct-post-shock-reversal")
+        self.assertEqual("INTEGRITY_BLOCKED", reversal["stage"])
+        self.assertIn(
+            "synthetic post-shock snapshot conflict",
+            reversal["integrity_status"],
+        )
+        self.assertEqual(
+            ["btc-3pct-post-shock-reversal"],
+            snapshot["summary"]["integrity_blocked_families"],
+        )
+
     def test_volatility_activation_promotes_only_to_forward_evidence(self) -> None:
         receipt = _volatility_receipt()
         with tempfile.TemporaryDirectory() as directory, patch(
@@ -2768,6 +2919,22 @@ def _volatility_receipt() -> dict[str, object]:
         "worker_source_commit": "a" * 40,
         "leaf_trigger_id": "prospective-mechanism-neutral-evidence-refresh-rollover",
         "leaf_trigger_fingerprint": "b" * 64,
+    }
+
+
+def _post_shock_lineage() -> SimpleNamespace:
+    return SimpleNamespace(
+        rolled_over=True,
+        root_trigger={"trigger_id": "root-trigger", "fingerprint": "a" * 64},
+        leaf_trigger={"trigger_id": "leaf-trigger", "fingerprint": "b" * 64},
+    )
+
+
+def _post_shock_terminal(disposition: str) -> dict[str, object]:
+    return {
+        "episodes": [{} for _ in range(8)],
+        "terminal": True,
+        "disposition": disposition,
     }
 
 

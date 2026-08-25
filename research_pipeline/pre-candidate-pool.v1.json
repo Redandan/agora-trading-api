@@ -148,8 +148,8 @@
       "independence_key": "large-shock-forced-flow-reversal",
       "next_gate": "SEAL_UNTOUCHED_FORWARD_TERMINAL_REVERSAL_EVIDENCE_AND_SELECT_ONE_PARENT",
       "canonical_binding": {
-        "kind": "NONE",
-        "id": "NO_CANONICAL_CANDIDATE_BINDING"
+        "kind": "FORWARD_POST_SHOCK_FACTOR",
+        "id": "BTC_UTC_DAY_3PCT_POST_SHOCK_FACTOR_V2"
       },
       "evidence_bindings": [
         {

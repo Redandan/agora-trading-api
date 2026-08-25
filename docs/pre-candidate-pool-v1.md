@@ -30,7 +30,8 @@ because the Research Worker package intentionally excludes them.
 - the Git-versioned pool catalog;
 - the server-canonical research registry;
 - the existing canonical microstructure diagnostic; and
-- the existing heartbeat state plus sealed volatility-persistence snapshots.
+- the existing heartbeat state plus sealed directional post-shock and
+  volatility-persistence snapshots.
 
 The funnel never writes canonical state, opens OOS, executes a runner, registers
 a hypothesis, or activates a strategy. It adds no MCP operation, timer, queue,
@@ -45,6 +46,15 @@ identity. A terminal retain result can advance only to `READY_FOR_HYPOTHESIS`;
 a terminal close result becomes a dynamic prohibited-reopen tombstone. Receipt,
 release, lineage or snapshot drift is `INTEGRITY_BLOCKED` and is never repaired
 by the funnel.
+
+The BTC three-percent post-shock reversal family follows the same read-only
+rule. Once the heartbeat has frozen its activation time, the funnel reports the
+active rollover lineage, snapshot version, eligible episode count, earliest
+terminal prefix and exact latest artifact identity. A terminal `REVERSAL`
+result advances only to `READY_FOR_HYPOTHESIS`; terminal `CONTINUATION` or
+`NO_DIRECTIONAL_POST_SHOCK_FACTOR_CLOSE` evidence closes the exact reversal
+family without tuning. The funnel does not create a continuation replacement,
+select a parent, register a hypothesis, or infer strategy economics.
 
 ## Pool contract
 

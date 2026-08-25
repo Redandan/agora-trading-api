@@ -997,7 +997,6 @@ class CandidateFunnelTest(unittest.TestCase):
             ],
             [
                 "SEALED_HISTORICAL_ECONOMIC_DECISION",
-                "FROZEN_PRE_PERFORMANCE_SPECIFICATION",
                 "SPEC_HASH_BOUND_DETERMINISTIC_RUNNER",
             ],
         )
@@ -2301,7 +2300,16 @@ class CandidateFunnelTest(unittest.TestCase):
         )
         self.assertTrue(
             all(
-                not binding["path"].startswith(".research-state/")
+                binding["path"].startswith(
+                    (
+                        "research_pipeline/",
+                        "research_mcp/",
+                        "research_source/",
+                        "research/",
+                        "scripts/research-worker/",
+                    )
+                )
+                or binding["path"] == "docs/autonomous-research-charter.md"
                 for family in catalog["families"] + catalog["closed_families"]
                 for binding in family["evidence_bindings"]
             )

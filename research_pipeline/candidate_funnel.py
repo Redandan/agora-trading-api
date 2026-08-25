@@ -32,6 +32,14 @@ STATE_AUTHORITY = "SERVER_CANONICAL"
 TIMER_AUTHORITY = "CODEX_CLOUD_OPS_ONLY"
 CATALOG_PATH = Path(__file__).with_name("pre-candidate-pool.v1.json")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+RELEASE_PORTABLE_EVIDENCE_PREFIXES = (
+    "research_pipeline/",
+    "research_mcp/",
+    "research_source/",
+    "research/",
+    "scripts/research-worker/",
+)
+RELEASE_PORTABLE_EVIDENCE_FILES = {"docs/autonomous-research-charter.md"}
 TERMINAL_EXPERIMENT_STAGES = {
     "BLOCKED",
     "CLOSED",
@@ -110,7 +118,10 @@ def _verify_binding(repo_root: Path, binding: dict[str, Any], label: str) -> dic
     relative = _require_string(binding["path"], f"{label}.path")
     if "\\" in relative or Path(relative).is_absolute():
         raise ValueError(f"{label}.path must be repository-relative POSIX")
-    if relative == ".research-state" or relative.startswith(".research-state/"):
+    if not (
+        relative in RELEASE_PORTABLE_EVIDENCE_FILES
+        or relative.startswith(RELEASE_PORTABLE_EVIDENCE_PREFIXES)
+    ):
         raise ValueError(f"{label}.path must be release-portable committed evidence")
     expected = _require_string(binding["sha256"], f"{label}.sha256")
     if SHA256_PATTERN.fullmatch(expected) is None:

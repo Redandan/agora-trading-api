@@ -1520,11 +1520,6 @@
           "sha256": "cc4c6a26adec34b7babc1c082b17c96c01a456590e7a2a40391861bcef9e78dc"
         },
         {
-          "path": "docs/btc-dra-partial-core-runner-profit-only-exit-v1-research.md",
-          "role": "FROZEN_PRE_PERFORMANCE_SPECIFICATION",
-          "sha256": "797c82c2a8a79e86c4eba483c7019679a6ff172ee6f928cbc7bbed43e3eeada8"
-        },
-        {
           "path": "research/btc_dra_partial_core_runner_profit_only_exit_v1.py",
           "role": "SPEC_HASH_BOUND_DETERMINISTIC_RUNNER",
           "sha256": "003cee66753910be989d5c33284f5fb9e364db6e39313fcdf263ca21ea27407f"

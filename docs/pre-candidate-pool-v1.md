@@ -16,10 +16,12 @@ status surface:
 The catalog is `research_pipeline/pre-candidate-pool.v1.json`. Its schema is
 `research_pipeline/pre-candidate-pool.v1.schema.json`. Every repository
 evidence binding is SHA-256 verified before the pool is returned.
-Catalog bindings must be committed, release-portable repository paths. Mutable
-or ignored `.research-state` paths may remain named inside a sealed decision as
-historical provenance, but cannot be direct catalog bindings because the
-Research Worker package intentionally excludes that local state tree.
+Catalog bindings must be committed, release-portable repository paths within
+the Worker allowlist: the research code roots, `scripts/research-worker`, or the
+single packaged autonomous-research charter. Mutable or ignored
+`.research-state` paths and broad `docs` paths may remain named inside a sealed
+decision as historical provenance, but cannot be direct catalog bindings
+because the Research Worker package intentionally excludes them.
 
 ## Authority and safety
 

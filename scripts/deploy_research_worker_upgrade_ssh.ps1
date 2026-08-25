@@ -171,6 +171,46 @@ function Assert-ExactNames {
     }
 }
 
+function Assert-CandidatePoolEvidenceBindings {
+    param([Parameter(Mandatory = $true)][string]$PackageRoot)
+
+    $catalogPath = Join-Path $PackageRoot "research_pipeline/pre-candidate-pool.v1.json"
+    $catalog = Get-Content -Raw -LiteralPath $catalogPath | ConvertFrom-Json -Depth 100
+    $bindings = [System.Collections.Generic.List[object]]::new()
+    foreach ($binding in @($catalog.open_family_floor.evidence_bindings)) {
+        $bindings.Add($binding)
+    }
+    foreach ($family in @($catalog.families) + @($catalog.closed_families)) {
+        foreach ($binding in @($family.evidence_bindings)) {
+            $bindings.Add($binding)
+        }
+    }
+
+    $root = [System.IO.Path]::GetFullPath($PackageRoot).TrimEnd('\', '/')
+    $rootPrefix = $root + [System.IO.Path]::DirectorySeparatorChar
+    foreach ($binding in $bindings) {
+        $relative = [string]$binding.path
+        if ([string]::IsNullOrWhiteSpace($relative) -or
+                $relative.Contains('\') -or
+                [System.IO.Path]::IsPathRooted($relative)) {
+            throw "Candidate pool evidence path is not package-relative POSIX: $relative"
+        }
+        $path = [System.IO.Path]::GetFullPath((Join-Path $root $relative))
+        if (-not $path.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "Candidate pool evidence path escaped the packaged release: $relative"
+        }
+        $file = Get-Item -LiteralPath $path -Force -ErrorAction Stop
+        if ($file.PSIsContainer -or
+                ($file.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Candidate pool evidence is not a regular packaged file: $relative"
+        }
+        $actual = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actual -ne [string]$binding.sha256) {
+            throw "Candidate pool evidence hash mismatch in packaged release: $relative"
+        }
+    }
+}
+
 function Assert-ExactDistribution {
     param([Parameter(Mandatory = $true)][string]$DistributionRoot)
 
@@ -324,6 +364,7 @@ function Assert-PackageTree {
             throw "Package contains a forbidden path: $relative"
         }
     }
+    Assert-CandidatePoolEvidenceBindings -PackageRoot $PackageRoot
     if ($IncludeCarryDistribution) {
         Assert-ExactOptInDistribution -DistributionRoot (Join-Path $PackageRoot "target/microstructure-dist") -Kind Microstructure
         Assert-ExactOptInDistribution -DistributionRoot (Join-Path $PackageRoot "target/dra-crypto-carry-dist") -Kind Carry

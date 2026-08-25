@@ -4322,7 +4322,7 @@
         {
           "path": "research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json",
           "role": "SEALED_TWO_AXIS_SEMANTIC_BOUNDARY_AND_EXPLICIT_FUNDING_ONLY_DUPLICATION_RULE",
-          "sha256": "3fb24f7b5034d7af20b6425a206471ede995eb149d92dafa36d0ef770e83729a"
+          "sha256": "9656429e3e51c64207c667ee85657d3505ea3c1a4dbff424b2901c45e53a3b18"
         },
         {
           "path": "research_pipeline/examples/dra-crypto-carry-v3r1-schema-probe-failure.v1.json",
@@ -4353,7 +4353,7 @@
         {
           "path": "research_pipeline/examples/local-research-result.mempool-fee-state-point-in-time-proof.v1.json",
           "role": "SEALED_PRIOR_NAMED_POINT_IN_TIME_SOURCE_MISSING_PROOF",
-          "sha256": "bec7b8b9a74841e95ceba79f52a1afc2aec6d1648d414689fd3325323ecc4056"
+          "sha256": "82d2701e46eb884fc9140fcd315d9bd24b06aa84dc35a8d3f2ae0628dc457508"
         },
         {
           "path": "research_pipeline/examples/pre-candidate-pool-open-floor-exhaustion.v1.acceptance.json",

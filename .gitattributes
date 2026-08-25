@@ -193,3 +193,5 @@ research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-hi
 research_pipeline/tests/test_btc_coinmetrics_hash_ribbon_health_state_long_cash_historical.py text eol=lf
 research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical.v1.decision.json text eol=lf
 research_pipeline/examples/btc-eth-simple-lead-lag-strategy-primary-prior-reject.v1.json text eol=lf
+research_pipeline/examples/local-research-result.dra-crypto-carry-factor-definition-boundary.v1.json text eol=lf
+research_pipeline/examples/local-research-result.mempool-fee-state-point-in-time-proof.v1.json text eol=lf

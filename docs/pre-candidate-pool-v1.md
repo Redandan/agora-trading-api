@@ -73,7 +73,7 @@ by the funnel.
   and breadth/path risk. `MISSING_PROOF` remains explicit.
 
 The active V1 catalog contains four genuinely open families, one sealed
-exhaustion shortfall, and 173 repository-sealed closed or excluded families.
+exhaustion shortfall, and 174 repository-sealed closed or excluded families.
 The former fifth mempool source family is now permanently closed: keeping it
 open solely to satisfy a counter would be metric gaming. One of the tombstones
 is the Amihud-style `DATA_REJECT`: it records

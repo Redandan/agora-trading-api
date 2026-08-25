@@ -1,0 +1,93 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_INTRADAY_REALIZED_KURTOSIS_SIMPLE_TIMING_PRIMARY_PRIOR_REJECT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-intraday-realized-kurtosis-simple-timing",
+  "created_at": "2026-08-25T05:11:33Z",
+  "status": "NO_HYPOTHESIS_PRIMARY_PRIOR_FREQUENCY_AND_DEDUPLICATION_GATE_CLOSE",
+  "decision": "DO_NOT_REGISTER_A_SIMPLE_BTC_REALIZED_KURTOSIS_TIMING_OR_DRA_ADMISSION_RULE_WITHOUT_AN_EXTERNALLY_FIXED_INTRADAY_FREQUENCY_THRESHOLD_DIRECTION_HORIZON_AND_ECONOMIC_ACTION",
+  "considered_lineage": {
+    "mechanism_question": "Can the latest complete UTC day's realized kurtosis identify a low-complexity BTC tail-risk state that improves a matched-capital long-or-cash, passive-core or DRA entry policy?",
+    "candidate_formula": "N_TIMES_SUM_INTRADAY_LOG_RETURN_TO_THE_FOURTH_DIVIDED_BY_SQUARED_SUM_INTRADAY_LOG_RETURN_SQUARED",
+    "available_source": "EXISTING_SEALED_52608_ROW_PRE_2025_BTC_H1_OHLCV_CORPUS",
+    "source_status": "SCHEMA_AND_DECISION_CLOCK_READY_BUT_PUBLISHED_INTRADAY_FREQUENCY_FIDELITY_AND_ECONOMIC_MAPPING_NOT_READY",
+    "variants_admitted": 0
+  },
+  "primary_and_adversarial_prior": [
+    {
+      "identity": "Gkillas, Gupta and Pierdzioch, Forecasting realized volatility of bitcoin returns: Tail events and asymmetric loss, November 2020 manuscript",
+      "url": "https://repository.up.ac.za/bitstream/handle/2263/84189/Gkillas_Forecasting_2021.pdf?sequence=1",
+      "finding": "The public manuscript constructs realized kurtosis from 15-minute Bitcoin returns and includes it inside fitted HAR-RV volatility-forecast models. Its economic result concerns forecast accuracy under asymmetric loss and tail-index predictors, not a fixed realized-kurtosis direction, threshold, holding horizon or spot-allocation rule.",
+      "role": "DIRECT_BITCOIN_FORMULA_FREQUENCY_AND_FORECAST_OBJECTIVE_PRIOR",
+      "transfer_boundary": "A fitted volatility forecast with rolling-window and loss-function choices does not fix one nonfitted binary return or DRA admission policy, and the published 15-minute estimator is not frequency-equivalent to 23 within-day H1 returns."
+    },
+    {
+      "identity": "Zhang and Zhao, Good Volatility, Bad Volatility, and the Cross Section of Cryptocurrency Returns, 2022 public manuscript",
+      "url": "https://cirforum.org/cirf2022/forum_files/papers/CIRF-306.pdf",
+      "finding": "The public manuscript computes realized kurtosis and related variation measures from five-minute data for a multi-asset cryptocurrency panel. Its return evidence comes from daily cross-sectional sorts and Fama-MacBeth regressions, with realized signed jump reported as the strongest predictor.",
+      "role": "CRYPTO_CROSS_SECTIONAL_RETURN_AND_SIGNED_JUMP_ADVERSARIAL_PRIOR",
+      "transfer_boundary": "A rank among many contemporaneous cryptocurrencies does not define whether one Bitcoin observation is high or low relative to its own history, and it supplies no BTC-only threshold or cash-versus-risk action."
+    },
+    {
+      "identity": "Hanif, Ko, Pham and Kang, Dynamic connectedness and network in the high moments of cryptocurrency, stock, and commodity markets, Financial Innovation 9:84, 2023, DOI 10.1186/s40854-023-00474-6",
+      "url": "https://link.springer.com/article/10.1186/s40854-023-00474-6",
+      "finding": "The open article constructs realized kurtosis from five-minute returns and studies multivariate short- and long-run connectedness. Kurtosis spillovers are weaker than volatility and jump spillovers and dissipate quickly; the study does not estimate a BTC directional-return or executable allocation rule.",
+      "role": "HIGHER_MOMENT_PERSISTENCE_AND_OBJECTIVE_ADVERSARIAL_PRIOR",
+      "transfer_boundary": "A fitted connectedness network across BTC, ETH, stocks and commodities cannot be reduced to a single-series H1 kurtosis threshold without model and action selection."
+    }
+  ],
+  "closed_family_deduplication": [
+    {
+      "family": "dra-intraday-realized-skewness-entry-admission",
+      "binding": "research_pipeline/examples/dra-realized-skewness-entry-admission.v1.decision.json",
+      "sha256": "0478d9f6a716eeafd3f88e60d2917b86fb0cd8cbf57748b9b207b06a819f7d3e",
+      "boundary": "The third standardized realized moment already failed the frozen DRA entry-admission family; kurtosis is mathematically distinct but cannot inherit its prior-median threshold or DRA action without independent fourth-moment support."
+    },
+    {
+      "family": "dra-lagged-realized-volatility-entry-admission",
+      "binding": "research_pipeline/examples/dra-lagged-realized-volatility-entry-admission.v1.decision.json",
+      "sha256": "7e1e5be639d0e361f7a0f2667ef7704d59b8c2847b04799e167189d0be01801c",
+      "boundary": "The second-moment lagged realized-volatility DRA admission route is terminal; a fourth-moment label cannot be used as a volatility-filter rescue."
+    },
+    {
+      "family": "dra-downside-semivariance-entry-admission",
+      "binding": "research_pipeline/examples/local-research-result.dra-downside-semivariance-entry-admission-v1.json",
+      "sha256": "145d7b9e762d11ac0b21b39e4eddc5bb07bff7c0b07fe718388029547bf0ee6b",
+      "boundary": "The sign-specific realized-risk admission family is closed and may not be recombined with kurtosis into a post-outcome tail-risk gate."
+    },
+    {
+      "family": "dra-bipower-jumpiness-entry-admission",
+      "binding": "research_pipeline/examples/local-research-result.dra-bipower-jumpiness-entry-admission-v1.json",
+      "sha256": "8b9806755224a435cd8e58a25d24292f68891be4af90cd132cd1354c32a55ec9",
+      "boundary": "The jump-versus-continuous-variation admission family is closed; realized kurtosis cannot be presented as a renamed jumpiness neighbor or rescue."
+    }
+  ],
+  "data_path_boundary": {
+    "sealed_dataset": ".research-state/java-parity/selection-2019-2024.tsv",
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "decision_time_semantics": "A complete UTC day's H1 closes would be known before the next H1 open.",
+    "fidelity_gap": "The corpus supplies only 23 adjacent within-day H1 close returns, while the three readable primary studies use five- or fifteen-minute intraday observations and do not establish frequency invariance of realized kurtosis.",
+    "outcome_access": "DENIED_NOT_READ"
+  },
+  "why_no_hypothesis": [
+    "None of the three readable primary sources fixes one BTC-only realized-kurtosis threshold, direction, holding horizon and economic action.",
+    "The direct Bitcoin paper uses realized kurtosis inside fitted volatility-forecast regressions; the return paper uses cross-sectional multi-asset ranks; the connectedness paper uses a multivariate network. Translating any of them into a binary H1 strategy would introduce researcher-selected model choices.",
+    "The sealed H1 corpus is decision-time causal but materially coarser than the five- and fifteen-minute estimators in the primary evidence. Treating 23 H1 returns as equivalent would be an unproven source-frequency substitution.",
+    "The nearest skewness, realized-volatility, downside-semivariance and bipower-jumpiness DRA lineages already have terminal decisions. Borrowing their prior-median thresholds or action semantics would be a renamed neighboring-feature search.",
+    "Choosing a percentile, rolling median, absolute level, high-versus-low relation, long-or-cash action, passive-core weight or DRA veto after this review would be formula and threshold invention rather than replication of an externally anchored mechanism."
+  ],
+  "missing_proof": [
+    "No readable primary source fixes a low-complexity single-BTC realized-kurtosis trading or DRA admission rule.",
+    "No proof establishes that H1 realized kurtosis preserves the measurement or predictive behavior of five- or fifteen-minute realized kurtosis.",
+    "No kurtosis value, threshold support, BTC return, DRA signal, fee-adjusted PnL, drawdown, Calmar, holding, inventory, annual breadth, candidate, OOS or forward evidence was computed or accessed."
+  ],
+  "prohibited_reopen": [
+    "Do not scan realized-kurtosis lookbacks, percentiles, medians, absolute levels, directions, holding horizons, cash weights or DRA admission relations on the sealed historical outcomes.",
+    "Do not relabel or combine the closed realized-skewness, realized-volatility, downside-semivariance or bipower-jumpiness families as a fourth-moment tail-risk rescue.",
+    "Do not substitute H1 observations for five- or fifteen-minute published estimators and call the result a replication without an independent pre-outcome frequency-robust source.",
+    "Do not open post-2024 or OOS evidence for this rejected no-hypothesis lineage."
+  ],
+  "reconsideration_trigger": "ONE_NEW_PUBLIC_READABLE_PRIMARY_SOURCE_PUBLISHED_OR_LOCATED_BEFORE_OUTCOME_ACCESS_THAT_FIXES_A_SINGLE_BTC_H1_COMPATIBLE_REALIZED_KURTOSIS_FORMULA_THRESHOLD_DIRECTION_HORIZON_AND_ECONOMIC_ACTION_DISTINCT_FROM_ALL_BOUND_TOMBSTONES",
+  "material_learning": "A computable higher moment is not yet a strategy factor. Existing primary evidence treats realized kurtosis as a fitted volatility control, a cross-sectional rank or a multivariate connectedness state at much finer sampling frequencies. Without a fixed single-BTC action and frequency-robust mapping, an H1 threshold would be invented by this research program and should close before backtesting.",
+  "scope_note": "External readable-primary-prior, sealed schema identity and local tombstone deduplication only. No source row, H1 price, return, realized-kurtosis value, factor, threshold, model fit, hypothesis, manifest, runner, strategy economics, candidate, post-2024 outcome, OOS, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

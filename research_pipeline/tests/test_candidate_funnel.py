@@ -90,7 +90,7 @@ class CandidateFunnelTest(unittest.TestCase):
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
         self.assertEqual(len(catalog["families"]), 4)
-        self.assertEqual(len(catalog["closed_families"]), 173)
+        self.assertEqual(len(catalog["closed_families"]), 174)
         self.assertEqual(
             catalog["open_family_floor"]["status"],
             "SEALED_EXHAUSTION_SHORTFALL",
@@ -2395,7 +2395,7 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual(snapshot["status"], "READY")
         self.assertEqual(snapshot["summary"]["open_family_count"], 4)
         self.assertEqual(snapshot["summary"]["open_family_shortfall_count"], 1)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 174)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 175)
         self.assertEqual(snapshot["constraint_violations"], [])
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)

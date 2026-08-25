@@ -4411,6 +4411,32 @@
       "parent_strategy_id": "NO_PARENT_SELECTED_SOURCE_CONTRACT_REJECT_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
       "prohibited_reopen": true,
       "title": "Bitcoin mempool point-in-time fee-congestion hosted source family"
+    },
+    {
+      "decision_feature": "NO_FIXED_LOW_COMPLEXITY_H1_REALIZED_KURTOSIS_THRESHOLD_DIRECTION_HORIZON_AND_ACTION_SURVIVED_PRIMARY_PRIOR_FREQUENCY_AND_CLOSED_FAMILY_DEDUPLICATION",
+      "disposition": "NO_HYPOTHESIS_PRIMARY_PRIOR_FREQUENCY_AND_DEDUPLICATION_GATE_CLOSE",
+      "duplicate_family_key": "btc-intraday-realized-kurtosis-simple-timing",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/btc-intraday-realized-kurtosis-simple-timing-primary-prior-reject.v1.json",
+          "role": "SEALED_READABLE_PRIMARY_PRIOR_FREQUENCY_AND_DEDUPLICATION_CLOSURE",
+          "sha256": "f650c3519fe226d25351bc437d534773682a215326ba687b654db0e82e0a9860"
+        },
+        {
+          "path": "research_pipeline/examples/dra-realized-skewness-entry-admission.v1.decision.json",
+          "role": "SEALED_NEAREST_STANDARDIZED_HIGHER_MOMENT_DRA_FAMILY_CLOSURE",
+          "sha256": "0478d9f6a716eeafd3f88e60d2917b86fb0cd8cbf57748b9b207b06a819f7d3e"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.dra-bipower-jumpiness-entry-admission-v1.json",
+          "role": "SEALED_NEAREST_INTRADAY_JUMP_RISK_DRA_FAMILY_CLOSURE",
+          "sha256": "8b9806755224a435cd8e58a25d24292f68891be4af90cd132cd1354c32a55ec9"
+        }
+      ],
+      "family_id": "closed-btc-intraday-realized-kurtosis-simple-timing-v1",
+      "parent_strategy_id": "NO_PARENT_SELECTED_PRIMARY_PRIOR_AND_DATA_FREQUENCY_GATE_REJECT_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
+      "prohibited_reopen": true,
+      "title": "Bitcoin intraday realized-kurtosis simple timing or DRA admission lineage"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

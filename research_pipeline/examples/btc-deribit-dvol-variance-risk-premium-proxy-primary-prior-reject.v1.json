@@ -1,0 +1,100 @@
+{
+  "schema_version": "1",
+  "document_type": "BTC_DERIBIT_DVOL_VARIANCE_RISK_PREMIUM_PROXY_PRIMARY_PRIOR_REJECT_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "family_id": "btc-deribit-dvol-variance-risk-premium-proxy-state",
+  "created_at": "2026-08-25T02:40:53Z",
+  "status": "NO_HYPOTHESIS_CLOSE_DVOL_MINUS_TRAILING_REALIZED_VARIANCE_PROXY_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
+  "decision": "DO_NOT_ADD_A_DVOL_DERIVED_VARIANCE_RISK_PREMIUM_PROXY_TO_THE_PRE_CANDIDATE_POOL",
+  "frozen_before_formula_or_strategy_outcome_access": true,
+  "proposed_transfer": {
+    "feature_concept": "DECISION_TIME_BITCOIN_OPTION_IMPLIED_VARIANCE_MINUS_A_LAGGED_REALIZED_VARIANCE_ESTIMATE",
+    "possible_action": "FULL_OR_REDUCED_BTC_OR_DRA_RISK",
+    "formula": "NOT_SELECTED",
+    "threshold": "NOT_SELECTED",
+    "direction": "NOT_SELECTED",
+    "parent": "NOT_SELECTED"
+  },
+  "primary_research_evidence": [
+    {
+      "title": "Risk Premia in the Bitcoin Market",
+      "version": "ARXIV_2410_15195_V2_2025_08_01",
+      "locator": "https://arxiv.org/html/2410.15195v2",
+      "role": "PRIMARY_BITCOIN_FIRST_AND_SECOND_MOMENT_RISK_PREMIA_DEFINITION",
+      "finding": "The paper defines Bitcoin variance risk premium as risk-neutral return variance minus physical return variance. It estimates both distributions from a full Bitcoin option transaction surface and realized returns and explicitly states that it is not adopting a time-series approach."
+    },
+    {
+      "title": "Risk Premia in the Bitcoin Market",
+      "version": "ARXIV_2410_15195_V2_2025_08_01",
+      "locator": "https://arxiv.org/html/2410.15195v2#S3",
+      "role": "PRIMARY_FORMULA_AND_INTERPRETATION_BOUNDARY",
+      "finding": "BVRP equals sigma_Q_squared minus sigma_P_squared. A positive value prices variance insurance; it is not itself a frozen long-or-cash signal, threshold, sizing rule or causal execution policy."
+    }
+  ],
+  "sealed_source_capability": {
+    "path": ".research-state/experiments/btc-deribit-dvol-rising-half-risk-historical-v1/inputs/dvol-source-bundle.json",
+    "sha256": "e90919ba1ffb2304cf662cd6fcbf349f5ad52b15b2c2f68ab97ecedcb2b4a67b",
+    "available_fields": [
+      "date",
+      "dvol_open",
+      "dvol_high",
+      "dvol_low",
+      "dvol_close"
+    ],
+    "coverage": "2021-04-01_THROUGH_2024-12-31",
+    "rows": 1371,
+    "normalized_subset_sha256": "19524e87db8ada24b1cc4a6c051e2d3953125357d9654a2e88e417caffca4b94",
+    "capability_boundary": "A_SINGLE_DVOL_INDEX_SERIES_DOES_NOT_CONTAIN_THE_OPTION_SURFACE_RISK_NEUTRAL_DENSITY_OR_PHYSICAL_RETURN_DENSITY_REQUIRED_BY_THE_PRIMARY_BVRP_DEFINITION"
+  },
+  "deduplication_and_transfer_gate": {
+    "primary_formula_reproducible_from_sealed_source": false,
+    "decision_time_physical_variance_estimator_frozen_by_primary_source": false,
+    "time_series_action_mapping_frozen_by_primary_source": false,
+    "using_dvol_squared_minus_trailing_realized_variance": "UNVALIDATED_PROXY_NOT_THE_PRIMARY_PAPER_ESTIMATOR",
+    "using_future_realized_variance": "PROHIBITED_OUTCOME_LEAKAGE",
+    "using_dvol_level_or_change_for_risk_reduction": "DESCENDANT_OF_CLOSED_BTC_DERIBIT_DVOL_RISING_HALF_RISK_FAMILY",
+    "using_realized_variance_for_variable_lot_sizing": "DESCENDANT_OF_CLOSED_DRA_LAGGED_REALIZED_VARIANCE_SCALED_LOT_SIZING_FAMILY",
+    "independent_executable_mechanism": false,
+    "result": "PRIMARY_CAPABILITY_AND_CLOSED_FINGERPRINT_GATE_FAIL"
+  },
+  "sealed_closed_family_evidence": [
+    {
+      "path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-historical.v1.decision.json",
+      "sha256": "705679c45ae0c7be1d32db3a9adadd382fd4710002438fa734d3dc67ac4194a9",
+      "role": "SEALED_ABSOLUTE_DVOL_RISK_REDUCTION_NO_CANDIDATE_CLOSURE",
+      "finding": "The exact rising-DVOL half-risk rule lowered drawdown but lost too much return, captured only 52.44 percent of passive upside in Validation, achieved only 64.02 percent of passive Calmar and won annual Calmar in only one of four windows."
+    },
+    {
+      "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-historical.v1.decision.json",
+      "sha256": "f469fbd2659d356e4447c70c5139f6f0abfd275f89999fb045873c08f2db5168",
+      "role": "SEALED_REALIZED_VARIANCE_VARIABLE_RISK_SIZING_NO_CANDIDATE_CLOSURE",
+      "finding": "The existing realized-variance variable-lot-sizing family is permanently closed; combining its primitive with DVOL does not by itself establish a new causal action or authorize reopening either risk-sizing fingerprint."
+    }
+  ],
+  "claim_boundary": "Bitcoin variance risk premium is a real asset-pricing quantity, but the currently sealed DVOL index is not enough to reproduce the primary definition or its distributions. This reject concerns the proposed single-index time-series proxy and does not claim that a future independently sealed option-surface BVRP dataset has zero information.",
+  "performance_evidence": {
+    "dvol_rows_opened_in_this_audit": false,
+    "btc_outcomes_opened_in_this_audit": false,
+    "formula": "NOT_CREATED",
+    "threshold": "NOT_CREATED",
+    "fees": "NOT_OPENED",
+    "adverse_slippage": "NOT_OPENED",
+    "realized_pnl": "NOT_OPENED",
+    "unrealized_pnl": "NOT_OPENED",
+    "total_pnl": "NOT_OPENED",
+    "maximum_drawdown": "NOT_OPENED",
+    "holding_age": "NOT_OPENED",
+    "terminal_inventory": "NOT_OPENED",
+    "annual_regime_breadth": "NOT_OPENED",
+    "path_risk": "NOT_OPENED"
+  },
+  "next_action": "CONTINUE_SEARCH_FOR_A_DISTINCT_FREE_HISTORICAL_MECHANISM_WITH_A_PRIMARY_TIME_SERIES_ACTION_FORMULA_AND_AN_EXISTING_SEALED_SOURCE_CAPABLE_OF_REPRODUCING_IT",
+  "hypothesis_created": false,
+  "manifest_created": false,
+  "runner_created": false,
+  "experiment_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "prohibited_reopen": true,
+  "scope_note": "Primary-literature capability and closed-fingerprint audit only. No endpoint, option surface, source capture, DVOL row, BTC outcome, proxy formula, threshold, hypothesis, manifest, runner, experiment, candidate, OOS, paid API, external backfill, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

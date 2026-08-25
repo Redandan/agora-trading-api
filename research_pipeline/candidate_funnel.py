@@ -110,6 +110,8 @@ def _verify_binding(repo_root: Path, binding: dict[str, Any], label: str) -> dic
     relative = _require_string(binding["path"], f"{label}.path")
     if "\\" in relative or Path(relative).is_absolute():
         raise ValueError(f"{label}.path must be repository-relative POSIX")
+    if relative == ".research-state" or relative.startswith(".research-state/"):
+        raise ValueError(f"{label}.path must be release-portable committed evidence")
     expected = _require_string(binding["sha256"], f"{label}.sha256")
     if SHA256_PATTERN.fullmatch(expected) is None:
         raise ValueError(f"{label}.sha256 is invalid")

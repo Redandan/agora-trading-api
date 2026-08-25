@@ -297,11 +297,6 @@
           "sha256": "c606609f9dfe5022927e773f133243998c89922fb4e8444c657cc3435a9d7a4c"
         },
         {
-          "path": ".research-state/experiments/btc-eth-monthly-equal-weight-rebalancing-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "6300985948bf4abf0cd6584a703877a73843c25fc65225c601c12e041c118361"
-        },
-        {
           "path": "research_pipeline/examples/btc-eth-monthly-equal-weight-rebalancing-historical.v1.manifest.json",
           "role": "FROZEN_MATCHED_CAPITAL_ACCOUNTING_COST_AND_GATE_MANIFEST",
           "sha256": "2e155aaa24a33b386f1653e62f8feb5cae3e03b2cd46e6456462cc3465d7db97"
@@ -333,11 +328,6 @@
           "sha256": "8aa28407ce60f4a9328b4804a8c17c929fb665b2d688204f3662f3d4e8337f98"
         },
         {
-          "path": ".research-state/experiments/btc-binance-usdm-perpetual-basis-convergence-support-v1/inputs/preoutcome-support.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PREOUTCOME_SUPPORT_EVIDENCE",
-          "sha256": "515ddde4aed1e9b24a7a547dedf94c0f2de045076a0944321ba7c307a95deba1"
-        },
-        {
           "path": "research_pipeline/examples/btc-binance-usdm-perpetual-basis-convergence-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_AND_ADVERSARIAL_CONVERGENCE_PRIOR",
           "sha256": "2c5e76072ea76dfcac56b012ea62ec7c568f7a32d1e6c43bb18917bf526b6872"
@@ -362,11 +352,6 @@
           "path": "research_pipeline/examples/btc-binance-usdm-basis-instability-passive-core-primary-prior-reject.v1.json",
           "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR_TRANSFER_REJECT",
           "sha256": "5dec30b358286aa5981e27dabd8f0b76a567b5d857d8c2251338176d390fcbe6"
-        },
-        {
-          "path": ".research-state/experiments/btc-binance-usdm-delta-neutral-funding-carry-historical-v3/inputs/corpus.v3.json",
-          "role": "SEALED_SOURCE_READY_CORPUS_THAT_WAS_NOT_OPENED_FOR_THIS_FAMILY",
-          "sha256": "1da0ab1082f251dcb631b2b89e66d12a0c4ae831db4d79d02c5dfeb8f5809b74"
         },
         {
           "path": "research_pipeline/examples/local-research-result.btc-binance-usdm-funding-carry-v3.json",
@@ -466,11 +451,6 @@
           "path": "research/dra_native_signal_day_positive_hour_breadth_support_v1.py",
           "role": "FROZEN_DETERMINISTIC_PRE_ECONOMIC_SUPPORT_RUNNER",
           "sha256": "07ac224d5a3931947d54a0f9a96f47d6da65d23e150fa4b910f0b7bf0d190484"
-        },
-        {
-          "path": ".research-state/experiments/dra-native-signal-day-positive-hour-breadth-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_SUPPORT_EVIDENCE",
-          "sha256": "9cd5107e4edfabd18d1a34b543fee117ae2dc301b55ae7696b9552dd8b88a454"
         }
       ],
       "prohibited_reopen": true
@@ -502,11 +482,6 @@
           "path": "research/dra_native_signal_day_vwap_occupancy_support_v1.py",
           "role": "FROZEN_DETERMINISTIC_PRE_ECONOMIC_SUPPORT_RUNNER",
           "sha256": "7726dd612db1f205a907c416a3fbe99989d320c5fea1d14e055e8f29264d89ec"
-        },
-        {
-          "path": ".research-state/experiments/dra-native-signal-day-vwap-occupancy-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_SUPPORT_EVIDENCE",
-          "sha256": "806e179d424c6bed59452f8c586da25a780692d8fa897c41d6a169bc1df37197"
         }
       ],
       "prohibited_reopen": true
@@ -538,11 +513,6 @@
           "path": "research/dra_native_signal_day_ema20_occupancy_support_v1.py",
           "role": "FROZEN_DETERMINISTIC_PRE_ECONOMIC_SUPPORT_RUNNER",
           "sha256": "573cb64fc2e7e3d3ca644edbc5035362228c7337bdce53508976304f41b9d596"
-        },
-        {
-          "path": ".research-state/experiments/dra-native-signal-day-ema20-occupancy-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_SUPPORT_EVIDENCE",
-          "sha256": "c2c2e01a38bc247eada421309fda06490cfab87522c8754fb7e4420ca8ba3d88"
         }
       ],
       "prohibited_reopen": true
@@ -574,11 +544,6 @@
           "path": "research/dra_native_prior_day_momentum_support_v1.py",
           "role": "FROZEN_DETERMINISTIC_PRE_ECONOMIC_SUPPORT_RUNNER",
           "sha256": "63f4ba38b7cb13bd1f80977303c1a091d3a639ae8c9e978267c14f8a1340e254"
-        },
-        {
-          "path": ".research-state/experiments/dra-native-prior-day-momentum-continuation-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_SUPPORT_EVIDENCE",
-          "sha256": "0f6b1a5f87d79a036871876d74ad55ab417e9f4befb808ea41e1bc0f8da24412"
         }
       ],
       "prohibited_reopen": true
@@ -615,11 +580,6 @@
           "path": "research/btc_dra_native_trend_acceleration_entry_admission_v1.py",
           "role": "FROZEN_DETERMINISTIC_MATCHED_CAPITAL_RUNNER",
           "sha256": "eaad2c846ed2e46234d5919ee79f469921835e22425f82a351dd7810f619affb"
-        },
-        {
-          "path": ".research-state/experiments/dra-native-trend-acceleration-entry-admission-historical-v1/artifacts/economic-screen.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE",
-          "sha256": "da490c7fa04d3025cac0ebc3c2bba3d7c1bdd3ed368dad969370447e1816dd67"
         }
       ],
       "prohibited_reopen": true
@@ -656,11 +616,6 @@
           "path": "research/btc_dra_signal_confirmation_latency_entry_admission_v1.py",
           "role": "FROZEN_DETERMINISTIC_MATCHED_CAPITAL_RUNNER",
           "sha256": "6f720b0b0310876e2f4aec51ba242d715b0e4ff20aed90bc1477713b35bab4c2"
-        },
-        {
-          "path": ".research-state/experiments/dra-signal-confirmation-latency-entry-admission-historical-v1/artifacts/economic-screen.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE",
-          "sha256": "bfb47872201d5223635729d7c0312d90abca7d623260479ce07a2a110dcd8e22"
         }
       ],
       "prohibited_reopen": true
@@ -697,11 +652,6 @@
           "path": "research/btc_dra_stale_inventory_age_entry_admission_v1.py",
           "role": "FROZEN_DETERMINISTIC_MATCHED_CAPITAL_RUNNER",
           "sha256": "45d32cc379af6a9a5dd47575eb0362cc399c464e8c88ba0c22de9a79bb6eee29"
-        },
-        {
-          "path": ".research-state/experiments/dra-stale-inventory-age-entry-admission-historical-v1/artifacts/economic-screen.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE",
-          "sha256": "0b1f7b676908283a3b56f8acfb36dcd70f2a7ddfd645136fcebcc6b511997f65"
         }
       ],
       "prohibited_reopen": true
@@ -733,11 +683,6 @@
           "path": "research/dra_native_signal_prior_24h_breakout_support_v1.py",
           "role": "FROZEN_DETERMINISTIC_PRE_ECONOMIC_SUPPORT_RUNNER",
           "sha256": "df615099422421f88d97dab8f320f936b1bf393b19469100fe515dad389ce0d6"
-        },
-        {
-          "path": ".research-state/experiments/dra-native-signal-prior-24h-breakout-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_SUPPORT_EVIDENCE",
-          "sha256": "06171cb389f6d92577d0e88153e5f2f9a93970875b0cb7a43a2dd791f2d3d89f"
         }
       ],
       "prohibited_reopen": true
@@ -769,11 +714,6 @@
           "path": "research/dra_native_signal_overextension_support_v1.py",
           "role": "FROZEN_DETERMINISTIC_PRE_ECONOMIC_SUPPORT_RUNNER",
           "sha256": "500c7a0b8bcee37981a5cb1a106272f7d4f00e279c2e5259a3c9332b974dfdf5"
-        },
-        {
-          "path": ".research-state/experiments/dra-native-signal-overextension-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_SUPPORT_EVIDENCE",
-          "sha256": "9ea62a14feec5c096518693c704e8403ab7d74cb5bbc0819a6bfe9909d425378"
         }
       ],
       "prohibited_reopen": true
@@ -800,11 +740,6 @@
           "path": "research_pipeline/examples/dra-underwater-inventory-congestion-entry-admission-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
           "sha256": "3914325ce58bd92b496b0e5193c32324b40e390d5730cc5cc8229f08dfb079cf"
-        },
-        {
-          "path": ".research-state/experiments/dra-underwater-inventory-congestion-entry-admission-historical-v1/inputs/preoutcome-support.v1.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PREOUTCOME_SUPPORT",
-          "sha256": "d96302e456ac967ef12801396a46bf188d42dbd6f1d2bb34412a3372b8091fc0"
         }
       ],
       "prohibited_reopen": true
@@ -817,11 +752,6 @@
       "disposition": "NO_CANDIDATE_KEEP_ONE_SLOT_DRA_V1",
       "duplicate_family_key": "one-slot-profitable-incumbent-signal-rotation",
       "evidence_bindings": [
-        {
-          "path": ".research-state/experiments/one-slot-profitable-incumbent-signal-rotation-v1/artifacts/diagnostic.json",
-          "role": "SEALED_HISTORICAL_ECONOMIC_DIAGNOSTIC",
-          "sha256": "44245c9b393f3c3fd08c58c455f80f52a8024832a52639185b33b678e13ee609"
-        },
         {
           "path": "research_pipeline/examples/one-slot-profitable-incumbent-signal-rotation-v1.manifest.json",
           "role": "FROZEN_PREREGISTRATION_MANIFEST",
@@ -843,11 +773,6 @@
       "disposition": "NO_CANDIDATE_KEEP_DRA_V1",
       "duplicate_family_key": "flat-veto-cooldown-route-substitution",
       "evidence_bindings": [
-        {
-          "path": ".research-state/experiments/flat-veto-cooldown-route-substitution-v2b/artifacts/diagnostic.json",
-          "role": "SEALED_HISTORICAL_ECONOMIC_DIAGNOSTIC",
-          "sha256": "584856a3342e63248751a9b4669b7ff32105ac8bec473b8c22fc21a1f1279fac"
-        },
         {
           "path": "research_pipeline/examples/flat-veto-cooldown-route-substitution-v2b.manifest.json",
           "role": "FROZEN_PREREGISTRATION_MANIFEST",
@@ -888,11 +813,6 @@
           "path": "research_pipeline/examples/dra-lagged-realized-variance-scaled-lot-sizing-preoutcome.v1.acceptance.json",
           "role": "SEALED_PREOUTCOME_SUPPORT_ACCEPTANCE",
           "sha256": "9c4bba963688de0e783c39ad8688eeabaef01f38e819efacb2a8539f192c019a"
-        },
-        {
-          "path": ".research-state/experiments/dra-lagged-realized-variance-scaled-lot-sizing-historical-v1/artifacts/economic-run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "86341095d01838e428535e4463b75942d52315c0cab43a0665431e14a3dff368"
         }
       ],
       "prohibited_reopen": true
@@ -941,19 +861,9 @@
           "sha256": "145b57d2d8bde9d2937c1a241b6ca1197dc26d715525b779c14bd0c6228c6ffc"
         },
         {
-          "path": ".research-state/experiments/dra-corwin-schultz-spread-entry-admission-historical-v1/inputs/feature-support.v2.run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PREOUTCOME_SUPPORT",
-          "sha256": "8f607fc2e8e179410bc191a3d96526d706a0518f5b2e7e56597aced87ffe87c6"
-        },
-        {
           "path": "research/btc_dra_declarative_entry_admission_v1.py",
           "role": "FROZEN_DETERMINISTIC_DECLARATIVE_ECONOMIC_RUNNER",
           "sha256": "648c0a9f96eccdf18852c87ff5acdaadf0cef929ca89244edcaf11707b5c41e1"
-        },
-        {
-          "path": ".research-state/experiments/dra-corwin-schultz-spread-entry-admission-historical-v1/artifacts/economic-run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "be581b54d83cbabb475bd6357af05c9a5c96b92f4add185432c6072aa3d03a79"
         }
       ],
       "prohibited_reopen": true
@@ -999,9 +909,7 @@
         {"path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-preoutcome.v2.spec.json", "role": "FROZEN_VALID_PREOUTCOME_SUPPORT_SPEC_V2", "sha256": "69534ac53d7370a7e0b326c4927903aaded154d4661c4f2d8538aa0a843fba43"},
         {"path": "research_pipeline/examples/btc-h1-four-day-variance-ratio-positive-persistence-preoutcome-v1-invalidation.json", "role": "RECORDED_PRE_ECONOMIC_V1_SUPPORT_INVALIDATION", "sha256": "5a598ca31e747a42c7e99d7d421022b1c505dd4168b297764942fc9a895e1e48"},
         {"path": "research/btc_h1_four_day_variance_ratio_support_v2.py", "role": "FROZEN_IMPORT_ORDER_INDEPENDENT_SUPPORT_PROBE_V2", "sha256": "90a085f2700b4a4965088ecca2ceb9ce432d45ed14e549f0866084d04261f032"},
-        {"path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/inputs/feature-support.v2.json", "role": "SEALED_VALID_PREOUTCOME_FEATURE_SUPPORT_V2", "sha256": "b102c7d421fdd1593b9904684a38e730f2269b91f05c03a63ea9c025de6ef293"},
-        {"path": "research/btc_h1_four_day_variance_ratio_positive_persistence_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "669d6b4f99b867322518ad179509f9ccb945d68a1033385f9b597f2383db58db"},
-        {"path": ".research-state/experiments/btc-h1-four-day-variance-ratio-positive-persistence-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE", "sha256": "277854240e9fc63d661920e9eab7b3b89e9146949ef6692ea741c8564a6fd27b"}
+        {"path": "research/btc_h1_four_day_variance_ratio_positive_persistence_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "669d6b4f99b867322518ad179509f9ccb945d68a1033385f9b597f2383db58db"}
       ],
       "prohibited_reopen": true
     },
@@ -1019,9 +927,7 @@
         {"path": "research_pipeline/examples/btc-fred-cfnai-above-trend-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "05047b9163a84dbbb82a9c1e9df87e6a5688f307c81e270181fe70b5cb2d89ca"},
         {"path": "research_pipeline/examples/btc-fred-cfnai-above-trend-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "5eb5710709f2296e83804d418a2883129a0a34f66abf6885f876ae51b801b6c2"},
         {"path": "research/fred_cfnai_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "508d575b5dbabd5aa6281118fc78f39be6472fecca04839dd506d269c5d0bd5b"},
-        {"path": "research/btc_fred_cfnai_above_trend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "d8df173bf0356c5434e362bf0d338743dd2c042388c3a034198822790e7f74f4"},
-        {"path": ".research-state/experiments/btc-fred-cfnai-above-trend-long-cash-historical-v1/inputs/cfnai-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "a07e750784f1f0cad86e0bbed7e5b124cc9dcdd5a00a24a03d64088d5aba31ef"},
-        {"path": ".research-state/experiments/btc-fred-cfnai-above-trend-long-cash-historical-v1/artifacts/economic-run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "d2aa61074709789bcc1d323a8766eeb382af3df3a11932a669eec6378d76eb91"}
+        {"path": "research/btc_fred_cfnai_above_trend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "d8df173bf0356c5434e362bf0d338743dd2c042388c3a034198822790e7f74f4"}
       ],
       "prohibited_reopen": true
     },
@@ -1054,9 +960,7 @@
         {"path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "8b8836768230460c119a1b58d134c9428e8e832bb8236e2c35de3deea80d87b9"},
         {"path": "research_pipeline/examples/btc-fred-pcoppusdm-3m-uptrend-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "04e6575e163accf1ca5ec908bcc272929ddb028370dd944c01f5463b5b5649ef"},
         {"path": "research/fred_pcoppusdm_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "e5cf27546f07a89abe163960a7c5ee4772d3de4118a813470b746948cad7929c"},
-        {"path": "research/btc_fred_pcoppusdm_3m_uptrend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "1bb802f78ca38a0497c367fa8086439c56a4b95f714629e0a23330e58b0361a7"},
-        {"path": ".research-state/experiments/btc-fred-pcoppusdm-3m-uptrend-long-cash-historical-v1/inputs/pcoppusdm-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "a9914e5ae7be1a76c2a7805b509977732d07070297742599fad941c35e8d7f8f"},
-        {"path": ".research-state/experiments/btc-fred-pcoppusdm-3m-uptrend-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "4251b0ac711629ed691d6c91037fe801318ec0171fa0789e68734355d1fdeabc"}
+        {"path": "research/btc_fred_pcoppusdm_3m_uptrend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "1bb802f78ca38a0497c367fa8086439c56a4b95f714629e0a23330e58b0361a7"}
       ],
       "prohibited_reopen": true
     },
@@ -1074,9 +978,7 @@
         {"path": "research_pipeline/examples/btc-fred-dexchus-4w-yuan-appreciation-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "c0503768abac57e45a64f10208499e8ac8fa0114cca6607d8a0555425652130b"},
         {"path": "research_pipeline/examples/btc-fred-dexchus-4w-yuan-appreciation-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "4bd6b4a6d285ef2dc6de0cf9aad63fc44bff9d7d47d55583886e059bbe6221bf"},
         {"path": "research/fred_dexchus_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "764ca7ed31fbda834b23eb53f7b1a5ac12c10ddadfd280b00cc310d2a620d6ec"},
-        {"path": "research/btc_fred_dexchus_4w_yuan_appreciation_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "56d4a6cdc80776b8c0e6306e072ee847e4f13cc61a787d835ec774e9a8e5b618"},
-        {"path": ".research-state/experiments/btc-fred-dexchus-4w-yuan-appreciation-long-cash-historical-v1/inputs/dexchus-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "005c7f442d569aabe2e1c21b66be60e2d02e786c0430a28f66a70a3df0a11ce5"},
-        {"path": ".research-state/experiments/btc-fred-dexchus-4w-yuan-appreciation-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "8806fe4b4b670a04a4ff907b26cd660b29e66ac7212b0f3a4cf46d537fcb04cf"}
+        {"path": "research/btc_fred_dexchus_4w_yuan_appreciation_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "56d4a6cdc80776b8c0e6306e072ee847e4f13cc61a787d835ec774e9a8e5b618"}
       ],
       "prohibited_reopen": true
     },
@@ -1109,9 +1011,7 @@
         {"path": "research_pipeline/examples/btc-fred-wcoilwtico-4w-uptrend-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "f768ed7c9f986bf044cfe7f51c6e9f3a329c8c78cbda09f0013cb4373aec6fd0"},
         {"path": "research_pipeline/examples/btc-fred-wcoilwtico-4w-uptrend-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "e8e89e0a581760eea788944750d936bc0a3699a1817bc73fd7eee000b05735be"},
         {"path": "research/fred_wcoilwtico_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "a795145c4c998877ce8f6b6c379b23baecc9d5e067307f9ac5ab7cc4a377baa0"},
-        {"path": "research/btc_fred_wcoilwtico_4w_uptrend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "79bb9b912f88af84c927ff384da69d25bd37d500ac218294700546e1ac6ff99d"},
-        {"path": ".research-state/experiments/btc-fred-wcoilwtico-4w-uptrend-long-cash-historical-v1/inputs/wcoilwtico-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "3c4ec6f5fea3725a5d5eacd8edb68046c1acd53fc760c958ee1ddf4b239b93b5"},
-        {"path": ".research-state/experiments/btc-fred-wcoilwtico-4w-uptrend-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "5131e4ca396ed8e5e07399d3ac9dbb82ac3a977e9158633074173d6f7eb03e26"}
+        {"path": "research/btc_fred_wcoilwtico_4w_uptrend_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "79bb9b912f88af84c927ff384da69d25bd37d500ac218294700546e1ac6ff99d"}
       ],
       "prohibited_reopen": true
     },
@@ -1128,9 +1028,7 @@
         {"path": "research_pipeline/examples/btc-fred-busloans-yoy-growth-acceleration-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "c6d506613db49fbd22f05b102292921927a3f413a0e3ef355edc3d11f3a05cde"},
         {"path": "research_pipeline/examples/btc-fred-busloans-yoy-growth-acceleration-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "93b0496705c1784809b8c175d6d9712b76a424e3025aa2b7758295c6e5eed574"},
         {"path": "research/fred_busloans_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "b47b0e85519f6ebf101807fc130da90769d26a905e8b7f7e1648febda8c57cea"},
-        {"path": "research/btc_fred_busloans_yoy_growth_acceleration_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "8a9e2c9b1a42886a013de61002457d913d55681c3b784042cd0b78e5b30c8c62"},
-        {"path": ".research-state/experiments/btc-fred-busloans-yoy-growth-acceleration-long-cash-historical-v1/inputs/busloans-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "28056b5fcd067e33a8f18235d1d252e0f5b383b384ea78bcbc15d242cb75f87e"},
-        {"path": ".research-state/experiments/btc-fred-busloans-yoy-growth-acceleration-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "78277780f51b08dd5e59754a3b51e193f0b8734b1fd3b47310bbfa94ee3e7b67"}
+        {"path": "research/btc_fred_busloans_yoy_growth_acceleration_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "8a9e2c9b1a42886a013de61002457d913d55681c3b784042cd0b78e5b30c8c62"}
       ],
       "prohibited_reopen": true
     },
@@ -1147,9 +1045,7 @@
         {"path": "research_pipeline/examples/btc-fred-dspic96-yoy-growth-acceleration-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "24eb161a2ef834800e9298e10e43419bcd0e29f217f8a5d228ef4c6ab481fd94"},
         {"path": "research_pipeline/examples/btc-fred-dspic96-yoy-growth-acceleration-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "da92a3db1459056af553b4cbdd6b915901bc1294b65ca84fbd3f1c6a68f941cd"},
         {"path": "research/fred_dspic96_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "ed8be72e5b8e6d61e0a4faa629f2366b6d5ab7d21e45e31809fb3a74ec350b43"},
-        {"path": "research/btc_fred_dspic96_yoy_growth_acceleration_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "ac5805403d4851e1e2b43f1bb6c3ca66432ed203939472ce539ff43be84f3481"},
-        {"path": ".research-state/experiments/btc-fred-dspic96-yoy-growth-acceleration-long-cash-historical-v1/inputs/dspic96-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "d6f4a9d9e9c47a63a639461f8d3989e9f029cfa022a87a39e7cf525ca5e35760"},
-        {"path": ".research-state/experiments/btc-fred-dspic96-yoy-growth-acceleration-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "9d41f59c1507fb5dd57a94935446e57cd72b42b2c487f5618f01158223a1e79b"}
+        {"path": "research/btc_fred_dspic96_yoy_growth_acceleration_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "ac5805403d4851e1e2b43f1bb6c3ca66432ed203939472ce539ff43be84f3481"}
       ],
       "prohibited_reopen": true
     },
@@ -1164,8 +1060,7 @@
         {"path": "research_pipeline/examples/btc-fred-unrate-yoy-nondeterioration-source-feasibility.v1.decision.json", "role": "SEALED_PRE_OUTCOME_SOURCE_GATE_DECISION", "sha256": "56dccc2f3fe453cb6e15a0f7b46daf43d425bef737ace578d264352d9e7aa3e1"},
         {"path": "research_pipeline/examples/btc-fred-unrate-yoy-nondeterioration-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "2680d4319bc43e82264e35ed4461f73af119699dd4b8a3fd81acdc26f42380d4"},
         {"path": "research_pipeline/examples/btc-fred-unrate-yoy-nondeterioration-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "f73da8c2c2cc051727007242559e8a849341df156961fbaf8296bb1bf9623594"},
-        {"path": "research/fred_unrate_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "6d22d87a37cbb383b42688faf860d4e92058a552ce1431645e2f51e6d67e07e3"},
-        {"path": ".research-state/experiments/btc-fred-unrate-yoy-nondeterioration-long-cash-historical-v1/inputs/unrate-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "fb3ffd325c0106353471bb7d1168b43d33c9d8392d8047a06914c6cfb61156c5"}
+        {"path": "research/fred_unrate_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "6d22d87a37cbb383b42688faf860d4e92058a552ce1431645e2f51e6d67e07e3"}
       ],
       "prohibited_reopen": true
     },
@@ -1182,9 +1077,7 @@
         {"path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_ACADEMIC_AND_ADVERSARIAL_PRIOR", "sha256": "bf7ce3266109c68b5530b70bc5677c547bfa5404f5754f484a77e71a0a0d1504"},
         {"path": "research_pipeline/examples/btc-fred-cpiaucsl-yoy-disinflation-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "15795a809448f854c9f08838580ccebb0abbde8887fc64c5e436a90483d24c7c"},
         {"path": "research/fred_cpiaucsl_disinflation_source_probe.py", "role": "FROZEN_CREATE_ONCE_SOURCE_PROBE", "sha256": "694e2c55d79efceec72741798fe9503ccc71f0f30130d84a06d91cf6d75f8ea3"},
-        {"path": "research/btc_fred_cpiaucsl_yoy_disinflation_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "3cdcf2d9687ff99892932634b6d6b3103049a0642377de2dced9e2a80a3bd88e"},
-        {"path": ".research-state/experiments/btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical-v1/inputs/cpiaucsl-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "7b144ff464c3f8cbb9c211d453deac008804a6b0795f2e9737518d355840c312"},
-        {"path": ".research-state/experiments/btc-fred-cpiaucsl-yoy-disinflation-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "145b7d0f71f20ae008b43de849a40b329dc493be75bf16546dd5410fd916ec37"}
+        {"path": "research/btc_fred_cpiaucsl_yoy_disinflation_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "3cdcf2d9687ff99892932634b6d6b3103049a0642377de2dced9e2a80a3bd88e"}
       ],
       "prohibited_reopen": true
     },
@@ -1200,8 +1093,7 @@
         {"path": "research_pipeline/examples/btc-halloween-november-april-long-cash-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST_WITH_SCOPED_ERRATUM", "sha256": "8846aef97ec87177777be878360b76d0bbeb6992f16bc32aaa5e57269f25d17a"},
         {"path": "research_pipeline/examples/btc-halloween-november-april-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_ACADEMIC_AND_ADVERSARIAL_PRIOR", "sha256": "f97c34876bf180a046df1e65e4608884a5e870604735536eece80942b46776e1"},
         {"path": "research_pipeline/examples/btc-halloween-november-april-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "f1e7dc9a0ab9809bb663d7407c2ac822f90d6a82d533b5d7676b9aff4712dadf"},
-        {"path": "research/btc_halloween_november_april_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "fa4a01abb9470afb5b2eff2e295d6dd0e40c62803510836fd4819fd522e4907d"},
-        {"path": ".research-state/experiments/btc-halloween-november-april-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_EVIDENCE", "sha256": "2788054a058a2507607e62006c5de51478ac261a9b18648403638a366b70c44a"}
+        {"path": "research/btc_halloween_november_april_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "fa4a01abb9470afb5b2eff2e295d6dd0e40c62803510836fd4819fd522e4907d"}
       ],
       "prohibited_reopen": true
     },
@@ -1216,8 +1108,7 @@
         {"path": "research_pipeline/examples/btc-fred-rrsfs-yoy-growth-source-feasibility.v1.decision.json", "role": "SEALED_PRE_OUTCOME_SOURCE_GATE_DECISION", "sha256": "aade04c92bff2ba9c121a3210a6a2d007317e93889738ab2a35d3a1c0d7a9bab"},
         {"path": "research_pipeline/examples/btc-fred-rrsfs-yoy-growth-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "5be0a80e1647a253bf3006ce5fd580562cead85fb3609c37139faa23297856a5"},
         {"path": "research_pipeline/examples/btc-fred-rrsfs-yoy-growth-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "90d6aa0666a55d30e0dbb0fc05dd2d77734c350c46a612a61cfe2b2d6d05b89d"},
-        {"path": "research/fred_rrsfs_source_probe.py", "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE", "sha256": "71e161372a5ad590e81c6a2b39bfb4ab9292613ce248483b980faf83e67cc852"},
-        {"path": ".research-state/experiments/btc-fred-rrsfs-yoy-growth-long-cash-historical-v1/inputs/rrsfs-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "9129d2c8e8e754c740a2adde3a691f373d839fa8366745fd2a6018035758fc10"}
+        {"path": "research/fred_rrsfs_source_probe.py", "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE", "sha256": "71e161372a5ad590e81c6a2b39bfb4ab9292613ce248483b980faf83e67cc852"}
       ],
       "prohibited_reopen": true
     },
@@ -1232,9 +1123,7 @@
         {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-historical.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "705679c45ae0c7be1d32db3a9adadd382fd4710002438fa734d3dc67ac4194a9"},
         {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-historical.v1.manifest.json", "role": "FROZEN_PREREGISTRATION_MANIFEST", "sha256": "0eb3c85742aa1cc89b80dbda7d851d2ce5e43a3bc2411dd63c71f8c8090bff52"},
         {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "3de2a1e9ed9a91355b5c02c9f170d87e867e86ea570f7d0a1767a7d79695bf03"},
-        {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "26a274b2cfddf9bf145b1f103659cc8cfb95a6655495b4f6ef765b64611eb1d4"},
-        {"path": ".research-state/experiments/btc-deribit-dvol-rising-half-risk-historical-v1/inputs/dvol-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "e90919ba1ffb2304cf662cd6fcbf349f5ad52b15b2c2f68ab97ecedcb2b4a67b"},
-        {"path": ".research-state/experiments/btc-deribit-dvol-rising-half-risk-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE", "sha256": "379237e81ad1afd214727ddf64f64c1fb058a120a9019f35a45181593940a450"}
+        {"path": "research_pipeline/examples/btc-deribit-dvol-rising-half-risk-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "26a274b2cfddf9bf145b1f103659cc8cfb95a6655495b4f6ef765b64611eb1d4"}
       ],
       "prohibited_reopen": true
     },
@@ -1249,8 +1138,7 @@
         {"path": "research_pipeline/examples/btc-fred-indpro-yoy-growth-source-feasibility.v1.decision.json", "role": "SEALED_PRE_OUTCOME_SOURCE_FEASIBILITY_DECISION", "sha256": "6b80f7570d047b297492483ca09442d49ca614e4d5f2f2efb3ed0de7e3aa894d"},
         {"path": "research_pipeline/examples/btc-fred-indpro-yoy-growth-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "be344c91b24f60eb86d6dcb5a30a1ace3a0b20db791818614e178ca0a535ea85"},
         {"path": "research_pipeline/examples/btc-fred-indpro-yoy-growth-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "af78a63fdab869f8920526376f88d393064270c9a5109bccc0f4df6a3dae6dd0"},
-        {"path": "research/fred_indpro_source_probe.py", "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE", "sha256": "fe77f12401fd0fc453359f514a9e18b71032b1ee5c5ab054e2b20d05018aea8a"},
-        {"path": ".research-state/experiments/btc-fred-indpro-yoy-growth-long-cash-historical-v1/inputs/indpro-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "a9ab074bdbdccbe6a9e65df254c5842755f45cde57997b97a4d7c09af59a1f22"}
+        {"path": "research/fred_indpro_source_probe.py", "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE", "sha256": "fe77f12401fd0fc453359f514a9e18b71032b1ee5c5ab054e2b20d05018aea8a"}
       ],
       "prohibited_reopen": true
     },
@@ -1280,8 +1168,7 @@
         {"path": "research_pipeline/examples/btc-fred-housing-permits-yoy-growth-source-feasibility.v1.decision.json", "role": "SEALED_PRE_OUTCOME_SOURCE_FEASIBILITY_DECISION", "sha256": "5e5d9df568e612c7e116ff17ff8cf0519d57706b0d323620a380460f9cff26f1"},
         {"path": "research_pipeline/examples/btc-fred-housing-permits-yoy-growth-source-feasibility.v1.spec.json", "role": "FROZEN_PRE_FACTOR_SOURCE_AND_SUPPORT_SPEC", "sha256": "5608f1bde8ba5d0e8446c575af57a889ccb7901a1c86de815aec40f9d1c7154f"},
         {"path": "research_pipeline/examples/btc-fred-housing-permits-yoy-growth-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "a3f6740a794159a67ef6513236067bfb3a651dbaa8171f3f190d52dfd588bb78"},
-        {"path": "research/fred_housing_permits_source_probe.py", "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE", "sha256": "c4a22a51a29844ff4f4c481f5a31c2ece8b7dee6f4041dcd2f7706cdb7b4701e"},
-        {"path": ".research-state/experiments/btc-fred-housing-permits-yoy-growth-long-cash-historical-v1/inputs/permit-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "ed44b93c0468bad2fb7f8870ebb2f7dda896ef414deafee7cbffe479eb7cda26"}
+        {"path": "research/fred_housing_permits_source_probe.py", "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE", "sha256": "c4a22a51a29844ff4f4c481f5a31c2ece8b7dee6f4041dcd2f7706cdb7b4701e"}
       ],
       "prohibited_reopen": true
     },
@@ -1296,12 +1183,10 @@
         {"path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical.v1.decision.json", "role": "SEALED_HISTORICAL_ECONOMIC_DECISION", "sha256": "79738c57145952a13f669fc63aef4ccb9b2000916f5399216cabac26cc0e482f"},
         {"path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical.v3.manifest.json", "role": "FROZEN_POST_ERRATUM_PREREGISTRATION_MANIFEST", "sha256": "3e0db2c889485f53e693f07a2b40ad370f8dad5812ec034682565c8c95b69c6f"},
         {"path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-primary-prior.v1.json", "role": "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR", "sha256": "65c9ed9f906956685f68b641839fec0ab5ebd20e7dd717c1ca0df205f9404028"},
-        {"path": ".research-state/experiments/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1/inputs/umcsent-source-bundle.json", "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE", "sha256": "493e2a4600958fc731ca8bcb666f5f336ec5fbb1113e19420e2280e08bfc911b"},
         {"path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-long-cash-v1.hypothesis.json", "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS", "sha256": "78281cdfc3dc99880b2094b81e1b4e7e101dfe3e17745e629be38fa6f4847d27"},
         {"path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-pre-execution-runner-import-amendment.v1.json", "role": "SEALED_PRE_EXECUTION_IMPORT_AMENDMENT", "sha256": "eb763433f426b1794a25040423869a7a51b126d6e60cf5a084091539e533250a"},
         {"path": "research_pipeline/examples/btc-fred-umcsent-rising-consumer-sentiment-post-outcome-signal-count-binding-erratum.v1.json", "role": "SEALED_POST_OUTCOME_FIELD_BINDING_ERRATUM", "sha256": "5f5f9a78ef8d4e0a60972b16817a5f78a94f1617712c97bbfa1d44f7070516e4"},
-        {"path": "research/btc_fred_umcsent_rising_consumer_sentiment_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "09193e45fc64b0d547abd7317cf5721f0e0b624a6432ce4afdd16421ebf62da3"},
-        {"path": ".research-state/experiments/btc-fred-umcsent-rising-consumer-sentiment-long-cash-historical-v1/artifacts/run1.json", "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE", "sha256": "fe98bcfb2437bda8a4404a3d04df1e81ae3149919485b99f3b64c9777c7582a1"}
+        {"path": "research/btc_fred_umcsent_rising_consumer_sentiment_long_cash_historical.py", "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER", "sha256": "09193e45fc64b0d547abd7317cf5721f0e0b624a6432ce4afdd16421ebf62da3"}
       ],
       "prohibited_reopen": true
     },
@@ -1332,11 +1217,6 @@
           "path": "research/fred_stlfsi4_source_probe.py",
           "role": "FROZEN_CREATE_ONCE_NO_REDIRECT_NO_RETRY_SOURCE_PROBE",
           "sha256": "ba67f551d1250b6724746b93ec3623da5d289cf02dd96e5b2a12dcf9c6bbbfbc"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-stlfsi4-below-normal-stress-long-cash-historical-v1/inputs/stlfsi4-source-bundle.json",
-          "role": "SEALED_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-          "sha256": "bca8a839dc9dcd9fef3841921b650c951d9090804a0030b7bc1f9ebdadc26e28"
         }
       ],
       "prohibited_reopen": true
@@ -1373,11 +1253,6 @@
           "path": "research_pipeline/examples/btc-m2-liquidity-acceleration-long-cash-v1-runner-field-binding-erratum.json",
           "role": "FROZEN_V1_CAPABILITY_ERRATUM_WITHOUT_SCIENTIFIC_CHANGE",
           "sha256": "152fbd6243ec46d430d2170d1b26bf716fd538b6b506a9bdd466e9a21db8214e"
-        },
-        {
-          "path": ".research-state/experiments/btc-m2-liquidity-acceleration-long-cash-historical-v1/inputs/federal-reserve-h6-m2-source-bundle.json",
-          "role": "SEALED_OFFICIAL_H6_SOURCE_IDENTITY_TIMING_AND_REVISION_BUNDLE",
-          "sha256": "e570684156387e96c63243d9ce913c7a1a83ebf0edfe181f4546c4640950bb55"
         }
       ],
       "prohibited_reopen": true
@@ -1492,11 +1367,6 @@
           "path": "research_pipeline/examples/btc-us-treasury-3m-yield-easing-long-cash-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
           "sha256": "7d272580657f56d24ec8e33ae32fff9617000e5036a1e62c23990ca707482992"
-        },
-        {
-          "path": ".research-state/experiments/btc-us-treasury-3m-yield-easing-long-cash-historical-v1/artifacts/run1.json",
-          "role": "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
-          "sha256": "d78b2b66eafb74ba9866fab35833928403b96452334f658107fedb98405fa7fd"
         }
       ],
       "prohibited_reopen": true
@@ -1523,11 +1393,6 @@
           "path": "research_pipeline/examples/btc-miner-revenue-per-hash-momentum-long-cash-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
           "sha256": "b29c41f17fac7ebe5f4edecc7e4883dde5f5ab699f2612cb96e8e5c716ecb2db"
-        },
-        {
-          "path": ".research-state/experiments/btc-miner-revenue-per-hash-momentum-long-cash-historical-v1/artifacts/run1.json",
-          "role": "SEALED_BYTE_IDENTICAL_PRE_ECONOMIC_NONREDUNDANCY_RUN",
-          "sha256": "572cac1d2d97c224fb3e9e3caa16340bf2e693f0ac5f8ebc7f28b1d1d884bff4"
         }
       ],
       "prohibited_reopen": true
@@ -1554,11 +1419,6 @@
           "path": "research_pipeline/examples/btc-nasdaq-relative-strength-long-cash-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
           "sha256": "1521b851c01759a4077d93c99ad8710acd7adaad0a0514bc371952eec8266f9e"
-        },
-        {
-          "path": ".research-state/experiments/btc-nasdaq-relative-strength-long-cash-historical-v1/artifacts/run1.json",
-          "role": "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
-          "sha256": "90248209d06e63407f7454f1aa9bdb9aa244d5fd79cdf2c98563fd8a9563a1da"
         }
       ],
       "prohibited_reopen": true
@@ -1585,11 +1445,6 @@
           "path": "research_pipeline/examples/btc-daily-chaikin-money-flow-long-cash-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
           "sha256": "2ddd3e5397816f425c1535f69de15315f637f44291635ce584d0906c6ba7002d"
-        },
-        {
-          "path": ".research-state/experiments/btc-daily-chaikin-money-flow-long-cash-historical-v1/artifacts/run1.json",
-          "role": "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
-          "sha256": "cd08a034b6eac13586bed473412677bb98de64465a346eb6832c2a380a7264ac"
         }
       ],
       "prohibited_reopen": true
@@ -1616,11 +1471,6 @@
           "path": "research/btc_monthly_rebalanced_half_passive_half_dra_v1_historical.py",
           "role": "HASH_BOUND_DETERMINISTIC_ECONOMIC_RUNNER",
           "sha256": "849d799628c49fe811fc700ed4672e1255e27b88bad8dff247f6cd7b2934a5fb"
-        },
-        {
-          "path": ".research-state/experiments/btc-monthly-rebalanced-half-passive-half-dra-v1-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_EVIDENCE",
-          "sha256": "dd51e20260c02eaadce38b48d80e411e05a995aff0bf6386751724b1c1432891"
         }
       ],
       "prohibited_reopen": true
@@ -1647,11 +1497,6 @@
           "path": "research/binance_spot_usdt_daily_corpus_v1.py",
           "role": "FINAL_FAIL_CLOSED_CORPUS_BUILDER",
           "sha256": "cd419f2804fbfa791f930cc6b200f9f1a3ab853f1bb3ed5487410eec0aff6b6c"
-        },
-        {
-          "path": ".research-state/experiments/liquid-crypto-cross-sectional-momentum-long-only-source-feasibility-v1/artifacts/run1.json",
-          "role": "SEALED_ALL_HISTORY_ARCHIVE_INVENTORY",
-          "sha256": "9f8ee95df9b04595c83fcd341c97c77286884a39b4f96adc463de0aa02f84e6f"
         },
         {
           "path": "research_pipeline/examples/liquid-crypto-cross-sectional-momentum-long-only-v1.hypothesis.json",
@@ -1683,11 +1528,6 @@
           "path": "research/btc_dra_partial_core_runner_profit_only_exit_v1.py",
           "role": "SPEC_HASH_BOUND_DETERMINISTIC_RUNNER",
           "sha256": "003cee66753910be989d5c33284f5fb9e364db6e39313fcdf263ca21ea27407f"
-        },
-        {
-          "path": ".research-state/experiments/dra-partial-core-runner-profit-only-exit-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_EVIDENCE",
-          "sha256": "c0f06a6113cdd6a361cbb6bfdcd23e8da8f3c10e6695ee7559461949a8da9af0"
         }
       ],
       "prohibited_reopen": true
@@ -1714,11 +1554,6 @@
           "path": "research_pipeline/examples/dra-h1-absolute-return-volume-coupling-entry-admission-primary-prior.v1.json",
           "role": "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
           "sha256": "f77ea8fe2c09b3dc2258967e840286b80ad101d547d6d4fc1a7e73e01b545371"
-        },
-        {
-          "path": ".research-state/experiments/dra-h1-absolute-return-volume-coupling-entry-admission-v1/artifacts/run1.json",
-          "role": "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
-          "sha256": "16ab465b0d205b99d5efafc63277dc13bf5e7a8460f77ea974e197ffb187d945"
         }
       ],
       "prohibited_reopen": true
@@ -3106,11 +2941,6 @@
           "path": "research/btc_cftc_leveraged_fund_net_short_level_carry_crash_historical.py",
           "role": "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
           "sha256": "0e8ed2af74d13bd581d6db8e179d874e4dc414ea4d93d92cebd601884c6de294"
-        },
-        {
-          "path": ".research-state/experiments/btc-cftc-leveraged-fund-net-short-level-carry-crash-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "40c8ca813c8f5b4d7e559ccfdf820deb43d44fb448695e8f3443a897dede09ea"
         }
       ],
       "prohibited_reopen": true
@@ -3152,16 +2982,6 @@
           "path": "research/fred_wtregen_source_probe.py",
           "role": "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
           "sha256": "78d0225b2ea44d18d9661e2c64da80ad26490d1c6cbcddf337326fdb5f6a0b4a"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-tga-drawdown-liquidity-support-historical-v1/inputs/fred-wtregen-source-bundle.json",
-          "role": "SEALED_OFFICIAL_WTREGEN_SOURCE_BUNDLE",
-          "sha256": "25afa9a3f660b6ee457bf5b751e13d4b6a986c77a0ea3101f1fee399e75c5e47"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-tga-drawdown-liquidity-support-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "d15a87d4f9e1e7cb75a48e8c3bb1292a37e165e769583f8cbb58dfa50075b655"
         }
       ],
       "prohibited_reopen": true
@@ -3208,16 +3028,6 @@
           "path": "research/coinmetrics_btc_exchange_net_flow_source_probe.cjs",
           "role": "FROZEN_FAIL_CLOSED_COINMETRICS_SOURCE_PROBE",
           "sha256": "4343cf9f93596862557c175b989db61df9ea6943bbc784355ca79d2cc5716150"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/inputs/coinmetrics-source-bundle.json",
-          "role": "SEALED_COINMETRICS_SOURCE_BUNDLE",
-          "sha256": "0b0ab780d3efd64b56e4a5d8d55b15ae225d12371659eef0e09123368119e918"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-weekly-exchange-net-inflow-sell-pressure-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "8133e7d10181574627b8c5e17aaf0ee48a9c503d57ee4f80e1eefd1cb9db2b62"
         }
       ],
       "prohibited_reopen": true
@@ -3244,11 +3054,6 @@
           "path": "research/coinmetrics_btc_address_balance_count_source_probe.cjs",
           "role": "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
           "sha256": "7a38188c45af635d0a3668a6dbdbe3cf34d13f85b3f481d458efa5334c9c946c"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-address-balance-count-growth-historical-v1/inputs/coinmetrics-btc-address-balance-count-daily-2018-2024.v1.source.json",
-          "role": "SEALED_COINMETRICS_ADRBALCNT_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-          "sha256": "e97ed68b02d2ab08c7e32dfaad1e71f679849f324bb7e1c76ebb36b95ac189c1"
         }
       ],
       "prohibited_reopen": true
@@ -3290,16 +3095,6 @@
           "path": "research/fred_rrpontsyd_source_probe.py",
           "role": "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
           "sha256": "87211dd95e2ce671a7b42e12749118eb6865bc1a5d41b0ff0ed18c1a92f63cdb"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-on-rrp-drawdown-liquidity-support-historical-v1/inputs/fred-rrpontsyd-source-bundle.json",
-          "role": "SEALED_OFFICIAL_RRPONTSYD_SOURCE_BUNDLE",
-          "sha256": "21b4ad77c0a37413aa0524aac7b3e18188740e51bc3d70682795330c39dae9d5"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-on-rrp-drawdown-liquidity-support-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "52346fc2b443e1d75299251cd2fb18b4d4533d99cc0a52bb089066a048dc8c65"
         }
       ],
       "prohibited_reopen": true
@@ -3341,16 +3136,6 @@
           "path": "research/fred_wresbal_source_probe.py",
           "role": "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
           "sha256": "e1ab00763360d371c909ae2ad8dcdbb5b115bdeca14dda88f7c65278b59b8ad7"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-reserve-balances-growth-liquidity-support-historical-v1/inputs/fred-wresbal-source-bundle.json",
-          "role": "SEALED_OFFICIAL_WRESBAL_SOURCE_BUNDLE",
-          "sha256": "54984ab5b7f1066ad3a4db58c29f0b2fc57a429d3fc716337773b447fff76b86"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-reserve-balances-growth-liquidity-support-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "8125d8513354907c42d5a9e209cb697517ebb5a8d0fde2ca0daf02e54f789f8d"
         }
       ],
       "prohibited_reopen": true
@@ -3397,16 +3182,6 @@
           "path": "research/coinmetrics_btc_native_issuance_contraction_source_probe.cjs",
           "role": "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
           "sha256": "9886c51b9251d6ca9c94d1b5f3e7cd0e43f7928c4569ddf3509587bc6aeefb8f"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-native-issuance-contraction-historical-v1/inputs/coinmetrics-btc-native-issuance-source-bundle.json",
-          "role": "SEALED_COINMETRICS_ISS_TOT_NTV_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-          "sha256": "05964036ded83834019078b7ea631fc4d7ffd9a746942bde4a545bb557c01a7e"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-native-issuance-contraction-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "ea200ff6e46c5f11c0efc28657fb55528dd6b2037af176a3b32e86bee4d5f918"
         }
       ],
       "prohibited_reopen": true
@@ -3453,16 +3228,6 @@
           "path": "research/fred_t5yie_source_probe.py",
           "role": "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
           "sha256": "86262c3411ef47ffc9891fd0bc0e6ae83f8fdb2ba7e4fc22f78d595c363a6442"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-five-year-breakeven-inflation-historical-v1/inputs/fred-t5yie-source-bundle.json",
-          "role": "SEALED_FRED_T5YIE_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-          "sha256": "e65b4f0f06077469f7e796e4470ec4a05e8bf95891dec1c8feb4239e4cd29ffc"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-five-year-breakeven-inflation-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "d87db25e09edd787c4ae2f869ba75ed3eec4bcf3008675b8dcde524381d0c452"
         }
       ],
       "prohibited_reopen": true
@@ -3494,11 +3259,6 @@
           "path": "research/fred_icsa_source_probe.py",
           "role": "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
           "sha256": "ccc5ec6b11562c773db79e2205c2fff9e9680a6c808d03b511e11aaecee7e956"
-        },
-        {
-          "path": ".research-state/experiments/btc-fred-initial-claims-easing-labor-resilience-historical-v1/inputs/fred-icsa-source-bundle.json",
-          "role": "SEALED_FRED_ICSA_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-          "sha256": "e30dc059a7f0f438c744c063212102e5d8c0dc5cd523230b89f8c42b23b37767"
         }
       ],
       "prohibited_reopen": true
@@ -3571,11 +3331,6 @@
           "path": "research/btc_fomc_scheduled_announcement_day_risk_veto_historical.py",
           "role": "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
           "sha256": "f86370298fad306d3bd21c7b629892091d340dc0f7115f239e4dc19467bbceee"
-        },
-        {
-          "path": ".research-state/experiments/btc-fomc-scheduled-announcement-day-risk-veto-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "dfa830268c55378a4b47b42ec8e4fde0e34f98c130c82561f2cfdf08933ac48e"
         }
       ],
       "prohibited_reopen": true
@@ -3612,11 +3367,6 @@
           "path": "research/btc_deribit_last_friday_monthly_options_expiry_risk_veto_historical.py",
           "role": "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
           "sha256": "049d2680ead6355d62406ed08c9655e56467998754dafbbe6173ef3f65d84d35"
-        },
-        {
-          "path": ".research-state/experiments/btc-deribit-last-friday-monthly-options-expiry-risk-veto-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "16a4b60879b7f67689e6feb7ee6f77e6fe172198b3e414fb5e0d834eba350176"
         }
       ],
       "prohibited_reopen": true
@@ -3668,11 +3418,6 @@
           "path": "research/btc_bls_cpi_scheduled_release_day_risk_veto_historical.py",
           "role": "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
           "sha256": "34e2090962057b72659ae1f8cdc20e14a8f1021d99b28e4dce8a1160d3173a1a"
-        },
-        {
-          "path": ".research-state/experiments/btc-bls-cpi-scheduled-release-day-risk-veto-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "e03f851fc93307374a9373d1949708d678126a09473775dc3023b1d11e947cb0"
         }
       ],
       "prohibited_reopen": true
@@ -3714,11 +3459,6 @@
           "path": "research/btc_bls_employment_situation_scheduled_release_day_risk_veto_historical.py",
           "role": "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
           "sha256": "ca9ec76592c575cb485cd33e8fdb45e398c5b476c76966308503021aa13ded96"
-        },
-        {
-          "path": ".research-state/experiments/btc-bls-employment-situation-scheduled-release-day-risk-veto-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "bac2db31e0daaad7d3a92d096ef613447f3de42ec6b5d1f3d82f2316c6faee7d"
         }
       ],
       "prohibited_reopen": true
@@ -3760,16 +3500,6 @@
           "path": "research/btc_coinmetrics_realized_cap_28d_growth_long_cash_historical.cjs",
           "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
           "sha256": "8934c7fb34bb224e829a03df4bf089f48f61e3958872d8dda2eedc7bd303f141"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/inputs/coinmetrics-realized-cap-source-bundle.json",
-          "role": "SEALED_COINMETRICS_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-          "sha256": "e097f4c7da2153ab2f1387d54f0400ef745972bda645a4202d83783ac812d33b"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-realized-cap-28d-growth-long-cash-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "450cfce2c81323857a3edefef5ff9f340fb8d549659a89dd8d0a1b281fa362ef"
         }
       ],
       "prohibited_reopen": true
@@ -3824,11 +3554,6 @@
           "sha256": "a1535b9429b97bd7a923b686a3b82fd49cb3351b747962b1ad4bf03ad972775b"
         },
         {
-          "path": ".research-state/experiments/btc-first-six-hour-direction-24h-state-long-cash-historical-v1/inputs/first-six-hour-direction-state-feasibility.json",
-          "role": "SEALED_PRE_OUTCOME_FEATURE_SUPPORT",
-          "sha256": "d698b2b1c734d42b1dc4958b9457828dc3dae1c310392b20a1e423ebd716b3fc"
-        },
-        {
           "path": "research_pipeline/examples/btc-first-six-hour-direction-24h-state-long-cash-v1.hypothesis.json",
           "role": "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
           "sha256": "b570258b0a6f581a3be92a2ee90ab34fce72cfd2f4dca53980768df313daa7dd"
@@ -3842,11 +3567,6 @@
           "path": "research/btc_first_six_hour_direction_24h_state_long_cash_historical.cjs",
           "role": "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
           "sha256": "be75705bfaf472b1efc43e307a1d4fdd4d430712f2b2fd8c19a96e48fb86fc8f"
-        },
-        {
-          "path": ".research-state/experiments/btc-first-six-hour-direction-24h-state-long-cash-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "5dee9dd1d8b25afafbabdc1338ea508fa6dc7c6d76d9934119721322c61e7e5f"
         }
       ],
       "prohibited_reopen": true
@@ -3938,11 +3658,6 @@
           "path": "research_pipeline/examples/local-research-result.btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1.json",
           "role": "SEALED_NON_COUNTING_EVIDENCE_INSUFFICIENT_RESULT",
           "sha256": "23bc147175000f4706f2ed892f8e30668c5545fabf4814d0cdd43f778405a709"
-        },
-        {
-          "path": ".research-state/experiments/btc-daily-stochastic-5-3-3-kd-cross-long-cash-historical-v1/artifacts/run1.json",
-          "role": "CONTAMINATED_DIAGNOSTIC_BYTE_IDENTICAL_RUN1_AND_RUN2_NOT_ACCEPTED_AS_PERFORMANCE_CONCLUSION",
-          "sha256": "668eb6c49ff6904c8dbb63caa26db17d623caae137eb8fa34c86a37c69653817"
         }
       ],
       "family_id": "closed-btc-daily-stochastic-5-3-3-kd-cross-long-cash-v1",
@@ -4198,16 +3913,6 @@
           "path": "research_pipeline/examples/dra-binance-usdm-endpoint-oi-confirmation-v2.manifest.json",
           "role": "FROZEN_SINGLE_VARIANT_ENDPOINT_OI_ECONOMIC_MANIFEST",
           "sha256": "9cb68029c45775f8bd38b70a2a42d2545997f8a21d8b9417e071709756bee90f"
-        },
-        {
-          "path": ".research-state/experiments/dra-binance-usdm-endpoint-oi-confirmation-v2/inputs/endpoint-corpus.v2.json",
-          "role": "CREATE_ONCE_CHECKSUM_BOUND_ENDPOINT_CORPUS",
-          "sha256": "905e95ebf20aa5efe0f84e2c3cbcacf43c3c4cace7704dd7357cc71ae14edb85"
-        },
-        {
-          "path": ".research-state/experiments/dra-binance-usdm-endpoint-oi-confirmation-v2/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "b3728cf906164dcb09b13ea26c7382932e7a01a74b5185f1346ddcc2878c0f88"
         }
       ],
       "family_id": "closed-dra-binance-usdm-endpoint-oi-confirmation-v2",
@@ -4270,11 +3975,6 @@
           "path": "research_pipeline/examples/btc-broad-dollar-volatility-passive-core-risk-overlay-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_MECHANISM_AND_CLOSED_FAMILY_DEDUPLICATION_PRIOR",
           "sha256": "0b4dc59b50c323eff2c4c3253c1d25301aa48235a9c7b6f3bfaea8f9421fae81"
-        },
-        {
-          "path": ".research-state/experiments/btc-broad-dollar-volatility-passive-core-risk-overlay-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "a98b9d81f9c11149c9ab4970a6450156627d723b1d76fb757d01451285173883"
         }
       ],
       "family_id": "closed-btc-broad-dollar-volatility-passive-core-risk-overlay-v1",
@@ -4306,11 +4006,6 @@
           "path": "research_pipeline/examples/btc-daily-nr7-volatility-contraction-breakout-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_MECHANISM_AND_CLOSED_FAMILY_DEDUPLICATION_PRIOR",
           "sha256": "ea9b7b2f7d21877ab998ffb9cdfe9b3daa2f6eab7cbea8c9e380eadbcb15f4d7"
-        },
-        {
-          "path": ".research-state/experiments/btc-daily-nr7-volatility-contraction-breakout-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "2fbb4335193b3aefe4e464c4e36549b302db5aea2f01f601f5e87fb733b2b34c"
         }
       ],
       "family_id": "closed-btc-daily-nr7-volatility-contraction-breakout-v1",
@@ -4342,11 +4037,6 @@
           "path": "research_pipeline/examples/btc-daily-trailing365d-drawdown20-passive-core-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_MECHANISM_AND_CLOSED_FAMILY_DEDUPLICATION_PRIOR",
           "sha256": "df250f21f5ba1d0879e91d34ca75a658710ffe5ad47ca55b40b1d1c806493169"
-        },
-        {
-          "path": ".research-state/experiments/btc-daily-trailing365d-drawdown20-passive-core-risk-overlay-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "593cb68c113216692f32542bcca86f71902fddcdfe5b3f05cb807a276018cf0e"
         }
       ],
       "family_id": "closed-btc-daily-trailing365d-drawdown20-passive-core-risk-overlay-v1",
@@ -4363,11 +4053,6 @@
           "path": "research_pipeline/examples/btc-paxg-static-50-50-diversification-evidence-reuse.v1.decision.json",
           "role": "SEALED_COMPARATOR_EVIDENCE_REUSE_AND_POST_OUTCOME_CLOSURE_DECISION",
           "sha256": "21067a5a2c6df0623c575c82f6f128ece75bb08d0b29f48b24a6eb43086ce9ea"
-        },
-        {
-          "path": ".research-state/experiments/btc-paxg-monthly-relative-momentum-rotation-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_MATCHED_CAPITAL_STATIC_COMPARATOR_EVIDENCE",
-          "sha256": "2e1c7417c98f67afb25e57322b23b284eddf937d64e36be17328c456d8f961a6"
         },
         {
           "path": "research_pipeline/examples/btc-paxg-monthly-relative-momentum-rotation-historical.v1.decision.json",
@@ -4461,11 +4146,6 @@
           "path": "research_pipeline/examples/btc-utc-monday-long-cash-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
           "sha256": "b3b544416811eb80bbaa7c461ac5820895b866913ea966c6edfdc5d737fe4e00"
-        },
-        {
-          "path": ".research-state/experiments/btc-utc-monday-long-cash-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
-          "sha256": "cf62f9835a6751a3929981ab25bc784ebcdc544a21c3b30b6e9bd78584a49a6e"
         }
       ],
       "family_id": "closed-btc-utc-monday-long-cash-v1",
@@ -4492,11 +4172,6 @@
           "path": "research_pipeline/examples/btc-coinmetrics-hash-ribbon-health-state-long-cash-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
           "sha256": "82972a8425f1f12bab182296002b1a5937c9c70f775ddbb8b5bbb2ba43c4830a"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-hash-ribbon-health-state-long-cash-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_DEDUPLICATION_EVIDENCE",
-          "sha256": "594f50a9d480ed5bbefe6a98e3e1be534f9eed0a3835d08eaea6427d778f98ca"
         }
       ],
       "family_id": "closed-btc-coinmetrics-hash-ribbon-health-state-long-cash-v1",
@@ -4575,11 +4250,6 @@
           "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-primary-prior.v1.json",
           "role": "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
           "sha256": "85d6ba3a455a18111952ff9ccc21a3fe34ae32cc3d34762b505b7b4f08d61be6"
-        },
-        {
-          "path": ".research-state/experiments/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical-v1/artifacts/run1.json",
-          "role": "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
-          "sha256": "e6d4cb6bd9158d5431f660e8126a570b98495128385ed39757ffbd6dc879f78c"
         }
       ],
       "family_id": "closed-btc-coinmetrics-puell-multiple-overheat-risk-veto-v1",

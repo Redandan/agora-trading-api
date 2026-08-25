@@ -574,9 +574,7 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_VALID_PREOUTCOME_SUPPORT_SPEC_V2",
                 "RECORDED_PRE_ECONOMIC_V1_SUPPORT_INVALIDATION",
                 "FROZEN_IMPORT_ORDER_INDEPENDENT_SUPPORT_PROBE_V2",
-                "SEALED_VALID_PREOUTCOME_FEATURE_SUPPORT_V2",
                 "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_variance_ratio["prohibited_reopen"])
@@ -786,11 +784,9 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_HISTORICAL_ECONOMIC_DECISION",
                 "FROZEN_PREREGISTRATION_MANIFEST",
                 "SEALED_PRIMARY_ACADEMIC_AND_ADVERSARIAL_PRIOR",
-                "SEALED_PRE_OUTCOME_FEATURE_SUPPORT",
                 "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
                 "SEALED_PRE_RESULT_INITIAL_CASH_BOUNDARY_AMENDMENT",
                 "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_first_six_hour_direction["prohibited_reopen"])
@@ -832,8 +828,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_SOURCE_PROVENANCE_TIMING_REVISION_METRIC_AND_LICENSE_IDENTITY",
                 "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
                 "FROZEN_DETERMINISTIC_SINGLE_VARIANT_ECONOMIC_RUNNER",
-                "SEALED_COINMETRICS_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_HISTORICAL_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_realized_cap_growth["prohibited_reopen"])
@@ -1005,7 +999,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_HISTORICAL_ECONOMIC_DECISION",
                 "FROZEN_PRE_PERFORMANCE_SPECIFICATION",
                 "SPEC_HASH_BOUND_DETERMINISTIC_RUNNER",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_EVIDENCE",
             ],
         )
         self.assertTrue(partial_core_runner["prohibited_reopen"])
@@ -1031,7 +1024,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
                 "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_fomc_announcement_day["prohibited_reopen"])
@@ -1056,7 +1048,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
                 "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_monthly_options_expiry["prohibited_reopen"])
@@ -1081,7 +1072,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_PRE_RESULT_CALENDAR_WEEKDAY_AMENDMENT",
                 "SEALED_PRE_RESULT_TERMINAL_BOUNDARY_AMENDMENT",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_bls_cpi["prohibited_reopen"])
@@ -1104,7 +1094,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
                 "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_bls_employment["prohibited_reopen"])
@@ -1131,8 +1120,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_PRE_OUTCOME_SOURCE_FEASIBILITY_SPEC",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
                 "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
-                "SEALED_FRED_T5YIE_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_breakeven_reflation["prohibited_reopen"])
@@ -1153,7 +1140,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_PRE_FACTOR_SOURCE_FEASIBILITY_SPEC",
                 "SEALED_PRIMARY_OFFICIAL_AND_ADVERSARIAL_PRIOR",
                 "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
-                "SEALED_FRED_ICSA_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
             ],
         )
         self.assertTrue(closed_initial_claims["prohibited_reopen"])
@@ -1203,8 +1189,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_PRE_OUTCOME_SOURCE_FEASIBILITY_SPEC",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
                 "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
-                "SEALED_COINMETRICS_ISS_TOT_NTV_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_native_issuance["prohibited_reopen"])
@@ -1224,7 +1208,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_PRE_HYPOTHESIS_PRE_OUTCOME_DATA_REJECT_DECISION",
                 "SEALED_PRIMARY_ADVERSARIAL_AND_FREE_TRANSPORT_PREFLIGHT_PRIOR",
                 "FROZEN_FAIL_CLOSED_SOURCE_AND_SUPPORT_PROBE",
-                "SEALED_COINMETRICS_ADRBALCNT_SOURCE_AND_PRE_OUTCOME_SUPPORT_BUNDLE",
             ],
         )
         self.assertTrue(closed_address_balance_growth["prohibited_reopen"])
@@ -1247,8 +1230,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_PRE_OUTCOME_HYPOTHESIS",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
                 "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
-                "SEALED_OFFICIAL_RRPONTSYD_SOURCE_BUNDLE",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_on_rrp_drawdown["prohibited_reopen"])
@@ -1274,8 +1255,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_PRE_OUTCOME_HYPOTHESIS",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
                 "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
-                "SEALED_OFFICIAL_WRESBAL_SOURCE_BUNDLE",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_reserve_balances_growth["prohibited_reopen"])
@@ -1300,7 +1279,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_PRIMARY_AND_ADVERSARIAL_PRIOR",
                 "FROZEN_PRE_OUTCOME_HYPOTHESIS",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_cftc_carry_crash_proxy["prohibited_reopen"])
@@ -1326,8 +1304,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_PRE_OUTCOME_HYPOTHESIS",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
                 "FROZEN_FAIL_CLOSED_OFFICIAL_SOURCE_PROBE",
-                "SEALED_OFFICIAL_WTREGEN_SOURCE_BUNDLE",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_tga_liquidity_support["prohibited_reopen"])
@@ -1354,8 +1330,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_PRE_OUTCOME_HYPOTHESIS",
                 "SPEC_HASH_BOUND_DETERMINISTIC_PRE_ECONOMIC_RUNNER",
                 "FROZEN_FAIL_CLOSED_COINMETRICS_SOURCE_PROBE",
-                "SEALED_COINMETRICS_SOURCE_BUNDLE",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_EVIDENCE",
             ],
         )
         self.assertTrue(closed_exchange_net_inflow["prohibited_reopen"])
@@ -1417,7 +1391,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "FROZEN_SCHEMA_VALID_PRE_OUTCOME_HYPOTHESIS",
                 "SEALED_PRIMARY_AND_ADVERSARIAL_PRE_OUTCOME_PRIOR",
                 "FROZEN_V1_CAPABILITY_ERRATUM_WITHOUT_SCIENTIFIC_CHANGE",
-                "SEALED_OFFICIAL_H6_SOURCE_IDENTITY_TIMING_AND_REVISION_BUNDLE",
             ],
         )
         self.assertTrue(m2_liquidity["prohibited_reopen"])
@@ -1490,7 +1463,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_HISTORICAL_ECONOMIC_DECISION",
                 "FROZEN_PREREGISTRATION_MANIFEST",
                 "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
-                "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
             ],
         )
         self.assertTrue(short_rate["prohibited_reopen"])
@@ -1510,7 +1482,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_PRE_ECONOMIC_DUPLICATE_REJECT_DECISION",
                 "FROZEN_PREREGISTRATION_AND_NONREDUNDANCY_MANIFEST",
                 "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
-                "SEALED_BYTE_IDENTICAL_PRE_ECONOMIC_NONREDUNDANCY_RUN",
             ],
         )
         self.assertTrue(miner_revenue["prohibited_reopen"])
@@ -1533,7 +1504,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_HISTORICAL_ECONOMIC_DECISION",
                 "FROZEN_PREREGISTRATION_MANIFEST",
                 "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
-                "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
             ],
         )
         self.assertTrue(relative_strength["prohibited_reopen"])
@@ -1553,7 +1523,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_HISTORICAL_ECONOMIC_DECISION",
                 "FROZEN_PREREGISTRATION_MANIFEST",
                 "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
-                "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
             ],
         )
         self.assertTrue(cmf["prohibited_reopen"])
@@ -1595,7 +1564,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_HISTORICAL_ECONOMIC_DECISION",
                 "FROZEN_PREREGISTRATION_MANIFEST",
                 "SEALED_PRIMARY_ADVERSARIAL_AND_EXECUTABLE_DATA_PATH_PRIOR",
-                "SEALED_BYTE_IDENTICAL_DIRECT_ECONOMIC_RUN",
             ],
         )
         self.assertTrue(movement_volume["prohibited_reopen"])
@@ -2298,7 +2266,6 @@ class CandidateFunnelTest(unittest.TestCase):
                 "SEALED_BYTE_IDENTICAL_PRE_ECONOMIC_DUPLICATE_FAMILY_CLOSURE",
                 "FROZEN_SOURCE_DEDUPLICATION_AND_MATCHED_CAPITAL_MANIFEST",
                 "FROZEN_PRIMARY_ADVERSARIAL_AND_DEDUPLICATION_PRIOR",
-                "BYTE_IDENTICAL_RUN1_AND_RUN2_PRE_ECONOMIC_DEDUPLICATION_EVIDENCE",
             ],
         )
         self.assertTrue(hash_ribbon["prohibited_reopen"])
@@ -2332,6 +2299,13 @@ class CandidateFunnelTest(unittest.TestCase):
                 for binding in family["evidence_bindings"]
             )
         )
+        self.assertTrue(
+            all(
+                not binding["path"].startswith(".research-state/")
+                for family in catalog["families"] + catalog["closed_families"]
+                for binding in family["evidence_bindings"]
+            )
+        )
 
     def test_open_family_floor_exception_is_exact_and_fail_closed(self) -> None:
         catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
@@ -2350,6 +2324,18 @@ class CandidateFunnelTest(unittest.TestCase):
             _validate_open_family_floor(
                 REPO_ROOT,
                 without_evidence,
+                open_family_count=4,
+                target_minimum=5,
+            )
+
+        local_state_binding = json.loads(json.dumps(floor))
+        local_state_binding["evidence_bindings"][0]["path"] = (
+            ".research-state/local-only-artifact.json"
+        )
+        with self.assertRaisesRegex(ValueError, "release-portable committed evidence"):
+            _validate_open_family_floor(
+                REPO_ROOT,
+                local_state_binding,
                 open_family_count=4,
                 target_minimum=5,
             )

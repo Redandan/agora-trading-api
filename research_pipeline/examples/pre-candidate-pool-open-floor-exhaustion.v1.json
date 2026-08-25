@@ -1,0 +1,104 @@
+{
+  "schema_version": "1",
+  "document_type": "PRE_CANDIDATE_POOL_OPEN_FLOOR_EXHAUSTION_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "created_at": "2026-08-25T02:49:17Z",
+  "status": "SEALED_NO_DISTINCT_FREE_EXECUTABLE_REPLACEMENT_SHORTFALL_ONE",
+  "catalog_id": "agora-pre-candidate-pool-v1",
+  "pre_transition_catalog_sha256": "3083c9c2ba20ccc3858fd3d0520c194763b5db18e0b21036bfee23ba78c40bf6",
+  "pre_transition_counts": {
+    "open_families": 5,
+    "repository_closed_families": 171,
+    "scientifically_closed_but_still_open_family_ids": [
+      "btc-mempool-fee-congestion-point-in-time"
+    ],
+    "genuinely_open_families": 4,
+    "target_floor": 5,
+    "shortfall": 1
+  },
+  "genuinely_open_family_ids": [
+    "dra-entry-volume-confirmation-20d",
+    "dra-entry-range-confirmation-20d",
+    "btc-3pct-post-shock-reversal",
+    "btc-3pct-post-shock-volatility-persistence"
+  ],
+  "replacement_screen": {
+    "required_properties": [
+      "FREE_ALREADY_SEALED_OR_CREDENTIAL_FREE_SOURCE",
+      "DECISION_FEATURE_AVAILABLE_BEFORE_ACTION",
+      "EXACT_PRIMARY_FORMULA_OR_SEMANTIC_STATE",
+      "DISTINCT_FROM_ALL_CLOSED_DUPLICATE_FINGERPRINTS",
+      "MATCHED_CAPITAL_PARENT_COMPARATOR_AND_RUNNER_PATH_OR_ONE_BOUNDED_STEP_TO_IT",
+      "NO_EXTERNAL_BACKFILL_PAID_API_SECOND_TIMER_OR_SECOND_WRITER"
+    ],
+    "disposition": "NO_REVIEWED_REPLACEMENT_PASSED_ALL_PROPERTIES",
+    "anti_metric_gaming": "DO_NOT_KEEP_A_CLOSED_FAMILY_OPEN_OR_RELABEL_A_DUPLICATE_ONLY_TO_SATISFY_THE_NUMERIC_FLOOR"
+  },
+  "representative_failed_replacements": [
+    {
+      "family": "btc-mempool-fee-congestion-point-in-time",
+      "path": "research_pipeline/examples/mempool-fee-state-point-in-time-source-contract-close.v1.json",
+      "sha256": "6fde847d00bf612b4c2a0777b363d4baceaede582a24d41f3642ee440174aa3c",
+      "disposition": "DATA_REJECT_SOURCE_IDENTITY_AND_CONTINUITY_WITH_SELF_HOST_OPPORTUNITY_COST_DOMINATING"
+    },
+    {
+      "family": "btc-deribit-dvol-variance-risk-premium-proxy",
+      "path": "research_pipeline/examples/btc-deribit-dvol-variance-risk-premium-proxy-primary-prior-reject.v1.json",
+      "sha256": "33d1bb17991e9f58a8884cdfde715697b6673447fa7498fc41100cf913add3e3",
+      "disposition": "NO_HYPOTHESIS_INCOMPLETE_VARIANCE_RISK_PREMIUM_PROXY_AND_CLOSED_FAMILY_OVERLAP"
+    },
+    {
+      "family": "dra-binance-usdm-funding-crowding-entry-risk-state",
+      "path": "research_pipeline/examples/dra-binance-usdm-funding-crowding-entry-risk-state-primary-prior-reject.v1.json",
+      "sha256": "d5c173b74c583cde0ae0c6e659efc56608b3b80abf4bce04030987446cb652e1",
+      "disposition": "NO_HYPOTHESIS_DUPLICATE_OF_TOMBSTONED_DIRECTIONAL_CARRY_RISK_VETO"
+    },
+    {
+      "family": "btc-coinmetrics-sopr-loss-realization-next-day-contrarian",
+      "path": "research_pipeline/examples/btc-coinmetrics-sopr-loss-realization-source-feasibility.v1.decision.json",
+      "sha256": "0814a1cd3fc9ec0887a9145aa26bd5fdc7e5ea849aa115e69e944bae7250d21d",
+      "disposition": "DATA_REJECT_FREE_TIMESERIES_UNAVAILABLE_BEFORE_OUTCOME_ACCESS"
+    },
+    {
+      "family": "btc-coinmetrics-puell-multiple-overheat-risk-veto",
+      "path": "research_pipeline/examples/btc-coinmetrics-puell-multiple-overheat-risk-veto-historical.v1.decision.json",
+      "sha256": "7d2d79c2f50274da9a730a59f5d748da7805293998c6bf081d49ac77da9c6e35",
+      "disposition": "NO_CANDIDATE_ZERO_SUPPORT_AND_PRICE_INDEPENDENCE_FAILURE"
+    },
+    {
+      "family": "btc-coinmarketcap-extreme-fear-contrarian",
+      "path": "research_pipeline/examples/btc-coinmarketcap-extreme-fear-contrarian-long-cash-source-feasibility.v1.decision.json",
+      "sha256": "17058f5643bebc0bbcb2e441d5f6450ea61ba9f0ab6255ba54914386ff488dfc",
+      "disposition": "DATA_REJECT_KEYLESS_HISTORICAL_SOURCE_UNAVAILABLE_BEFORE_VALUE_ACCESS"
+    }
+  ],
+  "sealed_corpus_disposition": {
+    "price_volume_and_technical": "REPRESENTED_BY_EXISTING_OPEN_FORWARD_FAMILIES_OR_REPOSITORY_TOMBSTONES",
+    "derivatives_carry_and_positioning": "REPRESENTED_BY_REPOSITORY_TOMBSTONES_AND_THE_FUNDING_CROWDING_DESCENDANT_REJECT",
+    "onchain_and_blockspace": "REPRESENTED_BY_REPOSITORY_TOMBSTONES_AND_THE_MEMPOOL_SOURCE_CONTRACT_CLOSE",
+    "macro_calendar_and_cross_asset": "REPRESENTED_BY_REPOSITORY_TOMBSTONES",
+    "new_external_capture": "NOT_ELIGIBLE_FOR_THIS_SHORTFALL_BECAUSE_EXTERNAL_BACKFILL_OR_A_NEW_DATA_PLANE_IS_NOT_AN_ALREADY_SEALED_FREE_EXECUTABLE_REPLACEMENT"
+  },
+  "exception_contract": {
+    "allowed_shortfall": 1,
+    "minimum_genuine_open_families": 4,
+    "maximum_open_families_unchanged": 10,
+    "maximum_active_experiments_unchanged": 1,
+    "maximum_candidate_oos_unchanged": 1,
+    "automatic_expansion": "DENY",
+    "replacement_rule": "REMOVE_THE_EXCEPTION_WHEN_ONE_DISTINCT_REPLACEMENT_PASSES_PRE_OUTCOME_DEDUPLICATION_SOURCE_READINESS_AND_STRATEGY_PATH_GATES",
+    "further_shortfall_rule": "REQUIRE_A_NEW_SEALED_EXHAUSTION_ARTIFACT_AND_EXPLICIT_CATALOG_CHANGE_FOR_EACH_ADDITIONAL_SHORTFALL"
+  },
+  "claim_boundary": "This proves only that the reviewed repository state has four genuinely open families and no currently sealed, free, independent, executable replacement ready for the fifth slot. It does not prove that all conceivable market mechanisms are exhausted, that any open family has alpha, or that future free evidence cannot justify a new family.",
+  "next_action": "KEEP_THE_FOUR_GENUINE_FAMILIES_VISIBLE_CONTINUE_THE_SOLE_FORWARD_CLOCK_AND_SCREEN_ONLY_NEW_DISTINCT_FREE_PRE_OUTCOME_MECHANISMS_WITHOUT_FILLER",
+  "hypothesis_created": false,
+  "experiment_created": false,
+  "candidate_created": false,
+  "oos_opened": false,
+  "paid_api_used": false,
+  "second_timer_created": false,
+  "second_writer_created": false,
+  "canonical_state_changed": false,
+  "trading_action_attempted": false,
+  "scope_note": "Repository-sealed catalog and source-route exhaustion decision only. No source value, market outcome, hypothesis, manifest, runner, experiment, candidate, OOS, external backfill, paid API, second timer, second writer, canonical write, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

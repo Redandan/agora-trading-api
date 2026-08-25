@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "document_type": "PRE_CANDIDATE_POOL_OPEN_FLOOR_EXHAUSTION_ACCEPTANCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "accepted_at": "2026-08-25T02:59:50Z",
+  "status": "ACCEPTED_SCIENTIFIC_CLOSURE_AND_ONE_SLOT_SEALED_SHORTFALL",
+  "decision": "ACCEPT_MEMPOOL_SOURCE_FAMILY_TOMBSTONE_AND_EXACTLY_ONE_OPEN_FAMILY_FLOOR_SHORTFALL_WITHOUT_FILLER",
+  "closure_binding": {
+    "path": "research_pipeline/examples/mempool-fee-state-point-in-time-source-contract-close.v1.json",
+    "sha256": "6fde847d00bf612b4c2a0777b363d4baceaede582a24d41f3642ee440174aa3c"
+  },
+  "exhaustion_binding": {
+    "path": "research_pipeline/examples/pre-candidate-pool-open-floor-exhaustion.v1.json",
+    "sha256": "2a72fb2010b6434259453365b526f8b8318985e2ded8537d9878657740acb1da"
+  },
+  "acceptance_checks": {
+    "mempool_source_contract_failure_bound": true,
+    "self_host_opportunity_cost_bound": true,
+    "nearest_fee_pressure_economic_failure_bound": true,
+    "four_genuinely_open_family_ids_bound": true,
+    "recent_independent_replacement_rejects_bound": true,
+    "numeric_floor_not_satisfied_with_filler": true,
+    "target_floor_and_maximum_unchanged": true,
+    "second_shortfall_fails_closed": true,
+    "hypothesis_not_created": true,
+    "experiment_not_created": true,
+    "candidate_not_created": true,
+    "oos_unopened": true
+  },
+  "claim_boundary": "This accepts one repository-sealed pool-accounting correction: four families are genuinely open and the former fifth mempool family is closed. It does not prove all conceivable mechanisms are exhausted, does not reduce the target floor, and is not alpha, PnL, drawdown, candidate or OOS evidence.",
+  "next_action": "KEEP_FOUR_GENUINE_FAMILIES_VISIBLE_AND_REMOVE_THIS_EXCEPTION_WHEN_ONE_DISTINCT_FREE_PRE_OUTCOME_REPLACEMENT_PASSES_DEDUPLICATION_SOURCE_READINESS_AND_STRATEGY_PATH_GATES",
+  "scope_note": "Research catalog acceptance metadata only. No source value, market outcome, hypothesis, manifest, runner, experiment, candidate, OOS, canonical write, deployment, heartbeat, schedule, timer, writer, paid API, Production, Trading, database, order, fund, OCO, Grid, SHADOW, PAPER or LIVE action occurred."
+}

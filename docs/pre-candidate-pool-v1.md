@@ -42,7 +42,13 @@ by the funnel.
 
 ## Pool contract
 
-- Keep 5 to 10 open, deduplicated strategy families.
+- Target 5 to 10 open, deduplicated strategy families. V1 permits exactly one
+  below-floor slot only when two repository-sealed bindings prove both the
+  scientific closure and the absence of a distinct free executable replacement.
+  The exception is not an invitation to shrink the pool: a second shortfall is
+  an integrity failure, and the exception must be removed when a valid
+  replacement passes pre-outcome deduplication, source-readiness and strategy-
+  path gates.
 - Keep at most one non-terminal experiment.
 - Keep at most one open `CANDIDATE_OOS` trigger.
 - Permanently exclude a family when a sealed result and manager acceptance
@@ -60,8 +66,11 @@ by the funnel.
   unrealized, and total PnL, maximum drawdown, holding age, terminal inventory,
   and breadth/path risk. `MISSING_PROOF` remains explicit.
 
-The active V1 catalog contains five open families and 150 repository-sealed
-closed or excluded families. One is the Amihud-style `DATA_REJECT`: it records
+The active V1 catalog contains four genuinely open families, one sealed
+exhaustion shortfall, and 172 repository-sealed closed or excluded families.
+The former fifth mempool source family is now permanently closed: keeping it
+open solely to satisfy a counter would be metric gaming. One of the tombstones
+is the Amihud-style `DATA_REJECT`: it records
 missing economic proof rather than a negative performance conclusion, while
 still prohibiting imputation, row deletion, or relabeling from silently
 reopening the exact rejected formula. Catalog membership is not authorization

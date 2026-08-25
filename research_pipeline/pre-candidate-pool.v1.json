@@ -8,6 +8,29 @@
     "maximum_open_families": 10,
     "minimum_open_families": 5
   },
+  "open_family_floor": {
+    "status": "SEALED_EXHAUSTION_SHORTFALL",
+    "target_minimum": 5,
+    "actual_open_families": 4,
+    "shortfall": 1,
+    "evidence_bindings": [
+      {
+        "path": "research_pipeline/examples/pre-candidate-pool-open-floor-exhaustion.v1.json",
+        "role": "SEALED_NO_DISTINCT_FREE_EXECUTABLE_REPLACEMENT_SHORTFALL_PROOF",
+        "sha256": "2a72fb2010b6434259453365b526f8b8318985e2ded8537d9878657740acb1da"
+      },
+      {
+        "path": "research_pipeline/examples/mempool-fee-state-point-in-time-source-contract-close.v1.json",
+        "role": "SEALED_SCIENTIFIC_CLOSURE_OF_THE_FORMER_FIFTH_OPEN_FAMILY",
+        "sha256": "6fde847d00bf612b4c2a0777b363d4baceaede582a24d41f3642ee440174aa3c"
+      },
+      {
+        "path": "research_pipeline/examples/pre-candidate-pool-open-floor-exhaustion.v1.acceptance.json",
+        "role": "SEALED_MANAGER_ACCEPTANCE_OF_CLOSURE_AND_EXACT_ONE_SLOT_SHORTFALL",
+        "sha256": "f42c2cd5bbf13418d8253b47ec71c0ea67a2b9602c39037a9fd889568076e5e4"
+      }
+    ]
+  },
   "ranking_contract": {
     "closed_family_rank": "EXCLUDED",
     "integrity_blocker_preempts": true,
@@ -205,54 +228,6 @@
         "PnL opportunity cost, drawdown effect and OOS remain missing."
       ],
       "duplicate_family_key": "btc-3pct-post-shock-volatility-persistence"
-    },
-    {
-      "family_id": "btc-mempool-fee-congestion-point-in-time",
-      "title": "Bitcoin mempool fee-congestion point-in-time risk-state family",
-      "decision_feature": "NOT_SELECTED_PENDING_SOURCE_INTRINSIC_OBSERVATION_CLOCK_SNAPSHOT_IDENTITY_RETENTION_AND_CONTINUITY_PROOF",
-      "causal_hypothesis": "A causally sealed Bitcoin blockspace-demand and fee-congestion state may contain settlement-pressure information distinct from spot price, volume, derivatives carry and participant positioning, but only if source-native point-in-time identity prevents revised current estimates from masquerading as historical evidence.",
-      "economic_hypothesis": "A later separately frozen congestion risk state could reduce adverse BTC exposure or screen DRA entries only if it improves fee-adjusted matched-capital drawdown and Calmar without excessive missed participation; no direction, threshold, horizon or strategy mapping is selected yet.",
-      "parent_strategy_id": "NOT_SELECTED_SOURCE_CONTRACT_AND_FACTOR_SEMANTICS_FIRST",
-      "matched_comparator_id": "NOT_SELECTED_SOURCE_CONTRACT_AND_FACTOR_SEMANTICS_FIRST",
-      "runner_id": "NOT_BUILT_POINT_IN_TIME_SOURCE_PROOF_FIRST",
-      "base_stage": "DEFERRED",
-      "estimated_days_to_next_gate": null,
-      "compute_cost_class": "MEDIUM",
-      "independence_key": "bitcoin-blockspace-demand-and-fee-market-point-in-time-state-not-spot-candle-volume-carry-positioning-or-composite-sentiment",
-      "next_gate": "WAIT_FOR_ONE_OFFICIAL_VERSIONED_PROOF_BINDING_SOURCE_OBSERVATION_TIME_IMMUTABLE_SNAPSHOT_OR_SEQUENCE_ID_SCHEMA_VERSION_REVISION_RETENTION_CONTINUITY_GAP_STATE_AND_HOSTED_REUSE_TERMS",
-      "canonical_binding": {
-        "kind": "NONE",
-        "id": "SOURCE_CONTRACT_WAIT_NO_CAPTURE_OR_WRITER"
-      },
-      "evidence_bindings": [
-        {
-          "path": "research_pipeline/examples/local-research-result.mempool-fee-state-point-in-time-proof.v1.json",
-          "role": "SEALED_OFFICIAL_SOURCE_CONTRACT_WAIT_AND_NAMED_MISSING_PROOF",
-          "sha256": "bec7b8b9a74841e95ceba79f52a1afc2aec6d1648d414689fd3325323ecc4056"
-        },
-        {
-          "path": "research_pipeline/examples/local-research-task.mempool-fee-state-point-in-time-proof.v1.json",
-          "role": "FROZEN_READ_ONLY_OFFICIAL_SOURCE_POINT_IN_TIME_PROOF_TASK",
-          "sha256": "4ec0999d7ed703b484725f59f06d4db19ec85f8476ed9339803e5a329b78200c"
-        }
-      ],
-      "economic_evidence_status": {
-        "fees": "MISSING_PROOF",
-        "adverse_slippage": "MISSING_PROOF",
-        "realized_pnl": "MISSING_PROOF",
-        "unrealized_pnl": "MISSING_PROOF",
-        "total_pnl": "MISSING_PROOF",
-        "maximum_drawdown": "MISSING_PROOF",
-        "holding_age": "MISSING_PROOF",
-        "terminal_inventory": "MISSING_PROOF",
-        "breadth_and_path_risk": "MISSING_PROOF"
-      },
-      "missing_proof": [
-        "Official evidence does not yet prove a source observation timestamp, immutable snapshot or sequence identity, historical retention or replay semantics, continuity guarantees, hosted payload reuse terms or versioned schema-drift protocol.",
-        "No source capture, factor field, formula, sign, threshold, direction, horizon, parent, comparator or runner is authorized or selected.",
-        "No historical, forward, predictive, matched-capital, drawdown, breadth, candidate or OOS evidence exists."
-      ],
-      "duplicate_family_key": "btc-mempool-point-in-time-congestion-or-fee-state"
     }
   ],
   "closed_families": [
@@ -4699,6 +4674,42 @@
       "parent_strategy_id": "BTC_DRA_V1_EQUAL_CAPITAL_PARENT",
       "prohibited_reopen": true,
       "title": "Binance USDM perpetual funding crowding as a DRA entry risk state"
+    },
+    {
+      "decision_feature": "NO_CAUSALLY_REPLAYABLE_HOSTED_MEMPOOL_FEE_STATE_WITH_SOURCE_NATIVE_OBSERVATION_CLOCK_SNAPSHOT_IDENTITY_SCHEMA_VERSION_RETENTION_AND_CONTINUITY",
+      "disposition": "DATA_REJECT_CLOSE_MEMPOOL_POINT_IN_TIME_FEE_CONGESTION_SOURCE_FAMILY_BEFORE_CAPTURE_FACTOR_OR_OUTCOME_ACCESS",
+      "duplicate_family_key": "btc-mempool-point-in-time-congestion-or-fee-state",
+      "evidence_bindings": [
+        {
+          "path": "research_pipeline/examples/mempool-fee-state-point-in-time-source-contract-close.v1.json",
+          "role": "SEALED_OFFICIAL_SOURCE_CONTRACT_AND_SELF_HOST_OPPORTUNITY_COST_CLOSURE",
+          "sha256": "6fde847d00bf612b4c2a0777b363d4baceaede582a24d41f3642ee440174aa3c"
+        },
+        {
+          "path": "research_pipeline/examples/local-research-result.mempool-fee-state-point-in-time-proof.v1.json",
+          "role": "SEALED_PRIOR_NAMED_POINT_IN_TIME_SOURCE_MISSING_PROOF",
+          "sha256": "bec7b8b9a74841e95ceba79f52a1afc2aec6d1648d414689fd3325323ecc4056"
+        },
+        {
+          "path": "research_pipeline/examples/pre-candidate-pool-open-floor-exhaustion.v1.acceptance.json",
+          "role": "SEALED_MANAGER_ACCEPTANCE_OF_MEMPOOL_TOMBSTONE_AND_ONE_SLOT_SHORTFALL",
+          "sha256": "f42c2cd5bbf13418d8253b47ec71c0ea67a2b9602c39037a9fd889568076e5e4"
+        },
+        {
+          "path": "research_pipeline/examples/pre-candidate-pool-open-floor-exhaustion.v1.json",
+          "role": "SEALED_NO_FILLER_REPLACEMENT_AND_OPEN_FLOOR_SHORTFALL_DECISION",
+          "sha256": "2a72fb2010b6434259453365b526f8b8318985e2ded8537d9878657740acb1da"
+        },
+        {
+          "path": "research_pipeline/examples/dra-bitcoin-fee-pressure-entry-admission-historical.v2.decision.json",
+          "role": "SEALED_NEAREST_LOWER_COST_MATCHED_CAPITAL_FEE_PRESSURE_NO_CANDIDATE_CLOSURE",
+          "sha256": "f6b6da645de328c22d20c978c4351759f06f359b57cd85a75551c20949e57e03"
+        }
+      ],
+      "family_id": "closed-btc-mempool-fee-congestion-point-in-time-v1",
+      "parent_strategy_id": "NO_PARENT_SELECTED_SOURCE_CONTRACT_REJECT_BEFORE_FACTOR_OR_OUTCOME_ACCESS",
+      "prohibited_reopen": true,
+      "title": "Bitcoin mempool point-in-time fee-congestion hosted source family"
     }
   ],
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",

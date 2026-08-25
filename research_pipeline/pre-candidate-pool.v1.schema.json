@@ -9,6 +9,7 @@
     "document_type",
     "catalog_id",
     "pool_constraints",
+    "open_family_floor",
     "ranking_contract",
     "families",
     "closed_families",
@@ -27,6 +28,49 @@
         "maximum_open_families": 10,
         "minimum_open_families": 5
       }
+    },
+    "open_family_floor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "target_minimum",
+        "actual_open_families",
+        "shortfall",
+        "evidence_bindings"
+      ],
+      "properties": {
+        "status": {"enum": ["SATISFIED", "SEALED_EXHAUSTION_SHORTFALL"]},
+        "target_minimum": {"const": 5},
+        "actual_open_families": {"type": "integer", "minimum": 4, "maximum": 10},
+        "shortfall": {"type": "integer", "minimum": 0, "maximum": 1},
+        "evidence_bindings": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/evidenceBinding"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "SATISFIED"}}},
+          "then": {
+            "properties": {
+              "actual_open_families": {"minimum": 5},
+              "shortfall": {"const": 0},
+              "evidence_bindings": {"maxItems": 0}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "SEALED_EXHAUSTION_SHORTFALL"}}},
+          "then": {
+            "properties": {
+              "actual_open_families": {"const": 4},
+              "shortfall": {"const": 1},
+              "evidence_bindings": {"minItems": 2}
+            }
+          }
+        }
+      ]
     },
     "ranking_contract": {
       "const": {
@@ -47,7 +91,7 @@
     },
     "families": {
       "type": "array",
-      "minItems": 5,
+      "minItems": 4,
       "maxItems": 10,
       "items": {"$ref": "#/$defs/family"}
     },

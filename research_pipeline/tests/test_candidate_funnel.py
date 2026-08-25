@@ -12,6 +12,7 @@ from unittest.mock import patch
 from jsonschema import Draft202012Validator
 
 from research_pipeline.candidate_funnel import (
+    _validate_open_family_floor,
     build_candidate_funnel,
     candidate_funnel_status,
     load_candidate_pool_catalog,
@@ -88,8 +89,19 @@ class CandidateFunnelTest(unittest.TestCase):
         Draft202012Validator(schema).validate(catalog_document)
 
         catalog = load_candidate_pool_catalog(REPO_ROOT, CATALOG_PATH)
-        self.assertEqual(len(catalog["families"]), 5)
-        self.assertEqual(len(catalog["closed_families"]), 171)
+        self.assertEqual(len(catalog["families"]), 4)
+        self.assertEqual(len(catalog["closed_families"]), 172)
+        self.assertEqual(
+            catalog["open_family_floor"]["status"],
+            "SEALED_EXHAUSTION_SHORTFALL",
+        )
+        self.assertEqual(catalog["open_family_floor"]["shortfall"], 1)
+        self.assertTrue(
+            all(
+                binding["verified"]
+                for binding in catalog["open_family_floor"]["evidence_bindings"]
+            )
+        )
         closed_nr7 = next(
             family
             for family in catalog["closed_families"]
@@ -161,20 +173,26 @@ class CandidateFunnelTest(unittest.TestCase):
         )
         mempool = next(
             family
-            for family in catalog["families"]
+            for family in catalog["closed_families"]
             if family["family_id"]
-            == "btc-mempool-fee-congestion-point-in-time"
+            == "closed-btc-mempool-fee-congestion-point-in-time-v1"
         )
-        self.assertEqual(mempool["base_stage"], "DEFERRED")
-        self.assertIsNone(mempool["estimated_days_to_next_gate"])
+        self.assertEqual(
+            mempool["disposition"],
+            "DATA_REJECT_CLOSE_MEMPOOL_POINT_IN_TIME_FEE_CONGESTION_SOURCE_FAMILY_BEFORE_CAPTURE_FACTOR_OR_OUTCOME_ACCESS",
+        )
+        self.assertTrue(mempool["prohibited_reopen"])
         self.assertEqual(
             [
                 binding["role"]
                 for binding in mempool["evidence_bindings"]
             ],
             [
-                "SEALED_OFFICIAL_SOURCE_CONTRACT_WAIT_AND_NAMED_MISSING_PROOF",
-                "FROZEN_READ_ONLY_OFFICIAL_SOURCE_POINT_IN_TIME_PROOF_TASK",
+                "SEALED_OFFICIAL_SOURCE_CONTRACT_AND_SELF_HOST_OPPORTUNITY_COST_CLOSURE",
+                "SEALED_PRIOR_NAMED_POINT_IN_TIME_SOURCE_MISSING_PROOF",
+                "SEALED_MANAGER_ACCEPTANCE_OF_MEMPOOL_TOMBSTONE_AND_ONE_SLOT_SHORTFALL",
+                "SEALED_NO_FILLER_REPLACEMENT_AND_OPEN_FLOOR_SHORTFALL_DECISION",
+                "SEALED_NEAREST_LOWER_COST_MATCHED_CAPITAL_FEE_PRESSURE_NO_CANDIDATE_CLOSURE",
             ],
         )
         closed_alternative_me = next(
@@ -2315,6 +2333,40 @@ class CandidateFunnelTest(unittest.TestCase):
             )
         )
 
+    def test_open_family_floor_exception_is_exact_and_fail_closed(self) -> None:
+        catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+        floor = catalog["open_family_floor"]
+
+        with self.assertRaisesRegex(ValueError, "actual count"):
+            _validate_open_family_floor(
+                REPO_ROOT,
+                floor,
+                open_family_count=3,
+                target_minimum=5,
+            )
+
+        without_evidence = {**floor, "evidence_bindings": []}
+        with self.assertRaisesRegex(ValueError, "requires sealed exhaustion evidence"):
+            _validate_open_family_floor(
+                REPO_ROOT,
+                without_evidence,
+                open_family_count=4,
+                target_minimum=5,
+            )
+
+        unsealed_second_shortfall = {
+            **floor,
+            "actual_open_families": 3,
+            "shortfall": 2,
+        }
+        with self.assertRaisesRegex(ValueError, "exceeds the V1 sealed exception"):
+            _validate_open_family_floor(
+                REPO_ROOT,
+                unsealed_second_shortfall,
+                open_family_count=3,
+                target_minimum=5,
+            )
+
     def test_closed_microstructure_source_does_not_block_open_family_ranking(self) -> None:
         snapshot = build_candidate_funnel(
             _registry(),
@@ -2323,8 +2375,10 @@ class CandidateFunnelTest(unittest.TestCase):
         )
 
         self.assertEqual(snapshot["status"], "READY")
-        self.assertEqual(snapshot["summary"]["open_family_count"], 5)
-        self.assertEqual(snapshot["summary"]["closed_family_count"], 172)
+        self.assertEqual(snapshot["summary"]["open_family_count"], 4)
+        self.assertEqual(snapshot["summary"]["open_family_shortfall_count"], 1)
+        self.assertEqual(snapshot["summary"]["closed_family_count"], 173)
+        self.assertEqual(snapshot["constraint_violations"], [])
         self.assertEqual(snapshot["summary"]["formal_candidate_count"], 0)
         self.assertEqual(snapshot["summary"]["active_experiment_count"], 0)
         self.assertEqual(snapshot["summary"]["candidate_oos_count"], 0)
@@ -2543,7 +2597,13 @@ class CandidateFunnelTest(unittest.TestCase):
         self.assertEqual("CLOSED", closed["stage"])
         self.assertEqual(VOLATILITY_CLOSE, closed["disposition"])
         self.assertTrue(closed["prohibited_reopen"])
-        self.assertEqual(4, snapshot["summary"]["open_family_count"])
+        self.assertEqual(3, snapshot["summary"]["open_family_count"])
+        self.assertEqual(2, snapshot["summary"]["open_family_shortfall_count"])
+        self.assertEqual("INTEGRITY_BLOCKED", snapshot["status"])
+        self.assertEqual(
+            ["OPEN_FAMILY_COUNT_OUTSIDE_BOUNDS"],
+            snapshot["constraint_violations"],
+        )
 
     def test_volatility_receipt_conflict_blocks_only_that_family(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch(

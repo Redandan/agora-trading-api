@@ -247,6 +247,51 @@ def _validate_closed_family(repo_root: Path, value: Any, index: int) -> dict[str
     return {**value, "evidence_bindings": verified}
 
 
+def _validate_open_family_floor(
+    repo_root: Path,
+    value: Any,
+    *,
+    open_family_count: int,
+    target_minimum: int,
+) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ValueError("open_family_floor must be an object")
+    _exact_keys(
+        value,
+        {
+            "actual_open_families",
+            "evidence_bindings",
+            "shortfall",
+            "status",
+            "target_minimum",
+        },
+        "open_family_floor",
+    )
+    if value["target_minimum"] != target_minimum:
+        raise ValueError("open_family_floor target changed")
+    if value["actual_open_families"] != open_family_count:
+        raise ValueError("open_family_floor actual count does not match the catalog")
+    expected_shortfall = max(0, target_minimum - open_family_count)
+    if value["shortfall"] != expected_shortfall:
+        raise ValueError("open_family_floor shortfall does not match the catalog")
+    bindings = value["evidence_bindings"]
+    if not isinstance(bindings, list):
+        raise ValueError("open_family_floor evidence_bindings must be an array")
+    if expected_shortfall == 0:
+        if value["status"] != "SATISFIED" or bindings:
+            raise ValueError("satisfied open-family floor cannot carry exhaustion evidence")
+    else:
+        if expected_shortfall != 1 or open_family_count != 4:
+            raise ValueError("open-family shortfall exceeds the V1 sealed exception")
+        if value["status"] != "SEALED_EXHAUSTION_SHORTFALL" or len(bindings) < 2:
+            raise ValueError("open-family shortfall requires sealed exhaustion evidence")
+    verified = [
+        _verify_binding(repo_root, binding, f"open_family_floor.evidence_bindings[{index}]")
+        for index, binding in enumerate(bindings)
+    ]
+    return {**value, "evidence_bindings": verified}
+
+
 def load_candidate_pool_catalog(
     repo_root: Path | None = None,
     catalog_path: Path | None = None,
@@ -266,6 +311,7 @@ def load_candidate_pool_catalog(
         "closed_families",
         "document_type",
         "families",
+        "open_family_floor",
         "pool_constraints",
         "ranking_contract",
         "schema_version",
@@ -311,10 +357,14 @@ def load_candidate_pool_catalog(
     closed = value["closed_families"]
     if not isinstance(families, list) or not isinstance(closed, list):
         raise ValueError("candidate pool families must be arrays")
-    if not constraints["minimum_open_families"] <= len(families) <= constraints[
-        "maximum_open_families"
-    ]:
-        raise ValueError("candidate pool open-family count is outside the frozen bounds")
+    if len(families) > constraints["maximum_open_families"]:
+        raise ValueError("candidate pool open-family count exceeds the frozen maximum")
+    floor = _validate_open_family_floor(
+        root,
+        value["open_family_floor"],
+        open_family_count=len(families),
+        target_minimum=constraints["minimum_open_families"],
+    )
     validated_families = [
         _validate_family(root, family, index) for index, family in enumerate(families)
     ]
@@ -338,6 +388,7 @@ def load_candidate_pool_catalog(
         **value,
         "catalog_path": path.relative_to(root).as_posix(),
         "catalog_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "open_family_floor": floor,
         "families": validated_families,
         "closed_families": validated_closed,
     }
@@ -891,9 +942,17 @@ def build_candidate_funnel(
         and trigger.get("status") != "CLOSED"
     ]
     constraint_violations: list[str] = []
-    if not catalog["pool_constraints"]["minimum_open_families"] <= len(families) <= catalog[
-        "pool_constraints"
-    ]["maximum_open_families"]:
+    minimum_open = catalog["pool_constraints"]["minimum_open_families"]
+    maximum_open = catalog["pool_constraints"]["maximum_open_families"]
+    sealed_floor_count = catalog["open_family_floor"]["actual_open_families"]
+    floor_is_valid = (
+        minimum_open <= len(families) <= maximum_open
+        or (
+            catalog["open_family_floor"]["status"] == "SEALED_EXHAUSTION_SHORTFALL"
+            and len(families) == sealed_floor_count
+        )
+    )
+    if not floor_is_valid:
         constraint_violations.append("OPEN_FAMILY_COUNT_OUTSIDE_BOUNDS")
     if len(active_experiments) > catalog["pool_constraints"]["maximum_active_experiments"]:
         constraint_violations.append("MAXIMUM_ACTIVE_EXPERIMENTS_EXCEEDED")
@@ -951,9 +1010,11 @@ def build_candidate_funnel(
         },
         "ranking_contract": catalog["ranking_contract"],
         "pool_constraints": catalog["pool_constraints"],
+        "open_family_floor": catalog["open_family_floor"],
         "constraint_violations": constraint_violations,
         "summary": {
             "open_family_count": len(families),
+            "open_family_shortfall_count": max(0, minimum_open - len(families)),
             "closed_family_count": len(closed),
             "active_experiment_count": len(active_experiments),
             "candidate_oos_count": len(candidate_oos),

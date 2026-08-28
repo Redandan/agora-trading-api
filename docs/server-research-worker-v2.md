@@ -42,11 +42,11 @@ both server write operations return
 a new MCP operation or exposes a server filesystem path.
 
 The same status exposes the installed server-canonical frozen
-`CLOUD_OPS_SCHEDULE_V10` contract, its unchanged `09:00 Asia/Taipei` canonical
+`CLOUD_OPS_SCHEDULE_V11` contract, its unchanged `09:00 Asia/Taipei` canonical
 heartbeat due boundary, the intended sole `09:05 Asia/Taipei` cloud recurrence,
 the 300-second nominal dispatch margin, and its byte-level SHA-256. V1 through
-V9 remain immutable predecessor evidence. The two write operations require the
-V10 hash in the `ops_schedule_contract_sha256` argument. A missing or
+V10 remain immutable predecessor evidence. The two write operations require the
+V11 hash in the `ops_schedule_contract_sha256` argument. A missing or
 changed contract returns
 `OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED`; a missing or mismatched caller
 attestation returns `OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED`. Both outcomes
@@ -686,8 +686,10 @@ the `09:00` canonical due boundary, 300-second margin, five Research MCP
 operations, Server Canonical sole writer, and every receipt and scientific
 gate. Fresh canonical status at `2026-08-14T11:35:33Z` proves Worker release
 `20260814T112229Z`, source commit
-`ab2528c35e337fbfa47e528ff83d9b829d4806de`, exact V10 attestation, and one
-daily recurrence.
+`ab2528c35e337fbfa47e528ff83d9b829d4806de`, and exact V10 attestation. The one
+daily recurrence is canonical declared topology, not proof that the platform
+clock is enabled or has a future run; those claims require independent exact
+platform readback.
 
 The existing request and Worker path already accepts a heartbeat payload with
 an empty `coach_delivery_receipts` array. V10 makes that existing behavior an
@@ -712,3 +714,21 @@ V10 Worker deployment and canonical attestation are proven. The first normal
 post-release heartbeat, live empty-receipt acceptance, live pending-event
 preservation, lawful rollover/microstructure advancement, future task-tool
 availability, Coach delivery proof, and economic value remain `MISSING_PROOF`.
+
+## Prepared failed-occurrence lifecycle V11
+
+The repository-prepared successor is `CLOUD_OPS_SCHEDULE_V11`, SHA-256
+`9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
+V10 remains the immutable deployed predecessor until the separately authorized
+zero-overlap cutover is proven. V11 preserves the exact existing schedule id
+`6a71a1ed2f608191b0621c52bed3fd81`, daily `09:05 Asia/Taipei` recurrence,
+five Research MCP operations, Server Canonical sole writer, scientific gates,
+delivery debt and sealed OOS boundary.
+
+V11 scopes a pre-queue or other failed scheduled occurrence to that occurrence
+only. It fails closed without claiming a research write, but the prompt cannot
+pause, disable, delete, replace, reschedule or otherwise mutate the sole cloud
+schedule. The next normal occurrence is preserved; same-occurrence retry,
+catch-up and evidence backfill remain denied. Deployment, same-id in-place
+platform update, exactly one active clock/writer readback and the first natural
+V11 occurrence remain separate `MISSING_PROOF` gates.

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/cloud-ops-control-surface-readback.v1.schema.json",
+  "title": "Cloud Ops control-surface readback V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "observed_at",
+    "readback_status",
+    "clock_readback_status",
+    "writer_readback_status",
+    "clocks",
+    "writers",
+    "latest_occurrence"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "CLOUD_OPS_CONTROL_SURFACE_READBACK_V1"},
+    "observed_at": {"$ref": "#/$defs/utc_timestamp"},
+    "readback_status": {"enum": ["AVAILABLE", "PARTIAL", "MISSING_PROOF"]},
+    "clock_readback_status": {"enum": ["AVAILABLE", "MISSING_PROOF"]},
+    "writer_readback_status": {"enum": ["AVAILABLE", "MISSING_PROOF"]},
+    "clocks": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {"$ref": "#/$defs/clock"}
+    },
+    "writers": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {"$ref": "#/$defs/writer"}
+    },
+    "latest_occurrence": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/occurrence"}
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"readback_status": {"const": "MISSING_PROOF"}},
+        "required": ["readback_status"]
+      },
+      "then": {
+        "properties": {
+          "clock_readback_status": {"const": "MISSING_PROOF"},
+          "writer_readback_status": {"const": "MISSING_PROOF"},
+          "clocks": {"maxItems": 0},
+          "writers": {"maxItems": 0},
+          "latest_occurrence": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"readback_status": {"const": "AVAILABLE"}},
+        "required": ["readback_status"]
+      },
+      "then": {
+        "properties": {
+          "clock_readback_status": {"const": "AVAILABLE"},
+          "writer_readback_status": {"const": "AVAILABLE"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"readback_status": {"const": "PARTIAL"}},
+        "required": ["readback_status"]
+      },
+      "then": {
+        "oneOf": [
+          {
+            "properties": {
+              "clock_readback_status": {"const": "AVAILABLE"},
+              "writer_readback_status": {"const": "MISSING_PROOF"}
+            }
+          },
+          {
+            "properties": {
+              "clock_readback_status": {"const": "MISSING_PROOF"},
+              "writer_readback_status": {"const": "AVAILABLE"}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {"clock_readback_status": {"const": "MISSING_PROOF"}},
+        "required": ["clock_readback_status"]
+      },
+      "then": {
+        "properties": {
+          "clocks": {"maxItems": 0},
+          "latest_occurrence": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"writer_readback_status": {"const": "MISSING_PROOF"}},
+        "required": ["writer_readback_status"]
+      },
+      "then": {
+        "properties": {
+          "writers": {"maxItems": 0}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,255}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "utc_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(?:Z|\\+00:00)$"
+    },
+    "recurrence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frequency", "timezone", "local_time", "end"],
+      "properties": {
+        "frequency": {"type": "string", "minLength": 1},
+        "timezone": {"type": "string", "minLength": 1},
+        "local_time": {"type": "string", "minLength": 1},
+        "end": {"type": "string", "minLength": 1}
+      }
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clock_id",
+        "clock_kind",
+        "active",
+        "contract_id",
+        "contract_sha256",
+        "destination_thread_id",
+        "next_run_time",
+        "recurrence"
+      ],
+      "properties": {
+        "clock_id": {"$ref": "#/$defs/identifier"},
+        "clock_kind": {"const": "CODEX_CLOUD_OPS"},
+        "active": {"type": "boolean"},
+        "contract_id": {"$ref": "#/$defs/identifier"},
+        "contract_sha256": {"$ref": "#/$defs/sha256"},
+        "destination_thread_id": {"$ref": "#/$defs/identifier"},
+        "next_run_time": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/utc_timestamp"}
+          ]
+        },
+        "recurrence": {"$ref": "#/$defs/recurrence"}
+      }
+    },
+    "writer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["writer_id", "active", "state_authority"],
+      "properties": {
+        "writer_id": {"$ref": "#/$defs/identifier"},
+        "active": {"type": "boolean"},
+        "state_authority": {"$ref": "#/$defs/identifier"}
+      }
+    },
+    "occurrence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clock_id",
+        "scheduled_for",
+        "terminal_status",
+        "heartbeat_queued",
+        "canonical_request_id",
+        "automation_disabled"
+      ],
+      "properties": {
+        "clock_id": {"$ref": "#/$defs/identifier"},
+        "scheduled_for": {"$ref": "#/$defs/utc_timestamp"},
+        "terminal_status": {
+          "enum": [
+            "HEARTBEAT_OK",
+            "HEARTBEAT_FAILED_CLOSED",
+            "REJECTED_BEFORE_QUEUEING",
+            "MISSING_PROOF"
+          ]
+        },
+        "heartbeat_queued": {"type": "boolean"},
+        "canonical_request_id": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/identifier"}
+          ]
+        },
+        "automation_disabled": {"type": "boolean"}
+      }
+    }
+  }
+}

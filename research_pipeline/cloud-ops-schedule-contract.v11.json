@@ -1,0 +1,226 @@
+{
+  "schema_version": "11",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V11",
+  "document_status": "FROZEN",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "state_authority": "SERVER_CANONICAL",
+  "schedule_count": 1,
+  "recurrence": {
+    "frequency": "DAILY",
+    "timezone": "Asia/Taipei",
+    "local_time": "09:05",
+    "end": "NEVER"
+  },
+  "canonical_heartbeat_due": {
+    "timezone": "Asia/Taipei",
+    "local_time": "09:00"
+  },
+  "dispatch_margin": {
+    "scheduled_seconds_after_canonical_due": 300,
+    "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
+    "early_call_behavior": "NOT_DUE_NO_CROSS_TASK_WRITE",
+    "additional_timer": "DENY"
+  },
+  "failure_lifecycle": {
+    "failed_occurrence_effect": "FAIL_CLOSED_CURRENT_OCCURRENCE_ONLY",
+    "schedule_enabled_state_after_failure": "KEEP_ENABLED",
+    "automatic_pause_disable_or_delete": "DENY",
+    "schedule_self_mutation": "DENY",
+    "next_normal_occurrence": "PRESERVE",
+    "same_occurrence_heartbeat_retry": "DENY",
+    "manual_catchup": "DENY",
+    "evidence_backfill": "DENY",
+    "schedule_mutation_authority": "EXPLICIT_USER_AUTHORIZATION_ONLY"
+  },
+  "first_operation": "get_research_status",
+  "allowed_mcp_operations": [
+    "get_research_status",
+    "request_research_heartbeat",
+    "submit_research_candidate_bundle",
+    "get_research_run",
+    "get_research_briefing"
+  ],
+  "allowed_codex_operations": [
+    "list_threads",
+    "read_thread",
+    "send_message_to_thread"
+  ],
+  "write_attestation": {
+    "parameter": "ops_schedule_contract_sha256",
+    "required": true,
+    "activation_rule": "V11_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V11_READY",
+    "v10_status_behavior": "STOP_BEFORE_ANY_V11_WRITE_CALL"
+  },
+  "predecessor": {
+    "contract_id": "CLOUD_OPS_SCHEDULE_V10",
+    "sha256": "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa",
+    "bytes_modified": false,
+    "server_attestation_active_until_cutover": true,
+    "platform_activation_proven": true
+  },
+  "platform_schedule": {
+    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V10",
+    "existing_active_schedule_id": "6a71a1ed2f608191b0621c52bed3fd81",
+    "execution_surface": "CHATGPT_WORK_CLOUD_SCHEDULE",
+    "local_computer_may_be_off": true,
+    "migration": "PAUSE_UPDATE_REACTIVATE_EXISTING_SCHEDULE_IN_PLACE",
+    "create_second_schedule": "DENY"
+  },
+  "coach_delivery": {
+    "contract_id": "SEALED_COACH_CROSS_TASK_DELIVERY_V6",
+    "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+    "destination": "EXACT_COACH_TASK_BY_THREAD_ID",
+    "delivery_id_source": "SEALED_ARTIFACT_SHA256",
+    "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
+    "durability": "SERVER_HEARTBEAT_STATE_UNTIL_VERIFIED_ACK",
+    "cross_task_operations_required": false,
+    "cross_task_operations_mode": "ATTEMPT_WHEN_AVAILABLE_NOT_HEARTBEAT_LIVENESS_GATE",
+    "cycle_order": [
+      "READ_FRESH_CANONICAL_STATUS_FIRST",
+      "REQUIRE_NORMALLY_DUE_HEARTBEAT_BEFORE_CROSS_TASK_WRITE",
+      "SNAPSHOT_INITIAL_PENDING_EVENTS",
+      "ATTEMPT_INITIAL_PENDING_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
+      "FORM_RECEIPTS_ONLY_AFTER_EXACT_READBACK_OTHERWISE_ZERO_FOR_UNVERIFIED_EVENTS",
+      "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT_WITH_ZERO_TO_EIGHT_VERIFIED_RECEIPTS",
+      "READ_FRESH_CANONICAL_STATUS_AFTER_HEARTBEAT",
+      "ATTEMPT_STILL_PENDING_OR_NEW_EVENT_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
+      "DEFER_ONLY_POST_HEARTBEAT_NEW_EVENT_RECEIPTS_TO_NEXT_NORMALLY_DUE_HEARTBEAT"
+    ],
+    "target_resolution": "LIST_THREADS_AND_REQUIRE_EXACT_THREAD_ID",
+    "preflight": "READ_TARGET_THREAD_AND_SKIP_SEND_IF_EXACT_FULL_DELIVERY_TOKEN_PRESENT",
+    "send": "SEND_EXACT_CANONICAL_DELIVERY_PROMPT",
+    "verification": "READ_TARGET_THREAD_AFTER_SEND_AND_REQUIRE_EXACT_FULL_DELIVERY_TOKEN",
+    "retry": "RETRY_ONLY_ON_A_LATER_NORMAL_CLOUD_CYCLE_WHEN_TOKEN_IS_ABSENT",
+    "target_unavailable": "KEEP_CANONICAL_EVENT_PENDING_AND_REPORT_CROSS_TASK_DELIVERY_PENDING",
+    "unverified_delivery_heartbeat_behavior": "ZERO_RECEIPT_FOR_EVENT_KEEP_PENDING_PROCEED_ONLY_IF_ALL_OTHER_HEARTBEAT_GATES_PASS",
+    "heartbeat_outcome_separation": "CANONICAL_RESEARCH_ADVANCEMENT_NEVER_IMPLIES_COACH_DELIVERY",
+    "same_cycle_send_receipt_proof": "ALLOW_FOR_INITIAL_PENDING_ONLY_AFTER_POST_SEND_READBACK_BEFORE_DUE_HEARTBEAT",
+    "canonical_ack": "INITIAL_PENDING_VERIFIED_RECEIPT_ON_CURRENT_DUE_HEARTBEAT_POST_HEARTBEAT_NEW_EVENT_ON_NEXT_DUE_HEARTBEAT",
+    "receipt_parameter": "coach_delivery_receipts",
+    "receipt_schema": {
+      "exact_fields": [
+        "schema_version",
+        "delivery_id",
+        "delivery_token",
+        "target_thread_id",
+        "delivery_status"
+      ],
+      "minimum_receipts_per_heartbeat": 0,
+      "maximum_receipts_per_heartbeat": 8,
+      "verified_receipt_statuses": [
+        "DELIVERED_TO_COACH_TASK_VERIFIED",
+        "ALREADY_DELIVERED_TO_COACH_TASK"
+      ]
+    },
+    "deduplication": {
+      "pending_id_source": "SEALED_ARTIFACT_SHA256",
+      "exact_token_required": true,
+      "same_id_changed_payload": "INTEGRITY_BLOCKED",
+      "repeated_verified_receipt": "IDEMPOTENT",
+      "unknown_or_unverified_receipt": "REJECT"
+    },
+    "delivery_proof_sla": {
+      "basis": "CANONICAL_VERIFIED_RECEIPT_ACKNOWLEDGEMENT",
+      "queued_at_source": "CANONICAL_OUTBOX_INSERT_TIMESTAMP",
+      "deadline_rule": "NEXT_NORMAL_CLOUD_CYCLE_PLUS_COMPLETION_WINDOW",
+      "completion_window_seconds": 10800,
+      "pending_status": "PENDING_WITHIN_SLA",
+      "breach_status": "BREACH_PENDING_DELIVERY_PROOF",
+      "terminal_statuses": [
+        "PASS",
+        "BREACH"
+      ],
+      "legacy_missing_proof_statuses": [
+        "MISSING_PROOF_LEGACY_EVENT",
+        "MISSING_PROOF_LEGACY_RECEIPT"
+      ],
+      "queue_or_deadline_reset_on_cutover": "DENY"
+    },
+    "delivery_debt": {
+      "preserve_pending_without_verified_receipt": true,
+      "preserve_delivery_id": true,
+      "preserve_delivery_queued_at": true,
+      "preserve_delivery_deadline_at": true,
+      "false_acknowledgement": "DENY",
+      "heartbeat_success_clears_delivery_debt": false
+    }
+  },
+  "required_guards": [
+    "WORKER_RELEASE_READY",
+    "POLICY_V3_READY",
+    "CLOUD_DISPATCH_AFTER_CANONICAL_DUE_MARGIN",
+    "HEARTBEAT_DUE_AND_QUEUE_IDLE",
+    "FAILED_OCCURRENCE_PRESERVES_ENABLED_SCHEDULE",
+    "CAPTURE_HEALTH_BOUNDED_SAME_CYCLE",
+    "CANDIDATE_REGISTRATION_SLA_CANONICAL",
+    "FORWARD_CANDIDATE_CONTEXT_EXACT_COPY",
+    "DISTINCT_SEALED_CANDIDATE_OOS",
+    "HASH_VERIFIED_COACH_OUTBOX",
+    "DURABLE_COACH_OUTBOX_UNTIL_VERIFIED_ACK",
+    "EXACT_COACH_THREAD_ID_RESOLUTION_WHEN_CAPABILITY_AVAILABLE",
+    "COACH_THREAD_READ_BEFORE_SEND",
+    "EXACT_FULL_DELIVERY_TOKEN_DEDUPLICATION",
+    "ATTEMPT_INITIAL_PENDING_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
+    "INITIAL_PENDING_POST_SEND_READBACK_BEFORE_RECEIPT",
+    "RECEIPTS_LIMITED_TO_INITIAL_CANONICAL_SNAPSHOT",
+    "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
+    "COACH_DELIVERY_PROOF_SLA_CANONICAL",
+    "ZERO_RECEIPT_HEARTBEAT_WHEN_DELIVERY_UNAVAILABLE_OR_UNVERIFIABLE",
+    "PENDING_EVENT_AND_TIMING_DURABILITY_WITHOUT_VERIFIED_RECEIPT",
+    "DELIVERY_DEBT_SEPARATE_FROM_HEARTBEAT_OUTCOME",
+    "POST_HEARTBEAT_NEW_EVENT_DELIVERY_WITHOUT_EARLY_ACK",
+    "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE"
+  ],
+  "cutover": {
+    "activation_authorized_by_repository_preparation": false,
+    "required_order": [
+      "PAUSE_EXACT_ACTIVE_V10_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
+      "DEPLOY_AND_VERIFY_SERVER_V11_ATTESTATION",
+      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V11",
+      "PROVE_UPDATED_PLATFORM_SCHEDULE_REMAINS_PAUSED_AND_ZERO_ACTIVE",
+      "ACTIVATE_UPDATED_PLATFORM_SCHEDULE_AND_PROVE_EXACTLY_ONE_ACTIVE"
+    ],
+    "overlapping_active_schedules": "DENY",
+    "new_schedule_creation": "DENY",
+    "successor_activation_before_old_clock_exclusion": "DENY",
+    "rollback": "PAUSE_V11_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V10_WORKER_AND_PROMPT"
+  },
+  "missing_proof": [
+    "SERVER_V11_ATTESTATION_IMPLEMENTATION",
+    "WORKER_V11_DEPLOYMENT",
+    "EXISTING_CLOUD_SCHEDULE_IN_PLACE_UPDATE",
+    "ONE_ACTIVE_SCHEDULE_READBACK",
+    "SCHEDULED_RESEARCH_MCP_AVAILABILITY",
+    "LIVE_PREQUEUE_FAILURE_KEEPS_SCHEDULE_ENABLED",
+    "LIVE_FUTURE_NEXT_RUN_AFTER_FAILED_OCCURRENCE",
+    "LIVE_NORMAL_OCCURRENCE_AFTER_FAILED_OCCURRENCE",
+    "LEARNING_LATENCY_OR_ECONOMIC_VALUE"
+  ],
+  "performance_boundary": {
+    "immediate_pnl_effect": "ZERO_CONTRACT_ONLY",
+    "immediate_drawdown_effect": "ZERO_CONTRACT_ONLY",
+    "learning_latency_direction": "MAY_DECREASE_AFTER_LIVE_ACCEPTANCE",
+    "operator_effort_direction": "MAY_DECREASE_AFTER_LIVE_ACCEPTANCE",
+    "quantified_value": "MISSING_PROOF"
+  },
+  "forbidden_actions": [
+    "SECOND_TIMER_OR_WRITER",
+    "EARLY_HEARTBEAT_OR_CATCHUP_TIMER",
+    "AUTOMATIC_SCHEDULE_PAUSE_DISABLE_OR_DELETE",
+    "SCHEDULE_SELF_MUTATION",
+    "SAME_OCCURRENCE_HEARTBEAT_RETRY",
+    "CROSS_TASK_WRITE_BEFORE_HEARTBEAT_DUE",
+    "LOCAL_RESEARCH_STATE_FALLBACK",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_REOPEN_OR_GATE_RELAXATION",
+    "FUZZY_OR_INFERRED_COACH_TASK_SELECTION",
+    "ACK_WITHOUT_EXACT_TARGET_THREAD_READBACK",
+    "RECEIPT_FOR_POST_HEARTBEAT_NEW_EVENT_IN_SAME_CYCLE",
+    "SCHEDULED_INBOX_NOTIFICATION_SUMMARY_OR_USER_QUOTE_AS_PROOF",
+    "DEADLINE_OR_QUEUE_TIMESTAMP_RESET",
+    "UNVERIFIED_COACH_DELIVERY_CLAIM",
+    "USER_OPERATED_RESEARCH_STEP",
+    "EXTERNAL_MESSENGER_WEBHOOK_PAID_API_OR_API_KEY"
+  ]
+}

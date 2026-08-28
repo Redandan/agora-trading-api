@@ -238,6 +238,10 @@ def parser() -> argparse.ArgumentParser:
         "validate-okx-microstructure-bundle"
     )
     validate_microstructure.add_argument("bundle", type=Path)
+    cloud_ops_liveness = commands.add_parser("cloud-ops-liveness-audit")
+    cloud_ops_liveness.add_argument("canonical_status", type=Path)
+    cloud_ops_liveness.add_argument("control_surface_readback", type=Path)
+    cloud_ops_liveness.add_argument("--require-ready", action="store_true")
     return result
 
 
@@ -1682,6 +1686,21 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "validate-okx-microstructure-bundle":
             validation = validate_okx_microstructure_bundle_file(args.bundle)
             print(json.dumps(validation, ensure_ascii=False))
+            return 0
+        if args.command == "cloud-ops-liveness-audit":
+            from .cloud_ops_liveness import (
+                build_cloud_ops_liveness_audit,
+                load_canonical_status,
+                load_control_surface_readback,
+            )
+
+            validation = build_cloud_ops_liveness_audit(
+                load_canonical_status(args.canonical_status),
+                load_control_surface_readback(args.control_surface_readback),
+            )
+            print(canonical_json_bytes(validation).decode("utf-8"))
+            if args.require_ready and validation["status"] != "READY":
+                return 3
             return 0
         policy = load_policy(args.policy)
         store = ResearchStore(

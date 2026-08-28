@@ -45,16 +45,16 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v10.json"
+    "research_pipeline/cloud-ops-schedule-contract.v11.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256 = (
-    "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa"
+    "9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     r"""
 {
-  "schema_version": "10",
-  "contract_id": "CLOUD_OPS_SCHEDULE_V10",
+  "schema_version": "11",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V11",
   "document_status": "FROZEN",
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
   "timer_authority": "CODEX_CLOUD_OPS_ONLY",
@@ -76,6 +76,17 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "early_call_behavior": "NOT_DUE_NO_CROSS_TASK_WRITE",
     "additional_timer": "DENY"
   },
+  "failure_lifecycle": {
+    "failed_occurrence_effect": "FAIL_CLOSED_CURRENT_OCCURRENCE_ONLY",
+    "schedule_enabled_state_after_failure": "KEEP_ENABLED",
+    "automatic_pause_disable_or_delete": "DENY",
+    "schedule_self_mutation": "DENY",
+    "next_normal_occurrence": "PRESERVE",
+    "same_occurrence_heartbeat_retry": "DENY",
+    "manual_catchup": "DENY",
+    "evidence_backfill": "DENY",
+    "schedule_mutation_authority": "EXPLICIT_USER_AUTHORIZATION_ONLY"
+  },
   "first_operation": "get_research_status",
   "allowed_mcp_operations": [
     "get_research_status",
@@ -92,18 +103,18 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
   "write_attestation": {
     "parameter": "ops_schedule_contract_sha256",
     "required": true,
-    "activation_rule": "V10_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V10_READY",
-    "v9_status_behavior": "STOP_BEFORE_ANY_V10_WRITE_CALL"
+    "activation_rule": "V11_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V11_READY",
+    "v10_status_behavior": "STOP_BEFORE_ANY_V11_WRITE_CALL"
   },
   "predecessor": {
-    "contract_id": "CLOUD_OPS_SCHEDULE_V9",
-    "sha256": "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V10",
+    "sha256": "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa",
     "bytes_modified": false,
     "server_attestation_active_until_cutover": true,
     "platform_activation_proven": true
   },
   "platform_schedule": {
-    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V9",
+    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V10",
     "existing_active_schedule_id": "6a71a1ed2f608191b0621c52bed3fd81",
     "execution_surface": "CHATGPT_WORK_CLOUD_SCHEDULE",
     "local_computer_may_be_off": true,
@@ -194,6 +205,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "POLICY_V3_READY",
     "CLOUD_DISPATCH_AFTER_CANONICAL_DUE_MARGIN",
     "HEARTBEAT_DUE_AND_QUEUE_IDLE",
+    "FAILED_OCCURRENCE_PRESERVES_ENABLED_SCHEDULE",
     "CAPTURE_HEALTH_BOUNDED_SAME_CYCLE",
     "CANDIDATE_REGISTRATION_SLA_CANONICAL",
     "FORWARD_CANDIDATE_CONTEXT_EXACT_COPY",
@@ -217,30 +229,26 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
   "cutover": {
     "activation_authorized_by_repository_preparation": false,
     "required_order": [
-      "PAUSE_EXACT_ACTIVE_V9_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
-      "DEPLOY_AND_VERIFY_SERVER_V10_ATTESTATION",
-      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V10",
+      "PAUSE_EXACT_ACTIVE_V10_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
+      "DEPLOY_AND_VERIFY_SERVER_V11_ATTESTATION",
+      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V11",
       "PROVE_UPDATED_PLATFORM_SCHEDULE_REMAINS_PAUSED_AND_ZERO_ACTIVE",
       "ACTIVATE_UPDATED_PLATFORM_SCHEDULE_AND_PROVE_EXACTLY_ONE_ACTIVE"
     ],
     "overlapping_active_schedules": "DENY",
     "new_schedule_creation": "DENY",
     "successor_activation_before_old_clock_exclusion": "DENY",
-    "rollback": "PAUSE_V10_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V9_WORKER_AND_PROMPT"
+    "rollback": "PAUSE_V11_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V10_WORKER_AND_PROMPT"
   },
   "missing_proof": [
-    "SERVER_V10_ATTESTATION_IMPLEMENTATION",
-    "WORKER_V10_DEPLOYMENT",
+    "SERVER_V11_ATTESTATION_IMPLEMENTATION",
+    "WORKER_V11_DEPLOYMENT",
     "EXISTING_CLOUD_SCHEDULE_IN_PLACE_UPDATE",
     "ONE_ACTIVE_SCHEDULE_READBACK",
     "SCHEDULED_RESEARCH_MCP_AVAILABILITY",
-    "FUTURE_CLOUD_LIST_READ_SEND_TOOL_AVAILABILITY",
-    "LIVE_ZERO_RECEIPT_HEARTBEAT_ACCEPTANCE",
-    "LIVE_PENDING_EVENT_AND_TIMING_PRESERVATION",
-    "LIVE_R1_R2_LAWFUL_ADVANCEMENT",
-    "LIVE_INITIAL_PENDING_DELIVERY_OR_DEBT_REPORTING",
-    "LIVE_POST_HEARTBEAT_NEW_EVENT_DELIVERY",
-    "LIVE_PASS_OR_BREACH_SLA_OUTCOME",
+    "LIVE_PREQUEUE_FAILURE_KEEPS_SCHEDULE_ENABLED",
+    "LIVE_FUTURE_NEXT_RUN_AFTER_FAILED_OCCURRENCE",
+    "LIVE_NORMAL_OCCURRENCE_AFTER_FAILED_OCCURRENCE",
     "LEARNING_LATENCY_OR_ECONOMIC_VALUE"
   ],
   "performance_boundary": {
@@ -253,6 +261,9 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
   "forbidden_actions": [
     "SECOND_TIMER_OR_WRITER",
     "EARLY_HEARTBEAT_OR_CATCHUP_TIMER",
+    "AUTOMATIC_SCHEDULE_PAUSE_DISABLE_OR_DELETE",
+    "SCHEDULE_SELF_MUTATION",
+    "SAME_OCCURRENCE_HEARTBEAT_RETRY",
     "CROSS_TASK_WRITE_BEFORE_HEARTBEAT_DUE",
     "LOCAL_RESEARCH_STATE_FALLBACK",
     "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
@@ -349,7 +360,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if actual_sha256 != EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract bytes do not match the frozen V10 hash",
+            "reason": "cloud Ops schedule contract bytes do not match the frozen V11 hash",
         }
     try:
         value = json.loads(raw.decode("utf-8"))
@@ -361,7 +372,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V10 object",
+            "reason": "cloud Ops schedule contract does not match the frozen V11 object",
         }
     recurrence = value["recurrence"]
     return {
@@ -376,6 +387,8 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
         "recurrence": recurrence,
         "canonical_heartbeat_due": value["canonical_heartbeat_due"],
         "dispatch_margin": value["dispatch_margin"],
+        "failure_lifecycle": value["failure_lifecycle"],
+        "platform_schedule": value["platform_schedule"],
         "attestation_parameter": value["write_attestation"]["parameter"],
         "coach_delivery": value["coach_delivery"],
         "sha256": actual_sha256,

@@ -15,6 +15,7 @@ V7_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v7.json"
 V8_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v8.json"
 V9_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v9.json"
 V10_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v10.json"
+V11_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v11.json"
 PROMPT_PATH = ROOT / "research_pipeline" / "prompts" / "daily-research-tick.md"
 DOC_PATHS = [
     ROOT / "docs" / "autonomous-research-charter.md",
@@ -27,12 +28,13 @@ V7_SHA256 = "426f4a9d1f252a610a89e30fcd2a7f890b6bc26f2cb9e7fbf003a08839d5f144"
 V8_SHA256 = "7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1"
 V9_SHA256 = "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c"
 V10_SHA256 = "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa"
+V11_SHA256 = "9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61"
 TARGET_THREAD_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
 EXISTING_CLOUD_SCHEDULE_ID = "6a71a1ed2f608191b0621c52bed3fd81"
 
 
 def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def _load(path: Path) -> dict:
@@ -46,6 +48,7 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
         cls.v8 = _load(V8_PATH)
         cls.v9 = _load(V9_PATH)
         cls.v10 = _load(V10_PATH)
+        cls.v11 = _load(V11_PATH)
         cls.prompt = PROMPT_PATH.read_text(encoding="utf-8")
         cls.docs = [path.read_text(encoding="utf-8") for path in DOC_PATHS]
 
@@ -160,10 +163,12 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
         self.assertEqual(10800, delivery["delivery_proof_sla"]["completion_window_seconds"])
         self.assertEqual("DENY", delivery["delivery_proof_sla"]["queue_or_deadline_reset_on_cutover"])
 
-    def test_prompt_is_v10_hash_bound_and_decouples_only_delivery_capability(self) -> None:
-        self.assertIn("CLOUD_OPS_SCHEDULE_V10", self.prompt)
-        self.assertIn(V10_SHA256, self.prompt)
-        self.assertIn("PREPARED_NOT_ACTIVE_V10", self.prompt)
+    def test_prompt_is_v11_hash_bound_and_preserves_delivery_decoupling(self) -> None:
+        self.assertEqual(V10_SHA256, _sha256(V10_PATH))
+        self.assertEqual(V11_SHA256, _sha256(V11_PATH))
+        self.assertIn("CLOUD_OPS_SCHEDULE_V11", self.prompt)
+        self.assertIn(V11_SHA256, self.prompt)
+        self.assertIn("PREPARED_NOT_ACTIVE_V11", self.prompt)
         self.assertIn("SEALED_COACH_CROSS_TASK_DELIVERY_V6", self.prompt)
         self.assertIn(TARGET_THREAD_ID, self.prompt)
         self.assertIn("Use only `list_threads`, `read_thread`, and `send_message_to_thread`", self.prompt)
@@ -176,7 +181,7 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
         self.assertNotIn("do not send before the normally due heartbeat", self.prompt)
         self.assertNotIn("new post-send receipt may be carried only", self.prompt)
 
-    def test_current_docs_mark_v10_active_and_preserve_v9_as_history(self) -> None:
+    def test_current_docs_prepare_v11_and_preserve_v10_as_history(self) -> None:
         for content in self.docs:
             self.assertIn("CLOUD_OPS_SCHEDULE_V10", content)
             self.assertIn(V10_SHA256, content)
@@ -185,7 +190,10 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
             self.assertIn("CLOUD_OPS_SCHEDULE_V9", content)
         for content in (self.docs[2], self.docs[3]):
             self.assertIn(V9_SHA256, content)
-        self.assertIn("active contract is now V10", self.docs[0])
+        for content in (self.docs[0], self.docs[2], self.docs[3]):
+            self.assertIn("CLOUD_OPS_SCHEDULE_V11", content)
+            self.assertIn(V11_SHA256, content)
+        self.assertIn("repository-prepared successor", self.docs[0])
         self.assertIn("Active heartbeat liveness decoupling V10", self.docs[0])
         self.assertIn("Active heartbeat liveness decoupling V10", self.docs[2])
         self.assertIn("Active Cloud Ops V10", self.docs[3])

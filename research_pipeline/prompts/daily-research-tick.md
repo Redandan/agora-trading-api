@@ -4,7 +4,7 @@ heartbeat or write a local evidence review after server migration. The server
 Research Worker owns the single deterministic heartbeat and canonical state;
 routine `WAITING_FOR_EVIDENCE` remains silent.
 
-When and only when this prompt is running as the frozen V10 ChatGPT Work cloud
+When and only when this prompt is running as the frozen V11 ChatGPT Work cloud
 schedule, read `get_research_status` as the first operation. The exact Coach
 task may be inspected later only for the bounded cross-task delivery flow in
 this prompt. Do not inspect or send to any other task. If canonical `next_due`
@@ -24,17 +24,17 @@ dirty provenance is an operational alert; do not enqueue a heartbeat or submit
 a candidate until a clean release is deployed.
 
 Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
-This repository contains lifecycle-neutral frozen document
-`CLOUD_OPS_SCHEDULE_V10` with `document_status=FROZEN` and exact SHA-256
-`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
-Its external repository rollout state is `PREPARED_NOT_ACTIVE_V10`; activation
+This repository contains frozen document `CLOUD_OPS_SCHEDULE_V11` with
+`document_status=FROZEN` and exact SHA-256
+`9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
+Its external repository rollout state is `PREPARED_NOT_ACTIVE_V11`; activation
 is separately proven outside the immutable document and never edits its bytes.
 Before activation, if
-canonical status still reports `CLOUD_OPS_SCHEDULE_V9`, stop before every V10
-write call; do not attest V10, fall back to an older hash, or infer cutover.
+canonical status still reports `CLOUD_OPS_SCHEDULE_V10`, stop before every V11
+write call; do not attest V11, fall back to an older hash, or infer cutover.
 
-After separately proven external V10 activation, continue only when canonical
-`ops_schedule_contract.status=READY`, `contract_id=CLOUD_OPS_SCHEDULE_V10`,
+After separately proven external V11 activation, continue only when canonical
+`ops_schedule_contract.status=READY`, `contract_id=CLOUD_OPS_SCHEDULE_V11`,
 `schedule_count=1`,
 `timer_authority=CODEX_CLOUD_OPS_ONLY`,
 `recurrence.timezone=Asia/Taipei`, `recurrence.local_time=09:05`,
@@ -43,18 +43,34 @@ After separately proven external V10 activation, continue only when canonical
 `canonical_heartbeat_due.local_time=09:00`,
 `dispatch_margin.scheduled_seconds_after_canonical_due=300`,
 `dispatch_margin.early_call_behavior=NOT_DUE_NO_CROSS_TASK_WRITE`,
-`dispatch_margin.additional_timer=DENY`, and
-`sha256=90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
+`dispatch_margin.additional_timer=DENY`,
+`failure_lifecycle.failed_occurrence_effect=FAIL_CLOSED_CURRENT_OCCURRENCE_ONLY`,
+`failure_lifecycle.schedule_enabled_state_after_failure=KEEP_ENABLED`,
+`failure_lifecycle.automatic_pause_disable_or_delete=DENY`,
+`failure_lifecycle.schedule_self_mutation=DENY`,
+`failure_lifecycle.next_normal_occurrence=PRESERVE`, and
+`sha256=9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
 Pass that exact hash as `ops_schedule_contract_sha256` on every
 `request_research_heartbeat` and `submit_research_candidate_bundle` call.
 Missing, invalid, or mismatched contract/attestation is an operational alert;
 fail closed without queueing either operation.
 
-V10 preserves the V9 placement of the one cloud recurrence five minutes after the
+V11 preserves the V10 placement of the one cloud recurrence five minutes after the
 unchanged 09:00 canonical heartbeat due boundary so a small platform early-fire
 jitter cannot skip the only daily cycle. This margin never authorizes an early
 heartbeat: always compare canonical `next_due`, preserve `NOT_DUE`, and never
 add a catch-up call, retry timer, or second schedule.
+
+Failure of a scheduled occurrence is scoped to that occurrence only. A tool,
+platform, policy, provenance, attestation, queue, evidence, candidate, delivery,
+or integrity failure must fail closed without claiming a research write, but
+must not pause, disable, delete, reschedule, rename, replace, or otherwise mutate
+this sole cloud schedule. Preserve its enabled state and future normal
+occurrence. Do not invoke an automation-management operation from this prompt.
+Only explicit user authorization outside a scheduled occurrence may permit a
+schedule lifecycle change. Never use continued scheduling as evidence that the
+failed occurrence succeeded, and never catch up, backfill, or retry the
+heartbeat in the same occurrence.
 
 Inspect canonical `candidate_registration_recovery` before formulating or
 submitting any new candidate. `IDLE` permits the normal evidence-ready flow.
@@ -62,7 +78,7 @@ submitting any new candidate. `IDLE` permits the normal evidence-ready flow.
 partial canonical registration: require queue `IDLE`, copy the canonical
 `bundle` byte-for-value without changing its timestamp, text, mechanism, OOS
 window, or any other field, and call `submit_research_candidate_bundle` exactly
-once with the normal V10 attestation. Verify that the canonical
+once with the normal V11 attestation. Verify that the canonical
 `payload_sha256` is unchanged and poll that replay's run. This is recovery of
 the same logical candidate, not permission for a second candidate. If recovery
 is `INTEGRITY_BLOCKED`, including repeated replay failure or partial-state
@@ -154,7 +170,7 @@ seconds and the eventual `PASS` or `BREACH` lead time. Treat
 `MISSING_PROOF_LEGACY_EVENT` or `MISSING_PROOF_LEGACY_RECEIPT` as missing proof;
 never infer timing from chat history.
 
-Require `coach_outbox.delivery_contract.status=READY` and, only after V10 is
+Require `coach_outbox.delivery_contract.status=READY` and, only after V11 is
 canonically active, the cross-task contract
 `SEALED_COACH_CROSS_TASK_DELIVERY_V6`. Require its canonical
 `delivery_proof_sla.completion_window_seconds=10800` and never substitute a
@@ -181,7 +197,7 @@ exact readback, form no receipt for that event. Keep it canonical-pending with
 its original delivery id, queue time, and deadline. Report
 `CROSS_TASK_DELIVERY_PENDING` or the canonical
 `BREACH_PENDING_DELIVERY_PROOF` debt separately from heartbeat outcome. After
-every independent Worker provenance, V10 attestation, due-time, queue,
+every independent Worker provenance, V11 attestation, due-time, queue,
 evidence, candidate, OOS, deduplication, and integrity gate passes, invoke at
 most the otherwise-valid normally due heartbeat with zero to eight exact
 verified receipts. Zero verified receipts is an empty array, not a delivery

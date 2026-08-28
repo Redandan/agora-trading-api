@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/cloud-ops-liveness-audit.v1.schema.json",
+  "title": "Cloud Ops liveness audit V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_type",
+    "authorization",
+    "observed_at",
+    "status",
+    "claims",
+    "inventory",
+    "heartbeat",
+    "evidence",
+    "blockers",
+    "cutover_admission",
+    "performance_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "document_type": {"const": "CLOUD_OPS_LIVENESS_AUDIT_V1"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "observed_at": {"$ref": "#/$defs/utc_timestamp"},
+    "status": {
+      "enum": ["READY", "MISSING_PROOF", "OPERATIONAL_BLOCKED", "INTEGRITY_BLOCKED"]
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_contract_ready",
+        "frozen_schedule_contract_proven",
+        "v11_failure_lifecycle_contract_proven",
+        "single_clock_proven",
+        "single_writer_proven",
+        "schedule_lifecycle_preserved",
+        "platform_liveness_proven",
+        "heartbeat_terminal_success",
+        "heartbeat_effect_proven",
+        "current_evidence_capture_proven",
+        "coach_delivery_decoupled"
+      ],
+      "properties": {
+        "canonical_contract_ready": {"type": "boolean"},
+        "frozen_schedule_contract_proven": {"type": "boolean"},
+        "v11_failure_lifecycle_contract_proven": {
+          "type": ["boolean", "null"]
+        },
+        "single_clock_proven": {"type": "boolean"},
+        "single_writer_proven": {"type": "boolean"},
+        "schedule_lifecycle_preserved": {"type": "boolean"},
+        "platform_liveness_proven": {"type": "boolean"},
+        "heartbeat_terminal_success": {"type": "boolean"},
+        "heartbeat_effect_proven": {"type": "boolean"},
+        "current_evidence_capture_proven": {
+          "type": ["boolean", "null"]
+        },
+        "coach_delivery_decoupled": {"type": "boolean"}
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_contract_id",
+        "canonical_contract_sha256",
+        "canonical_declared_schedule_count",
+        "control_surface_clock_count",
+        "active_clock_count",
+        "control_surface_writer_count",
+        "active_writer_count",
+        "queue_statuses"
+      ],
+      "properties": {
+        "canonical_contract_id": {"type": ["string", "null"]},
+        "canonical_contract_sha256": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/sha256"}
+          ]
+        },
+        "canonical_declared_schedule_count": {"type": ["integer", "null"]},
+        "control_surface_clock_count": {"type": "integer", "minimum": 0},
+        "active_clock_count": {"type": "integer", "minimum": 0},
+        "control_surface_writer_count": {"type": "integer", "minimum": 0},
+        "active_writer_count": {"type": "integer", "minimum": 0},
+        "queue_statuses": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["heartbeat", "capture", "ingest"],
+          "properties": {
+            "heartbeat": {"type": "string", "minLength": 1},
+            "capture": {"type": "string", "minLength": 1},
+            "ingest": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "heartbeat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_status",
+        "canonical_next_due",
+        "due_boundary_overdue",
+        "latest_platform_occurrence_status"
+      ],
+      "properties": {
+        "canonical_status": {
+          "type": ["string", "null"]
+        },
+        "canonical_next_due": {"$ref": "#/$defs/utc_timestamp"},
+        "due_boundary_overdue": {"type": "boolean"},
+        "latest_platform_occurrence_status": {
+          "enum": [
+            "HEARTBEAT_OK",
+            "HEARTBEAT_FAILED_CLOSED",
+            "REJECTED_BEFORE_QUEUEING",
+            "MISSING_PROOF"
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["latest_coherent_sealed_day", "active_trigger_progress"],
+      "properties": {
+        "latest_coherent_sealed_day": {"$ref": "#/$defs/latest_evidence"},
+        "active_trigger_progress": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/trigger_progress"}
+          ]
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/blocker"}
+    },
+    "cutover_admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "zero_overlap_required",
+        "second_clock",
+        "second_writer",
+        "live_effectiveness"
+      ],
+      "properties": {
+        "status": {"const": "NOT_AUTHORIZED_BY_READ_ONLY_AUDIT"},
+        "zero_overlap_required": {"const": true},
+        "second_clock": {"const": "DENY"},
+        "second_writer": {"const": "DENY"},
+        "live_effectiveness": {"const": "MISSING_PROOF"}
+      }
+    },
+    "performance_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "immediate_pnl_effect",
+        "immediate_drawdown_effect",
+        "candidate_creation",
+        "oos_access",
+        "trading_action"
+      ],
+      "properties": {
+        "immediate_pnl_effect": {"const": "ZERO_CONTROL_PLANE_ONLY"},
+        "immediate_drawdown_effect": {"const": "ZERO_CONTROL_PLANE_ONLY"},
+        "candidate_creation": {"const": false},
+        "oos_access": {"const": "DENY"},
+        "trading_action": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "utc_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(?:Z|\\+00:00)$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "latest_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "day", "chain_head"],
+      "properties": {
+        "status": {"enum": ["SEALED", "MISSING_PROOF", "INTEGRITY_BLOCKED"]},
+        "day": {"type": ["string", "null"]},
+        "chain_head": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/sha256"}
+          ]
+        }
+      }
+    },
+    "trigger_progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trigger_id",
+        "status",
+        "observation_count",
+        "expected_observations",
+        "lag_observations",
+        "next_observation_day",
+        "next_capture_deadline",
+        "current_capture_proven"
+      ],
+      "properties": {
+        "trigger_id": {"type": ["string", "null"]},
+        "status": {"type": ["string", "null"]},
+        "observation_count": {"type": ["integer", "null"]},
+        "expected_observations": {"type": ["integer", "null"]},
+        "lag_observations": {"type": ["integer", "null"]},
+        "next_observation_day": {"type": ["string", "null"]},
+        "next_capture_deadline": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/utc_timestamp"}
+          ]
+        },
+        "current_capture_proven": {"type": ["boolean", "null"]}
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "detail"],
+      "properties": {
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+        "severity": {"enum": ["MISSING_PROOF", "OPERATIONAL", "INTEGRITY"]},
+        "detail": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

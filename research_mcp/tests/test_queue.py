@@ -924,8 +924,8 @@ class DurableQueueContractTest(unittest.TestCase):
             "RECOVERY_BLOCKED",
         )
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["schema_version"], "10")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V10")
+        self.assertEqual(contract["schema_version"], "11")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V11")
         self.assertEqual(contract["document_status"], "FROZEN")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(
@@ -952,6 +952,28 @@ class DurableQueueContractTest(unittest.TestCase):
                 "early_call_behavior": "NOT_DUE_NO_CROSS_TASK_WRITE",
                 "additional_timer": "DENY",
             },
+        )
+        self.assertEqual(
+            contract["failure_lifecycle"],
+            {
+                "failed_occurrence_effect": "FAIL_CLOSED_CURRENT_OCCURRENCE_ONLY",
+                "schedule_enabled_state_after_failure": "KEEP_ENABLED",
+                "automatic_pause_disable_or_delete": "DENY",
+                "schedule_self_mutation": "DENY",
+                "next_normal_occurrence": "PRESERVE",
+                "same_occurrence_heartbeat_retry": "DENY",
+                "manual_catchup": "DENY",
+                "evidence_backfill": "DENY",
+                "schedule_mutation_authority": "EXPLICIT_USER_AUTHORIZATION_ONLY",
+            },
+        )
+        self.assertEqual(
+            contract["platform_schedule"]["existing_active_schedule_id"],
+            "6a71a1ed2f608191b0621c52bed3fd81",
+        )
+        self.assertEqual(
+            contract["platform_schedule"]["create_second_schedule"],
+            "DENY",
         )
         self.assertEqual(contract["sha256"], self.ops_schedule_contract_sha256)
         self.assertEqual(
@@ -1747,7 +1769,7 @@ class DurableQueueContractTest(unittest.TestCase):
             / "research_pipeline"
             / "cloud-ops-schedule-contract.v6.json"
         ).read_bytes()
-        stale_v6_sha256 = hashlib.sha256(stale_v6).hexdigest()
+        stale_v6_sha256 = hashlib.sha256(stale_v6.replace(b"\r\n", b"\n")).hexdigest()
         self.assertEqual(
             stale_v6_sha256,
             "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85",

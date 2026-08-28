@@ -151,12 +151,13 @@ has no routine wake-up, timer, poller, canonical write, task selection, or
 scientific discretion. Neither local surface can become a second writer, call
 Research MCP writes, or mutate canonical server state. The V1 node remains
 message-dispatched and leaves the sole cloud clock and its server-canonical
-contract unchanged. Post-cutover
-readback originally proved V9 on 2026-08-10. Fresh canonical status on
-2026-08-14 proves the active contract is now V10, with exactly one daily
-`09:05 Asia/Taipei` recurrence and the same Server Canonical sole-writer
-boundary; Local work cannot activate, replace, pause, or acknowledge that
-schedule contract.
+contract unchanged. Post-cutover readback originally proved V9 on 2026-08-10.
+Fresh canonical status on 2026-08-14 proves the active contract is now V10 and
+retains the Server Canonical sole-writer declaration. Its `schedule_count=1`
+and daily `09:05 Asia/Taipei` recurrence are declared topology, not current
+platform liveness proof; active clock inventory and a future `next_run_time`
+require independent platform readback. Local work cannot activate, replace,
+pause, or acknowledge that schedule contract.
 
 The generic Spring strategy runtime must not depend on `research_pipeline`.
 
@@ -176,10 +177,13 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The active `CLOUD_OPS_SCHEDULE_V10` cloud Ops semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v10.json`, exact SHA-256
+The repository-prepared successor `CLOUD_OPS_SCHEDULE_V11` cloud Ops semantics
+are frozen in `research_pipeline/cloud-ops-schedule-contract.v11.json`, exact
+SHA-256
+`9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
+Its immutable active predecessor is `CLOUD_OPS_SCHEDULE_V10`, exact SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`;
-V1 through V9 remain immutable historical contract evidence. V10 keeps the
+V1 through V9 remain immutable historical contract evidence. V11 keeps the
 canonical heartbeat due boundary at `09:00 Asia/Taipei` but declares the sole
 cloud recurrence at
 `09:05 Asia/Taipei`. The frozen 300-second nominal delay tolerates small
@@ -194,7 +198,10 @@ fail before queue mutation when the contract is missing, altered, or
 mismatched. This binds the scheduled caller to one versioned contract; it does
 not make an unobservable UI prompt cryptographically self-verifying, so the
 live schedule definition still requires platform-side readback after each
-contract change.
+contract change. Repository preparation alone does not activate V11: the exact
+V10 schedule must first be paused with zero active clocks, the V11 Worker must
+be deployed and verified, and that same schedule id must be updated in place
+before it is re-enabled. Creating a second schedule or writer is forbidden.
 
 ## State machine
 
@@ -388,11 +395,12 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
 
-The active V10 Ops contract and `SEALED_COACH_CROSS_TASK_DELIVERY_V6` bind that basis,
-10,800-second completion window, pending/breach labels, terminal labels, and
-legacy missing-proof labels into the same caller attestation required by both
-write operations. V1 through V9 remain sealed history and cannot attest the
-active schedule.
+The prepared V11 Ops contract preserves the V10
+`SEALED_COACH_CROSS_TASK_DELIVERY_V6` basis, 10,800-second completion window,
+pending/breach labels, terminal labels, and legacy missing-proof labels in the
+same caller attestation required by both write operations. V1 through V10
+remain sealed history and only the contract reported `READY` by Server
+Canonical may attest a write.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
 the deterministic contract, the canonical intake may create the typed dataset,
@@ -474,9 +482,10 @@ SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
 Fresh canonical status at `2026-08-14T11:35:33Z` proves Worker release
 `20260814T112229Z`, source commit
-`ab2528c35e337fbfa47e528ff83d9b829d4806de`, exact V10 attestation, and one
-daily `09:05 Asia/Taipei` schedule. V9 remains immutable predecessor evidence
-and cannot attest an active write.
+`ab2528c35e337fbfa47e528ff83d9b829d4806de`, and exact V10 attestation. It
+declares one daily `09:05 Asia/Taipei` schedule; that declaration does not
+prove an enabled platform clock or future run. V9 remains immutable predecessor
+evidence and cannot attest an active write.
 
 V10 changes only caller liveness coupling. After fresh canonical status proves
 the heartbeat is normally due, the sole cloud cycle attempts exact Coach task
@@ -501,3 +510,26 @@ V10 deployment and canonical attestation are proven. The first normal
 post-release heartbeat, live empty-receipt acceptance, preserved pending-event
 identities, lawful rollover/microstructure advancement, Coach receipt, and
 economic value remain `MISSING_PROOF` until observed.
+
+Current liveness acceptance must use a normalized platform readback plus fresh
+canonical status through `cloud-ops-liveness-audit`; historical cutover text or
+canonical `schedule_count` alone cannot produce `READY`.
+
+## Prepared failed-occurrence lifecycle V11
+
+`CLOUD_OPS_SCHEDULE_V11` is frozen at SHA-256
+`9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
+It preserves the exact V10 schedule id, recurrence, due boundary, MCP operation
+set, Server Canonical writer, Coach delivery contract, scientific gates and
+sealed OOS boundary. Its only lifecycle change scopes a failure to the current
+occurrence while requiring the sole schedule to remain enabled for its next
+normal occurrence. The prompt cannot pause, disable, delete, replace,
+reschedule or otherwise mutate the schedule, and it cannot retry, catch up or
+backfill the failed occurrence.
+
+V11 deployment and activation remain external proof gates. Cutover must pause
+the exact V10 schedule and prove zero active clocks, deploy and verify V11,
+update that same paused schedule in place, prove it remains the only clock, and
+then reactivate it. The first natural V11 occurrence, failure-lifecycle
+preservation, future next-run readback, learning latency and economic value
+remain `MISSING_PROOF` until observed.

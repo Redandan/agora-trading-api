@@ -344,17 +344,44 @@ Fresh canonical status at `2026-08-14T11:35:33Z` proves Worker release
 `ab2528c35e337fbfa47e528ff83d9b829d4806de`, and active
 `CLOUD_OPS_SCHEDULE_V10` at exact SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
-The exact existing ChatGPT Work task remains the sole daily `09:05
-Asia/Taipei` recurrence; Server Canonical remains the sole writer and the
-desktop automation remains paused. V10 keeps every V9 receipt and scientific
-gate but permits the one normally due heartbeat to proceed with zero verified
-Coach receipts when cross-task delivery is unavailable. Do not create a second
-schedule, run an early or catch-up heartbeat, or attest V9 against the active
-Worker.
+Release-time platform readback identified the exact existing ChatGPT Work task
+as the sole daily `09:05 Asia/Taipei` recurrence; Server Canonical remains the
+sole writer and the desktop automation remains paused. That historical
+readback and canonical `schedule_count=1` do not prove current platform
+liveness; require exact active inventory and a future `next_run_time`. V10 keeps
+every V9 receipt and scientific gate but permits the one normally due heartbeat
+to proceed with zero verified Coach receipts when cross-task delivery is
+unavailable. Do not create a second schedule, run an early or catch-up
+heartbeat, or attest V9 against the active Worker.
 
 The first normal post-release heartbeat, empty-receipt acceptance, preserved
 pending-event identities, lawful rollover/microstructure advancement and live
 Coach delivery remain `MISSING_PROOF` until observed.
+
+### Prepared Cloud Ops V11 failed-occurrence lifecycle cutover
+
+The frozen V11 contract is `CLOUD_OPS_SCHEDULE_V11`, exact SHA-256
+`9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
+It changes no heartbeat due boundary, MCP operation, writer, research gate,
+candidate rule or sealed OOS boundary. A failed occurrence must fail closed but
+must not pause, disable, delete, replace or reschedule the only clock; no retry,
+catch-up or backfill is allowed.
+
+Use this exact zero-overlap order after explicit authorization:
+
+1. package and verify a clean bounded V11 commit without network;
+2. pause exact schedule `6a71a1ed2f608191b0621c52bed3fd81`
+   and prove zero active research clocks;
+3. deploy the V11 control release with `-PreserveBoundDataPlane` and verify
+   Server Canonical reports the exact V11 contract/hash;
+4. update that same paused schedule id in place to the exact V11 prompt, keep it
+   paused, and prove zero active research clocks;
+5. activate that same schedule and prove exactly one total/active research
+   clock and one total/active Server Canonical writer;
+6. wait for the next natural occurrence; never manually trigger a heartbeat.
+
+Creating another schedule or writer is forbidden. Rollback must first pause V11
+and prove zero active clocks before restoring V10 Worker and prompt.
 
 ### Historical Cloud Ops V9 receipt-SLA contract
 

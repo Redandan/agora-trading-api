@@ -676,9 +676,9 @@ terminal SLA outcome remain separate `MISSING_PROOF` gates.
 Existing pending events keep their original timestamps and may honestly remain
 `BREACH`.
 
-## Active heartbeat liveness decoupling V10
+## Historical heartbeat liveness decoupling V10
 
-The active repository contract is `CLOUD_OPS_SCHEDULE_V10`, SHA-256
+The immutable predecessor contract is `CLOUD_OPS_SCHEDULE_V10`, SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`,
 and V9 remains immutable deployed-history evidence. V10 preserves the exact
 existing schedule id, one `09:05 Asia/Taipei` recurrence,
@@ -715,12 +715,12 @@ post-release heartbeat, live empty-receipt acceptance, live pending-event
 preservation, lawful rollover/microstructure advancement, future task-tool
 availability, Coach delivery proof, and economic value remain `MISSING_PROOF`.
 
-## Prepared failed-occurrence lifecycle V11
+## Active failed-occurrence lifecycle V11
 
-The repository-prepared successor is `CLOUD_OPS_SCHEDULE_V11`, SHA-256
+The active contract is `CLOUD_OPS_SCHEDULE_V11`, SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
-V10 remains the immutable deployed predecessor until the separately authorized
-zero-overlap cutover is proven. V11 preserves the exact existing schedule id
+V10 remains the immutable predecessor after the separately authorized
+zero-overlap cutover. V11 preserves the exact existing schedule id
 `6a71a1ed2f608191b0621c52bed3fd81`, daily `09:05 Asia/Taipei` recurrence,
 five Research MCP operations, Server Canonical sole writer, scientific gates,
 delivery debt and sealed OOS boundary.
@@ -731,4 +731,7 @@ pause, disable, delete, replace, reschedule or otherwise mutate the sole cloud
 schedule. The next normal occurrence is preserved; same-occurrence retry,
 catch-up and evidence backfill remain denied. Deployment, same-id in-place
 platform update, exactly one active clock/writer readback and the first natural
-V11 occurrence remain separate `MISSING_PROOF` gates.
+V11 occurrence were proven on 2026-08-28 and 2026-08-29. The first occurrence
+failed closed without retrying or disabling the clock; its compatible empty-
+rollover reader fix is deployed. A future platform `next_run_time` and the next
+natural successful evidence continuation remain separate `MISSING_PROOF` gates.

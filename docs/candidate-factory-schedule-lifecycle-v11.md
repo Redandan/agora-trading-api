@@ -1,6 +1,6 @@
 # Candidate Factory schedule lifecycle V11
 
-Status: `PREPARED_NOT_ACTIVE_V11`
+Status: `ACTIVE_V11_PARTIAL_LIVE_ACCEPTANCE`
 
 Authorization: `RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE`
 
@@ -30,8 +30,29 @@ prospective evidence day.
 - clocks: exactly one Codex cloud Ops schedule
 - writers: exactly one Server Canonical writer
 
-V10 bytes remain unchanged. Repository preparation does not authorize V11
-deployment or platform activation.
+V10 bytes remain unchanged. Repository preparation did not authorize V11
+deployment or platform activation; the user separately authorized and the
+2026-08-28 cutover completed the zero-overlap procedure below.
+
+## Live acceptance
+
+The first natural V11 occurrence ran on 2026-08-29 and correlated to canonical
+request `60faaacd76c1419ca73edcf5b283c220`. It ended
+`HEARTBEAT_FAILED_CLOSED` because a legitimate fresh rollover state omitted its
+zero-length `evidence_observations` field. The occurrence did not retry,
+backfill, register a candidate, open OOS, or perform a Trading action.
+
+Fresh post-failure platform readback retained exact schedule id
+`6a71a1ed2f608191b0621c52bed3fd81` as the only active and only total clock.
+Canonical advanced only to the next normal due boundary at
+`2026-08-30T01:00:00Z`. This proves the narrower fail-closed-cycle and
+keep-enabled-clock behavior. The platform does not expose `next_run_time`, so
+full `schedule_lifecycle_preserved` acceptance remains `MISSING_PROOF`.
+
+The empty-rollover compatibility fix and the corrected read-only liveness
+identity check are deployed in Worker release `20260829T033523Z`, source commit
+`4564325b0e31dd420aab6329ff08683e07b90c07`. The next natural occurrence must
+still prove successful forward-evidence continuation; it is not retried today.
 
 ## Failure lifecycle
 
@@ -90,9 +111,10 @@ each is active.
 the exact clock active with a future next run remains an occurrence failure, but
 passes the narrower lifecycle-preservation claim.
 
-## Cutover gate
+## Historical cutover gate
 
-Activation requires separate authorization and this exact zero-overlap order:
+The completed activation required separate authorization and this exact
+zero-overlap order; any later migration must preserve it:
 
 1. Pause the exact active V10 schedule and prove zero active research clocks.
 2. Deploy and verify Server Canonical V11 attestation.

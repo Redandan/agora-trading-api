@@ -304,24 +304,24 @@ database query, or backfill.
 - `agora-research-heartbeat.timer` remains disabled and the path unit remains
   an event consumer only.
 
-## Active cross-task delivery contract
+## Active V11 cross-task and failure-lifecycle contract
 
-Fresh server-canonical status at `2026-08-14T11:35:33Z` reports deployed
-Worker release `20260814T112229Z`, source commit
-`ab2528c35e337fbfa47e528ff83d9b829d4806de`, and
-`CLOUD_OPS_SCHEDULE_V10` `READY` with one daily recurrence. The existing
-ChatGPT Work task remains the sole cloud clock; the desktop automation remains
-paused.
+Fresh server-canonical status at `2026-08-29T03:40:47Z` reports deployed
+Worker release `20260829T033523Z`, source commit
+`4564325b0e31dd420aab6329ff08683e07b90c07`, and
+`CLOUD_OPS_SCHEDULE_V11` `READY` with one daily recurrence. Exact platform
+readback retains the existing ChatGPT Work task as the sole cloud clock; the
+desktop automation remains paused.
 
-The active lifecycle-neutral contract is `CLOUD_OPS_SCHEDULE_V10`, frozen at exact
-SHA-256
-`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
+The active failure-lifecycle contract is `CLOUD_OPS_SCHEDULE_V11`, frozen at
+exact SHA-256
+`9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
 It keeps the scientific gates, one 09:05 cloud clock, 09:00 canonical due
 boundary, 300-second margin, Server Canonical single writer, durable outbox,
 five-field receipts, and the 10,800-second delivery SLA.
 
-V10 preserves V9's receipt ordering while decoupling heartbeat liveness from
-cross-task delivery capability.
+V11 preserves V10's receipt ordering and heartbeat/delivery decoupling while
+scoping any failure to the current occurrence.
 After proving the heartbeat is due, the cycle delivers and readback-verifies
 the initial pending snapshot before the heartbeat, so those receipts can be
 accepted in that same due cycle. Events newly created by the heartbeat are
@@ -331,9 +331,11 @@ Tool or host unavailability remains a hash-identified
 user step, paid API, or inferred ACK.
 
 Cutover reused the exact existing ChatGPT Work task and created no second
-schedule. V10 implementation, focused tests, Worker deployment and canonical
-attestation are proven. The first normal post-release heartbeat, live
-delivery/readback, receipt acceptance, SLA result, and any quantified
-learning-latency or economic benefit remain separate `MISSING_PROOF` gates.
+schedule. V11 implementation, focused tests, Worker deployment and canonical
+attestation are proven. The first natural V11 occurrence failed closed without
+retrying or disabling the schedule; its reader fix is deployed. A future
+`next_run_time`, the next natural successful evidence continuation, live Coach
+receipt acceptance, SLA result, and any quantified learning-latency or economic
+benefit remain separate `MISSING_PROOF` gates.
 Immediate PnL and drawdown effect are
 zero.

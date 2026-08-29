@@ -151,13 +151,14 @@ has no routine wake-up, timer, poller, canonical write, task selection, or
 scientific discretion. Neither local surface can become a second writer, call
 Research MCP writes, or mutate canonical server state. The V1 node remains
 message-dispatched and leaves the sole cloud clock and its server-canonical
-contract unchanged. Post-cutover readback originally proved V9 on 2026-08-10.
-Fresh canonical status on 2026-08-14 proves the active contract is now V10 and
-retains the Server Canonical sole-writer declaration. Its `schedule_count=1`
-and daily `09:05 Asia/Taipei` recurrence are declared topology, not current
-platform liveness proof; active clock inventory and a future `next_run_time`
-require independent platform readback. Local work cannot activate, replace,
-pause, or acknowledge that schedule contract.
+contract unchanged. Post-cutover readback originally proved V9 on 2026-08-10
+and V10 canonical readiness on 2026-08-14. The same schedule id was cut over in
+place to V11 on 2026-08-28 with zero overlap. Fresh canonical status on
+2026-08-29 proves V11 READY and retains the Server Canonical sole-writer
+declaration. Its `schedule_count=1` and daily `09:05 Asia/Taipei` recurrence are
+declared topology, while independent platform readback proves one active clock
+but still does not expose a future `next_run_time`. Local work cannot activate,
+replace, pause, or acknowledge that schedule contract.
 
 The generic Spring strategy runtime must not depend on `research_pipeline`.
 
@@ -177,11 +178,11 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The repository-prepared successor `CLOUD_OPS_SCHEDULE_V11` cloud Ops semantics
-are frozen in `research_pipeline/cloud-ops-schedule-contract.v11.json`, exact
+The active `CLOUD_OPS_SCHEDULE_V11` cloud Ops semantics are frozen in
+`research_pipeline/cloud-ops-schedule-contract.v11.json`, exact
 SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
-Its immutable active predecessor is `CLOUD_OPS_SCHEDULE_V10`, exact SHA-256
+Its immutable predecessor is `CLOUD_OPS_SCHEDULE_V10`, exact SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`;
 V1 through V9 remain immutable historical contract evidence. V11 keeps the
 canonical heartbeat due boundary at `09:00 Asia/Taipei` but declares the sole
@@ -198,10 +199,10 @@ fail before queue mutation when the contract is missing, altered, or
 mismatched. This binds the scheduled caller to one versioned contract; it does
 not make an unobservable UI prompt cryptographically self-verifying, so the
 live schedule definition still requires platform-side readback after each
-contract change. Repository preparation alone does not activate V11: the exact
-V10 schedule must first be paused with zero active clocks, the V11 Worker must
-be deployed and verified, and that same schedule id must be updated in place
-before it is re-enabled. Creating a second schedule or writer is forbidden.
+contract change. The 2026-08-28 activation followed the frozen order: the exact
+V10 schedule was paused with zero active clocks, the V11 Worker was deployed
+and verified, and that same schedule id was updated in place before it was
+re-enabled. Creating a second schedule or writer remains forbidden.
 
 ## State machine
 
@@ -395,7 +396,7 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
 
-The prepared V11 Ops contract preserves the V10
+The active V11 Ops contract preserves the V10
 `SEALED_COACH_CROSS_TASK_DELIVERY_V6` basis, 10,800-second completion window,
 pending/breach labels, terminal labels, and legacy missing-proof labels in the
 same caller attestation required by both write operations. V1 through V10
@@ -475,9 +476,9 @@ delivery, and economic value remain `MISSING_PROOF` until observed. Retained
 pending events keep their original timestamps. Rollback must first pause V9 and
 prove zero active schedules; two clocks may never overlap.
 
-## Active heartbeat liveness decoupling V10
+## Historical heartbeat liveness decoupling V10
 
-The active `CLOUD_OPS_SCHEDULE_V10` contract is frozen at
+The immutable predecessor `CLOUD_OPS_SCHEDULE_V10` contract is frozen at
 SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
 Fresh canonical status at `2026-08-14T11:35:33Z` proves Worker release
@@ -515,7 +516,7 @@ Current liveness acceptance must use a normalized platform readback plus fresh
 canonical status through `cloud-ops-liveness-audit`; historical cutover text or
 canonical `schedule_count` alone cannot produce `READY`.
 
-## Prepared failed-occurrence lifecycle V11
+## Active failed-occurrence lifecycle V11
 
 `CLOUD_OPS_SCHEDULE_V11` is frozen at SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
@@ -527,9 +528,13 @@ normal occurrence. The prompt cannot pause, disable, delete, replace,
 reschedule or otherwise mutate the schedule, and it cannot retry, catch up or
 backfill the failed occurrence.
 
-V11 deployment and activation remain external proof gates. Cutover must pause
-the exact V10 schedule and prove zero active clocks, deploy and verify V11,
-update that same paused schedule in place, prove it remains the only clock, and
-then reactivate it. The first natural V11 occurrence, failure-lifecycle
-preservation, future next-run readback, learning latency and economic value
-remain `MISSING_PROOF` until observed.
+V11 deployment, in-place activation and the first natural occurrence are now
+externally proven. The 2026-08-29 occurrence queued canonical request
+`60faaacd76c1419ca73edcf5b283c220` and ended
+`HEARTBEAT_FAILED_CLOSED` on a legitimate empty rollover observation inventory.
+It did not retry or backfill, and fresh platform readback retained the same
+active schedule id with one total clock. Canonical `next_due` advanced only to
+the next normal boundary, `2026-08-30T01:00:00Z`. The compatible reader fix is
+deployed, but a future platform `next_run_time`, the next natural successful
+evidence continuation, learning latency and economic value remain
+`MISSING_PROOF` until observed.

@@ -337,7 +337,7 @@ A successful verification establishes the requested release identities and
 source-state contract at that instant. It does not prove uninterrupted day completion,
 predictive value, PnL, or drawdown.
 
-### Active Cloud Ops V10 liveness-decoupled contract
+### Historical Cloud Ops V10 liveness-decoupled contract
 
 Fresh canonical status at `2026-08-14T11:35:33Z` proves Worker release
 `20260814T112229Z`, source commit
@@ -358,16 +358,17 @@ The first normal post-release heartbeat, empty-receipt acceptance, preserved
 pending-event identities, lawful rollover/microstructure advancement and live
 Coach delivery remain `MISSING_PROOF` until observed.
 
-### Prepared Cloud Ops V11 failed-occurrence lifecycle cutover
+### Active Cloud Ops V11 failed-occurrence lifecycle
 
-The frozen V11 contract is `CLOUD_OPS_SCHEDULE_V11`, exact SHA-256
+The active frozen V11 contract is `CLOUD_OPS_SCHEDULE_V11`, exact SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
 It changes no heartbeat due boundary, MCP operation, writer, research gate,
 candidate rule or sealed OOS boundary. A failed occurrence must fail closed but
 must not pause, disable, delete, replace or reschedule the only clock; no retry,
 catch-up or backfill is allowed.
 
-Use this exact zero-overlap order after explicit authorization:
+The completed 2026-08-28 cutover used this exact zero-overlap order after
+explicit authorization; any later migration must preserve it:
 
 1. package and verify a clean bounded V11 commit without network;
 2. pause exact schedule `6a71a1ed2f608191b0621c52bed3fd81`
@@ -379,6 +380,11 @@ Use this exact zero-overlap order after explicit authorization:
 5. activate that same schedule and prove exactly one total/active research
    clock and one total/active Server Canonical writer;
 6. wait for the next natural occurrence; never manually trigger a heartbeat.
+
+The first natural V11 occurrence ran on 2026-08-29, failed closed, did not
+retry, and retained the exact same schedule as one active and one total clock.
+The empty-rollover reader fix is deployed. A future platform `next_run_time`
+and the next natural successful evidence continuation remain `MISSING_PROOF`.
 
 Creating another schedule or writer is forbidden. Rollback must first pause V11
 and prove zero active clocks before restoring V10 Worker and prompt.

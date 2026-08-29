@@ -1,8 +1,8 @@
 # Candidate Factory control-plane liveness V1
 
-Status: research-only offline acceptance complete; live effectiveness `MISSING_PROOF`
+Status: V11 failure lifecycle live-proven; full liveness `MISSING_PROOF`
 
-Acceptance snapshot: 2026-08-27
+Acceptance snapshot: 2026-08-29
 
 Authorization: `RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE`
 
@@ -43,7 +43,7 @@ retried or backfilled.
 
 The validator requires all of the following at the same observation boundary:
 
-- ready and identity-consistent Policy, Worker and V10 canonical contract;
+- ready and identity-consistent Policy, Worker and V11 canonical contract;
 - exactly one active `CODEX_CLOUD_OPS` clock with the frozen id, hash,
   recurrence, cloud Ops execution-task destination and a future
   `next_run_time`;
@@ -103,25 +103,26 @@ auditor always denies a second clock and a second writer.
 
 ## Current disposition
 
-Fresh Server Canonical evidence on 2026-08-27 still reports the V10 contract as
-ready, one declared schedule, idle heartbeat/capture/ingest queues, four open
-families, 179 closed families, zero formal candidates, zero OOS and the active
-forward trigger at 4 of 90 observations.
+Fresh Server Canonical evidence on 2026-08-29 reports the deployed V11
+contract and Worker release `20260829T033523Z` READY, all four control queues
+IDLE, four open and 179 closed families, zero active experiments, zero formal
+candidates and zero candidate OOS. The active successor trigger is waiting at
+0 of 90 observations for complete UTC day 2026-08-29; this is evidence waiting,
+not an empty research queue.
 
-The most recent platform task result reports that the due heartbeat was
-rejected before queueing and that the automation disabled itself. The canonical
-`next_due` did not advance. That is direct operational-blocker evidence, but it
-does not contain a fresh, independently normalized inventory of all active
-clocks and writers. Therefore live cutover and runtime effectiveness remain
-`MISSING_PROOF`; no re-arm, retry, replacement clock, candidate run or OOS
-access is authorized by this acceptance.
+The first natural V11 occurrence ended `HEARTBEAT_FAILED_CLOSED`. Exact
+post-failure platform inventory retained the same schedule ACTIVE with one
+active and one total clock, exact V11 hash, unchanged recurrence and no second
+schedule. Canonical advanced only to next normal due
+`2026-08-30T01:00:00Z`, with no retry or backfill. This proves the narrower V11
+failure lifecycle without converting the failed heartbeat into success.
 
-The formal CLI audit over fresh canonical status at
-`2026-08-27T03:06:30Z` and the closed unavailable-platform readback returned
-`OPERATIONAL_BLOCKED` with both `CONTROL_SURFACE_READBACK_UNAVAILABLE` and
-`CANONICAL_HEARTBEAT_EFFECT_MISSING`. It preserved the coherent sealed
-`2026-08-25` day while keeping the current 4/90 `CAPTURE_DUE` progress
-unproven. Cutover `live_effectiveness` remains `MISSING_PROOF`.
+The corrected formal CLI audit returns `INTEGRITY_BLOCKED` because the latest
+canonical heartbeat truly failed, plus `ACTIVE_CLOCK_NEXT_RUN_MISSING` because
+the platform does not expose a future run. It separately proves exact
+`single_clock_proven=true`, `single_writer_proven=true`, frozen V11 identity and
+the failure-lifecycle contract. The next natural occurrence must prove that the
+deployed empty-rollover reader resumes forward-evidence collection.
 
 The control-plane change has zero immediate PnL or drawdown effect. Its value is
 preventing false readiness, duplicate writers/clocks and silent loss of future
@@ -129,20 +130,16 @@ evidence days.
 
 ## Readback source disposition
 
-Repository search found only frozen schedule declarations and historical
-cutover assertions. OAuth Research MCP exposes canonical contract and writer
-state, but not the platform's complete live clock inventory or future
-`next_run_time`. Reading the ChatGPT Work task exposes its latest task result,
-not an independently queryable scheduler inventory. None of those surfaces may
-be converted into an `AVAILABLE` control-surface readback by inference.
+The platform view/list surface now provides exact schedule id, enabled state,
+active and total inventory counts, recurrence, destination and last-run time.
+It still does not provide a future `next_run_time` or typed terminal occurrence
+status. OAuth Research MCP independently exposes the canonical contract and the
+sole-writer state but cannot fill those platform gaps.
 
-Therefore the next safe integration boundary is an exact, read-only platform
-readback that can normalize clock id, enabled state, recurrence, destination,
-future next run, occurrence queue proof and sole-writer inventory into
-`CLOUD_OPS_CONTROL_SURFACE_READBACK_V1`. Until such a supported source exists,
-the caller must submit the closed `MISSING_PROOF` readback with empty inventories.
-It must not re-arm the failed task, retry the rejected heartbeat, create a
-replacement timer or infer one active clock from the V10 declaration.
+The available fields are normalized into
+`CLOUD_OPS_CONTROL_SURFACE_READBACK_V1`; unavailable fields remain explicit
+null or `MISSING_PROOF`. The audit must not infer future liveness from ACTIVE,
+re-arm the task, retry the failed heartbeat, or create a replacement timer.
 
 ## Acceptance
 
@@ -155,14 +152,14 @@ python -m research_pipeline cloud-ops-liveness-audit CANONICAL_STATUS.json CONTR
 It emits canonical JSON and exits with code 3 unless the result is exactly
 `READY`.
 
-Acceptance was run against a byte-preserving archive of deployed commit
-`2d2ba9f0ad3dd3b8187595abf7517fd4d9b4bbd5` with the new slice applied:
+Acceptance for deployed control release `20260829T033523Z`, source commit
+`4564325b0e31dd420aab6329ff08683e07b90c07`, established:
 
-- 18 focused liveness, Schema and CLI tests passed;
-- 34 liveness, report-failure injection and frozen V6/V7/V10
-  delivery-contract tests passed;
-- 147 Candidate Funnel, forward admission, evidence, local manager, frozen
-  delivery-contract and liveness tests passed;
+- 26 focused liveness, Schema and CLI tests passed;
+- 158 forward persistence, activation, evidence, post-shock, recovery and
+  liveness tests passed with one existing conditional skip;
+- deployed Worker verification passed 109 control/data tests and 7 fixed
+  isolation tests;
 - Python compile validation passed;
 - both JSON Schemas passed Draft 2020-12 meta-schema validation;
 - diff whitespace validation passed.

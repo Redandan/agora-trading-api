@@ -45,7 +45,8 @@ The validator requires all of the following at the same observation boundary:
 
 - ready and identity-consistent Policy, Worker and V10 canonical contract;
 - exactly one active `CODEX_CLOUD_OPS` clock with the frozen id, hash,
-  recurrence, destination and a future `next_run_time`;
+  recurrence, cloud Ops execution-task destination and a future
+  `next_run_time`;
 - exactly one independently inventoried active Server Canonical writer;
 - a durable heartbeat queue claim plus canonical request id for any platform
   success label;
@@ -54,6 +55,13 @@ The validator requires all of the following at the same observation boundary:
 - a fresh canonical `next_due` effect after the due boundary;
 - one coherent latest sealed capture/ingest pair;
 - Coach delivery kept outside heartbeat and evidence liveness.
+
+The clock destination and Coach delivery target are intentionally different
+identities. The existing schedule runs inside cloud Ops task
+`6a71a167-be58-83ec-aed2-f1736e31dd45`; optional delivery targets Coach task
+`019fca63-4f8f-71e3-9d88-297bca468eb9`. Treating the Coach target as the
+platform clock destination is an audit integrity defect, not evidence of a
+schedule cutover or replacement.
 
 Unknown fields, duplicate JSON keys, unsupported clock kinds, a second clock,
 a second writer, stale cross-surface evidence, missing evidence history and

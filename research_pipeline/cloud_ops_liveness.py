@@ -30,16 +30,19 @@ V11_CONTRACT_SHA256 = (
     "9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61"
 )
 SOLE_SCHEDULE_ID = "6a71a1ed2f608191b0621c52bed3fd81"
+SOLE_OPS_THREAD_ID = "6a71a167-be58-83ec-aed2-f1736e31dd45"
 FROZEN_SCHEDULE_CONTRACTS = {
     V10_CONTRACT_ID: {
         "schema_version": "10",
         "sha256": V10_CONTRACT_SHA256,
         "schedule_id": SOLE_SCHEDULE_ID,
+        "destination_thread_id": SOLE_OPS_THREAD_ID,
     },
     V11_CONTRACT_ID: {
         "schema_version": "11",
         "sha256": V11_CONTRACT_SHA256,
         "schedule_id": SOLE_SCHEDULE_ID,
+        "destination_thread_id": SOLE_OPS_THREAD_ID,
     },
 }
 V11_FAILURE_LIFECYCLE = {
@@ -379,7 +382,11 @@ def build_cloud_ops_liveness_audit(
     expected_contract_id = ops.get("contract_id")
     expected_contract_sha256 = ops.get("sha256")
     expected_recurrence = ops.get("recurrence")
-    expected_destination = delivery.get("target_thread_id")
+    expected_destination = (
+        frozen_contract["destination_thread_id"]
+        if frozen_contract is not None
+        else None
+    )
     matching_clock: dict[str, Any] | None = active_clocks[0] if len(active_clocks) == 1 else None
     clock_identity_proven = False
     next_run_proven = False

@@ -24,6 +24,7 @@ from research_pipeline.cloud_ops_liveness import (
 
 V10_SHA256 = "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa"
 SCHEDULE_ID = "6a71a1ed2f608191b0621c52bed3fd81"
+OPS_THREAD_ID = "6a71a167-be58-83ec-aed2-f1736e31dd45"
 COACH_THREAD_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
 TRIGGER_ID = "prospective-mechanism-neutral-evidence-refresh-test"
 CHAIN_HEAD = "7" * 64
@@ -124,7 +125,7 @@ def control_readback() -> dict:
                 "active": True,
                 "contract_id": "CLOUD_OPS_SCHEDULE_V10",
                 "contract_sha256": V10_SHA256,
-                "destination_thread_id": COACH_THREAD_ID,
+                "destination_thread_id": OPS_THREAD_ID,
                 "next_run_time": "2026-08-27T01:05:00Z",
                 "recurrence": {
                     "frequency": "DAILY",
@@ -474,6 +475,16 @@ class CloudOpsLivenessTest(unittest.TestCase):
             result["claims"]["v11_failure_lifecycle_contract_proven"]
         )
         self.assertFalse(result["claims"]["platform_liveness_proven"])
+
+    def test_coach_delivery_target_is_not_the_cloud_clock_destination(self) -> None:
+        readback = control_readback()
+        readback["clocks"][0]["destination_thread_id"] = COACH_THREAD_ID
+
+        result = build_cloud_ops_liveness_audit(canonical_status(), readback)
+
+        self.assertEqual("INTEGRITY_BLOCKED", result["status"])
+        self.assertIn("ACTIVE_CLOCK_IDENTITY_MISMATCH", blocker_codes(result))
+        self.assertFalse(result["claims"]["single_clock_proven"])
 
     def test_platform_success_requires_queue_and_canonical_request_id(self) -> None:
         readback = control_readback()

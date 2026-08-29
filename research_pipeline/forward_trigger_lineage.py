@@ -124,10 +124,20 @@ def resolve_active_forward_trigger_lineage(
         root_trigger=root,
         root_state=root_state,
         leaf_trigger=current_trigger,
-        leaf_state=current_state,
+        leaf_state=_normalized_leaf_state_for_readers(current_state),
         trigger_ids=tuple(lineage),
         trigger_identities=tuple(identities),
     )
+
+
+def _normalized_leaf_state_for_readers(
+    state: dict[str, Any],
+) -> dict[str, Any]:
+    if "evidence_observations" in state:
+        return state
+    normalized = dict(state)
+    normalized["evidence_observations"] = []
+    return normalized
 
 
 def _safe_trigger_entries(

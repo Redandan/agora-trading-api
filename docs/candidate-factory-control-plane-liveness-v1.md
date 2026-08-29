@@ -10,9 +10,36 @@ Authorization: `RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE`
 
 The repository now has one deterministic, read-only admission check that keeps
 the frozen schedule declaration separate from live control-surface proof. A
-`READY` V10 contract and a completed platform task are no longer sufficient to
+`READY` V11 contract and a completed platform task are no longer sufficient to
 claim that the Candidate Factory clock is live or that canonical evidence
 advanced.
+
+## V11 live failed-occurrence acceptance
+
+The first natural V11 occurrence ran on 2026-08-29. Platform and Server
+Canonical evidence correlated it to request
+`60faaacd76c1419ca73edcf5b283c220`. It failed closed at
+`2026-08-29T01:06:47.636795Z` with sealed artifact
+`heartbeat/failures/20260829T010647636795Z-1.json`, exact SHA-256
+`4b49eeacf0105fce960527f26b327420ef43ea55087fbe19340581901f420a27`,
+because a fresh rollover state legitimately omitted its zero-length
+`evidence_observations` inventory while one frozen diagnostic reader required
+an explicit list.
+
+The failure did not retry, enqueue a candidate, run a strategy, open OOS, or
+perform a Trading action. Canonical queues returned to `IDLE`, the failure
+count became one, and canonical `next_due` advanced only to the next normal
+boundary at `2026-08-30T01:00:00Z`. Fresh platform readback after the failure
+showed the same schedule id still `ACTIVE`, `active_count=1`, `total_count=1`,
+the exact V11 hash, unchanged daily 09:05 Asia/Taipei recurrence and no second
+schedule. This is live proof of the V11 fail-closed-current-occurrence and
+keep-enabled-clock lifecycle.
+
+The platform still does not expose a future `next_run_time` or a typed terminal
+occurrence status, so the full liveness audit remains `MISSING_PROOF` rather
+than `READY`. The next natural cycle must prove that the corrected reader can
+resume prospective evidence collection; the failed occurrence is never
+retried or backfilled.
 
 The validator requires all of the following at the same observation boundary:
 

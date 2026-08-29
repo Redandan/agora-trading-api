@@ -10,6 +10,8 @@ from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
 
+from research_pipeline import forward_trigger_lineage as lineage_module
+from research_pipeline.evidence import MISSED_DISCOVERY_ROLLOVER_REASON
 from research_pipeline.forward_trigger_lineage import ActiveForwardTriggerLineage
 from research_pipeline.forward_volatility_persistence import (
     ACCEPTED_TASK_ID,
@@ -110,6 +112,59 @@ class ForwardVolatilityPersistenceTest(unittest.TestCase):
                     ),
                 )
             self.assertFalse((store.root / SNAPSHOT_NAMESPACE).exists())
+
+    def test_resolved_fresh_leaf_normalizes_only_missing_observation_inventory(
+        self,
+    ) -> None:
+        leaf_id = "prospective-mechanism-neutral-evidence-refresh-rollover-r2"
+        leaf_fingerprint = "b" * 64
+        created_at = "2026-05-02T00:00:00Z"
+        root = {
+            "trigger_id": ROOT_TRIGGER_ID,
+            "fingerprint": ROOT_TRIGGER_FINGERPRINT,
+            "created_at": "2026-05-01T00:00:00Z",
+        }
+        root_state = {
+            "trigger_id": ROOT_TRIGGER_ID,
+            "status": "CLOSED",
+            "rollover_reason": MISSED_DISCOVERY_ROLLOVER_REASON,
+            "rollover_successor_trigger_id": leaf_id,
+            "rollover_successor_fingerprint": leaf_fingerprint,
+            "rollover_closed_at": created_at,
+        }
+        leaf = {
+            "trigger_id": leaf_id,
+            "fingerprint": leaf_fingerprint,
+            "created_at": created_at,
+        }
+        leaf_state = {
+            "trigger_id": leaf_id,
+            "status": "WAITING",
+            "rollover_predecessor_trigger_id": ROOT_TRIGGER_ID,
+            "rollover_predecessor_fingerprint": ROOT_TRIGGER_FINGERPRINT,
+            "rollover_reason": MISSED_DISCOVERY_ROLLOVER_REASON,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            store = ResearchStore(Path(directory), lock_stale_seconds=3600)
+            with patch.object(
+                lineage_module,
+                "_safe_trigger_entries",
+                return_value=[(root, root_state), (leaf, leaf_state)],
+            ), patch.object(
+                lineage_module, "_verify_registered_trigger"
+            ), patch.object(lineage_module, "_verify_discovery_contract"):
+                lineage = lineage_module.resolve_active_forward_trigger_lineage(store)
+
+        self.assertIsNotNone(lineage)
+        self.assertEqual([], lineage.leaf_state["evidence_observations"])
+        self.assertNotIn("evidence_observations", leaf_state)
+
+        corrupt = dict(leaf_state)
+        corrupt["evidence_observations"] = {}
+        self.assertIs(
+            corrupt,
+            lineage_module._normalized_leaf_state_for_readers(corrupt),
+        )
 
     def test_exact_formula_and_immutable_episode_identity(self) -> None:
         lineage = _lineage()

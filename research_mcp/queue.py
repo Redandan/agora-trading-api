@@ -45,16 +45,16 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v11.json"
+    "research_pipeline/cloud-ops-schedule-contract.v12.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256 = (
-    "9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61"
+    "98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     r"""
 {
-  "schema_version": "11",
-  "contract_id": "CLOUD_OPS_SCHEDULE_V11",
+  "schema_version": "12",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V12",
   "document_status": "FROZEN",
   "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
   "timer_authority": "CODEX_CLOUD_OPS_ONLY",
@@ -73,7 +73,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
   "dispatch_margin": {
     "scheduled_seconds_after_canonical_due": 300,
     "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
-    "early_call_behavior": "NOT_DUE_NO_CROSS_TASK_WRITE",
+    "early_call_behavior": "NOT_DUE_NO_DELIVERY_RECEIPT",
     "additional_timer": "DENY"
   },
   "failure_lifecycle": {
@@ -95,62 +95,80 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "get_research_run",
     "get_research_briefing"
   ],
-  "allowed_codex_operations": [
-    "list_threads",
-    "read_thread",
-    "send_message_to_thread"
-  ],
+  "allowed_codex_operations": [],
   "write_attestation": {
     "parameter": "ops_schedule_contract_sha256",
     "required": true,
-    "activation_rule": "V11_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V11_READY",
-    "v10_status_behavior": "STOP_BEFORE_ANY_V11_WRITE_CALL"
+    "activation_rule": "V12_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V12_READY",
+    "v11_status_behavior": "STOP_BEFORE_ANY_V12_WRITE_CALL"
   },
   "predecessor": {
-    "contract_id": "CLOUD_OPS_SCHEDULE_V10",
-    "sha256": "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V11",
+    "sha256": "9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61",
     "bytes_modified": false,
     "server_attestation_active_until_cutover": true,
     "platform_activation_proven": true
   },
   "platform_schedule": {
-    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V10",
+    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V11",
     "existing_active_schedule_id": "6a71a1ed2f608191b0621c52bed3fd81",
+    "existing_schedule_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
     "execution_surface": "CHATGPT_WORK_CLOUD_SCHEDULE",
     "local_computer_may_be_off": true,
     "migration": "PAUSE_UPDATE_REACTIVATE_EXISTING_SCHEDULE_IN_PLACE",
     "create_second_schedule": "DENY"
   },
   "coach_delivery": {
-    "contract_id": "SEALED_COACH_CROSS_TASK_DELIVERY_V6",
-    "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
-    "destination": "EXACT_COACH_TASK_BY_THREAD_ID",
+    "contract_id": "SEALED_COACH_SAME_SCHEDULE_CHAT_DELIVERY_V2",
+    "target_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
+    "destination": "EXISTING_SCHEDULE_CHAT_PRIOR_ASSISTANT_CONTEXT",
     "delivery_id_source": "SEALED_ARTIFACT_SHA256",
     "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
     "durability": "SERVER_HEARTBEAT_STATE_UNTIL_VERIFIED_ACK",
     "cross_task_operations_required": false,
-    "cross_task_operations_mode": "ATTEMPT_WHEN_AVAILABLE_NOT_HEARTBEAT_LIVENESS_GATE",
+    "cross_task_operations_mode": "DENY",
     "cycle_order": [
       "READ_FRESH_CANONICAL_STATUS_FIRST",
-      "REQUIRE_NORMALLY_DUE_HEARTBEAT_BEFORE_CROSS_TASK_WRITE",
-      "SNAPSHOT_INITIAL_PENDING_EVENTS",
-      "ATTEMPT_INITIAL_PENDING_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
-      "FORM_RECEIPTS_ONLY_AFTER_EXACT_READBACK_OTHERWISE_ZERO_FOR_UNVERIFIED_EVENTS",
+      "REQUIRE_NORMALLY_DUE_HEARTBEAT_BEFORE_RECEIPT",
+      "SNAPSHOT_AT_MOST_EIGHT_INITIAL_PENDING_EVENTS",
+      "SCAN_PRIOR_ASSISTANT_MESSAGES_IN_THE_SAME_SCHEDULE_CHAT",
+      "FORM_RECEIPTS_ONLY_FOR_EXACT_FULL_V12_CANONICAL_PROMPTS_WITH_IDENTICAL_PENDING_IDS",
       "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT_WITH_ZERO_TO_EIGHT_VERIFIED_RECEIPTS",
       "READ_FRESH_CANONICAL_STATUS_AFTER_HEARTBEAT",
-      "ATTEMPT_STILL_PENDING_OR_NEW_EVENT_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
-      "DEFER_ONLY_POST_HEARTBEAT_NEW_EVENT_RECEIPTS_TO_NEXT_NORMALLY_DUE_HEARTBEAT"
+      "RENDER_EACH_STILL_PENDING_EXACT_V12_CANONICAL_PROMPT_ONCE_AS_CURRENT_ASSISTANT_OUTPUT"
     ],
-    "target_resolution": "LIST_THREADS_AND_REQUIRE_EXACT_THREAD_ID",
-    "preflight": "READ_TARGET_THREAD_AND_SKIP_SEND_IF_EXACT_FULL_DELIVERY_TOKEN_PRESENT",
-    "send": "SEND_EXACT_CANONICAL_DELIVERY_PROMPT",
-    "verification": "READ_TARGET_THREAD_AFTER_SEND_AND_REQUIRE_EXACT_FULL_DELIVERY_TOKEN",
-    "retry": "RETRY_ONLY_ON_A_LATER_NORMAL_CLOUD_CYCLE_WHEN_TOKEN_IS_ABSENT",
-    "target_unavailable": "KEEP_CANONICAL_EVENT_PENDING_AND_REPORT_CROSS_TASK_DELIVERY_PENDING",
+    "prior_context_proof": {
+      "required_role": "assistant",
+      "required_location": "PRIOR_MESSAGE_IN_SAME_SCHEDULE_CHAT",
+      "required_value": "EXACT_FULL_CANONICAL_DELIVERY_PROMPT",
+      "required_delivery_contract_id": "SEALED_COACH_SAME_SCHEDULE_CHAT_DELIVERY_V2",
+      "required_target_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
+      "required_canonical_state": "IDENTICAL_DELIVERY_ID_STILL_PENDING_IN_FRESH_STATUS",
+      "insufficient_sources": [
+        "CURRENT_TURN_OUTPUT",
+        "TOKEN_WITHOUT_EXACT_FULL_CANONICAL_PROMPT",
+        "V11_OR_EARLIER_DELIVERY_PROMPT",
+        "USER_QUOTED_PROMPT_OR_TOKEN",
+        "SUMMARIZED_CONTEXT",
+        "TRUNCATED_CONTEXT",
+        "ALTERED_PROMPT_OR_TOKEN",
+        "SCHEDULED_INBOX",
+        "NOTIFICATION",
+        "INFERRED_CONTEXT"
+      ]
+    },
+    "current_turn_render_receipt_proof": "DENY",
+    "render": "RENDER_EXACT_CANONICAL_DELIVERY_PROMPT_AS_CURRENT_ASSISTANT_OUTPUT",
+    "context_loss": {
+      "receipt": "DENY",
+      "canonical_event_state": "KEEP_PENDING",
+      "rerender": "AT_MOST_ONCE_PER_TURN_USING_EXACT_CANONICAL_PROMPT",
+      "deadline_reset": "DENY",
+      "additional_timer_poller_messenger_or_user_step": "DENY"
+    },
     "unverified_delivery_heartbeat_behavior": "ZERO_RECEIPT_FOR_EVENT_KEEP_PENDING_PROCEED_ONLY_IF_ALL_OTHER_HEARTBEAT_GATES_PASS",
     "heartbeat_outcome_separation": "CANONICAL_RESEARCH_ADVANCEMENT_NEVER_IMPLIES_COACH_DELIVERY",
-    "same_cycle_send_receipt_proof": "ALLOW_FOR_INITIAL_PENDING_ONLY_AFTER_POST_SEND_READBACK_BEFORE_DUE_HEARTBEAT",
-    "canonical_ack": "INITIAL_PENDING_VERIFIED_RECEIPT_ON_CURRENT_DUE_HEARTBEAT_POST_HEARTBEAT_NEW_EVENT_ON_NEXT_DUE_HEARTBEAT",
+    "canonical_ack": "EXACT_PRIOR_ASSISTANT_V12_PROMPT_RECEIPT_ON_NEXT_NORMALLY_DUE_HEARTBEAT",
     "receipt_parameter": "coach_delivery_receipts",
     "receipt_schema": {
       "exact_fields": [
@@ -170,6 +188,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "deduplication": {
       "pending_id_source": "SEALED_ARTIFACT_SHA256",
       "exact_token_required": true,
+      "exact_full_prompt_required": true,
       "same_id_changed_payload": "INTEGRITY_BLOCKED",
       "repeated_verified_receipt": "IDEMPOTENT",
       "unknown_or_unverified_receipt": "REJECT"
@@ -196,8 +215,19 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
       "preserve_delivery_id": true,
       "preserve_delivery_queued_at": true,
       "preserve_delivery_deadline_at": true,
+      "preserve_existing_breach": true,
       "false_acknowledgement": "DENY",
       "heartbeat_success_clears_delivery_debt": false
+    },
+    "target_migration": {
+      "source_target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+      "source_target_status": "INACCESSIBLE_NOT_ACTIVE_OR_ARCHIVED",
+      "target_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
+      "authorization": "EXPLICIT_USER_AUTHORIZATION_REQUIRED_AND_OBTAINED",
+      "canonical_precondition": "DELIVERED_RECEIPT_COUNT_ZERO",
+      "pending_event_identity_change": "DENY",
+      "pending_event_time_change": "DENY",
+      "legacy_prompt_receipt_eligibility": "DENY"
     }
   },
   "required_guards": [
@@ -212,48 +242,52 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "DISTINCT_SEALED_CANDIDATE_OOS",
     "HASH_VERIFIED_COACH_OUTBOX",
     "DURABLE_COACH_OUTBOX_UNTIL_VERIFIED_ACK",
-    "EXACT_COACH_THREAD_ID_RESOLUTION_WHEN_CAPABILITY_AVAILABLE",
-    "COACH_THREAD_READ_BEFORE_SEND",
-    "EXACT_FULL_DELIVERY_TOKEN_DEDUPLICATION",
-    "ATTEMPT_INITIAL_PENDING_DELIVERY_WHEN_CAPABILITY_AVAILABLE",
-    "INITIAL_PENDING_POST_SEND_READBACK_BEFORE_RECEIPT",
-    "RECEIPTS_LIMITED_TO_INITIAL_CANONICAL_SNAPSHOT",
+    "SAME_SCHEDULE_CHAT_TARGET_IDENTITY",
+    "PRIOR_ASSISTANT_MESSAGES_ONLY_AT_TURN_START",
+    "FRESH_CANONICAL_PENDING_ID_REQUIRED_FOR_RECEIPT",
+    "EXACT_FULL_V12_CANONICAL_PROMPT_REQUIRED",
+    "NO_SAME_TURN_RENDER_ACKNOWLEDGEMENT",
+    "CONTEXT_LOSS_PRESERVES_PENDING_EVENT",
     "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
     "COACH_DELIVERY_PROOF_SLA_CANONICAL",
-    "ZERO_RECEIPT_HEARTBEAT_WHEN_DELIVERY_UNAVAILABLE_OR_UNVERIFIABLE",
+    "ZERO_RECEIPT_HEARTBEAT_WHEN_DELIVERY_UNVERIFIABLE",
     "PENDING_EVENT_AND_TIMING_DURABILITY_WITHOUT_VERIFIED_RECEIPT",
     "DELIVERY_DEBT_SEPARATE_FROM_HEARTBEAT_OUTCOME",
-    "POST_HEARTBEAT_NEW_EVENT_DELIVERY_WITHOUT_EARLY_ACK",
-    "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE"
+    "V11_PROMPTS_INELIGIBLE_FOR_V12_RECEIPT",
+    "ZERO_EXISTING_RECEIPTS_BEFORE_TARGET_MIGRATION"
   ],
   "cutover": {
     "activation_authorized_by_repository_preparation": false,
+    "explicit_user_lifecycle_authorization_obtained": true,
     "required_order": [
-      "PAUSE_EXACT_ACTIVE_V10_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
-      "DEPLOY_AND_VERIFY_SERVER_V11_ATTESTATION",
-      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V11",
+      "PAUSE_EXACT_ACTIVE_V11_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
+      "REQUIRE_ZERO_CANONICAL_DELIVERED_RECEIPTS_AND_PRESERVE_PENDING_TIMES",
+      "DEPLOY_AND_VERIFY_SERVER_V12_ATTESTATION",
+      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V12",
       "PROVE_UPDATED_PLATFORM_SCHEDULE_REMAINS_PAUSED_AND_ZERO_ACTIVE",
       "ACTIVATE_UPDATED_PLATFORM_SCHEDULE_AND_PROVE_EXACTLY_ONE_ACTIVE"
     ],
     "overlapping_active_schedules": "DENY",
     "new_schedule_creation": "DENY",
     "successor_activation_before_old_clock_exclusion": "DENY",
-    "rollback": "PAUSE_V11_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V10_WORKER_AND_PROMPT"
+    "rollback": "PAUSE_V12_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V11_WORKER_AND_PROMPT"
   },
   "missing_proof": [
-    "SERVER_V11_ATTESTATION_IMPLEMENTATION",
-    "WORKER_V11_DEPLOYMENT",
+    "SERVER_V12_ATTESTATION_IMPLEMENTATION",
+    "WORKER_V12_DEPLOYMENT",
     "EXISTING_CLOUD_SCHEDULE_IN_PLACE_UPDATE",
     "ONE_ACTIVE_SCHEDULE_READBACK",
-    "SCHEDULED_RESEARCH_MCP_AVAILABILITY",
-    "LIVE_PREQUEUE_FAILURE_KEEPS_SCHEDULE_ENABLED",
+    "UNATTENDED_PRIOR_ASSISTANT_CONTEXT_VISIBILITY",
+    "TURN_N_EXACT_V12_PROMPT_RENDER",
+    "TURN_N_PLUS_1_RECEIPT_ACCEPTANCE",
+    "LIVE_BACKLOG_MONOTONIC_DECREASE",
+    "LIVE_BACKLOG_ZERO_OR_PERMANENT_MISSING_PROOF",
     "LIVE_FUTURE_NEXT_RUN_AFTER_FAILED_OCCURRENCE",
-    "LIVE_NORMAL_OCCURRENCE_AFTER_FAILED_OCCURRENCE",
     "LEARNING_LATENCY_OR_ECONOMIC_VALUE"
   ],
   "performance_boundary": {
-    "immediate_pnl_effect": "ZERO_CONTRACT_ONLY",
-    "immediate_drawdown_effect": "ZERO_CONTRACT_ONLY",
+    "immediate_pnl_effect": "ZERO_CONTROL_PLANE_ONLY",
+    "immediate_drawdown_effect": "ZERO_CONTROL_PLANE_ONLY",
     "learning_latency_direction": "MAY_DECREASE_AFTER_LIVE_ACCEPTANCE",
     "operator_effort_direction": "MAY_DECREASE_AFTER_LIVE_ACCEPTANCE",
     "quantified_value": "MISSING_PROOF"
@@ -264,15 +298,16 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = json.loads(
     "AUTOMATIC_SCHEDULE_PAUSE_DISABLE_OR_DELETE",
     "SCHEDULE_SELF_MUTATION",
     "SAME_OCCURRENCE_HEARTBEAT_RETRY",
-    "CROSS_TASK_WRITE_BEFORE_HEARTBEAT_DUE",
     "LOCAL_RESEARCH_STATE_FALLBACK",
     "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
     "OOS_REOPEN_OR_GATE_RELAXATION",
-    "FUZZY_OR_INFERRED_COACH_TASK_SELECTION",
-    "ACK_WITHOUT_EXACT_TARGET_THREAD_READBACK",
-    "RECEIPT_FOR_POST_HEARTBEAT_NEW_EVENT_IN_SAME_CYCLE",
+    "CROSS_TASK_LIST_READ_OR_SEND",
+    "SAME_TURN_DELIVERY_ACKNOWLEDGEMENT",
+    "ACK_WITHOUT_EXACT_PRIOR_ASSISTANT_V12_PROMPT",
+    "ACK_FROM_V11_OR_EARLIER_PROMPT",
+    "TOKEN_ONLY_ACKNOWLEDGEMENT",
     "SCHEDULED_INBOX_NOTIFICATION_SUMMARY_OR_USER_QUOTE_AS_PROOF",
-    "DEADLINE_OR_QUEUE_TIMESTAMP_RESET",
+    "DEADLINE_QUEUE_TIMESTAMP_OR_DELIVERY_ID_RESET",
     "UNVERIFIED_COACH_DELIVERY_CLAIM",
     "USER_OPERATED_RESEARCH_STEP",
     "EXTERNAL_MESSENGER_WEBHOOK_PAID_API_OR_API_KEY"
@@ -290,7 +325,7 @@ MAX_COACH_OUTBOX_BATCH = 8
 MAX_COACH_RECEIPTS_PER_HEARTBEAT = 8
 MAX_COACH_DELIVERED_RECEIPTS = 256
 CANDIDATE_AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
-COACH_TASK_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
+COACH_TASK_ID = "6a71a167-be58-83ec-aed2-f1736e31dd45"
 COACH_EVENT_TYPES = {
     "MATERIAL_LEARNING",
     "WEEKLY_BRIEF_READY",
@@ -360,7 +395,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if actual_sha256 != EXPECTED_OPS_SCHEDULE_CONTRACT_SHA256:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract bytes do not match the frozen V11 hash",
+            "reason": "cloud Ops schedule contract bytes do not match the frozen V12 hash",
         }
     try:
         value = json.loads(raw.decode("utf-8"))
@@ -372,7 +407,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V11 object",
+            "reason": "cloud Ops schedule contract does not match the frozen V12 object",
         }
     recurrence = value["recurrence"]
     return {

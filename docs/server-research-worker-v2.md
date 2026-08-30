@@ -42,11 +42,16 @@ both server write operations return
 a new MCP operation or exposes a server filesystem path.
 
 The same status exposes the installed server-canonical frozen
-`CLOUD_OPS_SCHEDULE_V11` contract, its unchanged `09:00 Asia/Taipei` canonical
+`CLOUD_OPS_SCHEDULE_V12` contract, its unchanged `09:00 Asia/Taipei` canonical
 heartbeat due boundary, the intended sole `09:05 Asia/Taipei` cloud recurrence,
 the 300-second nominal dispatch margin, and its byte-level SHA-256. V1 through
-V10 remain immutable predecessor evidence. The two write operations require the
-V11 hash in the `ops_schedule_contract_sha256` argument. A missing or
+V11 remain immutable predecessor evidence, including V10 SHA-256
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa` and
+V11 SHA-256
+`9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
+The two write operations require the V12 SHA-256
+`98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c`
+in the `ops_schedule_contract_sha256` argument. A missing or
 changed contract returns
 `OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED`; a missing or mismatched caller
 attestation returns `OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED`. Both outcomes
@@ -205,19 +210,20 @@ re-hashes the artifact, rejects missing or duplicate delivery ids, and returns
 the complete structured event under `EVENTS_PENDING_EXTERNAL_DELIVERY`. The
 sealed artifact SHA-256 is the delivery id. Routine heartbeats leave older
 pending events intact. Each verified event also includes a deterministic
-delivery token and exact canonical delivery prompt. The V9 schedule contract
-permits only task
-list/read/send operations for this handoff. After proving the heartbeat is due,
-the cloud cycle snapshots initial pending ids, reads the exact Coach task,
-deduplicates by artifact SHA-256, sends an absent canonical prompt once, and
-reads back before claiming verified delivery. An initial-snapshot receipt is
-carried by that same due heartbeat. An event created by the heartbeat is sent
-afterward and its receipt waits for the next normal cycle. If the target host
-is unavailable, the event remains pending. The queue and
-Worker both validate the receipt schema, target, token, status, and canonical
-delivery id before removing the pending event. Repeated verified receipts are
-idempotent; unverified or unknown receipts fail closed. An unavailable or
-mismatched artifact makes the outbox `COACH_OUTBOX_INVALID`.
+delivery token and exact canonical delivery prompt. Under V12 there are no
+Codex task operations: after proving the heartbeat is due, the cloud cycle
+snapshots at most eight initial pending events and scans only prior assistant
+messages in the same schedule chat. A receipt is valid only when one prior
+assistant message contains the exact full V12 canonical prompt and the
+identical id is still pending in fresh status. The normally due heartbeat may
+carry those receipts; afterward the current assistant output renders each
+still-pending exact prompt once. Current-turn output cannot receipt itself, so
+new and re-rendered events wait for a later normal cycle. Missing context keeps
+the event pending without resetting its id, queue time, deadline, or breach.
+The queue and Worker validate the receipt schema, target, token, status, and
+canonical delivery id before removing the pending event. Repeated verified
+receipts are idempotent; unverified or unknown receipts fail closed. An
+unavailable or mismatched artifact makes the outbox `COACH_OUTBOX_INVALID`.
 
 Each newly queued Coach event also freezes a queue timestamp and the next
 normal daily cloud cycle's bounded three-hour completion window as its
@@ -609,11 +615,11 @@ The systemd path unit is an event consumer, not an additional schedule.
   period bound into the artifact hash;
 - canonical status exposes every pending Coach event through a bounded,
   hash-verified, durable outbox that survives later routine heartbeats;
-- the active schedule contract binds Coach delivery to exact task discovery,
-  read-before-send deduplication, canonical prompt copying, and post-send
-  readback, while only a verified receipt on the next due heartbeat can
-  acknowledge it and target unavailability remains pending rather than adding
-  a timer or messenger;
+- the active schedule contract binds Coach delivery to the exact existing
+  schedule chat, exact full canonical V12 prompt copying, prior-assistant
+  context proof, and fresh identical pending state, while current-turn output
+  and token-only, legacy, summarized, truncated, quoted, or inferred context
+  cannot acknowledge it;
 - canonical status measures queue-to-verified-receipt proof against the next
   normal cloud cycle's bounded three-hour completion window, preserves `PASS`
   or `BREACH`, and exposes legacy timing as `MISSING_PROOF`;
@@ -715,9 +721,9 @@ post-release heartbeat, live empty-receipt acceptance, live pending-event
 preservation, lawful rollover/microstructure advancement, future task-tool
 availability, Coach delivery proof, and economic value remain `MISSING_PROOF`.
 
-## Active failed-occurrence lifecycle V11
+## Historical failed-occurrence lifecycle V11
 
-The active contract is `CLOUD_OPS_SCHEDULE_V11`, SHA-256
+The historical contract is `CLOUD_OPS_SCHEDULE_V11`, SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
 V10 remains the immutable predecessor after the separately authorized
 zero-overlap cutover. V11 preserves the exact existing schedule id
@@ -735,3 +741,30 @@ V11 occurrence were proven on 2026-08-28 and 2026-08-29. The first occurrence
 failed closed without retrying or disabling the clock; its compatible empty-
 rollover reader fix is deployed. A future platform `next_run_time` and the next
 natural successful evidence continuation remain separate `MISSING_PROOF` gates.
+
+## Authorized same-schedule Coach delivery V12
+
+The successor contract is `CLOUD_OPS_SCHEDULE_V12`, exact SHA-256
+`98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c`.
+It keeps V11's exact schedule id, recurrence, failure lifecycle, five MCP
+operations, queue rules, Server Canonical writer, delivery SLA, scientific
+gates, and sealed OOS boundary. Fresh 2026-08-30 platform inventory proved the
+former Coach target inaccessible, so explicit user authorization rebinds only
+the Coach destination to the existing schedule chat
+`6a71a167-be58-83ec-aed2-f1736e31dd45`.
+
+The Worker emits the exact V12 target and delivery-contract identity in every
+canonical prompt. The scheduled caller may acknowledge an event only when that
+exact full prompt appears in a prior assistant message in the same chat and the
+identical id remains pending in fresh canonical status. Current-turn output,
+token-only matches, V11 or earlier prompts, summaries, truncations, user quotes,
+notifications, or inferred context contribute zero receipts. The existing 12
+pending events have zero delivered receipts at the migration boundary; their
+ids, queue times, deadlines, and existing breach results remain unchanged.
+
+Cutover must pause V11 and prove zero active clocks, recheck the zero-receipt
+precondition, deploy and verify V12, update the same paused schedule in place,
+then prove exactly one active clock and one active Server Canonical writer.
+Never manually run a heartbeat. Turn N exact render, Turn N+1 canonical receipt,
+monotonic backlog drain, and final zero or precise permanent `MISSING_PROOF`
+remain live acceptance gates.

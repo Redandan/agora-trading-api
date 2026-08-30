@@ -1,0 +1,261 @@
+{
+  "schema_version": "12",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V12",
+  "document_status": "FROZEN",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "state_authority": "SERVER_CANONICAL",
+  "schedule_count": 1,
+  "recurrence": {
+    "frequency": "DAILY",
+    "timezone": "Asia/Taipei",
+    "local_time": "09:05",
+    "end": "NEVER"
+  },
+  "canonical_heartbeat_due": {
+    "timezone": "Asia/Taipei",
+    "local_time": "09:00"
+  },
+  "dispatch_margin": {
+    "scheduled_seconds_after_canonical_due": 300,
+    "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
+    "early_call_behavior": "NOT_DUE_NO_DELIVERY_RECEIPT",
+    "additional_timer": "DENY"
+  },
+  "failure_lifecycle": {
+    "failed_occurrence_effect": "FAIL_CLOSED_CURRENT_OCCURRENCE_ONLY",
+    "schedule_enabled_state_after_failure": "KEEP_ENABLED",
+    "automatic_pause_disable_or_delete": "DENY",
+    "schedule_self_mutation": "DENY",
+    "next_normal_occurrence": "PRESERVE",
+    "same_occurrence_heartbeat_retry": "DENY",
+    "manual_catchup": "DENY",
+    "evidence_backfill": "DENY",
+    "schedule_mutation_authority": "EXPLICIT_USER_AUTHORIZATION_ONLY"
+  },
+  "first_operation": "get_research_status",
+  "allowed_mcp_operations": [
+    "get_research_status",
+    "request_research_heartbeat",
+    "submit_research_candidate_bundle",
+    "get_research_run",
+    "get_research_briefing"
+  ],
+  "allowed_codex_operations": [],
+  "write_attestation": {
+    "parameter": "ops_schedule_contract_sha256",
+    "required": true,
+    "activation_rule": "V12_HASH_ONLY_AFTER_CANONICAL_STATUS_REPORTS_V12_READY",
+    "v11_status_behavior": "STOP_BEFORE_ANY_V12_WRITE_CALL"
+  },
+  "predecessor": {
+    "contract_id": "CLOUD_OPS_SCHEDULE_V11",
+    "sha256": "9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61",
+    "bytes_modified": false,
+    "server_attestation_active_until_cutover": true,
+    "platform_activation_proven": true
+  },
+  "platform_schedule": {
+    "migration_source_contract_id": "CLOUD_OPS_SCHEDULE_V11",
+    "existing_active_schedule_id": "6a71a1ed2f608191b0621c52bed3fd81",
+    "existing_schedule_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
+    "execution_surface": "CHATGPT_WORK_CLOUD_SCHEDULE",
+    "local_computer_may_be_off": true,
+    "migration": "PAUSE_UPDATE_REACTIVATE_EXISTING_SCHEDULE_IN_PLACE",
+    "create_second_schedule": "DENY"
+  },
+  "coach_delivery": {
+    "contract_id": "SEALED_COACH_SAME_SCHEDULE_CHAT_DELIVERY_V2",
+    "target_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
+    "destination": "EXISTING_SCHEDULE_CHAT_PRIOR_ASSISTANT_CONTEXT",
+    "delivery_id_source": "SEALED_ARTIFACT_SHA256",
+    "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
+    "durability": "SERVER_HEARTBEAT_STATE_UNTIL_VERIFIED_ACK",
+    "cross_task_operations_required": false,
+    "cross_task_operations_mode": "DENY",
+    "cycle_order": [
+      "READ_FRESH_CANONICAL_STATUS_FIRST",
+      "REQUIRE_NORMALLY_DUE_HEARTBEAT_BEFORE_RECEIPT",
+      "SNAPSHOT_AT_MOST_EIGHT_INITIAL_PENDING_EVENTS",
+      "SCAN_PRIOR_ASSISTANT_MESSAGES_IN_THE_SAME_SCHEDULE_CHAT",
+      "FORM_RECEIPTS_ONLY_FOR_EXACT_FULL_V12_CANONICAL_PROMPTS_WITH_IDENTICAL_PENDING_IDS",
+      "INVOKE_AT_MOST_THE_NORMALLY_DUE_HEARTBEAT_WITH_ZERO_TO_EIGHT_VERIFIED_RECEIPTS",
+      "READ_FRESH_CANONICAL_STATUS_AFTER_HEARTBEAT",
+      "RENDER_EACH_STILL_PENDING_EXACT_V12_CANONICAL_PROMPT_ONCE_AS_CURRENT_ASSISTANT_OUTPUT"
+    ],
+    "prior_context_proof": {
+      "required_role": "assistant",
+      "required_location": "PRIOR_MESSAGE_IN_SAME_SCHEDULE_CHAT",
+      "required_value": "EXACT_FULL_CANONICAL_DELIVERY_PROMPT",
+      "required_delivery_contract_id": "SEALED_COACH_SAME_SCHEDULE_CHAT_DELIVERY_V2",
+      "required_target_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
+      "required_canonical_state": "IDENTICAL_DELIVERY_ID_STILL_PENDING_IN_FRESH_STATUS",
+      "insufficient_sources": [
+        "CURRENT_TURN_OUTPUT",
+        "TOKEN_WITHOUT_EXACT_FULL_CANONICAL_PROMPT",
+        "V11_OR_EARLIER_DELIVERY_PROMPT",
+        "USER_QUOTED_PROMPT_OR_TOKEN",
+        "SUMMARIZED_CONTEXT",
+        "TRUNCATED_CONTEXT",
+        "ALTERED_PROMPT_OR_TOKEN",
+        "SCHEDULED_INBOX",
+        "NOTIFICATION",
+        "INFERRED_CONTEXT"
+      ]
+    },
+    "current_turn_render_receipt_proof": "DENY",
+    "render": "RENDER_EXACT_CANONICAL_DELIVERY_PROMPT_AS_CURRENT_ASSISTANT_OUTPUT",
+    "context_loss": {
+      "receipt": "DENY",
+      "canonical_event_state": "KEEP_PENDING",
+      "rerender": "AT_MOST_ONCE_PER_TURN_USING_EXACT_CANONICAL_PROMPT",
+      "deadline_reset": "DENY",
+      "additional_timer_poller_messenger_or_user_step": "DENY"
+    },
+    "unverified_delivery_heartbeat_behavior": "ZERO_RECEIPT_FOR_EVENT_KEEP_PENDING_PROCEED_ONLY_IF_ALL_OTHER_HEARTBEAT_GATES_PASS",
+    "heartbeat_outcome_separation": "CANONICAL_RESEARCH_ADVANCEMENT_NEVER_IMPLIES_COACH_DELIVERY",
+    "canonical_ack": "EXACT_PRIOR_ASSISTANT_V12_PROMPT_RECEIPT_ON_NEXT_NORMALLY_DUE_HEARTBEAT",
+    "receipt_parameter": "coach_delivery_receipts",
+    "receipt_schema": {
+      "exact_fields": [
+        "schema_version",
+        "delivery_id",
+        "delivery_token",
+        "target_thread_id",
+        "delivery_status"
+      ],
+      "minimum_receipts_per_heartbeat": 0,
+      "maximum_receipts_per_heartbeat": 8,
+      "verified_receipt_statuses": [
+        "DELIVERED_TO_COACH_TASK_VERIFIED",
+        "ALREADY_DELIVERED_TO_COACH_TASK"
+      ]
+    },
+    "deduplication": {
+      "pending_id_source": "SEALED_ARTIFACT_SHA256",
+      "exact_token_required": true,
+      "exact_full_prompt_required": true,
+      "same_id_changed_payload": "INTEGRITY_BLOCKED",
+      "repeated_verified_receipt": "IDEMPOTENT",
+      "unknown_or_unverified_receipt": "REJECT"
+    },
+    "delivery_proof_sla": {
+      "basis": "CANONICAL_VERIFIED_RECEIPT_ACKNOWLEDGEMENT",
+      "queued_at_source": "CANONICAL_OUTBOX_INSERT_TIMESTAMP",
+      "deadline_rule": "NEXT_NORMAL_CLOUD_CYCLE_PLUS_COMPLETION_WINDOW",
+      "completion_window_seconds": 10800,
+      "pending_status": "PENDING_WITHIN_SLA",
+      "breach_status": "BREACH_PENDING_DELIVERY_PROOF",
+      "terminal_statuses": [
+        "PASS",
+        "BREACH"
+      ],
+      "legacy_missing_proof_statuses": [
+        "MISSING_PROOF_LEGACY_EVENT",
+        "MISSING_PROOF_LEGACY_RECEIPT"
+      ],
+      "queue_or_deadline_reset_on_cutover": "DENY"
+    },
+    "delivery_debt": {
+      "preserve_pending_without_verified_receipt": true,
+      "preserve_delivery_id": true,
+      "preserve_delivery_queued_at": true,
+      "preserve_delivery_deadline_at": true,
+      "preserve_existing_breach": true,
+      "false_acknowledgement": "DENY",
+      "heartbeat_success_clears_delivery_debt": false
+    },
+    "target_migration": {
+      "source_target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+      "source_target_status": "INACCESSIBLE_NOT_ACTIVE_OR_ARCHIVED",
+      "target_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
+      "authorization": "EXPLICIT_USER_AUTHORIZATION_REQUIRED_AND_OBTAINED",
+      "canonical_precondition": "DELIVERED_RECEIPT_COUNT_ZERO",
+      "pending_event_identity_change": "DENY",
+      "pending_event_time_change": "DENY",
+      "legacy_prompt_receipt_eligibility": "DENY"
+    }
+  },
+  "required_guards": [
+    "WORKER_RELEASE_READY",
+    "POLICY_V3_READY",
+    "CLOUD_DISPATCH_AFTER_CANONICAL_DUE_MARGIN",
+    "HEARTBEAT_DUE_AND_QUEUE_IDLE",
+    "FAILED_OCCURRENCE_PRESERVES_ENABLED_SCHEDULE",
+    "CAPTURE_HEALTH_BOUNDED_SAME_CYCLE",
+    "CANDIDATE_REGISTRATION_SLA_CANONICAL",
+    "FORWARD_CANDIDATE_CONTEXT_EXACT_COPY",
+    "DISTINCT_SEALED_CANDIDATE_OOS",
+    "HASH_VERIFIED_COACH_OUTBOX",
+    "DURABLE_COACH_OUTBOX_UNTIL_VERIFIED_ACK",
+    "SAME_SCHEDULE_CHAT_TARGET_IDENTITY",
+    "PRIOR_ASSISTANT_MESSAGES_ONLY_AT_TURN_START",
+    "FRESH_CANONICAL_PENDING_ID_REQUIRED_FOR_RECEIPT",
+    "EXACT_FULL_V12_CANONICAL_PROMPT_REQUIRED",
+    "NO_SAME_TURN_RENDER_ACKNOWLEDGEMENT",
+    "CONTEXT_LOSS_PRESERVES_PENDING_EVENT",
+    "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
+    "COACH_DELIVERY_PROOF_SLA_CANONICAL",
+    "ZERO_RECEIPT_HEARTBEAT_WHEN_DELIVERY_UNVERIFIABLE",
+    "PENDING_EVENT_AND_TIMING_DURABILITY_WITHOUT_VERIFIED_RECEIPT",
+    "DELIVERY_DEBT_SEPARATE_FROM_HEARTBEAT_OUTCOME",
+    "V11_PROMPTS_INELIGIBLE_FOR_V12_RECEIPT",
+    "ZERO_EXISTING_RECEIPTS_BEFORE_TARGET_MIGRATION"
+  ],
+  "cutover": {
+    "activation_authorized_by_repository_preparation": false,
+    "explicit_user_lifecycle_authorization_obtained": true,
+    "required_order": [
+      "PAUSE_EXACT_ACTIVE_V11_PLATFORM_SCHEDULE_AND_PROVE_ZERO_ACTIVE",
+      "REQUIRE_ZERO_CANONICAL_DELIVERED_RECEIPTS_AND_PRESERVE_PENDING_TIMES",
+      "DEPLOY_AND_VERIFY_SERVER_V12_ATTESTATION",
+      "UPDATE_EXACT_EXISTING_PAUSED_PLATFORM_SCHEDULE_TO_V12",
+      "PROVE_UPDATED_PLATFORM_SCHEDULE_REMAINS_PAUSED_AND_ZERO_ACTIVE",
+      "ACTIVATE_UPDATED_PLATFORM_SCHEDULE_AND_PROVE_EXACTLY_ONE_ACTIVE"
+    ],
+    "overlapping_active_schedules": "DENY",
+    "new_schedule_creation": "DENY",
+    "successor_activation_before_old_clock_exclusion": "DENY",
+    "rollback": "PAUSE_V12_AND_PROVE_ZERO_ACTIVE_BEFORE_RESTORING_V11_WORKER_AND_PROMPT"
+  },
+  "missing_proof": [
+    "SERVER_V12_ATTESTATION_IMPLEMENTATION",
+    "WORKER_V12_DEPLOYMENT",
+    "EXISTING_CLOUD_SCHEDULE_IN_PLACE_UPDATE",
+    "ONE_ACTIVE_SCHEDULE_READBACK",
+    "UNATTENDED_PRIOR_ASSISTANT_CONTEXT_VISIBILITY",
+    "TURN_N_EXACT_V12_PROMPT_RENDER",
+    "TURN_N_PLUS_1_RECEIPT_ACCEPTANCE",
+    "LIVE_BACKLOG_MONOTONIC_DECREASE",
+    "LIVE_BACKLOG_ZERO_OR_PERMANENT_MISSING_PROOF",
+    "LIVE_FUTURE_NEXT_RUN_AFTER_FAILED_OCCURRENCE",
+    "LEARNING_LATENCY_OR_ECONOMIC_VALUE"
+  ],
+  "performance_boundary": {
+    "immediate_pnl_effect": "ZERO_CONTROL_PLANE_ONLY",
+    "immediate_drawdown_effect": "ZERO_CONTROL_PLANE_ONLY",
+    "learning_latency_direction": "MAY_DECREASE_AFTER_LIVE_ACCEPTANCE",
+    "operator_effort_direction": "MAY_DECREASE_AFTER_LIVE_ACCEPTANCE",
+    "quantified_value": "MISSING_PROOF"
+  },
+  "forbidden_actions": [
+    "SECOND_TIMER_OR_WRITER",
+    "EARLY_HEARTBEAT_OR_CATCHUP_TIMER",
+    "AUTOMATIC_SCHEDULE_PAUSE_DISABLE_OR_DELETE",
+    "SCHEDULE_SELF_MUTATION",
+    "SAME_OCCURRENCE_HEARTBEAT_RETRY",
+    "LOCAL_RESEARCH_STATE_FALLBACK",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_REOPEN_OR_GATE_RELAXATION",
+    "CROSS_TASK_LIST_READ_OR_SEND",
+    "SAME_TURN_DELIVERY_ACKNOWLEDGEMENT",
+    "ACK_WITHOUT_EXACT_PRIOR_ASSISTANT_V12_PROMPT",
+    "ACK_FROM_V11_OR_EARLIER_PROMPT",
+    "TOKEN_ONLY_ACKNOWLEDGEMENT",
+    "SCHEDULED_INBOX_NOTIFICATION_SUMMARY_OR_USER_QUOTE_AS_PROOF",
+    "DEADLINE_QUEUE_TIMESTAMP_OR_DELIVERY_ID_RESET",
+    "UNVERIFIED_COACH_DELIVERY_CLAIM",
+    "USER_OPERATED_RESEARCH_STEP",
+    "EXTERNAL_MESSENGER_WEBHOOK_PAID_API_OR_API_KEY"
+  ]
+}

@@ -22,15 +22,14 @@ The program targets:
 - zero Trading runtime, database, order, fund, SHADOW, PAPER, or LIVE changes.
 
 The first target is implemented and tested as a deterministic pipeline SLA but
-still awaits a real evidence-ready trigger. The second target now has a
-versioned Codex-task delivery contract: the sole cloud cycle resolves the exact
-Coach task, checks the sealed artifact delivery id before sending, sends the
-canonical envelope once, and reads the task back before claiming verified
-delivery. The app operations are available and the target task is readable, but
-the first real material cloud-cycle delivery is still pending proof. If the
-target host or tool is unavailable, the event remains a hash-identified
-`CROSS_TASK_DELIVERY_PENDING` outbox; this does not authorize a second schedule
-or external messenger.
+still awaits a real evidence-ready trigger. The second target now has the V12
+same-schedule-chat delivery contract: the sole cloud cycle copies each exact
+canonical prompt into its current assistant output, and only a later normally
+due cycle may acknowledge that event when the exact full prompt is visible in
+a prior assistant message and the identical id remains canonical-pending.
+Missing prior context remains hash-identified
+`MISSING_PROOF_PRIOR_ASSISTANT_V12_PROMPT` debt; it does not authorize a second
+schedule, messenger, inferred receipt, retry, or user relay.
 
 The 24-hour target starts only after the frozen evidence trigger is actually
 ready. It does not convert a 90-day prospective evidence requirement into a
@@ -206,8 +205,8 @@ existing heartbeat operation using the same deterministic artifacts.
 4. Seal MCP briefings and make MCP status canonical-first.
 5. Add focused contract tests for these control-plane boundaries.
 6. Add the bounded AI-to-canonical candidate registration channel.
-7. Bind hash-deduplicated Coach task delivery to read-before-send and post-send
-   task readback.
+7. Bind hash-deduplicated Coach delivery to exact current-turn rendering and
+   later prior-assistant-context proof in the same schedule chat.
 8. Deploy the independent Research Worker and verify the old timer remains
    disabled.
 9. Start the prospective evidence cycle only through a separately authorized,
@@ -274,13 +273,12 @@ database query, or backfill.
 - an abnormal stop or host reboot resumes the same in-flight request through
   the existing dispatch path, with bounded retries and no second timer;
 - generated Coach briefings include an immutable artifact id and SHA-256;
-- the sole cloud cycle reads the exact Coach task before sending, skips an
-  existing sealed delivery id, sends only the canonical delivery prompt, and
-  reads the task back before claiming verified delivery;
-- when the target task, host, or delivery tool is unavailable, the single
-  scheduled result exposes a complete hash-identified
-  `CROSS_TASK_DELIVERY_PENDING` handoff and never claims it reached the Coach
-  task;
+- the sole cloud cycle renders only the exact V12 canonical delivery prompt in
+  its existing schedule chat and requires that exact full prompt in a prior
+  assistant message before a later normally due receipt;
+- when prior assistant context is missing, the event remains hash-identified
+  `MISSING_PROOF_PRIOR_ASSISTANT_V12_PROMPT` debt and is never acknowledged from
+  a token alone, current-turn output, V11 prompt, summary, or user quote;
 - canonical status supplies that handoff through a bounded read-only outbox and
   fails closed when any event artifact path or hash cannot be re-verified;
 - Worker release id, clean Git commit, and verified source-manifest hash are
@@ -304,7 +302,7 @@ database query, or backfill.
 - `agora-research-heartbeat.timer` remains disabled and the path unit remains
   an event consumer only.
 
-## Active V11 cross-task and failure-lifecycle contract
+## Historical V11 cross-task and failure-lifecycle contract
 
 Fresh server-canonical status at `2026-08-29T03:40:47Z` reports deployed
 Worker release `20260829T033523Z`, source commit
@@ -313,7 +311,12 @@ Worker release `20260829T033523Z`, source commit
 readback retains the existing ChatGPT Work task as the sole cloud clock; the
 desktop automation remains paused.
 
-The active failure-lifecycle contract is `CLOUD_OPS_SCHEDULE_V11`, frozen at
+V11 succeeded `CLOUD_OPS_SCHEDULE_V10`, exact SHA-256
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
+V10 remains immutable cross-task delivery history and is not an alternate
+active contract or fallback path.
+
+The historical failure-lifecycle contract is `CLOUD_OPS_SCHEDULE_V11`, frozen at
 exact SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
 It keeps the scientific gates, one 09:05 cloud clock, 09:00 canonical due
@@ -339,3 +342,23 @@ receipt acceptance, SLA result, and any quantified learning-latency or economic
 benefit remain separate `MISSING_PROOF` gates.
 Immediate PnL and drawdown effect are
 zero.
+
+## Authorized V12 same-schedule Coach delivery
+
+The successor `CLOUD_OPS_SCHEDULE_V12`, exact SHA-256
+`98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c`,
+preserves V11's lifecycle, one clock, Server Canonical writer, research gates,
+evidence progression, receipt schema, delivery SLA, and sealed OOS boundary.
+It replaces only the inaccessible Coach task with the exact existing schedule
+chat `6a71a167-be58-83ec-aed2-f1736e31dd45` after fresh inventory proved the
+former target unavailable.
+
+V12 has no Codex task operations. Turn N renders the exact full canonical V12
+prompt as assistant output. Turn N+1 may include a five-field receipt only when
+that exact prompt is visible in a prior assistant message and the identical id
+remains pending in fresh canonical state. Current-turn output, V11 or earlier
+prompts, token-only matches, summaries, truncations, user quotes, notifications,
+and inferred context are insufficient. The 12-event backlog retains its ids,
+queue/deadline timestamps, and existing breach results. Immediate PnL and
+drawdown effect remain zero; live render, receipt acceptance, monotonic drain,
+and quantified learning latency remain `MISSING_PROOF` until natural cycles.

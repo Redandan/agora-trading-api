@@ -42,7 +42,7 @@ HEARTBEAT_HOUR = 9
 WEEKLY_PREFIX = "weekly-learning-brief-"
 MONTHLY_PREFIX = "monthly-learning-review-"
 REPORT_DATE = re.compile(r"^(?:weekly-learning-brief|monthly-learning-review)-(\d{4}-\d{2}-\d{2})(?:[-.].*)?\.md$")
-COACH_TASK_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
+COACH_TASK_ID = "6a71a167-be58-83ec-aed2-f1736e31dd45"
 COACH_DELIVERY_TOKEN_PREFIX = "SEALED_RESEARCH_DELIVERY:"
 COACH_DELIVERY_STATUSES = {
     "DELIVERED_TO_COACH_TASK_VERIFIED",

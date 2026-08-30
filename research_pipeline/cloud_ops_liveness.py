@@ -29,6 +29,10 @@ V11_CONTRACT_ID = "CLOUD_OPS_SCHEDULE_V11"
 V11_CONTRACT_SHA256 = (
     "9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61"
 )
+V12_CONTRACT_ID = "CLOUD_OPS_SCHEDULE_V12"
+V12_CONTRACT_SHA256 = (
+    "98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c"
+)
 SOLE_SCHEDULE_ID = "6a71a1ed2f608191b0621c52bed3fd81"
 SOLE_OPS_THREAD_ID = "6a71a167-be58-83ec-aed2-f1736e31dd45"
 FROZEN_SCHEDULE_CONTRACTS = {
@@ -41,6 +45,12 @@ FROZEN_SCHEDULE_CONTRACTS = {
     V11_CONTRACT_ID: {
         "schema_version": "11",
         "sha256": V11_CONTRACT_SHA256,
+        "schedule_id": SOLE_SCHEDULE_ID,
+        "destination_thread_id": SOLE_OPS_THREAD_ID,
+    },
+    V12_CONTRACT_ID: {
+        "schema_version": "12",
+        "sha256": V12_CONTRACT_SHA256,
         "schedule_id": SOLE_SCHEDULE_ID,
         "destination_thread_id": SOLE_OPS_THREAD_ID,
     },
@@ -273,7 +283,7 @@ def build_cloud_ops_liveness_audit(
         block(
             "UNSUPPORTED_SCHEDULE_CONTRACT",
             "INTEGRITY",
-            "Only the frozen V10 predecessor and V11 lifecycle contract are supported.",
+            "Only the frozen V10 predecessor, V11 lifecycle contract, and V12 same-chat successor are supported.",
         )
     else:
         frozen_schedule_contract_proven = (
@@ -288,7 +298,7 @@ def build_cloud_ops_liveness_audit(
                 "INTEGRITY",
                 "Canonical schedule id, schema version, authorization and SHA-256 must match a known frozen contract.",
             )
-        if contract_id == V11_CONTRACT_ID:
+        if contract_id in {V11_CONTRACT_ID, V12_CONTRACT_ID}:
             v11_failure_lifecycle_contract_proven = (
                 ops.get("failure_lifecycle") == V11_FAILURE_LIFECYCLE
             )
@@ -296,11 +306,11 @@ def build_cloud_ops_liveness_audit(
                 block(
                     "V11_FAILURE_LIFECYCLE_CONTRACT_MISMATCH",
                     "INTEGRITY",
-                    "V11 must preserve the exact fail-closed-cycle and keep-enabled-clock lifecycle contract.",
+                    "V11 and V12 must preserve the exact fail-closed-cycle and keep-enabled-clock lifecycle contract.",
                 )
 
     contract_ready = authority_ready and frozen_schedule_contract_proven and (
-        contract_id != V11_CONTRACT_ID
+        contract_id not in {V11_CONTRACT_ID, V12_CONTRACT_ID}
         or v11_failure_lifecycle_contract_proven is True
     )
     if not contract_ready:

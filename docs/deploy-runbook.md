@@ -358,9 +358,9 @@ The first normal post-release heartbeat, empty-receipt acceptance, preserved
 pending-event identities, lawful rollover/microstructure advancement and live
 Coach delivery remain `MISSING_PROOF` until observed.
 
-### Active Cloud Ops V11 failed-occurrence lifecycle
+### Historical Cloud Ops V11 failed-occurrence lifecycle
 
-The active frozen V11 contract is `CLOUD_OPS_SCHEDULE_V11`, exact SHA-256
+The historical frozen V11 contract is `CLOUD_OPS_SCHEDULE_V11`, exact SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
 It changes no heartbeat due boundary, MCP operation, writer, research gate,
 candidate rule or sealed OOS boundary. A failed occurrence must fail closed but
@@ -388,6 +388,44 @@ and the next natural successful evidence continuation remain `MISSING_PROOF`.
 
 Creating another schedule or writer is forbidden. Rollback must first pause V11
 and prove zero active clocks before restoring V10 Worker and prompt.
+
+### Authorized Cloud Ops V12 same-schedule delivery
+
+V12 is frozen as `CLOUD_OPS_SCHEDULE_V12`, exact SHA-256
+`98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c`.
+It changes only Coach destination and proof: exact canonical prompts are
+rendered in the existing schedule chat
+`6a71a167-be58-83ec-aed2-f1736e31dd45`, and a receipt may be accepted only on
+a later naturally due heartbeat when that exact full V12 prompt is present in
+a prior assistant message and the identical id is still canonical-pending.
+V11 remains immutable at SHA-256
+`9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`;
+V10 remains immutable at SHA-256
+`90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`.
+
+Use this exact zero-overlap order after the bounded V12 commit passes tests and
+`-PackageOnly`:
+
+1. Re-read canonical status; require queues idle, V11 READY, 12 pending and
+   zero delivered receipts, and preserve the pending ids/timestamps.
+2. Pause exact schedule `6a71a1ed2f608191b0621c52bed3fd81` and prove zero
+   total active research clocks while the desktop automation remains paused.
+3. Deploy the V12 control release with `-PreserveBoundDataPlane` and verify
+   Server Canonical reports the exact V12 contract/hash and zero receipts.
+4. Update that same paused schedule id in place to the exact committed V12
+   prompt, keep it paused, and prove zero active research clocks.
+5. Activate that same schedule and prove one total/active cloud clock, the same
+   destination chat, a future next run, and one total/active Server Canonical
+   writer.
+6. Wait for natural occurrences. Do not manually trigger a heartbeat, retry,
+   catch up, or backfill. Turn N renders; Turn N+1 may accept at most eight
+   exact receipts; later natural cycles continue a monotonic drain.
+
+Current-turn output, a token without the exact full canonical prompt, V11 or
+earlier prompts, summaries, truncations, user quotes, Scheduled inbox entries,
+notifications, and inferred context are not receipt proof. Preserve delivery
+ids, queue/deadline timestamps, and existing `BREACH`. Rollback must pause V12
+and prove zero active clocks before restoring the V11 Worker and prompt.
 
 ### Historical Cloud Ops V9 receipt-SLA contract
 

@@ -16,6 +16,7 @@ V8_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v8.json"
 V9_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v9.json"
 V10_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v10.json"
 V11_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v11.json"
+V12_PATH = ROOT / "research_pipeline" / "cloud-ops-schedule-contract.v12.json"
 PROMPT_PATH = ROOT / "research_pipeline" / "prompts" / "daily-research-tick.md"
 DOC_PATHS = [
     ROOT / "docs" / "autonomous-research-charter.md",
@@ -29,7 +30,9 @@ V8_SHA256 = "7c3df0a2ecd0279ce48f2b58d12f84ce8757270e616ab85e1db173a5df2301d1"
 V9_SHA256 = "04d11ad095f64c6dda7d746cf36f26af773f53684765c368d6fe595533ab7d2c"
 V10_SHA256 = "90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa"
 V11_SHA256 = "9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61"
+V12_SHA256 = "98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c"
 TARGET_THREAD_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
+SCHEDULE_THREAD_ID = "6a71a167-be58-83ec-aed2-f1736e31dd45"
 EXISTING_CLOUD_SCHEDULE_ID = "6a71a1ed2f608191b0621c52bed3fd81"
 
 
@@ -49,6 +52,7 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
         cls.v9 = _load(V9_PATH)
         cls.v10 = _load(V10_PATH)
         cls.v11 = _load(V11_PATH)
+        cls.v12 = _load(V12_PATH)
         cls.prompt = PROMPT_PATH.read_text(encoding="utf-8")
         cls.docs = [path.read_text(encoding="utf-8") for path in DOC_PATHS]
 
@@ -163,25 +167,24 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
         self.assertEqual(10800, delivery["delivery_proof_sla"]["completion_window_seconds"])
         self.assertEqual("DENY", delivery["delivery_proof_sla"]["queue_or_deadline_reset_on_cutover"])
 
-    def test_prompt_is_v11_hash_bound_and_preserves_delivery_decoupling(self) -> None:
+    def test_prompt_is_v12_hash_bound_and_preserves_delivery_decoupling(self) -> None:
         self.assertEqual(V10_SHA256, _sha256(V10_PATH))
         self.assertEqual(V11_SHA256, _sha256(V11_PATH))
-        self.assertIn("CLOUD_OPS_SCHEDULE_V11", self.prompt)
-        self.assertIn(V11_SHA256, self.prompt)
-        self.assertIn("PREPARED_NOT_ACTIVE_V11", self.prompt)
-        self.assertIn("SEALED_COACH_CROSS_TASK_DELIVERY_V6", self.prompt)
-        self.assertIn(TARGET_THREAD_ID, self.prompt)
-        self.assertIn("Use only `list_threads`, `read_thread`, and `send_message_to_thread`", self.prompt)
-        self.assertIn("exact at-most-eight initial pending delivery ids", self.prompt)
-        self.assertIn("event's exact canonical `delivery_prompt` once", self.prompt)
-        self.assertIn("zero to eight exact", self.prompt)
+        self.assertEqual(V12_SHA256, _sha256(V12_PATH))
+        self.assertIn("CLOUD_OPS_SCHEDULE_V12", self.prompt)
+        self.assertIn(V12_SHA256, self.prompt)
+        self.assertIn("PREPARED_NOT_ACTIVE_V12", self.prompt)
+        self.assertIn("SEALED_COACH_SAME_SCHEDULE_CHAT_DELIVERY_V2", self.prompt)
+        self.assertIn(SCHEDULE_THREAD_ID, self.prompt)
+        self.assertIn("exact at-most-eight initial pending events", self.prompt)
+        self.assertIn("exact full canonical `delivery_prompt`", self.prompt)
+        self.assertIn("zero to eight", self.prompt)
         self.assertIn("Do not block the", self.prompt)
-        self.assertIn("post-heartbeat new event", self.prompt)
-        self.assertIn("CROSS_TASK_DELIVERY_PENDING", self.prompt)
-        self.assertNotIn("do not send before the normally due heartbeat", self.prompt)
-        self.assertNotIn("new post-send receipt may be carried only", self.prompt)
+        self.assertIn("same-turn receipt", self.prompt)
+        self.assertIn("MISSING_PROOF_PRIOR_ASSISTANT_V12_PROMPT", self.prompt)
+        self.assertNotIn("Use only `list_threads`, `read_thread`, and `send_message_to_thread`", self.prompt)
 
-    def test_current_docs_prepare_v11_and_preserve_v10_as_history(self) -> None:
+    def test_current_docs_prepare_v12_and_preserve_v10_v11_as_history(self) -> None:
         for content in self.docs:
             self.assertIn("CLOUD_OPS_SCHEDULE_V10", content)
             self.assertIn(V10_SHA256, content)
@@ -193,10 +196,12 @@ class CloudOpsCrossTaskDeliveryContractTest(unittest.TestCase):
         for content in (self.docs[0], self.docs[2], self.docs[3]):
             self.assertIn("CLOUD_OPS_SCHEDULE_V11", content)
             self.assertIn(V11_SHA256, content)
-        self.assertIn("repository-prepared successor", self.docs[0])
-        self.assertIn("Active heartbeat liveness decoupling V10", self.docs[0])
-        self.assertIn("Active heartbeat liveness decoupling V10", self.docs[2])
-        self.assertIn("Active Cloud Ops V10", self.docs[3])
+        for content in (self.docs[0], self.docs[1], self.docs[2], self.docs[3]):
+            self.assertIn("CLOUD_OPS_SCHEDULE_V12", content)
+            self.assertIn(V12_SHA256, content)
+        self.assertIn("Historical heartbeat liveness decoupling V10", self.docs[0])
+        self.assertIn("Historical heartbeat liveness decoupling V10", self.docs[2])
+        self.assertIn("Historical Cloud Ops V10", self.docs[3])
         self.assertIn("sole cloud clock", self.docs[1])
         self.assertIn(EXISTING_CLOUD_SCHEDULE_ID, self.docs[2])
         self.assertIn(EXISTING_CLOUD_SCHEDULE_ID, self.docs[3])

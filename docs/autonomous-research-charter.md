@@ -178,18 +178,20 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The active `CLOUD_OPS_SCHEDULE_V11` cloud Ops semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v11.json`, exact
-SHA-256
+The active predecessor `CLOUD_OPS_SCHEDULE_V11` remains frozen in
+`research_pipeline/cloud-ops-schedule-contract.v11.json`, exact SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
-Its immutable predecessor is `CLOUD_OPS_SCHEDULE_V10`, exact SHA-256
+The explicitly authorized successor `CLOUD_OPS_SCHEDULE_V12` is frozen in
+`research_pipeline/cloud-ops-schedule-contract.v12.json`, exact SHA-256
+`98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c`.
+V11's immutable predecessor is `CLOUD_OPS_SCHEDULE_V10`, exact SHA-256
 `90e0de95fa34beff9447640a5dcdbb972278014664806df0a4bf5f36e2598faa`;
-V1 through V9 remain immutable historical contract evidence. V11 keeps the
+V1 through V10 remain immutable historical contract evidence. V12 keeps the
 canonical heartbeat due boundary at `09:00 Asia/Taipei` but declares the sole
 cloud recurrence at
 `09:05 Asia/Taipei`. The frozen 300-second nominal delay tolerates small
 platform early-fire jitter without weakening the server's `NOT_DUE` gate or
-adding a catch-up timer. It was introduced after the nominal 09:00 cycle on
+adding a catch-up timer. The margin was introduced after the nominal 09:00 cycle on
 2026-08-06 was read back at 08:59:24.393178 while canonical `next_due` was still
 09:00; the task correctly made no early write, which skipped that day's only
 scheduled call. Canonical status must expose
@@ -199,10 +201,12 @@ fail before queue mutation when the contract is missing, altered, or
 mismatched. This binds the scheduled caller to one versioned contract; it does
 not make an unobservable UI prompt cryptographically self-verifying, so the
 live schedule definition still requires platform-side readback after each
-contract change. The 2026-08-28 activation followed the frozen order: the exact
-V10 schedule was paused with zero active clocks, the V11 Worker was deployed
-and verified, and that same schedule id was updated in place before it was
-re-enabled. Creating a second schedule or writer remains forbidden.
+contract change. The 2026-08-28 V11 activation followed the frozen order. V12
+must repeat the same zero-overlap sequence: pause the exact V11 schedule and
+prove zero active clocks, require the current zero delivered receipts while
+preserving all pending ids and timestamps, deploy and verify the V12 Worker,
+then update and reactivate that same schedule id in place. Creating a second
+schedule or writer remains forbidden.
 
 ## State machine
 
@@ -367,23 +371,29 @@ six-hour deadline, but becomes canonical `INTEGRITY_BLOCKED` immediately after
 that boundary. Status must retain its request id, target day, deadline, and
 negative seconds remaining so a stuck path cannot masquerade as a routine retry.
 
-The scheduled Work surface now exposes Codex task discovery, read, and send
-operations. A material sealed event uses the exact canonical delivery prompt
-from `coach_outbox`, with the artifact SHA-256 as both delivery id and dedupe
-token. The sole cloud cycle must resolve and read the exact Coach task before
-sending, skip an already-present token, send once, and read the task again
-before claiming verified delivery. The Coach task re-verifies canonical status
-and the artifact hash before interpretation. If the target host or tool is
-unavailable, the event remains in the scheduled result with
-`delivery_status=CROSS_TASK_DELIVERY_PENDING`; a successful send without
-readback is only `QUEUED_TO_COACH_TASK_UNVERIFIED`. The outbox remains a
-read-only status surface and has no standalone ACK operation. Only the next
-normally due heartbeat may carry the bounded verified receipt that updates
-canonical delivery state; an early receipt write or a second timer remains
-forbidden. Scheduled/Activity output or a device notification is not direct
-Coach-task delivery, and this path must not be replaced by a second timer or an
-unapproved messaging service. The first real material event from a cloud cycle
-is still required to prove the next-cycle Coach-thread SLA.
+Fresh platform evidence on 2026-08-30 disproved the V11 cross-task assumption:
+the ChatGPT Work scheduled occurrence did not expose Codex task discovery,
+read, or send operations, and the frozen Coach task id was neither readable nor
+present in active or archived task inventory. V12 therefore rebinds delivery,
+under explicit user authorization, to the existing schedule chat
+`6a71a167-be58-83ec-aed2-f1736e31dd45`; it does not create a task, timer,
+messenger, schedule, or writer.
+
+A material sealed event still uses the exact canonical `delivery_prompt` from
+`coach_outbox`, with the artifact SHA-256 as delivery id and token. The current
+assistant output renders that exact V12 prompt once. A receipt is lawful only
+on a later normally due heartbeat when a prior assistant message in the same
+schedule chat contains the exact full canonical prompt and the identical id is
+still pending in fresh canonical status. A token alone, current-turn output,
+V11 or earlier prompt, user quote, summary, truncation, Scheduled inbox item,
+notification, or inferred context is not proof. Context loss keeps the event
+pending and permits only an exact re-render; it never resets delivery identity,
+queue time, deadline, or existing `BREACH`. The outbox remains a read-only
+status surface and has no standalone ACK operation. Only the next normally due
+heartbeat may carry the bounded verified receipt; same-turn receipt, early
+write, retry, catch-up, backfill, and a second timer remain forbidden. Live
+Turn N render and Turn N+1 canonical receipt acceptance remain
+`MISSING_PROOF` until naturally observed.
 
 That SLA is measured conservatively from canonical outbox enqueue to canonical
 acceptance of a verified task-readback receipt. A new event freezes
@@ -396,12 +406,12 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
 
-The active V11 Ops contract preserves the V10
-`SEALED_COACH_CROSS_TASK_DELIVERY_V6` basis, 10,800-second completion window,
-pending/breach labels, terminal labels, and legacy missing-proof labels in the
-same caller attestation required by both write operations. V1 through V10
-remain sealed history and only the contract reported `READY` by Server
-Canonical may attest a write.
+The V12 Ops contract preserves V11 and V10's 10,800-second completion window,
+pending/breach labels, terminal labels, legacy missing-proof labels, and exact
+five-field receipt schema while replacing cross-task readback with
+`SEALED_COACH_SAME_SCHEDULE_CHAT_DELIVERY_V2` prior-assistant-context proof.
+V1 through V11 remain sealed history and only the contract reported `READY` by
+Server Canonical may attest a write.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
 the deterministic contract, the canonical intake may create the typed dataset,
@@ -516,7 +526,7 @@ Current liveness acceptance must use a normalized platform readback plus fresh
 canonical status through `cloud-ops-liveness-audit`; historical cutover text or
 canonical `schedule_count` alone cannot produce `READY`.
 
-## Active failed-occurrence lifecycle V11
+## Historical failed-occurrence lifecycle V11
 
 `CLOUD_OPS_SCHEDULE_V11` is frozen at SHA-256
 `9b30c944f2a7d3d1d23a7b01a87eb72dadb1368749039e6ea279c1b07be37c61`.
@@ -538,3 +548,25 @@ the next normal boundary, `2026-08-30T01:00:00Z`. The compatible reader fix is
 deployed, but a future platform `next_run_time`, the next natural successful
 evidence continuation, learning latency and economic value remain
 `MISSING_PROOF` until observed.
+
+## Authorized same-schedule Coach delivery V12
+
+`CLOUD_OPS_SCHEDULE_V12` is frozen at SHA-256
+`98cc2374961fb37c00a8396e6bd8126b7b39a32d7d85ea0e0fcd30c2b9c7fc0c`.
+It preserves V11's sole schedule id, daily recurrence, due boundary, failure
+lifecycle, MCP operation set, Server Canonical writer, research gates, sealed
+OOS boundary, delivery ids, queue timestamps, deadlines, and measured breach
+history. It changes only the inaccessible Coach destination and delivery-proof
+surface. The sole existing schedule chat becomes the Coach destination; no
+cross-task operation is permitted.
+
+V12 requires the exact full canonical prompt in a prior assistant message,
+fresh identical pending state, and the V12 contract/target identity before one
+of the existing five-field receipts may enter the next normally due heartbeat.
+The current turn cannot acknowledge its own output. Deployment must pause V11
+and prove zero active clocks, confirm zero existing delivered receipts, deploy
+and verify V12, update the same paused schedule in place, then prove exactly one
+active clock and one Server Canonical writer. Repository implementation or
+deployment alone does not prove context continuity, a real receipt, monotonic
+backlog drain, or economic value; those remain `MISSING_PROOF` pending natural
+cycles.

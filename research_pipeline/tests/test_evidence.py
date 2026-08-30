@@ -1794,7 +1794,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
             "schema_version": "1",
             "delivery_id": delivery_id,
             "delivery_token": f"SEALED_RESEARCH_DELIVERY:{delivery_id}",
-            "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+            "target_thread_id": "6a71a167-be58-83ec-aed2-f1736e31dd45",
             "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
         }
         acknowledged = run_heartbeat_cycle(
@@ -1932,7 +1932,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
         )
 
     def test_coach_delivery_proof_sla_breach_and_legacy_are_preserved(self) -> None:
-        target = "019fca63-4f8f-71e3-9d88-297bca468eb9"
+        target = "6a71a167-be58-83ec-aed2-f1736e31dd45"
         delivery_id = "a" * 64
         receipt = {
             "schema_version": "1",

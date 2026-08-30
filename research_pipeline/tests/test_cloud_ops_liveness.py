@@ -16,6 +16,8 @@ from research_pipeline.cloud_ops_liveness import (
     V11_CONTRACT_ID,
     V11_CONTRACT_SHA256,
     V11_FAILURE_LIFECYCLE,
+    V12_CONTRACT_ID,
+    V12_CONTRACT_SHA256,
     build_cloud_ops_liveness_audit,
     validate_cloud_ops_liveness_audit,
     validate_control_surface_readback,
@@ -207,6 +209,49 @@ class CloudOpsLivenessTest(unittest.TestCase):
         )
         self.assertEqual(
             V11_CONTRACT_SHA256,
+            result["inventory"]["canonical_contract_sha256"],
+        )
+
+    def test_exact_v12_same_schedule_chat_and_live_clock_are_ready(self) -> None:
+        canonical = canonical_status()
+        canonical["ops_schedule_contract"].update(
+            {
+                "schema_version": "12",
+                "contract_id": V12_CONTRACT_ID,
+                "sha256": V12_CONTRACT_SHA256,
+                "failure_lifecycle": deepcopy(V11_FAILURE_LIFECYCLE),
+            }
+        )
+        canonical["ops_schedule_contract"]["coach_delivery"].update(
+            {
+                "target_thread_id": OPS_THREAD_ID,
+                "cross_task_operations_required": False,
+                "cross_task_operations_mode": "DENY",
+            }
+        )
+        readback = control_readback()
+        readback["clocks"][0].update(
+            {
+                "contract_id": V12_CONTRACT_ID,
+                "contract_sha256": V12_CONTRACT_SHA256,
+            }
+        )
+
+        result = build_cloud_ops_liveness_audit(canonical, readback)
+
+        self.assertEqual("READY", result["status"])
+        self.assertTrue(result["claims"]["canonical_contract_ready"])
+        self.assertTrue(result["claims"]["frozen_schedule_contract_proven"])
+        self.assertTrue(
+            result["claims"]["v11_failure_lifecycle_contract_proven"]
+        )
+        self.assertTrue(result["claims"]["coach_delivery_decoupled"])
+        self.assertEqual(
+            V12_CONTRACT_ID,
+            result["inventory"]["canonical_contract_id"],
+        )
+        self.assertEqual(
+            V12_CONTRACT_SHA256,
             result["inventory"]["canonical_contract_sha256"],
         )
 

@@ -924,8 +924,8 @@ class DurableQueueContractTest(unittest.TestCase):
             "RECOVERY_BLOCKED",
         )
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["schema_version"], "11")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V11")
+        self.assertEqual(contract["schema_version"], "12")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V12")
         self.assertEqual(contract["document_status"], "FROZEN")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(
@@ -949,7 +949,7 @@ class DurableQueueContractTest(unittest.TestCase):
             {
                 "scheduled_seconds_after_canonical_due": 300,
                 "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
-                "early_call_behavior": "NOT_DUE_NO_CROSS_TASK_WRITE",
+                "early_call_behavior": "NOT_DUE_NO_DELIVERY_RECEIPT",
                 "additional_timer": "DENY",
             },
         )
@@ -982,7 +982,7 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         self.assertEqual(
             contract["coach_delivery"]["contract_id"],
-            "SEALED_COACH_CROSS_TASK_DELIVERY_V6",
+            "SEALED_COACH_SAME_SCHEDULE_CHAT_DELIVERY_V2",
         )
         self.assertEqual(
             contract["coach_delivery"]["delivery_proof_sla"],
@@ -1443,7 +1443,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(outbox["event_count"], 1)
         self.assertEqual(
             outbox["delivery_contract"]["contract_id"],
-            "SEALED_COACH_CROSS_TASK_DELIVERY_V6",
+            "SEALED_COACH_SAME_SCHEDULE_CHAT_DELIVERY_V2",
         )
         self.assertEqual(
             outbox["delivery_contract"]["target_thread_id"],

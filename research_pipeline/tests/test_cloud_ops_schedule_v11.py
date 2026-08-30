@@ -98,10 +98,10 @@ class CloudOpsScheduleV11Test(unittest.TestCase):
             self.v11["cutover"]["required_order"],
         )
 
-    def test_prompt_is_v11_hash_bound_and_denies_schedule_self_mutation(self) -> None:
+    def test_active_prompt_preserves_v11_as_the_immutable_predecessor(self) -> None:
+        self.assertIn("CLOUD_OPS_SCHEDULE_V12", self.prompt)
         self.assertIn("CLOUD_OPS_SCHEDULE_V11", self.prompt)
-        self.assertIn(V11_SHA256, self.prompt)
-        self.assertIn("PREPARED_NOT_ACTIVE_V11", self.prompt)
+        self.assertIn("PREPARED_NOT_ACTIVE_V12", self.prompt)
         self.assertIn("FAIL_CLOSED_CURRENT_OCCURRENCE_ONLY", self.prompt)
         self.assertIn("schedule_enabled_state_after_failure=KEEP_ENABLED", self.prompt)
         self.assertIn("automatic_pause_disable_or_delete=DENY", self.prompt)

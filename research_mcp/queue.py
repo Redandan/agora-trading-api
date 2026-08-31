@@ -764,7 +764,11 @@ def _coach_outbox(
             "target_thread_id": COACH_TASK_ID,
             "canonical_reverification_required": True,
             "scope": "STATE_SYNC_ONLY_NO_RESEARCH_WRITE_OR_TRADING_ACTION",
-            "delivery_proof_sla": event_proof_sla,
+            "delivery_proof_clock": {
+                "basis": "FROZEN_CANONICAL_QUEUE_AND_DEADLINE",
+                "delivery_queued_at": queued_text,
+                "delivery_deadline_at": deadline_text,
+            },
             "event": verified_event,
         }
         delivery_prompt = (

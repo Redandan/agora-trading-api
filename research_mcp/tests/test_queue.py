@@ -1464,6 +1464,15 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(envelope["target_thread_id"], queue.COACH_TASK_ID)
         self.assertEqual(envelope["event"], event)
         self.assertTrue(envelope["canonical_reverification_required"])
+        self.assertEqual(
+            envelope["delivery_proof_clock"],
+            {
+                "basis": "FROZEN_CANONICAL_QUEUE_AND_DEADLINE",
+                "delivery_queued_at": None,
+                "delivery_deadline_at": None,
+            },
+        )
+        self.assertNotIn("delivery_proof_sla", envelope)
         self.assertTrue(outbox["events"][0]["artifact_verified"])
         self.assertEqual(
             outbox["events"][0]["delivery_proof_sla"]["status"],
@@ -1514,6 +1523,26 @@ class DurableQueueContractTest(unittest.TestCase):
                 "seconds_to_deadline": -1,
             },
         )
+        self.assertEqual(
+            pending["events"][0]["delivery_prompt"],
+            at_deadline["events"][0]["delivery_prompt"],
+        )
+        self.assertEqual(
+            pending["events"][0]["delivery_prompt"],
+            breached["events"][0]["delivery_prompt"],
+        )
+        timed_envelope = json.loads(
+            pending["events"][0]["delivery_prompt"].split("\n", 1)[1]
+        )
+        self.assertEqual(
+            timed_envelope["delivery_proof_clock"],
+            {
+                "basis": "FROZEN_CANONICAL_QUEUE_AND_DEADLINE",
+                "delivery_queued_at": timed_event["delivery_queued_at"],
+                "delivery_deadline_at": timed_event["delivery_deadline_at"],
+            },
+        )
+        self.assertNotIn("delivery_proof_sla", timed_envelope)
 
         verified_receipt = {
             "schema_version": "1",

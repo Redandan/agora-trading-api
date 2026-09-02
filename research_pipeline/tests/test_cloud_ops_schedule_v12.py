@@ -171,6 +171,10 @@ class CloudOpsScheduleV12Test(unittest.TestCase):
         self.assertIn("prior assistant message", self.prompt)
         self.assertIn("same-turn receipt", self.prompt)
         self.assertIn("V11 or earlier", self.prompt)
+        self.assertIn(
+            '`schema_version` value must be the JSON string `"1"` (not numeric `1`).',
+            self.prompt,
+        )
         self.assertNotIn("Use only `list_threads`, `read_thread`, and `send_message_to_thread`", self.prompt)
 
 

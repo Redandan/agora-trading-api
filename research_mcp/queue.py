@@ -1610,7 +1610,10 @@ def _validated_heartbeat_payload(
         if delivery_id in seen:
             raise ValueError("coach delivery receipts contain a duplicate delivery id")
         seen.add(delivery_id)
-        if raw.get("schema_version") != "1":
+        schema_version = raw.get("schema_version")
+        if schema_version != "1" and not (
+            type(schema_version) is int and schema_version == 1
+        ):
             raise ValueError("coach delivery receipt schema_version must be 1")
         if raw.get("delivery_token") != f"SEALED_RESEARCH_DELIVERY:{delivery_id}":
             raise ValueError("coach delivery receipt token is invalid")
@@ -1624,7 +1627,9 @@ def _validated_heartbeat_payload(
             raise ValueError(
                 "coach delivery receipt does not match the hash-verified canonical outbox batch"
             )
-        normalized_receipts.append({key: str(raw[key]) for key in required})
+        normalized_receipt = {key: str(raw[key]) for key in required}
+        normalized_receipt["schema_version"] = "1"
+        normalized_receipts.append(normalized_receipt)
 
     payload = {
         "schema_version": "1",

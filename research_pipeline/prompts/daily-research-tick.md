@@ -225,8 +225,9 @@ you claim to render. A newly created or re-rendered event is eligible only when
 that exact full prompt remains visible in a prior assistant message at the next
 normally due occurrence and the identical id is still canonical-pending.
 
-Every receipt object contains only `schema_version=1`, `delivery_id`,
-`delivery_token`, `target_thread_id`, and `delivery_status`. The only permitted
+Every receipt object contains only `schema_version`, `delivery_id`,
+`delivery_token`, `target_thread_id`, and `delivery_status`. The
+`schema_version` value must be the JSON string `"1"` (not numeric `1`). The only permitted
 statuses are `DELIVERED_TO_COACH_TASK_VERIFIED` and
 `ALREADY_DELIVERED_TO_COACH_TASK`; never acknowledge
 `QUEUED_TO_COACH_TASK_UNVERIFIED` or `CROSS_TASK_DELIVERY_PENDING`. An initial-

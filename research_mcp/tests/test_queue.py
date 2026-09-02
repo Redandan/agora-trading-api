@@ -1773,6 +1773,54 @@ class DurableQueueContractTest(unittest.TestCase):
                 payload, _ = queue._validated_heartbeat_payload([receipt])
                 self.assertEqual(payload["coach_delivery_receipts"], [receipt])
 
+    def test_receipt_schema_version_normalizes_only_integer_one(self) -> None:
+        delivery_id = "f" * 64
+        heartbeat = self.state / "heartbeat" / "state.json"
+        heartbeat.parent.mkdir(parents=True, exist_ok=True)
+        heartbeat.write_text(
+            json.dumps(
+                {
+                    "schema_version": "1",
+                    "coach_delivery": {
+                        "schema_version": "1",
+                        "pending_events": [],
+                        "delivered_receipts": [
+                            {
+                                "schema_version": "1",
+                                "delivery_id": delivery_id,
+                                "delivery_token": (
+                                    f"SEALED_RESEARCH_DELIVERY:{delivery_id}"
+                                ),
+                                "target_thread_id": queue.COACH_TASK_ID,
+                                "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
+                                "acknowledged_at": "2026-01-01T00:00:00Z",
+                            }
+                        ],
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        receipt: dict[str, object] = {
+            "schema_version": 1,
+            "delivery_id": delivery_id,
+            "delivery_token": f"SEALED_RESEARCH_DELIVERY:{delivery_id}",
+            "target_thread_id": queue.COACH_TASK_ID,
+            "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
+        }
+
+        payload, _ = queue._validated_heartbeat_payload([receipt])
+
+        self.assertEqual(
+            "1",
+            payload["coach_delivery_receipts"][0]["schema_version"],
+        )
+        for invalid_version in (True, 1.0, "01"):
+            with self.subTest(schema_version=invalid_version):
+                invalid_receipt = {**receipt, "schema_version": invalid_version}
+                with self.assertRaisesRegex(ValueError, "schema_version must be 1"):
+                    queue._validated_heartbeat_payload([invalid_receipt])
+
     def test_wrong_ops_contract_attestation_blocks_both_writes(self) -> None:
         self._heartbeat_state("2026-01-01T00:00:00Z")
         heartbeat = queue.request_heartbeat(

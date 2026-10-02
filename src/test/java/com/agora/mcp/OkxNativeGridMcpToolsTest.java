@@ -48,6 +48,7 @@ class OkxNativeGridMcpToolsTest {
         var report = mapper.readTree(new OkxNativeGridMcpTools(provider, mapper).getOkxNativeSpotGridAcceptanceEvidence("123"));
         assertTrue(report.path("filledSubOrderInventoryComplete").asBoolean());
         assertFalse(report.path("liveSubOrderInventoryComplete").asBoolean());
+        assertFalse(report.path("noLiveSubOrdersProven").asBoolean());
         assertFalse(report.path("exactNetPnlProven").asBoolean());
     }
 
@@ -55,6 +56,7 @@ class OkxNativeGridMcpToolsTest {
         var provider = new OfflineProvider(); provider.terminal = true;
         var report = mapper.readTree(new OkxNativeGridMcpTools(provider, mapper).getOkxNativeSpotGridAcceptanceEvidence("123"));
         assertTrue(report.path("exactNetPnlProven").asBoolean());
+        assertTrue(report.path("noLiveSubOrdersProven").asBoolean());
         assertEquals(0, BigDecimal.ONE.compareTo(report.path("exactNetPnlUsdt").decimalValue()));
         assertEquals(2, report.path("filledSubOrderPageCount").asInt());
     }
@@ -67,9 +69,20 @@ class OkxNativeGridMcpToolsTest {
         assertEquals(0, provider.tickerCalls);
     }
 
+    @Test void activeLiveSnapshotCountIsReconciledWithoutInventingZeroOrders() throws Exception {
+        var provider = new OfflineProvider(); provider.liveSnapshot = true;
+        var report = mapper.readTree(new OkxNativeGridMcpTools(provider, mapper).getOkxNativeSpotGridAcceptanceEvidence("123"));
+        assertTrue(report.path("liveSubOrderInventoryComplete").asBoolean());
+        assertEquals("LIVE_DETAIL_COUNT_MATCHED", report.path("liveSubOrderInventoryReason").asText());
+        assertEquals(2, report.path("liveSubOrderCount").asInt());
+        assertEquals(1, provider.liveCalls);
+        assertFalse(report.path("noLiveSubOrdersProven").asBoolean());
+        assertFalse(report.path("exactNetPnlProven").asBoolean());
+    }
+
     private class OfflineProvider extends OkxTradingService {
-        boolean twoBots, failTicker, terminal, failSecondFilledPage, failLivePage;
-        int tickerCalls, historyCalls;
+        boolean twoBots, failTicker, terminal, failSecondFilledPage, failLivePage, liveSnapshot;
+        int tickerCalls, historyCalls, liveCalls;
         OfflineProvider() { super(new OkxTradingProperties(), mapper); }
         @Override public JsonNode getNativeSpotGridOrders(boolean history) {
             if (history) historyCalls++;
@@ -87,7 +100,14 @@ class OkxNativeGridMcpToolsTest {
         }
         @Override public JsonNode getNativeSpotGridSubOrders(String algoId, String type, String after) {
             if ("live".equals(type)) {
+                liveCalls++;
                 if (failLivePage) throw new IllegalStateException("offline live page failure");
+                if (liveSnapshot) {
+                    var orders = mapper.createArrayNode();
+                    for (int i = 1; i <= 2; i++) orders.addObject().put("algoId", "123").put("instId", "BTC-USDT")
+                            .put("ordId", String.valueOf(i)).put("state", "live");
+                    return orders;
+                }
                 return mapper.createArrayNode();
             }
             if (after != null) {
@@ -112,6 +132,7 @@ class OkxNativeGridMcpToolsTest {
         }
         private com.fasterxml.jackson.databind.node.ObjectNode bot() {
             return mapper.createObjectNode().put("algoId", "123").put("instId", "BTC-USDT")
+                    .put("activeOrdNum", liveSnapshot ? "2" : "")
                     .put("state", terminal ? "stopped" : "running").put("minPx", "63978").put("maxPx", "67259");
         }
     }

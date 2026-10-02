@@ -53,9 +53,63 @@ class NativeSpotGridSubOrderInventoryTest {
         assertEquals("SUB_ORDER_PAGE_LIMIT_REACHED", result.reason());
     }
 
+    @Test void liveSnapshotUsesExplicitDetailCountWithoutRepeatedCursorRead() {
+        List<String> cursors = new ArrayList<>();
+        var result = NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", liveDetail("10"), after -> {
+            cursors.add(after == null ? "ROOT" : after);
+            return page(10, 1);
+        }, mapper);
+        assertTrue(result.complete());
+        assertEquals("LIVE_DETAIL_COUNT_MATCHED", result.reason());
+        assertEquals(List.of("ROOT"), cursors);
+        assertEquals(10, result.orders().size());
+    }
+
+    @Test void liveDetailMismatchAndTruncatedInventoryNeverProveCoverage() {
+        var tooMany = NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", liveDetail("1"), after -> page(2, 1), mapper);
+        assertFalse(tooMany.complete());
+        assertEquals("LIVE_DETAIL_COUNT_MISMATCH", tooMany.reason());
+        var tooFew = NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", liveDetail("3"), after ->
+                after == null ? page(2, 1) : page(0, 1), mapper);
+        assertFalse(tooFew.complete());
+        assertEquals("LIVE_DETAIL_COUNT_MISMATCH", tooFew.reason());
+        var capped = NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", liveDetail("101"), after -> page(100, 1), mapper);
+        assertFalse(capped.complete());
+    }
+
+    @Test void absentInvalidForeignOrStoppedDetailCannotCertifyRepeatedLivePage() {
+        for (var detail : List.of(liveDetail(""), liveDetail("N/A"), liveDetail("2").put("algoId", "456"),
+                liveDetail("2").put("instId", "ETH-USDT"), liveDetail("2").put("state", "stopped"))) {
+            assertFalse(NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", detail, after -> page(2, 1), mapper).complete());
+        }
+    }
+
+    @Test void duplicateForeignAndFilledRowsCannotSatisfyLiveDetailCount() {
+        var duplicates = page(1, 1); duplicates.add(duplicates.get(0).deepCopy());
+        assertFalse(NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", liveDetail("2"), after -> duplicates, mapper).complete());
+        var wrong = page(1, 1); ((com.fasterxml.jackson.databind.node.ObjectNode) wrong.get(0)).put("algoId", "456");
+        assertFalse(NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", liveDetail("1"), after -> wrong, mapper).complete());
+        var filled = page(1, 1); ((com.fasterxml.jackson.databind.node.ObjectNode) filled.get(0)).put("state", "filled");
+        assertFalse(NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", liveDetail("1"), after -> filled, mapper).complete());
+    }
+
+    @Test void stoppedProviderErrorIsNotAnEmptySuccessfulInventory() {
+        var result = NativeSpotGridSubOrderInventory.collectLive("123", "BTC-USDT", liveDetail("0").put("state", "stopped"), after -> {
+            throw new IllegalStateException("OKX API error [code=51291]: The bot does not exist or has already stopped");
+        }, mapper);
+        assertFalse(result.complete());
+        assertTrue(result.orders().isEmpty());
+        assertEquals("SUB_ORDER_PROVIDER_ERROR_51291", result.reason());
+    }
+
+    private com.fasterxml.jackson.databind.node.ObjectNode liveDetail(String count) {
+        return mapper.createObjectNode().put("algoId", "123").put("instId", "BTC-USDT")
+                .put("state", "running").put("activeOrdNum", count);
+    }
+
     private ArrayNode page(int start, int end) {
         ArrayNode page = mapper.createArrayNode();
-        for (int i = start; i >= end; i--) page.addObject().put("algoId", "123").put("instId", "BTC-USDT").put("ordId", "" + i);
+        for (int i = start; i >= end; i--) page.addObject().put("algoId", "123").put("instId", "BTC-USDT").put("ordId", "" + i).put("state", "live");
         return page;
     }
 }

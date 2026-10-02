@@ -125,7 +125,7 @@ public class OkxNativeGridMcpTools {
 
         var filledInventory = NativeSpotGridSubOrderInventory.collect(algoId, "BTC-USDT",
                 after -> okxTradingService.getNativeSpotGridSubOrders(algoId, "filled", after), objectMapper);
-        var liveInventory = NativeSpotGridSubOrderInventory.collect(algoId, "BTC-USDT",
+        var liveInventory = NativeSpotGridSubOrderInventory.collectLive(algoId, "BTC-USDT", findByAlgoId(detail, algoId),
                 after -> okxTradingService.getNativeSpotGridSubOrders(algoId, "live", after), objectMapper);
         ArrayNode filledSubOrders = filledInventory.orders();
         ArrayNode liveSubOrders = liveInventory.orders();
@@ -135,6 +135,7 @@ public class OkxNativeGridMcpTools {
         report.put("liveSubOrderInventoryComplete", liveInventory.complete());
         report.put("filledSubOrderInventoryReason", filledInventory.reason());
         report.put("liveSubOrderInventoryReason", liveInventory.reason());
+        report.put("noLiveSubOrdersProven", liveInventory.complete() && liveSubOrders.isEmpty());
         if (!filledInventory.complete()) blockers.add("FILLED_SUB_ORDER_INVENTORY_INCOMPLETE");
         if (!liveInventory.complete()) blockers.add("LIVE_SUB_ORDER_INVENTORY_INCOMPLETE");
         report.set("filledSubOrders", filledSubOrders);

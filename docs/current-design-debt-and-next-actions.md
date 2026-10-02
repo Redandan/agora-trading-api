@@ -3,7 +3,9 @@
 Latest diagnosis: 2026-10-02. Local remediation is based on deployed commit
 `9e7f84da54f56bbc983ec08dc7b9083680708b68`. The combined runtime release
 `52e47a4a96f92e675cb5dc6251d4cb10188f576a` started on port 8085 at
-2026-10-02 11:39 UTC. Post-release details are recorded below.
+2026-10-02 11:39 UTC. The Grid/performance integration `94fd6713` subsequently
+started at 13:49 UTC on port 8084. Current acceptance and the live-inventory
+diagnostic follow-up are recorded in `split-acceptance-status.md`.
 The strategy decisions and July acceptance narrative below remain historical
 context, not a statement that the first DRA sell is still outstanding.
 
@@ -134,7 +136,8 @@ bounded filled/live sub-order pagination. A 12:34 UTC OKX ticker of 86,725.3
 was 28.9423% above the same upper bound; the bot's ten live orders were buys
 in the old range. See [Grid deviation handling](okx-native-grid-range-observation-v1.md)
 for the diagnostics contract and operator adjustment/acceptance evidence.
-The diagnostic code is not deployed. Separately, the account holder confirmed
+The diagnostic code is deployed in `94fd6713`; the live-inventory count
+reconciliation follow-up remains under acceptance. Separately, the account holder confirmed
 the existing bot's edit at 20:59:56 Asia/Taipei: 78,000–90,000, ten grids,
 unchanged 10 USDT cumulative investment. Read-only browser acceptance found
 eight buys and two sells in the new range, with current price inside it.
@@ -143,7 +146,7 @@ stopped the old bot at 21:17:28 and created `3974349158101700608` at 21:20:34
 with both trailing directions enabled, upper/lower stop-moving prices
 102,000/73,200 and actual cumulative investment 13.62 USDT. Browser acceptance
 found one running bot, eight buys and two sells. This provider configuration
-is independent of the pending diagnostic release; Trading has no Grid mutation adapter.
+is independent of the diagnostic release; Trading has no Grid mutation adapter.
 
 Legacy lots 260/261/262 intentionally have no automatic exit. Donchian has
 80 observation days, two unique entries and one completed trade against a
@@ -324,14 +327,15 @@ holding age, utilization, and blocked opportunity cost remain visible.
 
 ## Actual design debt
 
-### Forward economic evidence V1 — local implementation, pending release
+### Forward economic evidence V1 — deployed, accumulating future evidence
 
-The next implementation adds independent provider cash-flow reconciliation,
+The deployed implementation adds independent provider cash-flow reconciliation,
 owner-509 per-lot normalized fill receipts, forward entry evaluations and
 hourly recorded-basis performance observations using existing audit tables.
 See [forward-spot-performance-v1.md](forward-spot-performance-v1.md) for formulas,
-coverage gates, retention, remaining limitations and acceptance. This is not
-yet Production evidence and does not authorize scaling or historical repair.
+coverage gates, retention, remaining limitations and acceptance. Initial empty
+reports correctly expose missing proof. Future samples and full trade lifecycles
+remain necessary; deployment does not authorize scaling or historical repair.
 
 ### Completed code reduction
 

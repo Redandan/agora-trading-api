@@ -1,8 +1,8 @@
 # Forward spot performance evidence V1
 
-Status: locally implemented on 2026-10-02; not deployed or accepted with new
-Production trades. Base runtime release is `52e47a4a`, with docs/tooling head
-`aa0c16a3`. This document is not a profitability or scaling decision.
+Status: deployed in `94fd6713` on 2026-10-02 at 13:49 UTC. The report is live;
+new natural observations and genuine future trades are separate evidence gates.
+This document is not a profitability or scaling decision.
 
 ## Scope and authority
 
@@ -135,9 +135,14 @@ ownership isolation, duplicate/old bars, unavailable DB/executor, missing
 samples and capital changes. They use no Spring application startup, network,
 real credentials or database.
 
-After a separately authorized single deployment, use the retained verifier,
-confirm the unchanged 10-tool registry and LIVE caps, and inspect two natural
-hourly samples plus the next natural owner-509 daily evaluation. A genuine
+The combined release reran 73 tests successfully; the live-inventory diagnostic
+follow-up reran 79 tests and Java 21 package successfully at 14:03 UTC. The
+retained production verifier confirmed the unchanged 10-tool registry and LIVE
+caps. At 13:55 UTC the new report returned zero forward samples and evaluations,
+with explicit missing-proof states rather than fabricated zero drawdown.
+
+Forward evidence acceptance still requires two natural hourly samples plus
+the next natural owner-509 daily evaluation. A genuine
 future buy-to-sell lifecycle is required to establish live cash-flow coverage;
 do not create a test order or replay history to complete acceptance. Initial
 zero forward samples is expected, not a success claim. Fee-exact whole-account

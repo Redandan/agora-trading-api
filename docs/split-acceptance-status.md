@@ -6,7 +6,28 @@ This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
 runnable current guidance.
 
-## 2026-10-02 reliability release
+## 2026-10-02 Grid and performance integration
+
+- Runtime `94fd6713c627784426d7c8c48a56d89b71a28e2e` started at 13:49 UTC,
+  port 8084 / PID 751454; prior port 8085 drained. Retained verification passed.
+- Fresh MCP confirms 10 tools and explicit native-Grid range health. The sole
+  active bot is `3974349158101700608`, within 78,000–90,000 at acceptance.
+- Stopped bot `3767345250394603520` has 112 retrieved filled sub-orders and
+  55 buy/sell groups, with complete filled pagination. Retained BTC prevents
+  exact-net cash settlement. Its live endpoint returns provider error 51291;
+  successful empty live inventory is not independently proven by that API.
+- The new bot has 10 observed live orders, matching detail `activeOrdNum`.
+  Provider live queries repeat their snapshot for an older cursor. A diagnostic
+  follow-up reconciles the explicit count and retains errors as missing proof;
+  79 tests and Java 21 package pass. Its deployment acceptance is pending.
+- The forward performance report is available. At 13:55 UTC it correctly has
+  no forward samples; natural hourly/daily evidence and new trades are pending.
+- Runtime-log smoke: 0 errors, 0 unknown warnings, 0 high-risk operation-like
+  lines. No strategy, order, Grid, fund, Earn, migration or backfill was performed
+  by this release. One extra diagnostic deployment is needed after the combined
+  deployment because acceptance exposed the live-query contract difference.
+
+## Earlier 2026-10-02 reliability release
 
 - Runtime commit: `52e47a4a96f92e675cb5dc6251d4cb10188f576a`.
 - One application deployment; active port 8085 / PID 717216; old port 8084 drained.

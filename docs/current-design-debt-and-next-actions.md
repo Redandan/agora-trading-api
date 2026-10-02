@@ -2,6 +2,10 @@
 
 ## 2026-10-03 strategy execution audit repair (Taipei date)
 
+Deployed and accepted as `224ab7f41a35dc4de27d482b3867a8227535aff7` in one
+application release. 99 offline tests and strict Production verification pass;
+current operational evidence is in `split-acceptance-status.md`.
+
 The owner authorized repair and a combined release after the read-only audit.
 The scope is mechanical owner-509 execution recovery, truthful pending-state
 reports, exact zero-fee handling and immutable running-version identity.
@@ -44,9 +48,10 @@ continues to permit a later docs-only checkout update.
 Offline regression covers partial allocation, same-bar replay, receipt replay,
 transaction rollback, process restart, canceled and unknown submissions,
 provider identity/quantity mismatch, missing/zero/base fees, owner isolation,
-pending reporting and immutable version identity. Deployment acceptance must
-still confirm health, registry, unchanged limits, position safety and absence
-of manual/test orders; offline tests alone are not Production execution proof.
+pending reporting and immutable version identity. Deployment acceptance confirms
+health, registry, unchanged limits and position safety, with no new execution
+records during the bounded release window. Future real fills remain a natural
+execution evidence gate; offline tests alone are not Production execution proof.
 
 Latest diagnosis: 2026-10-02. Local remediation is based on deployed commit
 `9e7f84da54f56bbc983ec08dc7b9083680708b68`. The combined runtime release

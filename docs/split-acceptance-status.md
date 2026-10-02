@@ -1,14 +1,51 @@
 # Split Acceptance Status
 
-Contract updated: 2026-10-02 Asia/Taipei
+Contract updated: 2026-10-03 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
 runnable current guidance.
 
-## 2026-10-02 Grid and performance integration
+## 2026-10-03 strategy execution repair
 
-- Current runtime `43355e9b3f8ae154e2012db219fb1de9cf4609f5` started at
+- One combined application deployment: runtime
+  `224ab7f41a35dc4de27d482b3867a8227535aff7`, started at
+  2026-10-02 16:16:35 UTC (2026-10-03 00:16:35 Taipei), port 8084 /
+  PID 788364. Old port 8085 is drained. Local/public health, authenticated MCP,
+  nginx and strict post-drain verification passed.
+- Owner 509 uses atomic V2 sell-group reservations and receipt application.
+  Terminal partial fills return unsold quantities to later profit evaluation;
+  same-bar submissions and duplicate receipt application are blocked. Existing
+  fresh daily evaluations query pending client ids without blind resubmission.
+- Known zero fees are recorded as zero. Missing or unsupported fee evidence
+  remains pending. Unresolved buy/sell rows appear in MCP safety/inventory;
+  performance equity is withheld until the execution state is resolved.
+- MCP reports the startup deployment commit, matching app.commit. It no longer
+  follows docs-only checkout changes. The registry remains 10 tools / 11 resources.
+- 99 offline tests (0 failures/errors), Java 21 package, retained shell syntax,
+  the MCP response-parser fixture and clean diff checks passed. Tests include
+  transactional rollback and restart recovery with an offline exchange adapter;
+  no test order was sent to Production.
+- At 16:17 UTC the owner-509 limits remained 10/80/250 USDT, DRA remained one
+  30 USDT lot, both had zero open owned lots, and DRA pending fees remained zero.
+  Legacy positions 260/261/262 remain intentional BTC Base holdings; safety
+  reports OK with zero issues. Donchian remains SHADOW.
+- Grid 3974349158101700608 remains running at 13.62 USDT investment and range
+  78,000–90,000. Acceptance ticker 85,291.6 was within range. No Grid mutation.
+- At 16:19 UTC read-only SQL found zero new live-signal rows, provider-attempt
+  rows or execution/error audits since deployment began. DRA lot 263 remains
+  closed at the original time with recorded PnL 1.58057695 and its sole attempt
+  RECONCILED_FILLED / RECONCILED. No migration or historical backfill occurred.
+- Active-log smoke passed: 0 errors, 0 unknown warnings, 0 high-risk operation
+  lines. Seven warnings match the documented startup baseline. The next natural
+  daily signal and future provider fills remain execution evidence gates;
+  deployment acceptance is not proof of improved profitability.
+- Deploy log: `logs/deploy/deploy-20261002T161518Z.log`.
+  Runtime log: `logs/runs/app-20261002T161605Z-port8084.log`.
+
+## Earlier 2026-10-02 Grid and performance integration
+
+- Then-current runtime `43355e9b3f8ae154e2012db219fb1de9cf4609f5` started at
   14:07 UTC, port 8085 / PID 757403; prior port 8084 drained. Retained local/public
   health, authenticated MCP, nginx and unchanged LIVE-cap verification passed.
   This supersedes integration `94fd6713`, deployed at 13:49 UTC.

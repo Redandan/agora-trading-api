@@ -2,6 +2,7 @@
 
 Status: deployed in `94fd6713` on 2026-10-02 at 13:49 UTC. The report is live;
 new natural observations and genuine future trades are separate evidence gates.
+Current runtime is `43355e9b`, the native-Grid diagnostic follow-up at 14:07 UTC.
 This document is not a profitability or scaling decision.
 
 ## Scope and authority
@@ -140,6 +141,14 @@ follow-up reran 79 tests and Java 21 package successfully at 14:03 UTC. The
 retained production verifier confirmed the unchanged 10-tool registry and LIVE
 caps. At 13:55 UTC the new report returned zero forward samples and evaluations,
 with explicit missing-proof states rather than fabricated zero drawdown.
+
+At the natural 14:00 UTC close, both owners captured one valid snapshot at
+14:00:02 (bar open 13:00 UTC, OKX close 86,561). DRA recorded one fresh entry
+evaluation with zero candidates. Both snapshot streams have zero duplicates,
+invalid rows and internal missing hours. Open owned lots and utilization were
+zero; their recorded reference equity was 31.58057695 and 250 USDT respectively.
+These are labelled recorded-basis values, not verified account liquidation
+equity. Drawdown and mean utilization remain suppressed at sample count one.
 
 Forward evidence acceptance still requires two natural hourly samples plus
 the next natural owner-509 daily evaluation. A genuine

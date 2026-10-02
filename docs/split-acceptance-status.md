@@ -8,8 +8,10 @@ runnable current guidance.
 
 ## 2026-10-02 Grid and performance integration
 
-- Runtime `94fd6713c627784426d7c8c48a56d89b71a28e2e` started at 13:49 UTC,
-  port 8084 / PID 751454; prior port 8085 drained. Retained verification passed.
+- Current runtime `43355e9b3f8ae154e2012db219fb1de9cf4609f5` started at
+  14:07 UTC, port 8085 / PID 757403; prior port 8084 drained. Retained local/public
+  health, authenticated MCP, nginx and unchanged LIVE-cap verification passed.
+  This supersedes integration `94fd6713`, deployed at 13:49 UTC.
 - Fresh MCP confirms 10 tools and explicit native-Grid range health. The sole
   active bot is `3974349158101700608`, within 78,000–90,000 at acceptance.
 - Stopped bot `3767345250394603520` has 112 retrieved filled sub-orders and
@@ -19,13 +21,19 @@ runnable current guidance.
 - The new bot has 10 observed live orders, matching detail `activeOrdNum`.
   Provider live queries repeat their snapshot for an older cursor. A diagnostic
   follow-up reconciles the explicit count and retains errors as missing proof;
-  79 tests and Java 21 package pass. Its deployment acceptance is pending.
-- The forward performance report is available. At 13:55 UTC it correctly has
-  no forward samples; natural hourly/daily evidence and new trades are pending.
+  79 tests and Java 21 package pass. At 14:08 UTC the live response reports
+  `LIVE_DETAIL_COUNT_MATCHED`, complete inventory, 8 buys / 2 sells and a fresh
+  350 ms ticker inside the range. Execution-safety status is OK, issues=0.
+- At the natural 14:00 UTC hourly close, DRA and TV509 each recorded their first
+  valid performance snapshot; DRA also recorded one evaluation with no candidate.
+  There are no duplicates or invalid samples. Drawdown is correctly withheld
+  with only one sample. The second hour, next TV509 daily evaluation and future
+  buy/sell lifecycle remain evidence gates, not deployment blockers or proof of profit.
 - Runtime-log smoke: 0 errors, 0 unknown warnings, 0 high-risk operation-like
   lines. No strategy, order, Grid, fund, Earn, migration or backfill was performed
-  by this release. One extra diagnostic deployment is needed after the combined
+  by this release. One extra diagnostic deployment followed the combined
   deployment because acceptance exposed the live-query contract difference.
+  Deploy log: `logs/deploy/deploy-20261002T140623Z.log`.
 
 ## Earlier 2026-10-02 reliability release
 

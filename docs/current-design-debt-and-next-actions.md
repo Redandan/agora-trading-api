@@ -4,8 +4,9 @@ Latest diagnosis: 2026-10-02. Local remediation is based on deployed commit
 `9e7f84da54f56bbc983ec08dc7b9083680708b68`. The combined runtime release
 `52e47a4a96f92e675cb5dc6251d4cb10188f576a` started on port 8085 at
 2026-10-02 11:39 UTC. The Grid/performance integration `94fd6713` subsequently
-started at 13:49 UTC on port 8084. Current acceptance and the live-inventory
-diagnostic follow-up are recorded in `split-acceptance-status.md`.
+started at 13:49 UTC on port 8084. Current runtime is diagnostic follow-up
+`43355e9b` at 14:07 UTC on port 8085. Acceptance is recorded in
+`split-acceptance-status.md`.
 The strategy decisions and July acceptance narrative below remain historical
 context, not a statement that the first DRA sell is still outstanding.
 
@@ -137,7 +138,7 @@ was 28.9423% above the same upper bound; the bot's ten live orders were buys
 in the old range. See [Grid deviation handling](okx-native-grid-range-observation-v1.md)
 for the diagnostics contract and operator adjustment/acceptance evidence.
 The diagnostic code is deployed in `94fd6713`; the live-inventory count
-reconciliation follow-up remains under acceptance. Separately, the account holder confirmed
+reconciliation follow-up `43355e9b` passed live acceptance. Separately, the account holder confirmed
 the existing bot's edit at 20:59:56 Asia/Taipei: 78,000–90,000, ten grids,
 unchanged 10 USDT cumulative investment. Read-only browser acceptance found
 eight buys and two sells in the new range, with current price inside it.

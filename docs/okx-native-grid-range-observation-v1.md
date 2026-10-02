@@ -1,7 +1,7 @@
 # OKX 原生現貨網格：偏離診斷與處理
 
-狀態：2026-10-02 `94fd6713` 已部署，偏離診斷及 112 筆成交分頁已線上驗證；
-驗收發現 live 子單忽略游標，掛單總數核對補丁已通過 79 項離線測試，待部署驗收。
+狀態：2026-10-02 `94fd6713` 整合版及 `43355e9b` 掛單診斷補丁已部署驗收；
+偏離診斷、112 筆成交分頁及新網格 10 筆掛單總數核對已生效，79 項測試通過。
 帳戶持有人先調整固定區間，之後在 21:17:28 停止舊網格，
 21:20:34（Asia/Taipei）建立雙向移動網格，已完成瀏覽器唯讀驗收。
 這份文件區分服務診斷修正與實際交易參數調整，後者由帳戶持有人在 OKX 執行。
@@ -191,5 +191,21 @@ Trailing Up 上限 102,000、Trailing Down 關閉，TP/SL 未設定。
 - 補丁 79 項測試與 Java 21 package 通過，包含快照重複、明細總數不符、錯誤身分、
   非 live 狀態及 51291 不得充當空清單的回歸測試。
 
-原計畫為一次整合部署；因上線驗收發現 provider live 契約差異，需額外一次
+原計畫為一次整合部署；因上線驗收發現 provider live 契約差異，增加一次
 診斷補丁部署。這是發版計畫偏差，不隱藏為單次完成。
+
+## 2026-10-02 22:08 補丁上線驗收（Asia/Taipei）
+
+`43355e9b` 在 22:07 啟動於 port 8085 / PID 757403，8084 舊程序已排空。
+嚴格 local/public 健康、認證 MCP、Nginx 及原有 LIVE 額度核對全部通過。
+新 bot 回應 `liveSubOrderInventoryComplete=true`、`LIVE_DETAIL_COUNT_MATCHED`，
+只讀一頁取得 10 筆（8 買 2 賣）；filled 2 筆、分頁完整。
+當時價格 `86,532.1`、ticker 年齡 350 ms，仍為 `WITHIN_RANGE`。
+`noLiveSubOrdersProven=false` 正確表示新 bot 仍有掛單；運行中且未完成買賣週期，
+`exactNetPnlProven=false` 也維持不變。OCO 安全檢查 `status=OK`、issues=0。
+
+補丁後重查舊 bot 仍取得完整 112 筆成交及 55 組配對，回應明列
+`SUB_ORDER_PROVIDER_ERROR_51291`、`noLiveSubOrdersProven=false` 及 BTC 殘留。
+一般 MCP SSH 橋接曾因 75 秒時限失敗；一次延長為 180 秒的同工具唯讀呼叫
+完成核對，未更改橋接設定。已停止網格的 live 證據缺口與大量逐筆回條的查詢延遲
+保留為已知限制，不能將這次功能驗收解讀為舊 bot 的 exact-net 財務驗收。

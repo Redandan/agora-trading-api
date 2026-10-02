@@ -18,6 +18,12 @@ import java.util.Optional;
 public interface SpotExecutionAttemptRepository
         extends JpaRepository<SpotExecutionAttempt, Long> {
 
+    long countByStrategyContractAndFeeReconciliationStatus(
+            String contract, SpotExecutionAttempt.FeeReconciliationStatus status);
+
+    Optional<SpotExecutionAttempt> findFirstByStrategyContractAndFeeReconciliationStatusOrderByCreatedAtAscIdAsc(
+            String contract, SpotExecutionAttempt.FeeReconciliationStatus status);
+
     Optional<SpotExecutionAttempt>
             findByLiveSignalIdAndSideAndAttemptSequence(
                     Long liveSignalId,

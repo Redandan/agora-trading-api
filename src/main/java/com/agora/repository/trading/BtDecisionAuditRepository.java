@@ -15,6 +15,9 @@ import java.util.List;
 @Repository
 public interface BtDecisionAuditRepository extends JpaRepository<BtDecisionAudit, Long> {
 
+    java.util.Optional<BtDecisionAudit> findFirstByStrategyIdAndSymbolAndEventTypeOrderByEventTimeDescIdDesc(
+            Long strategyId, String symbol, String eventType);
+
     boolean existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndEventType(
             Long strategyId, String symbol, String intervalCode, LocalDateTime barOpenTime, String eventType);
 

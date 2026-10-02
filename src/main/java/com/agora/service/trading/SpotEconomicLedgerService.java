@@ -47,6 +47,11 @@ public class SpotEconomicLedgerService {
                 .append("dayUtc=").append(dayStartUtc.toLocalDate()).append('\n');
         appendWindow(out, "daily", daily);
         appendWindow(out, "cumulative", cumulative);
+        out.append("evidenceGaps (latest 50 incomplete lots):\n");
+        cumulative.reversed().stream().filter(lot -> !lot.exactNet()).limit(50)
+                .forEach(lot -> out.append("- liveSignalId=").append(lot.id())
+                        .append(" owner=").append(lot.owner())
+                        .append(" reason=").append(lot.basis()).append('\n'));
         out.append("maximumDrawdown=MISSING_PROOF_NO_MARK_TO_MARKET_EQUITY_SERIES\n")
                 .append("comparableTotalPnl=MISSING_PROOF_OPEN_FEES_AND_GRID_LIFECYCLE_NOT_UNIFIED\n")
                 .append("recordedPnlWarning=NOT_COMPARABLE_ACROSS_MIXED_BASIS\n")
@@ -58,6 +63,7 @@ public class SpotEconomicLedgerService {
         String owner = BtcBasePositionStatePolicy.economicOwner(lot);
         if (!"DRA_V1".equals(owner)) {
             return new LotEvidence(
+                    lot.getId(),
                     owner,
                     lot.getExitTime(),
                     lot.getRealizedPnl(),
@@ -74,12 +80,14 @@ public class SpotEconomicLedgerService {
                 SpotEconomicLedgerEvidencePolicy.evaluateDraLifecycle(buys, sells);
         boolean exactNet = feeEvidence.exactNet() && lot.getRealizedPnl() != null;
         return new LotEvidence(
+                lot.getId(),
                 owner,
                 lot.getExitTime(),
                 lot.getRealizedPnl(),
                 exactNet,
                 exactNet ? feeEvidence.lifecycleFeeUsdt() : null,
-                exactNet ? "EXACT_NET_PROVIDER_RECONCILED" : feeEvidence.reason());
+                exactNet ? "EXACT_NET_PROVIDER_RECONCILED"
+                        : feeEvidence.exactNet() ? "MISSING_RECORDED_PNL" : feeEvidence.reason());
     }
 
     private static String basis(String owner) {
@@ -113,8 +121,14 @@ public class SpotEconomicLedgerService {
         total.append(out);
         out.append(" exactCoverage=")
                 .append(total.exactNetLots).append('/').append(total.closedLots)
-                .append(" comparisonStatus=")
+                .append(" exactNetScope=")
+                .append(total.closedLots == 0 ? "NO_CLOSED_LOTS"
+                        : total.exactNetLots == total.closedLots ? "ALL_CLOSED_LOTS" : "VERIFIED_SUBSET_ONLY")
+                .append(" comparableRealizedNetPnl=")
                 .append(total.closedLots > 0 && total.exactNetLots == total.closedLots
+                        ? decimal(total.exactNetRealizedPnl) : "N/A")
+                .append(" comparisonStatus=")
+                .append(total.closedLots == 0 ? "NO_CLOSED_LOTS" : total.exactNetLots == total.closedLots
                         ? "EXACT_NET_COMPLETE"
                         : "MISSING_PROOF_MIXED_OR_INCOMPLETE_BASIS")
                 .append('\n');
@@ -125,6 +139,7 @@ public class SpotEconomicLedgerService {
     }
 
     private record LotEvidence(
+            Long id,
             String owner,
             LocalDateTime exitTime,
             BigDecimal recordedRealizedPnl,
@@ -160,7 +175,8 @@ public class SpotEconomicLedgerService {
             out.append("closedLots=").append(closedLots)
                     .append(" recordedPnlLots=").append(recordedPnlLots)
                     .append(" recordedRealizedPnl=")
-                    .append(recordedPnlLots == 0 ? "N/A" : decimal(recordedRealizedPnl))
+                    .append(recordedPnlLots == 0 ? "N/A"
+                            : bases.size() > 1 ? "NOT_COMPARABLE_MIXED_BASIS" : decimal(recordedRealizedPnl))
                     .append(" exactNetLots=").append(exactNetLots)
                     .append(" exactNetRealizedPnl=")
                     .append(exactNetLots == 0 ? "N/A" : decimal(exactNetRealizedPnl))

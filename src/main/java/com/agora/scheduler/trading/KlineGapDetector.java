@@ -182,28 +182,21 @@ public class KlineGapDetector {
         }
 
         List<MdKline> inserted = insertBackfillKlines(toSave);
-        log.info("[KlineGap] {}@{} backfilled {} bars from OKX (candidates={} duplicatesOrFailed={})",
+        log.info("[KlineGap] {}@{} backfilled {} bars from OKX (candidates={} duplicates={})",
                 symbol, intervalCode, inserted.size(), toSave.size(), toSave.size() - inserted.size());
-
-        // 2026-04-18: 補齊的 bar 也必須發布 KlineClosedEvent。是否補跑 legacy
-        // LiveSignalEvaluator 由 signal-source policy 決定；TradingView-primary 模式只保留資料事件。
-        // OkxWsKlineService.persistIfClosed 亦是 save 後 publishEvent，此處保持語義一致。
-        for (MdKline k : inserted) {
-            try {
-                eventPublisher.publishEvent(new KlineClosedEvent(this, k));
-            } catch (Exception e) {
-                log.warn("[KlineGap] publishEvent failed for {}@{}: {}", k.getSymbol(), k.getIntervalCode(), e.getMessage());
-            }
-        }
 
         return inserted.size();
     }
 
     List<MdKline> insertBackfillKlines(List<MdKline> candidates) {
         List<MdKline> inserted = new ArrayList<>();
-        for (MdKline k : candidates) {
+        for (MdKline k : candidates.stream()
+                .sorted(java.util.Comparator.comparing(MdKline::getOpenTime)).toList()) {
             if (insertHelper.insertIgnore(k)) {
                 inserted.add(k);
+                // Each insert commits independently. Publish it before attempting
+                // the next row, so a later DB outage cannot swallow this event.
+                eventPublisher.publishEvent(new KlineClosedEvent(this, k));
             }
         }
         return inserted;
@@ -305,7 +298,7 @@ public class KlineGapDetector {
                 List<MdKline> list = new ArrayList<>();
                 for (JsonNode row : data) {
                     // OKX 只回傳 confirm=1 的已收盤 bar
-                    if ("0".equals(row.get(8).asText())) continue;
+                    if (row.size() < 9 || !"1".equals(row.path(8).asText())) continue;
                     long ts = row.get(0).asLong();
                     LocalDateTime openTime = Instant.ofEpochMilli(ts).atZone(ZoneOffset.UTC).toLocalDateTime();
                     if (openTime.isBefore(start) || openTime.isAfter(end)) {

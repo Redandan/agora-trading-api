@@ -86,7 +86,9 @@ public class MdKlineInsertHelper {
             log.error("[MdKlineInsert] failed for {} {}@{} source={}: {}",
                     kline.getSymbol(), kline.getIntervalCode(),
                     kline.getOpenTime(), kline.getSource(), e.getMessage());
-            return false;
+            // Only a zero affected-row count means duplicate. A failed write must
+            // reach the caller and must never be reported as a repaired gap.
+            throw e;
         }
     }
 }

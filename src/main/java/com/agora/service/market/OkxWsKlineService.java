@@ -30,6 +30,7 @@ import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -112,7 +113,7 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
     }
 
     @Override
-    public KlineSubscriptionInfo subscribe(String symbol, String intervalCode, String marketType) {
+    public synchronized KlineSubscriptionInfo subscribe(String symbol, String intervalCode, String marketType) {
         String normalizedMarketType = normalizeMarketType(marketType);
         String key = buildKey(symbol, intervalCode, normalizedMarketType);
         WsSubscription existing = subscriptions.get(key);
@@ -120,7 +121,8 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
             log.info("[OkxWS] Already subscribed: {}", key);
             return toInfo(existing);
         }
-        WsSubscription sub = new WsSubscription(symbol.toUpperCase(), intervalCode, normalizedMarketType);
+        WsSubscription sub = new WsSubscription(symbol.toUpperCase(), intervalCode, normalizedMarketType,
+                new WsHeartbeat(scheduler, PING_INTERVAL_SEC));
         subscriptions.put(key, sub);
         connect(sub);
         return toInfo(sub);
@@ -149,7 +151,7 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
     }
 
     @Override
-    public void destroy() {
+    public synchronized void destroy() {
         log.info("[OkxWS] Shutting down {} subscriptions", subscriptions.size());
         subscriptions.values().forEach(WsSubscription::close);
         subscriptions.clear();
@@ -160,6 +162,14 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
     // ── 私有 ──────────────────────────────────────────────────────────────────
 
     private void connect(WsSubscription sub) {
+        synchronized (sub) {
+            if ("STOPPED".equals(sub.status)
+                    || subscriptions.get(buildKey(sub.symbol, sub.intervalCode, sub.marketType)) != sub) return;
+            connectCurrent(sub);
+        }
+    }
+
+    private void connectCurrent(WsSubscription sub) {
         Request request = new Request.Builder().url(WS_URL).build();
         sub.status = "CONNECTING";
         sub.webSocket = wsClient.newWebSocket(request, new OkxKlineWsListener(sub));
@@ -178,17 +188,16 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
         }
     }
 
-    private void schedulePing(WsSubscription sub) {
-        scheduler.schedule(() -> {
-            if (sub.webSocket != null && !"STOPPED".equals(sub.status)) {
+    private void schedulePing(WsSubscription sub, WebSocket connectedSocket) {
+        sub.heartbeat.start(() -> {
+            if (connectedSocket != null && sub.webSocket == connectedSocket && !"STOPPED".equals(sub.status)) {
                 try {
-                    sub.webSocket.send("ping");
+                    connectedSocket.send("ping");
                 } catch (Exception e) {
                     log.debug("[OkxWS] ping send failed for {}: {}", sub.symbol, e.getMessage());
                 }
-                schedulePing(sub);
             }
-        }, PING_INTERVAL_SEC, TimeUnit.SECONDS);
+        });
     }
 
     private void persistIfClosed(WsSubscription sub, JsonNode dataRow) {
@@ -244,6 +253,7 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
     }
 
     private void scheduleReconnect(WsSubscription sub) {
+        sub.heartbeat.stop();
         if (sub.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
             stopWithAlert(sub, "max reconnect attempts reached");
             return;
@@ -251,7 +261,7 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
         long delay = BACKOFF_DELAYS_MS[Math.min(sub.reconnectAttempts, BACKOFF_DELAYS_MS.length - 1)];
         sub.reconnectAttempts++;
         sub.status = "RECONNECTING";
-        scheduler.schedule(() -> {
+        sub.reconnectTask = scheduler.schedule(() -> {
             log.info("[OkxWS] Reconnecting {}@{} (attempt {})",
                     sub.symbol, sub.intervalCode, sub.reconnectAttempts);
             connect(sub);
@@ -325,14 +335,21 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
         volatile WebSocket webSocket;
         volatile boolean stoppedByError;
         volatile int reconnectAttempts = 0;
+        ScheduledFuture<?> reconnectTask;
+        final WsConnectionDiagnostics diagnostics = new WsConnectionDiagnostics();
+        final WsHeartbeat heartbeat;
 
-        WsSubscription(String symbol, String intervalCode, String marketType) {
+        WsSubscription(String symbol, String intervalCode, String marketType, WsHeartbeat heartbeat) {
             this.symbol = symbol;
             this.intervalCode = intervalCode;
             this.marketType = marketType;
+            this.heartbeat = heartbeat;
         }
 
-        void close() {
+        synchronized void close() {
+            if (reconnectTask != null) reconnectTask.cancel(false);
+            reconnectTask = null;
+            heartbeat.stop();
             stoppedByError = false;
             status = "STOPPED";
             if (webSocket != null) webSocket.close(1000, "User requested");
@@ -346,25 +363,32 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
 
         @Override
         public void onOpen(WebSocket ws, Response response) {
-            sub.status = "RUNNING";
-            sub.connectedAt = LocalDateTime.now(UTC);
-            sub.reconnectAttempts = 0;
-            log.info("[OkxWS] Connected: {} {}@{}", sub.marketType, sub.symbol, sub.intervalCode);
-            sendSubscribe(sub);
-            schedulePing(sub);
-            if (eventPublisher != null) {
-                eventPublisher.publishEvent(new WsReconnectedEvent(OkxWsKlineService.this, sub.symbol, sub.intervalCode));
+            synchronized (sub) {
+                if (sub.webSocket != ws || "STOPPED".equals(sub.status)) { ws.cancel(); return; }
+                sub.status = "RUNNING";
+                sub.connectedAt = LocalDateTime.now(UTC);
+                log.info("[OkxWS] Connected: {} {}@{}", sub.marketType, sub.symbol, sub.intervalCode);
+                sendSubscribe(sub);
+                schedulePing(sub, ws);
+                if (eventPublisher != null) {
+                    eventPublisher.publishEvent(new WsReconnectedEvent(OkxWsKlineService.this, sub.symbol, sub.intervalCode));
+                }
             }
         }
 
         @Override
         public void onMessage(WebSocket ws, String text) {
+            if (sub.webSocket != ws || "STOPPED".equals(sub.status)) return;
+            sub.diagnostics.received(Instant.now());
             if ("pong".equals(text)) return;  // 心跳回應
             try {
                 JsonNode root = objectMapper.readTree(text);
                 if (root.has("event")) {
                     String event = root.path("event").asText();
                     if ("subscribe".equals(event)) {
+                        sub.reconnectAttempts = 0;
+                        log.info("[OkxWS] Subscription ready {}@{} downtimeMs={}",
+                                sub.symbol, sub.intervalCode, sub.diagnostics.ready(Instant.now()));
                         log.debug("[OkxWS] Subscribed: {}@{}", sub.symbol, sub.intervalCode);
                     } else if ("error".equals(event)) {
                         log.warn("[OkxWS] Server error: {}", text);
@@ -382,15 +406,31 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
         }
 
         @Override
+        public void onClosing(WebSocket ws, int code, String reason) {
+            ws.close(code, reason);
+        }
+
+        @Override
         public void onFailure(WebSocket ws, Throwable t, Response response) {
-            log.warn("[OkxWS] WS failure {}@{}: {}", sub.symbol, sub.intervalCode, t.getMessage());
-            if (!"STOPPED".equals(sub.status)) scheduleReconnect(sub);
+            synchronized (sub) {
+                if (sub.webSocket != ws || "STOPPED".equals(sub.status)) return;
+                sub.webSocket = null;
+                sub.diagnostics.failed(t, Instant.now());
+                log.warn("[OkxWS] WS failure {}@{}: {}", sub.symbol, sub.intervalCode,
+                        sub.diagnostics.failureContext(response == null ? null : response.code()));
+                scheduleReconnect(sub);
+            }
         }
 
         @Override
         public void onClosed(WebSocket ws, int code, String reason) {
-            log.info("[OkxWS] Closed {}@{}: code={} reason={}", sub.symbol, sub.intervalCode, code, reason);
-            if (!"STOPPED".equals(sub.status)) scheduleReconnect(sub);
+            synchronized (sub) {
+                if (sub.webSocket != ws || "STOPPED".equals(sub.status)) return;
+                sub.webSocket = null;
+                sub.diagnostics.disconnected(Instant.now());
+                log.info("[OkxWS] Closed {}@{}: code={}", sub.symbol, sub.intervalCode, code);
+                scheduleReconnect(sub);
+            }
         }
     }
 }

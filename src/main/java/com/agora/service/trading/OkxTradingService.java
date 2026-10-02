@@ -1299,32 +1299,25 @@ public class OkxTradingService implements TradingService {
                 r.setOrderId(ordId);
                 r.setAvgPrice(new BigDecimal(order.path("avgPx").asText()));
 
-                // accFillSz 是扣費前毛量；fillFee 是手續費（買方為負數，幣別為 fillFeeCcy）。
-                // 用 accFillSz + fillFee 取得實際入帳淨量，避免 OCO 掛單超過可用餘額。
+                // REST fee/feeCcy are cumulative, matching accFillSz.
                 BigDecimal gross = new BigDecimal(order.path("accFillSz").asText());
-                String feeCcyStr = order.path("fillFeeCcy").asText("");
-                String feeStr    = order.path("fillFee").asText("0");
+                OkxCumulativeOrderFee fee = OkxCumulativeOrderFee.read(order);
 
-                // OKX 的費用欄位（fillFee/fillFeeCcy）有時非同步填入，
-                // 在 state=filled 後立即查詢可能拿到空值。最多重試 5 次（各 300ms）。
-                for (int feeRetry = 0; feeRetry < 5 && feeCcyStr.isEmpty(); feeRetry++) {
+                // A genuinely missing cumulative fee remains pending after bounded lookups.
+                for (int feeRetry = 0; feeRetry < 5 && fee.currency() == null; feeRetry++) {
                     try { Thread.sleep(300); } catch (InterruptedException ex) { Thread.currentThread().interrupt(); }
                     order = queryOrder(instId, ordId);
-                    feeCcyStr = order.path("fillFeeCcy").asText("");
-                    feeStr    = order.path("fillFee").asText("0");
-                    log.info("[OKX] Fee retry {}: ordId={} feeCcy={} fee={}", feeRetry + 1, ordId, feeCcyStr, feeStr);
+                    fee = OkxCumulativeOrderFee.read(order);
+                    log.info("[OKX] Fee retry {}: ordId={} feeCcy={} fee={}", feeRetry + 1, ordId, fee.currency(), fee.signedAmount());
                 }
-                if (feeCcyStr.isEmpty()) {
-                    log.warn("[OKX] Fee fields still empty after 5 retries, will use spot balance fallback: ordId={}", ordId);
+                if (fee.currency() == null) {
+                    log.warn("[OKX] Cumulative fee unavailable after 5 retries; fee reconciliation remains pending: ordId={}", ordId);
                 }
 
                 String instBase  = instId.split("-")[0]; // "ETH-USDT" → "ETH"
-                BigDecimal feeAmount;
-                try {
-                    feeAmount = new BigDecimal(feeStr);
-                } catch (NumberFormatException ignored) {
-                    feeAmount = BigDecimal.ZERO;
-                }
+                BigDecimal feeAmount = fee.signedAmount();
+                BigDecimal feeUsdt = normalizeSpotFeeUsdt(instBase, r.getAvgPrice(), feeAmount, fee.currency());
+                String feeCcyStr = feeUsdt == null ? "" : fee.currency();
                 BigDecimal netQty = spotNetQuantity(
                         side,
                         instBase,
@@ -1341,10 +1334,10 @@ public class OkxTradingService implements TradingService {
                 r.setNetQty(netQty);
                 r.setFeeAmount(feeAmount);
                 r.setFeeCurrency(feeCcyStr.isBlank() ? null : feeCcyStr);
-                r.setFeeUsdt(normalizeSpotFeeUsdt(instBase, r.getAvgPrice(), feeAmount, feeCcyStr));
+                r.setFeeUsdt(feeUsdt);
                 spotHoldingsCache = null;
                 log.info("[OKX] Order filled: ordId={} avgPx={} grossQty={} fee={} feeCcy={} netQty={}",
-                        ordId, r.getAvgPrice(), gross, feeStr, feeCcyStr, netQty);
+                        ordId, r.getAvgPrice(), gross, feeAmount, feeCcyStr, netQty);
                 return r;
             }
             log.debug("[OKX] Order not filled yet: ordId={} state={} attempt={}", ordId, state, i + 1);
@@ -1458,6 +1451,11 @@ public class OkxTradingService implements TradingService {
         String path = "/api/v5/trade/order?instId=" + instId
                 + "&clOrdId=" + clientOrderId;
         JsonNode response = get(path);
+        return parseSpotOrderLookup(response, clientOrderId, instId);
+    }
+
+    /** Pure response parsing; package visibility supports offline provider-receipt regression. */
+    SpotOrderLookup parseSpotOrderLookup(JsonNode response, String clientOrderId, String instId) {
         String code = response.path("code").asText("");
         if (ORDER_NOT_FOUND_CODE.equals(code)) {
             return new SpotOrderLookup(
@@ -1481,11 +1479,9 @@ public class OkxTradingService implements TradingService {
                 order.path("avgPx").asText(""));
         BigDecimal cumulativeGrossQuantity = decimalOrZero(
                 order.path("accFillSz").asText(""));
-        BigDecimal signedFeeAmount = decimalOrZero(
-                order.path("fillFee").asText(""));
-        String feeCurrency = order.path("fillFeeCcy")
-                .asText("")
-                .trim();
+        OkxCumulativeOrderFee fee = OkxCumulativeOrderFee.read(order);
+        BigDecimal signedFeeAmount = fee.signedAmount();
+        String feeCurrency = fee.currency() == null ? "" : fee.currency();
         String baseCurrency = instId.split("-")[0];
         String side = order.path("side").asText("");
         SpotOrderSide orderSide = switch (side.toLowerCase()) {
@@ -1499,6 +1495,7 @@ public class OkxTradingService implements TradingService {
                 averagePrice,
                 signedFeeAmount,
                 feeCurrency);
+        if (feeUsdt == null) feeCurrency = "";
         BigDecimal netQuantity = spotNetQuantity(
                 orderSide,
                 baseCurrency,

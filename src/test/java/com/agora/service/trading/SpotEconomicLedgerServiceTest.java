@@ -20,6 +20,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SpotEconomicLedgerServiceTest {
 
     @Test
+    void noTradesIsNotAnAccountingFailureOrAZeroProfitClaim() {
+        BtLiveSignalRepository signals = proxy(BtLiveSignalRepository.class, (method, args) -> List.of());
+        SpotExecutionAttemptRepository attempts = proxy(SpotExecutionAttemptRepository.class,
+                (method, args) -> { throw new AssertionError("No attempt read needed for empty inventory"); });
+        String report = new SpotEconomicLedgerService(signals, attempts).report();
+        assertTrue(report.contains("exactCoverage=0/0 exactNetScope=NO_CLOSED_LOTS comparableRealizedNetPnl=N/A comparisonStatus=NO_CLOSED_LOTS"));
+    }
+
+    @Test
+    void reconciledReceiptsWithoutRecordedPnlRemainAnExplicitGap() {
+        BtLiveSignal lot = closedLot(264L, BtcBasePositionStatePolicy.DRA_V1_POSITION_PREFIX + "CLOSED",
+                "0", LocalDateTime.now(ZoneOffset.UTC));
+        lot.setRealizedPnl(null);
+        BtLiveSignalRepository signals = proxy(BtLiveSignalRepository.class, (method, args) -> List.of(lot));
+        SpotExecutionAttemptRepository attempts = proxy(SpotExecutionAttemptRepository.class,
+                (method, args) -> List.of(filled((Side) args[1], "0.01")));
+        String report = new SpotEconomicLedgerService(signals, attempts).report();
+        assertTrue(report.contains("liveSignalId=264 owner=DRA_V1 reason=MISSING_RECORDED_PNL"));
+        assertTrue(report.contains("exactCoverage=0/1 exactNetScope=VERIFIED_SUBSET_ONLY comparableRealizedNetPnl=N/A"));
+    }
+
+    @Test
     void keepsExactDraAndGrossLegacyEvidenceSeparate() {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         BtLiveSignal dra = closedLot(
@@ -61,7 +83,9 @@ class SpotEconomicLedgerServiceTest {
                 "owner=LEGACY_BTC_BASE closedLots=1 recordedPnlLots=1 "
                         + "recordedRealizedPnl=2.5 exactNetLots=0 exactNetRealizedPnl=N/A "
                         + "exactLifecycleFees=N/A basis=GROSS_RECORDED_EXCLUDES_FEES"));
-        assertTrue(report.contains("exactCoverage=1/2 comparisonStatus=MISSING_PROOF_MIXED_OR_INCOMPLETE_BASIS"));
+        assertTrue(report.contains("recordedRealizedPnl=NOT_COMPARABLE_MIXED_BASIS"));
+        assertTrue(report.contains("exactCoverage=1/2 exactNetScope=VERIFIED_SUBSET_ONLY comparableRealizedNetPnl=N/A comparisonStatus=MISSING_PROOF_MIXED_OR_INCOMPLETE_BASIS"));
+        assertTrue(report.contains("liveSignalId=260 owner=LEGACY_BTC_BASE reason=GROSS_RECORDED_EXCLUDES_FEES"));
         assertTrue(report.contains("maximumDrawdown=MISSING_PROOF_NO_MARK_TO_MARKET_EQUITY_SERIES"));
     }
 

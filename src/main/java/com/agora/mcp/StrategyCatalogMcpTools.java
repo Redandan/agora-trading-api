@@ -11,6 +11,7 @@ import com.agora.model.BtStrategy;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.agora.service.strategy.StrategyRuntimeDefinition;
+import com.agora.service.strategy.StrategyRuntimeObservationService;
 import com.agora.service.trading.BtcDraLiveExecutionService;
 import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +35,11 @@ public class StrategyCatalogMcpTools {
     private final OkxTradingProperties okxProperties;
     private final BtcDraRuntimeProperties draProperties;
     private final BtcDraLiveExecutionService draLiveExecutionService;
+    private final StrategyRuntimeObservationService observations;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS})
-    @Tool(description = "Read-only strategy runtime catalog. Shows owner 509 LIVE, archived owner 508 V1, Donchian SHADOW, and the explicitly configured DRA 30 USDT LIVE canary; all unlisted database strategies are ARCHIVED. No strategy, order, Grid, fund, or database state is changed.")
+    @Tool(description = "Read-only strategy runtime catalog with persisted observations: source-specific latest closed bar, latest decision, owned inventory, current capital utilization, and pending DRA fees. Shows owner 509 LIVE, archived owner 508 V1, Donchian SHADOW, and the configured DRA 30 USDT LIVE canary; all unlisted database strategies are ARCHIVED. Missing evidence is explicit. No strategy, order, Grid, fund, or database state is changed.")
     public String getStrategyRuntimeCatalog() {
         StringBuilder result = new StringBuilder("STRATEGY_RUNTIME_CATALOG\n");
         for (StrategyRuntimeDefinition definition : catalog.definitions()) {
@@ -77,6 +79,7 @@ public class StrategyCatalogMcpTools {
         result.append("exchangeOrderAuthorized=")
                 .append(executionArmed() || draLiveExecutionService.executionArmed())
                 .append('\n');
+        result.append(observations.report()).append('\n');
         return result.toString();
     }
 

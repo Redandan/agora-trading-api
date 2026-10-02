@@ -3,6 +3,7 @@ package com.agora.service.trading;
 import com.agora.config.OkxTradingProperties;
 import com.agora.scheduler.trading.OcoPositionPollerScheduler;
 import com.agora.infra.notification.NotificationPort;
+import com.agora.service.market.WsConnectionDiagnostics;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -67,6 +68,9 @@ public class OkxPrivateWsService implements DisposableBean {
     private final AtomicBoolean     destroyed    = new AtomicBoolean(false);
     private final AtomicInteger     reconnectIdx = new AtomicInteger(0);
     private volatile ScheduledFuture<?> pingTask = null;
+    private ScheduledFuture<?> reconnectTask;
+    private boolean outageAlerted;
+    private final WsConnectionDiagnostics diagnostics = new WsConnectionDiagnostics();
 
     public OkxPrivateWsService(OkxTradingProperties tradingProperties,
                                 OcoPositionPollerScheduler ocoPollerScheduler,
@@ -105,7 +109,7 @@ public class OkxPrivateWsService implements DisposableBean {
     //  連線 / 認證 / 訂閱
     // ──────────────────────────────────────────────
 
-    private void connect() {
+    private synchronized void connect() {
         if (destroyed.get()) return;
         log.info("[OkxPrivateWs] Connecting to {}", WS_URL);
         Request req = new Request.Builder().url(WS_URL).build();
@@ -140,9 +144,8 @@ public class OkxPrivateWsService implements DisposableBean {
     private void schedulePing(WebSocket ws) {
         cancelPing();
         pingTask = executor.scheduleAtFixedRate(() -> {
-            WebSocket cur = activeWs;
-            if (cur != null && !destroyed.get()) {
-                cur.send("ping");
+            if (activeWs == ws && !destroyed.get()) {
+                ws.send("ping");
                 log.trace("[OkxPrivateWs] ping →");
             }
         }, PING_INTERVAL_S, PING_INTERVAL_S, TimeUnit.SECONDS);
@@ -159,14 +162,15 @@ public class OkxPrivateWsService implements DisposableBean {
     // ──────────────────────────────────────────────
 
     private void scheduleReconnect() {
-        if (destroyed.get()) return;
+        if (destroyed.get() || (reconnectTask != null && !reconnectTask.isDone())) return;
         int idx       = reconnectIdx.getAndIncrement();
         long delaySec = BACKOFF_DELAYS_S[Math.min(idx, BACKOFF_DELAYS_S.length - 1)];
         log.info("[OkxPrivateWs] Reconnecting in {}s (attempt {})", delaySec, idx + 1);
 
         // When we've exhausted the backoff table, alert via TG and reset index to
         // keep retrying at the max interval (120 s) indefinitely.
-        if (idx == BACKOFF_DELAYS_S.length) {
+        if (idx >= BACKOFF_DELAYS_S.length && !outageAlerted) {
+            outageAlerted = true;
             reconnectIdx.set(BACKOFF_DELAYS_S.length - 1); // keep using last slot
             try {
                 notificationPort.broadcast(
@@ -178,9 +182,12 @@ public class OkxPrivateWsService implements DisposableBean {
             }
         }
 
-        executor.schedule(() -> {
-            loggedIn.set(false);
-            connect();
+        reconnectTask = executor.schedule(() -> {
+            synchronized (OkxPrivateWsService.this) {
+                reconnectTask = null;
+                loggedIn.set(false);
+                connect();
+            }
         }, delaySec, TimeUnit.SECONDS);
     }
 
@@ -196,7 +203,9 @@ public class OkxPrivateWsService implements DisposableBean {
     }
 
     @Override
-    public void destroy() {
+    public synchronized void destroy() {
+        if (reconnectTask != null) reconnectTask.cancel(false);
+        reconnectTask = null;
         destroyed.set(true);
         cancelPing();
         WebSocket ws = activeWs;
@@ -213,13 +222,17 @@ public class OkxPrivateWsService implements DisposableBean {
 
         @Override
         public void onOpen(WebSocket ws, Response response) {
-            log.info("[OkxPrivateWs] Connected — sending login");
-            reconnectIdx.set(0);
-            sendLogin(ws);
+            synchronized (OkxPrivateWsService.this) {
+                if (activeWs != ws || destroyed.get()) { ws.cancel(); return; }
+                log.info("[OkxPrivateWs] Connected — sending login");
+                sendLogin(ws);
+            }
         }
 
         @Override
         public void onMessage(WebSocket ws, String text) {
+            if (activeWs != ws || destroyed.get()) return;
+            diagnostics.received(Instant.now());
             if ("pong".equals(text)) {
                 log.trace("[OkxPrivateWs] ← pong");
                 return;
@@ -246,21 +259,35 @@ public class OkxPrivateWsService implements DisposableBean {
         }
 
         @Override
+        public void onClosing(WebSocket ws, int code, String reason) {
+            ws.close(code, reason);
+        }
+
+        @Override
         public void onFailure(WebSocket ws, Throwable t, Response response) {
-            log.warn("[OkxPrivateWs] Connection failure: {}", t.getMessage());
-            activeWs = null;
-            loggedIn.set(false);
-            cancelPing();
-            scheduleReconnect();
+            synchronized (OkxPrivateWsService.this) {
+                if (activeWs != ws || destroyed.get()) return;
+                diagnostics.failed(t, Instant.now());
+                log.warn("[OkxPrivateWs] Connection failure: {}",
+                        diagnostics.failureContext(response == null ? null : response.code()));
+                activeWs = null;
+                loggedIn.set(false);
+                cancelPing();
+                scheduleReconnect();
+            }
         }
 
         @Override
         public void onClosed(WebSocket ws, int code, String reason) {
-            log.info("[OkxPrivateWs] Closed: code={} reason={}", code, reason);
-            activeWs = null;
-            loggedIn.set(false);
-            cancelPing();
-            if (!destroyed.get()) scheduleReconnect();
+            synchronized (OkxPrivateWsService.this) {
+                if (activeWs != ws || destroyed.get()) return;
+                diagnostics.disconnected(Instant.now());
+                log.info("[OkxPrivateWs] Closed: code={}", code);
+                activeWs = null;
+                loggedIn.set(false);
+                cancelPing();
+                scheduleReconnect();
+            }
         }
     }
 
@@ -268,7 +295,8 @@ public class OkxPrivateWsService implements DisposableBean {
     //  事件處理
     // ──────────────────────────────────────────────
 
-    private void handleEvent(WebSocket ws, String event, JsonNode node) {
+    private synchronized void handleEvent(WebSocket ws, String event, JsonNode node) {
+        if (activeWs != ws || destroyed.get()) return;
         switch (event) {
             case "login" -> {
                 String code = node.path("code").asText("");
@@ -281,8 +309,12 @@ public class OkxPrivateWsService implements DisposableBean {
                     log.error("[OkxPrivateWs] Login FAILED: {}", node);
                 }
             }
-            case "subscribe" ->
-                log.info("[OkxPrivateWs] Subscription confirmed: {}", node.path("arg"));
+            case "subscribe" -> {
+                reconnectIdx.set(0);
+                outageAlerted = false;
+                log.info("[OkxPrivateWs] Subscription confirmed: {} downtimeMs={}",
+                        node.path("arg"), diagnostics.ready(Instant.now()));
+            }
             case "error" ->
                 log.error("[OkxPrivateWs] Server error: {}", node);
             default ->

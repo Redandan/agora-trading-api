@@ -155,9 +155,11 @@ public final class SpotExecutionAttemptPolicy {
                 : feeCurrency.trim();
         if (!currency.isEmpty()
                 && baseCurrency.equalsIgnoreCase(currency)) {
+            // Provider decimal formatting is not an instrument lot-size rule.
+            // Keep fee precision; downstream order sizing floors to exchange lot size.
             BigDecimal net = grossQuantity.add(fee)
                     .setScale(
-                            grossQuantity.scale(),
+                            Math.max(grossQuantity.scale(), fee.scale()),
                             RoundingMode.DOWN);
             if (net.signum() <= 0) {
                 throw new IllegalArgumentException(
@@ -179,7 +181,7 @@ public final class SpotExecutionAttemptPolicy {
                         BigDecimal.ONE.subtract(
                                 unknownFeeBufferRate))
                 .setScale(
-                        grossQuantity.scale(),
+                        Math.max(grossQuantity.scale(), 8),
                         RoundingMode.DOWN);
     }
 

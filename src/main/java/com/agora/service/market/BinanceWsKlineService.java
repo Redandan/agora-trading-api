@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
@@ -139,7 +140,7 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
         return subscribe(symbol, intervalCode, "SPOT");
     }
 
-    public KlineSubscriptionInfo subscribe(String symbol, String intervalCode, String marketType) {
+    public synchronized KlineSubscriptionInfo subscribe(String symbol, String intervalCode, String marketType) {
         String normalizedMarketType = normalizeMarketType(marketType);
         String key = buildKey(symbol, intervalCode, normalizedMarketType);
         WsSubscription existing = subscriptions.get(key);
@@ -180,7 +181,7 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
     // ── Spring 生命週期 ───────────────────────────────────────────────────────
 
     @Override
-    public void destroy() {
+    public synchronized void destroy() {
         log.info("[BinanceWS] Shutting down {} subscriptions", subscriptions.size());
         subscriptions.values().forEach(WsSubscription::close);
         subscriptions.clear();
@@ -191,6 +192,14 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
     // ── 私有方法 ─────────────────────────────────────────────────────────────
 
     private void connect(WsSubscription sub) {
+        synchronized (sub) {
+            if ("STOPPED".equals(sub.status)
+                    || subscriptions.get(buildKey(sub.symbol, sub.intervalCode, sub.marketType)) != sub) return;
+            connectCurrent(sub);
+        }
+    }
+
+    private void connectCurrent(WsSubscription sub) {
         String wsBase = "FUTURES".equals(sub.marketType) ? futuresWsBaseUrl : spotWsBaseUrl;
         String stream = sub.symbol.toLowerCase() + "@kline_" + sub.intervalCode;
         Request request = new Request.Builder().url(wsBase + stream).build();
@@ -258,21 +267,28 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
 
         @Override
         public void onOpen(WebSocket ws, Response response) {
-            boolean isReconnect = sub.reconnectAttempts > 0;
-            sub.status = "RUNNING";
-            sub.connectedAt = LocalDateTime.now();
-            sub.stoppedByError = false;
-            sub.reconnectAttempts = 0;
-            log.info("[BinanceWS] Connected{}: {} {}@kline_{}",
-                    isReconnect ? "(reconnect)" : "", sub.marketType, sub.symbol, sub.intervalCode);
-            // 重連後補發事件，讓 evaluator 補跑最新 bar（避免斷線期間漏掉訊號）
-            if (isReconnect && eventPublisher != null) {
-                eventPublisher.publishEvent(new WsReconnectedEvent(this, sub.symbol, sub.intervalCode));
+            synchronized (sub) {
+                if (sub.webSocket != ws || "STOPPED".equals(sub.status)) { ws.cancel(); return; }
+                boolean isReconnect = sub.reconnectAttempts > 0;
+                sub.status = "RUNNING";
+                sub.connectedAt = LocalDateTime.now(UTC);
+                log.info("[BinanceWS] Connection ready {}@{} downtimeMs={}",
+                        sub.symbol, sub.intervalCode, sub.diagnostics.ready(Instant.now()));
+                sub.stoppedByError = false;
+                sub.reconnectAttempts = 0;
+                log.info("[BinanceWS] Connected{}: {} {}@kline_{}",
+                        isReconnect ? "(reconnect)" : "", sub.marketType, sub.symbol, sub.intervalCode);
+                // 重連後補發事件，讓 evaluator 補跑最新 bar（避免斷線期間漏掉訊號）
+                if (isReconnect && eventPublisher != null) {
+                    eventPublisher.publishEvent(new WsReconnectedEvent(this, sub.symbol, sub.intervalCode));
+                }
             }
         }
 
         @Override
         public void onMessage(WebSocket ws, String text) {
+            if (sub.webSocket != ws || "STOPPED".equals(sub.status)) return;
+            sub.diagnostics.received(Instant.now());
             try {
                 JsonNode root = objectMapper.readTree(text);
                 JsonNode k = root.get("k");
@@ -316,15 +332,30 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
         }
 
         @Override
+        public void onClosing(WebSocket ws, int code, String reason) {
+            ws.close(code, reason);
+        }
+
+        @Override
         public void onFailure(WebSocket ws, Throwable t, Response response) {
-            BinanceWsKlineService.this.scheduleReconnect(sub, t == null ? "unknown error" : t.getMessage());
+            synchronized (sub) {
+                if (sub.webSocket != ws || "STOPPED".equals(sub.status)) return;
+                sub.webSocket = null;
+                sub.diagnostics.failed(t, Instant.now());
+                log.warn("[BinanceWS] WS failure {}@{}: {}", sub.symbol, sub.intervalCode,
+                        sub.diagnostics.failureContext(response == null ? null : response.code()));
+                scheduleReconnect(sub, "connection lost");
+            }
         }
 
         @Override
         public void onClosed(WebSocket ws, int code, String reason) {
-            if (!"STOPPED".equals(sub.status) && !sub.stoppedByError) {
-                BinanceWsKlineService.this.scheduleReconnect(sub,
-                        String.format("closed code=%d reason=%s", code, reason));
+            synchronized (sub) {
+                if (sub.webSocket != ws || "STOPPED".equals(sub.status)) return;
+                sub.webSocket = null;
+                sub.diagnostics.disconnected(Instant.now());
+                log.info("[BinanceWS] Closed {}@{}: code={}", sub.symbol, sub.intervalCode, code);
+                scheduleReconnect(sub, "connection lost");
             }
         }
     }
@@ -362,8 +393,8 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
                 sub.reconnectAttempts, MAX_RECONNECT_ATTEMPTS, delayMs / 1000,
                 sub.marketType, sub.symbol, sub.intervalCode, reason);
 
-        reconnectExecutor.schedule(() -> {
-            if (!subscriptions.containsKey(buildKey(sub.symbol, sub.intervalCode, sub.marketType))) {
+        sub.reconnectTask = reconnectExecutor.schedule(() -> {
+            if (subscriptions.get(buildKey(sub.symbol, sub.intervalCode, sub.marketType)) != sub) {
                 return; // 訂閱已被手動移除，不重連
             }
             connect(sub);
@@ -381,7 +412,9 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
         volatile long receivedCount;
         volatile WebSocket webSocket;
         volatile boolean stoppedByError;
+        final WsConnectionDiagnostics diagnostics = new WsConnectionDiagnostics();
         volatile int reconnectAttempts = 0;
+        ScheduledFuture<?> reconnectTask;
 
         WsSubscription(String symbol, String intervalCode, String marketType) {
             this.symbol = symbol;
@@ -389,7 +422,9 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
             this.marketType = marketType;
         }
 
-        void close() {
+        synchronized void close() {
+            if (reconnectTask != null) reconnectTask.cancel(false);
+            reconnectTask = null;
             stoppedByError = false;
             status = "STOPPED";
             if (webSocket != null) {

@@ -14,6 +14,9 @@ import java.util.List;
 @Repository
 public interface MdKlineRepository extends JpaRepository<MdKline, Long> {
 
+    java.util.Optional<MdKline> findFirstBySymbolAndIntervalCodeAndSourceAndCloseTimeLessThanEqualOrderByOpenTimeDesc(
+            String symbol, String intervalCode, String source, LocalDateTime now);
+
     @Query(value = "SELECT /*+ SET_VAR(use_secondary_engine=OFF) */ * FROM md_kline " +
             "WHERE symbol = :symbol AND interval_code = :intervalCode " +
             "AND open_time BETWEEN :startTime AND :endTime ORDER BY open_time ASC",

@@ -1,6 +1,144 @@
 # Current Design Debt and Next Actions
 
-Status date: 2026-07-31
+Latest diagnosis: 2026-10-02. Local remediation is based on deployed commit
+`9e7f84da54f56bbc983ec08dc7b9083680708b68`; the changes below are not deployed.
+The strategy decisions and July acceptance narrative below remain historical
+context, not a statement that the first DRA sell is still outstanding.
+
+## 2026-10-02 findings and remediation
+
+The investigation used only the dedicated Trading MCP, application logs and
+read-only SQL against Trading tables and MySQL diagnostic metadata. It did
+not place orders, alter strategies, change Grid, backfill data, or restart
+services. Times in this section are UTC unless explicitly labelled otherwise.
+
+### DRA fee reconciliation blocks new entries — local fix verified offline
+
+Attempt `1` for closed lot `263` has been `RECONCILED_FILLED / PENDING` since
+2026-08-19. Its saved provider receipt has `fee=-0.031611633036` and
+`feeCcy=USDT`, while `fillFee` and `fillFeeCcy` are absent. The REST order
+parser used the latter fields with cumulative `accFillSz`. This left the
+persisted fee at zero and currency unknown on each subsequent lookup.
+
+`findOutstandingSell()` treats that fee-pending attempt as outstanding.
+`executeEligibleExit()` handles it and returns true, so the LIVE evaluator
+does not reach a new buy on that bar. This establishes a real execution
+blocker; it does not establish how many profitable opportunities were lost.
+
+The local fix reads the cumulative `fee/feeCcy` pair in both the immediate
+fill and later lookup paths, consistent with the
+[OKX order-fee contract](https://www.okx.com/docs-v5/log_en/). It never falls
+back to a last-fill fee for a cumulative quantity. Missing, unsupported
+currency, or rebate evidence stays pending. Fee precision is preserved when
+the provider omits trailing zeroes in the gross quantity; exchange lot-size
+rounding remains in the order-sizing layer.
+
+The offline saved-receipt case expects a fee-only adjustment of
+`-0.03161163 USDT`, no new fill, recorded PnL changing from `1.61218858` to
+`1.58057695`, and a second identical reconciliation applying zero delta.
+These are test expectations, not mutations of the live ledger. The missing
+historical BUY attempt remains `MISSING_BUY_ATTEMPT`, so this does not make
+the entire lifecycle fee-exact.
+
+The owner authorized one combined release on 2026-10-02, after all confirmed
+code defects in this incident are fixed and verified. After ordinary reconciliation succeeds,
+DRA may again reach its existing fresh-signal entry path. Do not manually
+clear PENDING, create a replacement order, replay old signals, or backfill the
+missing BUY attempt. Acceptance must verify fee-only application, unchanged
+provider fill quantity and original exit time, no duplicate submission, and
+the unchanged one-lot 30 USDT / +5% strategy contract.
+
+### DB interruption — server lifecycle confirmed, initiator unproven
+
+The application connects from `10.0.0.64` to MySQL at `10.0.0.119:3306`.
+Local MySQL socket absence is unrelated. `performance_schema.error_log`
+records externally signalled graceful shutdowns on 2026-10-01 at 10:31:23,
+10:47:12 and 10:47:33, followed by restarts. The application records
+`Connection refused` and unavailable pool connections at 10:34–10:46,
+affecting OCO polling. No change to pool sizing or maxLifetime is justified
+by this evidence alone. Intermediate DB-ready messages do not prove that the
+private endpoint was reachable throughout that interval.
+
+The full day has 24 distinct OKX hourly bars, one Binance daily bar, and 24
+each of DRA and Donchian evidence rows. Both lanes also have observations at
+09:00, 10:00, 11:00 and 12:00 across the incident. These bounded checks show
+no missing bar/evidence count in that window; they are not a proof of zero
+order impact. Remaining evidence: cloud maintenance/audit actor and request,
+endpoint reachability between restarts, and any historical execution impact.
+The configured OCI security-token session was expired when the cloud audit was
+attempted; no reauthentication or cloud mutation was performed.
+
+The application now propagates failed K-line inserts instead of treating them
+as duplicate rows. Existing OKX gap recovery inserts and publishes bars in
+chronological order, publishes each committed insert before attempting the next
+one, and accepts only explicit confirmed closed bars. A later DB failure can
+no longer swallow events for earlier committed inserts in that batch. No new
+scheduler, external source, manual backfill or historical order replay is added.
+
+### WebSocket reliability — local heartbeat and diagnostic fixes
+
+The prior OKX candle implementation recursively scheduled a heartbeat on
+every successful reconnect without cancelling the old chain. Repeated
+reconnections could accumulate ping tasks. A subscription now owns one
+cancellable heartbeat, stopped on reconnect/unsubscribe/shutdown and replaced
+on a new connection. The interval and retry/backoff limits are unchanged. Pending reconnects are
+cancelled on unsubscribe/shutdown; exact subscription and socket identity guards
+prevent old callbacks or queued reconnects from reviving a removed stream or
+clearing a replacement socket. The same lifecycle guards cover Binance and
+OKX private streams; private repeated-failure alerts occur once per outage.
+
+Public and private socket logs now retain exception type, HTTP status,
+failure count, outage start and last message time without dumping response
+bodies or credentials. Recovery duration ends at subscription acknowledgement.
+Binance daily freshness also accepts the provider
+end-minus-one-millisecond close timestamp. This fixes diagnostic visibility; the upstream cause of the recent resets is
+not established. No new timer or notification path is added.
+
+### Operator evidence — local read-only changes
+
+The existing `getStrategyRuntimeCatalog` tool appends a common persisted
+observation section for active lanes. It shows source-pinned latest closed
+bars, freshness, whether the decision matches that bar, recorded decision
+reasons/conditions, explicitly owned inventory, current recorded-cost/cap
+utilization, and oldest pending DRA fee attempt. It does not evaluate a
+strategy, restore state, call an exchange, or write. Missing evidence and DB
+failures remain visible. Historical utilization and complete blocked-entry
+counts are still unavailable. The ten-tool MCP allowlist stays unchanged.
+
+The realized ledger now lists incomplete lot IDs and their evidence gaps,
+labels exact sums as a verified subset when coverage is partial, and suppresses
+the mixed-basis recorded aggregate. Empty inventory is `NO_CLOSED_LOTS`, not
+an accounting failure. Missing recorded PnL cannot be labelled reconciled.
+39 unattributed historical lots are not reassigned by inference. A full net
+equity series and maximum drawdown remain unproven and require a separately
+scoped accounting design before strategy ranking or scaling.
+
+### Grid and accepted policy choices
+
+The read-only snapshot around 2026-10-02 10:58 showed native Grid
+`3767345250394603520` running with a `63,978–67,259` range, 10 USDT investment,
+and provider PnL about `+0.2697 USDT`. BTC around 86,305 was about 28.3% above
+the upper bound. Range relevance and opportunity cost warrant an operator
+decision, but this snapshot does not justify a replacement range or establish
+terminal exact-net profit. No Grid change is included. This is a smaller
+capital exposure than the DRA execution blocker.
+
+Legacy lots 260/261/262 intentionally have no automatic exit. Donchian has
+80 observation days, two unique entries and one completed trade against a
+five-entry/five-trade gate. Neither is treated as a bug or promotion authority.
+
+### Validation and remaining release gate
+
+Run the narrow offline receipt/reconciliation, heartbeat, observation, and
+existing execution-policy tests; then `mvn -DskipTests package` and
+`git diff --check`. Tests must not start Spring, contact exchanges or a
+database, or send notifications. Production acceptance remains pending until
+the combined deployment and a natural reconciliation/bar provide
+runtime evidence. Preserve the original dirty research checkout.
+
+Local validation on 2026-10-02: all 39 tests passed with zero failures,
+errors, or skips; Java 21 `mvn -DskipTests package` and `git diff --check`
+passed. These are offline source/package results, not deployment acceptance.
 
 This is the current decision document for maintenance and strategy scaling.
 Selected strategy research and rollout evidence remains where it is required
@@ -256,13 +394,12 @@ advancement is not yet protected by a database uniqueness contract for
 canonical strategy plus bar. Add that constraint before multi-instance
 evaluation.
 
-### P2 — Add one generic read-only strategy status
+### Completed in this release — Generic read-only strategy observations
 
-DRA has no dedicated MCP tool. Do not add one tool per strategy. If operator
-visibility becomes necessary, add one generic read-only status surface keyed
-by canonical strategy key. It should expose mode, armed state, latest closed
-bar, state hash, open owned quantity, reconciliation status, realized and
-unrealized PnL, and current blocker.
+The existing catalog MCP now appends generic persisted observations, as
+described in the October findings. It does not add a tool or strategy write
+path. Complete performance and historical signal accounting remain separate
+evidence requirements, not claims supplied by runtime status.
 
 ## Ownership invariant
 

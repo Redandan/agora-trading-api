@@ -46,7 +46,6 @@ public class TradingViewScoreBuyAutoExitLiveService {
     private static final String POSITION_PREFIX = BtcBasePositionStatePolicy.TV509_POSITION_PREFIX;
     private static final String SIDE = "LONG";
     private static final BigDecimal ESTIMATED_SELL_FEE_RATE = new BigDecimal("0.0010");
-    private static final BigDecimal DUST_QTY = new BigDecimal("0.00000001");
     private static final DateTimeFormatter CLIENT_TIME =
             DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ROOT);
 
@@ -56,6 +55,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
     private final BtLiveSignalRepository liveSignalRepository;
     private final DecisionAuditWriter auditWriter;
     private final NotificationPort notificationPort;
+    private final TradingViewLivePositionStore positionStore;
 
     /**
      * Serialized inside one JVM; database reservations and OKX clOrdId provide
@@ -99,6 +99,9 @@ public class TradingViewScoreBuyAutoExitLiveService {
             return "SCOPE_BLOCKED:" + blocker;
         }
 
+        if (reconcilePending(strategy, signalBar)) {
+            return "RECONCILIATION_ONLY_NO_NEW_ORDER";
+        }
         executeEligibleExits(strategy, signalBar);
         if (buyIntents != null && !buyIntents.isEmpty()) {
             TradingViewAccumulationOrderPlanner.Plan plan;
@@ -172,7 +175,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
             return "DUPLICATE_BAR_ALREADY_RESERVED";
         }
         if (strategyOwnedRows(strategy.getId()).stream()
-                .anyMatch(row -> !Boolean.TRUE.equals(row.getAutoTraded()))) {
+                .anyMatch(BtcBasePositionStatePolicy::executionUnresolved)) {
             return "UNRESOLVED_509_ORDER_RESERVATION";
         }
         BigDecimal openCost = strategyOpenCost(strategy.getId());
@@ -253,21 +256,10 @@ public class TradingViewScoreBuyAutoExitLiveService {
         }
 
         try {
-            recordFillEvidence(strategy.getId(), reservation.getId(), signalBar, "BUY",
-                    clientOrderId, fill, fill.getQty());
+            TradingViewLivePositionStore.Applied applied = positionStore.applyBuy(
+                    strategy.getId(), reservation.getId(), clientOrderId, fill, LocalDateTime.now(ZoneOffset.UTC));
+            recordApplied(strategy.getId(), signalBar, "BUY", clientOrderId, fill, applied);
             BigDecimal effectiveEntry = effectiveBuyCostPerNetUnit(fill);
-            reservation.setEntryPrice(effectiveEntry);
-            reservation.setSuggestedTp(requiredExitPrice(effectiveEntry));
-            reservation.setActualEntryPrice(fill.getAvgPrice());
-            reservation.setTradedQty(fill.getQty());
-            reservation.setOcoQty(fill.getQty());
-            reservation.setAutoTraded(true);
-            reservation.setExchangeOrderId(safe("OKX:" + fill.getOrderId(), 50));
-            reservation.setFilterReason(positionReason(
-                    "OPEN:CL=" + clientOrderId
-                            + ":WEIGHT=" + plain(plan.aggregateWeight())
-                            + ":REASONS=" + plan.aggregateReasons()));
-            liveSignalRepository.saveAndFlush(reservation);
             context.put("liveSignalId", reservation.getId());
             context.put("providerOrderId", fill.getOrderId());
             context.put("avgPrice", fill.getAvgPrice());
@@ -288,16 +280,78 @@ public class TradingViewScoreBuyAutoExitLiveService {
                     fill.getOrderId(), fill.getQty(), effectiveEntry);
             return true;
         } catch (Exception e) {
-            audit(strategy, signalBar, "ERROR", "BUY_FILL_PERSIST_FAILED", "BUY",
+            audit(strategy, signalBar, "ERROR", "BUY_FILL_RECONCILIATION_PENDING", "BUY",
                     true, reservation.getId(), withError(context, e));
-            alert("CRITICAL", "509 BUY filled but persistence failed. orderId="
+            alert("CRITICAL", "509 BUY receipt awaits reconciliation. orderId="
                     + fill.getOrderId() + " clOrdId=" + clientOrderId
                     + " error=" + safe(e.getMessage(), 240));
             return false;
         }
     }
 
+    /** Query existing client ids only; a not-found response never authorizes resubmission. */
+    private boolean reconcilePending(BtStrategy strategy, MdKline signalBar) {
+        List<BtLiveSignal> pending = strategyOwnedRows(strategy.getId()).stream()
+                .filter(BtcBasePositionStatePolicy::executionUnresolved).toList();
+        if (pending.isEmpty()) return false;
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (BtLiveSignal lot : pending) {
+            // Old non-atomic reservations do not prove complete aggregate membership.
+            if (!TradingViewLivePositionStore.pendingV2(lot)) continue;
+            String clientId = TradingViewLivePositionStore.clientId(lot);
+            if (clientId == null || !seen.add(clientId)) continue;
+            String side = lot.getFilterReason().startsWith(POSITION_PREFIX + "BUY_RESERVED:") ? "BUY" : "SELL";
+            try {
+                var lookup = okxTradingService.lookupSpotOrderByClientOrderId(
+                        TradingViewScoreBuyAutoExitStrategyContract.EXECUTION_SYMBOL, clientId);
+                if (lookup.status() != OkxTradingService.SpotOrderLookupStatus.FOUND) continue;
+                var receipt = lookup.snapshot();
+                if (receipt == null || !clientId.equals(receipt.clientOrderId())
+                        || !side.equalsIgnoreCase(receipt.side()) || receipt.providerOrderId() == null
+                        || receipt.providerOrderId().isBlank()) {
+                    throw new IllegalStateException("TV509_PROVIDER_IDENTITY_MISMATCH");
+                }
+                boolean canceled = "canceled".equals(receipt.providerState());
+                if (!canceled && !"filled".equals(receipt.providerState())) continue;
+                if (receipt.cumulativeGrossQuantity() == null || receipt.cumulativeGrossQuantity().signum() < 0
+                        || !canceled && receipt.cumulativeGrossQuantity().signum() == 0) {
+                    throw new IllegalStateException("TV509_PROVIDER_QUANTITY_INVALID");
+                }
+                var fill = new TradeResult();
+                fill.setOrderId(receipt.providerOrderId()); fill.setAvgPrice(receipt.averagePrice());
+                fill.setGrossQty(receipt.cumulativeGrossQuantity()); fill.setQty(receipt.netQuantity());
+                fill.setNetQty(receipt.netQuantity()); fill.setFeeAmount(receipt.signedFeeAmount());
+                fill.setFeeCurrency(receipt.feeCurrency()); fill.setFeeUsdt(receipt.feeUsdt());
+                LocalDateTime at = receipt.providerAt() == null ? LocalDateTime.now(ZoneOffset.UTC) : receipt.providerAt();
+                var applied = "BUY".equals(side)
+                        ? positionStore.applyBuy(strategy.getId(), lot.getId(), clientId, fill, at)
+                        : positionStore.applySell(strategy.getId(), clientId, fill, at);
+                recordApplied(strategy.getId(), signalBar, side, clientId, fill, applied);
+            } catch (Exception e) {
+                log.warn("[TV509] reconciliation deferred clientId={} errorType={}", clientId, e.getClass().getSimpleName());
+            }
+        }
+        audit(strategy, signalBar, "BLOCKED", "RECONCILIATION_ONLY_NO_NEW_ORDER", "HOLD", false, null,
+                Map.of("pendingLotsAtStart", pending.size()));
+        return true;
+    }
+
+    private void recordApplied(Long strategyId, MdKline bar, String side, String clientId,
+                               TradeResult fill, TradingViewLivePositionStore.Applied applied) {
+        for (var allocation : applied.allocations()) {
+            recordFillEvidence(strategyId, allocation.lotId(), bar, side, clientId, fill, allocation.quantity());
+        }
+    }
+
     private boolean executeEligibleExits(BtStrategy strategy, MdKline signalBar) {
+        if (strategyOwnedRows(strategy.getId()).stream().anyMatch(BtcBasePositionStatePolicy::executionUnresolved)) {
+            return false;
+        }
+        String clientOrderId = clientOrderId("S", signalBar.getOpenTime());
+        if (liveSignalRepository.findByStrategyIdAndSymbol(strategy.getId(), "BTCUSDT").stream()
+                .anyMatch(lot -> clientOrderId.equals(TradingViewLivePositionStore.clientId(lot)))) {
+            return false;
+        }
         List<BtLiveSignal> openLots = strategyLiveLots(strategy.getId());
         if (openLots.isEmpty()) {
             return false;
@@ -353,7 +407,6 @@ public class TradingViewScoreBuyAutoExitLiveService {
             return false;
         }
 
-        String clientOrderId = clientOrderId("S", signalBar.getOpenTime());
         Map<String, Object> context = new LinkedHashMap<>();
         context.put("clientOrderId", clientOrderId);
         context.put("currentPrice", currentPrice);
@@ -361,11 +414,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
         context.put("eligibleLotIds", eligible.stream().map(BtLiveSignal::getId).toList());
         context.put("netProfitTrigger", TradingViewScoreBuyAutoExitStrategyContract.NET_PROFIT_TRIGGER);
         try {
-            for (BtLiveSignal lot : eligible) {
-                lot.setFilterReason(positionReason(
-                        "SELL_RESERVED:CL=" + clientOrderId + ":LOT=" + lot.getId()));
-                liveSignalRepository.saveAndFlush(lot);
-            }
+            positionStore.reserveSell(strategy.getId(), eligible, clientOrderId, requestedQty);
         } catch (Exception e) {
             audit(strategy, signalBar, "ERROR", "SELL_RESERVATION_FAILED", "SELL",
                     false, eligible.get(0).getId(), withError(context, e));
@@ -382,9 +431,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
                     clientOrderId);
             requireValidFill(fill);
         } catch (Exception e) {
-            for (BtLiveSignal lot : eligible) {
-                markSubmissionUnconfirmed(lot, "SELL", clientOrderId, e);
-            }
+            // Keep the complete V2 reservation intact for provider-first reconciliation.
             audit(strategy, signalBar, "ERROR", "SELL_SUBMISSION_UNCONFIRMED", "SELL",
                     false, eligible.get(0).getId(), withError(context, e));
             alert("CRITICAL", "509 SELL submission unconfirmed; automatic retry disabled. clOrdId="
@@ -393,55 +440,17 @@ public class TradingViewScoreBuyAutoExitLiveService {
         }
 
         BigDecimal soldQty = positive(fill.getGrossQty()) ? fill.getGrossQty() : fill.getQty();
-        BigDecimal totalFee = positive(fill.getFeeUsdt())
-                ? fill.getFeeUsdt()
-                : fill.getAvgPrice().multiply(soldQty).multiply(ESTIMATED_SELL_FEE_RATE);
-        BigDecimal remainingFill = soldQty;
         BigDecimal realizedTotal = BigDecimal.ZERO;
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         try {
-            for (BtLiveSignal lot : eligible) {
-                if (!positive(remainingFill)) {
-                    lot.setFilterReason(positionReason(
-                            "SELL_PARTIAL_UNFILLED:CL=" + clientOrderId + ":LOT=" + lot.getId()));
-                    liveSignalRepository.saveAndFlush(lot);
-                    continue;
-                }
-                BigDecimal lotQty = lot.getTradedQty();
-                BigDecimal allocated = lotQty.min(remainingFill);
-                recordFillEvidence(strategy.getId(), lot.getId(), signalBar, "SELL",
-                        clientOrderId, fill, allocated);
-                BigDecimal feeShare = totalFee.multiply(allocated)
-                        .divide(soldQty, 12, RoundingMode.HALF_UP);
-                BigDecimal proceeds = fill.getAvgPrice().multiply(allocated).subtract(feeShare);
-                BigDecimal cost = lot.getEntryPrice().multiply(allocated);
-                BigDecimal pnl = proceeds.subtract(cost).setScale(8, RoundingMode.HALF_UP);
-                BigDecimal previousPnl = lot.getRealizedPnl() == null
-                        ? BigDecimal.ZERO : lot.getRealizedPnl();
-                lot.setRealizedPnl(previousPnl.add(pnl));
-                remainingFill = remainingFill.subtract(allocated);
-                BigDecimal remainingLot = lotQty.subtract(allocated);
-                if (remainingLot.compareTo(DUST_QTY) <= 0) {
-                    lot.setExitPrice(fill.getAvgPrice());
-                    lot.setExitTime(now);
-                    lot.setExitReason("TV509_AUTO_NET_PROFIT");
-                    lot.setFilterReason(positionReason(
-                            "CLOSED:CL=" + clientOrderId + ":ORDER=" + fill.getOrderId()));
-                } else {
-                    lot.setTradedQty(remainingLot);
-                    lot.setOcoQty(remainingLot);
-                    lot.setFilterReason(positionReason(
-                            "OPEN_PARTIAL:CL=" + clientOrderId + ":ORDER=" + fill.getOrderId()));
-                }
-                liveSignalRepository.saveAndFlush(lot);
-                realizedTotal = realizedTotal.add(pnl);
-            }
+            var applied = positionStore.applySell(strategy.getId(), clientOrderId, fill, LocalDateTime.now(ZoneOffset.UTC));
+            realizedTotal = applied.realizedPnl();
+            recordApplied(strategy.getId(), signalBar, "SELL", clientOrderId, fill, applied);
         } catch (Exception e) {
             context.put("providerOrderId", fill.getOrderId());
             context.put("soldQty", soldQty);
-            audit(strategy, signalBar, "ERROR", "SELL_FILL_PERSIST_FAILED", "SELL",
+            audit(strategy, signalBar, "ERROR", "SELL_FILL_RECONCILIATION_PENDING", "SELL",
                     true, eligible.get(0).getId(), withError(context, e));
-            alert("CRITICAL", "509 SELL filled but persistence failed. orderId="
+            alert("CRITICAL", "509 SELL receipt awaits reconciliation. orderId="
                     + fill.getOrderId() + " clOrdId=" + clientOrderId
                     + " error=" + safe(e.getMessage(), 240));
             return false;
@@ -450,9 +459,9 @@ public class TradingViewScoreBuyAutoExitLiveService {
         context.put("providerOrderId", fill.getOrderId());
         context.put("avgPrice", fill.getAvgPrice());
         context.put("soldQty", soldQty);
-        context.put("feeUsdt", totalFee);
+        context.put("feeUsdt", fill.getFeeUsdt());
         context.put("realizedPnlUsdt", realizedTotal);
-        context.put("unallocatedFillQty", remainingFill.max(BigDecimal.ZERO));
+        context.put("unallocatedFillQty", BigDecimal.ZERO);
         audit(strategy, signalBar, "PASS", "SELL_FILLED", "SELL",
                 true, eligible.get(0).getId(), context);
         alert("INFO", "509 SELL filled: orderId=" + fill.getOrderId()
@@ -482,7 +491,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
         signal.setExchangeOrderId(safe("PENDING:" + clientOrderId, 50));
         signal.setSide(SIDE);
         signal.setFilterReason(positionReason(
-                "BUY_RESERVED:CL=" + clientOrderId
+                "BUY_RESERVED:V=2:CL=" + clientOrderId
                         + ":WEIGHT=" + plain(plan.aggregateWeight())
                         + ":REASONS=" + plan.aggregateReasons()));
         return liveSignalRepository.saveAndFlush(signal);
@@ -504,6 +513,8 @@ public class TradingViewScoreBuyAutoExitLiveService {
                                            String side,
                                            String clientOrderId,
                                            Exception error) {
+        // V2 is an atomic durable reservation; overwriting it would lose recovery metadata.
+        if (TradingViewLivePositionStore.pendingV2(lot)) return;
         try {
             lot.setFilterReason(positionReason(
                     side + "_SUBMISSION_UNCONFIRMED:CL=" + clientOrderId
@@ -517,11 +528,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
 
     private List<BtLiveSignal> strategyLiveLots(Long strategyId) {
         return strategyOwnedRows(strategyId).stream()
-                .filter(lot -> Boolean.TRUE.equals(lot.getAutoTraded()))
-                .filter(lot -> lot.getFilterReason() != null
-                        && lot.getFilterReason().startsWith(POSITION_PREFIX)
-                        && (lot.getFilterReason().contains(":OPEN:")
-                        || lot.getFilterReason().contains(":OPEN_PARTIAL:")))
+                .filter(TradingViewLivePositionStore::open)
                 .filter(lot -> positive(lot.getEntryPrice()) && positive(lot.getTradedQty()))
                 .toList();
     }
@@ -578,7 +585,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
         if ("USDT".equalsIgnoreCase(fill.getFeeCurrency()) && positive(fill.getFeeUsdt())) {
             cost = cost.add(fill.getFeeUsdt());
         }
-        return cost.divide(fill.getQty(), 8, RoundingMode.HALF_UP);
+        return cost.divide(fill.getQty().setScale(8, RoundingMode.DOWN), 8, RoundingMode.HALF_UP);
     }
 
     private BigDecimal requiredExitPrice(BigDecimal effectiveEntry) {

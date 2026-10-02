@@ -42,6 +42,20 @@ class SpotPerformancePolicyTest {
         bar.setOpenTime(LocalDateTime.of(2026, 10, 2, 11, 0)); bar.setCloseTime(bar.getOpenTime().plusHours(1));
         bar.setClosePrice(new BigDecimal("110")); return bar;
     }
+    @Test void unconfirmedAndReservedSellsNeverPublishCompleteEquity() {
+        for (String owner : List.of("TV509", "DRA_V1")) {
+            for (String state : List.of("SELL_RESERVED:V=2:CL=x", "SELL_SUBMISSION_UNCONFIRMED:CL=x",
+                    "SELL_PARTIAL_UNFILLED:CL=x", "UNKNOWN_STATE:CL=x")) {
+                var row=lot("DRA_V1","1","100","0");
+                row.setFilterReason(BtcBasePositionStatePolicy.BTC_BASE_PREFIX+owner+":"+state);
+                var result=SpotPerformancePolicy.snapshot(owner,List.of(row),new BigDecimal("250"),bar(),bar().getCloseTime());
+                assertEquals("MISSING_PROOF",result.get("status"));
+                assertEquals(1,result.get("unresolvedReservations"));
+                assertFalse(result.containsKey("referenceEquityUsdt"));
+                assertEquals("WAIT_FOR_EXECUTION_RECONCILIATION",BtcBasePositionStatePolicy.automaticExitPolicy(row));
+            }
+        }
+    }
     private BtLiveSignal lot(String owner, String qty, String price, String pnl) {
         var row = new BtLiveSignal(); row.setSymbol("BTCUSDT"); row.setSide("LONG"); row.setAutoTraded(true);
         row.setFilterReason("DRA_V1".equals(owner) ? BtcBasePositionStatePolicy.DRA_V1_POSITION_PREFIX + "OPEN"

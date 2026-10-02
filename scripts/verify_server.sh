@@ -463,6 +463,13 @@ MCP_RESPONSE="$(curl -fsS \
   --data '{"jsonrpc":"2.0","id":"server-verify-registry-version","method":"tools/call","params":{"name":"getMcpRegistryVersion","arguments":{}}}' \
   "$MCP_URL")" || fail "local MCP getMcpRegistryVersion failed: $MCP_URL"
 printf '%s' "$MCP_RESPONSE" | grep -q '"content"' || fail "local MCP getMcpRegistryVersion response missing content array: $MCP_URL"
+if [ -n "${DEPLOYED_COMMIT:-}" ]; then
+  RUNTIME_COMMIT="$(printf '%s' "$MCP_RESPONSE" | tr -d '\\' | sed -n 's/.*"gitCommit"[[:space:]]*:[[:space:]]*"\([a-f0-9]\{7,40\}\)".*/\1/p')"
+  [ -n "$RUNTIME_COMMIT" ] || fail "MCP runtime commit metadata is missing"
+  RUNTIME_COMMIT_FULL="$(git rev-parse --verify "${RUNTIME_COMMIT}^{commit}")" || fail "MCP runtime commit is unknown to checkout"
+  [ "$RUNTIME_COMMIT_FULL" = "$DEPLOYED_COMMIT" ] || fail "MCP runtime commit does not match app.commit"
+  ok "MCP runtime commit matches app.commit: $RUNTIME_COMMIT"
+fi
 ok "local MCP getMcpRegistryVersion passed: $MCP_URL"
 
 OWNER_509_RESPONSE="$(curl -fsS \

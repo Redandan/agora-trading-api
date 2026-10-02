@@ -41,8 +41,7 @@ public class ExecutionSafetyMcpTools {
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
     @Tool(description = "Read-only OCO execution safety status. Does not retry, cancel, modify, close, or place orders.")
     public String getExecutionSafetyStatus() {
-        List<BtLiveSignal> positions =
-                liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull();
+        List<BtLiveSignal> positions = executionInventory();
         if (positions.isEmpty()) {
             return "OCO_EXECUTION_SAFETY\nopenPositions=0\nstatus=OK";
         }
@@ -55,6 +54,11 @@ public class ExecutionSafetyMcpTools {
             result.append("- id=").append(position.getId())
                     .append(" symbol=").append(position.getSymbol())
                     .append(" side=").append(position.getSide());
+            if (BtcBasePositionStatePolicy.executionUnresolved(position)) {
+                result.append(" state=EXECUTION_RECONCILIATION_REQUIRED\n");
+                issueCount++;
+                continue;
+            }
             if (position.getOcoOrderListId() == null) {
                 if (BtcBasePositionStatePolicy.isBtcBase(position)) {
                     result.append(" state=INTENTIONAL_BTC_BASE_NO_OCO");
@@ -104,7 +108,7 @@ public class ExecutionSafetyMcpTools {
     @Tool(description = "Read-only open BTC spot inventory with ownership and gross mark-to-market PnL plus a fail-closed daily/cumulative realized ledger. Exact-net coverage is reported only for reconciled provider receipts. Does not place, cancel, or modify orders.")
     public String getOpenSpotPositions() {
         List<BtLiveSignal> positions =
-                liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull().stream()
+                executionInventory().stream()
                         .filter(position -> !"SHORT".equals(position.getSide()))
                         .toList();
         StringBuilder result = new StringBuilder("OPEN_SPOT_POSITIONS\n");
@@ -125,7 +129,8 @@ public class ExecutionSafetyMcpTools {
         for (BtLiveSignal position : positions) {
             BigDecimal quantity = position.getTradedQty();
             BigDecimal entry = entryPrice(position);
-            BigDecimal mark = markPrice(position.getSymbol(), markPrices, unavailableMarks);
+            boolean unresolved = BtcBasePositionStatePolicy.executionUnresolved(position);
+            BigDecimal mark = unresolved ? null : markPrice(position.getSymbol(), markPrices, unavailableMarks);
             BigDecimal entryCost = multiply(entry, quantity);
             BigDecimal markedValue = multiply(mark, quantity);
             BigDecimal grossUnrealizedPnl = subtract(markedValue, entryCost);
@@ -141,6 +146,7 @@ public class ExecutionSafetyMcpTools {
                     .append(BtcBasePositionStatePolicy.managementState(position))
                     .append(" automaticExitPolicy=")
                     .append(BtcBasePositionStatePolicy.automaticExitPolicy(position))
+                    .append(" executionUnresolved=").append(unresolved)
                     .append(" mark=").append(decimal(mark))
                     .append(" entryCost=").append(decimal(entryCost))
                     .append(" markedValue=").append(decimal(markedValue))
@@ -195,6 +201,15 @@ public class ExecutionSafetyMcpTools {
                     .append(" usd=").append(decimal(holding.eqUsd))
                     .append('\n');
         }
+    }
+
+    private List<BtLiveSignal> executionInventory() {
+        Map<Long, BtLiveSignal> rows = new java.util.LinkedHashMap<>();
+        liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull().forEach(row -> rows.put(row.getId(), row));
+        liveSignalRepository.findByExitTimeIsNullAndFilterReasonStartingWith(BtcBasePositionStatePolicy.BTC_BASE_PREFIX)
+                .stream().filter(BtcBasePositionStatePolicy::executionUnresolved)
+                .forEach(row -> rows.put(row.getId(), row));
+        return List.copyOf(rows.values());
     }
 
     private String decimal(BigDecimal value) {

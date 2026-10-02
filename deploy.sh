@@ -244,7 +244,12 @@ fi
 echo "[deploy] installing AgoraMarket internal-client SDK"
 mvn -f "$INTERNAL_CLIENT_POM" install -DskipTests -q
 
+BUILD_COMMIT="$(git rev-parse HEAD)"
 mvn clean package -DskipTests -q
+if [ "$(git rev-parse HEAD)" != "$BUILD_COMMIT" ]; then
+  echo "[deploy] checkout changed during build; refusing ambiguous runtime identity" >&2
+  exit 1
+fi
 
 PIDS_ON_NEW_PORT="$(lsof -ti ":$NEW_PORT" 2>/dev/null || true)"
 if [ -n "$PIDS_ON_NEW_PORT" ]; then
@@ -263,7 +268,7 @@ fi
 mkdir -p logs/runs
 RUN_LOG="logs/runs/app-$(date -u +%Y%m%dT%H%M%SZ)-port${NEW_PORT}.log"
 
-PORT="$NEW_PORT" nohup java $JAVA_OPTS -jar target/agora-trading-api-1.0-SNAPSHOT.jar > "$RUN_LOG" 2>&1 &
+PORT="$NEW_PORT" nohup java $JAVA_OPTS -Dapp.git.commit="$BUILD_COMMIT" -jar target/agora-trading-api-1.0-SNAPSHOT.jar > "$RUN_LOG" 2>&1 &
 NEW_PID="$!"
 echo "$NEW_PID" > "app.pid.$NEW_PORT"
 echo "[deploy] new instance PID=$NEW_PID port=$NEW_PORT log=$RUN_LOG"
@@ -319,7 +324,7 @@ fi
 
 echo "$NEW_PORT" > app.port
 echo "$NEW_PID" > app.pid
-git rev-parse HEAD > app.commit
+printf '%s\n' "$BUILD_COMMIT" > app.commit
 
 if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
   VERIFY_SCRIPT="$APP_DIR/scripts/verify_server.sh"

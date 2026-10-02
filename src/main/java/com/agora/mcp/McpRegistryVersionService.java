@@ -13,8 +13,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.HexFormat;
@@ -28,6 +26,7 @@ public class McpRegistryVersionService {
     private final ObjectProvider<ToolCallbackProvider> toolCallbackProviders;
     private final BuildProperties buildProperties;
     private final Environment environment;
+    private final String gitCommit;
     private final String startedAt = Instant.now().toString();
 
     public McpRegistryVersionService(ObjectProvider<ToolCallbackProvider> toolCallbackProviders,
@@ -36,6 +35,7 @@ public class McpRegistryVersionService {
         this.toolCallbackProviders = toolCallbackProviders;
         this.buildProperties = buildPropertiesProvider.getIfAvailable();
         this.environment = environment;
+        this.gitCommit = resolveGitCommit();
     }
 
     @McpAuth(McpAuthLevel.OPS)
@@ -59,7 +59,8 @@ public class McpRegistryVersionService {
         out.put("boundary", "READ_ONLY; no trading/OCO/strategy/grid/fund/Earn behavior changed.");
         out.put("transportProtocolVersion", "2025-03-26");
         out.put("serverVersion", serverVersion);
-        out.put("gitCommit", resolveGitCommit());
+        out.put("gitCommit", gitCommit);
+        out.put("gitCommitSource", "unknown".equals(gitCommit) ? "UNKNOWN" : "STARTUP_BUILD_OR_DEPLOYMENT_METADATA");
         out.put("startedAt", startedAt);
         out.put("toolCount", toolNames.size());
         out.put("resourceCount", toolNames.size() + 1);
@@ -105,36 +106,7 @@ public class McpRegistryVersionService {
         if (fromApp != null && !fromApp.isBlank()) {
             return fromApp.trim();
         }
-        String fromGitDir = resolveGitCommitFromWorkTree();
-        if (fromGitDir != null && !fromGitDir.isBlank()) {
-            return fromGitDir;
-        }
         return "unknown";
-    }
-
-    private String resolveGitCommitFromWorkTree() {
-        try {
-            Path gitDir = Path.of(".git");
-            Path headPath = gitDir.resolve("HEAD");
-            if (!Files.isRegularFile(headPath)) {
-                return null;
-            }
-            String head = Files.readString(headPath, StandardCharsets.UTF_8).trim();
-            String commit;
-            if (head.startsWith("ref:")) {
-                String ref = head.substring("ref:".length()).trim();
-                Path refPath = gitDir.resolve(ref);
-                if (!Files.isRegularFile(refPath)) {
-                    return null;
-                }
-                commit = Files.readString(refPath, StandardCharsets.UTF_8).trim();
-            } else {
-                commit = head;
-            }
-            return commit.length() > 12 ? commit.substring(0, 12) : commit;
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private String sha256Hex(String input) {

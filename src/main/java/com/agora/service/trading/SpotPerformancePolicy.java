@@ -45,7 +45,7 @@ public final class SpotPerformancePolicy {
         for (BtLiveSignal row : rows) {
             if (!"BTCUSDT".equals(row.getSymbol()) || "SHORT".equals(row.getSide())
                     || !owner.equals(BtcBasePositionStatePolicy.economicOwner(row))) continue;
-            if (!Boolean.TRUE.equals(row.getAutoTraded())) {
+            if (BtcBasePositionStatePolicy.executionUnresolved(row) || !Boolean.TRUE.equals(row.getAutoTraded())) {
                 if (row.getExitTime() == null) unresolved++;
                 continue;
             }

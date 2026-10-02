@@ -127,6 +127,7 @@ public final class BtcBasePositionStatePolicy {
     }
 
     public static String automaticExitPolicy(BtLiveSignal position) {
+        if (executionUnresolved(position)) return "WAIT_FOR_EXECUTION_RECONCILIATION";
         if (isTv509Position(position) || isDraV1Position(position)) {
             return "PER_LOT_NET_PROFIT_TARGET";
         }
@@ -144,6 +145,16 @@ public final class BtcBasePositionStatePolicy {
         }
         if (isBtcBase(position)) return "BTC_BASE_OTHER";
         return "UNATTRIBUTED";
+    }
+
+    /** Ownership is not evidence that an exchange submission has settled. */
+    public static boolean executionUnresolved(BtLiveSignal position) {
+        if (position == null || position.getExitTime() != null
+                || !(isTv509Position(position) || isDraV1Position(position))) return false;
+        if (!Boolean.TRUE.equals(position.getAutoTraded())) return true;
+        String prefix = isTv509Position(position) ? TV509_POSITION_PREFIX : DRA_V1_POSITION_PREFIX;
+        String state = position.getFilterReason().substring(prefix.length()).split(":", 2)[0];
+        return !("OPEN".equals(state) || "OPEN_PARTIAL".equals(state));
     }
 
     private static boolean startsWith(String value, String prefix) {

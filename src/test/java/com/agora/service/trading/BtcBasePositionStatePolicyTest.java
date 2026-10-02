@@ -34,6 +34,7 @@ class BtcBasePositionStatePolicyTest {
     private static void assertState(String filterReason, String managementState,
                                     String automaticExitPolicy, String economicOwner) {
         BtLiveSignal position = new BtLiveSignal();
+        position.setAutoTraded(true);
         position.setFilterReason(filterReason);
 
         assertEquals(managementState, BtcBasePositionStatePolicy.managementState(position));

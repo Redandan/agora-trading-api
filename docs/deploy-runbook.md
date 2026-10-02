@@ -209,6 +209,13 @@ deployment. The checkout update is fast-forward-only and preserves dirty files
 and local commits. Do not bypass a failed preflight or
 health gate merely to complete a deployment.
 
+The deployment captures the commit before compilation, refuses a changed HEAD
+during the build, and passes `-Dapp.git.commit=<built commit>` to the JVM. MCP
+captures that metadata at startup rather than reading the current checkout.
+`scripts/verify_server.sh` requires MCP's runtime commit to match `app.commit`.
+For launches outside this deployment path, provide verified build metadata;
+missing metadata is reported as `unknown`, never inferred from a checkout.
+
 ## Verify
 
 From Windows:

@@ -51,6 +51,8 @@ public interface BtLiveSignalRepository extends JpaRepository<BtLiveSignal, Long
     /** 所有自動交易尚未出場的倉位（供 TradingManagerService 報告使用）。 */
     List<BtLiveSignal> findByAutoTradedIsTrueAndExitTimeIsNull();
 
+    List<BtLiveSignal> findByExitTimeIsNullAndFilterReasonStartingWith(String prefix);
+
     /** 指定策略下，自動交易尚未出場的倉位（供停用策略前安全檢查使用）。 */
     List<BtLiveSignal> findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(Long strategyId);
 

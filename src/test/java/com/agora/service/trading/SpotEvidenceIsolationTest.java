@@ -29,7 +29,8 @@ class SpotEvidenceIsolationTest {
         };
         var positions = (BtLiveSignalRepository) Proxy.newProxyInstance(BtLiveSignalRepository.class.getClassLoader(),
                 new Class<?>[]{BtLiveSignalRepository.class}, (proxy, method, args) -> {
-                    if (method.getName().equals("findByStrategyIdAndSymbolAndIntervalCodeAndExitTimeIsNullAndNotifiedAtIsNotNull"))
+                    if (method.getName().equals("findByStrategyIdAndSymbolAndIntervalCodeAndExitTimeIsNullAndNotifiedAtIsNotNull")
+                            || method.getName().equals("findByStrategyIdAndSymbol"))
                         return List.of();
                     throw new AssertionError("Unexpected position operation: " + method.getName());
                 });
@@ -39,7 +40,7 @@ class SpotEvidenceIsolationTest {
         var okx = new OkxTradingProperties(); okx.setEnabled(true);
         okx.setApiKey("offline-fixture"); okx.setSecretKey("offline-fixture"); okx.setPassphrase("offline-fixture");
         // No exchange adapter exists in this fixture; any accidental access fails.
-        var live = new TradingViewScoreBuyAutoExitLiveService(properties, okx, null, positions, writer, null);
+        var live = new TradingViewScoreBuyAutoExitLiveService(properties, okx, null, positions, writer, null, null);
         var bar = SpotPerformancePolicyTest.bar(); var now = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(1);
         bar.setSource("binance"); bar.setIntervalCode("1d"); bar.setOpenTime(now.minusDays(1)); bar.setCloseTime(now);
         var strategy = new BtStrategy(); strategy.setId(485L);

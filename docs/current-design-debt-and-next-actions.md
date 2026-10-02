@@ -1,5 +1,53 @@
 # Current Design Debt and Next Actions
 
+## 2026-10-03 strategy execution audit repair (Taipei date)
+
+The owner authorized repair and a combined release after the read-only audit.
+The scope is mechanical owner-509 execution recovery, truthful pending-state
+reports, exact zero-fee handling and immutable running-version identity.
+Entry weights, the 10/80/250 USDT owner-509 limits, +5% profit trigger, DRA's
+one-lot 30 USDT contract and the provider-managed Grid remain unchanged.
+
+Owner 509 now commits a versioned reservation for the complete sell group
+before submission. Reservation and fill allocation are separate short database
+transactions, serialized by the existing strategy row. Every affected lot is
+committed or rolled back together. A terminal partial fill returns untouched
+lots to OPEN and partially consumed lots to OPEN_PARTIAL. The current sell
+client id prevents another submission on the same daily bar.
+
+On an existing fresh daily evaluation, V2 pending reservations are queried by
+their original OKX client id. Only a matching terminal receipt can release a
+reservation or apply a fill. An unfilled cancellation releases it without
+inventing a trade; positive fills require complete normalized fee evidence.
+Zero fee is valid. Unknown fees, not-found orders, live/partially-filled orders,
+identity mismatch and overfills remain pending. A reconciliation pass places
+no new order, and no new scheduler or historical-signal replay was added.
+
+The old non-atomic reservation format cannot prove aggregate membership and
+is not automatically adopted. The pre-release database audit found no open
+509/DRA unresolved rows. There is no migration or historical backfill. Buy
+quantity is floored to the existing eight-decimal position-column precision,
+so database rounding cannot attribute another owner's BTC to this strategy.
+Any sub-satoshi provider residual remains outside the tradable lot; it must
+not be described as a fully liquidated, fee-exact lifecycle without evidence.
+
+Performance snapshots now emit MISSING_PROOF and omit equity when an open
+owned row has an unresolved execution state. MCP inventory includes pending
+buy reservations, flags unresolved execution and omits its market valuation.
+Intentional legacy BTC Base holdings remain distinct from unresolved orders.
+
+Deployment passes the built commit into the JVM and MCP freezes that identity
+at startup. It no longer reads mutable checkout HEAD. Server verification
+requires the runtime identity to match app.commit, while the existing verifier
+continues to permit a later docs-only checkout update.
+
+Offline regression covers partial allocation, same-bar replay, receipt replay,
+transaction rollback, process restart, canceled and unknown submissions,
+provider identity/quantity mismatch, missing/zero/base fees, owner isolation,
+pending reporting and immutable version identity. Deployment acceptance must
+still confirm health, registry, unchanged limits, position safety and absence
+of manual/test orders; offline tests alone are not Production execution proof.
+
 Latest diagnosis: 2026-10-02. Local remediation is based on deployed commit
 `9e7f84da54f56bbc983ec08dc7b9083680708b68`. The combined runtime release
 `52e47a4a96f92e675cb5dc6251d4cb10188f576a` started on port 8085 at

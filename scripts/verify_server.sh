@@ -15,7 +15,7 @@ PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-}"
 PUBLIC_TRADING_MCP_URL="${PUBLIC_TRADING_MCP_URL:-}"
 PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL="${PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL:-}"
 PUBLIC_TRADING_MCP_BLOCKED_STATUSES="${PUBLIC_TRADING_MCP_BLOCKED_STATUSES:-401 403 404 405}"
-NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
+NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-${NGINX_CONF:-/etc/nginx/sites-enabled/agoramarketapi}}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
 VERIFY_GIT_CURRENT="${VERIFY_GIT_CURRENT:-1}"
@@ -229,7 +229,7 @@ require_env_value() {
 classify_deployed_delta_path() {
   local path="$1"
   case "$path" in
-    .gitattributes|.gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|deploy.sh|scripts/*.ps1|scripts/install_nginx_path.sh|scripts/rewrite_nginx_trading_routes.awk|scripts/check_server_runtime_log.sh|scripts/verify_server.sh)
+    .gitattributes|.gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|deploy.sh|scripts/*.ps1|scripts/preflight_server.sh|scripts/install_nginx_path.sh|scripts/rewrite_nginx_trading_routes.awk|scripts/check_server_runtime_log.sh|scripts/verify_server.sh)
       echo "docs-tooling"
       ;;
     *)

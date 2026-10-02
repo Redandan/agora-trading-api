@@ -1,16 +1,35 @@
 # Split Acceptance Status
 
-Contract updated: 2026-07-31 Asia/Taipei
+Contract updated: 2026-10-02 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
 runnable current guidance.
 
+## 2026-10-02 reliability release
+
+- Runtime commit: `52e47a4a96f92e675cb5dc6251d4cb10188f576a`.
+- One application deployment; active port 8085 / PID 717216; old port 8084 drained.
+- 39 offline tests, Java 21 package, strict local/public server verification,
+  and runtime-log smoke passed. Retained script syntax and bounded drain/log
+  classification fixtures also passed.
+- At 12:00 UTC, the first natural post-release hourly bar reconciled DRA
+  attempt 1's 0.031611633036 USDT fee. Pending fee count became zero; recorded
+  lot-263 PnL became 1.58057695 USDT. Fill quantity, original exit time and
+  total attempt count were unchanged; orderSent=false.
+- Generic strategy observations and incomplete realized-ledger evidence are
+  visible through the existing ten MCP tools.
+- Acceptance exposed a shutdown-verification race and an overly broad nginx
+  config scan. The deployment-tool fixes are source/script-only updates; they
+  do not require a second application restart. Full evidence and external
+  limitations are in `current-design-debt-and-next-actions.md`.
+
 ## Current production identity
 
 - repository/server directory: `/home/ubuntu/agora-trading-api`;
-- the exact deployed build commit, server worktree commit, and `origin/main`
-  commit must match and are reported by the verification command below;
+- the deployed build commit, server worktree commit, and `origin/main` are
+  reported by the verifier; differences may contain only its exact docs/tooling
+  allowlist, with runtime code and configuration identical;
 - one of the blue/green ports `8084` or `8085` is active and the other must be
   drained;
 - local and public dedicated health: passed;

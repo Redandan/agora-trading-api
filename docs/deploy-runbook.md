@@ -202,7 +202,11 @@ bash deploy.sh
 
 `deploy.sh` performs a blue/green deployment, waits on the HTTP actuator health
 endpoint, updates nginx only after the new instance is healthy, records deploy
-metadata, and invokes server verification. Do not bypass a failed preflight or
+metadata, and invokes server verification. After SIGTERM, deployment waits up
+to 60 seconds for the old process to exit before strict post-drain verification.
+Timeout preserves old PID metadata and requires inspection, not a blind second
+deployment. The checkout update is fast-forward-only and preserves dirty files
+and local commits. Do not bypass a failed preflight or
 health gate merely to complete a deployment.
 
 ## Verify
@@ -225,6 +229,12 @@ From the server:
 ```bash
 bash scripts/verify_server.sh
 ```
+
+The default nginx file is `/etc/nginx/sites-enabled/agoramarketapi`, matching
+`deploy.sh`. Set `NGINX_CONF` or `NGINX_CONF_GLOB` explicitly for another layout;
+unreadable unrelated virtual-host files are not evidence of missing Trading
+routes. A docs/tooling-only checkout update may differ from `app.commit`; the
+verifier checks the exact diff and refuses runtime drift.
 
 Server verification is evidence of deployment and runtime reachability. It is
 not evidence that a strategy is profitable and does not authorize live

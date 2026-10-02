@@ -231,7 +231,11 @@ git diff --cached --quiet || {
 }
 
 git fetch origin "$BRANCH" --quiet
-git reset --hard "origin/$BRANCH"
+git merge --ff-only "origin/$BRANCH"
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$BRANCH")" ]; then
+  echo "[deploy] server checkout has local commits; refusing to overwrite them" >&2
+  exit 1
+fi
 
 if [ ! -f "$INTERNAL_CLIENT_POM" ]; then
   echo "[deploy] AgoraMarket internal-client pom missing: $INTERNAL_CLIENT_POM" >&2
@@ -372,6 +376,16 @@ if [ "$POST_DEPLOY_VERIFIED" = "1" ] && [ -n "$CURRENT_PORT" ] && [ -f "app.pid.
   echo "[deploy] draining old instance after verification PID=$OLD_PID port=$CURRENT_PORT"
   sleep "${DRAIN_SECONDS:-30}"
   kill "$OLD_PID" 2>/dev/null || true
+  # SIGTERM starts graceful shutdown; it does not synchronously release the
+  # listener. Preserve PID metadata and fail if the bounded drain cannot finish.
+  stop_deadline=$((SECONDS + 60))
+  while kill -0 "$OLD_PID" 2>/dev/null && [ "$SECONDS" -lt "$stop_deadline" ]; do
+    sleep 1
+  done
+  if kill -0 "$OLD_PID" 2>/dev/null; then
+    echo "[deploy] old instance did not exit within 60s; preserving PID metadata" >&2
+    exit 1
+  fi
   rm -f "app.pid.$CURRENT_PORT"
 elif [ -n "$CURRENT_PORT" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
   echo "[deploy] keeping old instance because post-deploy verification was not proven PID=$(cat "app.pid.$CURRENT_PORT") port=$CURRENT_PORT" >&2

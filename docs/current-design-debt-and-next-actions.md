@@ -1,7 +1,9 @@
 # Current Design Debt and Next Actions
 
 Latest diagnosis: 2026-10-02. Local remediation is based on deployed commit
-`9e7f84da54f56bbc983ec08dc7b9083680708b68`; the changes below are not deployed.
+`9e7f84da54f56bbc983ec08dc7b9083680708b68`. The combined runtime release
+`52e47a4a96f92e675cb5dc6251d4cb10188f576a` started on port 8085 at
+2026-10-02 11:39 UTC. Post-release details are recorded below.
 The strategy decisions and July acceptance narrative below remain historical
 context, not a statement that the first DRA sell is still outstanding.
 
@@ -12,10 +14,10 @@ read-only SQL against Trading tables and MySQL diagnostic metadata. It did
 not place orders, alter strategies, change Grid, backfill data, or restart
 services. Times in this section are UTC unless explicitly labelled otherwise.
 
-### DRA fee reconciliation blocks new entries — local fix verified offline
+### DRA fee reconciliation blocks new entries — fixed and accepted in Production
 
-Attempt `1` for closed lot `263` has been `RECONCILED_FILLED / PENDING` since
-2026-08-19. Its saved provider receipt has `fee=-0.031611633036` and
+Before this release, attempt `1` for closed lot `263` had remained
+`RECONCILED_FILLED / PENDING` since 2026-08-19. Its saved provider receipt has `fee=-0.031611633036` and
 `feeCcy=USDT`, while `fillFee` and `fillFeeCcy` are absent. The REST order
 parser used the latter fields with cumulative `accFillSz`. This left the
 persisted fee at zero and currency unknown on each subsequent lookup.
@@ -36,7 +38,11 @@ rounding remains in the order-sizing layer.
 The offline saved-receipt case expects a fee-only adjustment of
 `-0.03161163 USDT`, no new fill, recorded PnL changing from `1.61218858` to
 `1.58057695`, and a second identical reconciliation applying zero delta.
-These are test expectations, not mutations of the live ledger. The missing
+These are test expectations, not mutations of the live ledger. A fresh signed
+read-only OKX order-detail request on 2026-10-02 11:51 UTC returned code 0,
+state filled, accFillSz 0.00045767, fee -0.031611633036 USDT and rebate 0 for
+the original client order ID. The cumulative fee is still available at the
+provider; this is not reliance on a stale saved receipt alone. The missing
 historical BUY attempt remains `MISSING_BUY_ATTEMPT`, so this does not make
 the entire lifecycle fee-exact.
 
@@ -75,7 +81,7 @@ one, and accepts only explicit confirmed closed bars. A later DB failure can
 no longer swallow events for earlier committed inserts in that batch. No new
 scheduler, external source, manual backfill or historical order replay is added.
 
-### WebSocket reliability — local heartbeat and diagnostic fixes
+### WebSocket reliability — deployed heartbeat and diagnostic fixes
 
 The prior OKX candle implementation recursively scheduled a heartbeat on
 every successful reconnect without cancelling the old chain. Repeated
@@ -94,7 +100,7 @@ Binance daily freshness also accepts the provider
 end-minus-one-millisecond close timestamp. This fixes diagnostic visibility; the upstream cause of the recent resets is
 not established. No new timer or notification path is added.
 
-### Operator evidence — local read-only changes
+### Operator evidence — deployed read-only changes
 
 The existing `getStrategyRuntimeCatalog` tool appends a common persisted
 observation section for active lanes. It shows source-pinned latest closed
@@ -127,14 +133,76 @@ Legacy lots 260/261/262 intentionally have no automatic exit. Donchian has
 80 observation days, two unique entries and one completed trade against a
 five-entry/five-trade gate. Neither is treated as a bug or promotion authority.
 
-### Validation and remaining release gate
+### Deployment tooling corrections during acceptance
+
+Only one new application process was started, PID 717216 on port 8085. The
+first deployment exited 1 because strict verification raced with graceful
+termination of the old PID 2082580 on port 8084. The old process then exited
+normally (graceful HTTP shutdown at 11:39:46 and Hikari shutdown at 11:39:48); a fresh process/listener check confirmed the old port was drained.
+No forced kill or second deployment was used.
+
+The standalone verifier also initially failed because its wildcard nginx scan
+included an unreadable configuration owned by another service. Direct route
+inspection and authenticated local/public probes confirmed that Trading's
+routes were present. Preflight and verification now default to the exact nginx
+configuration used by deployment, while retaining an explicit override.
+The deployment script now waits up to 60 seconds after SIGTERM, keeps old PID
+metadata on timeout, and fails visibly rather than running the strict check
+before shutdown completes. Both exit and timeout paths passed an offline
+fixture without signalling any real process. The SSH wrapper now rejects dirty
+or untracked server files and preserves local commits through fast-forward-only
+updates instead of resetting the server checkout.
+
+All retained shell files passed syntax checks; the changed PowerShell wrapper
+passed parser validation. The log smoke checker also recognizes the new
+explicit transport exception types while retaining warning thresholds and the
+private-stream subscription-recovery requirement. Four offline fixtures proved
+recovered transport acceptance, unrecovered private failure, unknown exception
+failure, and public transport classification. These script-only changes do not restart the running
+Java release. The strict verifier subsequently passed with the default route
+configuration. The deployed JAR SHA-256 is
+`cfa69f3580c457021fa5753c4148102686506781c3ff2a2a8cde4d7f359e5e1d`.
+New-process log smoke found zero errors, zero unknown warnings,
+and zero high-risk operation-like lines at 11:42 UTC. Three strategy lanes
+returned AVAILABLE with CURRENT market data and matching persisted decisions.
+The realized ledger exposed all 40 incomplete historical lots and suppressed
+the mixed-basis aggregate as intended. OCO safety and original execution caps
+remained unchanged.
+
+### Natural production acceptance at 2026-10-02 12:00 UTC
+
+The first naturally closed OKX hourly bar after deployment triggered the normal
+DRA reconciliation at 12:00:01.578945 UTC. Read-only SQL and the catalog MCP
+independently confirmed:
+
+| Field | Before release | After natural reconciliation |
+| --- | --- | --- |
+| Attempt 1 state | RECONCILED_FILLED | RECONCILED_FILLED |
+| Fee status | PENDING | RECONCILED |
+| Applied USDT fee | 0 | 0.031611633036 |
+| Lot 263 recorded realized PnL | 1.61218858 | 1.58057695 |
+| Applied BTC fill | 0.000457670000 | unchanged |
+| Original exit time | 2026-08-19 21:00:13.303497 | unchanged |
+| Total execution attempts | 1 | 1 |
+| Pending DRA fee attempts | 1 | 0 |
+
+DRA evidence 32014 and Donchian evidence 32013 each advanced to the 11:00 open /
+12:00 close bar; both recorded orderSent=false. Legacy positions 260/261/262
+retained their quantities and remained open. Flyway history remained V1–V4,
+all successful. No manual order, manual reconciliation, SQL repair, replay,
+Grid operation or migration was used for acceptance. The frozen one-lot
+30 USDT / +5% execution contract remains in force. A future entry still needs
+a genuine eligible signal; this acceptance does not claim a new profitable
+cycle or resolve the missing historical BUY receipt.
+
+### Validation
+
 
 Run the narrow offline receipt/reconciliation, heartbeat, observation, and
 existing execution-policy tests; then `mvn -DskipTests package` and
 `git diff --check`. Tests must not start Spring, contact exchanges or a
-database, or send notifications. Production acceptance remains pending until
-the combined deployment and a natural reconciliation/bar provide
-runtime evidence. Preserve the original dirty research checkout.
+database, or send notifications. The combined deployment and first natural reconciliation/bar provided
+the runtime acceptance above. Preserve the original dirty research checkout.
 
 Local validation on 2026-10-02: all 39 tests passed with zero failures,
 errors, or skips; Java 21 `mvn -DskipTests package` and `git diff --check`

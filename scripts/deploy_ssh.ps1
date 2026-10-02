@@ -82,9 +82,12 @@ function Invoke-RemoteScript {
 $startScript = @"
 set -euo pipefail
 cd '$AppDir'
+git diff --quiet && git diff --cached --quiet || { echo 'refusing to overwrite dirty server checkout' >&2; exit 1; }
+test -z "`$(git ls-files --others --exclude-standard)" || { echo 'untracked server files require review' >&2; exit 1; }
 git fetch origin '$Branch'
 git checkout '$Branch'
-git reset --hard 'origin/$Branch'
+git merge --ff-only 'origin/$Branch'
+test "`$(git rev-parse HEAD)" = "`$(git rev-parse 'origin/$Branch')" || { echo 'server branch has local commits' >&2; exit 1; }
 mkdir -p logs/deploy
 stamp=`$(date -u +%Y%m%dT%H%M%SZ)
 log="logs/deploy/deploy-`$stamp.log"

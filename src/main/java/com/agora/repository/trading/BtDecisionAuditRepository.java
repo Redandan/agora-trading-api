@@ -14,6 +14,7 @@ import java.util.List;
 
 @Repository
 public interface BtDecisionAuditRepository extends JpaRepository<BtDecisionAudit, Long> {
+    List<BtDecisionAudit> findByEventTypeAndStrategyIdOrderByIdAsc(String eventType, Long strategyId);
 
     java.util.Optional<BtDecisionAudit> findFirstByStrategyIdAndSymbolAndEventTypeOrderByEventTimeDescIdDesc(
             Long strategyId, String symbol, String eventType);
@@ -45,7 +46,9 @@ public interface BtDecisionAuditRepository extends JpaRepository<BtDecisionAudit
      * LIMIT 由 @Query 的 native SQL 支援;JPQL 不支援 LIMIT。
      */
     @Modifying
-    @Query(value = "DELETE FROM bt_decision_audit WHERE event_time < :cutoff LIMIT :batchSize",
+    // Forward economic evidence must survive a position's potentially unbounded holding time.
+    @Query(value = "DELETE FROM bt_decision_audit WHERE event_time < :cutoff "
+            + "AND event_type NOT IN ('SPOT_FILL_V1', 'SPOT_PERFORMANCE_V1', 'SPOT_ENTRY_EVAL_V1') LIMIT :batchSize",
            nativeQuery = true)
     int deleteOlderThan(@Param("cutoff") LocalDateTime cutoff,
                         @Param("batchSize") int batchSize);

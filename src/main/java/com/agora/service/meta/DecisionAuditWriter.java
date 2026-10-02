@@ -171,6 +171,30 @@ public class DecisionAuditWriter {
 
     // ===== Internal =====
 
+    @Async("metaAuditExecutor")
+    public void logSpotEntryEvaluation(Long strategyId, String interval, LocalDateTime barOpenTime,
+                                       Map<String, Object> context) {
+        try {
+            repo.save(build("SPOT_ENTRY_EVAL_V1", "INFO", strategyId, "BTCUSDT", interval,
+                    barOpenTime, null, "FORWARD_ENTRY_EVALUATION", context, null));
+        } catch (Throwable t) {
+            log.warn("[SpotEntryEvidence] write failed errorType={}", t.getClass().getSimpleName());
+        }
+    }
+
+    /** Per-lot immutable normalized provider fields; no runtime sidecar or execution authority. */
+    @Async("metaAuditExecutor")
+    public void logSpotFillEvidence(Long strategyId, Long liveSignalId, LocalDateTime barOpenTime,
+                                    Map<String, Object> context) {
+        try {
+            repo.save(build("SPOT_FILL_V1", "INFO", strategyId, "BTCUSDT", "1d",
+                    barOpenTime, null, "NORMALIZED_PROVIDER_RECEIPT", context, liveSignalId));
+        } catch (Throwable t) {
+            log.warn("[SpotFillEvidence] write failed lot={} errorType={}", liveSignalId,
+                    t.getClass().getSimpleName());
+        }
+    }
+
     private BtDecisionAudit build(String eventType, String outcome,
                                    Long strategyId, String symbol, String intervalCode,
                                    LocalDateTime barOpenTime, String blocker, String reason,

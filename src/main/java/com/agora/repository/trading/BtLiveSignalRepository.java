@@ -15,6 +15,7 @@ import jakarta.persistence.LockModeType;
 
 @Repository
 public interface BtLiveSignalRepository extends JpaRepository<BtLiveSignal, Long> {
+    List<BtLiveSignal> findByStrategyIdAndSymbol(Long strategyId, String symbol);
 
     Optional<BtLiveSignal> findByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTime(
             Long strategyId, String symbol, String intervalCode, LocalDateTime barOpenTime);

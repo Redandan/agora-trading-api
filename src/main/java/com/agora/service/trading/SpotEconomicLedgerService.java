@@ -5,6 +5,8 @@ import com.agora.model.SpotExecutionAttempt;
 import com.agora.model.SpotExecutionAttempt.Side;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.SpotExecutionAttemptRepository;
+import com.agora.repository.trading.BtDecisionAuditRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,16 +30,22 @@ public class SpotEconomicLedgerService {
 
     private final BtLiveSignalRepository liveSignalRepository;
     private final SpotExecutionAttemptRepository attemptRepository;
+    private final BtDecisionAuditRepository auditRepository;
+    private final ObjectMapper mapper;
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String report() {
         LocalDateTime nowUtc = LocalDateTime.now(ZoneOffset.UTC);
         LocalDateTime dayStartUtc = nowUtc.toLocalDate().atStartOfDay();
+        var tvReceipts = auditRepository.findByEventTypeAndStrategyIdOrderByIdAsc(
+                SpotFillReceiptEvidence.SCHEMA,
+                com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID);
         List<LotEvidence> cumulative = liveSignalRepository
                 .findByAutoTradedIsTrueAndExitTimeIsNotNull().stream()
                 .filter(lot -> !"SHORT".equals(lot.getSide()))
                 .sorted(Comparator.comparing(BtLiveSignal::getExitTime)
                         .thenComparing(BtLiveSignal::getId))
-                .map(this::evidence)
+                .map(lot -> evidence(lot, tvReceipts))
                 .toList();
         List<LotEvidence> daily = cumulative.stream()
                 .filter(lot -> !lot.exitTime().isBefore(dayStartUtc))
@@ -47,21 +55,31 @@ public class SpotEconomicLedgerService {
                 .append("dayUtc=").append(dayStartUtc.toLocalDate()).append('\n');
         appendWindow(out, "daily", daily);
         appendWindow(out, "cumulative", cumulative);
+        out.append("providerCashFlows (latest 50 verified lots):\n");
+        cumulative.reversed().stream().filter(LotEvidence::exactNet).limit(50)
+                .forEach(lot -> out.append("- liveSignalId=").append(lot.id())
+                        .append(" owner=").append(lot.owner())
+                        .append(" cashCostUsdt=").append(decimal(lot.cashCost()))
+                        .append(" netProceedsUsdt=").append(decimal(lot.netProceeds()))
+                        .append(" providerNetPnl=").append(decimal(lot.providerNetPnl()))
+                        .append(" recordedPnlDelta=").append(decimal(lot.recordedRealizedPnl().subtract(lot.providerNetPnl())))
+                        .append('\n'));
         out.append("evidenceGaps (latest 50 incomplete lots):\n");
         cumulative.reversed().stream().filter(lot -> !lot.exactNet()).limit(50)
                 .forEach(lot -> out.append("- liveSignalId=").append(lot.id())
                         .append(" owner=").append(lot.owner())
                         .append(" reason=").append(lot.basis()).append('\n'));
         out.append("maximumDrawdown=MISSING_PROOF_NO_MARK_TO_MARKET_EQUITY_SERIES\n")
+                .append("maximumDrawdownScope=FEE_EXACT_ACCOUNT_EQUITY;forwardRecordedSeries=SEE_FORWARD_SPOT_PERFORMANCE\n")
                 .append("comparableTotalPnl=MISSING_PROOF_OPEN_FEES_AND_GRID_LIFECYCLE_NOT_UNIFIED\n")
                 .append("recordedPnlWarning=NOT_COMPARABLE_ACROSS_MIXED_BASIS\n")
                 .append("asOf=").append(nowUtc.toInstant(ZoneOffset.UTC));
         return out.toString();
     }
 
-    private LotEvidence evidence(BtLiveSignal lot) {
+    private LotEvidence evidence(BtLiveSignal lot, List<com.agora.model.BtDecisionAudit> tvReceipts) {
         String owner = BtcBasePositionStatePolicy.economicOwner(lot);
-        if (!"DRA_V1".equals(owner)) {
+        if (!"DRA_V1".equals(owner) && !"TV509".equals(owner)) {
             return new LotEvidence(
                     lot.getId(),
                     owner,
@@ -69,16 +87,26 @@ public class SpotEconomicLedgerService {
                     lot.getRealizedPnl(),
                     false,
                     null,
-                    basis(owner));
+                    basis(owner), null, null, null);
         }
 
-        List<SpotExecutionAttempt> buys = attemptRepository
-                .findByLiveSignalIdAndSideOrderByAttemptSequenceAsc(lot.getId(), Side.BUY);
-        List<SpotExecutionAttempt> sells = attemptRepository
-                .findByLiveSignalIdAndSideOrderByAttemptSequenceAsc(lot.getId(), Side.SELL);
-        SpotEconomicLedgerEvidencePolicy.Evidence feeEvidence =
-                SpotEconomicLedgerEvidencePolicy.evaluateDraLifecycle(buys, sells);
-        boolean exactNet = feeEvidence.exactNet() && lot.getRealizedPnl() != null;
+        SpotEconomicLedgerEvidencePolicy.Evidence feeEvidence;
+        if ("DRA_V1".equals(owner)) {
+            List<SpotExecutionAttempt> buys = attemptRepository
+                    .findByLiveSignalIdAndSideOrderByAttemptSequenceAsc(lot.getId(), Side.BUY);
+            List<SpotExecutionAttempt> sells = attemptRepository
+                    .findByLiveSignalIdAndSideOrderByAttemptSequenceAsc(lot.getId(), Side.SELL);
+            feeEvidence = SpotEconomicLedgerEvidencePolicy.evaluateDraLifecycle(buys, sells);
+        } else {
+            feeEvidence = SpotEconomicLedgerEvidencePolicy.evaluateTvLifecycle(
+                    lot.getId(), tvReceipts, mapper);
+        }
+        // Runtime PnL is rounded to 8 decimals per application; compare independently computed cash.
+        BigDecimal tolerance = new BigDecimal("0.00000001")
+                .multiply(BigDecimal.valueOf(Math.max(1, feeEvidence.receiptCount())));
+        boolean matches = feeEvidence.exactNet() && lot.getRealizedPnl() != null
+                && lot.getRealizedPnl().subtract(feeEvidence.providerNetPnl()).abs().compareTo(tolerance) <= 0;
+        boolean exactNet = feeEvidence.exactNet() && matches;
         return new LotEvidence(
                 lot.getId(),
                 owner,
@@ -87,7 +115,9 @@ public class SpotEconomicLedgerService {
                 exactNet,
                 exactNet ? feeEvidence.lifecycleFeeUsdt() : null,
                 exactNet ? "EXACT_NET_PROVIDER_RECONCILED"
-                        : feeEvidence.exactNet() ? "MISSING_RECORDED_PNL" : feeEvidence.reason());
+                        : !feeEvidence.exactNet() ? feeEvidence.reason()
+                        : lot.getRealizedPnl() == null ? "MISSING_RECORDED_PNL" : "RECORDED_PROVIDER_PNL_MISMATCH",
+                feeEvidence.providerNetPnl(), feeEvidence.cashCostUsdt(), feeEvidence.netProceedsUsdt());
     }
 
     private static String basis(String owner) {
@@ -145,7 +175,7 @@ public class SpotEconomicLedgerService {
             BigDecimal recordedRealizedPnl,
             boolean exactNet,
             BigDecimal exactLifecycleFeeUsdt,
-            String basis) {
+            String basis, BigDecimal providerNetPnl, BigDecimal cashCost, BigDecimal netProceeds) {
     }
 
     private static final class Bucket {
@@ -166,7 +196,7 @@ public class SpotEconomicLedgerService {
             }
             if (lot.exactNet()) {
                 exactNetLots++;
-                exactNetRealizedPnl = exactNetRealizedPnl.add(lot.recordedRealizedPnl());
+                exactNetRealizedPnl = exactNetRealizedPnl.add(lot.providerNetPnl());
                 exactLifecycleFees = exactLifecycleFees.add(lot.exactLifecycleFeeUsdt());
             }
         }

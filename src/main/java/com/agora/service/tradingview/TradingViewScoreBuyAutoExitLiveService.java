@@ -12,6 +12,7 @@ import com.agora.service.meta.DecisionAuditWriter;
 import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.TradeResult;
+import com.agora.service.trading.SpotFillReceiptEvidence;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -69,11 +70,33 @@ public class TradingViewScoreBuyAutoExitLiveService {
         if (!properties.effectiveExecutionLiveOrderEnabled()) {
             return;
         }
+        String disposition = "UNCONFIRMED_EXCEPTION";
+        try {
+            disposition = evaluateEntryAndExit(strategy, signalBar, source, buyIntents, strategyDetails);
+        } finally {
+            try {
+                if (signalBar != null && signalBar.getCloseTime() != null && signalBar.getOpenTime() != null
+                        && !signalBar.getCloseTime().isBefore(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(2))
+                        && !signalBar.getCloseTime().isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
+                    auditWriter.logSpotEntryEvaluation(strategy == null ? null : strategy.getId(), "1d",
+                            signalBar.getOpenTime(), Map.of("schema", "SPOT_ENTRY_EVAL_V1", "owner", "TV509",
+                                    "candidate", buyIntents != null && !buyIntents.isEmpty(),
+                                    "candidateBasis", "FROZEN_WEIGHTED_BUY_INTENTS", "disposition", disposition));
+                }
+            } catch (Exception e) {
+                log.warn("[SpotEntryEvidence] dispatch failed errorType={}", e.getClass().getSimpleName());
+            }
+        }
+    }
+
+    private String evaluateEntryAndExit(BtStrategy strategy, MdKline signalBar, String source,
+                                        List<LiveSignalContext.OrderIntent> buyIntents,
+                                        Map<String, Object> strategyDetails) {
         String blocker = scopeBlocker(strategy, signalBar, source);
         if (blocker != null) {
             audit(strategy, signalBar, "BLOCKED", blocker, "HOLD", false, null,
                     Map.of("blocker", blocker));
-            return;
+            return "SCOPE_BLOCKED:" + blocker;
         }
 
         executeEligibleExits(strategy, signalBar);
@@ -88,16 +111,19 @@ public class TradingViewScoreBuyAutoExitLiveService {
                 String buyBlocker = "INVALID_WEIGHTED_NOTIONAL:" + safe(e.getMessage(), 160);
                 audit(strategy, signalBar, "BLOCKED", buyBlocker, "BUY", false, null,
                         Map.of("blocker", buyBlocker));
-                return;
+                return "BLOCKED:" + buyBlocker;
             }
             String buyBlocker = buyBlocker(strategy, signalBar, plan);
             if (buyBlocker == null) {
-                executeBuy(strategy, signalBar, plan, strategyDetails);
+                return executeBuy(strategy, signalBar, plan, strategyDetails)
+                        ? "BUY_PATH_HANDLED" : "BUY_PATH_BLOCKED_OR_UNCONFIRMED";
             } else {
                 audit(strategy, signalBar, "BLOCKED", buyBlocker, "BUY", false, null,
                         buyContext(plan, strategyDetails));
+                return "BLOCKED:" + buyBlocker;
             }
         }
+        return "NO_BUY_INTENT";
     }
 
     private String scopeBlocker(BtStrategy strategy, MdKline bar, String source) {
@@ -227,6 +253,8 @@ public class TradingViewScoreBuyAutoExitLiveService {
         }
 
         try {
+            recordFillEvidence(strategy.getId(), reservation.getId(), signalBar, "BUY",
+                    clientOrderId, fill, fill.getQty());
             BigDecimal effectiveEntry = effectiveBuyCostPerNetUnit(fill);
             reservation.setEntryPrice(effectiveEntry);
             reservation.setSuggestedTp(requiredExitPrice(effectiveEntry));
@@ -381,6 +409,8 @@ public class TradingViewScoreBuyAutoExitLiveService {
                 }
                 BigDecimal lotQty = lot.getTradedQty();
                 BigDecimal allocated = lotQty.min(remainingFill);
+                recordFillEvidence(strategy.getId(), lot.getId(), signalBar, "SELL",
+                        clientOrderId, fill, allocated);
                 BigDecimal feeShare = totalFee.multiply(allocated)
                         .divide(soldQty, 12, RoundingMode.HALF_UP);
                 BigDecimal proceeds = fill.getAvgPrice().multiply(allocated).subtract(feeShare);
@@ -456,6 +486,18 @@ public class TradingViewScoreBuyAutoExitLiveService {
                         + ":WEIGHT=" + plain(plan.aggregateWeight())
                         + ":REASONS=" + plan.aggregateReasons()));
         return liveSignalRepository.saveAndFlush(signal);
+    }
+
+    private void recordFillEvidence(Long strategyId, Long lotId, MdKline bar, String side,
+                                    String clientOrderId, TradeResult fill, BigDecimal allocated) {
+        try {
+            auditWriter.logSpotFillEvidence(strategyId, lotId, bar.getOpenTime(),
+                    SpotFillReceiptEvidence.capture(side, clientOrderId, fill, allocated));
+        } catch (Exception e) {
+            // Observation failure must never alter allocation, submission or retry behavior.
+            log.warn("[SpotFillEvidence] dispatch failed lot={} errorType={}", lotId,
+                    e.getClass().getSimpleName());
+        }
     }
 
     private void markSubmissionUnconfirmed(BtLiveSignal lot,
@@ -603,6 +645,10 @@ public class TradingViewScoreBuyAutoExitLiveService {
                     TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL,
                     finalOutcome, auditContext);
         } else {
+            auditContext.put("entryEvidenceSchema", "LIVE_ENTRY_V1");
+            auditContext.put("entryCandidate", "BUY".equals(decision));
+            auditContext.put("freshSignal", !finalOutcome.startsWith("LIVE_SIGNAL_STALE")
+                    && !"BAR_NOT_CONFIRMED_CLOSED".equals(finalOutcome));
             auditWriter.logEntrySkip(strategyId,
                     TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL,
                     TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL,

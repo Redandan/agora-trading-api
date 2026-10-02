@@ -4,6 +4,7 @@ import com.agora.event.KlineClosedEvent;
 import com.agora.model.MdKline;
 import com.agora.service.strategy.RuntimeStrategy;
 import com.agora.service.strategy.RuntimeStrategyRegistry;
+import com.agora.service.trading.SpotPerformanceObservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 public class KlineClosedEventListener {
 
     private final RuntimeStrategyRegistry runtimeStrategyRegistry;
+    private final SpotPerformanceObservationService performanceObservations;
 
     @Async
     @EventListener
@@ -47,6 +49,11 @@ public class KlineClosedEventListener {
                         e.getMessage(),
                         e);
             }
+        }
+        try {
+            performanceObservations.afterClosedBar(kline);
+        } catch (Exception e) {
+            log.warn("[SpotPerformance] dispatch unavailable errorType={}", e.getClass().getSimpleName());
         }
     }
 }

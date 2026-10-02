@@ -171,6 +171,7 @@ public class StrategyRuntimeObservationService {
                 .map(t -> Math.max(0, Duration.between(t, now).toHours())).orElse(null));
         out.put("holdingAgeBasis", "DATABASE_RECORD_CREATION_NOT_PROVIDER_FILL_TIME");
         out.put("blockedEntryCount", "MISSING_PROOF_NO_COMPLETE_SIGNAL_LEDGER");
+        out.put("forwardEntryEvidence", "getOpenSpotPositions:FORWARD_SPOT_PERFORMANCE");
         if (dra) {
             out.put("pendingFeeAttempts", attempts.countByStrategyContractAndFeeReconciliationStatus(
                     d.key(), FeeReconciliationStatus.PENDING));

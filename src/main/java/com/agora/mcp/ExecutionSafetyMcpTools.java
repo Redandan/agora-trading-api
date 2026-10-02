@@ -10,6 +10,7 @@ import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.SpotEconomicLedgerService;
+import com.agora.service.trading.SpotPerformanceReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class ExecutionSafetyMcpTools {
     private final OcoOrderStateInspector ocoOrderStateInspector;
     private final OkxTradingService okxTradingService;
     private final SpotEconomicLedgerService spotEconomicLedgerService;
+    private final SpotPerformanceReportService spotPerformanceReportService;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
@@ -109,6 +111,7 @@ public class ExecutionSafetyMcpTools {
         if (positions.isEmpty()) {
             return result.append("count=0\n\n")
                     .append(spotEconomicLedgerService.report())
+                    .append("\n\n").append(spotPerformanceReportService.report())
                     .toString();
         }
 
@@ -163,7 +166,8 @@ public class ExecutionSafetyMcpTools {
                 .append("\nprofitBasis=GROSS_MARK_TO_MARKET_EXCLUDES_ENTRY_AND_EXIT_FEES")
                 .append("\nasOf=").append(Instant.now())
                 .append("\n\n")
-                .append(spotEconomicLedgerService.report());
+                .append(spotEconomicLedgerService.report())
+                .append("\n\n").append(spotPerformanceReportService.report());
         return result.toString();
     }
 

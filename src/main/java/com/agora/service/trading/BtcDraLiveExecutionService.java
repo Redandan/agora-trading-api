@@ -87,23 +87,52 @@ public class BtcDraLiveExecutionService {
         if (!properties.liveOrderEnabled() || observation == null) {
             return;
         }
+        String disposition = "UNCONFIRMED_EXCEPTION";
+        try {
+            disposition = evaluateEntryAndExit(observation);
+        } finally {
+            try {
+                if (observation.exactFreshSingleBar() && SpotPerformancePolicy.freshBar(
+                        observation.bar(), LocalDateTime.now(ZoneOffset.UTC))) {
+                    auditWriter.logSpotEntryEvaluation(RUNTIME_LEDGER_STRATEGY_ID, INTERVAL,
+                            observation.bar().getOpenTime(), Map.of(
+                                    "schema", "SPOT_ENTRY_EVAL_V1", "owner", "DRA_V1",
+                                    "candidate", hasEntrySignal(observation),
+                                    "candidateBasis", "VIRTUAL_ENTRY_QUEUED",
+                                    "dailyDecision", observation.step().signal().dailyDecision(),
+                                    "disposition", disposition));
+                }
+            } catch (Exception e) {
+                log.warn("[SpotEntryEvidence] dispatch failed errorType={}", e.getClass().getSimpleName());
+            }
+        }
+    }
+
+    private String evaluateEntryAndExit(BtcDraRuntimeLaneService.RuntimeObservation observation) {
         String blocker = scopeBlocker(observation);
         if (blocker != null) {
             if (hasEntrySignal(observation)) {
                 auditSkip(observation, blocker, null);
             }
-            return;
+            return "SCOPE_BLOCKED:" + blocker;
         }
 
         if (reconcileOutstandingBuyAttempt(observation)) {
-            return;
+            if (hasEntrySignal(observation)) {
+                auditSkip(observation, "DRA_ENTRY_DEFERRED_BUY_RECONCILIATION", null);
+            }
+            return "DEFERRED_BUY_RECONCILIATION";
         }
         boolean exitHandledOrPending =
                 executeEligibleExit(observation);
         if (!exitHandledOrPending
                 && hasEntrySignal(observation)) {
-            executeBuy(observation);
+            return executeBuy(observation) ? "BUY_PATH_HANDLED" : "BUY_PATH_BLOCKED_OR_UNCONFIRMED";
+        } else if (exitHandledOrPending && hasEntrySignal(observation)) {
+            auditSkip(observation, "DRA_ENTRY_DEFERRED_EXIT_HANDLING", null);
+            return "DEFERRED_EXIT_HANDLING";
         }
+        return "NO_QUEUED_ENTRY";
     }
 
     private String scopeBlocker(
@@ -987,6 +1016,9 @@ public class BtcDraLiveExecutionService {
             Long liveSignalId) {
         Map<String, Object> context = baseContext(observation);
         context.put("blocker", blocker);
+        context.put("entryEvidenceSchema", "LIVE_ENTRY_V1");
+        context.put("entryCandidate", hasEntrySignal(observation));
+        context.put("freshSignal", observation.exactFreshSingleBar());
         auditWriter.logEntrySkip(
                 RUNTIME_LEDGER_STRATEGY_ID,
                 SYMBOL,

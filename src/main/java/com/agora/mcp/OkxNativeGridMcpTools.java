@@ -5,6 +5,8 @@ import com.agora.mcp.auth.McpAuth;
 import com.agora.mcp.auth.McpAuthLevel;
 import com.agora.mcp.auth.McpCategory;
 import com.agora.service.trading.OkxTradingService;
+import com.agora.service.trading.NativeSpotGridRangeObservation;
+import com.agora.service.trading.NativeSpotGridSubOrderInventory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -34,7 +37,9 @@ public class OkxNativeGridMcpTools {
     private final ObjectMapper objectMapper;
 
     @Tool(description = "Read-only inventory of provider-managed OKX Spot Grid bots. Returns active bots and, "
-            + "when includeHistory=true, stopped/history bots. The runtime has no Grid create, amend, "
+            + "when includeHistory=true, stopped/history bots. Active range observations compare timestamped "
+            + "OKX spot prices with each configured range; provider running state alone does not prove range activity. "
+            + "The runtime has no Grid create, amend, "
             + "or stop capability and does not read the deprecated local bt_grid state machine. "
             + "param: includeHistory optional default true")
     @McpAuth(McpAuthLevel.OPS)
@@ -52,6 +57,21 @@ public class OkxNativeGridMcpTools {
         ArrayNode active = copyArray(okxTradingService.getNativeSpotGridOrders(false));
         report.set("active", active);
         report.put("activeCount", active.size());
+        ArrayNode rangeObservations = report.putArray("rangeObservations");
+        Map<String, JsonNode> tickers = new HashMap<>();
+        int outOfRangeCount = 0;
+        int missingProofCount = 0;
+        for (JsonNode bot : active) {
+            String instrument = bot.path("instId").asText();
+            if (!tickers.containsKey(instrument)) tickers.put(instrument, diagnosticTicker(instrument));
+            ObjectNode observation = NativeSpotGridRangeObservation.observe(
+                    bot, tickers.get(instrument), Instant.now(), objectMapper);
+            rangeObservations.add(observation);
+            if (observation.path("outOfRange").asBoolean(false)) outOfRangeCount++;
+            if ("MISSING_PROOF".equals(observation.path("rangeStatus").asText())) missingProofCount++;
+        }
+        report.put("outOfRangeCount", outOfRangeCount);
+        report.put("rangeMissingProofCount", missingProofCount);
 
         if (!Boolean.FALSE.equals(includeHistory)) {
             ArrayNode history = copyArray(okxTradingService.getNativeSpotGridOrders(true));
@@ -97,8 +117,26 @@ public class OkxNativeGridMcpTools {
         report.set("providerDetail", detail);
         if (detail.isEmpty()) blockers.add("PROVIDER_BOT_DETAIL_MISSING");
 
-        ArrayNode filledSubOrders = copyArray(okxTradingService.getNativeSpotGridSubOrders(algoId, "filled"));
-        ArrayNode liveSubOrders = copyArray(okxTradingService.getNativeSpotGridSubOrders(algoId, "live"));
+        JsonNode rangeBot = activeBot != null ? activeBot : findByAlgoId(detail, algoId);
+        if (rangeBot != null) {
+            report.set("rangeObservation", NativeSpotGridRangeObservation.observe(rangeBot,
+                    diagnosticTicker(rangeBot.path("instId").asText()), Instant.now(), objectMapper));
+        }
+
+        var filledInventory = NativeSpotGridSubOrderInventory.collect(algoId, "BTC-USDT",
+                after -> okxTradingService.getNativeSpotGridSubOrders(algoId, "filled", after), objectMapper);
+        var liveInventory = NativeSpotGridSubOrderInventory.collect(algoId, "BTC-USDT",
+                after -> okxTradingService.getNativeSpotGridSubOrders(algoId, "live", after), objectMapper);
+        ArrayNode filledSubOrders = filledInventory.orders();
+        ArrayNode liveSubOrders = liveInventory.orders();
+        report.put("filledSubOrderPageCount", filledInventory.pageCount());
+        report.put("liveSubOrderPageCount", liveInventory.pageCount());
+        report.put("filledSubOrderInventoryComplete", filledInventory.complete());
+        report.put("liveSubOrderInventoryComplete", liveInventory.complete());
+        report.put("filledSubOrderInventoryReason", filledInventory.reason());
+        report.put("liveSubOrderInventoryReason", liveInventory.reason());
+        if (!filledInventory.complete()) blockers.add("FILLED_SUB_ORDER_INVENTORY_INCOMPLETE");
+        if (!liveInventory.complete()) blockers.add("LIVE_SUB_ORDER_INVENTORY_INCOMPLETE");
         report.set("filledSubOrders", filledSubOrders);
         report.set("liveSubOrders", liveSubOrders);
         report.put("filledSubOrderCount", filledSubOrders.size());
@@ -169,6 +207,10 @@ public class OkxNativeGridMcpTools {
         report.put("filledSubOrderFillCoverageComplete", coveredSubOrderIds.containsAll(filledOrderIds));
         report.put("netBaseFlowBtc", baseFlow);
         report.put("signedFeeNetQuoteCashFlowUsdt", quoteFlow);
+        report.put("cashFlowCoverage", filledInventory.complete() && pageComplete
+                && coveredSubOrderIds.containsAll(filledOrderIds) && signedFeeComplete
+                ? "FETCHED_BOT_SUB_ORDER_FILLS" : "PARTIAL_FETCHED_FILLS_ONLY");
+        report.put("baseFlowIsCurrentHolding", false);
         if (botFills.isEmpty()) blockers.add("NO_PROVIDER_FILLS_BOUND_TO_BOT");
         if (!coveredSubOrderIds.containsAll(filledOrderIds)) blockers.add("SUB_ORDER_FILL_COVERAGE_INCOMPLETE");
         if (!signedFeeComplete) blockers.add("SIGNED_FEE_OR_FILL_FIELDS_INCOMPLETE");
@@ -181,8 +223,9 @@ public class OkxNativeGridMcpTools {
         if (!terminal) blockers.add("BOT_NOT_TERMINAL_IN_PROVIDER_HISTORY");
 
         boolean exactNetProven = terminal && liveSubOrders.isEmpty() && completedPairs >= 1
+                && filledInventory.complete() && liveInventory.complete()
                 && pageComplete && !botFills.isEmpty() && coveredSubOrderIds.containsAll(filledOrderIds)
-                && signedFeeComplete && residualWithinLot;
+                && signedFeeComplete && residualWithinLot && blockers.isEmpty();
         report.put("exactNetPnlProven", exactNetProven);
         if (exactNetProven) report.put("exactNetPnlUsdt", quoteFlow);
         report.put("functionalAcceptance", "NOT_YET_PROVEN");
@@ -195,6 +238,15 @@ public class OkxNativeGridMcpTools {
         ArrayNode result = objectMapper.createArrayNode();
         if (value != null && value.isArray()) value.forEach(result::add);
         return result;
+    }
+
+    private JsonNode diagnosticTicker(String instrument) {
+        try {
+            return okxTradingService.getSpotTickerSnapshot(instrument);
+        } catch (RuntimeException unavailable) {
+            // Inventory remains useful when the public ticker is unavailable.
+            return null;
+        }
     }
 
     private JsonNode findByAlgoId(ArrayNode bots, String algoId) {

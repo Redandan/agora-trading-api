@@ -24,7 +24,7 @@ class SpotEconomicLedgerServiceTest {
         BtLiveSignalRepository signals = proxy(BtLiveSignalRepository.class, (method, args) -> List.of());
         SpotExecutionAttemptRepository attempts = proxy(SpotExecutionAttemptRepository.class,
                 (method, args) -> { throw new AssertionError("No attempt read needed for empty inventory"); });
-        String report = new SpotEconomicLedgerService(signals, attempts).report();
+        String report = service(signals, attempts).report();
         assertTrue(report.contains("exactCoverage=0/0 exactNetScope=NO_CLOSED_LOTS comparableRealizedNetPnl=N/A comparisonStatus=NO_CLOSED_LOTS"));
     }
 
@@ -36,7 +36,7 @@ class SpotEconomicLedgerServiceTest {
         BtLiveSignalRepository signals = proxy(BtLiveSignalRepository.class, (method, args) -> List.of(lot));
         SpotExecutionAttemptRepository attempts = proxy(SpotExecutionAttemptRepository.class,
                 (method, args) -> List.of(filled((Side) args[1], "0.01")));
-        String report = new SpotEconomicLedgerService(signals, attempts).report();
+        String report = service(signals, attempts).report();
         assertTrue(report.contains("liveSignalId=264 owner=DRA_V1 reason=MISSING_RECORDED_PNL"));
         assertTrue(report.contains("exactCoverage=0/1 exactNetScope=VERIFIED_SUBSET_ONLY comparableRealizedNetPnl=N/A"));
     }
@@ -73,7 +73,7 @@ class SpotEconomicLedgerServiceTest {
                     throw new UnsupportedOperationException(method);
                 });
 
-        String report = new SpotEconomicLedgerService(signals, attempts).report();
+        String report = service(signals, attempts).report();
 
         assertTrue(report.contains(
                 "owner=DRA_V1 closedLots=1 recordedPnlLots=1 recordedRealizedPnl=1.25 "
@@ -87,6 +87,17 @@ class SpotEconomicLedgerServiceTest {
         assertTrue(report.contains("exactCoverage=1/2 exactNetScope=VERIFIED_SUBSET_ONLY comparableRealizedNetPnl=N/A comparisonStatus=MISSING_PROOF_MIXED_OR_INCOMPLETE_BASIS"));
         assertTrue(report.contains("liveSignalId=260 owner=LEGACY_BTC_BASE reason=GROSS_RECORDED_EXCLUDES_FEES"));
         assertTrue(report.contains("maximumDrawdown=MISSING_PROOF_NO_MARK_TO_MARKET_EQUITY_SERIES"));
+    }
+
+    @Test void recordedProfitMismatchCannotBorrowReceiptCompleteness() {
+        var lot = closedLot(263L, BtcBasePositionStatePolicy.DRA_V1_POSITION_PREFIX + "CLOSED",
+                "99", LocalDateTime.now(ZoneOffset.UTC));
+        var signals = proxy(BtLiveSignalRepository.class, (method, args) -> List.of(lot));
+        var attempts = proxy(SpotExecutionAttemptRepository.class,
+                (method, args) -> List.of(filled((Side) args[1], args[1] == Side.BUY ? "0.01" : "0.02")));
+        var result = service(signals, attempts).report();
+        assertTrue(result.contains("RECORDED_PROVIDER_PNL_MISMATCH"));
+        assertTrue(result.contains("exactCoverage=0/1"));
     }
 
     private static BtLiveSignal closedLot(
@@ -103,11 +114,30 @@ class SpotEconomicLedgerServiceTest {
     private static SpotExecutionAttempt filled(Side side, String feeUsdt) {
         SpotExecutionAttempt attempt = new SpotExecutionAttempt();
         attempt.setSide(side);
+        attempt.setLiveSignalId(263L);
+        attempt.setStrategyContract(BtcDraPolicy.POLICY_MODE);
+        attempt.setProvider("OKX");
+        attempt.setProviderOrderId(side.name());
+        attempt.setProviderReceiptJson("{\"ordId\":\"" + side.name() + "\"}");
+        attempt.setAveragePrice(new BigDecimal(side == Side.BUY ? "10" : "11.28"));
+        attempt.setGrossFillQuantity(BigDecimal.ONE);
+        attempt.setNetFillQuantity(BigDecimal.ONE);
+        attempt.setGrossQuoteAmount(attempt.getAveragePrice());
+        attempt.setAppliedGrossQuoteAmount(attempt.getAveragePrice());
+        attempt.setFeeCurrency("USDT");
+        attempt.setSignedFeeAmount(new BigDecimal(feeUsdt).negate());
+        attempt.setFeeUsdt(new BigDecimal(feeUsdt));
         attempt.setState(State.RECONCILED_FILLED);
         attempt.setAppliedFillQuantity(BigDecimal.ONE);
         attempt.setAppliedFeeUsdt(new BigDecimal(feeUsdt));
         attempt.setFeeReconciliationStatus(FeeReconciliationStatus.RECONCILED);
         return attempt;
+    }
+
+    private static SpotEconomicLedgerService service(BtLiveSignalRepository signals, SpotExecutionAttemptRepository attempts) {
+        return new SpotEconomicLedgerService(signals, attempts,
+                proxy(com.agora.repository.trading.BtDecisionAuditRepository.class, (method, args) -> List.of()),
+                new com.fasterxml.jackson.databind.ObjectMapper());
     }
 
     @SuppressWarnings("unchecked")

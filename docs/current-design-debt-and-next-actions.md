@@ -129,6 +129,22 @@ decision, but this snapshot does not justify a replacement range or establish
 terminal exact-net profit. No Grid change is included. This is a smaller
 capital exposure than the DRA execution blocker.
 
+The follow-up local change adds timestamped native Grid range observations and
+bounded filled/live sub-order pagination. A 12:34 UTC OKX ticker of 86,725.3
+was 28.9423% above the same upper bound; the bot's ten live orders were buys
+in the old range. See [Grid deviation handling](okx-native-grid-range-observation-v1.md)
+for the diagnostics contract and operator adjustment/acceptance evidence.
+The diagnostic code is not deployed. Separately, the account holder confirmed
+the existing bot's edit at 20:59:56 Asia/Taipei: 78,000–90,000, ten grids,
+unchanged 10 USDT cumulative investment. Read-only browser acceptance found
+eight buys and two sells in the new range, with current price inside it.
+That fixed-range edit left Trailing Up/Down off. The account holder subsequently
+stopped the old bot at 21:17:28 and created `3974349158101700608` at 21:20:34
+with both trailing directions enabled, upper/lower stop-moving prices
+102,000/73,200 and actual cumulative investment 13.62 USDT. Browser acceptance
+found one running bot, eight buys and two sells. This provider configuration
+is independent of the pending diagnostic release; Trading has no Grid mutation adapter.
+
 Legacy lots 260/261/262 intentionally have no automatic exit. Donchian has
 80 observation days, two unique entries and one completed trade against a
 five-entry/five-trade gate. Neither is treated as a bug or promotion authority.
@@ -307,6 +323,15 @@ than an execution-platform defect. It is acceptable only while unrealized PnL,
 holding age, utilization, and blocked opportunity cost remain visible.
 
 ## Actual design debt
+
+### Forward economic evidence V1 — local implementation, pending release
+
+The next implementation adds independent provider cash-flow reconciliation,
+owner-509 per-lot normalized fill receipts, forward entry evaluations and
+hourly recorded-basis performance observations using existing audit tables.
+See [forward-spot-performance-v1.md](forward-spot-performance-v1.md) for formulas,
+coverage gates, retention, remaining limitations and acceptance. This is not
+yet Production evidence and does not authorize scaling or historical repair.
 
 ### Completed code reduction
 

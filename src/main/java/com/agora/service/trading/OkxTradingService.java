@@ -186,13 +186,20 @@ public class OkxTradingService implements TradingService {
 
     /** Read-only filled or live child orders for one provider-native Spot Grid bot. */
     public JsonNode getNativeSpotGridSubOrders(String algoId, String type) {
+        return getNativeSpotGridSubOrders(algoId, type, null);
+    }
+
+    /** Read-only sub-order page; after is an older-than provider order ID. */
+    public JsonNode getNativeSpotGridSubOrders(String algoId, String type, String after) {
         requireDigits("algoId", algoId);
         String normalizedType = type == null ? "" : type.trim().toLowerCase();
         if (!"filled".equals(normalizedType) && !"live".equals(normalizedType)) {
             throw new IllegalArgumentException("type must be filled or live");
         }
+        if (after != null) requireDigits("after", after);
         JsonNode response = get("/api/v5/tradingBot/grid/sub-orders?algoOrdType=grid&algoId="
-                + algoId + "&type=" + normalizedType + "&limit=100");
+                + algoId + "&type=" + normalizedType + "&limit=100"
+                + (after == null ? "" : "&after=" + after));
         assertOkxCode(response);
         return response.path("data");
     }
@@ -212,6 +219,20 @@ public class OkxTradingService implements TradingService {
      */
     public BigDecimal getLastPrice(String symbol) {
         return getLastPriceFromTicker(toInstId(symbol), symbol, "getLastPrice");
+    }
+
+    /**
+     * Public, uncached diagnostic ticker including the provider timestamp.
+     * Does not use or update the execution-price cache or its stale fallback.
+     */
+    public JsonNode getSpotTickerSnapshot(String symbol) {
+        String instId = toInstId(symbol);
+        if (instId == null || !instId.matches("[A-Z0-9]+-[A-Z0-9]+")) {
+            throw new IllegalArgumentException("A spot instrument ID is required");
+        }
+        JsonNode response = getPublic("/api/v5/market/ticker?instId=" + instId);
+        assertOkxCode(response);
+        return response.path("data").path(0);
     }
 
     /**

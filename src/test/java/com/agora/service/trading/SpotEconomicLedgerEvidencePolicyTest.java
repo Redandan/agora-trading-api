@@ -23,8 +23,8 @@ class SpotEconomicLedgerEvidencePolicyTest {
                         List.of(filled(Side.SELL, "0.02")));
 
         assertTrue(evidence.exactNet());
-        assertEquals(new BigDecimal("0.03"), evidence.lifecycleFeeUsdt());
-        assertEquals("PROVIDER_RECEIPTS_RECONCILED", evidence.reason());
+        assertEquals(0, new BigDecimal("0.03").compareTo(evidence.lifecycleFeeUsdt()));
+        assertEquals("PROVIDER_CASH_FLOW_RECONCILED", evidence.reason());
     }
 
     @Test
@@ -50,9 +50,32 @@ class SpotEconomicLedgerEvidencePolicyTest {
         assertEquals("NON_TERMINAL_ATTEMPT", stateEvidence.reason());
     }
 
+    @Test void rejectedFillsDifferentOwnersAndUnappliedCashCannotBeClaimedExact() {
+        var buy = filled(Side.BUY, "0.01"); var sell = filled(Side.SELL, "0.02");
+        sell.setState(State.REJECTED);
+        assertFalse(SpotEconomicLedgerEvidencePolicy.evaluateDraLifecycle(List.of(buy), List.of(sell)).exactNet());
+        sell.setState(State.RECONCILED_FILLED); sell.setLiveSignalId(999L);
+        assertFalse(SpotEconomicLedgerEvidencePolicy.evaluateDraLifecycle(List.of(buy), List.of(sell)).exactNet());
+        sell.setLiveSignalId(263L); sell.setAppliedGrossQuoteAmount(BigDecimal.ZERO);
+        assertFalse(SpotEconomicLedgerEvidencePolicy.evaluateDraLifecycle(List.of(buy), List.of(sell)).exactNet());
+    }
+
     private static SpotExecutionAttempt filled(Side side, String feeUsdt) {
         SpotExecutionAttempt attempt = new SpotExecutionAttempt();
         attempt.setSide(side);
+        attempt.setLiveSignalId(263L);
+        attempt.setStrategyContract(BtcDraPolicy.POLICY_MODE);
+        attempt.setProvider("OKX");
+        attempt.setProviderOrderId(side.name());
+        attempt.setProviderReceiptJson("{\"ordId\":\"" + side.name() + "\"}");
+        attempt.setAveragePrice(new BigDecimal(side == Side.BUY ? "10" : "11.28"));
+        attempt.setGrossFillQuantity(BigDecimal.ONE);
+        attempt.setNetFillQuantity(BigDecimal.ONE);
+        attempt.setGrossQuoteAmount(attempt.getAveragePrice());
+        attempt.setAppliedGrossQuoteAmount(attempt.getAveragePrice());
+        attempt.setFeeCurrency("USDT");
+        attempt.setSignedFeeAmount(new BigDecimal(feeUsdt).negate());
+        attempt.setFeeUsdt(new BigDecimal(feeUsdt));
         attempt.setState(State.RECONCILED_FILLED);
         attempt.setAppliedFillQuantity(BigDecimal.ONE);
         attempt.setAppliedFeeUsdt(new BigDecimal(feeUsdt));

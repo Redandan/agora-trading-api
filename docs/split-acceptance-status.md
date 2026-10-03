@@ -6,7 +6,38 @@ This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
 runnable current guidance.
 
-## 2026-10-03 strategy execution repair
+## 2026-10-03 DRA execution-contract and diagnostic repair
+
+- One application deployment from `cad93f1d81e172a40ab033ddd6460def3a114b92`.
+  Running-version MCP reports startup at 2026-10-03 01:04:41 UTC
+  (09:04:41 Taipei), active port 8085 / PID 897706. Old port 8084 is drained.
+  Local/public health, authenticated MCP, exact running commit, nginx and
+  strict post-drain server verification passed.
+- 106 offline tests and Java 21 package pass. The original Java reference
+  engine retains sealed Design/Validation parity. Current-contract historical
+  diagnostics reproduce six windows byte for byte and reconcile all trades.
+  Result and limitations: `btc-dra-execution-contract-audit-2026-10-03.md`.
+- Entry-event selection and estimated net-return arithmetic are shared with
+  the offline diagnostic. Known preflight blocks retain their reason instead
+  of being combined with unconfirmed execution. Reference drawdown metadata
+  is explicitly virtual. No trading threshold, cap, cooldown, state schema,
+  provider submission, retry or reconciliation behavior was changed.
+- Fresh MCP at 01:05–01:06 UTC reports the new execution profile and a matching
+  bar's `NO_QUEUED_ENTRY` result. DRA remains LIVE/armed at 30/30 USDT, zero
+  owned lots, zero pending fees. Owner 509 remains LIVE/armed with its verified
+  10/80/250 limits. Positions 260/261/262 remain intentional legacy BTC Base;
+  execution-safety status is OK with zero issues.
+- The latest natural bar was accepted at 01:00 UTC before this deployment.
+  Its new entry-stage field correctly reports missing legacy evidence. The
+  next natural hourly evaluation will write the new stage; this acceptance
+  does not claim an observed post-release stage or a new provider fill.
+- Active-log smoke: 0 errors, 0 unknown warnings, 0 high-risk operation-like
+  lines. Eight warnings match the startup baseline. No acceptance test order,
+  migration, backfill, Grid or fund action was performed.
+- Deploy log: `logs/deploy/deploy-20261003T010326Z.log`.
+  Runtime log: `logs/runs/app-20261003T010411Z-port8085.log`.
+
+## Earlier 2026-10-03 strategy execution repair
 
 - One combined application deployment: runtime
   `224ab7f41a35dc4de27d482b3867a8227535aff7`, started at

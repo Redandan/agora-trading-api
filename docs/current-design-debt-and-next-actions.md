@@ -1,5 +1,22 @@
 # Current Design Debt and Next Actions
 
+## 2026-10-03 DRA economic-contract correction
+
+Runtime `cad93f1d81e172a40ab033ddd6460def3a114b92` preserves the frozen trading
+rules while correcting comparison basis and entry-block diagnostics. The
+current-contract historical proxy earns 38.90252534 USDT in 2023–2024 from
+30 USDT, versus 39.93354639 for the sealed single-slot research parent.
+Their execution profiles differ; neither is an actual-fill or future-profit
+claim. Full evidence is in `btc-dra-execution-contract-audit-2026-10-03.md`.
+
+Do not change the virtual cap merely to make a backtest match the LIVE cap.
+The approximately 1.03 USDT historical profile difference does not explain
+the much larger BTC buy-and-hold opportunity cost. Fixed-size profit taking
+and losing inventory remain research questions, not authorization for a new
+stop, exposure increase or revival of rejected overlays. This release has no
+claimed direct PnL uplift. Future observed stages and complete provider fills
+must supply forward execution and performance evidence.
+
 ## 2026-10-03 strategy execution audit repair (Taipei date)
 
 Deployed and accepted as `224ab7f41a35dc4de27d482b3867a8227535aff7` in one

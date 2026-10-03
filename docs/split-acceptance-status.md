@@ -6,7 +6,39 @@ This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
 runnable current guidance.
 
-## 2026-10-03 DRA aggressive/conservative allocation release
+## 2026-10-03 DRA receipt and protected-profit execution release
+
+- One application deployment from `a619ce422983d42694c2393c369326268c02be75`.
+  Runtime startup is 2026-10-03 04:19:26 UTC (12:19:26 Taipei), active port
+  8085 / PID 953746. Port 8084 is drained. Local/public health, authenticated
+  MCP exact runtime commit, nginx and strict post-drain verification passed.
+- `DRA_PROFIT_EXIT_IOC_V1` replaces the DRA market sell adapter with a
+  fee-aware, tick-rounded IOC limit floor; +5% profit conditions, hourly
+  evaluation and ownership remain. Receipt-only maintenance uses the existing
+  ten-minute callback independently of entry mode and bar/state health.
+- Fresh MCP at 04:20 UTC proves AGGRESSIVE / new buy 30.00 / ceiling 30.00,
+  entry and profit-exit authorization, zero DRA lots and zero pending fees.
+  Owner 509 remains armed at 10/80/250. Positions 260/261/262 retain intentional
+  legacy BTC Base status; execution safety reports zero issues.
+- Position review reports `KEEP_EXISTING_RULES`, `riskSellAuthorized=false`.
+  Fresh trading/funding balance risk scenarios are available. Funding total
+  includes frozen funds; failed reads do not become zero-risk accounts. Earn
+  is excluded and Grid coverage remains unverified, explicitly preventing a
+  whole-account completeness claim. No automatic risk reduction was enabled.
+- 140 focused tests, Java 21 package, script syntax and diff checks passed.
+  A Production read-only SPOT fee probe confirmed taker commission 0.10%.
+  Runtime log smoke: zero errors, zero unknown warnings, seven known startup
+  warnings, zero high-risk operation-like lines.
+- No real acceptance order, migration, backfill, capital change, new timer,
+  Grid/OCO mutation or fund transfer was performed. A natural IOC order/fill
+  after this release remains unobserved; local protocol tests are not live
+  profitability proof. The old replay is not evidence for the new IOC adapter.
+- Deploy log: `logs/deploy/deploy-20261003T041812Z.log`.
+  Runtime log: `logs/runs/app-20261003T041857Z-port8085.log`.
+  Local evidence: `target/design-fix-acceptance.json` and
+  `target/design-fix-{final-tests,final-package,deploy,runtime-log-check}.log`.
+
+## Earlier 2026-10-03 DRA aggressive/conservative allocation release
 
 - One application deployment from `c5bf282b2c23bd4cac46acef686ba0b145bbad6d`.
   Startup metadata reports 2026-10-03 03:11:52 UTC (11:11:52 Taipei), active

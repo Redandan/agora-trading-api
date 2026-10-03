@@ -106,6 +106,33 @@ class StrategyRuntimeObservationServiceTest {
         new PartTree("countByStrategyContractAndFeeReconciliationStatus", SpotExecutionAttempt.class);
     }
 
+    @Test
+    void entryDecisionRequiresMatchingProfileAndBarInsteadOfGuessingLegacyCooldown() {
+        var f = new Fixture();
+        var def = f.catalog.require(BtcDraPolicy.POLICY_MODE);
+        assertEquals("MISSING_PROOF_LEGACY_OR_INVALID_ENTRY_DECISION", f.service().snapshot(def, NOW).get("entryDecisionStatus"));
+        f.features = """
+                {"source":"okx","barOpenTime":"2026-10-02T10:00:00",
+                 "entryDecision":{"schema":"DRA_ENTRY_DECISION_V1","profile":"DRA_V1_VIRTUAL250_SINGLE30_CURRENT_QUOTE",
+                 "barOpenUtc":"2026-10-02T10:00:00","queuedCandidate":false,"stage":"VIRTUAL_SIGNAL_COOLDOWN"}}
+                """;
+        assertTrue(f.service().snapshot(def, NOW).containsKey("entryDecision"));
+        f.features = f.features.replace("\"barOpenUtc\":\"2026-10-02T10:00:00\"", "\"barOpenUtc\":\"2026-10-02T09:00:00\"");
+        assertFalse(f.service().snapshot(def, NOW).containsKey("entryDecision"));
+    }
+
+    @Test
+    void liveDispositionMustBelongToTheSameEvaluatedBar() {
+        var f = new Fixture();
+        var def = f.catalog.require(BtcDraPolicy.POLICY_MODE);
+        f.audit = new BtDecisionAudit();
+        f.audit.setBarOpenTime(f.bar.getOpenTime());
+        f.audit.setContextJson("{\"schema\":\"SPOT_ENTRY_EVAL_V1\",\"owner\":\"DRA_V1\",\"candidate\":true,\"disposition\":\"BLOCKED:DRA_SINGLE_LOT_ALREADY_OPEN\"}");
+        assertTrue(f.service().snapshot(def, NOW).containsKey("lastLiveEntryEvaluation"));
+        f.audit.setBarOpenTime(f.bar.getOpenTime().minusHours(1));
+        assertFalse(f.service().snapshot(def, NOW).containsKey("lastLiveEntryEvaluation"));
+    }
+
     private static class Fixture {
         final StrategyRuntimeCatalog catalog = new StrategyRuntimeCatalog();
         final MdKline bar = new MdKline();

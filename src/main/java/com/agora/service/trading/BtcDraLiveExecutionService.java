@@ -127,7 +127,7 @@ public class BtcDraLiveExecutionService {
                 executeEligibleExit(observation);
         if (!exitHandledOrPending
                 && hasEntrySignal(observation)) {
-            return executeBuy(observation) ? "BUY_PATH_HANDLED" : "BUY_PATH_BLOCKED_OR_UNCONFIRMED";
+            return executeBuy(observation);
         } else if (exitHandledOrPending && hasEntrySignal(observation)) {
             auditSkip(observation, "DRA_ENTRY_DEFERRED_EXIT_HANDLING", null);
             return "DEFERRED_EXIT_HANDLING";
@@ -162,18 +162,15 @@ public class BtcDraLiveExecutionService {
         return null;
     }
 
-    private boolean executeBuy(
+    private String executeBuy(
             BtcDraRuntimeLaneService.RuntimeObservation observation) {
-        BtcDraShadowEngine.RuntimeEvent entryEvent = observation.step().events().stream()
-                .filter(event -> "VIRTUAL_ENTRY_QUEUED".equals(event.eventType()))
-                .findFirst()
-                .orElse(null);
-        if (entryEvent == null) return false;
+        BtcDraShadowEngine.RuntimeEvent entryEvent = BtcDraExecutionContract.entryEvent(observation.step());
+        if (entryEvent == null) return "NO_QUEUED_ENTRY";
 
         String blocker = buyBlocker(observation, entryEvent);
         if (blocker != null) {
             auditSkip(observation, blocker, null);
-            return false;
+            return "BLOCKED:" + blocker;
         }
 
         String clientOrderId =
@@ -191,10 +188,10 @@ public class BtcDraLiveExecutionService {
             reservation = reserveBuy(observation.bar(), entryEvent, clientOrderId);
         } catch (DataIntegrityViolationException e) {
             auditSkip(observation, "DRA_DUPLICATE_SIGNAL_RESERVATION", null);
-            return false;
+            return "DUPLICATE_SIGNAL_RESERVATION";
         } catch (Exception e) {
             auditFailure("DRA_BUY_RESERVATION_FAILED", context, e);
-            return false;
+            return "UNCONFIRMED_RESERVATION_FAILED";
         }
 
         context.put("liveSignalId", reservation.getId());
@@ -214,7 +211,7 @@ public class BtcDraLiveExecutionService {
                     "DRA_BUY_ATTEMPT_RESERVATION_FAILED",
                     context,
                     e);
-            return false;
+            return "UNCONFIRMED_ATTEMPT_RESERVATION_FAILED";
         }
         SpotExecutionAttempt attempt =
                 attemptReservation.attempt();
@@ -234,7 +231,7 @@ public class BtcDraLiveExecutionService {
                     "DRA_BUY_EVIDENCE_RESERVATION_FAILED",
                     context,
                     new IllegalStateException("DRA_EVIDENCE_UPDATE_FAILED"));
-            return false;
+            return "UNCONFIRMED_EVIDENCE_RESERVATION_FAILED";
         }
 
         OkxTradingService.SpotOrderLookup lookup;
@@ -260,7 +257,7 @@ public class BtcDraLiveExecutionService {
                     "DRA_BUY_LOOKUP_UNRESOLVED",
                     context,
                     e);
-            return false;
+            return "UNCONFIRMED_PROVIDER_LOOKUP";
         }
         if (lookup.status()
                 == OkxTradingService.SpotOrderLookupStatus.FOUND) {
@@ -270,7 +267,7 @@ public class BtcDraLiveExecutionService {
                     providerSnapshot(lookup.snapshot(), "buy"),
                     context,
                     false,
-                    "DRA_LIVE_BUY_PROVIDER_FOUND");
+                    "DRA_LIVE_BUY_PROVIDER_FOUND") ? "BUY_PATH_HANDLED" : "UNCONFIRMED_PROVIDER_RECONCILIATION";
         }
         if (!executionAttemptService.claimForSubmission(
                 attempt.getId(),
@@ -279,7 +276,7 @@ public class BtcDraLiveExecutionService {
                     observation,
                     "DRA_BUY_SUBMISSION_CLAIM_LOST",
                     reservation.getId());
-            return false;
+            return "UNCONFIRMED_SUBMISSION_CLAIM_LOST";
         }
 
         TradeResult fill;
@@ -307,7 +304,7 @@ public class BtcDraLiveExecutionService {
                     null,
                     context);
             auditFailure("DRA_BUY_SUBMISSION_UNCONFIRMED", context, e);
-            return false;
+            return "UNCONFIRMED_PROVIDER_SUBMISSION";
         }
 
         return applyProviderBuySnapshot(
@@ -316,7 +313,7 @@ public class BtcDraLiveExecutionService {
                 providerSnapshot(fill),
                 context,
                 true,
-                "DRA_LIVE_BUY_FILLED");
+                "DRA_LIVE_BUY_FILLED") ? "BUY_PATH_HANDLED" : "UNCONFIRMED_PROVIDER_RECONCILIATION";
     }
 
     private boolean reconcileOutstandingBuyAttempt(
@@ -1087,8 +1084,7 @@ public class BtcDraLiveExecutionService {
 
     private boolean hasEntrySignal(
             BtcDraRuntimeLaneService.RuntimeObservation observation) {
-        return observation.step().events().stream()
-                .anyMatch(event -> "VIRTUAL_ENTRY_QUEUED".equals(event.eventType()));
+        return BtcDraExecutionContract.entryEvent(observation.step()) != null;
     }
 
     private boolean exactCanaryConfiguration() {
@@ -1097,14 +1093,7 @@ public class BtcDraLiveExecutionService {
     }
 
     private BigDecimal estimatedNetReturn(BtLiveSignal lot, BigDecimal currentPrice) {
-        BigDecimal estimatedSellPrice = currentPrice
-                .multiply(BigDecimal.ONE.subtract(ADVERSE_SLIPPAGE_RATE_PER_SIDE));
-        BigDecimal estimatedNet = estimatedSellPrice
-                .multiply(lot.getTradedQty())
-                .multiply(BigDecimal.ONE.subtract(FEE_RATE_PER_SIDE));
-        BigDecimal cost = lot.getEntryPrice().multiply(lot.getTradedQty());
-        if (!positive(cost)) return BigDecimal.valueOf(-1);
-        return estimatedNet.subtract(cost).divide(cost, 12, RoundingMode.HALF_UP);
+        return BtcDraExecutionContract.estimatedNetReturn(lot.getTradedQty(), lot.getEntryPrice(), currentPrice);
     }
 
     private BigDecimal availableBtc() {

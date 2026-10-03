@@ -67,6 +67,15 @@ class SpotPerformanceReportServiceTest {
         assertNull(report.entryEvaluations("DRA_V1", List.of(duplicate, duplicate)).get("candidateBars"));
     }
 
+    @Test void knownCapacityBlockIsNotAnAmbiguousProviderOutcome() throws Exception {
+        var result = report.entryEvaluations("DRA_V1", List.of(
+                evaluation(0, true, "BLOCKED:DRA_SINGLE_LOT_ALREADY_OPEN"),
+                evaluation(1, true, "UNCONFIRMED_PROVIDER_SUBMISSION")));
+        assertEquals(1, result.get("explicitBlockedCandidateBars"));
+        assertEquals(1, result.get("unconfirmedCandidateBars"));
+        assertEquals(2, result.get("candidateBars"));
+    }
+
     private BtDecisionAudit sample(int hour, String capital, String equity, String utilization) throws Exception {
         Map<String, Object> n = new LinkedHashMap<>();
         n.put("schema", SpotPerformancePolicy.EVENT); n.put("owner", "DRA_V1"); n.put("status", "OBSERVED");

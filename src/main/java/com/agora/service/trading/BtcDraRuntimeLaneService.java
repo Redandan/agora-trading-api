@@ -376,6 +376,9 @@ public class BtcDraRuntimeLaneService {
         snapshot.put("feeModelComplete", true);
         snapshot.put("slippageModelComplete", true);
         snapshot.put("signal", step.signal());
+        snapshot.put("executionContract", BtcDraExecutionContract.description());
+        snapshot.put("entryDecision", BtcDraExecutionContract.entryDecision(
+                step, bar.getOpenTime(), bootstrap, catchUp));
         snapshot.put("stateAfterSha256", stateHash);
         snapshot.put("stateAfterCanonicalJson", canonicalStateJson);
         snapshot.put("events", events);
@@ -627,6 +630,8 @@ public class BtcDraRuntimeLaneService {
         policy.put("netProfitTrigger", NET_PROFIT_TRIGGER);
         policy.put("minRealizedNetProfit", MIN_REALIZED_NET_PROFIT);
         policy.put("signalExecution", "NEXT_1H_OPEN");
+        policy.put("signalExecutionScope", "VIRTUAL_REFERENCE_ONLY");
+        policy.put("executionContract", BtcDraExecutionContract.description());
         policy.put("forcedExit", false);
         policy.put("stateAfterSha256", stateHash);
         policy.put("liveImplementationPresent", properties.liveOrderEnabled());
@@ -648,6 +653,8 @@ public class BtcDraRuntimeLaneService {
                         RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
         Map<String, Object> exposure = new LinkedHashMap<>();
+        exposure.put("accountingScope", "VIRTUAL_REFERENCE_NOT_LIVE");
+        exposure.put("referenceCapitalUsdt", MAX_OPEN_COST_USDT);
         exposure.put("realizedPnlUsdt", state.realizedPnlUsdt());
         exposure.put("openLotCount", state.openLots().size());
         exposure.put("openCostUsdt", state.openCostUsdt());

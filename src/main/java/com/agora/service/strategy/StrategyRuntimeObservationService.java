@@ -8,6 +8,7 @@ import com.agora.model.SpotExecutionAttempt.FeeReconciliationStatus;
 import com.agora.repository.trading.*;
 import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.BtcDraPolicy;
+import com.agora.service.trading.BtcDraExecutionContract;
 import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -142,9 +143,37 @@ public class StrategyRuntimeObservationService {
             }
         }
         out.put("lastSignalConditions", signal);
+        if (BtcDraPolicy.POLICY_MODE.equals(d.key())) {
+            out.put("executionContract", BtcDraExecutionContract.description());
+            JsonNode entry = features.path("entryDecision");
+            if ("DRA_ENTRY_DECISION_V1".equals(entry.path("schema").asText())
+                    && BtcDraExecutionContract.PROFILE.equals(entry.path("profile").asText())
+                    && features.path("barOpenTime").asText().equals(entry.path("barOpenUtc").asText())
+                    && entry.path("queuedCandidate").isBoolean() && entry.path("stage").isTextual()) {
+                out.put("entryDecision", entry);
+            } else {
+                out.put("entryDecisionStatus", "MISSING_PROOF_LEGACY_OR_INVALID_ENTRY_DECISION");
+            }
+        }
         // The top-level persisted bar identity is UTC. Nested legacy JSON offsets are not clocks.
         String bar = features.path("barOpenTime").asText(null);
-        return bar == null ? null : LocalDateTime.parse(bar);
+        LocalDateTime decisionBar = bar == null ? null : LocalDateTime.parse(bar);
+        if (BtcDraPolicy.POLICY_MODE.equals(d.key())) {
+            var evaluation = audits.findFirstByStrategyIdAndSymbolAndEventTypeOrderByEventTimeDescIdDesc(
+                    BtcDraPolicy.RUNTIME_LEDGER_STRATEGY_ID, d.symbol(), "SPOT_ENTRY_EVAL_V1").orElse(null);
+            if (evaluation != null && decisionBar != null && decisionBar.equals(evaluation.getBarOpenTime())) {
+                JsonNode context = mapper.readTree(evaluation.getContextJson());
+                if (context != null && "SPOT_ENTRY_EVAL_V1".equals(context.path("schema").asText())
+                        && "DRA_V1".equals(context.path("owner").asText())
+                        && context.path("candidate").isBoolean() && context.path("disposition").isTextual()) {
+                    out.put("lastLiveEntryEvaluation", context);
+                }
+            }
+            if (!out.containsKey("lastLiveEntryEvaluation")) {
+                out.put("lastLiveEntryEvaluationStatus", "MISSING_PROOF_NO_MATCHING_BAR_EXECUTION_EVIDENCE");
+            }
+        }
+        return decisionBar;
     }
 
     private void appendInventory(StrategyRuntimeDefinition d, LocalDateTime now, Map<String, Object> out) {

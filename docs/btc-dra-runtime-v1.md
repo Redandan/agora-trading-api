@@ -120,8 +120,10 @@ because V1 intentionally leaves losing inventory open.
 ## Bootstrap and restart contract
 
 The first DRA event warms indicators from exactly 90 days of contiguous OKX
-hourly bars. Historical warm-up bars cannot create virtual lots or arms; only
-the genuine current closed bar may start DRA state.
+hourly bars. Historical warm-up bars also reconstruct arm, expiry, last signal
+and cooldown through `BtcDraBootstrapEntryStateReplayer`. They create no virtual
+lots, pending buys, live reservations or orders. The current bootstrap bar
+advances that seeded state, but remains ineligible for LIVE execution.
 
 Evidence schema is `BTC_DRA_RUNTIME_EVIDENCE_V1`; state schema is
 `BTC_DRA_RUNTIME_STATE_V1`. Evidence stores the exact canonical state as a JSON
@@ -145,6 +147,13 @@ Every DRA evidence row records:
 - `gridModified=false`.
 
 ## Known V1 limitations
+
+The current execution profile and historical comparison correction are in
+`btc-dra-execution-contract-audit-2026-10-03.md`. A single-slot research engine
+with cap 30 does not reproduce the virtual-cap-250 signal lifecycle consumed
+by the separately bounded LIVE adapter. New observations label this profile,
+entry stage and virtual-reference accounting explicitly; missing legacy stage
+evidence must not be reconstructed from the latest inventory.
 
 These limitations do not authorize changing the frozen V1 strategy:
 

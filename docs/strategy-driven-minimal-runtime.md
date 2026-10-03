@@ -97,6 +97,10 @@ The runtime:
   conservative quantity buffer if the final buy fee is delayed;
 - sells only DRA-owned quantity after fee/slippage-aware estimated net return
   reaches `+5%`, evaluated on each fresh closed OKX hourly bar;
+- protects each DRA sell with a fee-aware IOC limit floor; canceled/partial
+  receipts preserve remaining ownership and never trigger a market fallback;
+- reconciles already-submitted DRA orders on the existing ten-minute
+  maintenance clock independently of signal bars and new-buy enablement;
 - has no stop-loss, forced exit, OCO, Grid, fund, leverage, or Telegram action.
 
 The three-year no-drawdown result with a 250 USDT reserve was `+107.15130387`

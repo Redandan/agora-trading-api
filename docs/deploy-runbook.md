@@ -129,6 +129,15 @@ database-change resubscription, or dual-provider divergence setting.
 
 ## Retained scripts
 
+The 2026-10-03 execution repair adds no environment setting or schema migration.
+The existing ten-minute OCO maintenance callback first invokes DRA receipt-only
+reconciliation, even when OCO polling or DRA entry is disabled. It cannot submit
+an order. The verifier requires `DRA_PROFIT_EXIT_IOC_V1`, independent receipt
+maintenance and the fresh account risk snapshot. Verify the current profile,
+existing positions and pending receipts after deployment; never send a test
+order to prove the exit adapter. The account risk view explicitly excludes Earn
+and does not claim verified Grid coverage.
+
 | File | Purpose |
 |---|---|
 | `deploy.sh` | Server-side blue/green deployment and health-gated switch |

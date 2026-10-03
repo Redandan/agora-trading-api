@@ -79,6 +79,35 @@ class BtcDraRiskModeExecutionTest {
         assertNull(f.submittedAmount);
     }
 
+    @Test void protectedExitPersistsPriceBeforeSubmissionAndPreservesCanceledReceipt() throws Exception {
+        var f = new Fixture(RiskMode.AGGRESSIVE); f.open = List.of(lot("0.30"));
+        f.price = new BigDecimal("106"); f.completeSell = true;
+        assertEquals(true, f.exit());
+        assertEquals(List.of("reserveSell", "evidence", "lookup", "claim", "ioc", "applySell", "evidence"), f.calls);
+        var context = f.mapper.readTree(f.evidence.getFeaturesSnapshotJson()).path("liveExecution");
+        assertEquals("ioc", context.path("orderType").asText());
+        assertEquals("106", context.path("minimumSellPrice").asText());
+        assertEquals("canceled", context.path("providerState").asText());
+        assertEquals("REJECTED", context.path("attemptState").asText());
+        assertEquals("DRA_LIVE_SELL_PROVIDER_RESPONSE", f.evidence.getSelectedAction());
+        assertNull(f.open.getFirst().getExitTime());
+    }
+
+    @Test void missingFeeOrRoundedFloorAboveQuoteBlocksBeforeReservation() throws Exception {
+        var f = new Fixture(RiskMode.AGGRESSIVE); f.open = List.of(lot("0.30"));
+        f.price = new BigDecimal("105.5"); // old +5% estimate qualifies, but integer tick floor is 106.
+        assertEquals(false, f.exit()); assertTrue(f.calls.isEmpty());
+        f.price = new BigDecimal("106"); f.fee = null;
+        assertEquals(false, f.exit()); assertTrue(f.calls.isEmpty());
+    }
+
+    @Test void inconsistentDurableSellQuantityNeverReachesLookupOrProviderSubmission() throws Exception {
+        var f = new Fixture(RiskMode.AGGRESSIVE); f.open = List.of(lot("0.30"));
+        f.price = new BigDecimal("106"); f.completeSell = true; f.overrideSellQty = new BigDecimal("0.15");
+        assertEquals(false, f.exit());
+        assertEquals(List.of("reserveSell"), f.calls);
+    }
+
     private static BtLiveSignal lot(String qty) {
         var p = new BtLiveSignal(); p.setId(7L); p.setAutoTraded(true);
         p.setEntryPrice(new BigDecimal("100")); p.setTradedQty(new BigDecimal(qty));
@@ -96,6 +125,9 @@ class BtcDraRiskModeExecutionTest {
         BigDecimal price = new BigDecimal("100"), minSize = new BigDecimal("0.01");
         BigDecimal reservedAmount, overrideReserved, sellReservedQty;
         Double submittedAmount;
+        boolean completeSell;
+        BigDecimal fee = new BigDecimal("0.001");
+        BigDecimal overrideSellQty;
 
         Fixture(RiskMode mode) {
             var props = BtcDraRiskModeTest.properties(mode, "30", "30");
@@ -114,6 +146,7 @@ class BtcDraRiskModeExecutionTest {
             var provider = new OkxTradingService(new OkxTradingProperties(), mapper) {
                 @Override public String getUsdtBalance() { return "30"; }
                 @Override public BigDecimal getLastPrice(String symbol) { return price; }
+                @Override public BigDecimal getSpotTakerFeeRate(String symbol) { return fee; }
                 @Override public SpotInstrumentRules getSpotInstrumentRules(String symbol) {
                     return new SpotInstrumentRules(symbol, minSize, new BigDecimal("0.00000001"), BigDecimal.ONE);
                 }
@@ -134,6 +167,14 @@ class BtcDraRiskModeExecutionTest {
                 @Override public TradeResult placeMarketSellWithFill(String symbol, BigDecimal qty, String id) {
                     throw new AssertionError("Unexpected sell submission");
                 }
+                @Override public SpotOrderSnapshot placeIocSellWithPriceFloor(String symbol, BigDecimal qty, BigDecimal floor, String id) {
+                    if (!completeSell) throw new AssertionError("Unexpected protected sell submission");
+                    calls.add("ioc");
+                    assertTrue(evidence.getFeaturesSnapshotJson().contains("minimumSellPrice"));
+                    assertEquals("106", floor.toPlainString());
+                    return new SpotOrderSnapshot("fixture-order", id, "sell", "canceled", null,
+                            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, "USDT", BigDecimal.ZERO, "{}", LocalDateTime.now());
+                }
             };
             var attempts = new BtcDraExecutionAttemptService(null, null) {
                 @Override public Reservation reserveBuy(Long id, String contract, LocalDateTime bar, BigDecimal amount) {
@@ -150,7 +191,17 @@ class BtcDraRiskModeExecutionTest {
                 }
                 @Override public Optional<SpotExecutionAttempt> findOutstandingSell() { return Optional.empty(); }
                 @Override public Reservation reserveSell(Long id, String contract, LocalDateTime bar, BigDecimal qty) {
-                    sellReservedQty = qty; throw new IllegalStateException("fixture stops at sell reservation");
+                    sellReservedQty = qty;
+                    if (!completeSell) throw new IllegalStateException("fixture stops at sell reservation");
+                    calls.add("reserveSell");
+                    var a = new SpotExecutionAttempt(); a.setId(8L); a.setLiveSignalId(id); a.setAttemptSequence(1);
+                    a.setState(SpotExecutionAttempt.State.RESERVED); a.setRequestedBaseQuantity(overrideSellQty == null ? qty : overrideSellQty); a.setClientOrderId("DRA1");
+                    return new Reservation(a, true, null);
+                }
+                @Override public ApplyResult applySellSnapshot(Long id, ProviderFillSnapshot snapshot) {
+                    calls.add("applySell");
+                    return new ApplyResult(id, SpotExecutionAttempt.State.REJECTED, BigDecimal.ZERO, BigDecimal.ZERO,
+                            BigDecimal.ZERO, BigDecimal.ZERO, sellReservedQty, SpotExecutionAttempt.FeeReconciliationStatus.NOT_APPLICABLE);
                 }
             };
             var audit = new DecisionAuditWriter(null, null, null) {

@@ -256,6 +256,24 @@ public class OkxTradingService implements TradingService {
         );
     }
 
+    /** Fresh account fee lookup. A missing fee blocks protected exits rather than assuming zero. */
+    public BigDecimal getSpotTakerFeeRate(String symbol) {
+        String instId = toInstId(symbol);
+        JsonNode response = get("/api/v5/account/trade-fee?instType=SPOT&instId=" + instId);
+        assertOkxCode(response);
+        return parseSpotTakerFeeRate(response.path("data").path(0));
+    }
+
+    static BigDecimal parseSpotTakerFeeRate(JsonNode row) {
+        if (!"SPOT".equals(row.path("instType").asText()) || row.path("taker").asText("").isBlank()) {
+            throw new IllegalStateException("OKX spot taker fee unavailable");
+        }
+        // OKX commissions are negative; rebates are positive and are never relied on for the floor.
+        BigDecimal signed = new BigDecimal(row.path("taker").asText());
+        if (signed.abs().compareTo(BigDecimal.ONE) >= 0) throw new IllegalStateException("Invalid OKX fee rate");
+        return signed.negate().max(BigDecimal.ZERO);
+    }
+
     /**
      * Reconstructs the quantity attributable to one legacy Grid BUY before a retirement SELL.
      * This is a read-only provider reconciliation. It prevents an old gross DB fill from
@@ -935,11 +953,12 @@ public class OkxTradingService implements TradingService {
             JsonNode resp = get(path);
             assertOkxCode(resp);
             JsonNode details = resp.path("data").path(0).path("details");
+            if (forceRefresh && !details.isArray()) throw new IllegalStateException("Missing OKX trading balance details");
             List<SpotHolding> result = new ArrayList<>();
             if (details.isArray()) {
                 for (JsonNode d : details) {
                     BigDecimal cashBal = new BigDecimal(d.path("cashBal").asText("0"));
-                    if (cashBal.compareTo(BigDecimal.ZERO) > 0) {
+                    if (cashBal.signum() > 0 || (forceRefresh && cashBal.signum() < 0)) {
                         result.add(new SpotHolding(
                                 d.path("ccy").asText(),
                                 new BigDecimal(d.path("availBal").asText("0")),
@@ -961,16 +980,17 @@ public class OkxTradingService implements TradingService {
                 }
             }
             log.warn("[OKX] getSpotHoldings failed forceRefresh={}: {}", forceRefresh, e.getMessage());
+            if (forceRefresh) throw new IllegalStateException("Fresh OKX trading holdings unavailable", e);
             return Collections.emptyList();
         }
     }
 
     /**
-     * 查詢 OKX Funding Account（資金帳戶）所有幣種的可用餘額。
+     * 查詢 OKX Funding Account（資金帳戶）所有幣種的總餘額與可用餘額。
      * 路徑：/api/v5/asset/balances（無 ccy 篩選 = 所有幣種）。
      *
      * <p>資金帳戶與交易帳戶（Unified Trading Account, type=18）、賺幣帳戶（Earn）並列。
-     * 回傳 SpotHolding 重用既有 record；availBal=cashBal=可用餘額（資金帳戶 API 沒有 cashBal 概念）；
+     * 回傳 SpotHolding 重用既有 record；cashBal=bal（含凍結），availBal=可用餘額；
      * eqUsd 用 getLastPrice 估算，USDT/USDC 直接 1:1。
      *
      * <p>回應 JSON：
@@ -979,9 +999,17 @@ public class OkxTradingService implements TradingService {
      * <p>Issue #155: getCurrentReport / getBalance 漏算這個帳戶導致總資產低估。
      */
     public List<SpotHolding> getFundingHoldings() {
+        return loadFundingHoldings(false);
+    }
+
+    public List<SpotHolding> getFreshFundingHoldings() {
+        return loadFundingHoldings(true);
+    }
+
+    private List<SpotHolding> loadFundingHoldings(boolean forceRefresh) {
         long nowMs = System.currentTimeMillis();
         List<SpotHolding> cached = cachedHoldings(fundingHoldingsCache, nowMs, ACCOUNT_HOLDINGS_SUCCESS_CACHE_TTL_MS);
-        if (cached != null) {
+        if (!forceRefresh && cached != null) {
             return cached;
         }
         try {
@@ -989,19 +1017,26 @@ public class OkxTradingService implements TradingService {
             JsonNode resp = get("/api/v5/asset/balances");
             assertOkxCode(resp);
             JsonNode data = resp.path("data");
+            if (forceRefresh && !data.isArray()) throw new IllegalStateException("Missing OKX funding balances");
             List<SpotHolding> result = new ArrayList<>();
             if (data.isArray()) {
                 for (JsonNode d : data) {
+                    if (forceRefresh && (d.path("bal").asText("").isBlank()
+                            || d.path("availBal").asText("").isBlank())) {
+                        throw new IllegalStateException("Incomplete OKX funding balance");
+                    }
                     BigDecimal availBal = new BigDecimal(d.path("availBal").asText("0"));
-                    if (availBal.compareTo(BigDecimal.ZERO) <= 0) continue;
+                    BigDecimal balance = new BigDecimal(d.path("bal").asText("0"));
+                    if (balance.signum() == 0 && availBal.signum() == 0) continue;
                     String ccy = d.path("ccy").asText();
-                    BigDecimal eqUsd = estimateUsdValue(ccy, availBal);
-                    result.add(new SpotHolding(ccy, availBal, availBal, eqUsd));
+                    BigDecimal eqUsd = estimateUsdValue(ccy, balance);
+                    result.add(new SpotHolding(ccy, availBal, balance, eqUsd));
                 }
             }
             fundingHoldingsCache = new HoldingsCacheEntry(List.copyOf(result), System.currentTimeMillis());
             return List.copyOf(result);
         } catch (Exception e) {
+            if (forceRefresh) throw new IllegalStateException("Fresh OKX funding holdings unavailable", e);
             List<SpotHolding> stale = cachedHoldings(fundingHoldingsCache, nowMs, ACCOUNT_HOLDINGS_STALE_CACHE_TTL_MS);
             if (stale != null) {
                 log.info("[OKX] getFundingHoldings failed; using recent cached holdings snapshot: {}", e.getMessage());
@@ -1211,6 +1246,40 @@ public class OkxTradingService implements TradingService {
         String ordId = resp.path("data").path(0).path("ordId").asText();
         log.info("[OKX] Market sell placed: instId={} ordId={}", instId, ordId);
         return pollForFill(instId, ordId, SpotOrderSide.SELL);
+    }
+
+    /** DRA protected exit. IOC remainder cancels at the provider; no market fallback or resubmission. */
+    public SpotOrderSnapshot placeIocSellWithPriceFloor(String symbol, BigDecimal qty,
+                                                       BigDecimal minimumPrice, String clientOrderId) {
+        checkEnabled();
+        String instId = toInstId(symbol);
+        validateClientOrderId(clientOrderId);
+        String body = iocSellBody(instId, qty, minimumPrice, clientOrderId);
+        JsonNode response = post("/api/v5/trade/order", body);
+        assertOkxCode(response);
+        JsonNode ack = response.path("data").path(0);
+        if (!"0".equals(ack.path("sCode").asText()) || ack.path("ordId").asText("").isBlank()) {
+            throw new IllegalStateException("OKX protected sell acknowledgement incomplete");
+        }
+        var lookup = lookupSpotOrderByClientOrderId(symbol, clientOrderId);
+        if (lookup.status() != SpotOrderLookupStatus.FOUND
+                || !ack.path("ordId").asText().equals(lookup.snapshot().providerOrderId())) {
+            throw new IllegalStateException("OKX protected sell receipt unresolved");
+        }
+        // Includes zero-fill canceled and partial/live snapshots. Do not invent a fully filled result.
+        return lookup.snapshot();
+    }
+
+    static String iocSellBody(String instId, BigDecimal qty, BigDecimal minimumPrice, String clientOrderId) {
+        if (!"BTC-USDT".equals(instId) || qty == null || qty.signum() <= 0
+                || minimumPrice == null || minimumPrice.signum() <= 0
+                || clientOrderId == null || !clientOrderId.matches("[A-Za-z0-9]{1,32}")) {
+            throw new IllegalArgumentException("Invalid DRA protected sell request");
+        }
+        return String.format(java.util.Locale.ROOT,
+                "{\"instId\":\"%s\",\"tdMode\":\"cash\",\"side\":\"sell\","
+                        + "\"ordType\":\"ioc\",\"sz\":\"%s\",\"px\":\"%s\",\"clOrdId\":\"%s\",\"pxAmendType\":\"0\"}",
+                instId, qty.toPlainString(), minimumPrice.toPlainString(), clientOrderId);
     }
 
     // ──────────────────────────────────────────────
@@ -1495,6 +1564,9 @@ public class OkxTradingService implements TradingService {
         if (!clientOrderId.equals(returnedClientOrderId)) {
             throw new IllegalStateException(
                     "OKX order lookup client id mismatch");
+        }
+        if (!instId.equals(order.path("instId").asText(""))) {
+            throw new IllegalStateException("OKX order lookup instrument mismatch");
         }
         BigDecimal averagePrice = decimalOrNull(
                 order.path("avgPx").asText(""));

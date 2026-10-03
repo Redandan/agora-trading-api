@@ -84,6 +84,9 @@ public class StrategyRuntimeObservationService {
             out.put("decisionMatchesLatestClosedBar", latest != null && decisionBar != null
                     && decisionBar.equals(latest.getOpenTime()));
             if (d.mode() == StrategyLifecycleMode.LIVE) appendInventory(d, now, out);
+            if (BtcDraPolicy.POLICY_MODE.equals(d.key())) {
+                out.put("positionReview", com.agora.service.trading.BtcDraPositionReviewPolicy.review(out));
+            }
             out.put("observationStatus", "AVAILABLE");
         } catch (Exception e) {
             // Partial data cannot be mistaken for a healthy/empty lane during a DB failure.

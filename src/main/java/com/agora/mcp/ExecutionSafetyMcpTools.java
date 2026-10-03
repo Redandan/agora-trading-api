@@ -182,8 +182,20 @@ public class ExecutionSafetyMcpTools {
     @Tool(description = "Read-only OKX spot and funding account snapshot. Earn is intentionally excluded. Does not move funds or place orders.")
     public String getExchangeAccountSafetySnapshot() {
         StringBuilder result = new StringBuilder("OKX_ACCOUNT_SAFETY_SNAPSHOT\n");
-        appendHoldings(result, "trading", okxTradingService.getSpotHoldings());
-        appendHoldings(result, "funding", okxTradingService.getFundingHoldings());
+        List<OkxTradingService.SpotHolding> trading = null, funding = null;
+        try {
+            trading = okxTradingService.getFreshSpotHoldings();
+            appendHoldings(result, "trading", trading);
+        } catch (Exception e) { result.append("trading: MISSING_PROOF_FRESH_READ_FAILED\n"); }
+        try {
+            funding = okxTradingService.getFreshFundingHoldings();
+            appendHoldings(result, "funding", funding);
+        } catch (Exception e) { result.append("funding: MISSING_PROOF_FRESH_READ_FAILED\n"); }
+        result.append("asOfUtc=").append(Instant.now()).append('\n');
+        try {
+            result.append("SPOT_ACCOUNT_RISK_OBSERVATION\n").append(new com.fasterxml.jackson.databind.ObjectMapper()
+                    .writeValueAsString(com.agora.service.trading.SpotAccountRiskPolicy.snapshot(trading, funding)));
+        } catch (Exception e) { result.append("riskObservation=MISSING_PROOF\n"); }
         return result.toString();
     }
 

@@ -136,6 +136,77 @@ diagnostic (`sha256: 0d9855902eeaba782310f0479f8dee6cacda18e019bee2149f6b56e3855
 This checks behavior preservation only; no new candidate, OOS, return forecast,
 or profitability claim was created.
 
+## Receipt maintenance and protected profit exits — 2026-10-03
+
+The follow-up design repair versions the LIVE exit adapter as
+`DRA_PROFIT_EXIT_IOC_V1`. Entry signals, virtual ledger/cooldown, allocation
+modes, single-lot ceiling and the +5% profit condition remain unchanged.
+The historical/reference replay retains its original execution model and must
+not be presented as performance evidence for the new IOC adapter.
+
+- The existing ten-minute maintenance clock also reconciles DRA BUY and SELL
+  receipts. It does not depend on a current bar, restored signal state, DRA
+  entry mode, or new-buy allocation settings. OKX connectivity and private
+  credentials are still required. It never claims/submits/retries/cancels an
+  order, expires a RESERVED row, or rewrites an old decision. Cumulative
+  provider receipts and fee-only adjustments remain in the durable attempt.
+- One failed BUY maintenance lookup cannot starve SELL maintenance. Uncertain
+  outcomes remain unresolved; provider NOT_FOUND never grants retry authority.
+- Profit exits still require LIVE authorization and a fresh closed hourly
+  evaluation. A malformed new-buy allocation no longer disables profit exit
+  permission. OFF/SHADOW does not authorize new exits, while receipt maintenance
+  continues for orders already submitted.
+- After the original +5% quote test, read the current account taker commission.
+  Use at least the existing 0.10% fee assumption, retain the 0.05% adverse-price
+  buffer, and round the minimum sell price UP to the instrument tick. Missing
+  fees/rules block submission. Persist the price and fee evidence before claim.
+- Submit a cash SELL IOC limit at that minimum price with `pxAmendType=0`,
+  preserving deterministic client ids and the atomic single-submitter claim.
+  There is no market fallback, price lowering, leverage, loss exit or OCO.
+  The price floor is an execution constraint; final net profit is still proved
+  by the actual fill and final fees, not by a quote or an order acknowledgement.
+- Reconcile zero-fill cancellation without closing the lot; apply partial
+  fills as cumulative deltas. A terminal canceled/partial attempt may allocate
+  a new sequence only on a later genuine hourly evaluation after fee resolution.
+  This is not a blind retry of an ambiguous order.
+- Hourly evaluation can miss an intrahour profit opportunity. No real-time
+  capture or maximum time-to-profit is promised. IOC can remain unfilled.
+
+The read-only `DRA_POSITION_REVIEW_V1` classifies missing/stale/unmatched data,
+pending accounting, and changes in confirmed daily entry conditions. Every
+classification retains `KEEP_EXISTING_RULES` and `riskSellAuthorized=false`.
+High-confidence loss exits remain undefined: activation requires a versioned
+accepted rule, fresh source-matched evidence, reconciled ownership/cost and
+predeclared confirmation/conflict criteria. A numeric AI confidence score,
+holding age, or risk scenario alone is never authority to sell.
+
+Catalog expectations state that modes change new-buy capital only, the nominal
+profit at the +5% threshold is 1.50/0.75 USDT for 30/15 USDT buys, and cycle
+duration/monthly return are unknown. One occupied lot blocks further buys;
+virtual queued signals can advance cooldown without an actual buy. None of
+these observations changes the accepted capital or holding policy.
+
+`getExchangeAccountSafetySnapshot` appends `SPOT_ACCOUNT_RISK_OBSERVATION_V1`
+from fresh trading and funding balance reads. Funding total includes frozen
+funds. Failed reads and missing valuations cannot be reported as zero risk.
+BTC -10/-30/-50% shocks use observed BTC USD value, holding other balances
+fixed; they are scenarios, not probabilities or forecasts. DRA/509 ledgers are
+not added again to provider balances. Earn is excluded and Grid inclusion in
+these balances is unverified, so whole-account completeness is explicitly
+false. No whole-account loss cap, transfer, pause or rebalance is introduced.
+
+Local acceptance passed 140 focused contract tests, Java 21
+`mvn -DskipTests package`, shell syntax checking and `git diff --check`.
+New tests use in-memory repositories and an in-process HTTP interceptor;
+they cover no-fill/partial IOC receipts, no market fallback, tick rounding,
+fee failures, immutable reserved quantity, independent reconciliation,
+foreign-lot rejection, frozen funding balances and missing-data risk reporting.
+A read-only Production fee probe returned SPOT taker `-0.001` (0.10% commission).
+No test order or provider fill is claimed by this local acceptance.
+
+Provider contracts: [OKX order and fee API](https://www.okx.com/docs-v5/),
+[OKX order types](https://www.okx.com/en-us/help/how-do-i-trade-with-different-order-types-eea).
+
 ## LIVE execution contract
 
 - only a genuine fresh current bar may reach the adapter;
@@ -151,7 +222,8 @@ or profitability claim was created.
 - a sell is considered only when fee- and adverse-slippage-adjusted estimated
   net return reaches `+5%`;
 - no stop-loss, time exit, forced loss sale, OCO, or trailing exit exists;
-- a sell uses only the quantity recorded in the DRA-owned live lot;
+- a sell uses only the quantity recorded in the DRA-owned live lot and the
+  protected IOC execution contract above;
 - cumulative fills and fees are applied as monotonic deltas; overfill and
   backwards provider receipts fail closed;
 - only a reconciled partial sell may allocate the next durable sell sequence;

@@ -526,6 +526,10 @@ printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq "draLiveNotionalUsdt=$DRA_NEW_BUY
   || fail "DRA catalog new-buy notional does not match selected risk mode"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq 'draRiskResponse=OBSERVE_NO_AUTOMATIC_REBALANCE_OR_LOSS_EXIT' \
   || fail "DRA catalog risk response contract missing"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq 'draExitProfile=DRA_PROFIT_EXIT_IOC_V1' \
+  || fail "DRA protected profit exit profile missing"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq 'draReceiptMaintenance=INDEPENDENT_TEN_MINUTE_LOOKUP_ONLY' \
+  || fail "DRA independent receipt maintenance contract missing"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draMaxLiveExposureUsdt=30.00' \
   || fail "DRA catalog response missing 30.00 USDT max live exposure"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draExecutionArmed=true' \
@@ -542,6 +546,11 @@ printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'OKX_ACCOUNT_SAFETY_SNAPSHOT' \
   || fail "OKX account safety snapshot response missing expected header"
 printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'ccy=USDT' \
   || fail "OKX account safety snapshot does not contain USDT"
+printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'SPOT_ACCOUNT_RISK_OBSERVATION_V1' \
+  || fail "OKX balance risk observation missing"
+if printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'MISSING_PROOF_FRESH_READ_FAILED'; then
+  fail "OKX fresh account read failed; an empty or cached account is not acceptance evidence"
+fi
 ok "OKX private account read passed; credentials and account connectivity confirmed"
 
 if curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null; then

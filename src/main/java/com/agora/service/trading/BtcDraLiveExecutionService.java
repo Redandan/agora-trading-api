@@ -71,9 +71,12 @@ public class BtcDraLiveExecutionService {
     private final ObjectMapper objectMapper;
 
     public boolean executionArmed() {
+        return profitExitArmed() && exactCanaryConfiguration();
+    }
+
+    public boolean profitExitArmed() {
         return strategyRuntimeCatalog.isMode(POLICY_MODE, StrategyLifecycleMode.LIVE)
                 && properties.liveOrderEnabled()
-                && exactCanaryConfiguration()
                 && okxProperties.isEnabled()
                 && okxProperties.hasPrivateCredentials();
     }
@@ -112,7 +115,7 @@ public class BtcDraLiveExecutionService {
     }
 
     private String evaluateEntryAndExit(BtcDraRuntimeLaneService.RuntimeObservation observation) {
-        String blocker = scopeBlocker(observation);
+        String blocker = exitScopeBlocker(observation);
         if (blocker != null) {
             if (hasEntrySignal(observation)) {
                 auditSkip(observation, blocker, null);
@@ -128,6 +131,7 @@ public class BtcDraLiveExecutionService {
         }
         boolean exitHandledOrPending =
                 executeEligibleExit(observation);
+        if (!executionArmed()) return "SCOPE_BLOCKED:DRA_LIVE_NOT_ARMED";
         if (!exitHandledOrPending
                 && hasEntrySignal(observation)) {
             return executeBuy(observation);
@@ -138,9 +142,9 @@ public class BtcDraLiveExecutionService {
         return "NO_QUEUED_ENTRY";
     }
 
-    private String scopeBlocker(
+    private String exitScopeBlocker(
             BtcDraRuntimeLaneService.RuntimeObservation observation) {
-        if (!executionArmed()) return "DRA_LIVE_NOT_ARMED";
+        if (!profitExitArmed()) return "DRA_LIVE_NOT_ARMED";
         if (!observation.exactFreshSingleBar()) {
             return "DRA_LIVE_REQUIRES_EXACT_FRESH_SINGLE_BAR";
         }
@@ -530,6 +534,16 @@ public class BtcDraLiveExecutionService {
             auditSkip(observation, "DRA_EXIT_MINIMUM_SIZE_NOT_MET", lot.getId());
             return false;
         }
+        BigDecimal takerFeeRate;
+        BigDecimal minimumSellPrice;
+        try {
+            takerFeeRate = okxTradingService.getSpotTakerFeeRate(EXECUTION_SYMBOL);
+            minimumSellPrice = BtcDraProfitExitPolicy.minimumSellPrice(lot.getEntryPrice(), rules.tickSize(), takerFeeRate);
+        } catch (Exception e) {
+            auditFailure("DRA_EXIT_PRICE_PROTECTION_UNAVAILABLE", baseContext(observation), e);
+            return false;
+        }
+        if (currentPrice.compareTo(minimumSellPrice) < 0) return false;
         BigDecimal availableBtc;
         try {
             availableBtc = availableBtc();
@@ -572,7 +586,17 @@ public class BtcDraLiveExecutionService {
         context.put("liveSignalId", lot.getId());
         context.put("currentPrice", currentPrice);
         context.put("requestedQty", requestedQty);
+        context.put("exitProfile", BtcDraProfitExitPolicy.PROFILE);
+        context.put("orderType", "ioc");
+        context.put("minimumSellPrice", minimumSellPrice);
+        context.put("observedTakerFeeRate", takerFeeRate);
         context.put("estimatedNetReturn", estimatedNetReturn(lot, currentPrice));
+        if (attempt.getRequestedBaseQuantity() == null
+                || attempt.getRequestedBaseQuantity().compareTo(requestedQty) != 0) {
+            auditFailure("DRA_RESERVED_SELL_QUANTITY_MISMATCH", context,
+                    new IllegalStateException("Reserved quantity differs from owned sell quantity"));
+            return false;
+        }
 
         if (!updateEvidence(
                 observation,
@@ -633,13 +657,13 @@ public class BtcDraLiveExecutionService {
             return false;
         }
 
-        TradeResult fill;
+        OkxTradingService.SpotOrderSnapshot sellSnapshot;
         try {
-            fill = okxTradingService.placeMarketSellWithFill(
+            sellSnapshot = okxTradingService.placeIocSellWithPriceFloor(
                     EXECUTION_SYMBOL,
                     requestedQty,
+                    minimumSellPrice,
                     clientOrderId);
-            requireValidFill(fill);
         } catch (Exception e) {
             executionAttemptService.markSubmissionUnknown(
                     attempt.getId(),
@@ -660,10 +684,10 @@ public class BtcDraLiveExecutionService {
         return applyProviderSellSnapshot(
                 observation,
                 attempt,
-                providerSnapshot(fill),
+                providerSnapshot(sellSnapshot),
                 context,
                 true,
-                "DRA_LIVE_SELL_FILLED");
+                "DRA_LIVE_SELL_PROVIDER_RESPONSE");
     }
 
     private void reconcileOutstandingSellAttempt(
@@ -826,7 +850,7 @@ public class BtcDraLiveExecutionService {
         return providerSnapshot(snapshot, "sell");
     }
 
-    private BtcDraExecutionAttemptService.ProviderFillSnapshot
+    static BtcDraExecutionAttemptService.ProviderFillSnapshot
             providerSnapshot(
                     OkxTradingService.SpotOrderSnapshot snapshot,
                     String expectedSide) {
@@ -1081,7 +1105,7 @@ public class BtcDraLiveExecutionService {
         context.put("barOpenTime", observation.bar().getOpenTime());
         context.put("barCloseTime", observation.bar().getCloseTime());
         context.put("evidenceId", observation.evidenceId());
-        context.put("liveNotionalUsdt", properties.newBuyNotionalUsdt());
+        context.put("liveNotionalUsdt", exactCanaryConfiguration() ? properties.newBuyNotionalUsdt() : null);
         context.put("riskModeAtEvaluation", properties.riskMode());
         context.put("riskProfile", BtcDraExecutionContract.RISK_PROFILE);
         context.put("riskModeScope", "NEW_BUYS_ONLY");

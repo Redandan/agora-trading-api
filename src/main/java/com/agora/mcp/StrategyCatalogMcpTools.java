@@ -74,15 +74,18 @@ public class StrategyCatalogMcpTools {
         result.append("draRiskProfile=").append(BtcDraExecutionContract.RISK_PROFILE).append('\n');
         result.append("draRiskModeScope=NEW_BUYS_ONLY_EXISTING_LOTS_UNCHANGED\n");
         result.append("draRiskResponse=OBSERVE_NO_AUTOMATIC_REBALANCE_OR_LOSS_EXIT\n");
+        result.append("draExitProfile=DRA_PROFIT_EXIT_IOC_V1\n");
+        result.append("draReceiptMaintenance=INDEPENDENT_TEN_MINUTE_LOOKUP_ONLY\n");
         result.append("draMaxLiveExposureUsdt=")
                 .append(draProperties.maxLiveExposureUsdt())
                 .append('\n');
         result.append("draExecutionArmed=")
                 .append(draLiveExecutionService.executionArmed())
                 .append('\n');
+        result.append("draProfitExitArmed=").append(draLiveExecutionService.profitExitArmed()).append('\n');
         result.append("owner509ExecutionArmed=").append(executionArmed()).append('\n');
         result.append("exchangeOrderAuthorized=")
-                .append(executionArmed() || draLiveExecutionService.executionArmed())
+                .append(executionArmed() || draLiveExecutionService.profitExitArmed())
                 .append('\n');
         result.append(observations.report()).append('\n');
         return result.toString();

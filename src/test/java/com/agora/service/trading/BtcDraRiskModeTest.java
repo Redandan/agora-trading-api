@@ -46,6 +46,8 @@ class BtcDraRiskModeTest {
             assertTrue(service(properties(mode, "30", "30")).executionArmed());
             assertFalse(service(properties(mode, "60", "30")).executionArmed());
             assertFalse(service(properties(mode, "30", "60")).executionArmed());
+            assertTrue(service(properties(mode, "60", "30")).profitExitArmed());
+            assertTrue(service(properties(mode, "30", "60")).profitExitArmed());
         }
         assertFalse(service(properties(null, "30", "30")).executionArmed());
     }

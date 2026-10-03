@@ -62,6 +62,17 @@ public final class BtcDraExecutionContract {
         out.put("maximumLossGuarantee", false);
         out.put("capitalRiskBasis", "SPOT_ALLOCATION_CAN_LOSE_ITS_FULL_COST");
         out.put("riskBudgetScope", "DRA_ONLY_SHARED_ACROSS_BOTH_MODES_NOT_WHOLE_EXCHANGE_ACCOUNT");
+        out.put("liveExitProfile", "DRA_PROFIT_EXIT_IOC_V1");
+        out.put("exitOrderType", "IOC_LIMIT_WITH_FEE_AWARE_PRICE_FLOOR");
+        out.put("exitUnfilledResponse", "CANCEL_REMAINDER_REEVALUATE_NEXT_FRESH_HOURLY_BAR_NO_MARKET_FALLBACK");
+        out.put("exitEvaluationIntervalMinutes", 60);
+        out.put("intrahourProfitCaptureGuaranteed", false);
+        out.put("receiptMaintenance", "EXISTING_TEN_MINUTE_CLOCK_INDEPENDENT_OF_ENTRY_MODE_AND_BARS");
+        out.put("modeMeaning", "NEW_BUY_CAPITAL_ONLY_NOT_SIGNAL_QUALITY_OR_FREQUENCY");
+        out.put("newBuyProfitAtExitThresholdUsdt", newBuyNotional.multiply(NET_PROFIT_TRIGGER));
+        out.put("profitCycleDuration", "UNKNOWN_MAY_NEVER_COMPLETE");
+        out.put("monthlyExpectedReturn", "MISSING_PROOF_NOT_INFERRED_FROM_EXIT_THRESHOLD");
+        out.put("singleLotOpportunityCost", "OPEN_LOT_BLOCKS_NEW_BUYS_VIRTUAL_SIGNALS_STILL_ADVANCE_COOLDOWN");
         return out;
     }
 

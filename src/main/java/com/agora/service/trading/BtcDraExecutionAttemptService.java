@@ -411,6 +411,7 @@ public class BtcDraExecutionAttemptService {
             throw new IllegalStateException(
                     "DRA execution attempt is not SELL");
         }
+        requireDraRow(lot);
         if (attempt.getProviderOrderId() != null
                 && !attempt.getProviderOrderId().equals(
                 snapshot.providerOrderId())) {

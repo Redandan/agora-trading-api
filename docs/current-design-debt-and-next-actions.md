@@ -1,5 +1,21 @@
 # Current Design Debt and Next Actions
 
+## 2026-10-03 post-mode design repair
+
+The operator authorized handling the remaining design findings while retaining
+aggressive defaults and the no-forced-loss-exit holding policy. The scoped
+repair decouples provider receipt maintenance from the entry lane, protects
+DRA profit sells with fee-aware IOC limits, publishes read-only position
+review criteria and balance-level BTC stress scenarios, and makes allocation
+versus signal quality and indefinite capital occupancy explicit.
+
+See `btc-dra-runtime-v1.md` for `DRA_PROFIT_EXIT_IOC_V1` and the exact no-retry,
+partial-fill, tick/fee, hourly cadence and evidence-authority contracts. The
+historical reference model is unchanged; its returns do not validate the new
+LIVE adapter. No new signal factor, capital increase, loss exit, timer, Grid
+mutation, migration or research promotion is included. Whole-account risk
+remains explicitly incomplete where Earn/Grid coverage is not established.
+
 ## 2026-10-03 DRA economic-contract correction
 
 Runtime `cad93f1d81e172a40ab033ddd6460def3a114b92` preserves the frozen trading

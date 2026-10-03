@@ -61,6 +61,7 @@ public class OcoPositionPollerScheduler {
     private final SpotPositionCloseService spotPositionCloseService;
     /** Single read-only source of truth for OCO parent and all child order states. */
     private final OcoOrderStateInspector ocoOrderStateInspector;
+    private final com.agora.service.trading.BtcDraOrderReconciliationService draReconciliation;
 
     @Value("${trading.oco-poller.enabled:false}")
     private boolean ocoPollerEnabled;
@@ -77,6 +78,8 @@ public class OcoPositionPollerScheduler {
     /** 啟動後 15 秒開始，之後每 10 分鐘執行一次（WS 推送為主要路徑，此 polling 為 fallback）。 */
     @Scheduled(initialDelay = 15_000, fixedDelay = 600_000)
     public void pollOcoPositions() {
+        // Reuse this maintenance clock; DRA receipt lookup is independent of OCO/entry enablement.
+        draReconciliation.reconcile();
         if (!ocoPollerEnabled) return;
         if (!tradingProperties.isEnabled()) return;
         Timer.Sample sample = Timer.start(tradingMetrics.registry());

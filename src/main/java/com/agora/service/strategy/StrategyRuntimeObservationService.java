@@ -144,7 +144,14 @@ public class StrategyRuntimeObservationService {
         }
         out.put("lastSignalConditions", signal);
         if (BtcDraPolicy.POLICY_MODE.equals(d.key())) {
-            out.put("executionContract", BtcDraExecutionContract.description());
+            out.put("executionContract", BtcDraExecutionContract.description(draProperties.riskMode(),
+                    draProperties.newBuyNotionalUsdt(), draProperties.liveNotionalUsdt(), draProperties.maxLiveExposureUsdt()));
+            JsonNode recordedContract = features.path("executionContract");
+            if (BtcDraExecutionContract.RISK_PROFILE.equals(recordedContract.path("profile").asText())) {
+                out.put("decisionExecutionContract", recordedContract);
+            } else {
+                out.put("decisionRiskModeStatus", "MISSING_PROOF_LEGACY_CONTRACT");
+            }
             JsonNode entry = features.path("entryDecision");
             if ("DRA_ENTRY_DECISION_V1".equals(entry.path("schema").asText())
                     && BtcDraExecutionContract.PROFILE.equals(entry.path("profile").asText())

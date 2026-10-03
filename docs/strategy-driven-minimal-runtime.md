@@ -88,7 +88,9 @@ The runtime:
   and positive 24-hour momentum;
 - intentionally contains no MEI or drawdown gate;
 - retains 30 USDT virtual reference lots and a 250 USDT research cap;
-- permits exactly one actual 30 USDT OKX spot lot when configured `LIVE`;
+- permits one actual OKX spot lot within 30 USDT when configured `LIVE`;
+- defaults to AGGRESSIVE new buys of 30 USDT; explicit CONSERVATIVE selects
+  15 USDT for new buys only, preserving existing lots and the original exit;
 - durably reserves deterministic client order ids before provider submission
   and records provider-first attempt state;
 - persists provider receipt fields in the isolated DRA live ledger and uses a

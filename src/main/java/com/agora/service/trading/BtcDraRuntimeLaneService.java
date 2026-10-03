@@ -376,7 +376,7 @@ public class BtcDraRuntimeLaneService {
         snapshot.put("feeModelComplete", true);
         snapshot.put("slippageModelComplete", true);
         snapshot.put("signal", step.signal());
-        snapshot.put("executionContract", BtcDraExecutionContract.description());
+        snapshot.put("executionContract", liveExecutionContract());
         snapshot.put("entryDecision", BtcDraExecutionContract.entryDecision(
                 step, bar.getOpenTime(), bootstrap, catchUp));
         snapshot.put("stateAfterSha256", stateHash);
@@ -631,14 +631,20 @@ public class BtcDraRuntimeLaneService {
         policy.put("minRealizedNetProfit", MIN_REALIZED_NET_PROFIT);
         policy.put("signalExecution", "NEXT_1H_OPEN");
         policy.put("signalExecutionScope", "VIRTUAL_REFERENCE_ONLY");
-        policy.put("executionContract", BtcDraExecutionContract.description());
+        policy.put("executionContract", liveExecutionContract());
         policy.put("forcedExit", false);
         policy.put("stateAfterSha256", stateHash);
         policy.put("liveImplementationPresent", properties.liveOrderEnabled());
         policy.put("orderAllowed", properties.liveOrderEnabled());
-        policy.put("liveNotionalUsdt", properties.liveNotionalUsdt());
+        policy.put("liveNotionalUsdt", properties.newBuyNotionalUsdt());
+        policy.put("riskMode", properties.riskMode());
         policy.put("maxLiveExposureUsdt", properties.maxLiveExposureUsdt());
         return toJson(policy);
+    }
+
+    private Map<String, Object> liveExecutionContract() {
+        return BtcDraExecutionContract.description(properties.riskMode(), properties.newBuyNotionalUsdt(),
+                properties.liveNotionalUsdt(), properties.maxLiveExposureUsdt());
     }
 
     private String exposureSnapshotJson(BtcDraShadowEngine.State state) {

@@ -122,6 +122,17 @@ require_env_value TRADING_BTC_DRA_MODE LIVE
 require_env_value TRADING_BTC_DRA_LIVE_NOTIONAL_USDT 30.00
 require_env_value TRADING_BTC_DRA_MAX_LIVE_EXPOSURE_USDT 30.00
 require_env_value TRADING_BTC_DRA_LIVE_MAX_SIGNAL_AGE_MINUTES 15
+DRA_RISK_MODE="$(env_value TRADING_BTC_DRA_RISK_MODE || true)"
+case "$DRA_RISK_MODE" in
+  AGGRESSIVE|CONSERVATIVE) ;;
+  "")
+    if grep -Eq '^[[:space:]]*TRADING_BTC_DRA_RISK_MODE=' "$ENV_FILE"; then
+      fail "TRADING_BTC_DRA_RISK_MODE must not be blank"
+    fi
+    DRA_RISK_MODE=AGGRESSIVE ;;
+  *) fail "TRADING_BTC_DRA_RISK_MODE must be AGGRESSIVE or CONSERVATIVE" ;;
+esac
+ok "DRA new-buy risk mode: $DRA_RISK_MODE; existing lots retain their exit contract"
 require_env_value MARKET_WS_AUTO_SUBSCRIBE_ENABLED true
 require_env_value MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS binance,okx
 require_env_value TRADING_OKX_ENABLED true

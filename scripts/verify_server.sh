@@ -508,13 +508,29 @@ printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'BTC_DAILY_REVERSAL_ACCUMULATION_V
   || fail "DRA catalog response missing LIVE contract"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draConfiguredMode=LIVE' \
   || fail "DRA catalog response missing configured LIVE mode"
-printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draLiveNotionalUsdt=30.00' \
-  || fail "DRA catalog response missing 30.00 USDT live notional"
+DRA_RISK_MODE="$(env_value TRADING_BTC_DRA_RISK_MODE || true)"
+case "$DRA_RISK_MODE" in
+  AGGRESSIVE) DRA_NEW_BUY_NOTIONAL=30.00 ;;
+  CONSERVATIVE) DRA_NEW_BUY_NOTIONAL=15.00 ;;
+  "")
+    if grep -Eq '^[[:space:]]*TRADING_BTC_DRA_RISK_MODE=' "$ENV_FILE"; then
+      fail "TRADING_BTC_DRA_RISK_MODE must not be blank"
+    fi
+    DRA_RISK_MODE=AGGRESSIVE
+    DRA_NEW_BUY_NOTIONAL=30.00 ;;
+  *) fail "invalid DRA risk mode" ;;
+esac
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq "draRiskMode=$DRA_RISK_MODE" \
+  || fail "DRA catalog risk mode does not match configured selection"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq "draLiveNotionalUsdt=$DRA_NEW_BUY_NOTIONAL" \
+  || fail "DRA catalog new-buy notional does not match selected risk mode"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq 'draRiskResponse=OBSERVE_NO_AUTOMATIC_REBALANCE_OR_LOSS_EXIT' \
+  || fail "DRA catalog risk response contract missing"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draMaxLiveExposureUsdt=30.00' \
   || fail "DRA catalog response missing 30.00 USDT max live exposure"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draExecutionArmed=true' \
   || fail "DRA catalog response is not executionArmed=true"
-ok "DRA LIVE canary is armed with exact single-lot 30 USDT limits"
+ok "DRA LIVE canary is armed: $DRA_RISK_MODE, new buy $DRA_NEW_BUY_NOTIONAL USDT, one-lot 30 USDT ceiling"
 
 OKX_ACCOUNT_RESPONSE="$(curl -fsS \
   --max-time 30 \

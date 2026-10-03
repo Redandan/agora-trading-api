@@ -133,6 +133,31 @@ class StrategyRuntimeObservationServiceTest {
         assertFalse(f.service().snapshot(def, NOW).containsKey("lastLiveEntryEvaluation"));
     }
 
+    @Test
+    void switchingConfigurationDoesNotRelabelTheRecordedDecisionOrResizeInventory() {
+        var f = new Fixture();
+        f.riskMode = BtcDraRuntimeProperties.RiskMode.CONSERVATIVE;
+        f.features = """
+                {"source":"okx","barOpenTime":"2026-10-02T10:00:00",
+                 "executionContract":{"profile":"DRA_NEW_BUY_RISK_MODE_V1",
+                 "riskMode":"AGGRESSIVE","liveNotionalUsdt":30.00}}
+                """;
+        var lot = new BtLiveSignal(); lot.setSymbol("BTCUSDT");
+        lot.setStrategyId(BtcDraPolicy.RUNTIME_LEDGER_STRATEGY_ID);
+        lot.setIntervalCode("1h"); lot.setAutoTraded(true);
+        lot.setFilterReason(BtcBasePositionStatePolicy.DRA_V1_POSITION_PREFIX + "OPEN:fixture");
+        lot.setTradedQty(new BigDecimal("0.30")); lot.setEntryPrice(new BigDecimal("100"));
+        f.lots = List.of(lot);
+        var out = f.service().snapshot(f.catalog.require(BtcDraPolicy.POLICY_MODE), NOW);
+        var current = (Map<?, ?>) out.get("executionContract");
+        assertEquals("CONSERVATIVE", current.get("riskMode"));
+        assertEquals(new BigDecimal("15.00"), current.get("liveNotionalUsdt"));
+        var recorded = (com.fasterxml.jackson.databind.JsonNode) out.get("decisionExecutionContract");
+        assertEquals("AGGRESSIVE", recorded.path("riskMode").asText());
+        assertEquals(new BigDecimal("0.30"), lot.getTradedQty());
+        assertEquals(0, new BigDecimal("30").compareTo((BigDecimal) out.get("recordedOpenCostUsdt")));
+    }
+
     private static class Fixture {
         final StrategyRuntimeCatalog catalog = new StrategyRuntimeCatalog();
         final MdKline bar = new MdKline();
@@ -140,6 +165,7 @@ class StrategyRuntimeObservationServiceTest {
         BtDecisionAudit audit;
         SpotExecutionAttempt pending;
         boolean failDatabase;
+        BtcDraRuntimeProperties.RiskMode riskMode = BtcDraRuntimeProperties.RiskMode.AGGRESSIVE;
         String features = "{\"source\":\"okx\",\"barOpenTime\":\"2026-10-02T10:00:00\",\"liveExecution\":{\"feeStatus\":\"PENDING\"}}";
 
         Fixture() {
@@ -177,7 +203,7 @@ class StrategyRuntimeObservationServiceTest {
                     new TradingViewLocalSignalProperties(true, 485, "BTCUSDT", "1d", "binance", 320, 3, 72,
                             BigDecimal.TEN, new BigDecimal("80"), TradingViewLocalSignalProperties.ExecutionMode.BTC_BASE_LIVE,
                             new BigDecimal("250"), 15),
-                    new BtcDraRuntimeProperties(BtcDraRuntimeProperties.Mode.LIVE, new BigDecimal("30"), new BigDecimal("30"), 15),
+                    new BtcDraRuntimeProperties(BtcDraRuntimeProperties.Mode.LIVE, new BigDecimal("30"), new BigDecimal("30"), 15, riskMode),
                     new ObjectMapper());
         }
     }

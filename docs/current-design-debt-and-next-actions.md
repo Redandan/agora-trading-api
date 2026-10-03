@@ -578,6 +578,40 @@ strategy's provider-verified owned quantity. Existing positions
 `260/261/262`, owner-509 lots, DRA lots, manual BTC, and Grid BTC must never be
 adopted across ownership boundaries.
 
+## Risk-mode design decision — 2026-10-03
+
+The operator requested two risk modes and explicitly selected **AGGRESSIVE
+(積極)** as the default. **CONSERVATIVE (保守)** remains an explicit choice.
+New mode selections should default to AGGRESSIVE; an explicitly saved
+CONSERVATIVE selection must be preserved.
+
+The operator subsequently clarified the controlling behavior: continue
+aggressive participation and accept risk; do not adjust existing positions,
+sell, or add stop losses merely because a risk threshold is reached. An
+additional risk exit needs concrete evidence and a separately reviewed rule.
+This supersedes the earlier proposal for automatic drawdown/holding-age pauses
+or forced reductions. The existing +5% estimated-net profit exit remains.
+
+The versioned DRA allocation profile `DRA_NEW_BUY_RISK_MODE_V1` implements
+AGGRESSIVE new buys at 30 USDT and CONSERVATIVE new buys at 15 USDT. These are
+bounded engineering defaults, not optimized parameters or return forecasts.
+Selection is explicit deployment configuration; absent selection defaults to
+AGGRESSIVE, and an invalid/blank selection fails closed. Both modes retain one
+lot and a shared 30 USDT DRA ceiling. Existing lots, signal state, cooldown,
+attempt reservations, and PnL history are not reset or resized by a switch.
+
+Losses, drawdown and holding age are observations, not new order authority.
+The budget controls capital allocated to a new spot lot; it does not guarantee
+a maximum mark-to-market loss or a holding-time bound. Mechanical blockers
+(unknown orders, invalid data, insufficient funds, provider minimums, occupied
+lot) remain in force; recovery uses their original rules and cannot replay a
+missed entry. There is no automatic risk-mode switch or loss-triggered pause.
+
+Scope is the DRA lane only. Owner 509, Grid, OCO, legacy and manual inventory
+retain their independent ownership and limits. This is not an account-wide
+loss-control implementation; no pooled cross-strategy loss budget is claimed.
+See `btc-dra-runtime-v1.md` for configuration, evidence and acceptance details.
+
 ## Scaling gate
 
 The 30 USDT DRA canary may continue under the frozen V1 contract. Increasing

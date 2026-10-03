@@ -12,6 +12,7 @@ import static com.agora.service.trading.BtcDraPolicy.*;
 /** Shared, side-effect-free description and arithmetic of the existing LIVE contract. */
 public final class BtcDraExecutionContract {
     public static final String PROFILE = "DRA_V1_VIRTUAL250_SINGLE30_CURRENT_QUOTE";
+    public static final String RISK_PROFILE = "DRA_NEW_BUY_RISK_MODE_V1";
     private BtcDraExecutionContract() { }
 
     public static BtcDraShadowEngine.RuntimeEvent entryEvent(BtcDraShadowEngine.StepResult step) {
@@ -40,6 +41,28 @@ public final class BtcDraExecutionContract {
                 "referenceExitBasis", "CLOSED_BAR_TRIGGER_NEXT_OPEN_WITH_ONE_PERCENT_FLOOR",
                 "sameEvaluationExitAndEntry", false,
                 "referencePerformanceIsLivePerformance", false);
+    }
+
+    /** Current LIVE allocation overlay. The no-argument description remains the frozen replay contract. */
+    public static Map<String, Object> description(String riskMode, BigDecimal newBuyNotional,
+                                                 BigDecimal authorizedBase, BigDecimal exposureCap) {
+        Map<String, Object> out = new LinkedHashMap<>(description());
+        out.put("profile", RISK_PROFILE);
+        out.put("signalReferenceProfile", PROFILE);
+        out.put("liveNotionalUsdt", newBuyNotional);
+        out.put("riskMode", riskMode);
+        out.put("authorizedBaseNotionalUsdt", authorizedBase);
+        out.put("maxLiveExposureUsdt", exposureCap);
+        out.put("modeChangeScope", "NEW_BUYS_ONLY_EXISTING_LOTS_UNCHANGED");
+        out.put("lossAndDrawdownResponse", "OBSERVE_NO_AUTOMATIC_REBALANCE_OR_LOSS_EXIT");
+        out.put("holdingTimeLimit", "NONE_PROFIT_EXIT_MAY_TAKE_INDEFINITE_TIME");
+        out.put("profitExitNetReturn", NET_PROFIT_TRIGGER);
+        out.put("profitExitIsExpectedReturn", false);
+        out.put("automaticRiskModeSwitch", false);
+        out.put("maximumLossGuarantee", false);
+        out.put("capitalRiskBasis", "SPOT_ALLOCATION_CAN_LOSE_ITS_FULL_COST");
+        out.put("riskBudgetScope", "DRA_ONLY_SHARED_ACROSS_BOTH_MODES_NOT_WHOLE_EXCHANGE_ACCOUNT");
+        return out;
     }
 
     /** Describes this evaluated bar, not a prediction or permission to submit an order. */

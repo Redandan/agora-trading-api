@@ -100,10 +100,21 @@ DRA defaults to `OFF`. The owner authorized this exact bounded LIVE canary on
 
 ```bash
 TRADING_BTC_DRA_MODE=LIVE
+TRADING_BTC_DRA_RISK_MODE=AGGRESSIVE
 TRADING_BTC_DRA_LIVE_NOTIONAL_USDT=30.00
 TRADING_BTC_DRA_MAX_LIVE_EXPOSURE_USDT=30.00
 TRADING_BTC_DRA_LIVE_MAX_SIGNAL_AGE_MINUTES=15
 ```
+
+DRA's risk-mode extension defaults to AGGRESSIVE (30 USDT new buys), preserving
+the previously authorized LIVE allocation. Explicit CONSERVATIVE selects
+15 USDT for new buys. Leave both existing notional/cap settings at 30.00.
+Omitting the new key also resolves to AGGRESSIVE for existing deployments;
+blank/unknown values fail preflight/startup. Mode selection never changes an
+existing lot, the virtual cooldown, or the profit-only exit. Read the effective
+mode and new-buy amount from `getStrategyRuntimeCatalog`; verification checks
+both against the environment selection. No automatic risk sell or stop loss
+is added. Owner 509's configuration is independent.
 
 DRA permits one actual OKX spot lot, uses no leverage, and sells only its own
 recorded BTC after the profit-only exit condition. It does not authorize a

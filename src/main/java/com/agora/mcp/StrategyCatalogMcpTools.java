@@ -13,6 +13,7 @@ import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.agora.service.strategy.StrategyRuntimeDefinition;
 import com.agora.service.strategy.StrategyRuntimeObservationService;
 import com.agora.service.trading.BtcDraLiveExecutionService;
+import com.agora.service.trading.BtcDraExecutionContract;
 import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
@@ -67,8 +68,12 @@ public class StrategyCatalogMcpTools {
                 .append(draProperties.mode())
                 .append('\n');
         result.append("draLiveNotionalUsdt=")
-                .append(draProperties.liveNotionalUsdt())
+                .append(draProperties.newBuyNotionalUsdt())
                 .append('\n');
+        result.append("draRiskMode=").append(draProperties.riskMode()).append('\n');
+        result.append("draRiskProfile=").append(BtcDraExecutionContract.RISK_PROFILE).append('\n');
+        result.append("draRiskModeScope=NEW_BUYS_ONLY_EXISTING_LOTS_UNCHANGED\n");
+        result.append("draRiskResponse=OBSERVE_NO_AUTOMATIC_REBALANCE_OR_LOSS_EXIT\n");
         result.append("draMaxLiveExposureUsdt=")
                 .append(draProperties.maxLiveExposureUsdt())
                 .append('\n');

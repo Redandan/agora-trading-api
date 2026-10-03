@@ -53,6 +53,7 @@ trading:
     mode: ${TRADING_BTC_DONCHIAN_SHADOW_MODE:OFF}
   btc-dra:
     mode: ${TRADING_BTC_DRA_MODE:OFF}
+    risk-mode: ${TRADING_BTC_DRA_RISK_MODE:AGGRESSIVE}
     live-notional-usdt: ${TRADING_BTC_DRA_LIVE_NOTIONAL_USDT:30.00}
     max-live-exposure-usdt: ${TRADING_BTC_DRA_MAX_LIVE_EXPOSURE_USDT:30.00}
     live-max-signal-age-minutes: ${TRADING_BTC_DRA_LIVE_MAX_SIGNAL_AGE_MINUTES:15}

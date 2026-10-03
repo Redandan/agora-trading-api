@@ -11,7 +11,8 @@ Runtime boundary:
 - configuration switch: `TRADING_BTC_DRA_MODE`;
 - safe default: `OFF`;
 - authorized Production value: `LIVE`;
-- exact live notional and total exposure: `30 USDT`;
+- new buy: `30 USDT` in default AGGRESSIVE mode, `15 USDT` in CONSERVATIVE;
+- shared DRA capital ceiling: `30 USDT`;
 - at most one live lot;
 - no OCO, Grid, fund, leverage, or Telegram dependency;
 - actual fills use the existing `bt_live_signal` durable ledger under the
@@ -76,7 +77,64 @@ new arm cannot confirm until a later daily close.
 - no stop loss, time exit, forced risk exit, or end-of-period liquidation.
 
 The 250 USDT cap belongs to the historical/reference ledger. LIVE execution is
-independently capped at exactly one 30 USDT lot.
+independently capped at one lot within 30 USDT.
+
+## New-buy risk modes — 2026-10-03
+
+`TRADING_BTC_DRA_RISK_MODE` selects the versioned allocation profile
+`DRA_NEW_BUY_RISK_MODE_V1`. This is independent of the OFF/SHADOW/LIVE lifecycle
+switch and never enables LIVE by itself.
+
+| Contract | AGGRESSIVE (default) | CONSERVATIVE |
+| --- | --- | --- |
+| New-buy allocation | 30 USDT | 15 USDT |
+| Maximum simultaneous live lots | 1 | 1 |
+| Shared DRA exposure ceiling | 30 USDT | 30 USDT |
+| Entry/cooldown | Frozen V1 signal and seven-day virtual cooldown | Same |
+| Existing lot after selection change | Keep original quantity and exit rule | Same |
+| Profit exit | Existing +5% estimated net return | Same |
+| Loss, drawdown or holding-age action | Observe; no automatic reduction, loss sale, time exit or mode switch | Same |
+
+The lower CONSERVATIVE allocation is a capital-risk choice, not a backtest
+optimization or proof of improved returns. Spot allocation can lose its full
+cost, and a profit-only lot may remain open indefinitely. The +5% threshold is
+an exit condition, not an expected return, guarantee or delivery deadline.
+Historical performance is reference evidence only. No confidence score or AI
+opinion grants sell authority. A future evidence-based risk exit needs a
+separate versioned rule with verifiable inputs and explicit acceptance.
+
+An absent setting resolves to AGGRESSIVE. A saved CONSERVATIVE value remains
+CONSERVATIVE; blank and unknown values are rejected. Selection is deployment
+configuration, not an MCP write. Change only this setting when switching;
+the existing notional and exposure settings remain `30.00` as hard bounds.
+Switches affect subsequent new buys after the current lot closes naturally.
+The application will neither add to a 15 USDT lot nor trim a 30 USDT lot after
+a selection change. A provider minimum-size failure blocks the order rather
+than increasing the selected amount.
+
+The durable execution attempt freezes requested quote amount before provider
+submission. The decision evidence records mode/profile and amount; reconciliation
+uses the existing attempt and provider receipt without replacing its allocation.
+Catalog observations distinguish current configuration from the recorded
+decision contract. Pre-profile decisions explicitly lack mode evidence.
+The reference engine state/hash/schema and offline 30 USDT replay are unchanged.
+The two modes share existing DRA history; there is no PnL reset or new ledger.
+
+This profile applies only to DRA. Owner 509, Grid and legacy/manual assets are
+outside its allocation budget; no whole-account loss protection is implied.
+
+Local acceptance on 2026-10-03 passed 118 focused contract tests, Java 21
+`mvn -DskipTests package`, retained shell/PowerShell syntax checks, environment
+template validation, and 14 deployment risk-mode parsing cases. Tests cover
+default/explicit/invalid mode binding, selected amount through durable
+reservation to the offline provider double, provider-minimum rejection,
+unchanged existing quantities and profit exits, no loss/age exit, and separate
+current-versus-recorded mode evidence. No test starts Spring or places a real order.
+
+The frozen AGGRESSIVE baseline replay remains byte-identical to the previous
+diagnostic (`sha256: 0d9855902eeaba782310f0479f8dee6cacda18e019bee2149f6b56e385530bec`).
+This checks behavior preservation only; no new candidate, OOS, return forecast,
+or profitability claim was created.
 
 ## LIVE execution contract
 
@@ -113,7 +171,7 @@ unrealized PnL, total PnL, maximum drawdown, capital utilization, blocked
 entries, and holding age separately.
 
 The 250 USDT reference ledger permits multiple lots. The Production canary
-permits one 30 USDT lot. The reference result cannot be used as the expected
+permits one lot within 30 USDT under the selected allocation profile. The reference result cannot be used as the expected
 return of the one-lot LIVE deployment. Realized PnL alone is not sufficient
 because V1 intentionally leaves losing inventory open.
 

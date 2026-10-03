@@ -41,11 +41,11 @@ import static com.agora.service.trading.BtcDraPolicy.SOURCE;
 import static com.agora.service.trading.BtcDraPolicy.SYMBOL;
 
 /**
- * Bounded LIVE adapter for the authorized DRA V1 30 USDT canary.
+ * Bounded LIVE adapter for DRA V1 with a versioned new-buy allocation profile.
  *
  * <p>The canonical DRA lane commits state and evidence before this adapter is
  * called. This adapter then enforces only mechanical execution correctness:
- * fresh current bar, exact 30 USDT configuration, one durable strategy-owned
+ * fresh current bar, a 30 USDT ceiling, one durable strategy-owned
  * lot, deterministic OKX client order ids, fill persistence, and no retry of
  * ambiguous submissions. It never creates OCO, changes Grid, moves funds, or
  * sells another strategy's BTC.</p>
@@ -100,6 +100,9 @@ public class BtcDraLiveExecutionService {
                                     "candidate", hasEntrySignal(observation),
                                     "candidateBasis", "VIRTUAL_ENTRY_QUEUED",
                                     "dailyDecision", observation.step().signal().dailyDecision(),
+                                    "riskMode", properties.riskMode(),
+                                    "riskProfile", BtcDraExecutionContract.RISK_PROFILE,
+                                    "newBuyNotionalUsdt", properties.newBuyNotionalUsdt(),
                                     "disposition", disposition));
                 }
             } catch (Exception e) {
@@ -180,7 +183,7 @@ public class BtcDraLiveExecutionService {
         context.put("action", "BUY");
         context.put("clientOrderId", clientOrderId);
         context.put("signalBarOpenTime", entryEvent.signalBarOpenTime());
-        context.put("requestedNotionalUsdt", properties.liveNotionalUsdt());
+        context.put("requestedNotionalUsdt", properties.newBuyNotionalUsdt());
         context.put("entryReason", entryEvent.reason());
 
         BtLiveSignal reservation;
@@ -201,7 +204,7 @@ public class BtcDraLiveExecutionService {
                     reservation.getId(),
                     POLICY_MODE,
                     observation.bar().getOpenTime(),
-                    properties.liveNotionalUsdt());
+                    properties.newBuyNotionalUsdt());
         } catch (Exception e) {
             markReservationState(
                     reservation,
@@ -217,6 +220,12 @@ public class BtcDraLiveExecutionService {
                 attemptReservation.attempt();
         context.put("executionAttemptId", attempt.getId());
         context.put("attemptSequence", attempt.getAttemptSequence());
+        context.put("reservedQuoteAmountUsdt", attempt.getRequestedQuoteAmount());
+        if (attempt.getRequestedQuoteAmount() == null
+                || attempt.getRequestedQuoteAmount().compareTo(properties.newBuyNotionalUsdt()) != 0) {
+            auditSkip(observation, "DRA_RESERVED_NOTIONAL_MISMATCH", reservation.getId());
+            return "UNCONFIRMED_RESERVED_NOTIONAL_MISMATCH";
+        }
         if (!updateEvidence(
                 observation,
                 reservation.getId(),
@@ -283,7 +292,7 @@ public class BtcDraLiveExecutionService {
         try {
             fill = okxTradingService.placeMarketBuy(
                     EXECUTION_SYMBOL,
-                    properties.liveNotionalUsdt()
+                    attempt.getRequestedQuoteAmount()
                             .setScale(2, RoundingMode.HALF_UP)
                             .doubleValue(),
                     clientOrderId);
@@ -849,8 +858,7 @@ public class BtcDraLiveExecutionService {
     private String buyBlocker(
             BtcDraRuntimeLaneService.RuntimeObservation observation,
             BtcDraShadowEngine.RuntimeEvent entryEvent) {
-        if (BASE_NOTIONAL_USDT.compareTo(properties.liveNotionalUsdt()) != 0
-                || BASE_NOTIONAL_USDT.compareTo(properties.maxLiveExposureUsdt()) != 0) {
+        if (!exactCanaryConfiguration()) {
             return "DRA_CANARY_CONFIGURATION_NOT_EXACT_30_USDT";
         }
         if (entryEvent.signalBarOpenTime() == null) {
@@ -876,7 +884,7 @@ public class BtcDraLiveExecutionService {
         } catch (Exception e) {
             return "DRA_OKX_USDT_BALANCE_UNAVAILABLE";
         }
-        if (availableUsdt.compareTo(properties.liveNotionalUsdt()) < 0) {
+        if (availableUsdt.compareTo(properties.newBuyNotionalUsdt()) < 0) {
             return "DRA_INSUFFICIENT_AVAILABLE_USDT";
         }
         try {
@@ -886,7 +894,7 @@ public class BtcDraLiveExecutionService {
             if (!positive(current) || !positive(rules.minSize())) {
                 return "DRA_OKX_INSTRUMENT_RULES_UNAVAILABLE";
             }
-            BigDecimal estimatedQty = properties.liveNotionalUsdt()
+            BigDecimal estimatedQty = properties.newBuyNotionalUsdt()
                     .divide(current, 12, RoundingMode.DOWN);
             if (estimatedQty.compareTo(rules.minSize()) < 0) {
                 return "DRA_OKX_MINIMUM_SIZE_NOT_MET";
@@ -1073,7 +1081,10 @@ public class BtcDraLiveExecutionService {
         context.put("barOpenTime", observation.bar().getOpenTime());
         context.put("barCloseTime", observation.bar().getCloseTime());
         context.put("evidenceId", observation.evidenceId());
-        context.put("liveNotionalUsdt", properties.liveNotionalUsdt());
+        context.put("liveNotionalUsdt", properties.newBuyNotionalUsdt());
+        context.put("riskModeAtEvaluation", properties.riskMode());
+        context.put("riskProfile", BtcDraExecutionContract.RISK_PROFILE);
+        context.put("riskModeScope", "NEW_BUYS_ONLY");
         context.put("maxLiveExposureUsdt", properties.maxLiveExposureUsdt());
         context.put("singleLot", true);
         context.put("ocoModified", false);
@@ -1088,7 +1099,9 @@ public class BtcDraLiveExecutionService {
     }
 
     private boolean exactCanaryConfiguration() {
-        return BASE_NOTIONAL_USDT.compareTo(properties.liveNotionalUsdt()) == 0
+        return properties.validRiskMode()
+                && properties.liveNotionalUsdt() != null && properties.maxLiveExposureUsdt() != null
+                && BASE_NOTIONAL_USDT.compareTo(properties.liveNotionalUsdt()) == 0
                 && BASE_NOTIONAL_USDT.compareTo(properties.maxLiveExposureUsdt()) == 0;
     }
 

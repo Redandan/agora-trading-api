@@ -6,7 +6,42 @@ This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
 runnable current guidance.
 
-## 2026-10-03 DRA execution-contract and diagnostic repair
+## 2026-10-03 DRA aggressive/conservative allocation release
+
+- One application deployment from `c5bf282b2c23bd4cac46acef686ba0b145bbad6d`.
+  Startup metadata reports 2026-10-03 03:11:52 UTC (11:11:52 Taipei), active
+  port 8084 / PID 937416; old port 8085 is drained. Local/public health,
+  authenticated MCP, exact running commit, nginx and strict post-drain
+  `scripts/verify_server.sh` acceptance passed.
+- `DRA_NEW_BUY_RISK_MODE_V1` defaults to AGGRESSIVE, preserving 30 USDT new
+  buys. Explicit CONSERVATIVE selects 15 USDT new buys. Both retain one lot,
+  the 30 USDT shared DRA ceiling, frozen entry/cooldown, and the existing +5%
+  estimated-net profit exit. Existing positions are never topped up, trimmed,
+  liquidated or moved into a new ledger by a risk-mode change.
+- The operator's clarified requirement is observation-only treatment of
+  losses, drawdown and holding age: no new automatic pause, stop loss or risk
+  exit. Confidence language alone grants no sell authority. Owner 509, Grid,
+  OCO, legacy/manual inventory and their ownership rules are unchanged.
+- 118 offline tests, Java 21 `mvn -DskipTests package`, retained script syntax,
+  environment-template validation and 14 deployment mode cases passed.
+  The frozen AGGRESSIVE replay is byte-identical to the prior diagnostic.
+  Scope and evidence: `btc-dra-runtime-v1.md#new-buy-risk-modes--2026-10-03`.
+- Fresh MCP at 03:13 UTC confirms `draRiskMode=AGGRESSIVE`, selected amount
+  `30.00`, cap `30.00`, `draExecutionArmed=true`, and explicit
+  `OBSERVE_NO_AUTOMATIC_REBALANCE_OR_LOSS_EXIT`. DRA has zero open lots and
+  zero pending fees. Owner 509 remains armed; positions 260/261/262 retain
+  intentional legacy BTC Base status. Execution safety is OK with zero issues.
+- The last natural decision predates deployment and correctly reports
+  `MISSING_PROOF_LEGACY_CONTRACT` for its risk-mode evidence. Current runtime
+  configuration is proven; a post-release natural decision or provider fill
+  is not claimed by this acceptance. No acceptance test order was submitted.
+- Active-log smoke: 0 errors, 0 unknown warnings, 6 known startup warnings,
+  and 0 high-risk operation-like lines. No secrets edit, migration, backfill,
+  Grid, OCO or fund mutation was performed.
+- Deploy log: `logs/deploy/deploy-20261003T031036Z.log`.
+  Runtime log: `logs/runs/app-20261003T031123Z-port8084.log`.
+
+## Earlier 2026-10-03 DRA execution-contract and diagnostic repair
 
 - One application deployment from `cad93f1d81e172a40ab033ddd6460def3a114b92`.
   Running-version MCP reports startup at 2026-10-03 01:04:41 UTC

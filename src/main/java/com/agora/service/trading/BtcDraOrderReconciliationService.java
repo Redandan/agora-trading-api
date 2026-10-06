@@ -26,6 +26,38 @@ public class BtcDraOrderReconciliationService {
         // Isolate the sides so a broken buy receipt cannot starve sell reconciliation.
         reconcileSide(SpotExecutionAttempt.Side.BUY);
         reconcileSide(SpotExecutionAttempt.Side.SELL);
+        reconcileQuantity();
+    }
+
+    private void reconcileQuantity() {
+        try {
+            var candidate = attempts.findOpenBuyQuantityCorrection();
+            if (candidate.isEmpty()) return;
+            var attempt = candidate.get();
+            var lookup = provider.lookupSpotOrderByClientOrderId("BTC-USDT", attempt.getClientOrderId());
+            if (lookup.status() != OkxTradingService.SpotOrderLookupStatus.FOUND) {
+                throw new IllegalStateException("DRA_QUANTITY_RECEIPT_NOT_FOUND");
+            }
+            var fresh = BtcDraLiveExecutionService.providerSnapshot(lookup.snapshot(), "buy");
+            attempts.correctOpenBuyQuantity(attempt.getId(), fresh).ifPresent(correction -> {
+                Map<String, Object> context = new LinkedHashMap<>();
+                context.put("schema", "DRA_OWNED_QUANTITY_V1");
+                context.put("executionAttemptId", attempt.getId());
+                context.put("providerOrderId", fresh.providerOrderId());
+                context.put("previousQuantity", correction.previousQuantity());
+                context.put("tradableQuantity", correction.tradableQuantity());
+                context.put("providerNetQuantity", correction.providerNetQuantity());
+                context.put("untradableDustQuantity", correction.untradableDustQuantity());
+                context.put("orderSent", false);
+                audit.logPositionQuantityCorrection(BtcDraPolicy.RUNTIME_LEDGER_STRATEGY_ID,
+                        "BTCUSDT", correction.liveSignalId(), context);
+                log.info("[DRA-Reconciliation] owned quantity corrected lot={} previous={} tradable={} dust={}",
+                        correction.liveSignalId(), correction.previousQuantity(), correction.tradableQuantity(),
+                        correction.untradableDustQuantity());
+            });
+        } catch (Exception e) {
+            log.warn("[DRA-Reconciliation] quantity correction requires review errorType={}", e.getClass().getSimpleName());
+        }
     }
 
     private void reconcileSide(SpotExecutionAttempt.Side side) {

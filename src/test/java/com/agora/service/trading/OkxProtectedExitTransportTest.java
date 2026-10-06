@@ -48,6 +48,41 @@ class OkxProtectedExitTransportTest {
         assertThrows(RuntimeException.class, provider::getFreshSpotHoldings);
     }
 
+    @Test void tradingCashAndEquityKeepTheirOwnValuationIncludingBotOnlyCurrency() throws Exception {
+        var provider = new OkxTradingService(properties(), mapper);
+        setClient(provider, new OkHttpClient.Builder().addInterceptor(chain -> response(chain.request(), """
+                {"code":"0","data":[{"details":[
+                  {"ccy":"USDT","cashBal":"439","availBal":"439","eq":"448.5","eqUsd":"448.5","stgyEq":"9.5"},
+                  {"ccy":"BTC","cashBal":"0","availBal":"0","eq":"0.00005","eqUsd":"4.25","stgyEq":"0.00005"}
+                ]}]}
+                """)).build());
+        var balances = provider.getFreshSpotHoldings();
+        assertEquals(2, balances.size());
+        var usdt = balances.getFirst();
+        assertEquals(new BigDecimal("439"), usdt.cashBal);
+        assertEquals(0, new BigDecimal("439").compareTo(usdt.eqUsd));
+        assertEquals(new BigDecimal("448.5"), usdt.equityQuantity);
+        assertEquals(new BigDecimal("448.5"), usdt.equityUsd);
+        assertEquals(new BigDecimal("9.5"), usdt.strategyEquityQuantity);
+        var report = SpotAccountRiskPolicy.snapshot(balances, List.of());
+        assertEquals(new BigDecimal("452.75"), report.get("observedBalanceEquityUsd"));
+        assertEquals(new BigDecimal("4.25"), report.get("observedBtcExposureUsd"));
+        assertEquals(new BigDecimal("439"), report.get("availableTradingUsdt"));
+        assertTrue(report.get("botEquityAccounting").toString().contains("DO_NOT_ADD"));
+    }
+
+    @Test void missingEquityCannotSilentlyFallBackToCashAndWrongScopeCannotProduceRiskTotals() throws Exception {
+        var provider = new OkxTradingService(properties(), mapper);
+        setClient(provider, new OkHttpClient.Builder().addInterceptor(chain -> response(chain.request(),
+                "{\"code\":\"0\",\"data\":[{\"details\":[{\"ccy\":\"BTC\",\"cashBal\":\"0\",\"availBal\":\"0\",\"eqUsd\":\"4\",\"stgyEq\":\"0.1\"}]}]}" )).build());
+        assertThrows(IllegalStateException.class, provider::getFreshSpotHoldings);
+        var invalid = new OkxTradingService.SpotHolding("BTC", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                BigDecimal.ZERO, new BigDecimal("4"), new BigDecimal("0.1"));
+        var report = SpotAccountRiskPolicy.snapshot(List.of(invalid), List.of());
+        assertFalse(report.containsKey("observedBalanceEquityUsd"));
+        assertTrue(report.get("valuationStatus").toString().startsWith("MISSING_PROOF"));
+    }
+
     private OkxTradingService provider(List<String> calls, String state, boolean missing) throws Exception {
         var provider = new OkxTradingService(properties(), mapper);
         setClient(provider, new OkHttpClient.Builder().addInterceptor(chain -> {

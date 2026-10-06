@@ -185,6 +185,12 @@ public final class SpotExecutionAttemptPolicy {
                         RoundingMode.DOWN);
     }
 
+    /** Persisted positions have eight decimals; database rounding must never create owned BTC. */
+    public static BigDecimal positionQuantity(BigDecimal netQuantity) {
+        requireNonNegative(netQuantity, "netQuantity");
+        return netQuantity.setScale(8, RoundingMode.DOWN);
+    }
+
     public static BigDecimal effectiveBuyEntryPrice(
             BigDecimal averagePrice,
             BigDecimal grossQuantity,

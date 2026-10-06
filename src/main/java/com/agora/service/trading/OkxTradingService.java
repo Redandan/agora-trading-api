@@ -957,15 +957,11 @@ public class OkxTradingService implements TradingService {
             List<SpotHolding> result = new ArrayList<>();
             if (details.isArray()) {
                 for (JsonNode d : details) {
-                    BigDecimal cashBal = new BigDecimal(d.path("cashBal").asText("0"));
-                    if (cashBal.signum() > 0 || (forceRefresh && cashBal.signum() < 0)) {
-                        result.add(new SpotHolding(
-                                d.path("ccy").asText(),
-                                new BigDecimal(d.path("availBal").asText("0")),
-                                cashBal,
-                                new BigDecimal(d.path("eqUsd").asText("0"))
-                        ));
-                    }
+                    SpotHolding holding = tradingHolding(d);
+                    // Bot-only balances have cashBal=0 but still carry account equity.
+                    if (holding.cashBal.signum() != 0 || holding.equityQuantity.signum() != 0
+                            || holding.strategyEquityQuantity.signum() != 0 || holding.availBal.signum() != 0
+                            || holding.equityUsd.signum() != 0) result.add(holding);
                 }
             }
             spotHoldingsCache = new HoldingsCacheEntry(List.copyOf(result), System.currentTimeMillis());
@@ -1077,17 +1073,50 @@ public class OkxTradingService implements TradingService {
     }
 
     /** 帳戶中單一幣種的現貨持倉快照。 */
+    static SpotHolding tradingHolding(JsonNode row) {
+        String ccy = row.path("ccy").asText();
+        if (ccy.isBlank()) throw new IllegalStateException("Missing OKX balance currency");
+        BigDecimal cash = requiredBalanceDecimal(row, "cashBal");
+        BigDecimal available = requiredBalanceDecimal(row, "availBal");
+        BigDecimal equity = requiredBalanceDecimal(row, "eq");
+        BigDecimal equityUsd = requiredBalanceDecimal(row, "eqUsd");
+        BigDecimal strategyEquity = requiredBalanceDecimal(row, "stgyEq");
+        // Existing inventory consumers pair eqUsd with cashBal. Preserve that pairing;
+        // expose provider eq/eqUsd separately for account risk and reporting.
+        BigDecimal cashUsd = equity.signum() > 0 && cash.signum() >= 0
+                ? equityUsd.multiply(cash).divide(equity, 16, java.math.RoundingMode.HALF_UP)
+                : cash.signum() == 0 ? BigDecimal.ZERO : null;
+        return new SpotHolding(ccy, available, cash, cashUsd, equity, equityUsd, strategyEquity);
+    }
+
+    private static BigDecimal requiredBalanceDecimal(JsonNode row, String key) {
+        String value = row.path(key).asText("");
+        if (value.isBlank()) throw new IllegalStateException("Missing OKX balance field: " + key);
+        return new BigDecimal(value);
+    }
+
     public static class SpotHolding {
         public final String ccy;
         public final BigDecimal availBal;
         public final BigDecimal cashBal;
         public final BigDecimal eqUsd;
+        public final BigDecimal equityQuantity;
+        public final BigDecimal equityUsd;
+        public final BigDecimal strategyEquityQuantity;
 
         public SpotHolding(String ccy, BigDecimal availBal, BigDecimal cashBal, BigDecimal eqUsd) {
+            this(ccy, availBal, cashBal, eqUsd, cashBal, eqUsd, BigDecimal.ZERO);
+        }
+
+        public SpotHolding(String ccy, BigDecimal availBal, BigDecimal cashBal, BigDecimal cashUsd,
+                           BigDecimal equityQuantity, BigDecimal equityUsd, BigDecimal strategyEquityQuantity) {
             this.ccy = ccy;
             this.availBal = availBal;
             this.cashBal = cashBal;
-            this.eqUsd = eqUsd;
+            this.eqUsd = cashUsd;
+            this.equityQuantity = equityQuantity;
+            this.equityUsd = equityUsd;
+            this.strategyEquityQuantity = strategyEquityQuantity;
         }
     }
 

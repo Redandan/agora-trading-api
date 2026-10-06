@@ -129,14 +129,22 @@ database-change resubscription, or dual-provider divergence setting.
 
 ## Retained scripts
 
+The 2026-10-06 repair adds no environment setting, schema migration, timer or
+manual order. Verify `DRA_OWNED_QUANTITY_V1`, account risk schema V2 and its
+explicit equity valuation basis. Existing DRA quantity repair runs on the
+retained receipt clock only with fresh matching BUY proof and no SELL attempt;
+acceptance must verify its quantity audit, unchanged provider fills/cost and
+no duplicate correction. Binance reconnect warnings require a later recovery
+of the same stream and remain subject to a count limit.
+
 The 2026-10-03 execution repair adds no environment setting or schema migration.
 The existing ten-minute OCO maintenance callback first invokes DRA receipt-only
 reconciliation, even when OCO polling or DRA entry is disabled. It cannot submit
 an order. The verifier requires `DRA_PROFIT_EXIT_IOC_V1`, independent receipt
 maintenance and the fresh account risk snapshot. Verify the current profile,
 existing positions and pending receipts after deployment; never send a test
-order to prove the exit adapter. The account risk view explicitly excludes Earn
-and does not claim verified Grid coverage.
+order to prove the exit adapter. The account risk view explicitly excludes Earn;
+reported bot equity is already included, while bot lifecycle PnL is not proved.
 
 | File | Purpose |
 |---|---|

@@ -103,6 +103,14 @@ public class DecisionAuditWriter {
                 null, null, null, context, liveSignalId));
     }
 
+    /** Receipt-proven precision correction, never a fill or a strategy decision. */
+    @Async("metaAuditExecutor")
+    public void logPositionQuantityCorrection(Long strategyId, String symbol, Long liveSignalId,
+                                               Map<String, Object> context) {
+        save(build("SPOT_QUANTITY_RECONCILED", "INFO", strategyId, symbol, null,
+                null, null, "DRA_PROVIDER_PROVEN_ROUNDING_CORRECTION", context, liveSignalId));
+    }
+
     /** autoTrade 失敗(餘額不足 / OKX 錯誤 / OCO 重試用光)。 */
     @Async("metaAuditExecutor")
     public void logAutoTradeFail(Long strategyId, String symbol, String reason,

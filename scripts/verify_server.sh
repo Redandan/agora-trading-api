@@ -530,6 +530,8 @@ printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq 'draExitProfile=DRA_PROFIT_EXIT_I
   || fail "DRA protected profit exit profile missing"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq 'draReceiptMaintenance=INDEPENDENT_TEN_MINUTE_LOOKUP_ONLY' \
   || fail "DRA independent receipt maintenance contract missing"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -Fq 'draOwnedQuantityProfile=DRA_OWNED_QUANTITY_V1' \
+  || fail "DRA provider-owned quantity protection missing"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draMaxLiveExposureUsdt=30.00' \
   || fail "DRA catalog response missing 30.00 USDT max live exposure"
 printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draExecutionArmed=true' \
@@ -546,8 +548,12 @@ printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'OKX_ACCOUNT_SAFETY_SNAPSHOT' \
   || fail "OKX account safety snapshot response missing expected header"
 printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'ccy=USDT' \
   || fail "OKX account safety snapshot does not contain USDT"
-printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'SPOT_ACCOUNT_RISK_OBSERVATION_V1' \
+printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'SPOT_ACCOUNT_RISK_OBSERVATION_V2' \
   || fail "OKX balance risk observation missing"
+printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'TRADING_EQ_PAIRED_WITH_EQ_USD_FUNDING_BAL_PAIRED_WITH_ESTIMATED_USD' \
+  || fail "OKX account valuation scope contract missing"
+printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'OBSERVED_BALANCES_ESTIMATED_USD' \
+  || fail "OKX account valuation unavailable or inconsistent"
 if printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'MISSING_PROOF_FRESH_READ_FAILED'; then
   fail "OKX fresh account read failed; an empty or cached account is not acceptance evidence"
 fi

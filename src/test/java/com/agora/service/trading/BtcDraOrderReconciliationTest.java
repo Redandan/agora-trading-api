@@ -106,18 +106,26 @@ class BtcDraOrderReconciliationTest {
             attempt.setAttemptSequence(1); attempt.setTriggerBarOpenTime(lot.getBarOpenTime().plusHours(1));
             attempt.setRequestedBaseQuantity(lot.getTradedQty()); attempt.setClientOrderId("DRA1");
             attempt.setFeeReconciliationStatus(SpotExecutionAttempt.FeeReconciliationStatus.PENDING);
+            var buy = new SpotExecutionAttempt();
+            buy.setSide(SpotExecutionAttempt.Side.BUY); buy.setLiveSignalId(7L);
+            buy.setStrategyContract(BtcDraPolicy.POLICY_MODE); buy.setState(SpotExecutionAttempt.State.RECONCILED_FILLED);
+            buy.setFeeReconciliationStatus(SpotExecutionAttempt.FeeReconciliationStatus.RECONCILED);
+            buy.setProviderOrderId("buy123"); buy.setNetFillQuantity(lot.getTradedQty());
+            lot.setExchangeOrderId("OKX:buy123");
             var attemptRepo = proxy(SpotExecutionAttemptRepository.class, (name, args) -> switch (name) {
                 case "findById", "findByIdForUpdate", "findTopByLiveSignalIdAndSideOrderByAttemptSequenceDesc" -> Optional.of(attempt);
                 case "findByStrategyContractAndSideOrderByCreatedAtAsc" -> {
                     if (args[1] == SpotExecutionAttempt.Side.BUY && failBuyQuery) throw new IllegalStateException("fixture buy failure");
                     yield args[1] == SpotExecutionAttempt.Side.SELL ? List.of(attempt) : List.of();
                 }
-                case "findByLiveSignalIdAndSideOrderByAttemptSequenceAsc" -> List.of(attempt);
+                case "findByLiveSignalIdAndSideOrderByAttemptSequenceAsc" ->
+                        args[1] == SpotExecutionAttempt.Side.BUY ? List.of(buy) : List.of(attempt);
                 case "saveAndFlush" -> args[0];
                 default -> throw new AssertionError(name);
             });
             var lotRepo = proxy(BtLiveSignalRepository.class, (name, args) -> switch (name) {
                 case "findByIdForUpdate" -> Optional.of(lot);
+                case "findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull" -> List.of();
                 case "saveAndFlush" -> args[0];
                 default -> throw new AssertionError(name);
             });

@@ -68,6 +68,9 @@ public final class BtcDraExecutionContract {
         out.put("exitEvaluationIntervalMinutes", 60);
         out.put("intrahourProfitCaptureGuaranteed", false);
         out.put("receiptMaintenance", "EXISTING_TEN_MINUTE_CLOCK_INDEPENDENT_OF_ENTRY_MODE_AND_BARS");
+        out.put("ownedQuantityProfile", "DRA_OWNED_QUANTITY_V1");
+        out.put("sellQuantityBasis", "FLOORED_POSITION_CAPPED_BY_RECONCILED_BUY_NET_MINUS_SELL_FILLS");
+        out.put("baseDustPolicy", "RETAIN_EXACT_PROVIDER_LEDGER_NO_TRANSFER_NO_FALSE_FULL_LIFECYCLE_CLAIM");
         out.put("modeMeaning", "NEW_BUY_CAPITAL_ONLY_NOT_SIGNAL_QUALITY_OR_FREQUENCY");
         out.put("newBuyProfitAtExitThresholdUsdt", newBuyNotional.multiply(NET_PROFIT_TRIGGER));
         out.put("profitCycleDuration", "UNKNOWN_MAY_NEVER_COMPLETE");

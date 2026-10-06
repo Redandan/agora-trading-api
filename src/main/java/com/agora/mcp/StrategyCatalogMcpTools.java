@@ -76,6 +76,7 @@ public class StrategyCatalogMcpTools {
         result.append("draRiskResponse=OBSERVE_NO_AUTOMATIC_REBALANCE_OR_LOSS_EXIT\n");
         result.append("draExitProfile=DRA_PROFIT_EXIT_IOC_V1\n");
         result.append("draReceiptMaintenance=INDEPENDENT_TEN_MINUTE_LOOKUP_ONLY\n");
+        result.append("draOwnedQuantityProfile=DRA_OWNED_QUANTITY_V1\n");
         result.append("draMaxLiveExposureUsdt=")
                 .append(draProperties.maxLiveExposureUsdt())
                 .append('\n');

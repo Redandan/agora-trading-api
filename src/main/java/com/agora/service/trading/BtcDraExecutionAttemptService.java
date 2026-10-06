@@ -139,6 +139,7 @@ public class BtcDraExecutionAttemptService {
             }
         }
 
+        requireReceiptOwnedSellQuantity(lot, requestedQuantity);
         int sequence = latestOptional
                 .map(SpotExecutionAttempt::getAttemptSequence)
                 .orElse(0) + 1;
@@ -282,6 +283,10 @@ public class BtcDraExecutionAttemptService {
         }
         requireDraRow(lot);
 
+        // A cumulative BUY receipt cannot resurrect inventory already reserved or consumed by a SELL.
+        if (lot.getExitTime() != null || !sellAttempts(lot.getId()).isEmpty()) {
+            throw new IllegalStateException("DRA_BUY_RECEIPT_AFTER_SELL_OR_CLOSE");
+        }
         BigDecimal cumulativeGross = nonNegative(
                 snapshot.cumulativeGrossQuantity(),
                 "cumulativeGrossQuantity");
@@ -362,8 +367,8 @@ public class BtcDraExecutionAttemptService {
             lot.setEntryPrice(effectiveEntry);
             lot.setSuggestedTp(requiredExitPrice(effectiveEntry));
             lot.setActualEntryPrice(averagePrice);
-            lot.setTradedQty(netQuantity);
-            lot.setOcoQty(netQuantity);
+            lot.setTradedQty(SpotExecutionAttemptPolicy.positionQuantity(netQuantity));
+            lot.setOcoQty(SpotExecutionAttemptPolicy.positionQuantity(netQuantity));
             lot.setAutoTraded(true);
             lot.setExchangeOrderId(
                     "OKX:" + snapshot.providerOrderId());
@@ -531,6 +536,100 @@ public class BtcDraExecutionAttemptService {
                 remaining,
                 attempt.getFeeReconciliationStatus());
     }
+
+    /** Only an open, terminal BUY with a sub-satoshi upward DB rounding error is repairable. */
+    @Transactional(readOnly = true)
+    public Optional<SpotExecutionAttempt> findOpenBuyQuantityCorrection() {
+        for (BtLiveSignal lot : liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(
+                BtcDraPolicy.RUNTIME_LEDGER_STRATEGY_ID)) {
+            requireDraRow(lot);
+            var buys = attemptRepository.findByLiveSignalIdAndSideOrderByAttemptSequenceAsc(lot.getId(), Side.BUY);
+            if (buys.size() != 1 || !sellAttempts(lot.getId()).isEmpty()) continue;
+            SpotExecutionAttempt buy = buys.getFirst();
+            if (buy.getFeeReconciliationStatus() != FeeReconciliationStatus.RECONCILED
+                    || (buy.getState() != State.RECONCILED_FILLED && buy.getState() != State.RECONCILED_PARTIAL)
+                    || buy.getNetFillQuantity() == null || lot.getTradedQty() == null) continue;
+            if (lot.getTradedQty().compareTo(SpotExecutionAttemptPolicy.positionQuantity(buy.getNetFillQuantity())) > 0) {
+                return Optional.of(buy);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** Fresh matching provider proof + row lock; no order, cost, fee, PnL or historical decision rewrite. */
+    @Transactional
+    public Optional<QuantityCorrection> correctOpenBuyQuantity(Long attemptId, ProviderFillSnapshot fresh) {
+        SpotExecutionAttempt preview = requireAttempt(attemptId);
+        BtLiveSignal lot = requireOwnedOpenLot(preview.getLiveSignalId());
+        SpotExecutionAttempt buy = requireAttemptForUpdate(attemptId);
+        requireSameLot(preview, buy);
+        requireReconciledBuy(buy, lot);
+        if (!sellAttempts(lot.getId()).isEmpty()) throw new IllegalStateException("DRA_QUANTITY_REPAIR_SELL_EXISTS");
+        if (buyProviderState(fresh.providerState(), fresh.cumulativeGrossQuantity()) != buy.getState()
+                || !Objects.equals(buy.getProviderOrderId(), fresh.providerOrderId())
+                || !Objects.equals(buy.getFeeCurrency(), fresh.feeCurrency())
+                || !sameDecimal(buy.getGrossFillQuantity(), fresh.cumulativeGrossQuantity())
+                || !sameDecimal(buy.getNetFillQuantity(), fresh.netQuantity())
+                || !sameDecimal(buy.getAveragePrice(), fresh.averagePrice())
+                || !sameDecimal(buy.getSignedFeeAmount(), fresh.signedFeeAmount())
+                || !sameDecimal(buy.getFeeUsdt(), fresh.feeUsdt())) {
+            throw new IllegalStateException("DRA_QUANTITY_REPAIR_RECEIPT_MISMATCH");
+        }
+        BigDecimal safeQuantity = SpotExecutionAttemptPolicy.positionQuantity(buy.getNetFillQuantity());
+        BigDecimal before = lot.getTradedQty();
+        if (before.compareTo(safeQuantity) == 0 && sameDecimal(lot.getOcoQty(), safeQuantity)) return Optional.empty();
+        BigDecimal excess = before.subtract(safeQuantity);
+        if (safeQuantity.signum() <= 0 || excess.signum() <= 0
+                || excess.compareTo(new BigDecimal("0.00000001")) > 0
+                || !sameDecimal(before, lot.getOcoQty())
+                || !sameDecimal(before, buy.getNetFillQuantity().setScale(8, RoundingMode.HALF_UP))) {
+            throw new IllegalStateException("DRA_QUANTITY_REPAIR_NOT_ROUNDING_ONLY");
+        }
+        lot.setTradedQty(safeQuantity);
+        lot.setOcoQty(safeQuantity);
+        liveSignalRepository.saveAndFlush(lot);
+        return Optional.of(new QuantityCorrection(lot.getId(), before, safeQuantity,
+                buy.getNetFillQuantity(), buy.getNetFillQuantity().subtract(safeQuantity)));
+    }
+
+    private void requireReceiptOwnedSellQuantity(BtLiveSignal lot, BigDecimal requested) {
+        var buys = attemptRepository.findByLiveSignalIdAndSideOrderByAttemptSequenceAsc(lot.getId(), Side.BUY);
+        if (buys.size() != 1) throw new IllegalStateException("DRA_SELL_BUY_RECEIPT_MISSING_OR_AMBIGUOUS");
+        SpotExecutionAttempt buy = buys.getFirst();
+        requireReconciledBuy(buy, lot);
+        BigDecimal remaining = buy.getNetFillQuantity();
+        for (SpotExecutionAttempt sell : sellAttempts(lot.getId())) {
+            if (!BtcDraPolicy.POLICY_MODE.equals(sell.getStrategyContract()) || isOutstanding(sell)) {
+                throw new IllegalStateException("DRA_SELL_OWNERSHIP_UNRESOLVED");
+            }
+            remaining = remaining.subtract(nonNegative(sell.getAppliedFillQuantity(), "sell.appliedFillQuantity"));
+        }
+        if (remaining.signum() < 0 || requested.compareTo(SpotExecutionAttemptPolicy.positionQuantity(remaining)) > 0) {
+            throw new IllegalStateException("DRA_SELL_EXCEEDS_PROVIDER_OWNED_QUANTITY");
+        }
+    }
+
+    private void requireReconciledBuy(SpotExecutionAttempt buy, BtLiveSignal lot) {
+        if (buy.getSide() != Side.BUY || !BtcDraPolicy.POLICY_MODE.equals(buy.getStrategyContract())
+                || !Objects.equals(buy.getLiveSignalId(), lot.getId())
+                || buy.getProviderOrderId() == null || !Objects.equals(lot.getExchangeOrderId(), "OKX:" + buy.getProviderOrderId())
+                || buy.getFeeReconciliationStatus() != FeeReconciliationStatus.RECONCILED
+                || (buy.getState() != State.RECONCILED_FILLED && buy.getState() != State.RECONCILED_PARTIAL)) {
+            throw new IllegalStateException("DRA_BUY_OWNERSHIP_UNPROVEN");
+        }
+        requirePositive(buy.getNetFillQuantity(), "buy.netFillQuantity");
+    }
+
+    private List<SpotExecutionAttempt> sellAttempts(Long lotId) {
+        return attemptRepository.findByLiveSignalIdAndSideOrderByAttemptSequenceAsc(lotId, Side.SELL);
+    }
+
+    private boolean sameDecimal(BigDecimal a, BigDecimal b) {
+        return a != null && b != null && a.compareTo(b) == 0;
+    }
+
+    public record QuantityCorrection(Long liveSignalId, BigDecimal previousQuantity, BigDecimal tradableQuantity,
+                                     BigDecimal providerNetQuantity, BigDecimal untradableDustQuantity) { }
 
     private BtLiveSignal requireOwnedOpenLot(Long liveSignalId) {
         BtLiveSignal lot = liveSignalRepository

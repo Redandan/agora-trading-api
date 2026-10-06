@@ -136,6 +136,21 @@ diagnostic (`sha256: 0d9855902eeaba782310f0479f8dee6cacda18e019bee2149f6b56e3855
 This checks behavior preservation only; no new candidate, OOS, return forecast,
 or profitability claim was created.
 
+## Provider-owned quantity precision — 2026-10-06
+
+`DRA_OWNED_QUANTITY_V1` separates the exact provider net quantity from the
+eight-decimal tradable position, which is always floored. A new SELL
+reservation requires one reconciled owned BUY receipt and cannot exceed its
+net quantity minus all previously applied SELL fills. Account BTC availability
+alone never proves ownership. Existing positions with an old upward-rounding
+error are corrected by the existing receipt maintenance clock only after a
+fresh matching provider receipt, no SELL attempt and a row-locked check of
+the precise rounding signature. An append-only quantity-correction audit
+records before/after and residual dust; no trade or cost/PnL rewrite occurs.
+Partial/closed inventory cannot be reopened by replaying its BUY receipt.
+Dust remains in the provider ledger; tradable closure is not automatically
+a completely liquidated, fee-exact lifecycle.
+
 ## Receipt maintenance and protected profit exits — 2026-10-03
 
 The follow-up design repair versions the LIVE exit adapter as
@@ -186,16 +201,19 @@ duration/monthly return are unknown. One occupied lot blocks further buys;
 virtual queued signals can advance cooldown without an actual buy. None of
 these observations changes the accepted capital or holding policy.
 
-`getExchangeAccountSafetySnapshot` appends `SPOT_ACCOUNT_RISK_OBSERVATION_V1`
-from fresh trading and funding balance reads. Funding total includes frozen
+`getExchangeAccountSafetySnapshot` now appends `SPOT_ACCOUNT_RISK_OBSERVATION_V2`
+from fresh trading equity and funding balance reads. Trading `eq` is paired
+with `eqUsd`; `cashBal` and `availBal` are separately labelled. Bot `stgyEq`
+is included in trading equity and must not be added again. Funding total includes frozen
 funds. Failed reads and missing valuations cannot be reported as zero risk.
 BTC -10/-30/-50% shocks use observed BTC USD value, holding other balances
 fixed; they are scenarios, not probabilities or forecasts. DRA/509 ledgers are
-not added again to provider balances. Earn is excluded and Grid inclusion in
-these balances is unverified, so whole-account completeness is explicitly
-false. No whole-account loss cap, transfer, pause or rebalance is introduced.
+not added again to provider balances. Reported bot equity is included once;
+Earn and exact bot lifecycle reconciliation are excluded, so whole-account
+completeness remains explicitly false. No whole-account loss cap, transfer,
+pause or rebalance is introduced.
 
-Local acceptance passed 140 focused contract tests, Java 21
+The 2026-10-03 local acceptance passed 140 focused contract tests, Java 21
 `mvn -DskipTests package`, shell syntax checking and `git diff --check`.
 New tests use in-memory repositories and an in-process HTTP interceptor;
 they cover no-fill/partial IOC receipts, no market fallback, tick rounding,
@@ -325,7 +343,7 @@ The first rows prove deployment and restart continuity only. Forward
 profitability requires later completed actual exits and cannot be inferred from
 historical backtest results.
 
-Current Production checkpoint: commit
+Historical Production checkpoint (2026-07-30): commit
 `ae47ef0609b6f86c7cfe2338c6d80a3135dc7e25`, active port `8084`, V4
 execution-attempt table present with zero initial rows, and first new-JVM
 natural bar accepted at evidence `28830` for

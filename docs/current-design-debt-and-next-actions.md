@@ -1,5 +1,42 @@
 # Current Design Debt and Next Actions
 
+## 2026-10-06 quantity ownership, valuation scope and recovered reconnects
+
+The operator authorized fixing these three fresh findings and one combined
+release. Before the fix, live DRA lot 264 stored 0.00035361 BTC, while a fresh
+OKX BUY receipt proved gross 0.00035396 BTC less 0.00000035396 BTC fee, or
+0.00035360604 BTC net. The eight-decimal position column rounded upward;
+provider cash spent was 29.9998798 USDT, below the unchanged 30 USDT budget.
+
+`DRA_OWNED_QUANTITY_V1` floors the tradable position to eight decimals while
+retaining the complete net fill in the execution attempt. Every new sell
+reservation is capped by the reconciled BUY net minus prior applied SELL
+fills, independently of other BTC in the account. A BUY replay after any SELL
+reservation or closed lot cannot restore sold inventory. Existing ten-minute
+receipt maintenance can correct only an open, fully fee-reconciled BUY with
+no SELL attempt, a fresh matching provider receipt, and the exact old
+sub-satoshi rounding signature. The row lock prevents concurrent reservation
+and correction. It changes quantity fields only and appends a separate
+`SPOT_QUANTITY_RECONCILED` audit; prices, fees, PnL, timestamps, provider
+receipts and historical decisions are preserved. Remaining dust stays in the
+provider ledger and is not evidence of a completely liquidated lifecycle.
+
+Account reports now pair provider `eq` with `eqUsd`, distinguish `cashBal`
+and `availBal`, and disclose `stgyEq` as an already-included bot component.
+The risk total includes reported trading equity plus funding once, including
+currencies held only in bots. Cash-value consumers use a cash-proportional
+estimate rather than the full-equity USD number. Missing equity fields fail
+the fresh read; inconsistent spot quantities omit the risk total. Earn and
+exact bot lifecycle reconciliation remain outside this balance snapshot.
+Field definitions follow the [OKX balance contract](https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance).
+
+The retained runtime-log verifier accepts the known Binance reconnect warning
+only after a later matching market/symbol/interval reconnect in the same log,
+within its bounded warning count. Missing, earlier or another stream's
+recovery, excessive reconnects, unknown warnings and errors still fail.
+No signal changes, capital increase, loss exit, new timer, provider order,
+Grid mutation, schema migration or historical backfill is part of this repair.
+
 ## 2026-10-03 post-mode design repair
 
 The operator authorized handling the remaining design findings while retaining

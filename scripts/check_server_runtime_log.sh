@@ -11,6 +11,7 @@ ALLOW_HIGH_RISK_LOG="${ALLOW_HIGH_RISK_LOG:-0}"
 MAX_OKX_WS_CONNECTION_RESET_WARN="${MAX_OKX_WS_CONNECTION_RESET_WARN:-3}"
 MAX_OKX_WS_TRANSIENT_WARN="${MAX_OKX_WS_TRANSIENT_WARN:-10}"
 MAX_OKX_PRIVATE_WS_TRANSIENT_WARN="${MAX_OKX_PRIVATE_WS_TRANSIENT_WARN:-10}"
+MAX_BINANCE_WS_RECONNECT_WARN="${MAX_BINANCE_WS_RECONNECT_WARN:-10}"
 MAX_MCP_AUTH_DENIED_WARN="${MAX_MCP_AUTH_DENIED_WARN:-20}"
 MAX_HTTP_METHOD_NOT_SUPPORTED_WARN="${MAX_HTTP_METHOD_NOT_SUPPORTED_WARN:-10}"
 MAX_KLINE_GAP_WARN="${MAX_KLINE_GAP_WARN:-3}"
@@ -96,6 +97,7 @@ WARN_AUTONOMOUS_DIGEST_SEVERE_PATTERN='DailyAutonomousTradingDigest.*severe noti
 WARN_OKX_WS_CONNECTION_RESET_PATTERN='OkxWsKlineService.*\[OkxWS\] WS failure .*Connection reset'
 WARN_OKX_WS_TRANSIENT_PATTERN='OkxWsKlineService.*\[OkxWS\] WS failure .*(: null|timeout|timed out|EOF|closed|reset by peer|type=(EOFException|SocketTimeoutException|SocketException) httpStatus=null)'
 WARN_OKX_PRIVATE_WS_TRANSIENT_PATTERN='OkxPrivateWsService.*\[OkxPrivateWs\] Connection failure: (null|timeout|timed out|EOF|closed|Broken pipe|Connection reset|reset by peer|type=(EOFException|SocketTimeoutException|SocketException) httpStatus=null)'
+WARN_BINANCE_WS_RECONNECT_PATTERN='BinanceWsKlineService.*\[BinanceWS\] Reconnecting \([1-5]/5\) in [0-9]+s: (SPOT|FUTURES) [A-Z0-9]+@kline_[0-9]+[mhdwM] reason=connection lost$'
 WARN_SCOREBUY_ML_SCHEMA_MISMATCH_PATTERN='ScoreBuyV2Strategy.*\[ScoreBuyV2\] predict failed v[0-9]+: .*ML003011: Columns of provided data need to match those used for training'
 WARN_MCP_AUTH_DENIED_PATTERN='McpApiKeyFilter.*\[McpAuth\] DENIED MCP method=.*reason=(metadata key missing|API key missing|invalid API key|metadata key invalid)'
 WARN_HTTP_METHOD_NOT_SUPPORTED_PATTERN='DefaultHandlerExceptionResolver.*HttpRequestMethodNotSupportedException: Request method '\''GET'\'' is not supported'
@@ -103,7 +105,22 @@ WARN_KLINE_GAP_PATTERN='KlineGapDetector.*\[KlineGap\] [A-Z0-9_-]+@[A-Za-z0-9]+ 
 WARN_INDICATOR_FETCH_TIMEOUT_PATTERN='MarketIndicatorHistoryCollector.*\[IndicatorHistory\] parallel fetch timed out after 30s, some indicators may be missing'
 WARN_AGING_POSITION_PATTERN='PositionAgingMonitor.*\[OcoPoll\] Aging position: id=[0-9]+ symbol=[A-Z0-9_-]+ daysOpen=[0-9]+'
 WARN_MCP_UNKNOWN_TOOL_PATTERN='McpStreamableHttpController.*\[McpHttp\] Bad request method=tools/call: Unknown tool: getDbRuntimeStatus[[:space:]]*$'
-KNOWN_WARN_PATTERN="${WARN_FLYWAY_MYSQL_PATTERN}|${WARN_STARTUP_TIMING_PATTERN}|${WARN_CGLIB_PROXY_PATTERN}|${WARN_OPEN_IN_VIEW_PATTERN}|${WARN_THEGRAPH_PATTERN}|${WARN_AUTONOMOUS_DIGEST_SEVERE_PATTERN}|${WARN_OKX_WS_CONNECTION_RESET_PATTERN}|${WARN_OKX_WS_TRANSIENT_PATTERN}|${WARN_OKX_PRIVATE_WS_TRANSIENT_PATTERN}|${WARN_SCOREBUY_ML_SCHEMA_MISMATCH_PATTERN}|${WARN_MCP_AUTH_DENIED_PATTERN}|${WARN_HTTP_METHOD_NOT_SUPPORTED_PATTERN}|${WARN_KLINE_GAP_PATTERN}|${WARN_INDICATOR_FETCH_TIMEOUT_PATTERN}|${WARN_AGING_POSITION_PATTERN}|${WARN_MCP_UNKNOWN_TOOL_PATTERN}"
+KNOWN_WARN_PATTERN="${WARN_FLYWAY_MYSQL_PATTERN}|${WARN_STARTUP_TIMING_PATTERN}|${WARN_CGLIB_PROXY_PATTERN}|${WARN_OPEN_IN_VIEW_PATTERN}|${WARN_THEGRAPH_PATTERN}|${WARN_AUTONOMOUS_DIGEST_SEVERE_PATTERN}|${WARN_OKX_WS_CONNECTION_RESET_PATTERN}|${WARN_OKX_WS_TRANSIENT_PATTERN}|${WARN_OKX_PRIVATE_WS_TRANSIENT_PATTERN}|${WARN_BINANCE_WS_RECONNECT_PATTERN}|${WARN_SCOREBUY_ML_SCHEMA_MISMATCH_PATTERN}|${WARN_MCP_AUTH_DENIED_PATTERN}|${WARN_HTTP_METHOD_NOT_SUPPORTED_PATTERN}|${WARN_KLINE_GAP_PATTERN}|${WARN_INDICATOR_FETCH_TIMEOUT_PATTERN}|${WARN_AGING_POSITION_PATTERN}|${WARN_MCP_UNKNOWN_TOOL_PATTERN}"
+
+binance_reconnects_all_recovered() {
+  local warn_line warn_text scope recovered_count
+  while IFS=: read -r warn_line warn_text; do
+    [ -n "$warn_line" ] || continue
+    case "$warn_line" in *[!0-9]*) return 1 ;; esac
+    scope="$(printf '%s\n' "$warn_text" | sed -nE 's/.*in [0-9]+s: ((SPOT|FUTURES) [A-Z0-9]+@kline_[0-9]+[mhdwM]) reason=connection lost$/\1/p')"
+    [ -n "$scope" ] || return 1
+    recovered_count="$(tail -n +"$((warn_line + 1))" "$RUN_LOG_FILE" | grep -cE "BinanceWsKlineService.*\\[BinanceWS\\] Connected\\(reconnect\\): ${scope}$" || true)"
+    [ "$recovered_count" -gt 0 ] || return 1
+  done <<EOF
+$(grep -nE "${WARN_LOG_PATTERN}.*(${WARN_BINANCE_WS_RECONNECT_PATTERN})" "$RUN_LOG_FILE" || true)
+EOF
+  return 0
+}
 
 warn_category_count() {
   local pattern="$1"
@@ -161,6 +178,7 @@ WARN_AUTONOMOUS_DIGEST_SEVERE_COUNT="$(warn_category_count "$WARN_AUTONOMOUS_DIG
 WARN_OKX_WS_CONNECTION_RESET_COUNT="$(warn_category_count "$WARN_OKX_WS_CONNECTION_RESET_PATTERN")"
 WARN_OKX_WS_TRANSIENT_COUNT="$(warn_category_count "$WARN_OKX_WS_TRANSIENT_PATTERN")"
 WARN_OKX_PRIVATE_WS_TRANSIENT_COUNT="$(warn_category_count "$WARN_OKX_PRIVATE_WS_TRANSIENT_PATTERN")"
+WARN_BINANCE_WS_RECONNECT_COUNT="$(warn_category_count "$WARN_BINANCE_WS_RECONNECT_PATTERN")"
 WARN_SCOREBUY_ML_SCHEMA_MISMATCH_COUNT="$(warn_category_count "$WARN_SCOREBUY_ML_SCHEMA_MISMATCH_PATTERN")"
 WARN_MCP_AUTH_DENIED_COUNT="$(warn_category_count "$WARN_MCP_AUTH_DENIED_PATTERN")"
 WARN_HTTP_METHOD_NOT_SUPPORTED_COUNT="$(warn_category_count "$WARN_HTTP_METHOD_NOT_SUPPORTED_PATTERN")"
@@ -178,6 +196,14 @@ esac
 case "$MAX_OKX_PRIVATE_WS_TRANSIENT_WARN" in
   ''|*[!0-9]*) fail "invalid MAX_OKX_PRIVATE_WS_TRANSIENT_WARN: $MAX_OKX_PRIVATE_WS_TRANSIENT_WARN" ;;
 esac
+case "$MAX_BINANCE_WS_RECONNECT_WARN" in
+  ''|*[!0-9]*) fail "invalid MAX_BINANCE_WS_RECONNECT_WARN: $MAX_BINANCE_WS_RECONNECT_WARN" ;;
+esac
+if [ "$WARN_BINANCE_WS_RECONNECT_COUNT" -gt 0 ]; then
+  binance_reconnects_all_recovered || fail "Binance WS reconnect lacks later same-stream recovery"
+  [ "$WARN_BINANCE_WS_RECONNECT_COUNT" -le "$MAX_BINANCE_WS_RECONNECT_WARN" ] || fail "Binance WS reconnect warnings exceeded threshold: count=$WARN_BINANCE_WS_RECONNECT_COUNT max=$MAX_BINANCE_WS_RECONNECT_WARN"
+  ok "Binance WS reconnect warnings recovered on the same stream: count=$WARN_BINANCE_WS_RECONNECT_COUNT"
+fi
 case "$MAX_MCP_AUTH_DENIED_WARN" in
   ''|*[!0-9]*) fail "invalid MAX_MCP_AUTH_DENIED_WARN: $MAX_MCP_AUTH_DENIED_WARN" ;;
 esac

@@ -13,9 +13,12 @@ public final class SpotAccountRiskPolicy {
     public static Map<String, Object> snapshot(List<OkxTradingService.SpotHolding> trading,
                                                List<OkxTradingService.SpotHolding> funding) {
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("schema", "SPOT_ACCOUNT_RISK_OBSERVATION_V1");
+        out.put("schema", "SPOT_ACCOUNT_RISK_OBSERVATION_V2");
         out.put("action", "OBSERVE_ONLY");
-        out.put("coverage", "TRADING_AND_FUNDING_BALANCES_EARN_EXCLUDED_GRID_COVERAGE_UNVERIFIED");
+        out.put("coverage", "PROVIDER_TRADING_EQUITY_INCLUDING_REPORTED_BOT_EQUITY_PLUS_FUNDING_EARN_EXCLUDED");
+        out.put("valuationBasis", "TRADING_EQ_PAIRED_WITH_EQ_USD_FUNDING_BAL_PAIRED_WITH_ESTIMATED_USD");
+        out.put("botEquityAccounting", "STGY_EQ_IS_A_COMPONENT_OF_EQ_DO_NOT_ADD_GRID_INVESTMENT_OR_PNL_AGAIN");
+        out.put("botLifecycleReconciliation", "NOT_PROVEN_BY_ACCOUNT_BALANCES");
         out.put("wholeAccountRiskComplete", false);
         out.put("wholeAccountLossLimit", "NOT_CONFIGURED_NO_AUTOMATIC_POSITION_CHANGE");
         out.put("strategyBudgets", "SEPARATE_STRATEGY_ALLOCATION_CAPS_ARE_NOT_ACCOUNT_LOSS_LIMITS");
@@ -27,15 +30,20 @@ public final class SpotAccountRiskPolicy {
         var all = java.util.stream.Stream.concat(trading.stream(), funding.stream()).toList();
         boolean complete = all.stream().allMatch(h -> h != null && h.ccy != null
                 && h.cashBal != null && h.cashBal.signum() >= 0 && h.availBal != null && h.availBal.signum() >= 0
-                && h.eqUsd != null && h.eqUsd.signum() >= 0
-                && (h.cashBal.signum() == 0 || h.eqUsd.signum() > 0));
+                && h.equityQuantity != null && h.equityQuantity.signum() >= 0
+                && h.strategyEquityQuantity != null && h.strategyEquityQuantity.signum() >= 0
+                && h.equityUsd != null && h.equityUsd.signum() >= 0
+                && h.cashBal.compareTo(h.equityQuantity) <= 0
+                && h.availBal.compareTo(h.cashBal) <= 0
+                && h.strategyEquityQuantity.compareTo(h.equityQuantity) <= 0
+                && (h.equityQuantity.signum() == 0 ? h.equityUsd.signum() == 0 : h.equityUsd.signum() > 0));
         if (!complete) {
             out.put("valuationStatus", "MISSING_PROOF_UNPRICED_OR_INVALID_BALANCE");
             return out;
         }
-        BigDecimal total = all.stream().map(h -> h.eqUsd).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = all.stream().map(h -> h.equityUsd).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal btc = all.stream().filter(h -> "BTC".equalsIgnoreCase(h.ccy))
-                .map(h -> h.eqUsd).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(h -> h.equityUsd).reduce(BigDecimal.ZERO, BigDecimal::add);
         out.put("valuationStatus", "OBSERVED_BALANCES_ESTIMATED_USD");
         out.put("observedBalanceEquityUsd", total);
         out.put("observedBtcExposureUsd", btc);

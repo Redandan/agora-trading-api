@@ -208,9 +208,12 @@ public class ExecutionSafetyMcpTools {
         }
         for (OkxTradingService.SpotHolding holding : holdings) {
             result.append("- ccy=").append(holding.ccy)
-                    .append(" total=").append(decimal(holding.cashBal))
+                    .append(" cashBalance=").append(decimal(holding.cashBal))
                     .append(" available=").append(decimal(holding.availBal))
-                    .append(" usd=").append(decimal(holding.eqUsd))
+                    .append(" cashEstimatedUsd=").append(decimal(holding.eqUsd))
+                    .append(" equityQuantity=").append(decimal(holding.equityQuantity))
+                    .append(" equityUsd=").append(decimal(holding.equityUsd))
+                    .append(" botEquityIncludedQuantity=").append(decimal(holding.strategyEquityQuantity))
                     .append('\n');
         }
     }

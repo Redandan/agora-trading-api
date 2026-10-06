@@ -1,12 +1,63 @@
 # Split Acceptance Status
 
-Contract updated: 2026-10-03 Asia/Taipei
+Contract updated: 2026-10-06 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
 runnable current guidance.
 
-## 2026-10-03 DRA receipt and protected-profit execution release
+## 2026-10-06 DRA quantity, account valuation and runtime-log repair
+
+- One application deployment from `90db4200cbb807d907101d9c753caf6853a9eb20`.
+  Startup 2026-10-06 08:14:59 UTC (16:14:59 Taipei), active port 8084,
+  PID 1909811. Old PID 953746 exited and port 8085 is drained. Deployment,
+  strict post-drain `verify_server.sh`, local/public health, authenticated MCP
+  and nginx routing passed. Registry remains 10 tools and 11 resources.
+- All 153 focused tests passed with zero failures/errors/skips; Java 21
+  `mvn -DskipTests package`, retained-script syntax and `git diff --check`
+  passed. Offline tests include the exact observed BUY quantity, replay,
+  partial SELL ownership, fresh receipt mismatch, existing-clock correction,
+  bot-only balances and the actual retained runtime-log checker.
+- `DRA_OWNED_QUANTITY_V1` is active. At 08:15:26 UTC, ordinary receipt
+  maintenance corrected lot 264 from 0.00035361 to 0.00035360 BTC after a
+  fresh matching BUY receipt. Audit 81714 (`SPOT_QUANTITY_RECONCILED`) records
+  `orderSent=false`, exact provider net 0.00035360604 BTC and retained dust
+  0.00000000604 BTC. As of 08:16:13 UTC there is one correction audit, zero
+  release-window AUTOTRADE_OK/AUTOTRADE_FAIL/EXIT events, and no new execution
+  attempt. Replay/no-duplicate behavior is separately covered offline.
+- Read-only SQL confirmed unchanged entry price 84839.83983984, actual fill
+  price 84755, original creation time and BUY order 3978535656630571008.
+  Attempt 2 retains gross cost 29.9998798 USDT, fee 0.02999988 USDT equivalent,
+  net 0.000353606040 BTC and its original October 4 updated time. Legacy
+  positions 260/261/262 and historical attempt 1 are unchanged. No data
+  migration, manual SQL write, fill backfill or test order was performed.
+- DRA remains LIVE/AGGRESSIVE, new buy 30 USDT, one-lot ceiling 30 USDT,
+  protected +5% IOC profit exits, zero pending fees and no risk-sell authority.
+  Owner 509 remains LIVE/armed with 10/80/250 USDT limits and zero owned lots.
+  DRA, Donchian SHADOW and owner-509 data/decision observations are CURRENT
+  and matched. Binance/OKX public streams and OKX private subscription are
+  connected. OCO safety reports zero issues for four intentional BTC Base lots.
+- Account V2 reports cash and available balances separately from provider
+  equity. At 08:16:19 UTC, USDT cash was 439.3365439102883 and equity
+  448.83755708489923, including 9.501013174610922 already-allocated bot USDT.
+  BTC cash was 0.0008871693237395 and equity 0.0009352078110651, including
+  0.0000480384873256 bot BTC. The USD risk total is 528.9025384212611125;
+  bot equity is counted once. Earn and exact bot lifecycle PnL remain outside
+  this snapshot; whole-account completeness is explicitly false.
+- Native Grid 3974349158101700608 remains running with 13.62 USDT investment
+  and price inside 78000–90000. No Grid mutation occurred.
+- The new runtime log has zero errors, zero unknown warnings, nine known
+  startup warnings and zero trading/OCO/Grid/Earn/fund operation-like lines.
+  The revised reconnect check was also run read-only against the previous log:
+  its actual recovered Binance warning passes; the old log's two genuine
+  October 4 BUY/fill lines still trigger the intentionally strict order guard.
+  No broad warning/order bypass was used.
+- Deployment log: `logs/deploy/deploy-20261006T081341Z.log`.
+  Runtime log: `logs/runs/app-20261006T081430Z-port8084.log`.
+  This release fixes accounting and diagnostics; it makes no profit-uplift
+  claim and does not substitute tests for a future natural IOC SELL receipt.
+
+## Earlier 2026-10-03 DRA receipt and protected-profit execution release
 
 - One application deployment from `a619ce422983d42694c2393c369326268c02be75`.
   Runtime startup is 2026-10-03 04:19:26 UTC (12:19:26 Taipei), active port

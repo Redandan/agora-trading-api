@@ -1,11 +1,13 @@
-# BTC order advice local acceptance — 2026-10-07
+# BTC order advice acceptance — 2026-10-07
 
-Status: LOCAL_IMPLEMENTATION_VERIFIED / NOT_DEPLOYED / PERFORMANCE_UNPROVEN.
+Status: LOCAL_AND_PRODUCTION_VERIFIED / TELEGRAM_ACCEPTED / PERFORMANCE_UNPROVEN.
 
 Base: deployed Trading commit `90db4200cbb807d907101d9c753caf6853a9eb20`.
 Branch: `codex/btc-order-advice`, in its own worktree. The original research
-checkout and other worktrees were preserved. No commit/push, production change,
-exchange order, fund movement, database migration or Telegram send was performed.
+checkout and other worktrees were preserved. Local acceptance preceded release
+authorization; the owner subsequently authorized commit, push, deployment and
+the existing Telegram advice channel. No manual/test exchange order, fund
+movement, database migration or strategy/capital setting change was performed.
 
 ## Results
 
@@ -47,16 +49,41 @@ fallback. Tests do not start Spring, connect to the live DB, or send Telegram.
 - Changed conditions: material changes replace the plan, compare it to the
   last acknowledged advice and retain failed notifications for retry.
 - Local verification: the complete retained suite and packaging pass. Synthetic
-  examples are reviewable and clearly labelled. Live input and Telegram delivery
-  acceptance remain unverified until the separately authorized release.
+  examples are reviewable and clearly labelled. The authorized live input and
+  Telegram delivery checks below complete production acceptance.
 
-## Production acceptance still required
+## Authorized production acceptance
 
-Deployment and new monitor/Telegram enablement require the owner's release
-authorization under AGENTS.md. After approval: verify unchanged live strategy
-settings and MCP registry, fresh real-market/account/order inputs, the protected
-text/JSON report paths, state-file durability, and separately the Telegram
-acknowledgement. Do not use a live test order for acceptance.
+- Runtime commit: `8cf7305d25cdf56fb8f3ddfee00d651bdf17adbd`, deployed from
+  `main` using `scripts/deploy_ssh.ps1`. Prior documentation-only main commit
+  `4871d160` was included. Active port is 8085; old port 8084 was drained.
+- Durable deployment log: `logs/deploy/deploy-20261007T072624Z.log`; exit 0.
+  Health, authenticated public/local MCP, exact runtime commit and the strict
+  post-drain `scripts/verify_server.sh` checks passed.
+- Enabled only the advice monitor and notification flags, with state at
+  `/home/ubuntu/.agora-state/btc-order-advice-v1.json`. All other secrets-file
+  values were compared and preserved; a private backup was retained.
+- At 15:28 Asia/Taipei, real input produced revision 1, `PLAN / RANGE`, using
+  0.0004709 eligible legacy BTC. Proposed sell: 0.00011772 BTC at 86693.7 USDT;
+  conditional rebuy: 0.00011991 BTC at 83577.1 USDT. These are historical
+  acceptance values, not evergreen instructions. Rebuy requires a completed
+  sale and a fresh account/market review.
+- Both local report routes returned 200 with the internal key and 401 with an
+  invalid key. Shared-host and dedicated-host public analysis routes returned
+  200 with a normal client user agent. The initial Python urllib probe returned
+  403; subsequent probes passed. Its failing layer was not independently
+  attributed. The local API and advice push passed throughout.
+- The enabled monitor created the first real-market plan and persisted
+  `deliveryStatus=TELEGRAM_ACCEPTED`, `deliveredRevision=1`,
+  `pendingNotification=false`. This requires a Telegram message receipt;
+  it does not assert the user read or executed it. Repeated unchanged queries
+  retained the same delivered revision.
+- The entire strategy contract preceding its observation section was identical
+  before/after. Positions 260/261/262/264 retained exact identity, quantity,
+  management and exit policy. Execution safety stayed `OK`, with zero issues.
+  The MCP registry remained 10 tools and 11 resources with the same resource hash.
+- Active-run log smoke passed: zero ERROR, zero unknown WARN and no high-risk
+  trading/OCO/Grid/Earn/fund operation-like lines. No live test order was used.
 
 The rule uses observed range/trend/volatility; it is not optimized or validated
 alpha. Conditional rebuy arithmetic is a scenario, not an executed cycle. V1

@@ -18,6 +18,9 @@ import java.util.Optional;
 public interface SpotExecutionAttemptRepository
         extends JpaRepository<SpotExecutionAttempt, Long> {
 
+    /** Read-only advisory exclusion; no locking, reconciliation or order submission. */
+    boolean existsByStateIn(java.util.Collection<SpotExecutionAttempt.State> states);
+
     long countByStrategyContractAndFeeReconciliationStatus(
             String contract, SpotExecutionAttempt.FeeReconciliationStatus status);
 

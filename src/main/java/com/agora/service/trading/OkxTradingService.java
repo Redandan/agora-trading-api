@@ -235,6 +235,36 @@ public class OkxTradingService implements TradingService {
         return response.path("data").path(0);
     }
 
+    /** Uncached, strictly read-only inputs for the BTC advisory product. No stale fallback. */
+    public JsonNode getBtcAdviceBalances() {
+        return adviceRead("/api/v5/account/balance?ccy=BTC,USDT");
+    }
+
+    public JsonNode getBtcAdviceInstrument() {
+        JsonNode response = getPublic("/api/v5/public/instruments?instType=SPOT&instId=BTC-USDT");
+        assertOkxCode(response);
+        if (!response.path("data").isArray() || response.path("data").size() != 1)
+            throw new IllegalStateException("BTC instrument rules incomplete");
+        return response.path("data").get(0);
+    }
+
+    public JsonNode getBtcAdvicePendingOrders(String algoType) {
+        if (algoType == null) {
+            return adviceRead("/api/v5/trade/orders-pending?instType=SPOT&instId=BTC-USDT&limit=100");
+        }
+        if (!List.of("oco", "conditional", "trigger", "move_order_stop").contains(algoType)) {
+            throw new IllegalArgumentException("Unsupported BTC advice order type");
+        }
+        return adviceRead("/api/v5/trade/orders-algo-pending?ordType=" + algoType + "&instId=BTC-USDT&limit=100");
+    }
+
+    private JsonNode adviceRead(String fixedPath) {
+        JsonNode response = get(fixedPath);
+        assertOkxCode(response);
+        if (!response.path("data").isArray()) throw new IllegalStateException("Advice provider data missing");
+        return response.path("data");
+    }
+
     /**
      * Read-only OKX SPOT instrument rules used by preflight diagnostics.
      * No order/OCO/account state is changed.

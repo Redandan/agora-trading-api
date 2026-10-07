@@ -49,6 +49,20 @@ import java.util.stream.Collectors;
 public class TelegramServiceImpl implements TelegramService, NotificationPort {
 
     @Override public void broadcast(String message) { sendMessage(message); }
+
+    @Override
+    public boolean sendBtcOrderAdvice(String message) {
+        String channelId = telegramBotConfig.getChannelId();
+        if (telegramClient == null || channelId == null || channelId.isBlank() || message == null
+                || message.length() > TELEGRAM_MESSAGE_LIMIT || shouldMute(message)) return false;
+        try {
+            Message receipt = telegramClient.execute(SendMessage.builder().chatId(channelId).text(message).build());
+            return receipt != null && receipt.getMessageId() != null;
+        } catch (TelegramApiException e) {
+            log.warn("[BtcOrderAdvice] Telegram did not acknowledge delivery ({})", e.getClass().getSimpleName());
+            return false;
+        }
+    }
     @Override public void broadcast(String message, boolean useHtml) { sendMessage(message, useHtml); }
     @Override public void alert(String message, boolean useHtml, String source, String level) {
         sendAlert(message, useHtml, source, level);

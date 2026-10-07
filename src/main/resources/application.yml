@@ -45,6 +45,13 @@ management:
       show-details: never
 
 trading:
+  btc-order-advice:
+    monitor-enabled: ${TRADING_BTC_ORDER_ADVICE_MONITOR_ENABLED:false}
+    notifications-enabled: ${TRADING_BTC_ORDER_ADVICE_NOTIFICATIONS_ENABLED:false}
+    trade-fraction: ${TRADING_BTC_ORDER_ADVICE_TRADE_FRACTION:0.25}
+    cash-share: ${TRADING_BTC_ORDER_ADVICE_CASH_SHARE:0.5}
+    valid-minutes: ${TRADING_BTC_ORDER_ADVICE_VALID_MINUTES:60}
+    state-file: ${TRADING_BTC_ORDER_ADVICE_STATE_FILE:${user.home}/.agora-state/btc-order-advice-v1.json}
   mcp:
     api-key: ${TRADING_MCP_KEY:}
   internal:

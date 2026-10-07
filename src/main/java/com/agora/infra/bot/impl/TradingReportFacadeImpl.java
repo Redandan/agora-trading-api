@@ -3,6 +3,8 @@ package com.agora.infra.bot.impl;
 import com.agora.infra.bot.TradingReportFacade;
 import com.agora.mcp.ExecutionSafetyMcpTools;
 import com.agora.mcp.StrategyCatalogMcpTools;
+import com.agora.service.advice.BtcOrderAdviceService;
+import com.agora.service.advice.BtcOrderAdviceFormatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,7 @@ class TradingReportFacadeImpl implements TradingReportFacade {
 
     private final ExecutionSafetyMcpTools executionSafetyMcpTools;
     private final StrategyCatalogMcpTools strategyCatalogMcpTools;
+    private final BtcOrderAdviceService btcOrderAdvice;
 
     @Override
     public String currentSituation() {
@@ -22,7 +25,7 @@ class TradingReportFacadeImpl implements TradingReportFacade {
 
     @Override
     public String marketAnalysis() {
-        return strategyCatalogMcpTools.getOwner509RuntimeStatus();
+        return BtcOrderAdviceFormatter.format(btcOrderAdvice.current());
     }
 
     @Override

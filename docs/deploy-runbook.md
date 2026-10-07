@@ -165,6 +165,22 @@ No other script is part of the supported deployment workflow.
 
 ## Local build
 
+### BTC order advice release
+
+The V1 advice addition has no schema migration and no order execution. Existing
+LIVE/OCO/Grid settings and the ten-tool MCP registry stay unchanged. Read
+`btc-order-advice-v1.md` before enabling its separate monitor or Telegram push.
+Both new enablement settings default to false. Verify the existing internal
+`/analysis` response and new `/btc-order-advice` response with the internal API
+key; invalid keys must return 401. Verify that the state file is writable by the
+service user and survives blue/green deployments. A missing/invalid quote,
+pending execution or inconsistent inventory must invalidate actionable advice.
+Do not place a test order to verify this feature. Compare the report against
+fresh provider inputs and preserve `UNPROVEN` performance status even when
+functional checks pass. Enable Telegram only for the explicitly selected
+configured destination; successful API return and actual Telegram acknowledgement
+are separate acceptance facts.
+
 The broad historical test tree remains intentionally removed. The narrow
 bootstrap and execution-attempt LIVE-contract suite is retained:
 

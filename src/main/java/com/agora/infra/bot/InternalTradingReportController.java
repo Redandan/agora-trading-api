@@ -2,6 +2,7 @@ package com.agora.infra.bot;
 
 import com.agora.config.TradingInternalApiProperties;
 import com.agora.dto.internalapi.TradingReportResponse;
+import com.agora.service.advice.BtcOrderAdviceService;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,13 @@ public class InternalTradingReportController {
 
     private final TradingReportFacade tradingReportFacade;
     private final TradingInternalApiProperties properties;
+    private final BtcOrderAdviceService btcOrderAdvice;
+
+    @GetMapping("/btc-order-advice")
+    public ResponseEntity<?> btcOrderAdvice(@RequestHeader(value = INTERNAL_API_KEY_HEADER, required = false) String apiKey) {
+        if (!isAuthorized(apiKey)) return unauthorizedResponse();
+        return ResponseEntity.ok(btcOrderAdvice.current());
+    }
 
     @GetMapping("/current")
     public ResponseEntity<?> current(@RequestHeader(value = INTERNAL_API_KEY_HEADER, required = false) String apiKey) {

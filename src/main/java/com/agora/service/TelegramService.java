@@ -3,6 +3,8 @@ package com.agora.service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 public interface TelegramService {
+    /** Dedicated opt-in advice delivery. True only when Telegram accepted the complete message. */
+    default boolean sendBtcOrderAdvice(String message) { return false; }
     /**
      * 發送消息到 Telegram 頻道（純文本）
      *

@@ -62,6 +62,15 @@ unknown tools fail closed.
 
 ## Telegram Report Gateway
 
+BTC order advice is a user-requested advisory product under
+`docs/btc-order-advice-v1.md`. It may read Trading-owned market/inventory data
+and authenticated OKX balances, fees and pending orders, and publish a manual
+order plan through the existing report gateway. A separately enabled advice
+monitor may refresh the plan and notify its material changes. It has no exchange
+write, strategy-registry, research-canonical or database-write authority. Advice
+revision/delivery state is an isolated local file. Advice is not SHADOW/PAPER/LIVE
+promotion, and does not change the existing strategies or their subscriptions.
+
 AgoraMarketAPI owns the Telegram webhook and command dispatch for `/report`,
 `/manager`, `/analysis`, and `/weekly`. This service owns the report content
 and exposes only read-only internal endpoints under `/api/trading/internal/reports/**`,

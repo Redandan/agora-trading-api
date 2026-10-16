@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -271,10 +272,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
             context.put("effectiveEntryPrice", effectiveEntry);
             audit(strategy, signalBar, "PASS", "BUY_FILLED", "BUY",
                     true, reservation.getId(), context);
-            alert("INFO", "509 BUY filled: " + plain(plan.requestedNotionalUsdt())
-                    + " USDT, weight=" + plain(plan.aggregateWeight())
-                    + ", orderId=" + fill.getOrderId()
-                    + ", qty=" + plain(fill.getQty()));
+            alert("INFO", buyFilledMessage(signalBar, plan, fill));
             log.info("[TV509] BUY filled bar={} weight={} notional={} orderId={} qty={} effectiveEntry={}",
                     signalBar.getOpenTime(), plan.aggregateWeight(), plan.requestedNotionalUsdt(),
                     fill.getOrderId(), fill.getQty(), effectiveEntry);
@@ -679,6 +677,51 @@ public class TradingViewScoreBuyAutoExitLiveService {
 
     private String positionReason(String suffix) {
         return safe(POSITION_PREFIX + suffix, 500);
+    }
+
+    private String buyFilledMessage(MdKline signalBar,
+                                    TradingViewAccumulationOrderPlanner.Plan plan,
+                                    TradeResult fill) {
+        boolean feeConfirmed = fill.getFeeAmount() != null
+                && fill.getFeeCurrency() != null && !fill.getFeeCurrency().isBlank();
+        String reasons = String.join("；", plan.intents().stream()
+                .map(intent -> switch (intent.reason()) {
+                    case "TRADINGVIEW_RELATIVE_LOW" -> "下探近 20 日低點後收回";
+                    case "TRADINGVIEW_POTENTIAL_LOW" -> "觸及近 63 日低點，收盤高於此前低點";
+                    case "TRADINGVIEW_AI_BUY_SIGNAL" -> "綜合買點條件成立";
+                    default -> intent.label() == null || intent.label().isBlank()
+                            ? intent.reason() : intent.label();
+                }).distinct().toList());
+        StringBuilder message = new StringBuilder("【BTC 買入成交｜509 策略】\n平台：OKX 現貨")
+                .append("\n買入預算：").append(String.format(Locale.ROOT, "%,.2f", plan.requestedNotionalUsdt()))
+                .append(" USDT（權重 ").append(plain(plan.aggregateWeight())).append("）")
+                .append("\n成交均價：").append(String.format(Locale.ROOT, "%,.2f", fill.getAvgPrice()))
+                .append(" USDT/BTC")
+                .append(feeConfirmed ? "\n實收數量：" : "\n暫估淨數量：")
+                .append(plain(fill.getQty())).append(" BTC");
+        if (feeConfirmed) {
+            message.append(fill.getFeeAmount().signum() > 0 ? "\n買入返佣：" : "\n買入手續費：")
+                    .append(plain(fill.getFeeAmount().abs())).append(" ").append(fill.getFeeCurrency());
+            if (fill.getFeeUsdt() != null && !"USDT".equalsIgnoreCase(fill.getFeeCurrency())) {
+                message.append("（約 ").append(String.format(Locale.ROOT, "%,.4f", fill.getFeeUsdt().abs()))
+                        .append(" USDT）");
+            }
+        } else {
+            message.append("\n買入手續費：待交易所確認，淨數量可能調整");
+        }
+        message.append("\n\n買入原因：").append(reasons)
+                .append("\n訊號來源：Binance 日線（已收盤）");
+        if (signalBar.getCloseTime() != null) {
+            message.append("\n訊號收盤：").append(signalBar.getCloseTime().atOffset(ZoneOffset.UTC)
+                    .atZoneSameInstant(ZoneId.of("Asia/Taipei"))
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm", Locale.ROOT)))
+                    .append("（台灣時間）");
+        }
+        return message.append("\n\n後續管理：每日收盤後評估，預估淨報酬達 ")
+                .append(plain(TradingViewScoreBuyAutoExitStrategyContract.NET_PROFIT_TRIGGER.movePointRight(2)))
+                .append("% 時嘗試賣出")
+                .append("\n策略設定：無自動止損或最長持倉期限")
+                .append("\n訂單編號：").append(fill.getOrderId()).toString();
     }
 
     private void alert(String level, String message) {

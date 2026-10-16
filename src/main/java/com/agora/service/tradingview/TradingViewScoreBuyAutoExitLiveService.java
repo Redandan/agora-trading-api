@@ -234,8 +234,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
         } catch (Exception e) {
             audit(strategy, signalBar, "ERROR", "BUY_RESERVATION_FAILED", "BUY",
                     false, null, withError(context, e));
-            alert("CRITICAL", "509 BUY reservation failed before order; no order sent. "
-                    + safe(e.getMessage(), 240));
+            alert("CRITICAL", TradingViewTradeMessageFormatter.notSubmitted("BUY", e.getMessage()));
             return false;
         }
 
@@ -251,8 +250,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
             context.put("liveSignalId", reservation.getId());
             audit(strategy, signalBar, "ERROR", "BUY_SUBMISSION_UNCONFIRMED", "BUY",
                     false, reservation.getId(), withError(context, e));
-            alert("CRITICAL", "509 BUY submission unconfirmed; automatic retry disabled. clOrdId="
-                    + clientOrderId + " error=" + safe(e.getMessage(), 240));
+            alert("CRITICAL", TradingViewTradeMessageFormatter.unconfirmed("BUY", clientOrderId, e.getMessage()));
             return false;
         }
 
@@ -280,9 +278,8 @@ public class TradingViewScoreBuyAutoExitLiveService {
         } catch (Exception e) {
             audit(strategy, signalBar, "ERROR", "BUY_FILL_RECONCILIATION_PENDING", "BUY",
                     true, reservation.getId(), withError(context, e));
-            alert("CRITICAL", "509 BUY receipt awaits reconciliation. orderId="
-                    + fill.getOrderId() + " clOrdId=" + clientOrderId
-                    + " error=" + safe(e.getMessage(), 240));
+            alert("CRITICAL", TradingViewTradeMessageFormatter.reconciliationPending(
+                    "BUY", fill.getOrderId(), clientOrderId, e.getMessage()));
             return false;
         }
     }
@@ -416,8 +413,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
         } catch (Exception e) {
             audit(strategy, signalBar, "ERROR", "SELL_RESERVATION_FAILED", "SELL",
                     false, eligible.get(0).getId(), withError(context, e));
-            alert("CRITICAL", "509 SELL reservation failed before order; no order sent. "
-                    + safe(e.getMessage(), 240));
+            alert("CRITICAL", TradingViewTradeMessageFormatter.notSubmitted("SELL", e.getMessage()));
             return false;
         }
 
@@ -432,8 +428,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
             // Keep the complete V2 reservation intact for provider-first reconciliation.
             audit(strategy, signalBar, "ERROR", "SELL_SUBMISSION_UNCONFIRMED", "SELL",
                     false, eligible.get(0).getId(), withError(context, e));
-            alert("CRITICAL", "509 SELL submission unconfirmed; automatic retry disabled. clOrdId="
-                    + clientOrderId + " error=" + safe(e.getMessage(), 240));
+            alert("CRITICAL", TradingViewTradeMessageFormatter.unconfirmed("SELL", clientOrderId, e.getMessage()));
             return false;
         }
 
@@ -448,9 +443,8 @@ public class TradingViewScoreBuyAutoExitLiveService {
             context.put("soldQty", soldQty);
             audit(strategy, signalBar, "ERROR", "SELL_FILL_RECONCILIATION_PENDING", "SELL",
                     true, eligible.get(0).getId(), withError(context, e));
-            alert("CRITICAL", "509 SELL receipt awaits reconciliation. orderId="
-                    + fill.getOrderId() + " clOrdId=" + clientOrderId
-                    + " error=" + safe(e.getMessage(), 240));
+            alert("CRITICAL", TradingViewTradeMessageFormatter.reconciliationPending(
+                    "SELL", fill.getOrderId(), clientOrderId, e.getMessage()));
             return false;
         }
 
@@ -462,9 +456,7 @@ public class TradingViewScoreBuyAutoExitLiveService {
         context.put("unallocatedFillQty", BigDecimal.ZERO);
         audit(strategy, signalBar, "PASS", "SELL_FILLED", "SELL",
                 true, eligible.get(0).getId(), context);
-        alert("INFO", "509 SELL filled: orderId=" + fill.getOrderId()
-                + ", qty=" + plain(soldQty)
-                + ", realizedPnl=" + plain(realizedTotal) + " USDT");
+        alert("INFO", TradingViewTradeMessageFormatter.sellFilled(fill, soldQty, requestedQty, realizedTotal));
         log.info("[TV509] SELL filled bar={} lots={} orderId={} qty={} realizedPnl={}",
                 signalBar.getOpenTime(), eligible.size(), fill.getOrderId(), soldQty, realizedTotal);
         return true;

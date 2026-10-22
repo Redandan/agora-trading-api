@@ -116,6 +116,7 @@ require_cmd env
 require_cmd grep
 require_cmd git
 require_cmd java
+require_cmd python3
 require_cmd kill
 require_cmd lsof
 require_cmd mkdir
@@ -230,6 +231,8 @@ git diff --cached --quiet || {
   exit 1
 }
 
+JAVA_OPTS="$JAVA_OPTS" bash "$APP_DIR/scripts/java-tls-preflight.sh" --java "$(command -v java)"
+
 git fetch origin "$BRANCH" --quiet
 git merge --ff-only "origin/$BRANCH"
 if [ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$BRANCH")" ]; then
@@ -246,6 +249,7 @@ mvn -f "$INTERNAL_CLIENT_POM" install -DskipTests -q
 
 BUILD_COMMIT="$(git rev-parse HEAD)"
 mvn clean package -DskipTests -q
+JAVA_OPTS="$JAVA_OPTS" bash "$APP_DIR/scripts/java-tls-preflight.sh" --java "$(command -v java)" --jar target/agora-trading-api-1.0-SNAPSHOT.jar
 if [ "$(git rev-parse HEAD)" != "$BUILD_COMMIT" ]; then
   echo "[deploy] checkout changed during build; refusing ambiguous runtime identity" >&2
   exit 1

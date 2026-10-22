@@ -116,6 +116,7 @@ require_cmd env
 require_cmd grep
 require_cmd git
 require_cmd java
+require_cmd python3
 require_cmd kill
 require_cmd lsof
 require_cmd mkdir

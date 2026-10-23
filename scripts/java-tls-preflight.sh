@@ -4,6 +4,8 @@ exec python3 - "$@" <<'JAVA_TLS_PREFLIGHT_PY'
 #!/usr/bin/env python3
 """Offline deployment gate; never starts an application or changes security files."""
 import argparse
+import hashlib
+import ssl
 import json
 import os
 from pathlib import Path
@@ -138,6 +140,38 @@ def validate_blocklist(java_home):
     return len(entries)
 
 
+REMOVED_ROOT = "86a1ecba089c4a8d3bbe2734c612ba341d813e043cf9e8a862cd5c57a36bbe6b"
+
+
+def validate_der_certificates(certificates):
+    if not certificates:
+        raise ValueError("CA store is empty or could not be inspected")
+    if any(hashlib.sha256(der).hexdigest() == REMOVED_ROOT for der in certificates):
+        raise ValueError("removed emSign ECC G3 root is still trusted")
+    return len(certificates)
+
+
+def validate_pem(text):
+    certificates = re.findall(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", text, re.S)
+    return validate_der_certificates([ssl.PEM_cert_to_DER_cert(pem) for pem in certificates])
+
+
+def validate_java_truststore(home):
+    home = Path(home)
+    # JSSE selects jssecacerts before cacerts. Check the store actually selected.
+    directory = home / "lib/security"
+    store = directory / "jssecacerts"
+    if not store.exists():
+        store = directory / "cacerts"
+    if not store.is_file():
+        raise ValueError("default Java truststore is missing")
+    keytool = home / "bin" / ("keytool.exe" if os.name == "nt" else "keytool")
+    # changeit is the public default truststore password; never read app secrets.
+    result = subprocess.run([str(keytool), "-list", "-rfc", "-keystore", str(store),
+                             "-storepass", "changeit"], capture_output=True, text=True, check=True, timeout=30)
+    return {"selectedStore": store.name, "checkedCertificates": validate_pem(result.stdout)}
+
+
 def class_method_references(data):
     if data[:4] != b"\xca\xfe\xba\xbe":
         raise ValueError("invalid application class file")
@@ -211,13 +245,14 @@ def main():
         if Path(executable).resolve() != (Path(home) / "bin" / Path(executable).name).resolve():
             raise ValueError("Java executable and effective java.home disagree")
         count = validate_blocklist(home)
+        truststore = validate_java_truststore(home)
         if args.jar:
             validate_jar(args.jar)
         print(json.dumps({"type": "java_tls_preflight", "status": "PASS",
                           "javaExecutable": str(Path(executable).resolve()),
                           "javaVersion": properties.get("java.runtime.version"),
                           "requiredFingerprints": len(REQUIRED), "installedFingerprints": count,
-                          "candidateJarChecked": bool(args.jar)}))
+                          "truststore": truststore, "candidateJarChecked": bool(args.jar)}))
         return 0
     except (OSError, ValueError, subprocess.SubprocessError, zipfile.BadZipFile,
             IndexError, TypeError, struct.error) as error:

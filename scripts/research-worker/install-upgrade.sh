@@ -660,6 +660,7 @@ if [ -d "$SOURCE_DIR/target/dra-crypto-carry-dist" ]; then
 fi
 [ -f "$SOURCE_DIR/research_pipeline/policy.v3.json" ] || fail "V3 policy missing"
 [ -f "$SOURCE_DIR/scripts/research-worker/research-mcp-requirements.lock" ] || fail "MCP lock missing"
+[ -f "$SOURCE_DIR/scripts/research-worker/ca-trust-preflight.py" ] || fail "CA preflight missing"
 [ -s "$SOURCE_MANIFEST" ] || fail "source manifest missing"
 (cd "$SOURCE_DIR" && sha256sum -c "$SOURCE_MANIFEST" >/dev/null) || fail "source manifest verification failed"
 sudo test -f "$DATA_ROOT/state/authority.json" || fail "canonical state missing"
@@ -782,6 +783,9 @@ fi
 sudo "$WORKER_ROOT/venv/bin/python" -m pip install \
   --disable-pip-version-check --no-cache-dir \
   -r "$RELEASE_DIR/scripts/research-worker/research-mcp-requirements.lock" >/dev/null
+# Verify the exact venv after installation, before switching/restarting.
+sudo "$WORKER_ROOT/venv/bin/python" -m pip check
+sudo "$WORKER_ROOT/venv/bin/python" "$RELEASE_DIR/scripts/research-worker/ca-trust-preflight.py" python
 sudo chown -R root:root "$WORKER_ROOT/venv"
 sudo find "$WORKER_ROOT/venv" -type d -exec chmod go-w {} +
 sudo find "$WORKER_ROOT/venv" -type f -exec chmod go-w {} +
